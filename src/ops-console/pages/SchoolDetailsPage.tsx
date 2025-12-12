@@ -1,3 +1,4 @@
+// SchoolDetailsPage.tsx
 import React, { useEffect, useState } from "react";
 import "./SchoolDetailsPage.css";
 import { Box } from "@mui/material";
@@ -12,7 +13,6 @@ import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
 import { SchoolTabs } from "../../interface/modelInterfaces";
-
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -44,12 +44,6 @@ export type ClassWithDetails = TableTypes<"class"> & {
   studentCount?: number;
 };
 
-const handleAddNoteHeader = (data: any) => {
-  console.log("Header note added:", data);
-  // Later we will plug API + refresh Notes tab
-};
-
-
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [data, setData] = useState<{
     schoolData?: any;
@@ -79,9 +73,35 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
+  // Handler moved INSIDE the component so it has access to id, setShowAddModal, setActiveTab
+  const handleAddNoteHeader = async (payload: { text: string }) => {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      // call the API you added; classId = null for school-level note
+      const created = await api.createNoteForSchool({
+        schoolId: id,
+        classId: null,
+        content: payload.text,
+      });
+
+      // close modal
+      setShowAddModal(false);
+
+      // dispatch event so Notes tab component can update if it listens to this
+      window.dispatchEvent(new CustomEvent("notes:updated", { detail: created }));
+
+      // switch to Notes tab
+      setActiveTab(SchoolTabs.Notes);
+    } catch (err) {
+      console.error("Failed to create note:", err);
+      // optional: show UI error (not added to keep changes minimal)
+    }
+  };
+
   useEffect(() => {
     fetchAll();
   }, [id]);
+
   async function fetchAll() {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
@@ -268,7 +288,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             </button>
           )}
         </div>
-
       )}
       {/* Modal outside the header */}
       <AddNoteModal
@@ -289,9 +308,8 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
-          onTabChange={(tab) => setActiveTab(tab)}  // new prop
+          onTabChange={(tab) => setActiveTab(tab)} // new prop
         />
-
       </div>
       <div className="school-detail-columns-gap" />
     </div>

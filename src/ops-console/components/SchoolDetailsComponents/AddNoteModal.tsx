@@ -89,7 +89,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
             onClick={handleCancel}
             style={{ padding: "8px 14px", borderRadius: 6 }}
           >
-            {t("cancel")}
+            {t("Cancel")}
           </button>
 
           <button
@@ -102,7 +102,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
               borderRadius: 6,
             }}
           >
-            {t("save")}
+            {t("Save")}
           </button>
         </div>
       </div>

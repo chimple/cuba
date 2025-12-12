@@ -1,3 +1,4 @@
+// ClassDetailsPage.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Box, Button, useMediaQuery } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
@@ -8,6 +9,7 @@ import "./ClassDetailsPage.css";
 import { t } from "i18next";
 import { StudentInfo, TableTypes } from "../../../common/constants";
 import { ClassRow, SchoolDetailsData } from "./SchoolClass";
+import AddNoteModal from "../SchoolDetailsComponents/AddNoteModal"; // <<-- imported
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -69,6 +71,8 @@ const ClassDetailsPage: React.FC<Props> = ({
   const [initialTotal, setInitialTotal] = useState<number>(0);
   const [activeStudentCount, setActiveStudentCount] = useState<number>(0);
 
+  const [showAddModal, setShowAddModal] = useState(false); // <<-- modal state
+
   const classNameSt = (classRow?.name ?? "").toString().trim() || "";
   const subjectsSt = useMemo(
     () => toCommaString(classRow?.subjectsNames),
@@ -114,28 +118,115 @@ const ClassDetailsPage: React.FC<Props> = ({
   const finalTotalStudentsSt = String(totalStudentsOverride);
   const finalActiveStudentsSt = String(activeStudentCount);
 
+  // UPDATED: call the API and dispatch notes:updated so SchoolNotes will update and open preview
+  const handleAddNoteSave = async (payload: { text: string }) => {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      if (!api || !api.createNoteForSchool) {
+        console.error("Notes API not available");
+        setShowAddModal(false);
+        return;
+      }
+
+      // call backend API (this will create fc_user_forms row and return normalized object)
+      const created = await api.createNoteForSchool({
+        schoolId,
+        classId,
+        content: payload.text,
+      });
+
+      // created should be the structured object returned by your supabase API
+      // e.g. { id, visitId, schoolId, classId, className, content, createdAt, createdBy: { userId, name, role } }
+
+      // Inform Notes tab (SchoolNotes listens to this)
+      window.dispatchEvent(new CustomEvent("notes:updated", { detail: created }));
+
+      // close modal
+      setShowAddModal(false);
+
+      // Optional: you can show a toast/notification here
+      console.log("Note created:", created);
+    } catch (err) {
+      console.error("Failed to create class note:", err);
+      // close modal anyway, or keep open if you want user to retry — here we close
+      setShowAddModal(false);
+    }
+  };
+
+  const handleAddNoteCancel = () => {
+    setShowAddModal(false);
+  };
+
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "grey.50", minHeight: "100vh" }}>
-      <Button
-        variant="text"
-        startIcon={<ArrowBack />}
-        onClick={onBack}
+      {/* Header row: Back button (left) and Add Notes (right) */}
+      <Box
         sx={{
-          textTransform: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           mb: 1,
-          background: "#fff",
-          color: "#111",
-          border: "1px solid #e5e7eb",
-          borderRadius: "5px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          px: 1.5,
-          py: 0.5,
-          fontSize: "14px",
-          fontWeight: 600,
         }}
       >
-        {t("Back to Classes")}
-      </Button>
+        <Button
+          variant="text"
+          startIcon={<ArrowBack />}
+          onClick={onBack}
+          sx={{
+            textTransform: "none",
+            background: "#fff",
+            color: "#111",
+            border: "1px solid #e5e7eb",
+            borderRadius: "5px",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+            px: 1.5,
+            py: 0.5,
+            fontSize: "14px",
+            fontWeight: 600,
+          }}
+        >
+          {t("Back to Classes")}
+        </Button>
+
+        {/* + Add Notes button on the right */}
+        <Button
+          variant="outlined"
+          onClick={() => setShowAddModal(true)}
+          sx={{
+            textTransform: "none",
+            borderRadius: "10px",
+            border: "1.5px solid",
+            borderColor: "#4f46e5",
+            color: "#4f46e5",
+            background: "#fff",
+            fontWeight: 600,
+            px: 2,
+            py: 0.6,
+            minWidth: 140,
+            boxShadow: "none",
+            "&:hover": {
+              background: "rgba(79,70,229,0.06)",
+              borderColor: "#4f46e5",
+              boxShadow: "none",
+            },
+            "&:focus": {
+              outline: "2px solid rgba(79,70,229,0.14)",
+              outlineOffset: "2px",
+            },
+          }}
+          aria-label="+ Add Notes"
+        >
+          + {t("Add Notes")}
+        </Button>
+      </Box>
+
+      {/* AddNoteModal */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={handleAddNoteCancel}
+        onSave={handleAddNoteSave}
+        source="class"
+      />
 
       <Box
         sx={{

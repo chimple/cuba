@@ -46,3 +46,63 @@
   background: #fafafa;
   cursor: pointer;
 }
+
+
+/* table spacing + better visual balance */
+.school-notes-container {
+  padding: 8px 18px 40px 18px; /* provide more space around table */
+}
+
+/* header styles */
+.school-notes-table thead th {
+  text-align: left;
+  padding: 14px 18px;
+  background: #fafafa;
+  border-bottom: 1px solid #ececec;
+  font-weight: 600;
+}
+
+/* body row spacing */
+.school-notes-table tbody td {
+  padding: 18px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #111;
+  vertical-align: middle;
+}
+
+/* make rows slightly taller, easier to click */
+.school-notes-row {
+  cursor: pointer;
+  transition: background 120ms ease, transform 60ms ease;
+}
+
+.school-notes-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
+}
+
+/* allow table to take full width but not hug edges */
+.school-notes-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+/* wrap long content */
+.school-notes-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* make the createdBy column a bit wider */
+.school-notes-table td:first-child {
+  width: 25%;
+}
+
+/* responsive: let cells wrap on small screens */
+@media (max-width: 900px) {
+  .school-notes-table td {
+    white-space: normal;
+  }
+}

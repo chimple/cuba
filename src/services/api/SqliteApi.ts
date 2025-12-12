@@ -7075,4 +7075,22 @@ order by
     throw new Error("Method not implemented.");
   }
 
+  async createNoteForSchool(params: {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}): Promise<any> {
+  console.warn("createNoteForSchool is not supported in SQLite mode");
+  return null;
+}
+
+async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<any[]> {
+  console.warn("getNotesBySchoolId is not supported in SQLite mode");
+  return [];
+}
+
 }

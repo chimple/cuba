@@ -2363,4 +2363,14 @@ export interface ServiceApi {
    */
   getActivitiesFilterOptions();
 
+    // notes
+  createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<any>;
+
+  getNotesBySchoolId(schoolId: string, limit?: number, offset?: number): Promise<any[]>;
+
+
 }

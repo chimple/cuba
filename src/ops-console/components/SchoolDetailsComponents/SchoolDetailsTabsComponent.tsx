@@ -60,7 +60,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           </button>
         ))}
       </div>
-      <div className="school-detail-tab-content">
+      <div className="school-detail-tabschool-detail-tab-content">
   {activeTab === SchoolTabs.Overview && (
     <SchoolOverview data={data} isMobile={isMobile} />
   )}

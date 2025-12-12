@@ -9647,4 +9647,191 @@ const { data, error, count } = await query
       throw error;
     }
   }
+
+async createNoteForSchool(params: {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}): Promise<any> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return null;
+  }
+
+  const { schoolId, classId = null, content } = params;
+
+  // ---- GET CURRENT USER ----
+  const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+  const currentUserId = currentUser?.id;
+
+  if (!currentUserId) {
+    throw new Error("No authenticated user found for createNoteForSchool");
+  }
+
+  // ---- TODAY TIME WINDOW ----
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0).toISOString();
+
+  let visitId: string | null = null;
+
+  // ---- 1) FIND TODAY'S OPEN VISIT ----
+  const visitQuery = await this.supabase
+    .from("fc_school_visit")
+    .select("id")
+    .eq("user_id", currentUserId)
+    .eq("school_id", schoolId)
+    .gte("check_in_at", startOfDay)
+    .lt("check_in_at", endOfDay)
+    .is("check_out_at", null)
+    .limit(1);
+
+  if (!visitQuery.error && visitQuery.data?.length > 0) {
+    visitId = visitQuery.data[0].id;
+  }
+
+  // ---- REQUIRED FIELDS FOR INSERT ----
+  const insertPayload = {
+    visit_id: visitId,
+    user_id: currentUserId,
+    school_id: schoolId,
+    class_id: classId,
+    comment: content,
+
+    // Required NOT NULL:
+    contact_target: "school" as any,
+    contact_method: "in_person" as any,
+
+    // Optional:
+    call_status: null,
+    support_level: null,
+    question_response: null,
+    tech_issues_reported: false,
+    tech_issue_comment: null,
+  };
+
+  // ---- 2) INSERT ROW ----
+  const insertRes = await this.supabase
+    .from("fc_user_forms")
+    .insert([insertPayload])  // MUST be an array
+    .select("*")
+    .single();
+
+  if (insertRes.error) {
+    console.error("Insert error:", insertRes.error);
+    throw insertRes.error;
+  }
+
+  const created = insertRes.data;
+
+  // ---- 3) FETCH USER NAME & ROLE ----
+  const userRes = await this.supabase
+    .from("user")
+    .select("name")
+    .eq("id", currentUserId)
+    .single();
+
+  const roleRes = await this.supabase
+    .from("special_users")
+    .select("role")
+    .eq("user_id", currentUserId)
+    .eq("is_deleted", false)
+    .limit(1);
+
+  // ---- 4) FETCH CLASS NAME ----
+  let className: string | null = null;
+  if (classId) {
+    const cls = await this.supabase
+      .from("class")
+      .select("name")
+      .eq("id", classId)
+      .single();
+    className = !cls.error && cls.data ? cls.data.name : null;
+  }
+
+  // ---- 5) RETURN STRUCTURED UI OBJECT ----
+  return {
+    id: created.id,
+    visitId: created.visit_id,
+    schoolId: created.school_id,
+    classId: created.class_id,
+    className,
+    content: created.comment,
+    createdAt: created.created_at,
+    createdBy: {
+      userId: currentUserId,
+      name: userRes.data?.name ?? "Unknown",
+      role: roleRes.data?.[0]?.role ?? null,
+    },
+  };
+}
+
+
+async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[]> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return [];
+  }
+  try {
+    // basic list with user name and role (left joins implemented as separate subselects)
+    const notesRes = await this.supabase
+      .from("fc_user_forms")
+      .select("id, comment, class_id, visit_id, user_id, created_at")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+      .range(offset, offset + limit - 1);
+
+    if (notesRes.error) {
+      console.error("Error fetching notes:", notesRes.error.message);
+      return [];
+    }
+    const rows = notesRes.data || [];
+
+    // fetch user info + roles for all user_ids in batch
+    const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+    let usersById: Record<string, any> = {};
+    if (userIds.length > 0) {
+      const usersQ = await this.supabase.from("user").select("id, name").in("id", userIds);
+      if (!usersQ.error && usersQ.data) {
+        usersQ.data.forEach((u: any) => (usersById[u.id] = u));
+      }
+      const specialQ = await this.supabase.from("special_users").select("user_id, role").in("user_id", userIds).eq("is_deleted", false);
+      if (!specialQ.error && specialQ.data) {
+        specialQ.data.forEach((s: any) => {
+          if (!usersById[s.user_id]) usersById[s.user_id] = {};
+          usersById[s.user_id].role = s.role;
+        });
+      }
+    }
+
+    // optionally fetch class names for class_ids
+    const classIds = Array.from(new Set(rows.map((r: any) => r.class_id).filter(Boolean)));
+    let classById: Record<string, any> = {};
+    if (classIds.length > 0) {
+      const clsQ = await this.supabase.from("class").select("id, name").in("id", classIds);
+      if (!clsQ.error && clsQ.data) clsQ.data.forEach((c: any) => (classById[c.id] = c));
+    }
+
+    const mapped = rows.map((r: any) => ({
+      id: r.id,
+      content: r.comment,
+      classId: r.class_id,
+      className: classById[r.class_id]?.name ?? null,
+      visitId: r.visit_id,
+      createdAt: r.created_at,
+      createdBy: {
+        userId: r.user_id,
+        name: usersById[r.user_id]?.name ?? "Unknown",
+        role: usersById[r.user_id]?.role ?? null,
+      },
+    }));
+
+    return mapped;
+  } catch (e) {
+    console.error("getNotesBySchoolId error:", e);
+    return [];
+  }
+}
 }
