@@ -62,6 +62,11 @@ import {
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
+  CURRENT_CLASS,
+  USER_SELECTION_STAGE,
+  CURRENT_MODE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2011,16 +2016,142 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
+public static getCurrentSchool(): TableTypes<"school"> | undefined {
+  const api = ServiceConfig.getI().apiHandler;
 
-  public static getCurrentSchool(): TableTypes<"school"> | undefined {
-    const api = ServiceConfig.getI().apiHandler;
-    if (!!api.currentSchool) return api.currentSchool;
-    const temp = localStorage.getItem(SCHOOL);
-    if (!temp) return;
-    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-    api.currentSchool = currentSchool;
-    return currentSchool;
+  const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return false;
+
+      const userId = currentUser.id;
+      const schools = await api.getSchoolsForUser(userId);
+
+      return schools.some((item) => item.school.id === schoolId);
+    } catch (error) {
+      console.error("Error checking school via user:", error);
+      return false;
+    }
+  };
+
+  const isClassConnected = async (
+    schoolId: string,
+    classId: string
+  ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return;
+
+      const userId = currentUser.id;
+
+      const classes = await api.getClassesForSchool(schoolId, userId);
+
+      return {
+        classExists: classes.some((cls) => cls.id === classId),
+        classCount: classes.length,
+      };
+    } catch (error) {
+      console.error("Error checking class via user:", error);
+      return;
+    }
+  };
+
+ 
+  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
+  if (!!api.currentSchool) {
+    const classes = Util.getCurrentClass();
+    const schoolId = api.currentSchool.id;
+    const classId = classes?.id ?? undefined;
+
+    // SCHOOL CHECK
+    isSchoolConnected(api.currentSchool.id).then((res) => {
+      if (!res) {
+        api.currentSchool = undefined;
+        // schoolUtil.setCurrMode(MODES.SCHOOL);
+        console.log("School no longer connected → removing from storage");
+        localStorage.removeItem(SCHOOL);
+        localStorage.removeItem(CLASS);
+        localStorage.removeItem(CURRENT_MODE);
+        return;
+      }
+
+      // CLASS CHECK 
+      
+      if (classId) {
+        isClassConnected(schoolId, classId).then((cls) => {
+          if (!cls) return;
+
+          const { classExists, classCount } = cls;
+
+          if (!classExists) {
+            console.log("Class no longer connected → removing class");
+            localStorage.removeItem(CLASS);
+            localStorage.removeItem(CURRENT_MODE);
+
+            // If only one class existed and that gets removed → remove school too
+            if (classCount === 1) {
+              console.log("Last class removed → removing school as well");
+              api.currentSchool = undefined;
+              schoolUtil.setCurrMode(MODES.SCHOOL);
+              localStorage.removeItem(SCHOOL);
+              localStorage.removeItem(CURRENT_MODE);
+            }
+          }
+        });
+      }
+    });
+
+    return api.currentSchool;
   }
+
+  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
+  const temp = localStorage.getItem(SCHOOL);
+  if (!temp) return;
+
+  const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+  api.currentSchool = currentSchool;
+
+  const classId = localStorage.getItem(CLASS) ?? undefined;
+
+  // SCHOOL CHECK 
+  isSchoolConnected(currentSchool.id).then((res) => {
+    if (!res) {
+      api.currentSchool = undefined;
+      // schoolUtil.setCurrMode(MODES.SCHOOL);
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      localStorage.removeItem(CURRENT_MODE);
+      return;
+    }
+
+    // CLASS CHECK
+    if (classId) {
+      isClassConnected(currentSchool.id, classId).then((cls) => {
+        if (!cls) return;
+
+        const { classExists, classCount } = cls;
+
+        if (!classExists) {
+          console.log("Class no longer connected → removing class");
+          localStorage.removeItem(CLASS);
+
+          if (classCount === 1) {
+            console.log("Last class removed → removing school as well");
+            api.currentSchool = undefined;
+            schoolUtil.setCurrMode(MODES.SCHOOL);
+
+            localStorage.removeItem(SCHOOL);
+            localStorage.removeItem(CURRENT_MODE);
+          }
+        }
+      });
+    }
+  });
+
+  return currentSchool;
+}
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
