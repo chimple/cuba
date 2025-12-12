@@ -2118,7 +2118,6 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
       // schoolUtil.setCurrMode(MODES.SCHOOL);
       localStorage.removeItem(SCHOOL);
       localStorage.removeItem(CLASS);
-      localStorage.removeItem(CURRENT_MODE);
       return;
     }
 
@@ -2136,10 +2135,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
           if (classCount === 1) {
             console.log("Last class removed → removing school as well");
             api.currentSchool = undefined;
-            schoolUtil.setCurrMode(MODES.SCHOOL);
-
             localStorage.removeItem(SCHOOL);
-            localStorage.removeItem(CURRENT_MODE);
           }
         }
       });
