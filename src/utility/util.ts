@@ -2104,6 +2104,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
         console.log("School no longer connected → removing from storage");
         localStorage.removeItem(SCHOOL);
         localStorage.removeItem(CLASS);
+        localStorage.removeItem(CURRENT_MODE);
         return;
       }
 
@@ -2118,12 +2119,15 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
           if (!classExists) {
             console.log("Class no longer connected → removing class");
             localStorage.removeItem(CLASS);
+            localStorage.removeItem(CURRENT_MODE);
 
             // If only one class existed and that gets removed → remove school too
             if (classCount === 1) {
               console.log("Last class removed → removing school as well");
               api.currentSchool = undefined;
+              schoolUtil.setCurrMode(MODES.SCHOOL);
               localStorage.removeItem(SCHOOL);
+              localStorage.removeItem(CURRENT_MODE);
             }
           }
         });

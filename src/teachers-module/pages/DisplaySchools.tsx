@@ -133,18 +133,22 @@ const DisplaySchools: FC = () => {
     const done = JSON.parse(
       localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
     );
-    const preSelectedSchool = Util.getCurrentSchool();
     if (
       mode === MODES.TEACHER &&
-      done && preSelectedSchool &&
+      done &&
       location.pathname !== PAGES.HOME_PAGE
     ) {
+      const currentSchool = Util.getCurrentSchool();
+      if(!currentSchool){
+        setLoading(false);
+        return;
+      }
       history.replace(PAGES.HOME_PAGE);
       setLoading(false);
       return;
     }
     // Previously selected school? Respect it
-  
+    const preSelectedSchool = Util.getCurrentSchool();
     if (preSelectedSchool) {
       const role = await api.getUserRoleForSchool(
         currentUser.id,
