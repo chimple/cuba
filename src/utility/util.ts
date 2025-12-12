@@ -2091,13 +2091,13 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
   };
 
  
-  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY
+  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
   if (!!api.currentSchool) {
     const classes = Util.getCurrentClass();
     const schoolId = api.currentSchool.id;
     const classId = classes?.id ?? undefined;
 
-    // SCHOOL CHECK (unchanged logic)
+    // SCHOOL CHECK
     isSchoolConnected(api.currentSchool.id).then((res) => {
       if (!res) {
         api.currentSchool = undefined;
@@ -2109,7 +2109,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
         return;
       }
 
-      // CLASS CHECK (new logic added safely)
+      // CLASS CHECK 
       
       if (classId) {
         isClassConnected(schoolId, classId).then((cls) => {
@@ -2138,9 +2138,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
     return api.currentSchool;
   }
 
-  // ------------------------------
-  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE
-  // ------------------------------
+  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
   const temp = localStorage.getItem(SCHOOL);
   if (!temp) return;
 
@@ -2186,58 +2184,6 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
 
   return currentSchool;
 }
-  // public static getCurrentSchool(): TableTypes<"school"> | undefined {
-  //   console.log("Getting current school...🙌🙌🙌🙌🙌🙌");
-  //   const api = ServiceConfig.getI().apiHandler;
-
-  //   const isSchoolConnected = async (
-  //         schoolId: string
-  //       ): Promise<boolean> => {
-  //         try {
-  //           const authHandler = ServiceConfig.getI().authHandler;
-  //           const currentUser = await authHandler.getCurrentUser();
-  //           if(!currentUser)return false
-  //           const userId = currentUser.id;
-  //           const schools = await api.getSchoolsForUser(userId);
-  //           // const classes await api.getClassByUserId(userId);
-
-  //           return schools.some(
-  //             (item) => item.school.id === schoolId
-  //           );
-  //         } catch (error) {
-  //           console.error("Error checking school via user:", error);
-  //           return false;
-  //         }
-  //       };
-  //   if (!!api.currentSchool) {
-  //     isSchoolConnected(api.currentSchool.id).then((res)=>{
-  //       if(!res){
-  //         api.currentSchool=undefined;
-  //         schoolUtil.setCurrMode(MODES.SCHOOL);
-  //         console.log("Current school is no longer connected. Removing from localStorage.");
-  //         localStorage.removeItem(SCHOOL);
-  //        localStorage.removeItem(USER_ROLE);
-  //         localStorage.removeItem(CURRENT_MODE);
-  //       }
-  //     })
-  //     return api.currentSchool;
-  //   }
-  //   const temp = localStorage.getItem(SCHOOL);
-  //   if (!temp) return;
-  //   const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-  //   api.currentSchool = currentSchool;
-  //    isSchoolConnected(currentSchool?.id).then((res)=>{
-  //       if(!res){
-  //         api.currentSchool=undefined;
-  //         schoolUtil.setCurrMode(MODES.SCHOOL);
-  //         localStorage.removeItem(SCHOOL);
-  //         localStorage.removeItem(CLASS);
-  //         localStorage.removeItem(CURRENT_MODE);
-  //       }
-  //     })
-
-  //   return currentSchool;
-  // }
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
