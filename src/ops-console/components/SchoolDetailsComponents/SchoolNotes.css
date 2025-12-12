@@ -1,4 +1,6 @@
+/* SchoolNotes.css — full replacement */
 
+/* Container */
 .school-notes-container {
   width: 100%;
   margin-top: 12px;
@@ -6,37 +8,65 @@
   border-radius: 6px;
   overflow: hidden;
   background: #ffffff;
+  padding: 8px 18px 40px 18px;
 }
 
+/* Table base */
 .school-notes-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
+
+/* Header row background (uniform) */
 .school-notes-table thead tr {
   background: #f5f7fb;
 }
 
-.school-notes-table th {
-  padding: 10px 16px;
+/* Header cells */
+.school-notes-table thead th {
+  padding: 14px 18px;
   font-size: 14px;
   font-weight: 600;
-  text-align: left;
-  color: #333;
+  color: #111;
   border-bottom: 1px solid #e5e7eb;
-  height: 40px; /* Compact height */
+  height: 40px;
   white-space: nowrap;
+  background-color: #f5f7fb !important;
+  text-align: left !important; /* enforce left alignment */
 }
 
+/* Ensure first header cell looks identical */
+.school-notes-table thead th:first-child {
+  background-color: #f5f7fb !important;
+  text-align: left !important;
+}
+
+/* Body cells */
 .school-notes-table td {
-  padding: 12px 16px;
+  padding: 18px 14px;
   font-size: 14px;
-  text-align: left;
-  color: #444;
-  border-bottom: 1px solid #f2f2f2;
+  color: #111;
+  border-bottom: 1px solid #f0f0f0;
   height: 48px;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* force left alignment for all data cells */
+  text-align: left !important;
+  font-weight: 400 !important;
 }
 
+/* Specifically pad / left-align the "Created By" column so names appear properly */
+.school-notes-table td:first-child {
+  width: 25%;
+  padding-left: 24px;
+  text-align: left !important;
+}
+
+/* Remove last row border for clean look */
 .school-notes-table tr:last-child td {
   border-bottom: none;
 }
@@ -47,62 +77,49 @@
   cursor: pointer;
 }
 
-
-/* table spacing + better visual balance */
-.school-notes-container {
-  padding: 8px 18px 40px 18px; /* provide more space around table */
-}
-
-/* header styles */
-.school-notes-table thead th {
-  text-align: left;
-  padding: 14px 18px;
-  background: #fafafa;
-  border-bottom: 1px solid #ececec;
-  font-weight: 600;
-}
-
-/* body row spacing */
-.school-notes-table tbody td {
-  padding: 18px;
-  border-bottom: 1px solid #f0f0f0;
-  color: #111;
-  vertical-align: middle;
-}
-
-/* make rows slightly taller, easier to click */
+/* Slight lift animation for rows */
 .school-notes-row {
   cursor: pointer;
   transition: background 120ms ease, transform 60ms ease;
 }
-
 .school-notes-row:hover {
   background: rgba(0, 0, 0, 0.02);
   transform: translateY(-1px);
 }
 
-/* allow table to take full width but not hug edges */
-.school-notes-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-/* wrap long content */
-.school-notes-table td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* make the createdBy column a bit wider */
-.school-notes-table td:first-child {
-  width: 25%;
-}
-
-/* responsive: let cells wrap on small screens */
+/* Responsive: allow wrapping on smaller screens */
 @media (max-width: 900px) {
   .school-notes-table td {
     white-space: normal;
   }
+}
+
+/* -----------------------------------------------------------
+   Safety / override: Prevent mirrored/rotated/RTL rendering
+   Ensures consistent LTR rendering and prevents accidental transforms
+   ----------------------------------------------------------- */
+.school-notes-table,
+.school-notes-table thead th,
+.school-notes-table td {
+  transform: none !important;
+  -webkit-transform: none !important;
+  -ms-transform: none !important;
+
+  /* force left-to-right and horizontal layout */
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  /* enforce normal alignment and vertical centering */
+  text-align: left !important;
+  vertical-align: middle !important;
+}
+
+/* Final touch: make sure header stays bold and body stays normal */
+.school-notes-table thead th {
+  font-weight: 600 !important;
+}
+.school-notes-table td {
+  font-weight: 400 !important;
 }
