@@ -138,11 +138,6 @@ const DisplaySchools: FC = () => {
       done &&
       location.pathname !== PAGES.HOME_PAGE
     ) {
-      const currentSchool = Util.getCurrentSchool();
-      if(!currentSchool){
-        setLoading(false);
-        return;
-      }
       history.replace(PAGES.HOME_PAGE);
       setLoading(false);
       return;
