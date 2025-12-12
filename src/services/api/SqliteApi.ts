@@ -554,6 +554,14 @@ export class SqliteApi implements ServiceApi {
         await this._db.executeSet(batchQueries);
       } catch (error) {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
+        console.warn("🚀 ~ pullChanges ~ Falling back to individual execution");
+        for (const query of batchQueries) {
+          try {
+            await this.executeQuery(query.statement, query.values);
+          } catch (innerError) {
+            console.error("failed individual query", innerError);
+          }
+        }
       }
     }
     if (!isInitialFetch) {
@@ -2310,7 +2318,10 @@ export class SqliteApi implements ServiceApi {
     if (updatedStudent) {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
-      Util.setLocalStarsForStudent(updatedStudent.id, updatedStudent.stars || 0);
+      Util.setLocalStarsForStudent(
+        updatedStudent.id,
+        updatedStudent.stars || 0
+      );
     }
     this.updatePushChanges(
       TABLES.Result,
