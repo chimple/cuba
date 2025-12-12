@@ -119,7 +119,7 @@
   text-overflow: ellipsis; /* show ... if too long */
 }
 
-.detail-header-row {
+.detail-list-header-row {
   display: grid;
   grid-template-columns: 1fr 80px 80px;
   padding: 8px 0;
@@ -128,11 +128,11 @@
   margin-bottom: 6px;
 }
 
-.detail-header-empty {
+.detail-list-header-empty {
   /* empty left column for alignment */
 }
 
-.detail-header-users,
-.detail-header-subjects {
+.detail-list-header-users,
+.detail-list-header-subjects {
   text-align: center;
 }
