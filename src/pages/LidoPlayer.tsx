@@ -378,7 +378,8 @@ const LidoPlayer: FC = () => {
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
-            "base-url": basePath,
+            "base-url": basePath, 
+            "code-folder-path": "/Lido-player-code-versions"
           })
         : null}
     </IonPage>
@@ -386,3 +387,4 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
+    
