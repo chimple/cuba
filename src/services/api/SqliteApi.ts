@@ -551,7 +551,45 @@ export class SqliteApi implements ServiceApi {
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
     if (batchQueries.length > 0) {
       try {
-        await this._db.executeSet(batchQueries);
+        if (Capacitor.getPlatform() === "web") {
+          const chunkSize = 100;
+
+          for (let i = 0; i < batchQueries.length; i += chunkSize) {
+            const chunk = batchQueries.slice(i, i + chunkSize);
+            let manualTransaction = false;
+            try {
+              // Try to start a transaction manually
+              try {
+                await this._db.run("BEGIN TRANSACTION;");
+                manualTransaction = true;
+              } catch (beginErr) {
+              }
+
+              for (const q of chunk) {
+                await this._db.run(q.statement, q.values);
+              }
+
+              if (manualTransaction) {
+                await this._db.run("COMMIT;");
+              }
+            } catch (chunkErr) {
+              console.error(
+                `SqliteApi: Error in chunk ${i / chunkSize + 1}`,
+                chunkErr
+              );
+
+              if (manualTransaction) {
+                try {
+                  await this._db.run("ROLLBACK;");
+                } catch (rbErr) {}
+              }
+              throw chunkErr;
+            }
+          }
+          await this._sqlite?.saveToStore(this.DB_NAME);
+        } else {
+          await this._db.executeSet(batchQueries);
+        }
       } catch (error) {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
