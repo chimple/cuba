@@ -1297,6 +1297,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -1442,6 +1443,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -2135,6 +2137,7 @@ export class SupabaseApi implements ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
+    isHomework?: boolean,
     skill_id?: string | undefined,
     skill_ability?: number | undefined,
     outcome_id?: string | undefined,
@@ -2179,6 +2182,7 @@ export class SupabaseApi implements ServiceApi {
       domain_ability: domain_ability ?? null,
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
+      activities_scores: null,
     };
 
     const { error: insertError } = await this.supabase
@@ -7613,6 +7617,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: null,
       grade_id: null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: now,
       updated_at: now,
       is_deleted: false,

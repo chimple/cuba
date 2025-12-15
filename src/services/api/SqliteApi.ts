@@ -773,6 +773,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -1289,6 +1290,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -2283,6 +2285,7 @@ export class SqliteApi implements ServiceApi {
       domain_ability: domain_ability ?? null,
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
+      activities_scores: null,
     };
 
     const res = await this.executeQuery(
@@ -6231,6 +6234,7 @@ order by
             is_tc_accepted: false,
             language_id: null,
             learning_path: null,
+            locale_id: null,
             music_off: false,
             ops_created_by: null,
             reward: null,
@@ -6343,6 +6347,7 @@ order by
             is_tc_accepted: false,
             language_id: null,
             learning_path: null,
+            locale_id: null,
             music_off: false,
             ops_created_by: null,
             reward: null,
@@ -6546,6 +6551,7 @@ order by
       curriculum_id: null,
       grade_id: null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
