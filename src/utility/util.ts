@@ -1036,8 +1036,14 @@ export class Util {
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id });
+      try {
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        await Promise.resolve(
+          Util.port.shareUserId({ userId: params.user_id })
+        );
+      } catch (e) {
+        console.warn("Port.shareUserId skipped:", e);
+      }
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
