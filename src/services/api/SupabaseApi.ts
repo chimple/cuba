@@ -486,7 +486,7 @@ export class SupabaseApi implements ServiceApi {
       const res = await this.supabase?.rpc("sql_sync_all", {
         p_updated_at: updatedAtPayload,
         p_tables: tableNames,
-        p_is_first_time:isInitialFetch // TABLES[] should be string[] under the hood
+        p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       if (res == null || res.error || !res.data) {
         let parent_user;
@@ -9472,9 +9472,6 @@ const { data, error, count } = await query
       };
     }
   }
-  async getActivitiesBySchoolId(
-    schoolId: string
-  ): Promise<TableTypes<"fc_user_forms">[]> {
 
   async getFilteredFcQuestions(
     type: EnumType<"fc_support_level"> | null,
@@ -9586,7 +9583,7 @@ const { data, error, count } = await query
     const { data, error } = await this.supabase
       .from("fc_user_forms")
       .select("*")
-      .eq("school_id",  schoolId)
+      .eq("school_id", schoolId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
 
