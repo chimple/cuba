@@ -193,11 +193,8 @@ const SelectMode: FC = () => {
             setStage(STAGES.SCHOOL);
           }
         }
-      } else {
-        // Teacher logic
-        schoolUtil.setCurrMode(MODES.TEACHER);
-        history.replace(PAGES.DISPLAY_SCHOOLS);
-        return;
+      } else if (allSchool.length === 0) {
+        onParentSelect();
       }
     }
 

@@ -586,6 +586,11 @@ export class SupabaseAuth implements ServiceAuth {
         createdUser = await api.getUserByDocId(id);
       }
 
+      if (!createdUser) {
+        console.error("Failed to initialize user record: User could not be created or retrieved.");
+        return null;
+      }
+
       this._currentUser = createdUser;
 
       const isSplQuery = await this.rpcRetry<boolean>(async () => {
@@ -612,7 +617,7 @@ export class SupabaseAuth implements ServiceAuth {
         await api.subscribeToClassTopic();
       }
 
-      return { user: createdUser!, isSpl: isSplQuery };
+      return { user: createdUser, isSpl: isSplQuery };
     } catch (error) {
       console.error("initializeUserRecord failed:", error);
       return null;
