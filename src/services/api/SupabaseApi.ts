@@ -3048,7 +3048,7 @@ export class SupabaseApi implements ServiceApi {
     return users || [];
   }
 
-    async getStudentInfoBySchoolId(
+  async getStudentInfoBySchoolId(
     schoolId: string,
     page: number = 1,
     limit: number = 20
@@ -3061,9 +3061,9 @@ export class SupabaseApi implements ServiceApi {
     const offset = (page - 1) * limit;
 
     let query = this.supabase
-  .from("class_user")
-  .select(
-    `
+      .from("class_user")
+      .select(
+        `
       class:class_id!inner (
         id,
         class_name:name
@@ -3101,17 +3101,17 @@ export class SupabaseApi implements ServiceApi {
         )
       )
     `,
-    { count: "exact" }
-  )
-  .eq("role", "student")
-  .eq("is_deleted", false)
-  .eq("class.school_id", schoolId);
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class.school_id", schoolId);
 
-const { data, error, count } = await query
-  .order("user(name)", { ascending: true })
-  .range(offset, offset + limit - 1);
+    const { data, error, count } = await query
+      .order("user(name)", { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
+    if (error) {
       console.error("Error fetching student info:", error);
       return { data: [], total: 0 };
     }
@@ -9642,5 +9642,34 @@ const { data, error, count } = await query
       console.error("Error in getActivitiesFilterOptions:", error);
       throw error;
     }
+  }
+  async getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null> {
+    const FIFTEEN_DAYS_AGO = new Date(
+      Date.now() - 15 * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select("batch_id")
+      .eq("created_by", teacherId)
+      .eq("class_id", classId)
+      .eq("is_deleted", false)
+      .gte("created_at", FIFTEEN_DAYS_AGO);
+
+    if (error) {
+      console.error("Error fetching assignments:", error);
+      return null;
+    }
+
+    if (!data || data.length === 0) return 0;
+
+    const uniqueCount = new Set(data.map((row) => row.batch_id)).size;
+
+    return uniqueCount;
   }
 }

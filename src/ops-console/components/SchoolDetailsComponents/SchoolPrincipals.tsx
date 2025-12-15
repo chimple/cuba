@@ -1,16 +1,17 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Typography, Box, CircularProgress } from "@mui/material";
+import { Typography, Box, CircularProgress, IconButton } from "@mui/material";
 import { t } from "i18next";
 import "./SchoolPrincipals.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PrincipalInfo } from "../../../common/constants";
+import { ContactTarget, PrincipalInfo } from "../../../common/constants";
 import { Button as MuiButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
+import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
 
 interface DisplayPrincipal {
   id: string;
@@ -18,6 +19,8 @@ interface DisplayPrincipal {
   gender: string;
   phoneNumber: string;
   emailDisplay: string;
+  interact: "";
+  interactPayload: any;
 }
 
 interface SchoolPrincipalsProps {
@@ -48,6 +51,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [isAddPrincipalModalOpen, setIsAddPrincipalModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
+  const [openPopup, setOpenPopup] = useState(false);
+  const [currentPrincipal, setCurrentPrincipal] = useState<PrincipalInfo>();
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
@@ -92,7 +97,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     },
     [order, orderBy]
   );
-
+  const getPrincipalInfo = useCallback(
+    (id: string): PrincipalInfo | null => {
+      if (!Array.isArray(principals)) return null;
+      return principals.find((p) => p?.id === id) || null;
+    },
+    [principals]
+  );
   const displayPrincipals = useMemo((): DisplayPrincipal[] => {
     let sorted = [...principals].sort((a, b) => {
       let aValue, bValue;
@@ -131,6 +142,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       gender: p.gender || "N/A",
       phoneNumber: p.phone || "N/A",
       emailDisplay: p.email || "N/A",
+      interact: "",
+      interactPayload: p,
     }));
   }, [principals, order, orderBy]);
 
@@ -253,7 +266,39 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Typography>
       ),
     },
-    { key: "gender", label: t("Gender") },
+    {
+      key: "interactPayload",
+      label: t("Interact"),
+      align: "center",
+      width: 60,
+      sortable: false,
+      render: (row) => (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "left",
+            alignItems: "left",
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={async () => {
+              setOpenPopup(true);
+              const currPrincipal = getPrincipalInfo(row.id);
+              if (currPrincipal) {
+                setCurrentPrincipal(currPrincipal);
+              }
+            }}
+          >
+            <img
+              src="/assets/icons/Interact.svg"
+              alt="Interact"
+              style={{ width: 30, height: 30 }}
+            />
+          </IconButton>
+        </Box>
+      ),
+    },
     { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "emailDisplay",
@@ -299,6 +344,14 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Box>
       ) : isDataPresent ? (
         <>
+          {openPopup && currentPrincipal && (
+            <FcInteractPopUp
+              principalData={currentPrincipal}
+              schoolId={schoolId}
+              onClose={() => setOpenPopup(false)}
+              initialUserType={ContactTarget.PRINCIPAL}
+            />
+          )}
           <div className="school-principals-data-table-container">
             <DataTableBody
               columns={columns}

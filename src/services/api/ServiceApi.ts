@@ -467,8 +467,8 @@ export interface ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean,
-    isHomework?: boolean 
+    isImediateSync?: boolean,
+    isHomework?: boolean
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -1581,7 +1581,11 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(studentId: string, starsCount: number,is_immediate_sync?:boolean): Promise<void>;
+  setStarsForStudents(
+    studentId: string,
+    starsCount: number,
+    is_immediate_sync?: boolean
+  ): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -2341,7 +2345,7 @@ export interface ServiceApi {
    */
   getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;
 
-    /**
+  /**
    * Fetch all activities created by FC users for a given school ID.
    * @param {string} schoolId - The ID of the school to fetch activities for.
    * @returns Promise resolving to a list of activities.
@@ -2363,5 +2367,24 @@ export interface ServiceApi {
    * Fetch filter options for FC activities.
    */
   getActivitiesFilterOptions();
-
+  /**
+   * Returns the number of times a teacher has assigned assignments
+   * to a specific class in the last 15 days.
+   *
+   * Each assignment action is counted once using `batch_id`,
+   * even if it includes multiple assignments.
+   *
+   * - Considers only non-deleted assignments
+   * - Time window is limited to the last 15 days
+   *
+   * @param teacherId - ID of the teacher who assigned the work
+   * @param classId - ID of the class to which assignments were given
+   * @returns Number of assignment occurrences in the last 15 days,
+   *          0 if none are found,
+   *          or null if an error occurs
+   */
+  getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null>;
 }
