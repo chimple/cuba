@@ -10,40 +10,44 @@ interface BreadcrumbItem {
 
 interface BreadcrumbProps {
   crumbs: BreadcrumbItem[];
+  endActions?: React.ReactNode;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ crumbs }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ crumbs, endActions }) => {
   return (
     <div className="breadcrumb-root">
-      {crumbs.map((crumb, index) => {
-        const isLast = index === crumbs.length - 1;
+      <div className="breadcrumb-left">
+        {crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1;
 
-        return (
-          <React.Fragment key={index}>
-            {crumb.onClick ? (
-              <MuiLink
-                component="button"
-                onClick={crumb.onClick}
-                className={`breadcrumb-link ${isLast ? "breadcrumb-link-bold" : ""}`}
-                underline="none"
-              >
-                {crumb.label}
-              </MuiLink>
-            ) : (
-              <Typography
-                className={isLast ? "breadcrumb-text-bold" : "breadcrumb-text"}
-                variant="body2"
-              >
-                {crumb.label}
-              </Typography>
-            )}
+            return (
+            <React.Fragment key={index}>
+                {crumb.onClick ? (
+                <MuiLink
+                    component="button"
+                    onClick={crumb.onClick}
+                    className={`breadcrumb-link ${isLast ? "breadcrumb-link-bold" : ""}`}
+                    underline="none"
+                >
+                    {crumb.label}
+                </MuiLink>
+                ) : (
+                <Typography
+                    className={isLast ? "breadcrumb-text-bold" : "breadcrumb-text"}
+                    variant="body2"
+                >
+                    {crumb.label}
+                </Typography>
+                )}
 
-            {!isLast && (
-              <ChevronRightIcon className="breadcrumb-separator" />
-            )}
-          </React.Fragment>
-        );
-      })}
+                {!isLast && (
+                <ChevronRightIcon className="breadcrumb-separator" />
+                )}
+            </React.Fragment>
+            );
+        })}
+      </div>
+      {endActions && <div className="breadcrumb-actions">{endActions}</div>}
     </div>
   );
 };

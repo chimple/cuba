@@ -10,6 +10,8 @@ import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
+import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
+import { Button } from "@mui/material";
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -66,6 +68,41 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
   });
+
+  // Check-In Logic
+  const [checkInStatus, setCheckInStatus] = useState<'checked_in' | 'checked_out'>('checked_out');
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
+
+  useEffect(() => {
+    // Load persisted status
+    const storedStatus = localStorage.getItem(`school_visit_status_${id}`);
+    if (storedStatus) {
+      setCheckInStatus(storedStatus as 'checked_in' | 'checked_out');
+    }
+  }, [id]);
+
+  const handleOpenCheckInModal = () => {
+    // Determine if it's first time (mock logic: if never checked in before for this school)
+    // For simplicity in this dummy impl, let's say if localStorage is empty, it's first time
+    const hasCheckedInBefore = localStorage.getItem(`has_checked_in_before_${id}`);
+    setIsFirstTimeCheckIn(!hasCheckedInBefore);
+    setIsCheckInModalOpen(true);
+  };
+
+  const handleConfirmCheckInAction = () => {
+    if (checkInStatus === 'checked_out') {
+      // Perform Check In
+      setCheckInStatus('checked_in');
+      localStorage.setItem(`school_visit_status_${id}`, 'checked_in');
+      localStorage.setItem(`has_checked_in_before_${id}`, 'true');
+    } else {
+      // Perform Check Out
+      setCheckInStatus('checked_out');
+      localStorage.setItem(`school_visit_status_${id}`, 'checked_out');
+    }
+    setIsCheckInModalOpen(false);
+  };
 
   useEffect(() => {
     fetchAll();
@@ -224,6 +261,14 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
+      <SchoolCheckInModal 
+        open={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
+        onConfirm={handleConfirmCheckInAction}
+        status={checkInStatus === 'checked_in' ? 'check_out' : 'check_in'}
+        schoolName={schoolName || "Unknown School"}
+        isFirstTime={isFirstTimeCheckIn}
+      />
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">
           <Breadcrumb
@@ -236,6 +281,31 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                 label: schoolName ?? "",
               },
             ]}
+            endActions={
+               <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button 
+                        variant="outlined" 
+                        color="primary"
+                        sx={{ textTransform: 'none', fontWeight: 600 }}
+                    >
+                        + Add Notes
+                    </Button>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleOpenCheckInModal}
+                        sx={{ 
+                            textTransform: 'none', 
+                            fontWeight: 600,
+                            backgroundColor: checkInStatus === 'checked_in' ? '#d32f2f' : '#2e7d32', // Red for Check-Out, Green for Check-In
+                            '&:hover': {
+                                backgroundColor: checkInStatus === 'checked_in' ? '#b71c1c' : '#1b5e20',
+                            }
+                        }}
+                    >
+                        {checkInStatus === 'checked_in' ? "Check Out" : "Check In"}
+                    </Button>
+               </div>
+            }
           />
         </div>
       )}
