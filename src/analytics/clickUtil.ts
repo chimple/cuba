@@ -2,7 +2,6 @@ import { Util } from "../utility/util";
 import { EVENTS, PAGES } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
 import { SupabaseAuth } from "../services/auth/SupabaseAuth";
-import { Capacitor } from "@capacitor/core";
 
 const storedStudent: {
   id?: string;
@@ -105,13 +104,7 @@ const handleClick = async (event: MouseEvent) => {
     action_type: event.type,
   };
 
-  Capacitor.isNativePlatform()
-    ? Promise.resolve(Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData)).catch(
-        (e) => console.warn("CLICKS_ANALYTICS failed:", e)
-      )
-    : console.warn(
-        "CLICKS_ANALYTICS skipped: native plugin not available on web"
-      );
+  Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
 };
 
 export const initializeClickListener = () => {
