@@ -976,7 +976,7 @@ public static async DownloadRemoteAssets(
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      if (!Util.port && Capacitor.isNativePlatform()) Util.port = registerPlugin<PortPlugin>("Port");
       Util.port.shareUserId({ userId: params.user_id });
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
