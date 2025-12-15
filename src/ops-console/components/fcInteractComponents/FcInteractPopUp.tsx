@@ -82,7 +82,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     const { user, parent, classSection, grade, classWithidname } = studentData;
     userData = user;
     parentData = parent ? parent : null;
-    classId = classWithidname?.id!;
+    classId = classWithidname?.id ?? null;
     className = classSection ?? grade ?? "";
   } else if (teacherData) {
     const { user, grade, classSection, classWithidname } = teacherData;

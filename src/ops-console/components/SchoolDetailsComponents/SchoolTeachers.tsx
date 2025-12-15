@@ -45,8 +45,8 @@ interface DisplayTeacher {
   class: string;
   classId: string;
   interactData: string;
-  performance: EnumType<"fc_support_level">; // must be string for rendering
-  interactPayload: any; // full object stored separately
+  performance: EnumType<"fc_support_level">;
+  interactPayload: TeacherInfo;
 }
 
 interface SchoolTeachersProps {
@@ -292,30 +292,46 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [sortedTeachers]);
 
   useEffect(() => {
-    if (!displayTeachers.length) return;
+    if (!sortedTeachers.length) {
+      setTeachersWithPerformance([]);
+      return;
+    }
 
     async function loadPerformance() {
       const enriched = await Promise.all(
-        displayTeachers.map(async (t) => {
-          const teacherId = t.interactPayload.user.id;
-          const classId = t.interactPayload.classWithidname.id;
+        sortedTeachers.map(async (apiTeacher) => {
+          const teacherId = apiTeacher.user.id;
+          const classId = apiTeacher.classWithidname.id;
+
           const count = await api.getRecentAssignmentCountByTeacher(
             teacherId,
             classId
           );
+
           const perfLevel = mapCountToPerformance(count);
 
           return {
-            ...t,
+            id: apiTeacher.user.id,
+            name: apiTeacher.user.name || "N/A",
+            gender: apiTeacher.user.gender || "N/A",
+            grade: apiTeacher.grade,
+            classSection: apiTeacher.classSection,
+            phoneNumber: apiTeacher.user.phone || "N/A",
+            emailDisplay: apiTeacher.user.email || "N/A",
+            class: apiTeacher.grade + apiTeacher.classSection,
+            classId: apiTeacher.classWithidname.id,
+            interactData: "",
+            interactPayload: apiTeacher,
             performance: perfLevel as EnumType<"fc_support_level">,
           };
         })
       );
+
       setTeachersWithPerformance(enriched);
     }
 
     loadPerformance();
-  }, [displayTeachers]);
+  }, [sortedTeachers]);
 
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
     if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
@@ -512,8 +528,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "left",
-            alignItems: "left",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
           }}
         >
           <IconButton

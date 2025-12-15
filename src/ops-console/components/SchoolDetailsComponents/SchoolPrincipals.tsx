@@ -20,7 +20,7 @@ interface DisplayPrincipal {
   phoneNumber: string;
   emailDisplay: string;
   interact: "";
-  interactPayload: any;
+  interactPayload: PrincipalInfo;
 }
 
 interface SchoolPrincipalsProps {
@@ -276,8 +276,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         <Box
           sx={{
             display: "flex",
-            justifyContent: "left",
-            alignItems: "left",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
           }}
         >
           <IconButton

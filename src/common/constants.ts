@@ -1123,7 +1123,7 @@ export enum PerformanceLevel {
   STILL_LEARNING = "still_learning",
   NOT_TRACKED = "not_tracked",
   NOT_ASSIGNING = "not_assigning",
-  ONE_TO_TWO_ASSIGNED = "one_to_two",
+  ONE_TO_TWO_ASSIGNED = "once_to_two",
   THREE_TO_FOUR_ASSIGNED = "three_to_four",
   FOUR_PLUS_ASSIGNED = "four_plus",
 }
