@@ -33,6 +33,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2387,4 +2388,12 @@ export interface ServiceApi {
     teacherId: string,
     classId: string
   ): Promise<number | null>;
+
+  /**
+   * Get interactions metrics for a school.
+   */
+  getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null
+  ): Promise<FCSchoolStats>;
 }

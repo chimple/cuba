@@ -35,6 +35,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -1752,5 +1753,11 @@ export class ApiHandler implements ServiceApi {
     classId: string
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
+  }
+  public async getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
+  ): Promise<FCSchoolStats> {
+    return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
   }
 }
