@@ -68,11 +68,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
-
-  const normalizedStatus = status
-    ? PERFORMANCE_UI[status as PerformanceLevel]?.label ?? status
-    : "";
-
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
   let userData: TableTypes<"user"> | null = null;
   let parentData: TableTypes<"user"> | null = null;
@@ -224,12 +219,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   )}
                 </div>
 
-                {normalizedStatus && (
+                {status && PERFORMANCE_UI[status] && (
                   <div
                     className="fc-interact-popup-status-badge"
                     id="fc-status-badge"
+                    style={{
+                      background: PERFORMANCE_UI[status].bgColor,
+                      color: PERFORMANCE_UI[status].textColor,
+                    }}
                   >
-                    {normalizedStatus}
+                    {PERFORMANCE_UI[status].label}
                   </div>
                 )}
               </div>
