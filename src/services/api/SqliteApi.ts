@@ -79,6 +79,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -7168,5 +7169,11 @@ order by
   }
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");
+  }
+  public async getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
+  ): Promise<FCSchoolStats> {
+    return this._serverApi.getFCSchoolStatsForSchool(schoolId, currentUser);
   }
 }
