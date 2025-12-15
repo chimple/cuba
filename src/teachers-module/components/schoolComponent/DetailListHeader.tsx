@@ -8,8 +8,11 @@ const DetailListHeader: React.FC = () => {
     <div className="detail-list__header">
       <div />
       <div className="detail-list__icon-container">
-        <div className="detail-list__icon-container-users">{t("Users")}</div>
-        <div className="detail-list__icon-container-subjects">{t("Subjects")}</div>
+        <div className="detail-list-header-row">
+          <span className="detail-list-header-empty"></span>
+          <span className="detail-list-header-users">{t("Users")}</span>
+          <span className="detail-list-header-subjects">{t("Subjects")}</span>
+        </div>
       </div>
     </div>
   );

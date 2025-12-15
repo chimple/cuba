@@ -35,6 +35,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -505,7 +506,8 @@ export class ApiHandler implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -518,7 +520,9 @@ export class ApiHandler implements ServiceApi {
       assignmentId,
       chapterId,
       classId,
-      schoolId
+      schoolId,
+      isImediateSync,
+      isHomework
     );
   }
 
@@ -1735,5 +1739,8 @@ export class ApiHandler implements ServiceApi {
   }
   public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
     return await this.s.getSchoolVisitById(visitId);
+  }
+  public async getFCSchoolStatsForSchool(schoolId: string, currentUser: TableTypes<"user"> | null = null): Promise<FCSchoolStats> {
+    return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
   }
 }

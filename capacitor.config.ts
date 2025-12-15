@@ -33,7 +33,7 @@ const config: CapacitorConfig = {
       appId: process.env.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID,
       autoDeleteBundles: true,
       readyTimeout: 50000,
-      httpTimeout: 600000,
+      httpTimeout: 300000,
     }
   },
 };

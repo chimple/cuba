@@ -81,6 +81,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       grade_id: studentDetails?.grade_id,
       gender: studentDetails?.gender,
       parent_id: studentDetails?.parent_id,
+      student_id: studentDetails?.id,
       subject_id: studentDetails?.subject_id,
       stars: studentDetails?.stars || 0,
       last_login_at: studentDetails?.last_sign_in_at,

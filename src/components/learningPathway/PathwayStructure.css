@@ -1,10 +1,13 @@
 .pathway-structure-div {
   position: absolute;
   top: 40%;
-  left: 10%;
+  left: 12%;
   height: 51vh;
   width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.pathway-structure-animated-pointer {
+  animation: diagonal-move 1.4s infinite ease-in-out;
 }

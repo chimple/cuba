@@ -1,6 +1,6 @@
 .homeworkpathway-structure-div {
   position: absolute;
-  top: 70%;
+  top: 76%;
   left: 21%;
   height: 51vh;
   width: 100vw;
@@ -29,7 +29,7 @@
 
 @media (orientation: landscape) and (max-height: 450px) {
   .homeworkpathway-structure-div {
-    top: 30%;
+    top: 41%;
     z-index: 1;
   }
 }
