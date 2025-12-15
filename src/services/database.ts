@@ -12,6 +12,83 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  pgmq_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      archive: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      delete: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      pop: {
+        Args: { queue_name: string }
+        Returns: unknown[]
+        SetofOptions: {
+          from: "*"
+          to: "message_record"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      read: {
+        Args: { n: number; queue_name: string; sleep_seconds: number }
+        Returns: unknown[]
+        SetofOptions: {
+          from: "*"
+          to: "message_record"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      send: {
+        Args: { message: Json; queue_name: string; sleep_seconds?: number }
+        Returns: number[]
+      }
+      send_batch: {
+        Args: { messages: Json[]; queue_name: string; sleep_seconds?: number }
+        Returns: number[]
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       announcement: {
@@ -134,6 +211,55 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "public_assignment_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "public_assignment_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_assignment_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "public_assignment_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -189,6 +315,34 @@ export type Database = {
             foreignKeyName: "assignment_cart_id_fkey"
             columns: ["id"]
             isOneToOne: true
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "assignment_cart_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "assignment_cart_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "assignment_cart_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "assignment_cart_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -229,6 +383,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "assignment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_assignment_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_assignment_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_assignment_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "public_assignment_user_user_id_fkey"
@@ -354,7 +536,9 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          language_id: string | null
           lesson_id: string
+          locale_id: string | null
           sort_index: number | null
           updated_at: string | null
         }
@@ -363,7 +547,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id: string
+          locale_id?: string | null
           sort_index?: number | null
           updated_at?: string | null
         }
@@ -372,11 +558,27 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id?: string
+          locale_id?: string | null
           sort_index?: number | null
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chapter_lesson_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "language"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_lesson_locale_id_fkey"
+            columns: ["locale_id"]
+            isOneToOne: false
+            referencedRelation: "locale"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_chapter_lesson_chapter_id_fkey"
             columns: ["chapter_id"]
@@ -542,6 +744,34 @@ export type Database = {
             foreignKeyName: "class_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "class_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -593,6 +823,34 @@ export type Database = {
             foreignKeyName: "class_course_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "class_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -602,6 +860,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "class"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_class_course_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "public_class_course_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "public_class_course_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
           },
           {
             foreignKeyName: "public_class_course_course_id_fkey"
@@ -654,6 +933,27 @@ export type Database = {
             referencedRelation: "class"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "public_class_invite_code_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "public_class_invite_code_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "public_class_invite_code_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
         ]
       }
       class_user: {
@@ -702,11 +1002,88 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "class_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "class_user_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "class_user_user_id_fkey"
@@ -970,6 +1347,34 @@ export type Database = {
             foreignKeyName: "error_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -1015,6 +1420,34 @@ export type Database = {
             foreignKeyName: "favorite_lesson_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "favorite_lesson_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "favorite_lesson_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "favorite_lesson_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "favorite_lesson_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -1024,10 +1457,10 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          is_active: boolean
           is_deleted: boolean
           question_text: string
           sort_order: number
+          status: Database["public"]["Enums"]["fc_questions_status"]
           target_type: Database["public"]["Enums"]["fc_engagement_target"]
           type: Database["public"]["Enums"]["fc_support_level"] | null
           updated_at: string
@@ -1035,10 +1468,10 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          is_active?: boolean
           is_deleted?: boolean
           question_text: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["fc_questions_status"]
           target_type: Database["public"]["Enums"]["fc_engagement_target"]
           type?: Database["public"]["Enums"]["fc_support_level"] | null
           updated_at?: string
@@ -1046,10 +1479,10 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          is_active?: boolean
           is_deleted?: boolean
           question_text?: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["fc_questions_status"]
           target_type?: Database["public"]["Enums"]["fc_engagement_target"]
           type?: Database["public"]["Enums"]["fc_support_level"] | null
           updated_at?: string
@@ -1109,6 +1542,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "school"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "fc_visit_user_id_fkey"
@@ -1186,11 +1647,88 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fc_user_forms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "fc_user_forms_contact_user_id_fkey"
             columns: ["contact_user_id"]
             isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "fc_user_forms_fc_id_fkey"
@@ -1205,6 +1743,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "school"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "fc_user_forms_user_id_fkey"
@@ -1405,6 +1971,51 @@ export type Database = {
         }
         Relationships: []
       }
+      language_locale: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          language_id: string
+          lido_common_audio_url: string | null
+          locale_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          language_id: string
+          lido_common_audio_url?: string | null
+          locale_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          language_id?: string
+          lido_common_audio_url?: string | null
+          locale_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_language_locale_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "language"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_language_locale_locale_id_fkey"
+            columns: ["locale_id"]
+            isOneToOne: false
+            referencedRelation: "locale"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson: {
         Row: {
           cocos_chapter_code: string | null
@@ -1545,6 +2156,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
@@ -1566,6 +2198,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      locale: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       ops_requests: {
         Row: {
@@ -1634,6 +2302,55 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "opps_requests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "opps_requests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
             foreignKeyName: "opps_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
@@ -1644,8 +2361,64 @@ export type Database = {
             foreignKeyName: "opps_requests_requested_to_fkey"
             columns: ["requested_to"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_to_fkey"
+            columns: ["requested_to"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_to_fkey"
+            columns: ["requested_to"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_to_fkey"
+            columns: ["requested_to"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_requested_to_fkey"
+            columns: ["requested_to"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opps_requests_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "opps_requests_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "opps_requests_responded_by_fkey"
+            columns: ["responded_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "opps_requests_responded_by_fkey"
@@ -1756,6 +2529,34 @@ export type Database = {
             foreignKeyName: "parent_user_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -1763,8 +2564,64 @@ export type Database = {
             foreignKeyName: "parent_user_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_user_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "parent_user_student_id_fkey"
@@ -1893,6 +2750,34 @@ export type Database = {
             foreignKeyName: "program_user_user_fkey"
             columns: ["user"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "program_user_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "program_user_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "program_user_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "program_user_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -1946,6 +2831,34 @@ export type Database = {
             foreignKeyName: "req_new_school_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -1953,6 +2866,7 @@ export type Database = {
       }
       result: {
         Row: {
+          activities_scores: string | null
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
@@ -1982,6 +2896,7 @@ export type Database = {
           wrong_moves: number | null
         }
         Insert: {
+          activities_scores?: string | null
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
@@ -2011,6 +2926,7 @@ export type Database = {
           wrong_moves?: number | null
         }
         Update: {
+          activities_scores?: string | null
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
@@ -2076,6 +2992,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
             foreignKeyName: "result_competency_id_fkey"
             columns: ["competency_id"]
             isOneToOne: false
@@ -2109,6 +3046,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "skill"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "result_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "result_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "result_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "result_student_id_fkey"
@@ -2316,6 +3281,34 @@ export type Database = {
             foreignKeyName: "school_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "school_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -2376,6 +3369,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "school"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "school_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_course_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "school_course_ops_created_by_fkey"
@@ -2491,6 +3512,34 @@ export type Database = {
             foreignKeyName: "school_user_ops_created_by_fkey"
             columns: ["ops_created_by"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "school_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -2500,6 +3549,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "school"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "school_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "school_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "school_user_user_id_fkey"
@@ -2562,7 +3639,9 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          language_id: string | null
           lesson_id: string
+          locale_id: string | null
           skill_id: string
           sort_index: number | null
           updated_at: string | null
@@ -2571,7 +3650,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id: string
+          locale_id?: string | null
           skill_id: string
           sort_index?: number | null
           updated_at?: string | null
@@ -2580,17 +3661,33 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id?: string
+          locale_id?: string | null
           skill_id?: string
           sort_index?: number | null
           updated_at?: string | null
         }
         Relationships: [
           {
+            foreignKeyName: "skill_lesson_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "language"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "skill_lesson_lesson_id_fkey"
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_lesson_locale_id_fkey"
+            columns: ["locale_id"]
+            isOneToOne: false
+            referencedRelation: "locale"
             referencedColumns: ["id"]
           },
           {
@@ -2674,6 +3771,34 @@ export type Database = {
             foreignKeyName: "special_users_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "special_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "special_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "special_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "special_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -2748,7 +3873,9 @@ export type Database = {
           framework_id: string | null
           id: string
           is_deleted: boolean | null
+          language_id: string | null
           lesson_id: string
+          locale_id: string | null
           set_number: number | null
           sort_index: number | null
           subject_id: string
@@ -2759,7 +3886,9 @@ export type Database = {
           framework_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id: string
+          locale_id?: string | null
           set_number?: number | null
           sort_index?: number | null
           subject_id: string
@@ -2770,7 +3899,9 @@ export type Database = {
           framework_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          language_id?: string | null
           lesson_id?: string
+          locale_id?: string | null
           set_number?: number | null
           sort_index?: number | null
           subject_id?: string
@@ -2792,10 +3923,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "subject_lesson_language_id_fkey"
+            columns: ["language_id"]
+            isOneToOne: false
+            referencedRelation: "language"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "subject_lesson_lesson_id_fkey"
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_lesson_locale_id_fkey"
+            columns: ["locale_id"]
+            isOneToOne: false
+            referencedRelation: "locale"
             referencedColumns: ["id"]
           },
         ]
@@ -2854,6 +3999,34 @@ export type Database = {
             foreignKeyName: "upload_queue_uploading_user_fkey"
             columns: ["uploading_user"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey"
+            columns: ["uploading_user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey"
+            columns: ["uploading_user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey"
+            columns: ["uploading_user"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey"
+            columns: ["uploading_user"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -2878,6 +4051,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -2906,6 +4080,7 @@ export type Database = {
           is_tc_accepted?: boolean | null
           language_id?: string | null
           learning_path?: string | null
+          locale_id?: string | null
           music_off?: boolean | null
           name?: string | null
           ops_created_by?: string | null
@@ -2934,6 +4109,7 @@ export type Database = {
           is_tc_accepted?: boolean | null
           language_id?: string | null
           learning_path?: string | null
+          locale_id?: string | null
           music_off?: boolean | null
           name?: string | null
           ops_created_by?: string | null
@@ -2965,6 +4141,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "grade"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_locale_id_fkey"
+            columns: ["locale_id"]
+            isOneToOne: false
+            referencedRelation: "locale"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "user_ops_created_by_fkey"
+            columns: ["ops_created_by"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "user_ops_created_by_fkey"
@@ -3018,6 +4229,34 @@ export type Database = {
             foreignKeyName: "public_user_badge_parent_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_badge_parent_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_user_badge_parent_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_badge_parent_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_badge_parent_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -3066,6 +4305,34 @@ export type Database = {
             foreignKeyName: "public_user_bonus_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_bonus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_user_bonus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_bonus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_bonus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -3106,6 +4373,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "course"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_user_course_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_course_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_user_course_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_course_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "public_user_course_user_id_fkey"
@@ -3159,6 +4454,34 @@ export type Database = {
             foreignKeyName: "public_user_sticker_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_sticker_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "public_user_sticker_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_sticker_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "public_user_sticker_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
           },
@@ -3176,6 +4499,255 @@ export type Database = {
           type: string | null
         }
         Relationships: []
+      }
+      student_flat_view: {
+        Row: {
+          class_id: string | null
+          class_name: string | null
+          class_user_id: string | null
+          class_user_is_deleted: boolean | null
+          parent_email: string | null
+          parent_id: string | null
+          parent_name: string | null
+          role: Database["public"]["Enums"]["role"] | null
+          school_id: string | null
+          student_email: string | null
+          student_id: string | null
+          student_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_class_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_sorted_view: {
+        Row: {
+          class_id: string | null
+          class_id_real: string | null
+          class_name: string | null
+          class_user_id: string | null
+          class_user_is_deleted: boolean | null
+          parent_email: string | null
+          parent_id: string | null
+          parent_id_real: string | null
+          parent_name: string | null
+          parent_phone: string | null
+          role: Database["public"]["Enums"]["role"] | null
+          school_id: string | null
+          student_created_at: string | null
+          student_email: string | null
+          student_id: string | null
+          student_name: string | null
+          student_phone: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["class_id_real"]
+          },
+          {
+            foreignKeyName: "class_user_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["class_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "class_user_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_class_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_sorted_view1: {
+        Row: {
+          class_id: string | null
+          class_name: string | null
+          class_user_id: string | null
+          class_user_is_deleted: boolean | null
+          parent_email: string | null
+          parent_id: string | null
+          parent_name: string | null
+          role: Database["public"]["Enums"]["role"] | null
+          school_id: string | null
+          student_email: string | null
+          student_id: string | null
+          student_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_flat_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["parent_id_real"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "student_sorted_view1"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "parent_user_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_class_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
@@ -3363,6 +4935,7 @@ export type Database = {
       get_latest_results_by_student: {
         Args: { student_uuid: string }
         Returns: {
+          activities_scores: string | null
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
@@ -3506,6 +5079,10 @@ export type Database = {
           school: Json
         }[]
       }
+      get_sorted_students: {
+        Args: { p_limit: number; p_offset: number; p_school_id: string }
+        Returns: Json
+      }
       get_unique_geo_data: { Args: never; Returns: Json }
       get_user_by_email: {
         Args: { p_email: string }
@@ -3527,6 +5104,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -3571,6 +5149,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -3608,6 +5187,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -3780,8 +5360,8 @@ export type Database = {
         Returns: boolean
       }
       is_program_manager_or_field_coordinator:
-        | { Args: { p_user_id: string }; Returns: boolean }
         | { Args: never; Returns: boolean }
+        | { Args: { p_user_id: string }; Returns: boolean }
       is_special_or_program_user: { Args: never; Returns: boolean }
       is_special_user_privileged: { Args: never; Returns: boolean }
       is_student_already_in_class: {
@@ -4034,7 +5614,9 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          language_id: string | null
           lesson_id: string
+          locale_id: string | null
           sort_index: number | null
           updated_at: string | null
         }[]
@@ -4342,6 +5924,7 @@ export type Database = {
       sql_get_results: {
         Args: { p_updated_at: string }
         Returns: {
+          activities_scores: string | null
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
@@ -4606,6 +6189,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -4643,6 +6227,7 @@ export type Database = {
           is_tc_accepted: boolean | null
           language_id: string | null
           learning_path: string | null
+          locale_id: string | null
           music_off: boolean | null
           name: string | null
           ops_created_by: string | null
@@ -4661,7 +6246,11 @@ export type Database = {
         }
       }
       sql_sync_all: {
-        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Args: {
+          p_is_first_time?: boolean
+          p_tables?: string[]
+          p_updated_at?: Json
+        }
         Returns: Json
       }
       sql_sync_all_2: {
@@ -4669,7 +6258,19 @@ export type Database = {
         Returns: Json
       }
       sql_sync_all_reserarc: {
-        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Args: {
+          p_is_first_time?: boolean
+          p_tables?: string[]
+          p_updated_at?: Json
+        }
+        Returns: Json
+      }
+      sql_sync_all2: {
+        Args: {
+          p_is_first_time?: boolean
+          p_tables?: string[]
+          p_updated_at?: Json
+        }
         Returns: Json
       }
       update_class_firebase_trigger: {
@@ -4765,15 +6366,16 @@ export type Database = {
         | "parent"
         | "school"
         | "class"
+      fc_questions_status: "active" | "in_active"
       fc_support_level:
         | "need_help"
         | "still_learning"
         | "doing_good"
         | "not_tracked"
-        | "not_assigning_per_month"
-        | "once_a_month"
-        | "once_a_week"
-        | "two_plus_per_week"
+        | "not_assigning"
+        | "once_to_two"
+        | "three_to_four"
+        | "four_plus"
       login_type: "student_id" | "parent_phone_number"
       ops_request_status: "requested" | "rejected" | "approved" | "flagged"
       ops_request_type: "student" | "teacher" | "principal" | "school"
@@ -4923,6 +6525,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  pgmq_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
@@ -4936,15 +6544,16 @@ export const Constants = {
         "school",
         "class",
       ],
+      fc_questions_status: ["active", "in_active"],
       fc_support_level: [
         "need_help",
         "still_learning",
         "doing_good",
         "not_tracked",
-        "not_assigning_per_month",
-        "once_a_month",
-        "once_a_week",
-        "two_plus_per_week",
+        "not_assigning",
+        "once_to_two",
+        "three_to_four",
+        "four_plus",
       ],
       login_type: ["student_id", "parent_phone_number"],
       ops_request_status: ["requested", "rejected", "approved", "flagged"],

@@ -435,6 +435,7 @@ export class OneRosterApi implements ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
+    isHomework?: boolean,
     skill_id?: string | undefined,
     skill_ability?: number | undefined,
     outcome_id?: string | undefined,

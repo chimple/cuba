@@ -387,6 +387,7 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId,
       shouldGiveHomeworkBonus,
+      is_homework,
       abilityUpdates.skill_id,
       abilityUpdates.skill_ability,
       abilityUpdates.outcome_id,
@@ -404,33 +405,6 @@ const CocosGame: React.FC = () => {
       await Util.updateLearningPath(currentStudent, isReward);
     } else if (is_homework) {
       await Util.updateHomeworkPath(homeworkIndex);
-    }
-
-    // ⭐ 1) Per-homework stars (local-first, e.g. +3 per homework)
-    if (is_homework) {
-      try {
-        const student = Util.getCurrentStudent();
-        if (student?.id) {
-          const BASE_HOMEWORK_STARS = 3; // adjust if your rule changes
-          const newLocalStarsAfterLesson = Util.bumpLocalStarsForStudent(
-            student.id,
-            BASE_HOMEWORK_STARS
-            // student.stars || 0
-          );
-
-          // Try to keep backend in sync, but UI doesn't depend on it
-          try {
-            await api.updateStudentStars(student.id, newLocalStarsAfterLesson);
-          } catch (e) {
-            console.warn(
-              "[Homework stars] Failed to sync +3 stars to backend, keeping local only",
-              e
-            );
-          }
-        }
-      } catch (e) {
-        console.warn("[Homework stars] Error while adding +3 local stars", e);
-      }
     }
 
     // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway

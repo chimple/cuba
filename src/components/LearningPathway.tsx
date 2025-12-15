@@ -10,6 +10,7 @@ import Loading from "./Loading";
 import { schoolUtil } from "../utility/schoolUtil";
 import { v4 as uuidv4 } from "uuid";
 import {
+  COURSE_CHANGED,
   EVENTS,
   LATEST_STARS,
   STARS_COUNT,
@@ -187,9 +188,7 @@ const LearningPathway: React.FC = () => {
     learningPath.courses.courseList = newLearningPath.courses.courseList;
 
     // Dispatch event to notify that course has changed
-    const event = new CustomEvent("courseChanged", {
-      detail: { currentStudent },
-    });
+    const event = new CustomEvent(COURSE_CHANGED);
     window.dispatchEvent(event);
 
     return true;

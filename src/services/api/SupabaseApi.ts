@@ -75,6 +75,8 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
@@ -485,7 +487,8 @@ export class SupabaseApi implements ServiceApi {
       }
       const res = await this.supabase?.rpc("sql_sync_all", {
         p_updated_at: updatedAtPayload,
-        p_tables: tableNames, // TABLES[] should be string[] under the hood
+        p_tables: tableNames,
+        p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       if (res == null || res.error || !res.data) {
         let parent_user;
@@ -2226,11 +2229,7 @@ export class SupabaseApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[student.id]
-      : 0;
-    const totalStars = currentStars + starsEarned;
+    const totalStars = Util.bumpLocalStarsForStudent(student.id, starsEarned);
 
     const updateData: any = { stars: totalStars };
     if (newReward) updateData.reward = JSON.stringify(newReward);
@@ -2979,10 +2978,10 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .single();
 
-  if (specialError) {
-    console.error("Error fetching special_users:", specialError);
-  } else if (specialUser) {
-    const role = specialUser.role as RoleType;
+    if (specialError) {
+      console.error("Error fetching special_users:", specialError);
+    } else if (specialUser) {
+      const role = specialUser.role as RoleType;
 
       // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
       if (
@@ -3123,9 +3122,8 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-  return finalData;
-}
-
+    return finalData;
+  }
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
@@ -3229,19 +3227,43 @@ export class SupabaseApi implements ServiceApi {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    let query = this.supabase
       .from("class_user")
       .select(
         `
       class:class_id!inner (
         id,
-        name 
+        class_name:name
       ),
-      user:user_id (
-        *,
+      user:user_id!inner (
+          age,
+          avatar,
+          created_at,
+          curriculum_id,
+          fcm_token,
+          firebase_id,
+        grade_id,
+      image,
+      is_deleted,
+      is_firebase,
+      is_ops,
+     language_id,
+     is_tc_accepted,
+     student_id,
+     reward,
+     updated_at,
+      learning_path,
+        id,
+        name,
+        phone,
+        gender,
+        email,
         parent_links:parent_user!student_id (
           parent:parent_id (
-            * 
+            id,
+            parent_name:name,
+            phone,
+            email
           )
         )
       )
@@ -3250,7 +3272,10 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq("role", "student")
       .eq("is_deleted", false)
-      .eq("class.school_id", schoolId)
+      .eq("class.school_id", schoolId);
+
+    const { data, error, count } = await query
+      .order("user(name)", { ascending: true })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -3261,7 +3286,7 @@ export class SupabaseApi implements ServiceApi {
     const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
       const { user, class: cls } = row;
 
-      const className = cls?.name || "";
+      const className = cls?.class_name || "";
       const { grade, section } = this.parseClassName(className);
 
       const parent = user?.parent_links?.[0]?.parent || null;
@@ -3298,13 +3323,13 @@ export class SupabaseApi implements ServiceApi {
         `
       class:class_id!inner (
         id,
-        name 
+        name
       ),
       user:user_id (
         *,
         parent_links:parent_user!student_id (
           parent:parent_id (
-            * 
+            *
           )
         )
       )
@@ -9181,7 +9206,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
       {
-        body: { name, phone: phoneNumber, email },
+        body: { name, phone: phoneNumber, email: email },
       }
     );
     if (error) {
@@ -9248,7 +9273,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let schoolUser: any | null = null;
-    if (schoolId) {
+    if (schoolId && role === RoleType.PRINCIPAL) {
       const { data: existingSchoolUser, error: existingSchoolUserError } =
         await this.supabase
           .from("school_user")
@@ -9474,7 +9499,7 @@ export class SupabaseApi implements ServiceApi {
           body: {
             name: parentName || "Parent",
             phone: phone,
-            email: email || "",
+            email: email,
           },
         });
 
@@ -9618,13 +9643,118 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
-   async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+
+  async getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []> {
+    if (!this.supabase) {
+      return [];
+    }
+
+    let query = this.supabase
+      .from(TABLES.FcQuestion)
+      .select("*")
+      .eq("target_type", targetType)
+      .eq("is_deleted", false)
+      .eq("status", "active");
+
+    if (type !== null) {
+      query = query.eq("type", type);
+    } else {
+      query = query.is("type", null);
+    }
+
+    const { data, error } = await query.order("sort_order", {
+      ascending: true,
+    });
+
+    if (error) {
+      console.error("Error fetching FC Questions:", error);
+      return [];
+    }
+
+    return data;
+  }
+  async saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  }) {
+    if (!this.supabase) {
+      return { data: null, error: new Error("Supabase not initialized") };
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FcUserForms)
+      .insert({
+        visit_id: payload.visitId ?? null,
+        user_id: payload.userId,
+        school_id: payload.schoolId,
+        class_id: payload.classId ?? null,
+        contact_user_id: payload.contactUserId ?? null,
+        contact_target: payload.contactTarget,
+        contact_method: payload.contactMethod,
+        call_status: payload.callStatus ?? null,
+        support_level: payload.supportLevel ?? null,
+        question_response: JSON.stringify(payload.questionResponse),
+        tech_issues_reported: payload.techIssuesReported,
+        comment: payload.comment ?? null,
+        tech_issue_comment: payload.techIssueComment ?? null,
+      })
+      .select()
+      .single();
+
+    return { data, error };
+  }
+  async getTodayVisitId(
+    userId: string,
+    schoolId: string
+  ): Promise<string | null> {
+    if (!this.supabase) {
+      return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString().split("T")[0];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FcSchoolVisit)
+      .select("id")
+      .eq("user_id", userId)
+      .eq("school_id", schoolId)
+      .filter("is_deleted", "eq", false)
+      .filter("check_out_at", "is", null)
+      .gte("check_in_at", `${todayISO}T00:00:00.000Z`)
+      .maybeSingle();
+
+    if (error) return null;
+
+    // No valid visit found
+    if (!data) return null;
+
+    return data.id;
+  }
+  async getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]> {
     if (!this.supabase) return [];
 
     const { data, error } = await this.supabase
       .from("fc_user_forms")
       .select("*")
-      .eq("school_id",schoolId)
+      .eq("school_id", schoolId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
 
@@ -9668,18 +9798,122 @@ export class SupabaseApi implements ServiceApi {
 
       const forms = data || [];
 
-      const contactTypes = [...new Set(forms.map(f => f.contact_target).filter(Boolean))];
-      const performance = [...new Set(forms.map(f => f.support_level).filter(Boolean))];
+      const contactTypes = [
+        ...new Set(forms.map((f) => f.contact_target).filter(Boolean)),
+      ];
+      const performance = [
+        ...new Set(forms.map((f) => f.support_level).filter(Boolean)),
+      ];
 
       return {
         contactType: contactTypes,
         performance: performance,
       };
-
     } catch (error) {
       console.error("Error in getActivitiesFilterOptions:", error);
       throw error;
     }
   }
 
+  async getFCSchoolStatsForSchool(schoolId: string, currentUser: TableTypes<"user"> | null): Promise<FCSchoolStats> {
+    if (!this.supabase) {
+      return {
+        visits: 0,
+        calls_made: 0,
+        tech_issues: 0,
+        parents_interacted: 0,
+        students_interacted: 0,
+        teachers_interacted: 0,
+      };
+    }
+    try {
+      if (!currentUser) {
+        console.error("Error getting current user");
+        return {
+          visits: 0,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      const userId = currentUser.id;
+      const now = new Date();
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(now.getDate() - 15);
+      const fromIso = fifteenDaysAgo.toISOString();
+      const { count: visitsCount, error: visitsError } = await this.supabase
+        .from("fc_school_visit")
+        .select("id", { count: "exact", head: true })
+        .eq("school_id", schoolId)
+        .eq("user_id", userId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (visitsError) {
+        console.error("Error counting visits:", visitsError);
+      }
+      const visits = visitsCount ?? 0;
+      const { data: forms, error: formsError } = await this.supabase
+        .from("fc_user_forms")
+        .select(
+          "contact_method, call_status, contact_target, tech_issues_reported, created_at"
+        )
+        .eq("school_id", schoolId)
+        .eq("user_id", userId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (formsError) {
+        console.error("Error fetching fc_user_forms:", formsError);
+        return {
+          visits,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      let calls_made = 0;
+      let tech_issues = 0;
+      let parents_interacted = 0;
+      let students_interacted = 0;
+      let teachers_interacted = 0;
+      (forms || []).forEach((row: any) => {
+        const hasInteraction =
+          row.contact_method === "call" || row.call_status === "call_picked";
+        if (hasInteraction) {
+          calls_made += 1;
+          if (row.contact_target === "parent") {
+            parents_interacted += 1;
+          } else if (row.contact_target === "student") {
+            students_interacted += 1;
+          } else if (row.contact_target === "teacher") {
+            teachers_interacted += 1;
+          }
+        }
+        if (row.tech_issues_reported === true) {
+          tech_issues += 1;
+        }
+      });
+      return {
+        visits,
+        calls_made,
+        tech_issues,
+        parents_interacted,
+        students_interacted,
+        teachers_interacted,
+      };
+    } catch (err) {
+      console.error("Exception in getFCSchoolStatsForUser:", err);
+      return {
+        visits: 0,
+        calls_made: 0,
+        tech_issues: 0,
+        parents_interacted: 0,
+        students_interacted: 0,
+        teachers_interacted: 0,
+      };
+    }
+  }
 }

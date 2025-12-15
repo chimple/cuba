@@ -66,6 +66,8 @@ import {
   LATEST_STARS,
   CURRENT_CLASS,
   RECOMMENDATION_TYPE,
+  USER_SELECTION_STAGE,
+  CURRENT_MODE,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -103,8 +105,8 @@ import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
+import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
-
 declare global {
   interface Window {
     cc: any;
@@ -1036,8 +1038,14 @@ export class Util {
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id });
+      try {
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        await Promise.resolve(
+          Util.port.shareUserId({ userId: params.user_id })
+        );
+      } catch (e) {
+        console.warn("Port.shareUserId skipped:", e);
+      }
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
@@ -2047,16 +2055,134 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
+public static getCurrentSchool(): TableTypes<"school"> | undefined {
+  const api = ServiceConfig.getI().apiHandler;
 
-  public static getCurrentSchool(): TableTypes<"school"> | undefined {
-    const api = ServiceConfig.getI().apiHandler;
-    if (!!api.currentSchool) return api.currentSchool;
-    const temp = localStorage.getItem(SCHOOL);
-    if (!temp) return;
-    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-    api.currentSchool = currentSchool;
-    return currentSchool;
+  const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return false;
+
+      const userId = currentUser.id;
+      const schools = await api.getSchoolsForUser(userId);
+
+      return schools.some((item) => item.school.id === schoolId);
+    } catch (error) {
+      console.error("Error checking school via user:", error);
+      return false;
+    }
+  };
+
+  const isClassConnected = async (
+    schoolId: string,
+    classId: string
+  ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return;
+
+      const userId = currentUser.id;
+
+      const classes = await api.getClassesForSchool(schoolId, userId);
+
+      return {
+        classExists: classes.some((cls) => cls.id === classId),
+        classCount: classes.length,
+      };
+    } catch (error) {
+      console.error("Error checking class via user:", error);
+      return;
+    }
+  };
+
+ 
+  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
+  if (!!api.currentSchool) {
+    const classes = Util.getCurrentClass();
+    const schoolId = api.currentSchool.id;
+    const classId = classes?.id ?? undefined;
+
+    // SCHOOL CHECK
+    isSchoolConnected(api.currentSchool.id).then((res) => {
+      if (!res) {
+        api.currentSchool = undefined;
+        // schoolUtil.setCurrMode(MODES.SCHOOL);
+        console.log("School no longer connected → removing from storage");
+        localStorage.removeItem(SCHOOL);
+        localStorage.removeItem(CLASS);
+        return;
+      }
+
+      // CLASS CHECK 
+      
+      if (classId) {
+        isClassConnected(schoolId, classId).then((cls) => {
+          if (!cls) return;
+
+          const { classExists, classCount } = cls;
+
+          if (!classExists) {
+            console.log("Class no longer connected → removing class");
+            localStorage.removeItem(CLASS);
+
+            // If only one class existed and that gets removed → remove school too
+            if (classCount === 1) {
+              console.log("Last class removed → removing school as well");
+              api.currentSchool = undefined;
+              localStorage.removeItem(SCHOOL);
+            }
+          }
+        });
+      }
+    });
+
+    return api.currentSchool;
   }
+
+  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
+  const temp = localStorage.getItem(SCHOOL);
+  if (!temp) return;
+
+  const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+  api.currentSchool = currentSchool;
+
+  const classId = localStorage.getItem(CLASS) ?? undefined;
+
+  // SCHOOL CHECK 
+  isSchoolConnected(currentSchool.id).then((res) => {
+    if (!res) {
+      api.currentSchool = undefined;
+      // schoolUtil.setCurrMode(MODES.SCHOOL);
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      return;
+    }
+
+    // CLASS CHECK
+    if (classId) {
+      isClassConnected(currentSchool.id, classId).then((cls) => {
+        if (!cls) return;
+
+        const { classExists, classCount } = cls;
+
+        if (!classExists) {
+          console.log("Class no longer connected → removing class");
+          localStorage.removeItem(CLASS);
+
+          if (classCount === 1) {
+            console.log("Last class removed → removing school as well");
+            api.currentSchool = undefined;
+            localStorage.removeItem(SCHOOL);
+          }
+        }
+      });
+    }
+  });
+
+  return currentSchool;
+}
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
@@ -2103,7 +2229,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2116,7 +2242,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2566,7 +2692,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-        currentReward?.reward_id
+          currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2605,25 +2731,176 @@ export class Util {
       const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
-          "Could not find homework path in sessionStorage to update."
+          "Could not find homework path in localStorage to update."
         );
         return;
       }
 
-      const homeworkPath = JSON.parse(storedPath);
+      // Snapshot path early to avoid races
+      const homeworkPath = JSON.parse(storedPath) as {
+        path_id?: string;
+        lessons?: any[];
+        currentIndex?: number;
+      };
 
-      // If we know exactly which index was completed, use that as the base.
-      // Otherwise, fall back to "currentIndex + 1" like before.
-      const newCurrentIndex =
-        typeof completedIndex === "number"
-          ? completedIndex + 1
-          : homeworkPath.currentIndex + 1;
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
 
-      // Check if the 5-lesson path is now complete
-      if (newCurrentIndex >= homeworkPath.lessons.length) {
+      // If caller provided which index completed, use that
+      if (typeof completedIndex === "number") {
+        const lessons = homeworkPath.lessons ?? [];
+        const completedLesson = lessons[completedIndex] ?? null;
+
+        // --- 1) LOG ASSIGNMENT COMPLETED (deduped locally) ---
+        try {
+          const assignmentId = completedLesson?.assignment_id ?? null;
+          if (assignmentId && studentId) {
+            const completedKey = ASSIGNMENT_COMPLETED_IDS;
+            const temp = localStorage.getItem(completedKey);
+            const completedMap = temp ? JSON.parse(temp) : {};
+            const studentCompleted = completedMap[studentId] || [];
+
+            if (!studentCompleted.includes(assignmentId)) {
+              const assignmentPayload = {
+                user_id: studentId,
+                student_id: studentId,
+                path_id: homeworkPath.path_id ?? null,
+                assignment_id: assignmentId,
+                lesson_id:
+                  completedLesson?.lesson_id ??
+                  completedLesson?.lesson?.id ??
+                  null,
+                chapter_id: completedLesson?.chapter_id ?? null,
+                course_id: completedLesson?.course_id ?? null,
+                index_in_path: completedIndex,
+                completed_at: new Date().toISOString(),
+              };
+
+              try {
+                Util.logEvent(
+                  EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
+                  assignmentPayload
+                );
+              } catch (e) {
+                console.warn(
+                  "[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED",
+                  e
+                );
+              }
+
+              // mark as logged locally
+              studentCompleted.push(assignmentId);
+              completedMap[studentId] = studentCompleted;
+              localStorage.setItem(completedKey, JSON.stringify(completedMap));
+            }
+          }
+        } catch (e) {
+          console.warn("[Analytics] assignment-completed block failed", e);
+        }
+
+        // --- 2) Decide if this was the last lesson in the path ---
+        const lessonsLen = homeworkPath.lessons?.length ?? 0;
+        const newCurrentIndex = completedIndex + 1;
+        const isNowComplete = newCurrentIndex >= lessonsLen;
+
+        if (isNowComplete) {
+          // Build and log pathway completed event (using snapshot)
+          try {
+            const prevIndex = Math.max(completedIndex, 0); // the lesson just completed
+            const prev = homeworkPath.lessons?.[prevIndex] ?? null;
+
+            const lessonIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.lesson_id ?? l.lesson?.id ?? null
+            );
+            const assignmentIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.assignment_id ?? l.id ?? null
+            );
+
+            const completedEvent = {
+              user_id: studentId,
+              student_id: studentId,
+              completed_path_id: homeworkPath.path_id ?? null,
+              completed_course_id: prev?.course_id ?? null,
+              completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+              assignment_id: prev?.assignment_id ?? null,
+              completed_chapter_id: prev?.chapter_id ?? null,
+              total_lessons_in_path: lessonsLen,
+              lesson_ids: lessonIds,
+              assignment_ids: assignmentIds,
+              completed_at: new Date().toISOString(),
+              source: "updateHomeworkPath",
+            };
+
+            try {
+              Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+            } catch (e) {
+              console.warn(
+                "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED",
+                e
+              );
+            }
+          } catch (e) {
+            console.warn("[Analytics] pathway-completed block failed", e);
+          }
+
+          // finally remove the path from storage
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        } else {
+          // Not complete → advance index and persist
+          homeworkPath.currentIndex = newCurrentIndex;
+          localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        }
+
+        return; // finished handling completedIndex case
+      }
+
+      // --- fallback: no completedIndex provided — preserve existing behaviour ---
+      const newCurrentIndexFallback = (homeworkPath.currentIndex ?? 0) + 1;
+      if (newCurrentIndexFallback >= (homeworkPath.lessons?.length ?? 0)) {
+        // path finished
+        try {
+          // log completed event similar to above (best-effort)
+          const lessons = homeworkPath.lessons ?? [];
+          const prevIndex = Math.max((homeworkPath.currentIndex ?? 0) - 1, 0);
+          const prev = lessons[prevIndex] ?? null;
+
+          const lessonIds = lessons.map(
+            (l: any) => l.lesson_id ?? l.lesson?.id ?? null
+          );
+          const assignmentIds = lessons.map(
+            (l: any) => l.assignment_id ?? l.id ?? null
+          );
+
+          const completedEvent = {
+            user_id: studentId,
+            student_id: studentId,
+            completed_path_id: homeworkPath.path_id ?? null,
+            completed_course_id: prev?.course_id ?? null,
+            completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+            assignment_id: prev?.assignment_id ?? null,
+            completed_chapter_id: prev?.chapter_id ?? null,
+            total_lessons_in_path: lessons.length,
+            lesson_ids: lessonIds,
+            assignment_ids: assignmentIds,
+            completed_at: new Date().toISOString(),
+            source: "updateHomeworkPath",
+          };
+
+          try {
+            Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+          } catch (e) {
+            console.warn(
+              "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)",
+              e
+            );
+          }
+        } catch (e) {
+          console.warn("[Analytics] pathway completed (fallback) failed", e);
+        }
+
         localStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
-        homeworkPath.currentIndex = newCurrentIndex;
+        homeworkPath.currentIndex = newCurrentIndexFallback;
         localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
@@ -2646,29 +2923,23 @@ export class Util {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
 
-      const prevLessonId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].lesson_id;
-      const prevChapterId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].chapter_id;
-      const prevCourseId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .course_id;
-      const prevPathId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
+      let activeCourse = courses.courseList[courses.currentCourseIndex];
+      let activePathItem = activeCourse.path[activeCourse.currentIndex];
+
+      const prevData = {
+        pathId: activeCourse.path_id,
+        courseId: activeCourse.course_id,
+        lessonId: activePathItem.lesson_id,
+        chapterId: activePathItem.chapter_id,
+        prevPath_id: activeCourse.path_id,
+      };
+
+      // Determine which events to log
+      const eventsToLog: string[] = [];
       // Update currentIndex
       currentCourse.currentIndex += 1;
-      const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
+      const is_immediate_sync =
+        currentCourse.currentIndex >= currentCourse.pathEndIndex;
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         if (isRewardLesson) {
@@ -2680,6 +2951,8 @@ export class Util {
         if(learningPath.courses.courseList[learningPath.courses.currentCourseIndex].type === RECOMMENDATION_TYPE.CHAPTER) {
           currentCourse.startIndex = currentCourse.currentIndex;
           currentCourse.pathEndIndex += 5;
+          currentCourse.path_id = uuidv4();
+          prevData.prevPath_id = currentCourse.path_id;
 
           // Ensure pathEndIndex does not exceed the path length
           if (currentCourse.pathEndIndex > currentCourse.path.length) {
@@ -2737,10 +3010,10 @@ export class Util {
                 learningPath.courses.currentCourseIndex
               ].currentIndex
             ].chapter_id,
-          prev_path_id: prevPathId,
-          prev_course_id: prevCourseId,
-          prev_lesson_id: prevLessonId,
-          prev_chapter_id: prevChapterId,
+          prev_path_id: prevData.pathId,
+          prev_course_id: prevData.courseId,
+          prev_lesson_id: prevData.lessonId,
+          prev_chapter_id: prevData.chapterId,
         };
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
@@ -2758,13 +3031,42 @@ export class Util {
             skill_id: recommended.skillId,
           };
         }
+        eventsToLog.push(
+          EVENTS.PATHWAY_COMPLETED,
+          EVENTS.PATHWAY_COURSE_CHANGED
+        );
       }
+      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+
+      const newCourse = courses.courseList[courses.currentCourseIndex];
+      const newPathItem =
+        newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
+      const eventPayload = {
+        user_id: currentStudent.id,
+
+        current_path_id: newCourse.path_id,
+        current_course_id: newCourse.course_id,
+        current_lesson_id: newPathItem.lesson_id,
+        current_chapter_id: newPathItem.chapter_id,
+
+        path_id: prevData.pathId,
+        prev_path_id: prevData.prevPath_id,
+        prev_course_id: prevData.courseId,
+        lesson_id: prevData.lessonId,
+        prev_chapter_id: prevData.chapterId,
+        timestamp: new Date().toISOString(),
+      };
       // Update the learning path in the database
-      await ServiceConfig.getI().apiHandler.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath),
-        is_immediate_sync
-      );
+      await Promise.all([
+        ServiceConfig.getI().apiHandler.updateLearningPath(
+          currentStudent,
+          JSON.stringify(learningPath),
+          is_immediate_sync
+        ),
+        ...eventsToLog.map((eventName) =>
+          Util.logEvent(eventName as EVENTS, eventPayload)
+        ),
+      ]);
       // Update the current student object
       const updatedStudent =
         await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
@@ -2804,12 +3106,7 @@ export class Util {
         // First load: seed localStorage with DB value
         bestLocal = fallback;
         Util.setLocalStarsForStudent(studentId, bestLocal);
-        console.log(
-          `[Stars] Seeded localStorage for ${studentId} with DB fallback: ${bestLocal}`
-        );
       }
-
-      console.log("Testing 8", bestLocal, localStars, latestStars, fallback);
       return bestLocal;
     } catch (e) {
       console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
@@ -2908,114 +3205,106 @@ export class Util {
     assignments: any[],
     completedCountBySubject: { [key: string]: number } = {}
   ): any[] {
-    // 1️⃣ Only work with pending assignments
-    const pending = assignments.filter((a) => !a.completed);
-
-    // 2️⃣ Split manual vs non-manual
-    const manualPending = pending.filter((a) => a.source === "manual");
-    const otherPending = pending.filter((a) => a.source !== "manual");
-
-    // 3️⃣ Core subject-balancing selector (your old logic, refactored)
-    const pickFiveFrom = (sourceAssignments: any[]): any[] => {
-      const pendingBySubject: { [key: string]: any[] } = {};
-
-      sourceAssignments.forEach((a) => {
-        const subjectId = a.subject_id;
-        if (!subjectId) return;
-        if (!pendingBySubject[subjectId]) {
-          pendingBySubject[subjectId] = [];
-        }
-        pendingBySubject[subjectId].push(a);
-      });
-
-      if (Object.keys(pendingBySubject).length === 0) {
-        return [];
-      }
-
-      // Find subjects with max pending
-      let maxPending = 0;
-      let subjectsWithMaxPending: string[] = [];
-
-      Object.keys(pendingBySubject).forEach((subject) => {
-        const length = pendingBySubject[subject].length;
-        if (length > maxPending) {
-          maxPending = length;
-          subjectsWithMaxPending = [subject];
-        } else if (length === maxPending) {
-          subjectsWithMaxPending.push(subject);
-        }
-      });
-
-      let bestSubject: string | null = null;
-
-      if (subjectsWithMaxPending.length === 1) {
-        bestSubject = subjectsWithMaxPending[0];
-      } else if (subjectsWithMaxPending.length > 1) {
-        // tie-break by fewer completed using completedCountBySubject
-        let minCompleted = Number.MAX_SAFE_INTEGER;
-        subjectsWithMaxPending.forEach((subject) => {
-          const completedCount = completedCountBySubject[subject] ?? 0;
-          if (completedCount < minCompleted) {
-            minCompleted = completedCount;
-            bestSubject = subject;
-          }
-        });
-      }
-
-      if (!bestSubject) {
-        return [];
-      }
-
-      let result: any[] = [];
-
-      const bestSubjectPending = pendingBySubject[bestSubject] || [];
-
-      if (bestSubjectPending.length >= 5) {
-        // If one subject alone has >= 5 pending, take first 5 from that subject
-        result = bestSubjectPending.slice(0, 5);
-      } else {
-        // Otherwise fill from bestSubject first, then other subjects with more pending
-        result = [...bestSubjectPending];
-        const remaining = 5 - result.length;
-
-        const otherSubjects = Object.keys(pendingBySubject)
-          .filter((s) => s !== bestSubject)
-          .sort(
-            (a, b) =>
-              (pendingBySubject[b]?.length || 0) -
-              (pendingBySubject[a]?.length || 0)
-          );
-
-        for (const subj of otherSubjects) {
-          if (result.length >= 5) break;
-          const bucket = pendingBySubject[subj] || [];
-          const toTake = Math.min(5 - result.length, bucket.length);
-          result = result.concat(bucket.slice(0, toTake));
-        }
-      }
-
-      return result;
+    // Helper: timestamp (oldest = smaller)
+    const getTs = (a: any) => {
+      const v =
+        a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+      const t = v ? new Date(v).getTime() : 0;
+      return isNaN(t) ? 0 : t;
     };
 
-    let result: any[] = [];
+    // 1) Only pending
+    const pending = assignments.filter((a) => !a.completed);
+    if (!pending.length) return [];
 
-    // 4️⃣ First priority: MANUAL assignments
-    if (manualPending.length > 0) {
-      result = pickFiveFrom(manualPending);
+    // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
+    const pendingSorted = [...pending].sort((a, b) => getTs(a) - getTs(b));
+
+    // 3) Group by subject, maintaining FIFO order inside manual & other buckets
+    const bySubject: {
+      [sid: string]: {
+        manual: any[];
+        other: any[];
+        total: number;
+        manualCount: number;
+      };
+    } = {};
+
+    for (const a of pendingSorted) {
+      const sid = a.subject_id;
+      if (!sid) continue;
+      if (!bySubject[sid])
+        bySubject[sid] = { manual: [], other: [], total: 0, manualCount: 0 };
+      if (a.source === "manual") {
+        bySubject[sid].manual.push(a);
+        bySubject[sid].manualCount++;
+      } else {
+        bySubject[sid].other.push(a);
+      }
+      bySubject[sid].total++;
     }
 
-    // 5️⃣ If less than 5 manuals, fill remaining with non-manual
-    if (result.length < 5 && otherPending.length > 0) {
-      const remainingSlots = 5 - result.length;
-      const othersPicked = pickFiveFrom(otherPending)
-        // Avoid duplicates, just in case
-        .filter((a) => !result.some((r) => r.id === a.id))
-        .slice(0, remainingSlots);
+    const subjectIds = Object.keys(bySubject);
+    if (subjectIds.length === 0) return [];
 
-      result = result.concat(othersPicked);
+    // NOTE: Removed mixed-case return for totalPendingAll <= 5.
+    // We will ALWAYS pick one subject only (manual priority + tie-breaks) and
+    // return up to 5 assignments from that subject only.
+
+    // 4) Choose single subject according to your rules:
+    //    a) highest manualCount (manual priority)
+    //    b) tie -> higher total pending
+    //    c) tie -> smaller completedCountBySubject (played less)
+    //    d) final deterministic fallback: subject id (string compare)
+    let bestSubject: string | null = null;
+    let bestManual = -1;
+    let bestTotal = -1;
+    let bestCompleted = Number.MAX_SAFE_INTEGER;
+
+    for (const sid of subjectIds) {
+      const { manualCount, total } = bySubject[sid];
+      const completed = completedCountBySubject[sid] ?? 0;
+
+      if (manualCount > bestManual) {
+        bestSubject = sid;
+        bestManual = manualCount;
+        bestTotal = total;
+        bestCompleted = completed;
+      } else if (manualCount === bestManual) {
+        if (total > bestTotal) {
+          bestSubject = sid;
+          bestTotal = total;
+          bestCompleted = completed;
+        } else if (total === bestTotal) {
+          if (completed < bestCompleted) {
+            bestSubject = sid;
+            bestCompleted = completed;
+          } else if (completed === bestCompleted) {
+            if (bestSubject === null || String(sid) < String(bestSubject)) {
+              bestSubject = sid;
+            }
+          }
+        }
+      }
     }
 
-    // Ensure we never return more than 5
+    if (!bestSubject) return [];
+
+    // 5) Take up to 5 from chosen subject ONLY:
+    //    - manual FIFO first, then other FIFO (both already FIFO due to earlier sort)
+    const result: any[] = [];
+    const manualBucket = bySubject[bestSubject].manual || [];
+    const otherBucket = bySubject[bestSubject].other || [];
+
+    for (const a of manualBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+    for (const a of otherBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+
     return result.slice(0, 5);
   }
 }

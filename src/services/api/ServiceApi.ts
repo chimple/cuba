@@ -33,6 +33,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -468,6 +469,7 @@ export interface ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
+    isHomework?: boolean,
     skill_id?: string | undefined,
     skill_ability?: number | undefined,
     outcome_id?: string | undefined,
@@ -2340,7 +2342,66 @@ export interface ServiceApi {
   updateClassCourses(
     classId: string,
     selectedCourseIds: string[]
-  ): Promise<void> ;
+  ): Promise<void>;
+  /**
+   * Fetches filtered FC (Field Coordinator) questions based on support level and engagement target.
+   *
+   * @param type - The support level of the student, e.g., "doing_good", "need_help", etc.
+   *               Can be null to fetch questions without filtering by support level.
+   * @param targetType - The engagement target for whom the questions are intended, e.g., "student" or "parent" or "teacher" or "principal.
+   * @returns A promise that resolves to an array of FC question objects (TableTypes<"fc_question">) or an empty array if no questions found.
+   */
+  getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []>;
+
+  /**
+   * Saves the FC user interaction form.
+   *
+   * @param payload - Object containing all the data collected during the FC interaction.
+   *
+   * Properties:
+   * - visitId?: string | null → Optional. The unique ID of today's visit (can be null if not available).
+   * - userId: string → ID of the current user submitting the form.
+   * - schoolId: string → ID of the school where the interaction took place.
+   * - classId?: string | null → Optional. Class ID of the student or teacher (if applicable).
+   * - contactUserId?: string | null → Optional. ID of the user being contacted (student/parent/etc.).
+   * - contactTarget: EnumType<"fc_engagement_target"> → Who the interaction is with, e.g., "student", "parent".
+   * - contactMethod: EnumType<"fc_contact_method"> → Mode of interaction, e.g., "in_person", "call".
+   * - callStatus?: EnumType<"fc_call_result"> | null → Optional. Only relevant for calls, e.g., "call_picked", "call_later", or null.
+   * - supportLevel?: EnumType<"fc_support_level"> | null → Optional. Support level observed during the interaction.
+   * - questionResponse: Record<string, string> → Map of question text → user response.
+   * - techIssuesReported: boolean → Indicates if any tech issues were reported during the interaction.
+   * - comment?: string | null → Optional. Any additional comments about the interaction.
+   * - techIssueComment?: string | null → Optional. Detailed notes about reported tech issues.
+   *
+   * @returns Promise resolving when the data is successfully saved.
+   */
+  saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  });
+
+  /**
+   * Retrieves the visit ID for a specific user at a school for today.
+   *
+   * @param userId - ID of the user (FC) for whom the visit ID is being fetched.
+   * @param schoolId - ID of the school for which the visit ID is relevant.
+   * @returns Promise that resolves to a string representing today's visit ID or null if no visit exists.
+   */
+  getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;
 
     /**
    * Fetch all activities created by FC users for a given school ID.
@@ -2365,4 +2426,11 @@ export interface ServiceApi {
    */
   getActivitiesFilterOptions();
 
+  /**
+   * Get interactions metrics for a school.
+   */
+  getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null
+  ): Promise<FCSchoolStats>;  
 }

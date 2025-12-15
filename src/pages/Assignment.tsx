@@ -27,8 +27,9 @@ import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import LearningPathway from "../components/LearningPathway";
 import HomeworkPathway from "../components/assignment/HomeworkPathway";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
 import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";
+import { useGbContext } from "../growthbook/Growthbook";
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
@@ -40,6 +41,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   assignmentCount,
   onPlayMoreHomework, // ✅ grab it from props
 }) => {
+  const growthbook = useGrowthBook();
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
@@ -68,7 +70,14 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
-  const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
+  const { gbUpdated, setGbUpdated } = useGbContext();
+
+  const isHomeworkPathwayOnHook = useFeatureIsOn("homework-learning-pathway");
+  const [isHomeworkPathwayOnLocal, setIsHomeworkPathwayOnLocal] =
+    useState<boolean>(false);
+
+  // used to avoid re-evaluating for same student repeatedly
+  const lastEvaluatedStudentId = useRef<string | null>(null);
 
   const updateLessonChapterAndCourseMaps = useCallback(
     async (assignments: TableTypes<"assignment">[]) => {
@@ -114,7 +123,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     [api]
   );
 
-  
   const init = useCallback(
     async (fromCache: boolean = true, fullRefresh: boolean = true) => {
       if (fullRefresh) setLoading(true);
@@ -154,7 +162,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
         setAssignments(updatedAssignments);
         assignmentCount(updatedAssignments.length);
-
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
@@ -197,11 +204,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }, [init]);
 
   useEffect(() => {
-    // Only decide banner visibility AFTER loading is finished
-    if (!loading && isHomeworkPathwayOn) {
+    if (!loading && !isHomeworkPathwayOnLocal) {
       setShowHomeworkCompleteModal(assignments.length === 0);
     }
-  }, [loading, assignments.length]);
+  }, [loading, assignments.length, isHomeworkPathwayOnLocal]);
 
   // --- Listener setup ---
   useEffect(() => {
@@ -248,7 +254,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     init(false, true);
 
     api
-      .syncDB(Object.values(TABLES))
+      .syncDB([TABLES.Assignment])
       .then(() => {
         init(false, false);
       })
@@ -327,10 +333,58 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     }
   }, []);
 
+  // GrowthBook: detect student change and re-evaluate feature
+  useEffect(() => {
+    try {
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
+
+      // If no student — make sure local flag is false
+      if (!studentId) {
+        lastEvaluatedStudentId.current = null;
+        setIsHomeworkPathwayOnLocal(false);
+        // If gbUpdated was used as a trigger, clear it now (optional)
+        if (gbUpdated && typeof setGbUpdated === "function")
+          setGbUpdated(false);
+        return;
+      }
+
+      // If nothing changed and no manual refresh requested, skip
+      if (lastEvaluatedStudentId.current === studentId && !gbUpdated) {
+        return;
+      }
+
+      // Build attributes (defensive)
+      const attrs = {
+        student_id: studentId,
+        age: student?.age ?? null,
+        grade_id: student?.grade_id ?? null,
+      };
+
+      // Set attributes BEFORE evaluating
+      growthbook.setAttributes(attrs);
+
+      // Synchronously evaluate feature
+      const val = (growthbook.getFeatureValue?.(
+        "homework-learning-pathway",
+        false
+      ) ?? false) as boolean;
+
+      setIsHomeworkPathwayOnLocal(Boolean(val));
+      lastEvaluatedStudentId.current = studentId;
+
+      // reset the gbUpdated flag after handling it
+      if (gbUpdated && typeof setGbUpdated === "function") setGbUpdated(false);
+    } catch (e) {
+      console.warn("GrowthBook evaluation error:", e);
+    }
+    // Run on mount and whenever gbUpdated changes
+  }, [growthbook, gbUpdated]);
+
   // ⬆ inside AssignmentPage component, before JSX:
   const bodyClass = !isLinked
     ? "lesson-body"
-    : isHomeworkPathwayOn
+    : !isHomeworkPathwayOnLocal
     ? // 🔹 Flag ON → Slider flow (keep old behaviour)
       lessons.length < 1
       ? "lesson-body"
@@ -342,7 +396,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         <div className={bodyClass}>
-          {isHomeworkPathwayOn && (
+          {!isHomeworkPathwayOnLocal && !showHomeworkCompleteModal && (
             <div className="assignment-header">
               <div className="right-button"></div>
 
@@ -356,7 +410,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
               </div>
 
               {isLinked &&
-              showDownloadHomeworkButton &&
+              !showDownloadHomeworkButton &&
               lessons.length > 0 &&
               Capacitor.isNativePlatform() ? (
                 <IonButton
@@ -399,13 +453,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
           )}
 
           {!loading && (
-            <div
-              className={
-                !isLinked || lessons.length < 1
-                  ? "lesson-body"
-                  : "assignment-body"
-              }
-            >
+            <div>
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
@@ -414,7 +462,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 />
               ) : (
                 <div>
-                  {isHomeworkPathwayOn ? (
+                  {!isHomeworkPathwayOnLocal ? (
                     // ✅ Flag ON → old LessonSlider flow
                     assignments.length > 0 ? (
                       <LessonSlider
@@ -457,51 +505,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                     <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
                   )}
 
-                  {/* {assignments.length > 0 ? (
-                    // 3. Conditionally render based on the feature flag
-                    // If the feature is ON, show the original slider
-                    isHomeworkPathwayOn ? (
-                      <LessonSlider
-                        key={assignments.length}
-                        lessonData={lessons}
-                        isHome={true}
-                        course={undefined}
-                        lessonsScoreMap={lessonResultMap || {}}
-                        startIndex={0}
-                        showSubjectName={true}
-                        showChapterName={true}
-                        assignments={assignments}
-                        downloadButtonLoading={downloadButtonLoading}
-                        showDate={true}
-                        onDownloadOrDelete={checkAllHomeworkDownloaded}
-                        lessonChapterMap={lessonChapterMap}
-                        lessonCourseMap={assignmentLessonCourseMap}
-                      />
-                    ) : (
-                      // If the feature is OFF, show the new pathway
-                      <HomeworkPathway
-                        onPlayMoreHomework={onPlayMoreHomework}
-                      />
-                    )
-                  ) : (
-                    <div className="pending-assignment">
-                      {showHomeworkCompleteModal && (
-                        <HomeworkCompleteModal
-                          text={t(
-                            "Yay!! You have completed all the Homework!!"
-                          )}
-                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
-                          onClose={() => setShowHomeworkCompleteModal(false)}
-                          onPlayMore={() => {
-                            setShowHomeworkCompleteModal(false);
-                            if (onPlayMoreHomework) {
-                              onPlayMoreHomework();
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
-                  )} */}
+                  {/* retained older commented logic in case you want to revert */}
                 </div>
               )}
             </div>
