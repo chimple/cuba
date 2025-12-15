@@ -5,6 +5,7 @@ import {
   createEmptyAbilityState,
   recommendNextSkill,
   updateAbilities,
+  OutcomeEvent,
 } from "@chimple/palau-recommendation";
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -438,12 +439,14 @@ export class palUtil {
     }
 
     const subjectId = graph.subjects[0]?.id ?? "";
+    const outcomeEvents: OutcomeEvent[] = outcomes.map((correct) => ({
+      skillId,
+      correct,
+    }));
     const updated = updateAbilities({
       graph,
       abilities: abilityState,
-      subjectId,
-      skillId,
-      outcomes,
+      events: outcomeEvents,
     });
 
     const newAbilityState = updated?.abilities ?? abilityState;

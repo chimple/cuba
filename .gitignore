@@ -28,4 +28,4 @@ yarn-error.log*
 .eslintcache
 
 *storybook.log
-package-lock.json
+.env

@@ -139,7 +139,7 @@ const LearningPathway: React.FC = () => {
           path,
           startIndex: 0,
           currentIndex: 0,
-          pathEndIndex: Math.max(path.length - 1, 0),
+          pathEndIndex: 4,
           type: course?.framework_id ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
         };
       })

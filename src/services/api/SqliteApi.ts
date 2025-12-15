@@ -951,6 +951,7 @@ export class SqliteApi implements ServiceApi {
       key_contacts: null,
       country: country,
       location_link: null,
+      whatsapp_bot_number: null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -1066,6 +1067,7 @@ export class SqliteApi implements ServiceApi {
       key_contacts: null,
       country: null,
       location_link: null,
+      whatsapp_bot_number: null,
     };
     const updatedSchoolQuery = `
     UPDATE school

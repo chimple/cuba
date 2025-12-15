@@ -904,6 +904,7 @@ export class SupabaseApi implements ServiceApi {
       key_contacts: null,
       country: null,
       location_link: null,
+      whatsapp_bot_number: null,
     };
 
     const { error } = await this.supabase
@@ -1124,6 +1125,7 @@ export class SupabaseApi implements ServiceApi {
         key_contacts: null,
         country: country ?? null,
         location_link: null,
+        whatsapp_bot_number: null,
       };
 
       const { error: schoolError } = await this.supabase
@@ -4934,7 +4936,11 @@ export class SupabaseApi implements ServiceApi {
       search_text: searchString,
     });
     if (error) return [];
-    return data;
+    // RPC response omits metadata, so ensure the field exists to satisfy the generated type
+    return (data ?? []).map((lesson) => ({
+      metadata: null,
+      ...lesson,
+    }));
   }
   async getUserAssignmentCart(
     userId: string
