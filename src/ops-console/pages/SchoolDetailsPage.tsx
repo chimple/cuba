@@ -31,6 +31,15 @@ export type SchoolStats = {
   avg_weekly_time_minutes: number;
 };
 
+export type FCSchoolStats = {
+  visits: number;
+  calls_made: number;
+  tech_issues: number;
+  parents_interacted: number;
+  students_interacted: number;
+  teachers_interacted: number;
+};
+
 export type ClassWithDetails = TableTypes<"class"> & {
   subjects?: TableTypes<"course">[];
   subjectsNames?: string;
@@ -57,6 +66,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     schoolStats?: SchoolStats;
     classData?: ClassWithDetails[];
     totalClassCount?: number;
+    interactionStats?: FCSchoolStats;
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
@@ -65,6 +75,14 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     active_student_percentage: 0,
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
+  });
+  const [interactionStats, setInteractionStats] = useState<FCSchoolStats>({
+    visits: 0,
+    calls_made: 0,
+    tech_issues: 0,
+    parents_interacted: 0,
+    students_interacted: 0,
+    teachers_interacted: 0,
   });
   const [goToClassesTab, setGoToClassesTab] = useState(false);
 
@@ -100,8 +118,19 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       active_teacher_percentage: result.active_teacher_percentage ?? 0,
       avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
     };
+    const interactionStat = await api.getFCSchoolStatsForSchool(id);
+    const stats = Array.isArray(interactionStat) ? interactionStat[0] : interactionStat;
+    const interStats: FCSchoolStats = {
+      visits: stats.visits ?? 0,
+      calls_made: stats.calls_made ?? 0,
+      tech_issues: stats.tech_issues ?? stats.tech_issues_reported ?? 0,
+      parents_interacted: stats.parents_interacted ?? 0,
+      students_interacted: stats.students_interacted ?? 0,
+      teachers_interacted: stats.teachers_interacted ?? 0,
+    };
     // this must be called for all the class ids
     setSchoolStats(newSchoolStats);
+    setInteractionStats(interStats);
     const studentsData = studentsResponse.data;
     const totalStudentCount = studentsResponse.total;
     const teachersData = teachersResponse.data;
@@ -200,6 +229,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       schoolStats: newSchoolStats,
       classData: classDataWithDetails,
       totalClassCount: totalClassCount,
+      interactionStats: interStats,
     });
     setLoading(false);
   }

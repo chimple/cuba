@@ -75,6 +75,8 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
@@ -3048,7 +3050,7 @@ export class SupabaseApi implements ServiceApi {
     return users || [];
   }
 
-    async getStudentInfoBySchoolId(
+  async getStudentInfoBySchoolId(
     schoolId: string,
     page: number = 1,
     limit: number = 20
@@ -3061,9 +3063,9 @@ export class SupabaseApi implements ServiceApi {
     const offset = (page - 1) * limit;
 
     let query = this.supabase
-  .from("class_user")
-  .select(
-    `
+      .from("class_user")
+      .select(
+        `
       class:class_id!inner (
         id,
         class_name:name
@@ -3101,17 +3103,17 @@ export class SupabaseApi implements ServiceApi {
         )
       )
     `,
-    { count: "exact" }
-  )
-  .eq("role", "student")
-  .eq("is_deleted", false)
-  .eq("class.school_id", schoolId);
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class.school_id", schoolId);
 
-const { data, error, count } = await query
-  .order("user(name)", { ascending: true })
-  .range(offset, offset + limit - 1);
+    const { data, error, count } = await query
+      .order("user(name)", { ascending: true })
+      .range(offset, offset + limit - 1);
 
-  if (error) {
+    if (error) {
       console.error("Error fetching student info:", error);
       return { data: [], total: 0 };
     }
@@ -9641,6 +9643,110 @@ const { data, error, count } = await query
     } catch (error) {
       console.error("Error in getActivitiesFilterOptions:", error);
       throw error;
+    }
+  }
+
+  async getFCSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
+    if (!this.supabase) {
+      return {
+        visits: 0,
+        calls_made: 0,
+        tech_issues: 0,
+        parents_interacted: 0,
+        students_interacted: 0,
+        teachers_interacted: 0,
+      };
+    }
+    try {
+      const auth = ServiceConfig.getI().authHandler;
+      const currentUser = await auth.getCurrentUser();
+      if (!currentUser) {
+        console.error("Error getting current user");
+        return {
+          visits: 0,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      const userId = currentUser.id;
+      const now = new Date();
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(now.getDate() - 15);
+      const fromIso = fifteenDaysAgo.toISOString();
+      const { count: visitsCount, error: visitsError } = await this.supabase
+        .from("fc_school_visit")
+        .select("id", { count: "exact", head: true })
+        .eq("school_id", schoolId)
+        .eq("user_id", userId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (visitsError) {
+        console.error("Error counting visits:", visitsError);
+      }
+      const visits = visitsCount ?? 0;
+      const { data: forms, error: formsError } = await this.supabase
+        .from("fc_user_forms")
+        .select(
+          "contact_method, call_status, contact_target, tech_issues_reported, created_at"
+        )
+        .eq("school_id", schoolId)
+        .eq("user_id", userId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (formsError) {
+        console.error("Error fetching fc_user_forms:", formsError);
+        return {
+          visits,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      let calls_made = 0;
+      let tech_issues = 0;
+      let parents_interacted = 0;
+      let students_interacted = 0;
+      let teachers_interacted = 0;
+      (forms || []).forEach((row: any) => {
+        const hasInteraction =
+          row.contact_method === "call" || row.call_status === "call_picked";
+        if (hasInteraction) {
+          calls_made += 1;
+          if (row.contact_target === "parent") {
+            parents_interacted += 1;
+          } else if (row.contact_target === "student") {
+            students_interacted += 1;
+          } else if (row.contact_target === "teacher") {
+            teachers_interacted += 1;
+          }
+        }
+        if (row.tech_issues_reported === true) {
+          tech_issues += 1;
+        }
+      });
+      return {
+        visits,
+        calls_made,
+        tech_issues,
+        parents_interacted,
+        students_interacted,
+        teachers_interacted,
+      };
+    } catch (err) {
+      console.error("Exception in getFCSchoolStatsForUser:", err);
+      return {
+        visits: 0,
+        calls_made: 0,
+        tech_issues: 0,
+        parents_interacted: 0,
+        students_interacted: 0,
+        teachers_interacted: 0,
+      };
     }
   }
 }
