@@ -279,8 +279,9 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const path =`/assets/lessonBundles/${lessonId}/`
-      setBasePath(path);
+      const path =
+        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      setXmlPath(path);
     }
     setIsLoading(false);
   }
