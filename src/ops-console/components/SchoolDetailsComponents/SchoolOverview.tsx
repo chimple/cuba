@@ -22,7 +22,7 @@ interface SchoolOverviewProps {
 
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   // school details
-  const formatModel = (raw: any) => {
+  const formatingSchoolModel = (raw: any) => {
     if (!raw) return "";
     let arr: string[] = [];
     try {
@@ -41,7 +41,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       )
       .join(", ");
   };
-  const schoolModelValue = formatModel(data.schoolData?.model || "");
+  const schoolModelValue = formatingSchoolModel(data.schoolData?.model || "");
 
   const schoolDetailsItems = [
     { label: "School Name", value: data.schoolData?.name },
@@ -136,7 +136,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           <Button
             size="small"
             variant="outlined"
-            className="view-all-interactions-btn"
+            className="schooloverview-view-all-interactions-btn"
             sx={{ textTransform: "none" }}
             onClick={() =>
               history.replace(
@@ -153,11 +153,11 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       <Grid container spacing={2} mt={0.5}>
         {interactionItems.map((item, idx) => (
           <Grid key={idx} size={{ xs: 6, sm: 6, md: 4 }}>
-            <Box className="interaction-item">
+            <Box className="schooloverview-interaction-item">
               <Typography
                 variant="body2"
                 color="text.secondary"
-                className="interaction-item-label"
+                className="schooloverview-interaction-item-label"
               >
                 {t(item.label)}
               </Typography>

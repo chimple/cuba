@@ -9646,7 +9646,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getFCSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
+  async getFCSchoolStatsForSchool(schoolId: string, currentUser: TableTypes<"user"> | null): Promise<FCSchoolStats> {
     if (!this.supabase) {
       return {
         visits: 0,
@@ -9658,8 +9658,6 @@ export class SupabaseApi implements ServiceApi {
       };
     }
     try {
-      const auth = ServiceConfig.getI().authHandler;
-      const currentUser = await auth.getCurrentUser();
       if (!currentUser) {
         console.error("Error getting current user");
         return {

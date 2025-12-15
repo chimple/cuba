@@ -20,7 +20,7 @@
   gap: 15px;
 }
 
-.interaction-item {
+.schooloverview-interaction-item {
   background-color: #fafafa;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -33,7 +33,7 @@
   min-height: 100px;
 }
 
-.interaction-item-label {
+.schooloverview-interaction-item-label {
   margin-bottom: 8px;
   font-size: 0.85rem;
   text-align: left;
@@ -41,16 +41,16 @@
 
 /* Smaller font size for labels on small screens */
 @media (max-width: 600px) {
-  .interaction-item-label {
+  .schooloverview-interaction-item-label {
     font-size: 0.72rem;
   }
-  .view-all-interactions-btn {
+  .schooloverview-view-all-interactions-btn {
     font-size: 0.82rem;
     padding: 4px 8px;
   }
 }
 
-.view-all-interactions-btn {
+.schooloverview-view-all-interactions-btn {
   color: #1976d2;
   border: 1px solid #1976d2;
   text-transform: none;

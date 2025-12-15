@@ -118,8 +118,15 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       active_teacher_percentage: result.active_teacher_percentage ?? 0,
       avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
     };
-    const interactionStat = await api.getFCSchoolStatsForSchool(id);
-    const stats = Array.isArray(interactionStat) ? interactionStat[0] : interactionStat;
+    const auth = ServiceConfig.getI().authHandler;
+    const currentUser = await auth.getCurrentUser();
+    const interactionStat = await api.getFCSchoolStatsForSchool(
+      id,
+      currentUser
+    );
+    const stats = Array.isArray(interactionStat)
+      ? interactionStat[0]
+      : interactionStat;
     const interStats: FCSchoolStats = {
       visits: stats.visits ?? 0,
       calls_made: stats.calls_made ?? 0,

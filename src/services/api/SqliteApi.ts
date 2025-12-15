@@ -7133,8 +7133,9 @@ order by
     throw new Error("Method not implemented.");
   }
   public async getFCSchoolStatsForSchool(
-    schoolId: string
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
-    return this._serverApi.getFCSchoolStatsForSchool(schoolId);
+    return this._serverApi.getFCSchoolStatsForSchool(schoolId, currentUser);
   }
 }
