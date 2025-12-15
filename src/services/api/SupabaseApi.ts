@@ -486,7 +486,7 @@ export class SupabaseApi implements ServiceApi {
       const res = await this.supabase?.rpc("sql_sync_all", {
         p_updated_at: updatedAtPayload,
         p_tables: tableNames,
-        p_is_first_time:isInitialFetch // TABLES[] should be string[] under the hood
+        p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       if (res == null || res.error || !res.data) {
         let parent_user;
@@ -2204,11 +2204,7 @@ export class SupabaseApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[student.id]
-      : 0;
-    const totalStars = currentStars + starsEarned;
+    const totalStars = Util.bumpLocalStarsForStudent(student.id, starsEarned);
 
     const updateData: any = { stars: totalStars };
     if (newReward) updateData.reward = JSON.stringify(newReward);

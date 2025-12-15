@@ -13,11 +13,13 @@ import SchoolUserDetail from "./SchoolUserDetail";
 import { trashOutline } from "ionicons/icons";
 import CommonDialogBox from "../../../common/CommonDialogBox";
 import { t } from "i18next";
+import { Util } from "../../../utility/util";
 
 const SchoolUserList: React.FC<{
   schoolDoc: TableTypes<"school">;
   userType: SCHOOL_USERS;
-}> = ({ schoolDoc, userType }) => {
+  role: RoleType;
+}> = ({ schoolDoc, userType, role }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [allPrincipals, setAllPrincipals] = useState<TableTypes<"user">[]>();
   const [allCoordinators, setAllCoordinators] =
@@ -32,9 +34,7 @@ const SchoolUserList: React.FC<{
     null
   );
   const auth = ServiceConfig.getI()?.authHandler;
-  const currentUserRoles: string[] = JSON.parse(
-    localStorage.getItem(USER_ROLE) ?? "[]"
-  );
+
   useEffect(() => {
     init();
   }, []);
@@ -42,6 +42,7 @@ const SchoolUserList: React.FC<{
   const init = async () => {
     const user = await auth?.getCurrentUser();
     setCurrentUser(user!);
+    Util.setCurrentSchool(schoolDoc, role);
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);
       setAllPrincipals(principalDocs);
@@ -105,8 +106,11 @@ const SchoolUserList: React.FC<{
   };
 
   const canDelete = useMemo(
-    () => OPS_ROLES.some((role) => currentUserRoles.includes(role)),
-    [currentUserRoles]
+    () =>
+      OPS_ROLES.includes(role) ||
+      role === RoleType.PRINCIPAL ||
+      role === RoleType.COORDINATOR,
+    [role]
   );
 
   return (

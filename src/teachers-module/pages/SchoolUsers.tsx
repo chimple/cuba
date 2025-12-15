@@ -96,18 +96,21 @@ const SchoolUsers: React.FC = () => {
               <SchoolUserList
                 schoolDoc={school}
                 userType={SCHOOL_USERS.PRINCIPALS}
+                role={role}
               />
             )}
             {selectedTab === SCHOOL_USERS.COORDINATORS && (
               <SchoolUserList
                 schoolDoc={school}
                 userType={SCHOOL_USERS.COORDINATORS}
+                role={role}
               />
             )}
             {selectedTab === SCHOOL_USERS.SPONSORS && (
               <SchoolUserList
                 schoolDoc={school}
                 userType={SCHOOL_USERS.SPONSORS}
+                role={role}
               />
             )}
           </div>
