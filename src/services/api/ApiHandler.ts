@@ -506,8 +506,18 @@ export class ApiHandler implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean,
-    isHomework?: boolean 
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -522,7 +532,17 @@ export class ApiHandler implements ServiceApi {
       classId,
       schoolId,
       isImediateSync,
-      isHomework
+      isHomework,
+      skill_id,
+      skill_ability,
+      outcome_id,
+      outcome_ability,
+      competency_id,
+      competency_ability,
+      domain_id,
+      domain_ability,
+      subject_id,
+      subject_ability
     );
   }
 
@@ -766,6 +786,43 @@ export class ApiHandler implements ServiceApi {
     courseIds: string[]
   ): Promise<TableTypes<"course">[]> {
     return await this.s.getCourses(courseIds);
+  }
+  public async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    return this.s.getDomainsBySubjectAndFramework(subjectId, frameworkId);
+  }
+  public async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    return this.s.getCompetenciesByDomainIds(domainIds);
+  }
+  public async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    return this.s.getOutcomesByCompetencyIds(competencyIds);
+  }
+  public async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    return this.s.getSkillsByOutcomeIds(outcomeIds);
+  }
+  public async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    return this.s.getResultsBySkillIds(studentId, skillIds);
+  }
+  public async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    return this.s.getSkillRelationsByTargetIds(targetSkillIds);
+  }
+  public async getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    return this.s.getSkillLessonsBySkillIds(skillIds);
   }
 
   public async getLeaderboardResults(

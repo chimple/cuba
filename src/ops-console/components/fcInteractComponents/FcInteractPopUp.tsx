@@ -22,6 +22,10 @@ const supportLevelReverseMap: Record<EnumType<"fc_support_level">, string> = {
   once_a_month: "Once a Month",
   once_a_week: "Once a Week",
   two_plus_per_week: "2+ per Week",
+  not_assigning: "Not Assigning",
+  once_to_two: "Once to Two",
+  three_to_four: "Three to Four",
+  four_plus: "Four Plus"
 };
 
 const callOutcomeOptions: {
