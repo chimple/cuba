@@ -292,6 +292,7 @@ const LidoPlayer: FC = () => {
   };
 
   useEffect(() => {
+    (window as any).__LIDO_COMMON_AUDIO_ORIGIN__ = "http://localhost:3000";
     init();
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
@@ -380,7 +381,7 @@ const LidoPlayer: FC = () => {
             "xml-path": xmlPath,
             "base-url": basePath, 
             "code-folder-path": "/Lido-player-code-versions",
-            "common-audio-path": "http://localhost:3000/commonAudios",
+            "common-audio-path": "/commonAudios",
           })
         : null}
     </IonPage>
