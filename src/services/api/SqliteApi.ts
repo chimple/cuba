@@ -1229,6 +1229,21 @@ export class SqliteApi implements ServiceApi {
   ): Promise<void> {
     if (!this._db) return;
 
+    const query1 = `
+    SELECT *
+    FROM ${TABLES.OpsRequests}
+    WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
+
+    const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
+    
+    let ops_rq;
+    if (res1 && res1.values && res1.values.length > 0) {
+      ops_rq = res1.values[0];
+    }
+    if(!ops_rq){
+      return;
+    }
+
     let query = `
     UPDATE ${TABLES.OpsRequests}
     SET is_deleted = 1,
@@ -1254,6 +1269,7 @@ export class SqliteApi implements ServiceApi {
 
     // Push sync mutation
     await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      id: ops_rq.id,
       requested_by,
       school_id: school_id ?? null,
       class_id: class_id ?? null,
