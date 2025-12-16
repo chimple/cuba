@@ -78,12 +78,6 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
-  Domain = "domain",
-  Competency = "competency",
-  Outcome = "outcome",
-  Skill = "skill",
-  SkillRelation = "skill_relation",
-  SkillLesson = "skill_lesson",
   FcQuestion = "fc_question",
   FcSchoolVisit = "fc_school_visit",
   FcUserForms = "fc_user_forms",
@@ -1116,11 +1110,6 @@ export enum SupportLevelMap {
   "Still Learning" = "still_learning",
   "Need Help" = "need_help",
   "Not Tracked" = "not_tracked",
-}
-
-export enum RECOMMENDATION_TYPE {
-  FRAMEWORK = "framework",
-  CHAPTER = "chapter"
 }
 
 export enum PerformanceLevel {

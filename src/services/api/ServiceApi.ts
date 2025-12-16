@@ -468,18 +468,8 @@ export interface ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?: boolean,
-    isHomework?: boolean,
-    skill_id?: string | undefined,
-    skill_ability?: number | undefined,
-    outcome_id?: string | undefined,
-    outcome_ability?: number | undefined,
-    competency_id?: string | undefined,
-    competency_ability?: number | undefined,
-    domain_id?: string | undefined,
-    domain_ability?: number | undefined,
-    subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -552,57 +542,6 @@ export interface ServiceApi {
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
   getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
-
-  /**
-   * Fetches domains for a given subject and framework.
-   */
-  getDomainsBySubjectAndFramework(
-    subjectId: string,
-    frameworkId: string
-  ): Promise<TableTypes<"domain">[]>;
-
-  /**
-   * Fetches competencies linked to the given domain ids.
-   */
-  getCompetenciesByDomainIds(
-    domainIds: string[]
-  ): Promise<TableTypes<"competency">[]>;
-
-  /**
-   * Fetches outcomes linked to the given competency ids.
-   */
-  getOutcomesByCompetencyIds(
-    competencyIds: string[]
-  ): Promise<TableTypes<"outcome">[]>;
-
-  /**
-   * Fetches skills linked to the given outcome ids.
-   */
-  getSkillsByOutcomeIds(
-    outcomeIds: string[]
-  ): Promise<TableTypes<"skill">[]>;
-
-  /**
-   * Fetches results for the given student and skill ids.
-   */
-  getResultsBySkillIds(
-    studentId: string,
-    skillIds: string[]
-  ): Promise<TableTypes<"result">[]>;
-
-  /**
-   * Fetches prerequisite relations where target skill is in the provided list.
-   */
-  getSkillRelationsByTargetIds(
-    targetSkillIds: string[]
-  ): Promise<TableTypes<"skill_relation">[]>;
-
-  /**
-   * Fetches skill-lesson mapping rows for the given skills.
-   */
-  getSkillLessonsBySkillIds(
-    skillIds: string[]
-  ): Promise<TableTypes<"skill_lesson">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id

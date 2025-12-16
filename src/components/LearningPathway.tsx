@@ -15,10 +15,8 @@ import {
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
-  RECOMMENDATION_TYPE
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { palUtil } from "../utility/palUtil";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -84,25 +82,15 @@ const LearningPathway: React.FC = () => {
         ? JSON.parse(student.learning_path)
         : null;
 
-      const hasFrameworkCourse = userCourses.some(
-        (course) => course?.framework_id
-      );
-      const isFrameworkPath = learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
-
-      if (
-        !learningPath ||
-        !learningPath.courses?.courseList?.length ||
-        (hasFrameworkCourse && !isFrameworkPath)
-      ) {
+      if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses, student.id);
+        learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
         setLoading(false);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
-          userCourses,
-          student.id
+          userCourses
         );
 
         let total_learning_path_completed = 0;
@@ -126,28 +114,17 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (
-    courses: any[],
-    studentId: string
-  ) => {
+  const buildInitialLearningPath = async (courses: any[]) => {
     const courseList = await Promise.all(
-      courses.map(async (course) => {
-        const path = await buildLessonPath(course, studentId);
-        return {
-          path_id: uuidv4(),
-          course_id: course.id,
-          subject_id: course.subject_id,
-          path,
-          startIndex: 0,
-          currentIndex: 0,
-          pathEndIndex: 4,
-          type: course?.framework_id ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
-        };
-      })
-    );
-
-    const hasFrameworkCourse = courses.some(
-      (course) => course?.framework_id
+      courses.map(async (course) => ({
+        path_id: uuidv4(),
+        course_id: course.id,
+        subject_id: course.subject_id,
+        path: await buildLessonPath(course.id),
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: 4,
+      }))
     );
 
     return {
@@ -155,14 +132,12 @@ const LearningPathway: React.FC = () => {
         courseList,
         currentCourseIndex: 0,
       },
-      type: hasFrameworkCourse ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
     };
   };
 
   const updateLearningPathIfNeeded = async (
     learningPath: any,
-    userCourses: any[],
-    studentId: string
+    userCourses: any[]
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
 
@@ -181,10 +156,7 @@ const LearningPathway: React.FC = () => {
     }
 
     // If path_id is missing or courses mismatch, rebuild everything
-    const newLearningPath = await buildInitialLearningPath(
-      userCourses,
-      studentId
-    );
+    const newLearningPath = await buildInitialLearningPath(userCourses);
     learningPath.courses.courseList = newLearningPath.courses.courseList;
 
     // Dispatch event to notify that course has changed
@@ -194,14 +166,8 @@ const LearningPathway: React.FC = () => {
     return true;
   };
 
-  const buildLessonPath = async (course: any, studentId: string) => {
-    const palPath = await palUtil.getPalLessonPathForCourse(
-      course.id,
-      studentId
-    );
-    if (palPath) return palPath;
-
-    const chapters = await api.getChaptersForCourse(course.id);
+  const buildLessonPath = async (courseId: string) => {
+    const chapters = await api.getChaptersForCourse(courseId);
     const lessons = await Promise.all(
       chapters.map(async (chapter) => {
         const lessons = await api.getLessonsForChapter(chapter.id);
@@ -224,38 +190,15 @@ const LearningPathway: React.FC = () => {
 
     const currentCourse =
       path.courses.courseList[path.courses.currentCourseIndex];
-    const currentPath = currentCourse.path ?? [];
-    if (!currentPath.length) return;
-
-    const cappedEndIndex = Math.min(
-      currentCourse.pathEndIndex ?? 0,
-      currentPath.length - 1
-    );
-    const currentIndex = Math.min(
-      currentCourse.currentIndex ?? 0,
-      currentPath.length - 1
-    );
+    const currentPath = currentCourse.path;
 
     const LessonSlice = currentPath.slice(
       currentCourse.startIndex,
-      cappedEndIndex + 1
+      currentCourse.pathEndIndex + 1
     );
 
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
-    const [
-      pathLessonOne,
-      pathLessonTwo,
-      pathLessonThree,
-      pathLessonFour,
-      pathLessonFive,
-    ] = [
-      LessonIds[0],
-      LessonIds[1],
-      LessonIds[2],
-      LessonIds[3],
-      LessonIds[4],
-    ];
 
     const eventData = {
       user_id: student.id,
@@ -263,18 +206,18 @@ const LearningPathway: React.FC = () => {
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
-        path.courses.courseList[path.courses.currentCourseIndex].path?.[
-          currentIndex
-        ]?.lesson_id,
+        path.courses.courseList[path.courses.currentCourseIndex].path[
+          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
+        ].lesson_id,
       current_chapter_id:
-        path.courses.courseList[path.courses.currentCourseIndex].path?.[
-          currentIndex
-        ]?.chapter_id,
-      path_lesson_one: pathLessonOne,
-      path_lesson_two: pathLessonTwo,
-      path_lesson_three: pathLessonThree,
-      path_lesson_four: pathLessonFour,
-      path_lesson_five: pathLessonFive,
+        path.courses.courseList[path.courses.currentCourseIndex].path[
+          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
+        ].chapter_id,
+      path_lesson_one: LessonIds[0],
+      path_lesson_two: LessonIds[1],
+      path_lesson_three: LessonIds[2],
+      path_lesson_four: LessonIds[3],
+      path_lesson_five: LessonIds[4],
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
