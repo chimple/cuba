@@ -79,6 +79,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { use } from "react";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -1179,6 +1180,23 @@ export class SqliteApi implements ServiceApi {
   ): Promise<void> {
     if (!this._db) return;
 
+    const query1 = `
+    SELECT *
+    FROM ${TABLES.OpsRequests}
+    WHERE class_id = ? AND school_id = ?`;
+
+    const res1 = await this._db?.query(query1, [class_id,school_id]);
+    console.log("🚀 ~ deleteApprovedOpsRequestsForUser ~ res1:", res1);
+    
+    let userData;
+    if (res1 && res1.values && res1.values.length > 0) {
+      userData = res1.values[0];
+    }
+    console.log("🚀 ~ deleteApprovedOpsRequestsForUser ~ userData:", userData);
+    if(!userData){
+      return;
+    }
+
     let query = `
     UPDATE ${TABLES.OpsRequests}
     SET is_deleted = 1,
@@ -1204,7 +1222,7 @@ export class SqliteApi implements ServiceApi {
 
     // Push sync mutation
     await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
-      id: requested_by,
+      id: userData.id,
       requested_by,
       school_id: school_id ?? null,
       class_id: class_id ?? null,
@@ -3054,6 +3072,9 @@ export class SqliteApi implements ServiceApi {
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
       }
+      console.log("🧪 BEFORE PUSH current userData1 =", userData);
+      console.log("🧪 current ID value =", userData?.id);
+
       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
@@ -3074,6 +3095,10 @@ export class SqliteApi implements ServiceApi {
       if (res1 && res1.values && res1.values.length > 0) {
         userData1 = res1.values[0];
       }
+
+      console.log("🧪 BEFORE PUSH OpsRequests userData1 =", userData1);
+      console.log("🧪 OpsRequests ID value =", userData1?.id);
+
       this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
         id: userData1.id,
         is_deleted: true,
