@@ -34,36 +34,6 @@ type Note = {
   text: string;
 };
 
-const fallbackNotes: Note[] = [
-  {
-    id: "n-1",
-    createdBy: "Shankar",
-    role: "Operational Director",
-    className: null,
-    date: "22 - Nov - 2025",
-    text:
-      "Visited school and observed low participation in digital skills. Recommended an interactive session next week with devices.",
-  },
-  {
-    id: "n-2",
-    createdBy: "Chandana",
-    role: "Field Coordinator",
-    className: "1B",
-    date: "21 - Nov - 2025",
-    text:
-      "Class 1B needs help around basic navigation of device UI. Plan: schedule 1:1 session for 5 students.",
-  },
-  {
-    id: "n-3",
-    createdBy: "Naveen",
-    role: "Program Manager",
-    className: "2",
-    date: "20 - Nov - 2025",
-    text:
-      "Teacher attendance is fine. Need to follow up on weekly usage numbers. Consider incentives for active students.",
-  },
-];
-
 function parseDateForDisplay(isoOrString?: string) {
   if (!isoOrString) return "--";
   const d = new Date(isoOrString);
@@ -125,7 +95,7 @@ const SchoolNotes: React.FC = () => {
       const res = await api.getNotesBySchoolId(schoolId, 100, 0);
       if (!res || !Array.isArray(res)) {
         // fallback to hardcoded data
-        setNotes(fallbackNotes);
+        setNotes([]);
       } else {
         const mapped = res.map((r: any) => mapApiNote(r));
         setNotes(mapped);
@@ -133,7 +103,7 @@ const SchoolNotes: React.FC = () => {
     } catch (err) {
       console.error("Error loading notes:", err);
       // show fallback so UI isn't empty
-      setNotes(fallbackNotes);
+      setNotes([]);
       setError(t("Failed to load notes") as string);
     } finally {
       setLoading(false);
