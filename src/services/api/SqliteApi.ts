@@ -563,8 +563,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) {
-              }
+              } catch (beginErr) {}
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -6078,6 +6077,7 @@ order by
     const dataQuery = `
     SELECT
       u.*,
+      c.id   AS class_id,
       c.name as class_name
     FROM ${TABLES.ClassUser} cu
     INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
@@ -6099,14 +6099,18 @@ order by
 
     // STEP 3: Map the flat SQL result into the nested TeacherInfo structure.
     const teacherInfoList: TeacherInfo[] = rows.map((row: any) => {
-      const { class_name, ...teacherUser } = row;
+      const { class_id, class_name, ...teacherUser } = row;
 
       const { grade, section } = this.parseClassName(class_name || "");
 
       return {
         user: teacherUser as TableTypes<"user">,
-        grade: grade,
-        classSection: section,
+        grade,
+        classSection: section ?? "",
+        classWithidname: {
+          id: class_id,
+          name: class_name,
+        },
       };
     });
 
@@ -7290,6 +7294,12 @@ order by
     return this._serverApi.getSchoolVisitById(visitId);
   }
   async getActivitiesFilterOptions() {
+    throw new Error("Method not implemented.");
+  }
+  async getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null> {
     throw new Error("Method not implemented.");
   }
   public async getFCSchoolStatsForSchool(

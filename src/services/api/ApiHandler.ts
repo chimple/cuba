@@ -1274,7 +1274,7 @@ export class ApiHandler implements ServiceApi {
     starsCount: number,
     is_immediate_sync?: boolean
   ): Promise<void> {
-    return this.s.setStarsForStudents(studentId, starsCount,is_immediate_sync);
+    return this.s.setStarsForStudents(studentId, starsCount, is_immediate_sync);
   }
   public async countAllPendingPushes(): Promise<number> {
     return this.s.countAllPendingPushes();
@@ -1294,10 +1294,14 @@ export class ApiHandler implements ServiceApi {
   }
   public async updateLearningPath(
     student: TableTypes<"user">,
-    learning_path: string ,// New parameter for learning_path
+    learning_path: string, // New parameter for learning_path
     is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">> {
-    return await this.s.updateLearningPath(student, learning_path,is_immediate_sync);
+    return await this.s.updateLearningPath(
+      student,
+      learning_path,
+      is_immediate_sync
+    );
   }
 
   public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -1791,13 +1795,26 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | null> {
     return this.s.getTodayVisitId(userId, schoolId);
   }
-  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+  public async getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]> {
     return await this.s.getActivitiesBySchoolId(schoolId);
   }
-  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+  public async getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
     return await this.s.getSchoolVisitById(visitId);
   }
-  public async getFCSchoolStatsForSchool(schoolId: string, currentUser: TableTypes<"user"> | null = null): Promise<FCSchoolStats> {
+  public async getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null> {
+    return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
+  }
+  public async getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
+  ): Promise<FCSchoolStats> {
     return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
   }
 }

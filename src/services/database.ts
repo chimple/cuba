@@ -6376,10 +6376,6 @@ export type Database = {
         | "once_to_two"
         | "three_to_four"
         | "four_plus"
-        | "not_assigning_per_month"
-        | "once_a_month"
-        | "once_a_week"
-        | "two_plus_per_week"
       login_type: "student_id" | "parent_phone_number"
       ops_request_status: "requested" | "rejected" | "approved" | "flagged"
       ops_request_type: "student" | "teacher" | "principal" | "school"
@@ -6558,10 +6554,6 @@ export const Constants = {
         "once_to_two",
         "three_to_four",
         "four_plus",
-        "not_assigning_per_month",
-        "once_a_month",
-        "once_a_week",
-        "two_plus_per_week",
       ],
       login_type: ["student_id", "parent_phone_number"],
       ops_request_status: ["requested", "rejected", "approved", "flagged"],
