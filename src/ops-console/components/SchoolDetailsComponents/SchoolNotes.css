@@ -1,4 +1,4 @@
-/* SchoolNotes.css — full replacement */
+/* SchoolNotes.css — full replacement (SCROLL ONLY ADDED) */
 
 /* Container */
 .school-notes-container {
@@ -6,9 +6,13 @@
   margin-top: 12px;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
-  overflow: hidden;
   background: #ffffff;
   padding: 8px 18px 40px 18px;
+
+  /* ✅ SCROLL FIX (ONLY CHANGE) */
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Table base */
@@ -18,7 +22,7 @@
   table-layout: fixed;
 }
 
-/* Header row background (uniform) */
+/* Header row background */
 .school-notes-table thead tr {
   background: #f5f7fb;
 }
@@ -32,12 +36,6 @@
   border-bottom: 1px solid #e5e7eb;
   height: 40px;
   white-space: nowrap;
-  background-color: #f5f7fb !important;
-  text-align: left !important; /* enforce left alignment */
-}
-
-/* Ensure first header cell looks identical */
-.school-notes-table thead th:first-child {
   background-color: #f5f7fb !important;
   text-align: left !important;
 }
@@ -54,30 +52,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
 
-  /* force left alignment for all data cells */
   text-align: left !important;
   font-weight: 400 !important;
 }
 
-/* Specifically pad / left-align the "Created By" column so names appear properly */
+/* Created By column */
 .school-notes-table td:first-child {
   width: 25%;
   padding-left: 24px;
   text-align: left !important;
 }
 
-/* Remove last row border for clean look */
+/* Remove last border */
 .school-notes-table tr:last-child td {
   border-bottom: none;
 }
 
-/* Hover effect */
+/* Hover */
 .school-notes-table tbody tr:hover {
   background: #fafafa;
   cursor: pointer;
 }
 
-/* Slight lift animation for rows */
+/* Row animation */
 .school-notes-row {
   cursor: pointer;
   transition: background 120ms ease, transform 60ms ease;
@@ -87,39 +84,22 @@
   transform: translateY(-1px);
 }
 
-/* Responsive: allow wrapping on smaller screens */
+/* Responsive */
 @media (max-width: 900px) {
   .school-notes-table td {
     white-space: normal;
   }
 }
 
-/* -----------------------------------------------------------
-   Safety / override: Prevent mirrored/rotated/RTL rendering
-   Ensures consistent LTR rendering and prevents accidental transforms
-   ----------------------------------------------------------- */
+/* Safety overrides */
 .school-notes-table,
 .school-notes-table thead th,
 .school-notes-table td {
   transform: none !important;
-  -webkit-transform: none !important;
-  -ms-transform: none !important;
-
-  /* force left-to-right and horizontal layout */
   direction: ltr !important;
   unicode-bidi: embed !important;
   writing-mode: horizontal-tb !important;
   text-orientation: mixed !important;
-
-  /* enforce normal alignment and vertical centering */
   text-align: left !important;
   vertical-align: middle !important;
-}
-
-/* Final touch: make sure header stays bold and body stays normal */
-.school-notes-table thead th {
-  font-weight: 600 !important;
-}
-.school-notes-table td {
-  font-weight: 400 !important;
 }
