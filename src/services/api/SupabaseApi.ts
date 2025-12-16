@@ -2657,7 +2657,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("subject_id", subjectId)
       .eq("framework_id", frameworkId)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching domains:", error);
@@ -2676,7 +2676,7 @@ export class SupabaseApi implements ServiceApi {
       .from("competency")
       .select("*")
       .in("domain_id", domainIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching competencies:", error);
@@ -2696,7 +2696,7 @@ export class SupabaseApi implements ServiceApi {
       .from("outcome")
       .select("*")
       .in("competency_id", competencyIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching outcomes:", error);
@@ -2715,7 +2715,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill")
       .select("*")
       .in("outcome_id", outcomeIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching skills:", error);
@@ -2736,8 +2736,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .in("skill_id", skillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false")
-      .order("updated_at", { ascending: false })
+      .or("is_deleted.eq.false")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -2758,7 +2757,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill_relation")
       .select("*")
       .in("target_skill_id", targetSkillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching skill relations:", error);
@@ -2777,7 +2776,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false")
+      .or("is_deleted.eq.false")
       .order("sort_index", { ascending: true });
 
     if (error) {
