@@ -1,6 +1,3 @@
-/* SchoolNotes.css — full replacement (SCROLL ONLY ADDED) */
-
-/* Container */
 .school-notes-container {
   width: 100%;
   margin-top: 12px;
@@ -8,26 +5,21 @@
   border-radius: 6px;
   background: #ffffff;
   padding: 8px 18px 40px 18px;
-
-  /* ✅ SCROLL FIX (ONLY CHANGE) */
   max-height: calc(100vh - 260px);
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Table base */
 .school-notes-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-/* Header row background */
 .school-notes-table thead tr {
   background: #f5f7fb;
 }
 
-/* Header cells */
 .school-notes-table thead th {
   padding: 14px 18px;
   font-size: 14px;
@@ -40,7 +32,6 @@
   text-align: left !important;
 }
 
-/* Body cells */
 .school-notes-table td {
   padding: 18px 14px;
   font-size: 14px;
@@ -51,47 +42,47 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
   text-align: left !important;
   font-weight: 400 !important;
 }
 
-/* Created By column */
 .school-notes-table td:first-child {
   width: 25%;
   padding-left: 24px;
   text-align: left !important;
 }
 
-/* Remove last border */
 .school-notes-table tr:last-child td {
   border-bottom: none;
 }
 
-/* Hover */
 .school-notes-table tbody tr:hover {
   background: #fafafa;
   cursor: pointer;
 }
 
-/* Row animation */
 .school-notes-row {
   cursor: pointer;
   transition: background 120ms ease, transform 60ms ease;
 }
+
+.school-notes-loading {
+  padding: 24px;
+  font-size: 14px;
+}
+
+
 .school-notes-row:hover {
   background: rgba(0, 0, 0, 0.02);
   transform: translateY(-1px);
 }
 
-/* Responsive */
 @media (max-width: 900px) {
   .school-notes-table td {
     white-space: normal;
   }
 }
 
-/* Safety overrides */
 .school-notes-table,
 .school-notes-table thead th,
 .school-notes-table td {

@@ -1,13 +1,13 @@
 // AddNoteModal.tsx
 import React, { useState } from "react";
 import { t } from "i18next";
-import "./SchoolDetailsTabs.css"; // reuse styling
+import "./AddNoteModal.css";
 
 interface AddNoteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: { text: string }) => void;
-  source: "school" | "class"; // identifies where modal is used
+  source: "school" | "class";
 }
 
 const AddNoteModal: React.FC<AddNoteModalProps> = ({
@@ -23,12 +23,10 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
   const handleSave = () => {
     if (!text.trim()) {
-      setError(t("please_enter_note")as any);
+      setError(t("please_enter_note") as any);
       return;
     }
     setError("");
-
-    // Return only UI mock data → parent will construct full note object
     onSave({ text });
     setText("");
   };
@@ -40,67 +38,50 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   };
 
   return (
-    <div className="note-modal-overlay">
-      <div className="note-modal">
+    <div className="add-note-modal-overlay">
+      <div className="add-note-modal-container">
         {/* Header */}
-        <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>
-            {source === "school" ? t("Add school note") : t("Add class note")}
+        <div className="add-note-modal-header">
+          <h3 className="add-note-modal-title">
+            {source === "school"
+              ? t("Add School Note")
+              : t("Add Class Note")}
           </h3>
 
           <button
+            className="add-note-modal-close"
             onClick={handleCancel}
-            className="modal-close-button"
             aria-label="close"
           >
             ×
           </button>
         </div>
 
-        {/* Text Field */}  
+        {/* Textarea */}
         <textarea
-          className="note-textarea"
+          className="add-note-modal-textarea"
           placeholder={t("Type your note here") as any}
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={6}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: 8,
-            border: "1px solid #d6d6d6",
-            marginTop: 14,
-            fontSize: 14,
-            resize: "vertical",
-          }}
         />
 
         {error && (
-          <p style={{ color: "red", marginTop: 6, marginBottom: 0 }}>{error}</p>
+          <p className="add-note-modal-error">{error}</p>
         )}
 
-        {/* Buttons */}
-        <div
-          className="modal-actions"
-          style={{ marginTop: 18, display: "flex", justifyContent: "flex-end", gap: 12 }}
-        >
+        {/* Actions */}
+        <div className="add-note-modal-actions">
           <button
-            className="btn-outline"
+            className="add-note-modal-btn-outline"
             onClick={handleCancel}
-            style={{ padding: "8px 14px", borderRadius: 6 }}
           >
             {t("Cancel")}
           </button>
 
           <button
-            className="btn-primary"
+            className="add-note-modal-btn-primary"
             onClick={handleSave}
-            style={{
-              padding: "8px 18px",
-              background: "#4f46e5",
-              color: "white",
-              borderRadius: 6,
-            }}
           >
             {t("Save")}
           </button>

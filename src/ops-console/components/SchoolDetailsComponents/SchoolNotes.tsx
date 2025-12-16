@@ -4,12 +4,13 @@ import "./SchoolNotes.css";
 import NoteDetailsDrawer from "./NoteDetailsDrawer"; // your drawer component (already present)
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
+import { NOTES_UPDATED_EVENT } from "../../../common/constants";
 
 /**
  * Dynamic SchoolNotes:
  * - autodetects schoolId from URL if not provided by parent
  * - fetches notes from apiHandler.getNotesBySchoolId(schoolId)
- * - listens to `window` event 'notes:updated' to prepend newly created notes
+ * - listens to `window` event 'NOTES_UPDATED_EVENT' to prepend newly created notes
  * - opens NoteDetailsDrawer on row click
  *
  * This keeps your Tabs and Page structure unchanged.
@@ -142,13 +143,13 @@ const SchoolNotes: React.FC = () => {
       setDrawerOpen(true);
     }
   } catch (err) {
-    console.error("notes:updated handler error:", err);
+    console.error("NOTES_UPDATED_EVENT handler error:", err);
   }
 };
 
 
-    window.addEventListener("notes:updated", handler as EventListener);
-    return () => window.removeEventListener("notes:updated", handler as EventListener);
+    window.addEventListener("NOTES_UPDATED_EVENT", handler as EventListener);
+    return () => window.removeEventListener("NOTES_UPDATED_EVENT", handler as EventListener);
   }, []);
 
   const openNote = (note: Note) => {
@@ -163,14 +164,12 @@ const SchoolNotes: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="school-notes-container">
-        <div style={{ padding: 24 }}>{t("Loading notes...")}</div>
-      </div>
+      <div className="school-notes-loading">{t("Loading notes...")}</div>
     );
   }
 
   return (
-    <div className="school-notes-container" style={{ position: "relative" }}>
+    <div className="school-notes-container">
       <table className="school-notes-table" role="table" aria-label={t("School notes table") as string}>
         <thead>
           <tr>

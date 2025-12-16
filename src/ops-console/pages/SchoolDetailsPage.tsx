@@ -13,6 +13,7 @@ import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
 import { SchoolTabs } from "../../interface/modelInterfaces";
+import { NOTES_UPDATED_EVENT } from "../../common/constants";
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -106,7 +107,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       setShowAddModal(false);
 
       // dispatch event so Notes tab component can update if it listens to this
-      window.dispatchEvent(new CustomEvent("notes:updated", { detail: created }));
+      window.dispatchEvent(new CustomEvent("NOTES_UPDATED_EVENT", { detail: created }));
 
       // switch to Notes tab
       setActiveTab(SchoolTabs.Notes);

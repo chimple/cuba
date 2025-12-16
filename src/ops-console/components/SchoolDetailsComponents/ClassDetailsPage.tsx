@@ -10,6 +10,7 @@ import { t } from "i18next";
 import { StudentInfo, TableTypes } from "../../../common/constants";
 import { ClassRow, SchoolDetailsData } from "./SchoolClass";
 import AddNoteModal from "../SchoolDetailsComponents/AddNoteModal"; // <<-- imported
+import { NOTES_UPDATED_EVENT } from "../../../common/constants";
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -139,7 +140,7 @@ const ClassDetailsPage: React.FC<Props> = ({
       // e.g. { id, visitId, schoolId, classId, className, content, createdAt, createdBy: { userId, name, role } }
 
       // Inform Notes tab (SchoolNotes listens to this)
-      window.dispatchEvent(new CustomEvent("notes:updated", { detail: created }));
+      window.dispatchEvent(new CustomEvent("NOTES_UPDATED_EVENT", { detail: created }));
 
       // close modal
       setShowAddModal(false);
