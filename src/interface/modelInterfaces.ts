@@ -111,3 +111,22 @@ export interface FcActivity {
     name: string;
   } | null;
 }
+
+export interface CreateSchoolNoteInput {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}
+
+export interface SchoolNote {
+  id: string;
+  text: string;
+  className: string | null;
+  createdAt: string;
+
+  createdBy: {
+    userId: string;
+    name: string;
+    role: string | null;
+  };
+}

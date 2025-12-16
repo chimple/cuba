@@ -28,7 +28,7 @@ import {
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -2455,9 +2455,9 @@ export interface ServiceApi {
     schoolId: string;
     classId?: string | null;
     content: string;
-  }): Promise<any>;
+  }): Promise<CreateSchoolNoteInput>;
 
-  getNotesBySchoolId(schoolId: string, limit?: number, offset?: number): Promise<any[]>;
+  getNotesBySchoolId(schoolId: string, limit?: number, offset?: number): Promise<SchoolNote[]>;
 
 
   /**

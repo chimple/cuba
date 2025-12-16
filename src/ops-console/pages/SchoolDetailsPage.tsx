@@ -107,7 +107,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       setShowAddModal(false);
 
       // dispatch event so Notes tab component can update if it listens to this
-      window.dispatchEvent(new CustomEvent("NOTES_UPDATED_EVENT", { detail: created }));
+      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
 
       // switch to Notes tab
       setActiveTab(SchoolTabs.Notes);
@@ -297,12 +297,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       {!isMobile && schoolName && (
         <div
           className="school-detail-secondary-header"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: "100%",
-          }}
         >
           {/* Left Side: Breadcrumb */}
           <Breadcrumb
