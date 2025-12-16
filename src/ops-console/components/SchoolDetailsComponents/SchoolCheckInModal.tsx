@@ -3,6 +3,8 @@ import './SchoolCheckInModal.css';
 import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 
+import { Geolocation } from '@capacitor/geolocation';
+
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
@@ -43,32 +45,36 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       // 1. Start Clock
       const timer = setInterval(() => setCurrentDate(new Date()), 1000);
 
-      // 2. Fetch User Location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
-                setUserLocation({ lat: userLat, lng: userLng });
+      // 2. Fetch User Location using Capacitor Geolocation
+      const fetchLocation = async () => {
+        try {
+            const permissionStatus = await Geolocation.checkPermissions();
+            if (permissionStatus.location !== 'granted') {
+                const requestStatus = await Geolocation.requestPermissions();
+                if (requestStatus.location !== 'granted') {
+                    setLocationError("Location permission denied.");
+                    setIsInsidePremises(false);
+                    return;
+                }
+            }
 
-                // 3. Calculate Distance
-                const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
-                setDistance(dist);
-                setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
-            },
-            (error) => {
-                console.error("Error getting location", error);
-                setLocationError("Unable to retrieve your location.");
-                // verification fails if we can't get location? or lenient?
-                // For safety, let's say lenient or just show valid warning. 
-                // Let's assume fallback is allow but show warning/error.
-                setIsInsidePremises(false); 
-            },
-            { enableHighAccuracy: true }
-        );
-      } else {
-        setLocationError("Geolocation is not supported by this browser.");
-      }
+            const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            setUserLocation({ lat: userLat, lng: userLng });
+
+            // 3. Calculate Distance
+            const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+            setDistance(dist);
+            setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+        } catch (error) {
+            console.error("Error getting location", error);
+            setLocationError("Unable to retrieve your location.");
+            setIsInsidePremises(false);
+        }
+      };
+
+      fetchLocation();
 
       return () => clearInterval(timer);
     }
