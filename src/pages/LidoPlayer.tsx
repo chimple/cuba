@@ -292,7 +292,7 @@ const LidoPlayer: FC = () => {
   };
 
   useEffect(() => {
-    (window as any).__LIDO_COMMON_AUDIO_ORIGIN__ = "http://localhost:3000";
+    
     init();
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
