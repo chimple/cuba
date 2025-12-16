@@ -907,6 +907,7 @@ export class SupabaseApi implements ServiceApi {
       key_contacts: null,
       country: null,
       location_link: null,
+      whatsapp_bot_number: null,
     };
 
     const { error } = await this.supabase
@@ -1127,6 +1128,7 @@ export class SupabaseApi implements ServiceApi {
         key_contacts: null,
         country: country ?? null,
         location_link: null,
+        whatsapp_bot_number: null,
       };
 
       const { error: schoolError } = await this.supabase
@@ -1295,6 +1297,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -1440,6 +1443,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -2131,7 +2135,19 @@ export class SupabaseApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     if (!this.supabase) return {} as TableTypes<"result">;
 
@@ -2156,6 +2172,17 @@ export class SupabaseApi implements ServiceApi {
       class_id: classId ?? null,
       firebase_id: null,
       is_firebase: null,
+      skill_id: skill_id ?? null,
+      skill_ability: skill_ability ?? null,
+      outcome_id: outcome_id ?? null,
+      outcome_ability: outcome_ability ?? null,
+      competency_id: competency_id ?? null,
+      competency_ability: competency_ability ?? null,
+      domain_id: domain_id ?? null,
+      domain_ability: domain_ability ?? null,
+      subject_id: subject_id ?? null,
+      subject_ability: subject_ability ?? null,
+      activities_scores: null,
     };
 
     const { error: insertError } = await this.supabase
@@ -2613,6 +2640,148 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error fetching courses:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("domain")
+      .select("*")
+      .eq("subject_id", subjectId)
+      .eq("framework_id", frameworkId)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching domains:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    if (!this.supabase || !domainIds || domainIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("competency")
+      .select("*")
+      .in("domain_id", domainIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching competencies:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    if (!this.supabase || !competencyIds || competencyIds.length === 0)
+      return [];
+
+    const { data, error } = await this.supabase
+      .from("outcome")
+      .select("*")
+      .in("competency_id", competencyIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching outcomes:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    if (!this.supabase || !outcomeIds || outcomeIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("skill")
+      .select("*")
+      .in("outcome_id", outcomeIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching skills:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    if (!this.supabase || !skillIds || skillIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", studentId)
+      .in("skill_id", skillIds)
+      .or("is_deleted.is.null,is_deleted.eq.false")
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching results by skills:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    if (!this.supabase || !targetSkillIds || targetSkillIds.length === 0)
+      return [];
+
+    const { data, error } = await this.supabase
+      .from("skill_relation")
+      .select("*")
+      .in("target_skill_id", targetSkillIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching skill relations:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    if (!this.supabase || !skillIds || skillIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("skill_lesson")
+      .select("*")
+      .in("skill_id", skillIds)
+      .or("is_deleted.is.null,is_deleted.eq.false")
+      .order("sort_index", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching skill lessons:", error);
       return [];
     }
 
@@ -4796,7 +4965,11 @@ export class SupabaseApi implements ServiceApi {
       search_text: searchString,
     });
     if (error) return [];
-    return data;
+    // RPC response omits metadata, so ensure the field exists to satisfy the generated type
+    return (data ?? []).map((lesson) => ({
+      metadata: null,
+      ...lesson,
+    }));
   }
   async getUserAssignmentCart(
     userId: string
@@ -7444,6 +7617,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: null,
       grade_id: null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: now,
       updated_at: now,
       is_deleted: false,
