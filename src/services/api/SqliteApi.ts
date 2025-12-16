@@ -1183,9 +1183,9 @@ export class SqliteApi implements ServiceApi {
     const query1 = `
     SELECT *
     FROM ${TABLES.OpsRequests}
-    WHERE class_id = ? AND school_id = ?`;
+    WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
 
-    const res1 = await this._db?.query(query1, [class_id,school_id]);
+    const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
     console.log("🚀 ~ deleteApprovedOpsRequestsForUser ~ res1:", res1);
     
     let userData;
