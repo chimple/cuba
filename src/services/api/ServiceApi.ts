@@ -33,6 +33,7 @@ import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -467,7 +468,8 @@ export interface ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -2373,4 +2375,11 @@ export interface ServiceApi {
   getNotesBySchoolId(schoolId: string, limit?: number, offset?: number): Promise<any[]>;
 
 
+  /**
+   * Get interactions metrics for a school.
+   */
+  getFCSchoolStatsForSchool(
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null
+  ): Promise<FCSchoolStats>;  
 }

@@ -810,17 +810,19 @@ export enum EVENTS {
   EXPERIMENT_VIEWED = "experiment_viewed",
   PATHWAY_CREATED = "pathway_created",
   PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_LESSON_END = "pathway_lesson_end",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
-  PROFILE_SKIPPED = "profile_skipped",
   DEEPLINK_CLICKED = "deeplink_clicked",
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
   REWARD_COLLECTED = "reward_collected",
   HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
   HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
+  HOMEWORK_PATHWAY_COURSE_CHANGED = "homework_pathway_course_changed",
+  HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED = "homework_pathway_assignment_completed",
   LIVE_UPDATE_APPLIED = "live_update_applied",
   LIVE_UPDATE_STARTED = "live_update_started",
   LIVE_UPDATE_ERROR = "live_update_error",
@@ -968,11 +970,11 @@ export const FORM_MODES = {
 };
 
 export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
-  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
-  AFTER_LOGIN_CONTROL: "after_login_control",
-  AFTER_LOGIN_V1: "after_login_v1",
-  AFTER_LOGIN_V2: "after_login_v2",
-  AFTER_LOGIN_V3: "after_login_v3",
+  ONBOARDING: "student-profile-creation-flow",
+  CONTROL: "create_student_profile_v",
+  VARIANT_1: "create_student_profile_v1",
+  VARIANT_2: "create_student_profile_v2",
+  VARIANT_3: "create_student_profile_v3",
 };
 
 export const ACTION_TYPES = {

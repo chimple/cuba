@@ -3,6 +3,7 @@ import { useHistory } from "react-router";
 import { Util } from "../utility/util";
 import {
   EVENTS,
+  HOMEWORK_PATHWAY,
   LidoActivityChangeKey,
   LidoActivityEndKey,
   LidoGameCompletedKey,
@@ -105,6 +106,45 @@ const LidoPlayer: FC = () => {
         currentStudent.id
       );
     }
+
+    // Check if the game was played from `learning_pathway`
+    const learning_path: boolean = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false;
+    const homeworkIndex: number | undefined = state?.homeworkIndex;
+
+     // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+        let shouldGiveHomeworkBonus = false;
+    
+        if (is_homework) {
+          try {
+            const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+    
+            if (!pathStr) {
+              console.warn(
+                "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+              );
+            } else {
+              const path = JSON.parse(pathStr) as {
+                lessons?: any[];
+                currentIndex?: number;
+              };
+    
+              const lessonsLen = path.lessons?.length ?? 0;
+              const isLastLessonInPath =
+                lessonsLen > 0 &&
+                typeof homeworkIndex === "number" &&
+                homeworkIndex === lessonsLen - 1;
+              if (isLastLessonInPath) {
+                shouldGiveHomeworkBonus = true;
+              }
+            }
+          } catch (err) {
+            console.error(
+              "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+              err
+            );
+          }
+        }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimeSpent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -115,11 +155,6 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
     setGameResult(data);
-    // Check if the game was played from `learning_pathway`
-    const learning_path: string = state?.learning_path ?? false;
-    const is_homework: boolean = state?.isHomework ?? false; // Check for our new flag
-    const homeworkIndex: number | undefined = state?.homeworkIndex; // 👈 ADD THIS
-
     const isReward: boolean = state?.reward ?? false;
     if (isReward === true) {
       sessionStorage.setItem(REWARD_LESSON, "true");
@@ -144,6 +179,38 @@ const LidoPlayer: FC = () => {
       // This handles our temporary homework path
       await Util.updateHomeworkPath(homeworkIndex);
     }
+
+     // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+        if (shouldGiveHomeworkBonus) {
+          try {
+            const student = Util.getCurrentStudent();
+    
+            if (student?.id) {
+              const bonusStars = 10;
+    
+              const newLocalStars = Util.bumpLocalStarsForStudent(
+                student.id,
+                bonusStars,
+                student.stars || 0
+              );
+    
+              try {
+                await api.updateStudentStars(student.id, newLocalStars);
+              } catch (err) {
+                console.warn(
+                  "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
+                  err
+                );
+              }
+              localStorage.removeItem(HOMEWORK_PATHWAY);
+            }
+          } catch (err) {
+            console.error(
+              "[Homework bonus] Failed to award homework completion bonus",
+              err
+            );
+          }
+        }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,
@@ -311,7 +378,8 @@ const LidoPlayer: FC = () => {
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
-            "base-url": basePath,
+            "base-url": basePath, 
+            "code-folder-path": "/Lido-player-code-versions"
           })
         : null}
     </IonPage>
@@ -319,3 +387,4 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
+    

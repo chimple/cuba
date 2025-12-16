@@ -392,7 +392,8 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isImediateSync?:boolean
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
