@@ -585,7 +585,7 @@ export class SupabaseAuth implements ServiceAuth {
           stars: null,
         });
       } else {
-        createdUser = await api.getUserByDocId(id);
+        createdUser = await SupabaseApi.getInstance().getUserByDocId(id);
       }
 
       if (!createdUser) {
