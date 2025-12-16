@@ -1204,6 +1204,7 @@ export class SqliteApi implements ServiceApi {
 
     // Push sync mutation
     await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      id: requested_by,
       requested_by,
       school_id: school_id ?? null,
       class_id: class_id ?? null,
