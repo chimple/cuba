@@ -379,7 +379,8 @@ const LidoPlayer: FC = () => {
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
             "base-url": basePath, 
-            "code-folder-path": "/Lido-player-code-versions"
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": "http://localhost:3000/commonAudios",
           })
         : null}
     </IonPage>
