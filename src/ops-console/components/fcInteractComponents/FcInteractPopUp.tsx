@@ -7,7 +7,6 @@ import {
   ContactTarget,
   EnumType,
   PERFORMANCE_UI,
-  PerformanceLevel,
   PrincipalInfo,
   StudentInfo,
   TableTypes,
@@ -133,6 +132,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
+    if (techIssueMarked && techIssueDetails.trim() === "") return false;
     if (showMandatory) {
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
@@ -140,7 +140,15 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     }
 
     return true;
-  }, [mode, callOutcome, mandatoryQuestions, responses, spokeWith]);
+  }, [
+    mode,
+    callOutcome,
+    mandatoryQuestions,
+    responses,
+    spokeWith,
+    techIssueMarked,
+    techIssueDetails,
+  ]);
 
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
