@@ -78,6 +78,12 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Domain = "domain",
+  Competency = "competency",
+  Outcome = "outcome",
+  Skill = "skill",
+  SkillRelation = "skill_relation",
+  SkillLesson = "skill_lesson",
   FcQuestion = "fc_question",
   FcSchoolVisit = "fc_school_visit",
   FcUserForms = "fc_user_forms",
@@ -1023,6 +1029,10 @@ export interface StudentAPIResponse {
 export interface TeacherInfo {
   user: TableTypes<"user">;
   grade: number;
+  classWithidname: {
+    id: string;
+    name: string;
+  };
   classSection: string;
 }
 export interface TeacherAPIResponse {
@@ -1112,16 +1122,21 @@ export enum SupportLevelMap {
   "Not Tracked" = "not_tracked",
 }
 
+export enum RECOMMENDATION_TYPE {
+  FRAMEWORK = "framework",
+  CHAPTER = "chapter"
+}
+
 export enum PerformanceLevel {
   ALL = "all",
   NEED_HELP = "need_help",
   DOING_GOOD = "doing_good",
   STILL_LEARNING = "still_learning",
   NOT_TRACKED = "not_tracked",
-  NOT_ASSIGNING_PER_MONTH = "not_assigning_per_month",
-  ONCE_A_MONTH = "once_a_month",
-  ONCE_A_WEEK = "once_a_week",
-  TWO_PLUS_PER_WEEK = "two_plus_per_week",
+  NOT_ASSIGNING = "not_assigning",
+  ONE_TO_TWO_ASSIGNED = "once_to_two",
+  THREE_TO_FOUR_ASSIGNED = "three_to_four",
+  FOUR_PLUS_ASSIGNED = "four_plus",
 }
 export enum ContactTarget {
   STUDENT = "student",
@@ -1155,23 +1170,23 @@ export const PERFORMANCE_UI: Record<
     bgColor: "#F3F4F6",
     textColor: "#364153",
   },
-  [PerformanceLevel.NOT_ASSIGNING_PER_MONTH]: {
+  [PerformanceLevel.NOT_ASSIGNING]: {
     label: "Not Assigning",
-    bgColor: "#F3F4F6",
-    textColor: "#364153",
-  },
-  [PerformanceLevel.ONCE_A_MONTH]: {
-    label: "Once/Month",
-    bgColor: "#FFEDD4",
+    bgColor: "#FFE2E2",
     textColor: "#CA3500",
   },
-  [PerformanceLevel.ONCE_A_WEEK]: {
-    label: "Once a Week",
+  [PerformanceLevel.ONE_TO_TWO_ASSIGNED]: {
+    label: "1 - 2 Assigned",
+    bgColor: "#FFEDD4",
+    textColor: "#E4916A",
+  },
+  [PerformanceLevel.THREE_TO_FOUR_ASSIGNED]: {
+    label: "3 - 4 Assigned",
     bgColor: "#DCFCE7",
     textColor: "#008236",
   },
-  [PerformanceLevel.TWO_PLUS_PER_WEEK]: {
-    label: "2+/Week",
+  [PerformanceLevel.FOUR_PLUS_ASSIGNED]: {
+    label: "4+ Assigned",
     bgColor: "#DCFCE7",
     textColor: "#008236",
   },
@@ -1182,5 +1197,4 @@ export const PERFORMANCE_UI: Record<
   },
 };
 export const COURSE_CHANGED = "courseChanged";
-
 export const NOTES_UPDATED_EVENT = "notes:updated";
