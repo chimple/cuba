@@ -26,7 +26,6 @@ import {
   BANDS,
   EnumType,
   SupportLevelMap,
-  ContactTarget,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -853,7 +852,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           schoolId={schoolId}
           status={studentStatus}
           onClose={() => setOpenPopup(false)}
-          initialUserType={ContactTarget.STUDENT}
+          initialUserType={"student"}
         />
       )}
 

@@ -9819,39 +9819,8 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async getRecentAssignmentCountByTeacher(
-    teacherId: string,
-    classId: string
-  ): Promise<number | null> {
-    const FIFTEEN_DAYS_AGO = new Date(
-      Date.now() - 15 * 24 * 60 * 60 * 1000
-    ).toISOString();
 
-    if (!this.supabase) return null;
-
-    const { data, error } = await this.supabase
-      .from(TABLES.Assignment)
-      .select("batch_id")
-      .eq("created_by", teacherId)
-      .eq("class_id", classId)
-      .eq("is_deleted", false)
-      .gte("created_at", FIFTEEN_DAYS_AGO);
-
-    if (error) {
-      console.error("Error fetching assignments:", error);
-      return null;
-    }
-
-    if (!data || data.length === 0) return 0;
-
-    const uniqueCount = new Set(data.map((row) => row.batch_id)).size;
-
-    return uniqueCount;
-  }
-  async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
-  ): Promise<FCSchoolStats> {
+  async getFCSchoolStatsForSchool(schoolId: string, currentUser: TableTypes<"user"> | null): Promise<FCSchoolStats> {
     if (!this.supabase) {
       return {
         visits: 0,

@@ -4,19 +4,29 @@ import "./FcInteractPopUp.css";
 import { LaunchRounded } from "@mui/icons-material";
 import EmailRounded from "@mui/icons-material/EmailRounded";
 import {
-  ContactTarget,
   EnumType,
-  PERFORMANCE_UI,
-  PerformanceLevel,
   PrincipalInfo,
   StudentInfo,
-  TableTypes,
   TeacherInfo,
 } from "../../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 
 type Q = { id: string; question: string };
+const supportLevelReverseMap: Record<EnumType<"fc_support_level">, string> = {
+  doing_good: "Doing Good",
+  still_learning: "Still Learning",
+  need_help: "Need Help",
+  not_tracked: "Not Tracked",
+  not_assigning_per_month: "Not Assigning Per Month",
+  once_a_month: "Once a Month",
+  once_a_week: "Once a Week",
+  two_plus_per_week: "2+ per Week",
+  not_assigning: "Not Assigning",
+  once_to_two: "Once to Two",
+  three_to_four: "Three to Four",
+  four_plus: "Four Plus"
+};
 
 const callOutcomeOptions: {
   value: EnumType<"fc_call_result">;
@@ -59,7 +69,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     EnumType<"fc_call_result"> | ""
   >("");
   const [spokeWith, setSpokeWith] =
-    useState<EnumType<"fc_engagement_target">>();
+    useState<EnumType<"fc_engagement_target">>("student");
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [otherComments, setOtherComments] = useState("");
   const [techIssueMarked, setTechIssueMarked] = useState(false);
@@ -68,35 +78,45 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
+
+  const normalizedStatus = status
+    ? supportLevelReverseMap[status] ?? status
+    : "";
+
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
-  let userData: TableTypes<"user"> | null = null;
-  let parentData: TableTypes<"user"> | null = null;
+
+  let name = "";
+  let phone = "";
+  let email = "";
   let className = "";
-  let classId: string | null = null;
+
   if (studentData) {
-    const { user, parent, classSection, grade, classWithidname } = studentData;
-    userData = user;
-    parentData = parent ? parent : null;
-    classId = classWithidname?.id ?? null;
+    const { user, parent, classSection, grade } = studentData;
+
+    name = user?.name ?? "";
+    phone = user?.phone ?? parent?.phone ?? "";
+    email = user?.email ?? parent?.email ?? "";
     className = classSection ?? grade ?? "";
   } else if (teacherData) {
-    const { user, grade, classSection, classWithidname } = teacherData;
-    userData = user;
-    classId = classWithidname.id;
+    const { user, grade, classSection } = teacherData;
+    name = user?.name ?? "";
+    phone = user?.phone ?? "";
+    email = user?.email ?? "";
     className = classSection || grade?.toString() || "";
   } else if (principalData) {
-    userData = principalData;
+    name = principalData?.name ?? "";
+    phone = principalData?.phone ?? "";
+    email = principalData?.email ?? "";
   }
 
   useEffect(() => {
     let mounted = true;
 
     const load = async () => {
+      if (!status) return;
+
       try {
-        const questions = await api.getFilteredFcQuestions(
-          status ?? null,
-          spokeWith ?? initialUserType
-        );
+        const questions = await api.getFilteredFcQuestions(status, spokeWith);
 
         const formattedQuestions =
           questions?.map((q) => ({
@@ -131,7 +151,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   const isFormValid = useMemo(() => {
     if (mode === "call" && callOutcome === "") return false;
-    if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
+    if (!spokeWith) return false;
 
     if (showMandatory) {
       for (const q of mandatoryQuestions) {
@@ -163,9 +183,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         visitId: visitId ?? null,
         userId: currentUser!.id,
         schoolId,
-        classId: classId,
-        contactUserId: userData?.id,
-        contactTarget: spokeWith ?? initialUserType,
+        classId: studentData?.classWithidname?.id ?? null,
+        contactUserId: studentData?.user.id,
+        contactTarget: spokeWith,
         contactMethod: mode,
         callStatus: mode === "call" && callOutcome !== "" ? callOutcome : null,
         supportLevel: status ?? null,
@@ -175,6 +195,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         techIssuesReported: techIssueMarked,
         activityType: mode === "call" ? "call" : "in_person",
       };
+
       await api.saveFcUserForm(payload);
       onClose();
     } catch (err) {
@@ -210,7 +231,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               <div className="fc-interact-popup-left-top" id="fc-left-top">
                 <div id="fc-user-info-wrapper">
                   <div className="fc-interact-popup-name" id="fc-user-name">
-                    {userData?.name}
+                    {name}
                   </div>
                   {className && (
                     <div className="fc-interact-popup-class" id="fc-user-class">
@@ -219,16 +240,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   )}
                 </div>
 
-                {status && PERFORMANCE_UI[status] && (
+                {normalizedStatus && (
                   <div
                     className="fc-interact-popup-status-badge"
                     id="fc-status-badge"
-                    style={{
-                      background: PERFORMANCE_UI[status].bgColor,
-                      color: PERFORMANCE_UI[status].textColor,
-                    }}
                   >
-                    {PERFORMANCE_UI[status].label}
+                    {normalizedStatus}
                   </div>
                 )}
               </div>
@@ -237,21 +254,17 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 className="fc-interact-popup-contact"
                 id="fc-contact-section"
               >
-                {userData?.phone || parentData?.phone ? (
+                {phone ? (
                   <div
                     className="fc-interact-popup-contact-line"
                     id="fc-phone-line"
-                    onClick={() =>
-                      (window.location.href = `tel:${
-                        userData?.phone ?? parentData?.phone
-                      }`)
-                    }
+                    onClick={() => (window.location.href = `tel:${phone}`)}
                   >
                     <span
                       className="fc-interact-popup-contact-text"
                       id="fc-phone-text"
                     >
-                      +91 {userData?.phone || parentData?.phone}
+                      +91 {phone}
                     </span>
                     <LaunchRounded style={{ fontSize: 16 }} />
                   </div>
@@ -259,17 +272,13 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   <div
                     className="fc-interact-popup-contact-line"
                     id="fc-email-line"
-                    onClick={() =>
-                      (window.location.href = `mailto:${
-                        userData?.email ?? parentData?.email
-                      }`)
-                    }
+                    onClick={() => (window.location.href = `mailto:${email}`)}
                   >
                     <span
                       className="fc-interact-popup-contact-text"
                       id="fc-email-text"
                     >
-                      {userData?.email ?? parentData?.email}
+                      {email}
                     </span>
                     <EmailRounded style={{ fontSize: 16 }} />
                   </div>

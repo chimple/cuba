@@ -8,7 +8,6 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
-  IconButton,
 } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { t } from "i18next";
@@ -17,13 +16,7 @@ import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import {
-  ContactTarget,
-  EnumType,
-  PERFORMANCE_UI,
-  PerformanceLevel,
-  TeacherInfo,
-} from "../../../common/constants";
+import { TeacherInfo } from "../../../common/constants";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
@@ -32,7 +25,6 @@ import {
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
-import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
 
 interface DisplayTeacher {
   id: string;
@@ -43,10 +35,6 @@ interface DisplayTeacher {
   phoneNumber: string;
   emailDisplay: string;
   class: string;
-  classId: string;
-  interactData: string;
-  performance: EnumType<"fc_support_level">;
-  interactPayload: TeacherInfo;
 }
 
 interface SchoolTeachersProps {
@@ -89,21 +77,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const api = ServiceConfig.getI().apiHandler;
-  const [openPopup, setOpenPopup] = useState(false);
-  const [currentTeachers, setcurrentTeachers] = useState<TeacherInfo>();
-  const [teacherStatus, setTeacherStatus] =
-    useState<EnumType<"fc_support_level">>();
-  const getTeacherInfo = useCallback(
-    (id: string): TeacherInfo | null => {
-      if (!Array.isArray(teachers)) return null;
-      return teachers.find((t) => t.user?.id === id) || null;
-    },
-    [teachers]
-  );
-
-  const [teachersWithPerformance, setTeachersWithPerformance] = useState<
-    DisplayTeacher[]
-  >([]);
 
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
@@ -281,66 +254,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         phoneNumber: apiTeacher.user.phone || "N/A",
         emailDisplay: apiTeacher.user.email || "N/A",
         class: apiTeacher.grade + apiTeacher.classSection,
-        classId: apiTeacher.classWithidname.id,
-        interactData: "",
-        interactPayload: apiTeacher,
-        performance:
-          teachersWithPerformance.find((t) => t.id === apiTeacher.user.id)
-            ?.performance ?? "not_assigning",
       })
     );
   }, [sortedTeachers]);
-
-  useEffect(() => {
-    if (!sortedTeachers.length) {
-      setTeachersWithPerformance([]);
-      return;
-    }
-
-    async function loadPerformance() {
-      const enriched = await Promise.all(
-        sortedTeachers.map(async (apiTeacher) => {
-          const teacherId = apiTeacher.user.id;
-          const classId = apiTeacher.classWithidname.id;
-
-          const count = await api.getRecentAssignmentCountByTeacher(
-            teacherId,
-            classId
-          );
-
-          const perfLevel = mapCountToPerformance(count);
-
-          return {
-            id: apiTeacher.user.id,
-            name: apiTeacher.user.name || "N/A",
-            gender: apiTeacher.user.gender || "N/A",
-            grade: apiTeacher.grade,
-            classSection: apiTeacher.classSection,
-            phoneNumber: apiTeacher.user.phone || "N/A",
-            emailDisplay: apiTeacher.user.email || "N/A",
-            class: apiTeacher.grade + apiTeacher.classSection,
-            classId: apiTeacher.classWithidname.id,
-            interactData: "",
-            interactPayload: apiTeacher,
-            performance: perfLevel as EnumType<"fc_support_level">,
-          };
-        })
-      );
-
-      setTeachersWithPerformance(enriched);
-    }
-
-    loadPerformance();
-  }, [sortedTeachers]);
-
-  const mapCountToPerformance = (count: number | null): PerformanceLevel => {
-    if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
-    if (count >= 1 && count <= 2) return PerformanceLevel.ONE_TO_TWO_ASSIGNED;
-    if (count >= 3 && count <= 4)
-      return PerformanceLevel.THREE_TO_FOUR_ASSIGNED;
-    if (count >= 5) return PerformanceLevel.FOUR_PLUS_ASSIGNED;
-    return PerformanceLevel.NOT_TRACKED;
-  };
 
   const pageCount = useMemo(() => {
     if (searchTerm || filters.grade.length > 0) {
@@ -349,7 +265,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return Math.ceil(totalCount / ROWS_PER_PAGE);
   }, [totalCount, filters, searchTerm, filteredTeachers.length]);
 
-  const isDataPresent = teachersWithPerformance.length > 0;
+  const isDataPresent = displayTeachers.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
@@ -411,7 +327,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const email = rawEmail.toLowerCase();
         const normalizedPhone = normalizePhone10(rawPhone);
         const hasEmail = !!email;
-        const hasPhone = !hasEmail && !!normalizedPhone;
+        const hasPhone = !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
           setErrorMessage({
             text: "Please provide either an email or a phone number.",
@@ -430,7 +346,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             return;
           }
           finalEmail = email;
-        } else {
+        }
+        if (hasPhone) {
           if (normalizedPhone.length !== 10) {
             setErrorMessage({
               text: "Phone number must be 10 digits.",
@@ -518,44 +435,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Typography>
       ),
     },
-    {
-      key: "interactData",
-      label: t("Interact"),
-      align: "center",
-      width: 60,
-      sortable: false,
-      render: (row) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
-          }}
-        >
-          <IconButton
-            size="small"
-            onClick={async () => {
-              setOpenPopup(true);
-              const currentTeacher = getTeacherInfo(row.id);
-              if (currentTeacher) {
-                setcurrentTeachers(currentTeacher);
-              }
-              const performance =
-                teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.class === row.class // grade + section match
-                )?.performance ?? null;
-              if (performance) setTeacherStatus(performance);
-            }}
-          >
-            <img
-              src="/assets/icons/Interact.svg"
-              alt="Interact"
-              style={{ width: 30, height: 30 }}
-            />
-          </IconButton>
-        </Box>
-      ),
-    },
     { key: "gender", label: t("Gender") },
     {
       key: "class",
@@ -565,35 +444,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           {s.class}
         </Typography>
       ),
-    },
-    {
-      key: "performance",
-      label: t("Performance (15 days)"),
-      align: "center",
-      width: 120,
-      sortable: false,
-      render: (row) => {
-        if (!row.performance) return <span>--</span>;
-
-        const ui = PERFORMANCE_UI[row.performance];
-
-        return (
-          <Box
-            sx={{
-              background: ui.bgColor,
-              color: ui.textColor,
-              px: 1,
-              py: 0.5,
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: 600,
-              textAlign: "center",
-            }}
-          >
-            {ui.label}
-          </Box>
-        );
-      },
     },
     { key: "phoneNumber", label: t("Phone Number") },
     {
@@ -679,22 +529,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           <div className="schoolTeachers-table-container">
             <DataTableBody
               columns={columns}
-              rows={teachersWithPerformance}
+              rows={displayTeachers}
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
               onRowClick={() => {}}
             />
           </div>
-          {openPopup && currentTeachers && (
-            <FcInteractPopUp
-              teacherData={currentTeachers}
-              schoolId={schoolId}
-              status={teacherStatus}
-              onClose={() => setOpenPopup(false)}
-              initialUserType={ContactTarget.TEACHER}
-            />
-          )}
           {pageCount > 1 && (
             <div className="schoolTeachers-footer">
               <DataTablePagination
