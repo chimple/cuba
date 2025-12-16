@@ -158,6 +158,8 @@
   display: flex;
   gap: 12px;
   align-items: flex-start;
+  align-items: center;
+  font-weight: 600;
 }
 .fc-interact-popup-badge {
   width: 28px;
@@ -197,21 +199,26 @@
   margin-top: 14px;
 }
 .fc-interact-popup-cancel-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
   border: 1px solid #e5e7eb;
   cursor: pointer;
   background-color: white;
   color: var(--text-color);
 }
 .fc-interact-popup-save-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
   background: #2563eb;
   color: #fff;
   border: none;
   cursor: pointer;
 }
+.fc-interact-popup-cancel-btn,
+.fc-interact-popup-save-btn {
+  padding: 10px 24px;
+  min-width: 120px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .fc-interact-popup-save-disabled {
   background: #93c5fd;
   cursor: not-allowed;
@@ -248,4 +255,26 @@
     height: auto !important;
     overflow: visible !important;
   }
+}
+.fc-interact-popup-radio-item-tech-issues {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  width: 100%;
+}
+.fc-interact-popup-label-other-comments {
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 6px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  align-items: center;
 }
