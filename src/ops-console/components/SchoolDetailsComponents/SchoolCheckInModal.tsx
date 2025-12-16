@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './SchoolCheckInModal.css';
 import { IoClose } from 'react-icons/io5';
-import { HiOutlineLocationMarker, HiOutlineClock } from 'react-icons/hi';
-// Fallback if Hi icons not available, use Io5
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 
 interface SchoolCheckInModalProps {
@@ -12,6 +10,7 @@ interface SchoolCheckInModalProps {
   status: 'check_in' | 'check_out';
   schoolName: string;
   isFirstTime?: boolean;
+  schoolLocation?: { lat: number; lng: number };
 }
 
 const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
@@ -21,17 +20,21 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   status,
   schoolName,
   isFirstTime = false,
+  schoolLocation,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Dummy Location Data (Fixed for UI demo)
-  const dummyLocation = {
-    lat: 28.5244,
-    lng: 77.0855,
+  // Use provided school location or fallback to dummy
+  const targetLocation = {
+    lat: schoolLocation?.lat ?? 28.5244,
+    lng: schoolLocation?.lng ?? 77.0855,
     address1: "Gautam Buddha Nagar, Uttar Pradesh",
     address2: "Block: Noida, Cluster: Noida-East",
-    isInsidePremises: false // Set to false to show the warning as per mockup
   };
+
+  // Mockup requirement to show warning for outside premises
+  // In a real scenario, this would compare user location vs targetLocation
+  const isInsidePremises = false; 
 
   useEffect(() => {
     if (open) {
@@ -60,7 +63,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   };
 
   // OpenStreetMap Embed URL
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${dummyLocation.lng - 0.01},${dummyLocation.lat - 0.01},${dummyLocation.lng + 0.01},${dummyLocation.lat + 0.01}&layer=mapnik&marker=${dummyLocation.lat},${dummyLocation.lng}`;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${targetLocation.lng - 0.01},${targetLocation.lat - 0.01},${targetLocation.lng + 0.01},${targetLocation.lat + 0.01}&layer=mapnik&marker=${targetLocation.lat},${targetLocation.lng}`;
 
   const isCheckIn = status === 'check_in';
 
@@ -88,11 +91,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               </div>
               <div className="check-in-card-content">
                   <div className="location-name">{schoolName || "XYZ School"}</div>
-                  <div className="location-detail-text">{dummyLocation.address1}</div>
-                   <div className="location-detail-text">{dummyLocation.address2}</div>
+                  <div className="location-detail-text">{targetLocation.address1}</div>
+                   <div className="location-detail-text">{targetLocation.address2}</div>
                   <div className="location-detail-text" style={{ marginTop: '8px' }}>
                       <span className="location-coords-label">Coordinates: </span>
-                      {dummyLocation.lat.toFixed(4)}° N, {dummyLocation.lng.toFixed(4)}° E
+                      {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
                   </div>
               </div>
           </div>
@@ -118,19 +121,12 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </div>
 
           {/* Warning State */}
-          {!dummyLocation.isInsidePremises && isCheckIn && (
+          {!isInsidePremises && isCheckIn && (
             <div className="check-in-warning-banner">
               You're not within the school premises, are sure you want to continue checking in
             </div>
           )}
           
-           {/* First Time Confirmation - Just an overlay or part of flow? 
-               The mockup shows the warning IS the prompt essentially, 
-               but if we need a distinct Y/N for "Are you sure you are in school?" 
-               we can add it. For now, sticking to the mockup structure which implies 
-               the "Confirm" button IS the confirmation.
-            */}
-
         </div>
 
         {/* Footer Actions */}

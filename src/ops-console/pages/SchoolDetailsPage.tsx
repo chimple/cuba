@@ -69,6 +69,25 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     avg_weekly_time_minutes: 0,
   });
 
+  // Calculate coordinates
+  const [schoolLocation, setSchoolLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
+
+  useEffect(() => {
+    if (data.schoolData?.location_link) {
+        // Try to parse basic lat,lng string
+        // Example: "28.5244, 77.0855" or Google Maps URL
+        // Simple regex for "lat, lng"
+        const regex = /(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)/;
+        const match = data.schoolData.location_link.match(regex);
+        if (match) {
+            setSchoolLocation({
+                lat: parseFloat(match[1]),
+                lng: parseFloat(match[3])
+            });
+        }
+    }
+  }, [data.schoolData]);
+
   // Check-In Logic
   const [checkInStatus, setCheckInStatus] = useState<'checked_in' | 'checked_out'>('checked_out');
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
@@ -268,6 +287,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         status={checkInStatus === 'checked_in' ? 'check_out' : 'check_in'}
         schoolName={schoolName || "Unknown School"}
         isFirstTime={isFirstTimeCheckIn}
+        schoolLocation={schoolLocation}
       />
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">
