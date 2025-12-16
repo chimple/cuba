@@ -40,7 +40,6 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
     }
   }, [goToClassesTab]);
 
-   // notify parent whenever activeTab changes
   useEffect(() => {
     if (onTabChange) onTabChange(activeTab);
   }, [activeTab, onTabChange]);
@@ -98,7 +97,6 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
     />
   )}
 
-  {/* ADD THIS — Notes Tab */}
   {activeTab === SchoolTabs.Notes && (
     <SchoolNotes />
   )}
