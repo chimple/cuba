@@ -40,12 +40,15 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     address2: "Block: Noida, Cluster: Noida-East",
   };
 
+  // UI State for "Are you sure?" toggle
+  const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+
   useEffect(() => {
     if (open) {
-      // 1. Start Clock
+      setIsLoadingLocation(true);
       const timer = setInterval(() => setCurrentDate(new Date()), 1000);
 
-      // 2. Fetch User Location using Capacitor Geolocation
       const fetchLocation = async () => {
         try {
             const permissionStatus = await Geolocation.checkPermissions();
@@ -58,19 +61,45 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 }
             }
 
-            const position = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
-            setUserLocation({ lat: userLat, lng: userLng });
+            let position;
+            try {
+                // Try High Accuracy first with 10s timeout (increased from 5s)
+                position = await Geolocation.getCurrentPosition({ 
+                    enableHighAccuracy: true, 
+                    timeout: 10000, 
+                    maximumAge: 0 
+                });
+            } catch (err) {
+                console.warn("High accuracy location failed, falling back to cached/low accuracy", err);
+                try {
+                    // Fallback: Accept any cached location (Infinity) or low accuracy
+                    position = await Geolocation.getCurrentPosition({ 
+                        enableHighAccuracy: false, 
+                        timeout: 10000,
+                        maximumAge: Infinity 
+                    });
+                } catch (fallbackErr) {
+                    console.error("Fallback location also failed", fallbackErr);
+                    throw fallbackErr; // Throw to outer catch to handle UI state
+                }
+            }
 
-            // 3. Calculate Distance
-            const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
-            setDistance(dist);
-            setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+            if (position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                setUserLocation({ lat: userLat, lng: userLng });
+
+                const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+                setDistance(dist);
+                setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+            }
         } catch (error) {
             console.error("Error getting location", error);
-            setLocationError("Unable to retrieve your location.");
+            setLocationError("Could not retrieve location. Please check your GPS settings.");
+            // Even if location fails, we allow check-in but mark as outside premises
             setIsInsidePremises(false);
+        } finally {
+            setIsLoadingLocation(false);
         }
       };
 
@@ -116,10 +145,13 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     });
   };
 
-  // OpenStreetMap Embed URL - Standard: Show School Center
+  // OpenStreetMap Embed URL
   const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${targetLocation.lng - 0.01},${targetLocation.lat - 0.01},${targetLocation.lng + 0.01},${targetLocation.lat + 0.01}&layer=mapnik&marker=${targetLocation.lat},${targetLocation.lng}`;
 
   const isCheckIn = status === 'check_in';
+  const showConfirmation = !isLoadingLocation && !isInsidePremises && isCheckIn;
+  // User removed UI for confirmation, so we only block on loading now
+  const isConfirmDisabled = isLoadingLocation;
 
   return (
     <div className="check-in-modal-overlay" onClick={onClose}>
@@ -151,9 +183,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                       <span className="location-coords-label">School Coords: </span>
                       {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
                   </div>
-                  {distance !== null && (
+                  {distance !== null && !isLoadingLocation && (
                       <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
                           Distance: {Math.round(distance)} meters away
+                      </div>
+                  )}
+                  {isLoadingLocation && (
+                      <div className="location-detail-text" style={{ marginTop: '4px', color: '#666' }}>
+                          <i>Fetching your location...</i>
                       </div>
                   )}
               </div>
@@ -178,13 +215,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                  src={mapUrl}
                ></iframe>
           </div>
-
-          {/* Warning State */}
-          {(!isInsidePremises && isCheckIn) && (
-            <div className="check-in-warning-banner">
-              {locationError ? `Warning: ${locationError}` : "You're not within the school premises (300m), are you sure you want to continue checking in?"}
-            </div>
-          )}
           
         </div>
 
@@ -194,10 +224,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               Cancel
             </button>
             <button 
-              className="check-in-btn btn-confirm"
-              onClick={onConfirm}
+              className={`check-in-btn btn-confirm ${isConfirmDisabled ? 'disabled' : ''}`}
+              onClick={isConfirmDisabled ? undefined : onConfirm}
+              disabled={isConfirmDisabled}
             >
-              {isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out'}
+              {isLoadingLocation ? 'Locating...' : (isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out')}
             </button>
         </div>
       </div>
