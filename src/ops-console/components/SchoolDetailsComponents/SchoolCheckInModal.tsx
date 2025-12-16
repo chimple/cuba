@@ -13,6 +13,8 @@ interface SchoolCheckInModalProps {
   schoolLocation?: { lat: number; lng: number };
 }
 
+const MAX_DISTANCE_METERS = 300; // Allowed radius in meters
+
 const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   open,
   onClose,
@@ -23,6 +25,10 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   schoolLocation,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+  const [distance, setDistance] = useState<number | null>(null);
+  const [isInsidePremises, setIsInsidePremises] = useState<boolean>(true); // Default true to avoid flash of warning
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   // Use provided school location or fallback to dummy
   const targetLocation = {
@@ -32,16 +38,58 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     address2: "Block: Noida, Cluster: Noida-East",
   };
 
-  // Mockup requirement to show warning for outside premises
-  // In a real scenario, this would compare user location vs targetLocation
-  const isInsidePremises = false; 
-
   useEffect(() => {
     if (open) {
+      // 1. Start Clock
       const timer = setInterval(() => setCurrentDate(new Date()), 1000);
+
+      // 2. Fetch User Location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                setUserLocation({ lat: userLat, lng: userLng });
+
+                // 3. Calculate Distance
+                const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+                setDistance(dist);
+                setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+            },
+            (error) => {
+                console.error("Error getting location", error);
+                setLocationError("Unable to retrieve your location.");
+                // verification fails if we can't get location? or lenient?
+                // For safety, let's say lenient or just show valid warning. 
+                // Let's assume fallback is allow but show warning/error.
+                setIsInsidePremises(false); 
+            },
+            { enableHighAccuracy: true }
+        );
+      } else {
+        setLocationError("Geolocation is not supported by this browser.");
+      }
+
       return () => clearInterval(timer);
     }
-  }, [open]);
+  }, [open, targetLocation.lat, targetLocation.lng]);
+
+  // Haversine Formula to calculate distance in meters
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    const d = R * c; // in metres
+    return d;
+  }
 
   if (!open) return null;
 
@@ -62,7 +110,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     });
   };
 
-  // OpenStreetMap Embed URL
+  // OpenStreetMap Embed URL - Standard: Show School Center
   const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${targetLocation.lng - 0.01},${targetLocation.lat - 0.01},${targetLocation.lng + 0.01},${targetLocation.lat + 0.01}&layer=mapnik&marker=${targetLocation.lat},${targetLocation.lng}`;
 
   const isCheckIn = status === 'check_in';
@@ -94,9 +142,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   <div className="location-detail-text">{targetLocation.address1}</div>
                    <div className="location-detail-text">{targetLocation.address2}</div>
                   <div className="location-detail-text" style={{ marginTop: '8px' }}>
-                      <span className="location-coords-label">Coordinates: </span>
+                      <span className="location-coords-label">School Coords: </span>
                       {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
                   </div>
+                  {distance !== null && (
+                      <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
+                          Distance: {Math.round(distance)} meters away
+                      </div>
+                  )}
               </div>
           </div>
 
@@ -121,9 +174,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </div>
 
           {/* Warning State */}
-          {!isInsidePremises && isCheckIn && (
+          {(!isInsidePremises && isCheckIn) && (
             <div className="check-in-warning-banner">
-              You're not within the school premises, are sure you want to continue checking in
+              {locationError ? `Warning: ${locationError}` : "You're not within the school premises (300m), are you sure you want to continue checking in?"}
             </div>
           )}
           
