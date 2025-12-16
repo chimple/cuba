@@ -86,7 +86,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 7;
+  private DB_VERSION = 8;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -773,6 +773,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -1001,6 +1002,7 @@ export class SqliteApi implements ServiceApi {
       key_contacts: null,
       country: country,
       location_link: null,
+      whatsapp_bot_number: null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -1116,6 +1118,7 @@ export class SqliteApi implements ServiceApi {
       key_contacts: null,
       country: null,
       location_link: null,
+      whatsapp_bot_number: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -1287,6 +1290,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -2228,7 +2232,17 @@ export class SqliteApi implements ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync: boolean = false,
-    isHomework: boolean = false
+    isHomework: boolean = false,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2261,12 +2275,23 @@ export class SqliteApi implements ServiceApi {
       class_id: classId ?? null,
       firebase_id: null,
       is_firebase: null,
+      skill_id: skill_id ?? null,
+      skill_ability: skill_ability ?? null,
+      outcome_id: outcome_id ?? null,
+      outcome_ability: outcome_ability ?? null,
+      competency_id: competency_id ?? null,
+      competency_ability: competency_ability ?? null,
+      domain_id: domain_id ?? null,
+      domain_ability: domain_ability ?? null,
+      subject_id: subject_id ?? null,
+      subject_ability: subject_ability ?? null,
+      activities_scores: null,
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2284,6 +2309,16 @@ export class SqliteApi implements ServiceApi {
         newResult.course_id,
         newResult.chapter_id,
         newResult.class_id,
+        newResult.skill_id,
+        newResult.skill_ability,
+        newResult.outcome_id,
+        newResult.outcome_ability,
+        newResult.competency_id,
+        newResult.competency_ability,
+        newResult.domain_id,
+        newResult.domain_ability,
+        newResult.subject_id,
+        newResult.subject_ability,
       ]
     );
     // ⭐ reward update
@@ -2748,6 +2783,90 @@ export class SqliteApi implements ServiceApi {
     `;
 
     const res = await this._db?.query(query, courseIds);
+    return res?.values ?? [];
+  }
+
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0 or is_deleted is null)`,
+      [subjectId, frameworkId]
+    );
+    return res?.values ?? [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    if (!domainIds || domainIds.length === 0) return [];
+    const placeholders = domainIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Competency} where domain_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      domainIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    if (!competencyIds || competencyIds.length === 0) return [];
+    const placeholders = competencyIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Outcome} where competency_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      competencyIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    if (!outcomeIds || outcomeIds.length === 0) return [];
+    const placeholders = outcomeIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Skill} where outcome_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      outcomeIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    if (!skillIds || skillIds.length === 0) return [];
+    const placeholders = skillIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Result} where student_id = ? and skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      [studentId, ...skillIds]
+    );
+    return res?.values ?? [];
+  }
+
+  async getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    if (!skillIds || skillIds.length === 0) return [];
+    const placeholders = skillIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null) order by sort_index asc`,
+      skillIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    if (!targetSkillIds || targetSkillIds.length === 0) return [];
+    const placeholders = targetSkillIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.SkillRelation} where target_skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      targetSkillIds
+    );
     return res?.values ?? [];
   }
 
@@ -6115,6 +6234,7 @@ order by
             is_tc_accepted: false,
             language_id: null,
             learning_path: null,
+            locale_id: null,
             music_off: false,
             ops_created_by: null,
             reward: null,
@@ -6227,6 +6347,7 @@ order by
             is_tc_accepted: false,
             language_id: null,
             learning_path: null,
+            locale_id: null,
             music_off: false,
             ops_created_by: null,
             reward: null,
@@ -6430,6 +6551,7 @@ order by
       curriculum_id: null,
       grade_id: null,
       language_id: languageDocId ?? null,
+      locale_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,

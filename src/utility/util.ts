@@ -65,9 +65,11 @@ import {
   STARS_COUNT,
   LATEST_STARS,
   CURRENT_CLASS,
+  RECOMMENDATION_TYPE,
   USER_SELECTION_STAGE,
   CURRENT_MODE,
 } from "../common/constants";
+import { palUtil } from "./palUtil";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
@@ -2946,14 +2948,28 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
             JSON.stringify(learningPath)
           );
         }
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-        currentCourse.path_id = uuidv4();
-        prevData.prevPath_id = currentCourse.path_id;
+        if(learningPath.courses.courseList[learningPath.courses.currentCourseIndex].type === RECOMMENDATION_TYPE.CHAPTER) {
+          currentCourse.startIndex = currentCourse.currentIndex;
+          currentCourse.pathEndIndex += 5;
+          currentCourse.path_id = uuidv4();
+          prevData.prevPath_id = currentCourse.path_id;
 
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          // Ensure pathEndIndex does not exceed the path length
+          if (currentCourse.pathEndIndex > currentCourse.path.length) {
+            currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          }
+        } else {
+          const palPath = await palUtil.getPalLessonPathForCourse(
+            currentCourse.course_id,
+            currentStudent.id,
+          );
+          if (palPath?.length) {
+            currentCourse.path_id = uuidv4();
+            currentCourse.path = palPath;
+            currentCourse.startIndex = 0;
+            currentCourse.currentIndex = 0;
+            currentCourse.pathEndIndex = palPath.length - 1;
+          }
         }
 
         // Move to the next course
@@ -2967,6 +2983,53 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevData.pathId,
+          prev_course_id: prevData.courseId,
+          prev_lesson_id: prevData.lessonId,
+          prev_chapter_id: prevData.chapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      } else {
+        // Within current path: refresh the slot with latest PAL recommendation if available
+        const recommended = await palUtil.getRecommendedLessonForCourse(
+          currentStudent.id,
+          currentCourse.course_id
+        );
+        if (recommended?.lesson?.id) {
+          currentCourse.path[currentCourse.currentIndex] = {
+            ...currentCourse.path[currentCourse.currentIndex],
+            lesson_id: recommended.lesson.id,
+            chapter_id: recommended.chapterId,
+            skill_id: recommended.skillId,
+          };
         }
         eventsToLog.push(
           EVENTS.PATHWAY_COMPLETED,
