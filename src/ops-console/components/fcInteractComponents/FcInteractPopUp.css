@@ -157,7 +157,6 @@
 .fc-interact-popup-question-header {
   display: flex;
   gap: 12px;
-  align-items: flex-start;
   align-items: center;
   font-weight: 600;
 }
@@ -275,6 +274,5 @@
   margin-bottom: 6px;
   display: flex;
   gap: 12px;
-  align-items: flex-start;
   align-items: center;
 }
