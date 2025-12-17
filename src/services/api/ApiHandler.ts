@@ -1829,7 +1829,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
   
-  public async getFCSchoolStatsForSchool(
+  public async getSchoolStatsForSchool(
     schoolId: string,
     currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {

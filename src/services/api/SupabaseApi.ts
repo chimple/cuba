@@ -10033,7 +10033,11 @@ async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[
     console.error("getNotesBySchoolId error:", e);
     return [];
   }
-  async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
+}
+
+
+
+async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
       return {
         visits: 0,
@@ -10130,25 +10134,5 @@ async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[
         teachers_interacted: 0,
       };
     }
-
-    const fifteenDaysAgo = new Date();
-    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-
-    const { count } = await this.supabase
-      .from("fc_school_visit")
-      .select("id", { count: "exact", head: true })
-      .eq("school_id", schoolId)
-      .eq("user_id", currentUser.id)
-      .gte("created_at", fifteenDaysAgo.toISOString())
-      .is("is_deleted", false);
-
-    return {
-      visits: count ?? 0,
-      calls_made: 0,
-      tech_issues: 0,
-      parents_interacted: 0,
-      students_interacted: 0,
-      teachers_interacted: 0,
-    };
   }
 }
