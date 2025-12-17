@@ -152,10 +152,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     };
     const auth = ServiceConfig.getI().authHandler;
     const currentUser = await auth.getCurrentUser();
-    const interactionStat = await api.getFCSchoolStatsForSchool(
-      id,
-      currentUser
-    );
+    const interactionStat = await api.getSchoolStatsForSchool(id);
     const stats = Array.isArray(interactionStat)
       ? interactionStat[0]
       : interactionStat;
