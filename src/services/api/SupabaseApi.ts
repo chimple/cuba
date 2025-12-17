@@ -9193,20 +9193,30 @@ export class SupabaseApi implements ServiceApi {
   async getOrcreateschooluser(
     params: UserSchoolClassParams
   ): Promise<UserSchoolClassResult> {
-    if (!this.supabase) {
-      throw new Error("Supabase client is not initialized.");
-    }
+    if (!this.supabase) throw new Error("Supabase client is not initialized.");
     const { name, phoneNumber, email, schoolId, role, classId } = params;
-    if (!role) {
+    if (!role)
       throw new Error("A role is required to link a user to a school.");
-    }
-    const classIds = classId
+    const classIds: string[] = classId
       ? Array.isArray(classId)
         ? classId
         : [classId]
       : [];
-
     const timestamp = new Date().toISOString();
+    const norm = (v: any) =>
+      String(v ?? "")
+        .trim()
+        .toLowerCase();
+    const roleNorm = norm(role);
+    const isPrincipalRole =
+      roleNorm === norm(RoleType.PRINCIPAL) || roleNorm === "principal";
+    const isTeacherRole =
+      roleNorm === norm(RoleType.TEACHER) || roleNorm === "teacher";
+    console.log("Invoking get_or_create_user with:", {
+      name,
+      phone: phoneNumber,
+      email,
+    });
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
       {
@@ -9226,142 +9236,236 @@ export class SupabaseApi implements ServiceApi {
       user: { id: string; [key: string]: any };
     };
     const isNewUser = message === "success-created";
-    const isPrincipalRole = role === RoleType.PRINCIPAL;
-    const isTeacherRole = role === RoleType.TEACHER;
-    if (isPrincipalRole) {
-      const { data: teacherClassUser, error: teacherClassUserError } =
-        await this.supabase
-          .from("class_user")
-          .select("id, class_id, role")
-          .eq("user_id", user.id)
-          .eq("is_deleted", false)
-          .eq("role", RoleType.TEACHER || "teacher")
-          .limit(1)
-          .maybeSingle();
-      if (teacherClassUserError) {
-        console.error(
-          "Failed to check teacher role in class_user:",
-          teacherClassUserError
-        );
-        throw teacherClassUserError;
+    const dedupeAndPickLatest = async (
+      table: "school_user" | "class_user",
+      rows: any[]
+    ) => {
+      if (!rows || rows.length === 0) return null;
+      if (rows.length === 1) return rows[0];
+      const keep = rows[0];
+      const toDelete = rows
+        .slice(1)
+        .map((r) => r.id)
+        .filter(Boolean);
+      if (toDelete.length) {
+        const { error: dedupeErr } = await this.supabase!.from(table)
+          .update({ is_deleted: true, updated_at: timestamp })
+          .in("id", toDelete);
+        if (dedupeErr) {
+          console.error(`Failed to dedupe ${table}:`, dedupeErr);
+          throw dedupeErr;
+        }
       }
-      if (teacherClassUser) {
+      return keep;
+    };
+    let effectiveSchoolId: string | undefined = schoolId;
+    if (!effectiveSchoolId && classIds.length > 0) {
+      const { data: clsRows, error: clsErr } = await this.supabase
+        .from("class") 
+        .select("id, school_id")
+        .in("id", classIds)
+        .order("id", { ascending: true });
+
+      if (clsErr) {
+        console.error("Failed to resolve school_id from classIds:", clsErr);
+        throw clsErr;
+      }
+
+      const schoolIds = Array.from(
+        new Set((clsRows ?? []).map((r: any) => r.school_id).filter(Boolean))
+      );
+
+      if (schoolIds.length === 0) {
+        throw new Error("Unable to resolve school for the given classId(s).");
+      }
+      if (schoolIds.length > 1) {
         throw new Error(
-          "This user is already assigned as a Teacher in a class and cannot be made Principal."
+          "Given classId(s) belong to multiple schools. Not allowed."
         );
+      }
+
+      effectiveSchoolId = schoolIds[0];
+    }
+
+    if (!effectiveSchoolId && (isPrincipalRole || isTeacherRole)) {
+      throw new Error(
+        "schoolId is required (or classId must be provided) to enforce role rules."
+      );
+    }
+
+    if (isPrincipalRole && effectiveSchoolId) {
+      
+      const { data: teacherCU, error: teacherCUErr } = await this.supabase
+        .from("class_user")
+        .select("id, class_id, role, updated_at")
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .in("role", [RoleType.TEACHER, "teacher"])
+        .order("updated_at", { ascending: false })
+        .order("id", { ascending: false });
+
+      if (teacherCUErr) {
+        console.error("Failed to fetch teacher class_user rows:", teacherCUErr);
+        throw teacherCUErr;
+      }
+
+      const teacherClassIds = (teacherCU ?? [])
+        .map((r: any) => r.class_id)
+        .filter(Boolean);
+
+      if (teacherClassIds.length > 0) {
+        
+        const { data: match, error: matchErr } = await this.supabase
+          .from("class") 
+          .select("id")
+          .eq("school_id", effectiveSchoolId)
+          .in("id", teacherClassIds)
+          .order("id", { ascending: true })
+          .limit(1);
+
+        if (matchErr) {
+          console.error(
+            "Failed to check teacher classes against school:",
+            matchErr
+          );
+          throw matchErr;
+        }
+
+        if (match && match.length > 0) {
+          throw new Error(
+            "This user is already a Teacher in this school and cannot be made Principal for the same school."
+          );
+        }
       }
     }
 
-    if (isTeacherRole && schoolId) {
-      const { data: principalSchoolUser, error: principalSchoolUserError } =
-        await this.supabase
-          .from("school_user")
-          .select("id, role")
-          .eq("school_id", schoolId)
-          .eq("user_id", user.id)
-          .eq("is_deleted", false)
-          .eq("role", RoleType.PRINCIPAL || "principal")
-          .maybeSingle();
-      if (principalSchoolUserError) {
+    if (isTeacherRole && effectiveSchoolId) {
+      const { data: principalRows, error: principalErr } = await this.supabase
+        .from("school_user")
+        .select("id, role, updated_at, created_at")
+        .eq("school_id", effectiveSchoolId)
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .in("role", [RoleType.PRINCIPAL, "principal"])
+        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .limit(10);
+
+      if (principalErr) {
         console.error(
           "Failed to check principal role in school_user:",
-          principalSchoolUserError
+          principalErr
         );
-        throw principalSchoolUserError;
+        throw principalErr;
       }
+
+      const principalSchoolUser = await dedupeAndPickLatest(
+        "school_user",
+        principalRows ?? []
+      );
       if (principalSchoolUser) {
         throw new Error(
-          "This user is already assigned as Principal in this school and cannot be added as Teacher."
+          "This user is already Principal in this school and cannot be added as Teacher for the same school."
         );
       }
     }
-
     let schoolUser: any | null = null;
-    if (schoolId && role === RoleType.PRINCIPAL) {
-      const { data: existingSchoolUser, error: existingSchoolUserError } =
+
+    if (effectiveSchoolId && isPrincipalRole) {
+      const { data: existingRows, error: fetchSchoolUserErr } =
         await this.supabase
           .from("school_user")
           .select("*")
-          .eq("school_id", schoolId)
+          .eq("school_id", effectiveSchoolId)
           .eq("user_id", user.id)
           .eq("is_deleted", false)
-          .maybeSingle();
-      if (existingSchoolUserError) {
-        console.error("Failed to fetch school_user:", existingSchoolUserError);
-        throw existingSchoolUserError;
+          .order("updated_at", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .limit(10);
+
+      if (fetchSchoolUserErr) {
+        console.error("Failed to fetch school_user:", fetchSchoolUserErr);
+        throw fetchSchoolUserErr;
       }
+
+      const existingSchoolUser = await dedupeAndPickLatest(
+        "school_user",
+        existingRows ?? []
+      );
+
       if (existingSchoolUser) {
-        const { data: updated, error: updateError } = await this.supabase
+        const { data: updatedRows, error: updateErr } = await this.supabase
           .from("school_user")
-          .update({
-            role,
-            is_deleted: false,
-            updated_at: timestamp,
-          })
+          .update({ role, is_deleted: false, updated_at: timestamp })
           .eq("id", existingSchoolUser.id)
-          .select("*")
-          .maybeSingle();
-        if (updateError) {
-          console.error("Failed to update school_user:", updateError);
-          throw updateError;
+          .select("*");
+
+        if (updateErr) {
+          console.error("Failed to update school_user:", updateErr);
+          throw updateErr;
         }
-        schoolUser = updated ?? existingSchoolUser;
+
+        schoolUser = updatedRows?.[0] ?? existingSchoolUser;
       } else {
-        const schoolUserPayload = {
+        const payload = {
           id: uuidv4(),
-          school_id: schoolId,
+          school_id: effectiveSchoolId,
           user_id: user.id,
           role,
           is_deleted: false,
           created_at: timestamp,
           updated_at: timestamp,
         };
-        const { data: inserted, error: insertError } = await this.supabase
+
+        const { data: insertedRows, error: insertErr } = await this.supabase
           .from("school_user")
-          .insert([schoolUserPayload])
-          .select("*")
-          .maybeSingle();
-        if (insertError) {
-          console.error("Failed to insert school_user:", insertError);
-          throw insertError;
+          .insert([payload])
+          .select("*");
+
+        if (insertErr) {
+          console.error("Failed to insert school_user:", insertErr);
+          throw insertErr;
         }
-        schoolUser = inserted;
+
+        schoolUser = insertedRows?.[0] ?? null;
       }
     }
-
     const classUsers: any[] = [];
     for (const classIdItem of classIds) {
-      const { data: existingClassUser, error: existingClassUserError } =
+      const { data: existingRows, error: fetchClassUserErr } =
         await this.supabase
           .from("class_user")
           .select("*")
           .eq("class_id", classIdItem)
           .eq("user_id", user.id)
           .eq("is_deleted", false)
-          .maybeSingle();
-      if (existingClassUserError) {
-        console.error("Failed to fetch class_user:", existingClassUserError);
-        throw existingClassUserError;
+          .order("updated_at", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .limit(10);
+      if (fetchClassUserErr) {
+        console.error("Failed to fetch class_user:", fetchClassUserErr);
+        throw fetchClassUserErr;
       }
+      const existingClassUser = await dedupeAndPickLatest(
+        "class_user",
+        existingRows ?? []
+      );
       if (existingClassUser) {
-        const { data: updatedClass, error: updateClassError } =
-          await this.supabase
-            .from("class_user")
-            .update({
-              role,
-              is_deleted: false,
-              updated_at: timestamp,
-            })
-            .eq("id", existingClassUser.id)
-            .select("*")
-            .maybeSingle();
-        if (updateClassError) {
-          console.error("Failed to update class_user:", updateClassError);
-          throw updateClassError;
+        const { data: updatedRows, error: updateErr } = await this.supabase
+          .from("class_user")
+          .update({ role, is_deleted: false, updated_at: timestamp })
+          .eq("id", existingClassUser.id)
+          .select("*");
+        if (updateErr) {
+          console.error("Failed to update class_user:", updateErr);
+          throw updateErr;
         }
-        classUsers.push(updatedClass ?? existingClassUser);
+        classUsers.push(updatedRows?.[0] ?? existingClassUser);
       } else {
-        const classUserPayload = {
+        const payload = {
           id: uuidv4(),
           class_id: classIdItem,
           user_id: user.id,
@@ -9370,26 +9474,22 @@ export class SupabaseApi implements ServiceApi {
           created_at: timestamp,
           updated_at: timestamp,
         };
-        const { data: insertedClass, error: insertClassError } =
-          await this.supabase
-            .from("class_user")
-            .insert([classUserPayload])
-            .select("*")
-            .maybeSingle();
-        if (insertClassError) {
-          console.error("Failed to insert class_user:", insertClassError);
-          throw insertClassError;
+
+        const { data: insertedRows, error: insertErr } = await this.supabase
+          .from("class_user")
+          .insert([payload])
+          .select("*");
+
+        if (insertErr) {
+          console.error("Failed to insert class_user:", insertErr);
+          throw insertErr;
         }
-        classUsers.push(insertedClass);
+
+        classUsers.push(insertedRows?.[0]);
       }
     }
 
-    return {
-      user,
-      schoolUser,
-      classUsers,
-      isNewUser,
-    };
+    return { user, schoolUser, classUsers, isNewUser };
   }
   async insertSchoolDetails(
     schoolId: string,
