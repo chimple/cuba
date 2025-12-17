@@ -2657,7 +2657,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("subject_id", subjectId)
       .eq("framework_id", frameworkId)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching domains:", error);
@@ -2676,7 +2676,7 @@ export class SupabaseApi implements ServiceApi {
       .from("competency")
       .select("*")
       .in("domain_id", domainIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching competencies:", error);
@@ -2696,7 +2696,7 @@ export class SupabaseApi implements ServiceApi {
       .from("outcome")
       .select("*")
       .in("competency_id", competencyIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching outcomes:", error);
@@ -2715,7 +2715,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill")
       .select("*")
       .in("outcome_id", outcomeIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching skills:", error);
@@ -2736,8 +2736,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .in("skill_id", skillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false")
-      .order("updated_at", { ascending: false })
+      .or("is_deleted.eq.false")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -2758,7 +2757,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill_relation")
       .select("*")
       .in("target_skill_id", targetSkillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false");
+      .or("is_deleted.eq.false");
 
     if (error) {
       console.error("Error fetching skill relations:", error);
@@ -2777,7 +2776,7 @@ export class SupabaseApi implements ServiceApi {
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .or("is_deleted.is.null,is_deleted.eq.false")
+      .or("is_deleted.eq.false")
       .order("sort_index", { ascending: true });
 
     if (error) {
@@ -10034,14 +10033,94 @@ async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[
     console.error("getNotesBySchoolId error:", e);
     return [];
   }
-}
-
-
-  async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
-  ): Promise<FCSchoolStats> {
-    if (!this.supabase || !currentUser) {
+  async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
+    if (!this.supabase) {
+      return {
+        visits: 0,
+        calls_made: 0,
+        tech_issues: 0,
+        parents_interacted: 0,
+        students_interacted: 0,
+        teachers_interacted: 0,
+      };
+    }
+    try {
+      if (!schoolId) {
+        console.error("Error getting current school");
+        return {
+          visits: 0,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      const now = new Date();
+      const fifteenDaysAgo = new Date();
+      fifteenDaysAgo.setDate(now.getDate() - 15);
+      const fromIso = fifteenDaysAgo.toISOString();
+      const { count: visitsCount, error: visitsError } = await this.supabase
+        .from("fc_school_visit")
+        .select("id", { count: "exact", head: true })
+        .eq("school_id", schoolId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (visitsError) {
+        console.error("Error counting visits:", visitsError);
+      }
+      const visits = visitsCount ?? 0;
+      const { data: forms, error: formsError } = await this.supabase
+        .from("fc_user_forms")
+        .select(
+          "contact_method, call_status, contact_target, tech_issues_reported, created_at"
+        )
+        .eq("school_id", schoolId)
+        .gte("created_at", fromIso)
+        .is("is_deleted", false);
+      if (formsError) {
+        console.error("Error fetching fc_user_forms:", formsError);
+        return {
+          visits,
+          calls_made: 0,
+          tech_issues: 0,
+          parents_interacted: 0,
+          students_interacted: 0,
+          teachers_interacted: 0,
+        };
+      }
+      let calls_made = 0;
+      let tech_issues = 0;
+      let parents_interacted = 0;
+      let students_interacted = 0;
+      let teachers_interacted = 0;
+      (forms || []).forEach((row: any) => {
+        const hasInteraction =
+          row.contact_method === "call" || row.call_status === "call_picked";
+        if (hasInteraction) {
+          calls_made += 1;
+          if (row.contact_target === "parent") {
+            parents_interacted += 1;
+          } else if (row.contact_target === "student") {
+            students_interacted += 1;
+          } else if (row.contact_target === "teacher") {
+            teachers_interacted += 1;
+          }
+        }
+        if (row.tech_issues_reported === true) {
+          tech_issues += 1;
+        }
+      });
+      return {
+        visits,
+        calls_made,
+        tech_issues,
+        parents_interacted,
+        students_interacted,
+        teachers_interacted,
+      };
+    } catch (err) {
+      console.error("Exception in getFCSchoolStatsForUser:", err);
       return {
         visits: 0,
         calls_made: 0,

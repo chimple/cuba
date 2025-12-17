@@ -1229,6 +1229,21 @@ export class SqliteApi implements ServiceApi {
   ): Promise<void> {
     if (!this._db) return;
 
+    const query1 = `
+    SELECT *
+    FROM ${TABLES.OpsRequests}
+    WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
+
+    const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
+    
+    let ops_rq;
+    if (res1 && res1.values && res1.values.length > 0) {
+      ops_rq = res1.values[0];
+    }
+    if(!ops_rq){
+      return;
+    }
+
     let query = `
     UPDATE ${TABLES.OpsRequests}
     SET is_deleted = 1,
@@ -1254,6 +1269,7 @@ export class SqliteApi implements ServiceApi {
 
     // Push sync mutation
     await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      id: ops_rq.id,
       requested_by,
       school_id: school_id ?? null,
       class_id: class_id ?? null,
@@ -2790,7 +2806,7 @@ export class SqliteApi implements ServiceApi {
     frameworkId: string
   ): Promise<TableTypes<"domain">[]> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0)`,
       [subjectId, frameworkId]
     );
     return res?.values ?? [];
@@ -2802,7 +2818,7 @@ export class SqliteApi implements ServiceApi {
     if (!domainIds || domainIds.length === 0) return [];
     const placeholders = domainIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.Competency} where domain_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.Competency} where domain_id in (${placeholders}) and (is_deleted = 0)`,
       domainIds
     );
     return res?.values ?? [];
@@ -2814,7 +2830,7 @@ export class SqliteApi implements ServiceApi {
     if (!competencyIds || competencyIds.length === 0) return [];
     const placeholders = competencyIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.Outcome} where competency_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.Outcome} where competency_id in (${placeholders}) and (is_deleted = 0)`,
       competencyIds
     );
     return res?.values ?? [];
@@ -2826,7 +2842,7 @@ export class SqliteApi implements ServiceApi {
     if (!outcomeIds || outcomeIds.length === 0) return [];
     const placeholders = outcomeIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.Skill} where outcome_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.Skill} where outcome_id in (${placeholders}) and (is_deleted = 0)`,
       outcomeIds
     );
     return res?.values ?? [];
@@ -2839,7 +2855,7 @@ export class SqliteApi implements ServiceApi {
     if (!skillIds || skillIds.length === 0) return [];
     const placeholders = skillIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.Result} where student_id = ? and skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.Result} where student_id = ? and skill_id in (${placeholders}) and (is_deleted = 0)`,
       [studentId, ...skillIds]
     );
     return res?.values ?? [];
@@ -2851,7 +2867,7 @@ export class SqliteApi implements ServiceApi {
     if (!skillIds || skillIds.length === 0) return [];
     const placeholders = skillIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null) order by sort_index asc`,
+      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0) order by sort_index asc`,
       skillIds
     );
     return res?.values ?? [];
@@ -2863,7 +2879,7 @@ export class SqliteApi implements ServiceApi {
     if (!targetSkillIds || targetSkillIds.length === 0) return [];
     const placeholders = targetSkillIds.map(() => "?").join(",");
     const res = await this._db?.query(
-      `select * from ${TABLES.SkillRelation} where target_skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      `select * from ${TABLES.SkillRelation} where target_skill_id in (${placeholders}) and (is_deleted = 0)`,
       targetSkillIds
     );
     return res?.values ?? [];
@@ -7321,10 +7337,9 @@ async getNotesBySchoolId(
   ): Promise<number | null> {
     throw new Error("Method not implemented.");
   }
-  public async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null = null
+  public async getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats> {
-    return this._serverApi.getFCSchoolStatsForSchool(schoolId, currentUser);
+    return this._serverApi.getSchoolStatsForSchool(schoolId);
   }
 }

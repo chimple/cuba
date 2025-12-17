@@ -1833,6 +1833,6 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
-    return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
+    return await this.s.getSchoolStatsForSchool(schoolId);
   }
 }
