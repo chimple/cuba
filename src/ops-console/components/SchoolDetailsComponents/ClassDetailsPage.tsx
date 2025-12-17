@@ -166,6 +166,7 @@ const ClassDetailsPage: React.FC<Props> = ({
       >
         <SchoolStudents
           data={{
+            schoolData: data?.schoolData,
             students: initialStudents,
             totalStudentCount: initialTotal,
             classData: classRow ? [classRow] : undefined,
