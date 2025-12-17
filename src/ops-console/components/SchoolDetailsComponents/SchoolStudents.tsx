@@ -121,7 +121,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [totalCount, setTotalCount] = useState<number>(
     data.totalStudentCount || 0
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasInitialStudents =
+    Array.isArray(data?.students) && data.students.length > 0;
+  const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -210,7 +212,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   // Fetch fresh data when the component mounts
   useEffect(() => {
     fetchStudents(1, "", true);
-  }, [schoolId]); // Only re-run when schoolId changes
+  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
 
   useEffect(() => {
     const isInitial =
