@@ -240,6 +240,52 @@
     cursor: not-allowed;
 }
 
+/* Confirmation Section explicit styling */
+.check-in-confirmation-section {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    background-color: #f8f9fa; /* Slight background to make it pop */
+    border-radius: 8px;
+}
+
+.confirmation-question {
+    font-weight: 700;
+    color: #212529 !important; /* Force black color */
+    margin-bottom: 12px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.radio-options-container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.radio-option span {
+    color: #212529 !important; /* Force black color */
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.radio-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #1a73e8; /* Blue accent */
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
   .check-in-modal-container {

@@ -4,6 +4,8 @@ import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 
 import { Geolocation } from '@capacitor/geolocation';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+
 
 // Leaflet Imports
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
@@ -26,7 +28,9 @@ interface SchoolCheckInModalProps {
   status: 'check_in' | 'check_out';
   schoolName: string;
   isFirstTime?: boolean;
+  schoolId?: string; // Add schoolId
   schoolLocation?: { lat: number; lng: number };
+  onLocationUpdated?: () => void;
 }
 
 const MAX_DISTANCE_METERS = 300; // Allowed radius in meters
@@ -60,24 +64,51 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   status,
   schoolName,
   isFirstTime = false,
+  schoolId, // Add schoolId prop
   schoolLocation,
+  onLocationUpdated,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [isInsidePremises, setIsInsidePremises] = useState<boolean>(true); // Default true to avoid flash of warning
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [isSchoolLocationMissing, setIsSchoolLocationMissing] = useState<boolean>(false);
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
 
   // Use provided school location or fallback to dummy
-  const targetLocation = useMemo(() => ({
-    lat: schoolLocation?.lat ?? 28.5244,
-    lng: schoolLocation?.lng ?? 77.0855,
-    address1: "Gautam Buddha Nagar, Uttar Pradesh",
-    address2: "Block: Noida, Cluster: Noida-East",
-  }), [schoolLocation]);
+  // Use provided school location or fallback to dummy
+  const targetLocation = useMemo(() => {
+    // If we have valid coordinates, use them.
+    // NOTE: This check depends on how schoolLocation is passed when missing.
+    // If it's undefined or lat/lng are 0 or null, we treat as missing.
+    if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
+      console.log("School Location001", schoolLocation);
+        return {
+            lat: schoolLocation.lat,
+            lng: schoolLocation.lng,
+            address1: "School Location",
+            address2: "",
+        };
+    }
+    // Fallback/Missing State
+    return {
+        lat: 28.5244, // Default (Noida)
+        lng: 77.0855,
+        address1: "Location not set", // Indicating missing location
+        address2: "Please set location",
+        isMissing: true // Flag to trigger update UI
+    };
+  }, [schoolLocation]);
 
-
-
+  useEffect(() => {
+      // Check if location is effectively missing (flagged in memo)
+      if ((targetLocation as any).isMissing) {
+          setIsSchoolLocationMissing(true);
+      } else {
+          setIsSchoolLocationMissing(false);
+      }
+  }, [targetLocation]);
 
   // UI State for "Are you sure?" toggle
   const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
@@ -102,7 +133,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
             let position;
             try {
-                // Try High Accuracy first with 10s timeout (increased from 5s)
+                // Try High Accuracy first with 10s timeout
                 position = await Geolocation.getCurrentPosition({ 
                     enableHighAccuracy: true, 
                     timeout: 10000, 
@@ -119,7 +150,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     });
                 } catch (fallbackErr) {
                     console.error("Fallback location also failed", fallbackErr);
-                    throw fallbackErr; // Throw to outer catch to handle UI state
+                    throw fallbackErr;
                 }
             }
 
@@ -128,6 +159,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 const userLng = position.coords.longitude;
 
                 setUserLocation({ lat: userLat, lng: userLng });
+                console.log("User Location0001", userLat, userLng);
 
                 const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
                 setDistance(dist);
@@ -136,7 +168,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         } catch (error) {
             console.error("Error getting location", error);
             setLocationError("Could not retrieve location. Please check your GPS settings.");
-            // Even if location fails, we allow check-in but mark as outside premises
             setIsInsidePremises(false);
         } finally {
             setIsLoadingLocation(false);
@@ -148,6 +179,37 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       return () => clearInterval(timer);
     }
   }, [open, targetLocation.lat, targetLocation.lng]);
+
+  const handleUpdateSchoolLocation = async () => {
+    if (!userLocation || !schoolId) return;
+    setIsUpdatingLocation(true);
+    try {
+        const api = ServiceConfig.getI().apiHandler; // Access apiHandler
+        await api.updateSchoolLocation(schoolId, userLocation.lat, userLocation.lng);
+        setIsSchoolLocationMissing(false);
+        if (onLocationUpdated) {
+            onLocationUpdated();
+        }
+        return true;
+    } catch (error) {
+        console.error("Failed to update school location", error);
+        setLocationError("Failed to update school location.");
+        return false;
+    } finally {
+        setIsUpdatingLocation(false);
+    }
+  };
+
+  const onConfirmAction = async () => {
+      if (isSchoolLocationMissing) {
+          const success = await handleUpdateSchoolLocation();
+          if (success) {
+            onConfirm();
+          }
+      } else {
+          onConfirm();
+      }
+  };
 
   // Haversine Formula to calculate distance in meters
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -186,8 +248,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   };
 
   const isCheckIn = status === 'check_in';
-  // User removed UI for confirmation, so we only block on loading now
-  const isConfirmDisabled = isLoadingLocation;
+  
+  // Disable if loading location, OR if missing location and NOT confirmed YES
+  const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool !== true) || isUpdatingLocation;
 
   return (
     <div className="check-in-modal-overlay" onClick={onClose}>
@@ -213,17 +276,25 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               </div>
               <div className="check-in-card-content">
                   <div className="location-name">{schoolName || "XYZ School"}</div>
+                  
+                  {/* Hide address addresses if school location missing? Or keep name/address but hide coords/distance */}
                   <div className="location-detail-text">{targetLocation.address1}</div>
                    <div className="location-detail-text">{targetLocation.address2}</div>
-                  <div className="location-detail-text" style={{ marginTop: '8px' }}>
-                      <span className="location-coords-label">School Coords: </span>
-                      {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
-                  </div>
-                  {distance !== null && !isLoadingLocation && (
-                      <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
-                          Distance: {Math.round(distance)} meters away
-                      </div>
+                  
+                  {!isSchoolLocationMissing && (
+                    <>
+                        <div className="location-detail-text" style={{ marginTop: '8px' }}>
+                            <span className="location-coords-label">School Coords: </span>
+                            {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
+                        </div>
+                        {distance !== null && !isLoadingLocation && (
+                            <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
+                                Distance: {Math.round(distance)} meters away
+                            </div>
+                        )}
+                    </>
                   )}
+                  
                   {isLoadingLocation && (
                       <div className="location-detail-text" style={{ marginTop: '4px', color: '#666' }}>
                           <i>Fetching your location...</i>
@@ -246,7 +317,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           {/* Map Widget */}
           <div className="map-container" style={{ height: '200px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
              <MapContainer
-                center={[targetLocation.lat, targetLocation.lng]}
+                center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
                 zoom={15}
                 style={{ height: '100%', width: '100%' }}
              >
@@ -255,32 +326,37 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
                 
-                <MapBoundsFitter schoolLoc={targetLocation} userLoc={userLocation} />
-
-                {/* 300m Radius Circle */}
-                <Circle 
-                    center={[targetLocation.lat, targetLocation.lng]}
-                    radius={MAX_DISTANCE_METERS}
-                    pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.1 }}
-                />
-
-                {/* Connection Line */}
-                {userLocation && (
-                    <Polyline 
-                        positions={[
-                            [targetLocation.lat, targetLocation.lng],
-                            [userLocation.lat, userLocation.lng]
-                        ]}
-                        pathOptions={{ color: 'red', dashArray: '5, 10', weight: 2 }}
-                    />
+                {/* Only fit bounds if we have school location. If missing, just follow user? */}
+                {!isSchoolLocationMissing && (
+                     <MapBoundsFitter schoolLoc={targetLocation} userLoc={userLocation} />
+                )}
+                {isSchoolLocationMissing && userLocation && (
+                     <MapBoundsFitter schoolLoc={{ lat: userLocation.lat, lng: userLocation.lng }} userLoc={null} /> 
                 )}
 
-                {/* School Marker */}
-                <Marker position={[targetLocation.lat, targetLocation.lng]}>
-                    <Popup>
-                        School Location
-                    </Popup>
-                </Marker>
+
+                {/* School Radius & Connection Line - Only if School Location VALID */}
+                {!isSchoolLocationMissing && (
+                    <>
+                        <Circle 
+                            center={[targetLocation.lat, targetLocation.lng]}
+                            radius={MAX_DISTANCE_METERS}
+                            pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.1 }}
+                        />
+                        {userLocation && (
+                            <Polyline 
+                                positions={[
+                                    [targetLocation.lat, targetLocation.lng],
+                                    [userLocation.lat, userLocation.lng]
+                                ]}
+                                pathOptions={{ color: 'red', dashArray: '5, 10', weight: 2 }}
+                            />
+                        )}
+                        <Marker position={[targetLocation.lat, targetLocation.lng]}>
+                            <Popup>School Location</Popup>
+                        </Marker>
+                    </>
+                )}
 
                 {/* User Location Marker */}
                 {userLocation && (
@@ -293,6 +369,33 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              </MapContainer>
           </div>
           
+           {/* Confirmation Prompt - Only if School Location Missing */}
+           {isSchoolLocationMissing && (
+               <div className="check-in-confirmation-section">
+                   <div className="confirmation-question">Are you sure you're in the school?</div>
+                   <div className="radio-options-container">
+                       <label className="radio-option">
+                           <input 
+                                type="radio" 
+                                name="school-confirm"
+                                checked={isConfirmedInSchool === true} 
+                                onChange={() => setIsConfirmedInSchool(true)} 
+                           /> 
+                           <span>Yes</span>
+                       </label>
+                       <label className="radio-option">
+                           <input 
+                                type="radio" 
+                                name="school-confirm"
+                                checked={isConfirmedInSchool === false} 
+                                onChange={() => setIsConfirmedInSchool(false)} 
+                           /> 
+                           <span>No</span>
+                       </label>
+                   </div>
+               </div>
+           )}
+
         </div>
 
         {/* Footer Actions */}
@@ -302,10 +405,10 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
             </button>
             <button 
               className={`check-in-btn btn-confirm ${isConfirmDisabled ? 'disabled' : ''}`}
-              onClick={isConfirmDisabled ? undefined : onConfirm}
+              onClick={isConfirmDisabled ? undefined : onConfirmAction}
               disabled={isConfirmDisabled}
             >
-              {isLoadingLocation ? 'Locating...' : (isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out')}
+              {isLoadingLocation || isUpdatingLocation ? 'Locating...' : (isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out')}
             </button>
         </div>
       </div>
