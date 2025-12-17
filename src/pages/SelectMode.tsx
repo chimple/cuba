@@ -163,7 +163,6 @@ const SelectMode: FC = () => {
         } else history.replace(PAGES.DISPLAY_STUDENT);
         return;
       } else {
-        history.replace(PAGES.DISPLAY_SCHOOLS);
         setIsLoading(false);
       }
       for (let i = 0; i < matchedSchools.length; i++) {

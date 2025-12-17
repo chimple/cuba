@@ -9847,10 +9847,7 @@ export class SupabaseApi implements ServiceApi {
 
     return uniqueCount;
   }
-  async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
-  ): Promise<FCSchoolStats> {
+  async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
       return {
         visits: 0,
@@ -9862,8 +9859,8 @@ export class SupabaseApi implements ServiceApi {
       };
     }
     try {
-      if (!currentUser) {
-        console.error("Error getting current user");
+      if (!schoolId) {
+        console.error("Error getting current school");
         return {
           visits: 0,
           calls_made: 0,
@@ -9873,7 +9870,6 @@ export class SupabaseApi implements ServiceApi {
           teachers_interacted: 0,
         };
       }
-      const userId = currentUser.id;
       const now = new Date();
       const fifteenDaysAgo = new Date();
       fifteenDaysAgo.setDate(now.getDate() - 15);
@@ -9882,7 +9878,6 @@ export class SupabaseApi implements ServiceApi {
         .from("fc_school_visit")
         .select("id", { count: "exact", head: true })
         .eq("school_id", schoolId)
-        .eq("user_id", userId)
         .gte("created_at", fromIso)
         .is("is_deleted", false);
       if (visitsError) {
@@ -9895,7 +9890,6 @@ export class SupabaseApi implements ServiceApi {
           "contact_method, call_status, contact_target, tech_issues_reported, created_at"
         )
         .eq("school_id", schoolId)
-        .eq("user_id", userId)
         .gte("created_at", fromIso)
         .is("is_deleted", false);
       if (formsError) {
