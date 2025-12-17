@@ -119,7 +119,7 @@ const ClassDetailsPage: React.FC<Props> = ({
   const finalTotalStudentsSt = String(totalStudentsOverride);
   const finalActiveStudentsSt = String(activeStudentCount);
 
-  // UPDATED: call the API and dispatch notes:updated so SchoolNotes will update and open preview
+  // UPDATED: call the API and dispatch NOTES_UPDATED_EVENT so SchoolNotes will update and open preview
   const handleAddNoteSave = async (payload: { text: string }) => {
     try {
       const api = ServiceConfig.getI().apiHandler;
@@ -140,7 +140,7 @@ const ClassDetailsPage: React.FC<Props> = ({
       // e.g. { id, visitId, schoolId, classId, className, content, createdAt, createdBy: { userId, name, role } }
 
       // Inform Notes tab (SchoolNotes listens to this)
-      window.dispatchEvent(new CustomEvent("NOTES_UPDATED_EVENT", { detail: created }));
+      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
 
       // close modal
       setShowAddModal(false);

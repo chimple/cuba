@@ -148,8 +148,8 @@ const SchoolNotes: React.FC = () => {
 };
 
 
-    window.addEventListener("NOTES_UPDATED_EVENT", handler as EventListener);
-    return () => window.removeEventListener("NOTES_UPDATED_EVENT", handler as EventListener);
+    window.addEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
+    return () => window.removeEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
   }, []);
 
   const openNote = (note: Note) => {
