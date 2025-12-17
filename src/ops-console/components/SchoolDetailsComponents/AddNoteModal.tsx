@@ -38,11 +38,16 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   };
 
   return (
-    <div className="add-note-modal-overlay">
-      <div className="add-note-modal-container">
+    <div className="add-note-modal-overlay"
+      id="add-note-modal-overlay">
+      <div className="add-note-modal-container"
+        id="add-note-modal-container"
+      >
         {/* Header */}
-        <div className="add-note-modal-header">
-          <h3 className="add-note-modal-title">
+        <div className="add-note-modal-header"
+          id="add-note-modal-header">
+          <h3 className="add-note-modal-title"
+            id="add-note-modal-title">
             {source === "school"
               ? t("Add School Note")
               : t("Add Class Note")}
@@ -50,6 +55,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
           <button
             className="add-note-modal-close"
+            id="add-note-modal-close"
             onClick={handleCancel}
             aria-label="close"
           >
@@ -60,6 +66,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         {/* Textarea */}
         <textarea
           className="add-note-modal-textarea"
+          id="add-note-modal-textarea"
           placeholder={t("Type your note here").toString()}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -67,13 +74,16 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         />
 
         {error && (
-          <p className="add-note-modal-error">{error}</p>
+          <p className="add-note-modal-error"
+            id="add-note-modal-error">{error}</p>
         )}
 
         {/* Actions */}
-        <div className="add-note-modal-actions">
+        <div className="add-note-modal-actions"
+          id="add-note-modal-actions">
           <button
             className="add-note-modal-btn-outline"
+            id="add-note-modal-cancel-btn"
             onClick={handleCancel}
           >
             {t("Cancel")}
@@ -81,6 +91,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
           <button
             className="add-note-modal-btn-primary"
+            id="add-note-modal-save-btn"
             onClick={handleSave}
           >
             {t("Save")}

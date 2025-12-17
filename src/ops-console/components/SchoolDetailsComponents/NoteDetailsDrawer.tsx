@@ -47,17 +47,17 @@ function formatDate(dateStr?: string): string {
 
 /* Info row */
 const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="note-details-drawer-info-row">
-    <span className="note-details-drawer-info-label">{label}:</span>
-    <span className="note-details-drawer-info-value">{value}</span>
+  <div className="note-details-drawer-info-row" id="note-details-drawer-info-row">
+    <span className="note-details-drawer-info-label" id="note-details-drawer-info-label">{label}:</span>
+    <span className="note-details-drawer-info-value" id="note-details-drawer-info-value">{value}</span>
   </div>
 );
 
 /* Notes section */
 const DetailSection = ({ label, text }: { label: string; text: string }) => (
   <div>
-    <div className="note-details-drawer-section-title">{label}</div>
-    <div className="note-details-drawer-section-paper">
+    <div className="note-details-drawer-section-title" id="note-details-drawer-section-title">{label}</div>
+    <div className="note-details-drawer-section-paper" id="note-details-drawer-section-paper">
       {text || "--"}
     </div>
   </div>
@@ -97,8 +97,8 @@ const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
       }}
     >
       {/* Header */}
-      <div className="note-details-drawer-header">
-        <Typography className="note-details-drawer-title">
+      <div className="note-details-drawer-header" id="note-details-drawer-header">
+        <Typography className="note-details-drawer-title" id="note-details-drawer-title">
           {t("Note Details")}
         </Typography>
 
@@ -107,7 +107,7 @@ const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
         </IconButton>
       </div>
 
-      <Divider className="note-details-drawer-divider" />
+      <Divider className="note-details-drawer-divider" id="note-details-drawer-divider"/>
 
       {/* Info card */}
       <Paper elevation={0}>
@@ -119,14 +119,14 @@ const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
           </Box>
 
           <Box textAlign="right">
-            <div className="note-details-drawer-info-label">{t("Date")}</div>
-            <div className="note-details-drawer-info-value">{displayDate}</div>
+            <div className="note-details-drawer-info-label" id="note-details-drawer-info-label">{t("Date")}</div>
+            <div className="note-details-drawer-info-value" id="note-details-drawer-info-value">{displayDate}</div>
           </Box>
         </Box>
       </Paper>
 
       {/* Notes */}
-      <div className="note-details-drawer-notes-container">
+      <div className="note-details-drawer-notes-container" id="note-details-drawer-notes-container">
         <DetailSection label={t("Notes")} text={note.text} />
       </div>
     </Drawer>

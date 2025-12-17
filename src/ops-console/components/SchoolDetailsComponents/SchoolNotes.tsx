@@ -118,34 +118,34 @@ const SchoolNotes: React.FC = () => {
   // listen to global event when a note is created elsewhere (SchoolDetailsPage handler will dispatch)
   useEffect(() => {
     const handler = (ev: Event) => {
-  try {
-    const c = (ev as CustomEvent).detail as any;
-    if (!c) return;
+      try {
+        const c = (ev as CustomEvent).detail as any;
+        if (!c) return;
 
-    let candidate: ApiNote | null = null;
+        let candidate: ApiNote | null = null;
 
-    if (c && typeof c === "object") {
-      candidate = {
-        id: c.id,
-        content: c.content ?? c.comment ?? "",
-        classId: c.classId ?? c.class_id ?? null,
-        className: c.className ?? c.class_name ?? null,
-        visitId: c.visitId ?? c.visit_id ?? null,
-        createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
-        createdBy: c.createdBy ?? c.created_by ?? { name: c.createdByName ?? null, role: c.createdByRole ?? null },
-      };
-    }
+        if (c && typeof c === "object") {
+          candidate = {
+            id: c.id,
+            content: c.content ?? c.comment ?? "",
+            classId: c.classId ?? c.class_id ?? null,
+            className: c.className ?? c.class_name ?? null,
+            visitId: c.visitId ?? c.visit_id ?? null,
+            createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
+            createdBy: c.createdBy ?? c.created_by ?? { name: c.createdByName ?? null, role: c.createdByRole ?? null },
+          };
+        }
 
-    if (candidate) {
-      const mapped = mapApiNote(candidate);
-      setNotes((prev) => [mapped, ...prev]);
-      setSelectedNote(mapped);
-      setDrawerOpen(true);
-    }
-  } catch (err) {
-    console.error("NOTES_UPDATED_EVENT handler error:", err);
-  }
-};
+        if (candidate) {
+          const mapped = mapApiNote(candidate);
+          setNotes((prev) => [mapped, ...prev]);
+          setSelectedNote(mapped);
+          setDrawerOpen(true);
+        }
+      } catch (err) {
+        console.error("NOTES_UPDATED_EVENT handler error:", err);
+      }
+    };
 
 
     window.addEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
@@ -164,19 +164,19 @@ const SchoolNotes: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="school-notes-loading">{t("Loading notes...")}</div>
+      <div className="school-notes-loading" id="school-notes-loading">{t("Loading notes...")}</div>
     );
   }
 
   return (
-    <div className="school-notes-container">
-      <table className="school-notes-table" role="table" aria-label={t("School notes table") as string}>
+    <div className="school-notes-container" id="school-notes-container">
+      <table className="school-notes-table" id="school-notes-table" role="table" aria-label={t("School notes table") as string}>
         <thead>
-          <tr>
-            <th>{t("Created By")}</th>
-            <th>{t("Role")}</th>
-            <th>{t("Class")}</th>
-            <th>{t("Date")}</th>
+          <tr id="school-notes-header-row">
+            <th id="school-notes-header-created-by">{t("Created By")}</th>
+            <th id="school-notes-header-role">{t("Role")}</th>
+            <th id="school-notes-header-class">{t("Class")}</th>
+            <th id="school-notes-header-date">{t("Date")}</th>
           </tr>
         </thead>
         <tbody>
@@ -184,6 +184,7 @@ const SchoolNotes: React.FC = () => {
             <tr
               key={note.id}
               className="school-notes-row"
+              id="school-notes-row"
               onClick={() => openNote(note)}
               role="button"
               tabIndex={0}
@@ -192,10 +193,10 @@ const SchoolNotes: React.FC = () => {
               }}
               aria-label={`${note.createdBy} ${note.role ?? ""} ${note.className ?? "—"} ${note.date}`}
             >
-              <td>{note.createdBy}</td>
-              <td>{note.role ?? "—"}</td>
-              <td>{note.className ?? "—"}</td>
-              <td>{note.date}</td>
+              <td id="school-notes-created-by">{note.createdBy}</td>
+              <td id="school-notes-role">{note.role ?? "—"}</td>
+              <td id="school-notes-class">{note.className ?? "—"}</td>
+              <td id="school-notes-date">{note.date}</td>
             </tr>
           ))}
         </tbody>
