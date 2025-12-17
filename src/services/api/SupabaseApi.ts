@@ -799,8 +799,20 @@ export class SupabaseApi implements ServiceApi {
   async updateSchoolLocation(
     schoolId: string,
     lat: number,
+    lng: number
+  ): Promise<void> {
+    const locationString = `${lat},${lng}`;
+    const updatedAt = new Date().toISOString();
+
+    // Update directly in supabase
+    await this.mutate(
+      MUTATE_TYPES.UPDATE,
+      TABLES.School,
+      { location_link: locationString, updated_at: updatedAt },
       schoolId
     );
+  }
+
   async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,
