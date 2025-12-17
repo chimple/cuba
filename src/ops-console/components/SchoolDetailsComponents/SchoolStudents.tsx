@@ -835,7 +835,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         },
       ];
     }
-    return fields;
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
   const handleAddNewStudent = useCallback(() => {
@@ -854,15 +853,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsSubmitting(true);
       setErrorMessage(undefined);
 
-      const normalizedPhone = normalizePhone10(
-        (formValues.phone ?? "").toString()
       const fail = (text: string) => {
         setErrorMessage({ text, type: "error" });
         setIsSubmitting(false);
-      }
       };
 
-        setErrorMessage({
       const rawPhone = (formValues.phone ?? "").toString();
       let digits = rawPhone.replace(/\D/g, "");
       if (digits === "" || digits === "91") digits = "";
@@ -879,18 +874,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           return fail("Phone number must be 10 digits when provided.");
         }
       }
+      // Class validation (this is needed for BOTH flows)
       const classId = issTotal ? formValues.class : currentClass?.id;
       if (!classId) return fail("Please select a class.");
       const normalizedPhone = digits.length === 10 ? digits : undefined;
       try {
+        const payload: any = {
           phone: normalizedPhone,
           name: formValues.studentName || "",
           gender: formValues.gender || "",
           age: formValues.ageGroup || "",
           classId: classId,
           schoolId: schoolId,
-        });
-
           studentID: formValues.studentID || "",
           atSchool: isAtSchool,
         };
@@ -907,9 +902,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setPage(1);
           fetchStudents(1, debouncedSearchTerm);
         } else {
-          setErrorMessage({
-            text: result.message,
-            type: "error",
           setErrorMessage({ text: result.message, type: "error" });
         }
       } catch (error) {
@@ -922,7 +914,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setIsSubmitting(false);
       }
     },
-    [schoolId, fetchStudents, debouncedSearchTerm, issTotal, currentClass]
+    [
+      api,
       isAtSchool,
       issTotal,
       currentClass,
