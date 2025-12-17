@@ -50,7 +50,7 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
-  createAtSchoolUser(id: string, schoolModel: string, FIELD_COORDINATOR: RoleType): Promise<void>;
+  createAtSchoolUser(id: string, schoolModel: string, role: RoleType): Promise<void>;
 
   /**
    * Creates a student profile for a parent and returns the student object

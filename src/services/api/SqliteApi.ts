@@ -7145,7 +7145,7 @@ order by
     return this._serverApi.getOrcreateschooluser(params);
   }
   public async createAtSchoolUser(
-    id: string, schoolModel: string, FIELD_COORDINATOR: RoleType
+    id: string, schoolModel: string, role: RoleType
   ): Promise<void> {
     console.error("Method not implemented.");
   }
