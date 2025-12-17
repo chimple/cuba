@@ -26,6 +26,7 @@ import {
   BANDS,
   EnumType,
   SupportLevelMap,
+  ContactTarget,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -655,19 +656,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       optionalGrade !== undefined &&
       optionalSection !== undefined
     ) {
+      const classDataArray = data.classData || [];
+      if (classDataArray.length > 0) {
+        const classFromData = classDataArray[0];
+        if (classFromData?.id && classFromData?.name) {
+          return { id: classFromData.id, name: classFromData.name };
+        }
+      }
       const matchingStudent = baseStudents.find((student: any) => {
         const classInfo = student.classWithidname;
         return (
           student.grade === optionalGrade &&
           sameSection(student.classSection, optionalSection) &&
           classInfo?.id &&
-          classInfo?.name
+          classInfo?.class_name
         );
       });
-      return matchingStudent?.classWithidname || null;
+      if (matchingStudent?.classWithidname) {
+        const classInfo = matchingStudent.classWithidname as any;
+        return {
+          id: classInfo.id,
+          name: classInfo.class_name || classInfo.name,
+        };
+      }
+      return null;
     }
     return null;
-  }, [issTotal, optionalGrade, optionalSection, baseStudents]);
+  }, [issTotal, optionalGrade, optionalSection, baseStudents, data.classData]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     const fields: FieldConfig[] = [
@@ -852,7 +867,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           schoolId={schoolId}
           status={studentStatus}
           onClose={() => setOpenPopup(false)}
-          initialUserType={"student"}
+          initialUserType={ContactTarget.STUDENT}
         />
       )}
 

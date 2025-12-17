@@ -433,6 +433,9 @@ const LoginScreen: React.FC = () => {
     try {
       const ok = await authInstance.googleSign();
       if (!ok.success) throw new Error("Google sign in failed");
+      if (!Capacitor.isNativePlatform()) {
+        return;
+      }
 
       const user: any = await authInstance.getCurrentUser();
       if (!user) throw new Error("No user returned from auth handler");

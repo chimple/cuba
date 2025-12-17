@@ -468,8 +468,18 @@ export interface ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean,
-    isHomework?: boolean 
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -542,6 +552,57 @@ export interface ServiceApi {
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
   getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
+
+  /**
+   * Fetches domains for a given subject and framework.
+   */
+  getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]>;
+
+  /**
+   * Fetches competencies linked to the given domain ids.
+   */
+  getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]>;
+
+  /**
+   * Fetches outcomes linked to the given competency ids.
+   */
+  getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]>;
+
+  /**
+   * Fetches skills linked to the given outcome ids.
+   */
+  getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]>;
+
+  /**
+   * Fetches results for the given student and skill ids.
+   */
+  getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]>;
+
+  /**
+   * Fetches prerequisite relations where target skill is in the provided list.
+   */
+  getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]>;
+
+  /**
+   * Fetches skill-lesson mapping rows for the given skills.
+   */
+  getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1582,7 +1643,11 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(studentId: string, starsCount: number,is_immediate_sync?:boolean): Promise<void>;
+  setStarsForStudents(
+    studentId: string,
+    starsCount: number,
+    is_immediate_sync?: boolean
+  ): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -2342,7 +2407,7 @@ export interface ServiceApi {
    */
   getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;
 
-    /**
+  /**
    * Fetch all activities created by FC users for a given school ID.
    * @param {string} schoolId - The ID of the school to fetch activities for.
    * @returns Promise resolving to a list of activities.
@@ -2364,12 +2429,31 @@ export interface ServiceApi {
    * Fetch filter options for FC activities.
    */
   getActivitiesFilterOptions();
+  /**
+   * Returns the number of times a teacher has assigned assignments
+   * to a specific class in the last 15 days.
+   *
+   * Each assignment action is counted once using `batch_id`,
+   * even if it includes multiple assignments.
+   *
+   * - Considers only non-deleted assignments
+   * - Time window is limited to the last 15 days
+   *
+   * @param teacherId - ID of the teacher who assigned the work
+   * @param classId - ID of the class to which assignments were given
+   * @returns Number of assignment occurrences in the last 15 days,
+   *          0 if none are found,
+   *          or null if an error occurs
+   */
+  getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null>;
 
   /**
    * Get interactions metrics for a school.
    */
-  getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
-  ): Promise<FCSchoolStats>;  
+  getSchoolStatsForSchool(
+    schoolId: string
+  ): Promise<FCSchoolStats>;
 }
