@@ -796,6 +796,11 @@ export class SupabaseApi implements ServiceApi {
     await this.supabase.from(TABLES.Assignment_cart).upsert({ id, ...data });
   }
 
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+      schoolId
+    );
   async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,

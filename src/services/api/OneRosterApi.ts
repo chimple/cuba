@@ -32,6 +32,14 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
 
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<"course">[]> {

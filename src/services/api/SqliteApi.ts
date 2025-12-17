@@ -1092,6 +1092,27 @@ export class SqliteApi implements ServiceApi {
     return updatedSchool;
   }
 
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const locationString = `${lat},${lng}`;
+    const query = `UPDATE school SET location_link = ?, updated_at = ? WHERE id = ?`;
+    const updatedAt = new Date().toISOString();
+
+    await this.executeQuery(query, [locationString, updatedAt, schoolId]);
+
+    const school = await this.getSchoolById(schoolId);
+    if (school) {
+      this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, school);
+    }
+  }
+
   // add request for creating new school
   async requestNewSchool(
     name: string,

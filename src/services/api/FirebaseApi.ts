@@ -1341,6 +1341,14 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     try {
       const students: User[] = [];

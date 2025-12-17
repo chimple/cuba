@@ -122,6 +122,19 @@ export interface ServiceApi {
   ): Promise<TableTypes<"school">>;
 
   /**
+   * Updates the school's location (coordinates).
+   * @param {string} schoolId - The unique identifier of the school.
+   * @param {number} lat - Latitude.
+   * @param {number} lng - Longitude.
+   * @returns {Promise<void>}
+   */
+  updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void>;
+
+  /**
    * Clears all rows from the specified tables in the local SQLite database.
    * Keeps the database structure and files intact.
    * Primarily used during logout or reset operations.

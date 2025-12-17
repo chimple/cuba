@@ -288,6 +288,8 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         schoolName={schoolName || "Unknown School"}
         isFirstTime={isFirstTimeCheckIn}
         schoolLocation={schoolLocation}
+        schoolId={id}
+        onLocationUpdated={fetchAll}
       />
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">

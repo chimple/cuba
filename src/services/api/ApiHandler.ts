@@ -235,6 +235,14 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    return await this.s.updateSchoolLocation(schoolId, lat, lng);
+  }
+
   public async requestNewSchool(
     name: string,
     state: string,
