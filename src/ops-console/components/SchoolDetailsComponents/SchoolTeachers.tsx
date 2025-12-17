@@ -411,7 +411,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const email = rawEmail.toLowerCase();
         const normalizedPhone = normalizePhone10(rawPhone);
         const hasEmail = !!email;
-        const hasPhone = !hasEmail && !!normalizedPhone;
+        const hasPhone = !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
           setErrorMessage({
             text: "Please provide either an email or a phone number.",
@@ -430,7 +430,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             return;
           }
           finalEmail = email;
-        } else {
+        }
+        if (hasPhone) {
           if (normalizedPhone.length !== 10) {
             setErrorMessage({
               text: "Phone number must be 10 digits.",

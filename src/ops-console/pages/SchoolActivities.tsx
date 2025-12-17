@@ -65,7 +65,7 @@ const SchoolActivities: React.FC = () => {
         let data = await Promise.all(
           activityData.activities.map(async (act: any) => ({
             raw: act,
-            user: await api.getUserByDocId(act.user_id),
+            user: await api.getUserByDocId(act.contact_user_id),
             classInfo: act.class_id
               ? await api.getClassById(act.class_id)
               : null,
