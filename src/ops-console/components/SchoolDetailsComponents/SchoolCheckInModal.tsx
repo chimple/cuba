@@ -5,6 +5,20 @@ import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 
 import { Geolocation } from '@capacitor/geolocation';
 
+// Leaflet Imports
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import { useMemo } from 'react';
+
+// Fix for default marker icon issues in Leaflet with React
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
@@ -16,6 +30,28 @@ interface SchoolCheckInModalProps {
 }
 
 const MAX_DISTANCE_METERS = 300; // Allowed radius in meters
+
+// Component to handle auto-fitting bounds
+const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng: number }; userLoc: { lat: number; lng: number } | null }) => {
+    const map = useMap();
+  
+    useEffect(() => {
+      if (userLoc) {
+        // Deconstruct to ensure effective dependency change only on value change
+        const bounds = L.latLngBounds([
+          [schoolLoc.lat, schoolLoc.lng],
+          [userLoc.lat, userLoc.lng]
+        ]);
+        try {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } catch(e) { console.warn("Map fitBounds failed", e); }
+      } else {
+        map.setView([schoolLoc.lat, schoolLoc.lng], 15);
+      }
+    }, [schoolLoc.lat, schoolLoc.lng, userLoc?.lat, userLoc?.lng, map]);
+  
+    return null;
+  };
 
 const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   open,
@@ -33,12 +69,15 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [locationError, setLocationError] = useState<string | null>(null);
 
   // Use provided school location or fallback to dummy
-  const targetLocation = {
+  const targetLocation = useMemo(() => ({
     lat: schoolLocation?.lat ?? 28.5244,
     lng: schoolLocation?.lng ?? 77.0855,
     address1: "Gautam Buddha Nagar, Uttar Pradesh",
     address2: "Block: Noida, Cluster: Noida-East",
-  };
+  }), [schoolLocation]);
+
+
+
 
   // UI State for "Are you sure?" toggle
   const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
@@ -87,6 +126,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
             if (position) {
                 const userLat = position.coords.latitude;
                 const userLng = position.coords.longitude;
+
                 setUserLocation({ lat: userLat, lng: userLng });
 
                 const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
@@ -145,11 +185,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     });
   };
 
-  // OpenStreetMap Embed URL
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${targetLocation.lng - 0.01},${targetLocation.lat - 0.01},${targetLocation.lng + 0.01},${targetLocation.lat + 0.01}&layer=mapnik&marker=${targetLocation.lat},${targetLocation.lng}`;
-
   const isCheckIn = status === 'check_in';
-  const showConfirmation = !isLoadingLocation && !isInsidePremises && isCheckIn;
   // User removed UI for confirmation, so we only block on loading now
   const isConfirmDisabled = isLoadingLocation;
 
@@ -208,12 +244,53 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </div>
 
           {/* Map Widget */}
-          <div className="map-container">
-               <iframe 
-                 title="Map"
-                 className="map-iframe"
-                 src={mapUrl}
-               ></iframe>
+          <div className="map-container" style={{ height: '200px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+             <MapContainer
+                center={[targetLocation.lat, targetLocation.lng]}
+                zoom={15}
+                style={{ height: '100%', width: '100%' }}
+             >
+                <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                
+                <MapBoundsFitter schoolLoc={targetLocation} userLoc={userLocation} />
+
+                {/* 300m Radius Circle */}
+                <Circle 
+                    center={[targetLocation.lat, targetLocation.lng]}
+                    radius={MAX_DISTANCE_METERS}
+                    pathOptions={{ color: 'green', fillColor: 'green', fillOpacity: 0.1 }}
+                />
+
+                {/* Connection Line */}
+                {userLocation && (
+                    <Polyline 
+                        positions={[
+                            [targetLocation.lat, targetLocation.lng],
+                            [userLocation.lat, userLocation.lng]
+                        ]}
+                        pathOptions={{ color: 'red', dashArray: '5, 10', weight: 2 }}
+                    />
+                )}
+
+                {/* School Marker */}
+                <Marker position={[targetLocation.lat, targetLocation.lng]}>
+                    <Popup>
+                        School Location
+                    </Popup>
+                </Marker>
+
+                {/* User Location Marker */}
+                {userLocation && (
+                    <Marker position={[userLocation.lat, userLocation.lng]}>
+                         <Popup>
+                            Your Location
+                        </Popup>
+                    </Marker>
+                )}
+             </MapContainer>
           </div>
           
         </div>

@@ -20,6 +20,7 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 // import reportWebVitals from "./reportWebVitals";
 import "./index.css";
+import 'leaflet/dist/leaflet.css';
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
