@@ -7259,7 +7259,7 @@ order by
     }
   }
   public async addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -7267,6 +7267,8 @@ order by
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this._serverApi.addStudentWithParentValidation(params);
   }

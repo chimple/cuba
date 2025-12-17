@@ -9464,7 +9464,6 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async addStudentWithParentValidation(params: {
-    phone: string;
     name: string;
     gender: string;
     age: string;
@@ -9472,12 +9471,12 @@ export class SupabaseApi implements ServiceApi {
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     if (!this.supabase) {
       return { success: false, message: "Supabase client is not initialized" };
     }
 
-    const { phone, name, gender, age, classId, schoolId, parentName, email } =
       params;
     const timestamp = new Date().toISOString();
     const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
@@ -9496,6 +9495,54 @@ export class SupabaseApi implements ServiceApi {
       }
       if (!languageId) {
         languageId = "7eaf3509-e44e-460f-80a1-7f6a13a8a883";
+      }
+
+      if (atSchool) {
+        const childId = uuidv4();
+        const { error: childCreateError } = await this.supabase
+          .from(TABLES.User)
+          .insert({
+            id: childId,
+            name: name,
+            gender: gender,
+            age: parseInt(age) || 0,
+            language_id: languageId,
+            avatar: finalAvatar,
+            created_at: timestamp,
+            updated_at: timestamp,
+            is_deleted: false,
+            student_id: studentID || null,
+          });
+        if (childCreateError) {
+          console.error(
+            "Error creating at-school student user:",
+            childCreateError
+          );
+          return { success: false, message: "Error creating student profile" };
+        }
+        const { error: studentClassError } = await this.supabase
+          .from(TABLES.ClassUser)
+          .insert({
+            id: uuidv4(),
+            class_id: classId,
+            user_id: childId,
+            role: RoleType.STUDENT,
+            created_at: timestamp,
+            updated_at: timestamp,
+            is_deleted: false,
+          });
+        if (studentClassError) {
+          console.error(
+            "Error adding at-school student to class:",
+            studentClassError
+          );
+          return { success: false, message: "Error adding student to class" };
+        }
+        return {
+          success: true,
+          message: "Student added successfully",
+          data: { studentId: childId },
+        };
       }
 
       const { data: userData, error: userError } =
