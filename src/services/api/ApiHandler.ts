@@ -38,6 +38,9 @@ import {
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 
 export class ApiHandler implements ServiceApi {
+  createAtSchoolUser(id: string, schoolModel: string, FIELD_COORDINATOR: RoleType) {
+    return this.s.createAtSchoolUser(id,schoolModel,FIELD_COORDINATOR);
+  }
   public static i: ApiHandler;
 
   private s: ServiceApi;

@@ -391,7 +391,14 @@ const AddSchoolPage: React.FC = () => {
           address.link,
           keyContacts
         );
-        if (!lockDropdowns) {
+        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+          await api.createAtSchoolUser(
+            editData.schoolData.id,
+            schoolModel,
+            RoleType.AUTOUSER
+          );
+        }
+        if (!lockDropdowns && schoolModel !== "at_school") {
           await api.addUserToSchool(
             editData.schoolData.id,
             fieldCoordinator,
@@ -419,12 +426,21 @@ const AddSchoolPage: React.FC = () => {
           address.link,
           keyContacts
         );
+        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+          await api.createAtSchoolUser(
+            school.id,
+            schoolModel,
+            RoleType.AUTOUSER
+          );
+        }
 
-        await api.addUserToSchool(
-          school.id,
-          fieldCoordinator,
-          RoleType.FIELD_COORDINATOR
-        );
+        if(schoolModel !== "at_school") {
+          await api.addUserToSchool(
+            school.id,
+            fieldCoordinator,
+            RoleType.FIELD_COORDINATOR
+          );
+        }
       }
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);

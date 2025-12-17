@@ -9392,6 +9392,95 @@ export class SupabaseApi implements ServiceApi {
       isNewUser,
     };
   }
+
+  async createAtSchoolUser(
+    schoolId: string,
+    schoolModel: NonNullable<"hybrid" | "at_home" | "at_school" | null>,
+    roleType: RoleType
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const { data: school, error: schoolError } = await this.supabase
+      .from("school")
+      .select("*")
+      .eq("id", schoolId)
+      .eq("model", schoolModel)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
+    if (schoolError) {
+      console.error("Error fetching school data:", schoolError);
+      return;
+    }
+
+    const schoolName =
+      school?.name?.trim().split(/\s+/)[0].toLowerCase() || "";
+
+    const schoolUdise =
+      school?.udise ? `${school.udise}@chimple.net` : "";
+
+    const { data: apiData, error: apiError } =
+      await this.supabase.functions.invoke("get_or_create_user", {
+        body: {
+          name: schoolName,
+          phone: undefined,
+          email: schoolUdise,
+        },
+      });
+
+    if (apiError) {
+      console.error("user-upsert failed:", apiError);
+      throw apiError;
+    }
+
+    if (!apiData?.user) {
+      throw new Error("Invalid response from user-upsert");
+    }
+
+    const userId = apiData.user.id;
+
+    const insertPayload = {
+      school_id: schoolId,
+      user_id: userId,
+      role: roleType,
+      is_deleted: false,
+      updated_at: new Date().toISOString(),
+    };
+
+    const updatePayload = {
+      user_id: userId,
+      role: roleType,
+      is_deleted: false,
+      updated_at: new Date().toISOString(),
+    };
+
+      const { data: existing } = await this.supabase
+        .from("school_user")
+        .select("id")
+        .eq("school_id", schoolId)
+        .maybeSingle();
+
+      if (!existing) {
+        const { error } = await this.supabase
+          .from("school_user")
+          .insert(insertPayload);
+
+        if (error) {
+          console.error("Error inserting at_school user:", error);
+        }
+      } else {
+        const { error } = await this.supabase
+          .from("school_user")
+          .update(updatePayload)
+          .eq("school_id", schoolId)
+          .eq("role",roleType);
+
+        if (error) {
+          console.error("Error updating at_school user:", error);
+        }
+      }
+  }
+
   async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,

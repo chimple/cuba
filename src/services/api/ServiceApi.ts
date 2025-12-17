@@ -50,6 +50,8 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
+  createAtSchoolUser(id: string, schoolModel: string, FIELD_COORDINATOR: RoleType): Promise<void>;
+
   /**
    * Creates a student profile for a parent and returns the student object
    * @param {string} name - name of the student
@@ -1836,7 +1838,7 @@ export interface ServiceApi {
    * Fetch available filter options for schools.
    * Each key in the returned object represents a filter category,
    * and the value is an array of possible filter values.
-   * 
+   *
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
