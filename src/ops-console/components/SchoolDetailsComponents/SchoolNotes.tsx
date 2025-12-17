@@ -1,20 +1,11 @@
 // SchoolNotes.tsx
 import React, { useEffect, useState, useCallback } from "react";
 import "./SchoolNotes.css";
-import NoteDetailsDrawer from "./NoteDetailsDrawer"; // your drawer component (already present)
+import NoteDetailsDrawer from "./NoteDetailsDrawer";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { NOTES_UPDATED_EVENT } from "../../../common/constants";
-
-/**
- * Dynamic SchoolNotes:
- * - autodetects schoolId from URL if not provided by parent
- * - fetches notes from apiHandler.getNotesBySchoolId(schoolId)
- * - listens to `window` event 'NOTES_UPDATED_EVENT' to prepend newly created notes
- * - opens NoteDetailsDrawer on row click
- *
- * This keeps your Tabs and Page structure unchanged.
- */
+import { Pagination } from "@mui/material";
 
 type ApiNote = {
   id: string;
@@ -31,29 +22,24 @@ type Note = {
   createdBy: string;
   role: string | null;
   className?: string | null;
-  date: string; // display value
+  date: string;
   text: string;
 };
+
+const NOTES_PER_PAGE = 10;
 
 function parseDateForDisplay(isoOrString?: string) {
   if (!isoOrString) return "--";
   const d = new Date(isoOrString);
-  if (!isNaN(d.getTime())) {
-    // prefer dd/mm/yyyy
-    return d.toLocaleDateString("en-GB");
-  }
-  return isoOrString;
+  return !isNaN(d.getTime())
+    ? d.toLocaleDateString("en-GB")
+    : isoOrString;
 }
 
 function detectSchoolIdFromUrl(): string | null {
   try {
-    const path = window.location.pathname || "";
-    // assume last segment is id: /.../school-details/<id>
-    const parts = path.split("/").filter(Boolean);
-    if (parts.length === 0) return null;
-    const last = parts[parts.length - 1];
-    // strip query params if present
-    return last.split("?")[0] || null;
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    return parts[parts.length - 1]?.split("?")[0] ?? null;
   } catch {
     return null;
   }
@@ -61,157 +47,196 @@ function detectSchoolIdFromUrl(): string | null {
 
 const SchoolNotes: React.FC = () => {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const schoolId = detectSchoolIdFromUrl();
 
-  const mapApiNote = (r: ApiNote): Note => {
-    const createdByName = r.createdBy?.name ?? "Unknown";
-    const createdByRole = r.createdBy?.role ?? null;
-    const className = r.className ?? null;
-    const date = r.createdAt ? parseDateForDisplay(r.createdAt) : "--";
-    const text = r.content ?? "";
-    return {
-      id: r.id,
-      createdBy: createdByName,
-      role: createdByRole,
-      className,
-      date,
-      text,
-    };
-  };
+  const mapApiNote = (r: ApiNote): Note => ({
+    id: r.id,
+    createdBy: r.createdBy?.name ?? "Unknown",
+    role: r.createdBy?.role ?? null,
+    className: r.className ?? null,
+    date: parseDateForDisplay(r.createdAt),
+    text: r.content ?? "",
+  });
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      if (!schoolId) {
-        throw new Error("No schoolId detected in URL");
-      }
+      if (!schoolId) throw new Error("No schoolId");
+
       const api = ServiceConfig.getI().apiHandler;
-      if (!api || !api.getNotesBySchoolId) throw new Error("Notes API not available");
-      const res = await api.getNotesBySchoolId(schoolId, 100, 0);
-      if (!res || !Array.isArray(res)) {
-        // fallback to hardcoded data
-        setNotes([]);
-      } else {
-        const mapped = res.map((r: any) => mapApiNote(r));
-        setNotes(mapped);
+      if (!api?.getNotesBySchoolId) {
+        throw new Error("Notes API not available");
       }
+
+      const offset = (currentPage - 1) * NOTES_PER_PAGE;
+
+      const res = await api.getNotesBySchoolId(
+        schoolId,
+        NOTES_PER_PAGE,
+        offset
+      );
+
+      const mapped = res.data.map((r: ApiNote) => mapApiNote(r));
+
+      setNotes(mapped);
+      setTotalPages(Math.max(1, Math.ceil(res.totalCount / NOTES_PER_PAGE)));
     } catch (err) {
       console.error("Error loading notes:", err);
-      // show fallback so UI isn't empty
       setNotes([]);
       setError(t("Failed to load notes") as string);
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [schoolId, currentPage]);
 
   useEffect(() => {
     loadNotes();
   }, [loadNotes]);
 
-  // listen to global event when a note is created elsewhere (SchoolDetailsPage handler will dispatch)
+  // Listen for newly created notes
   useEffect(() => {
     const handler = (ev: Event) => {
       try {
-        const c = (ev as CustomEvent).detail as any;
+        const c = (ev as CustomEvent).detail;
         if (!c) return;
 
-        let candidate: ApiNote | null = null;
+        const mapped = mapApiNote({
+          id: c.id,
+          content: c.content ?? c.comment ?? "",
+          className: c.className ?? c.class_name ?? null,
+          createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
+          createdBy: c.createdBy ?? {
+            name: c.createdByName ?? "Unknown",
+            role: c.createdByRole ?? null,
+          },
+        });
 
-        if (c && typeof c === "object") {
-          candidate = {
-            id: c.id,
-            content: c.content ?? c.comment ?? "",
-            classId: c.classId ?? c.class_id ?? null,
-            className: c.className ?? c.class_name ?? null,
-            visitId: c.visitId ?? c.visit_id ?? null,
-            createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
-            createdBy: c.createdBy ?? c.created_by ?? { name: c.createdByName ?? null, role: c.createdByRole ?? null },
-          };
-        }
-
-        if (candidate) {
-          const mapped = mapApiNote(candidate);
-          setNotes((prev) => [mapped, ...prev]);
-          setSelectedNote(mapped);
-          setDrawerOpen(true);
-        }
-      } catch (err) {
-        console.error("NOTES_UPDATED_EVENT handler error:", err);
+        setCurrentPage(1);
+        setNotes((prev) => [mapped, ...prev.slice(0, NOTES_PER_PAGE - 1)]);
+        setSelectedNote(mapped);
+        setDrawerOpen(true);
+      } catch (e) {
+        console.error("NOTES_UPDATED_EVENT error:", e);
       }
     };
 
-
     window.addEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
-    return () => window.removeEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
+    return () =>
+      window.removeEventListener(NOTES_UPDATED_EVENT, handler as EventListener);
   }, []);
-
-  const openNote = (note: Note) => {
-    setSelectedNote(note);
-    setDrawerOpen(true);
-  };
-
-  const closeNote = () => {
-    setDrawerOpen(false);
-    setSelectedNote(null);
-  };
 
   if (loading) {
     return (
-      <div className="school-notes-loading" id="school-notes-loading">{t("Loading notes...")}</div>
+      <div className="school-notes-loading">
+        {t("Loading notes...")}
+      </div>
     );
   }
 
   return (
-    <div className="school-notes-container" id="school-notes-container">
-      <table className="school-notes-table" id="school-notes-table" role="table" aria-label={t("School notes table") as string}>
+  <div
+    id="school-notes-panel"
+    className="school-notes-panel"
+  >
+    {error && (
+      <div
+        id="school-notes-error"
+        className="school-notes-error"
+      >
+        {error}
+      </div>
+    )}
+
+    {/* SCROLLABLE TABLE AREA */}
+    <div
+      id="school-notes-table-container"
+      className="school-notes-table-container"
+    >
+      <table
+        id="school-notes-table"
+        className="school-notes-table"
+        role="table"
+      >
         <thead>
-          <tr id="school-notes-header-row">
-            <th id="school-notes-header-created-by">{t("Created By")}</th>
-            <th id="school-notes-header-role">{t("Role")}</th>
-            <th id="school-notes-header-class">{t("Class")}</th>
-            <th id="school-notes-header-date">{t("Date")}</th>
+          <tr>
+            <th>{t("Created By")}</th>
+            <th>{t("Role")}</th>
+            <th>{t("Class")}</th>
+            <th>{t("Date")}</th>
           </tr>
         </thead>
+
         <tbody>
           {notes.map((note) => (
             <tr
               key={note.id}
+              id={`school-notes-row-${note.id}`}
               className="school-notes-row"
-              id="school-notes-row"
-              onClick={() => openNote(note)}
-              role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") openNote(note);
+              onClick={() => {
+                setSelectedNote(note);
+                setDrawerOpen(true);
               }}
-              aria-label={`${note.createdBy} ${note.role ?? ""} ${note.className ?? "—"} ${note.date}`}
             >
-              <td id="school-notes-created-by">{note.createdBy}</td>
-              <td id="school-notes-role">{note.role ?? "—"}</td>
-              <td id="school-notes-class">{note.className ?? "—"}</td>
-              <td id="school-notes-date">{note.date}</td>
+              <td>{note.createdBy}</td>
+              <td>{note.role ?? "—"}</td>
+              <td>{note.className ?? "—"}</td>
+              <td>{note.date}</td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      <NoteDetailsDrawer note={selectedNote ? {
-        id: selectedNote.id,
-        createdBy: selectedNote.createdBy,
-        role: selectedNote.role ?? "--",
-        className: selectedNote.className ?? "--",
-        date: selectedNote.date,
-        text: selectedNote.text
-      } : null} open={drawerOpen} onClose={closeNote} />
     </div>
-  );
+
+    {/* FIXED PAGINATION AREA */}
+    {totalPages > 1 && (
+      <div
+        id="school-notes-pagination-container"
+        className="school-notes-pagination-container"
+      >
+        <Pagination
+          id="school-notes-pagination"
+          count={totalPages}
+          page={currentPage}
+          onChange={(_, page) => setCurrentPage(page)}
+          shape="rounded"
+        />
+      </div>
+    )}
+
+    <NoteDetailsDrawer
+      open={drawerOpen}
+      onClose={() => {
+        setDrawerOpen(false);
+        setSelectedNote(null);
+      }}
+      note={
+        selectedNote
+          ? {
+              id: selectedNote.id,
+              createdBy: selectedNote.createdBy,
+              role: selectedNote.role ?? "--",
+              className: selectedNote.className ?? "--",
+              date: selectedNote.date,
+              text: selectedNote.text,
+            }
+          : null
+      }
+    />
+  </div>
+);
+
 };
 
 export default SchoolNotes;

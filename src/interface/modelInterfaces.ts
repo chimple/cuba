@@ -130,3 +130,8 @@ export interface SchoolNote {
     role: string | null;
   };
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+}

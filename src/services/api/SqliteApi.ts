@@ -80,6 +80,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -7326,10 +7327,15 @@ async getNotesBySchoolId(
   schoolId: string,
   limit?: number,
   offset?: number
-): Promise<any[]> {
+): Promise<PaginatedResponse<SchoolNote>> {
   console.warn("getNotesBySchoolId is not supported in SQLite mode");
-  return [];
+
+  return {
+    data: [],
+    totalCount: 0,
+  };
 }
+
 
   async getRecentAssignmentCountByTeacher(
     teacherId: string,

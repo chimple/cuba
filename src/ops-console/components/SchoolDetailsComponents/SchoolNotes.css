@@ -32,38 +32,58 @@
   text-align: left !important;
 }
 
+.school-notes-table thead th,
+.school-notes-table td {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+  vertical-align: middle !important;
+}
+
 .school-notes-table td {
   padding: 18px 14px;
   font-size: 14px;
   color: #111;
   border-bottom: 1px solid #f0f0f0;
   height: 48px;
-  vertical-align: middle;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left !important;
   font-weight: 400 !important;
 }
 
 .school-notes-table td:first-child {
   width: 25%;
   padding-left: 24px;
-  text-align: left !important;
 }
 
 .school-notes-table tr:last-child td {
   border-bottom: none;
 }
 
-.school-notes-table tbody tr:hover {
-  background: #fafafa;
-  cursor: pointer;
-}
-
 .school-notes-row {
   cursor: pointer;
-  transition: background 120ms ease, transform 60ms ease;
+  transition: background 120ms ease;
+}
+
+.school-notes-row:hover {
+  background: #fafafa;
+}
+
+.school-notes-pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+/* Active page */
+.school-notes-pagination-container
+  .MuiPaginationItem-root.Mui-selected {
+  background-color: #4f46e5;
+  color: #ffffff;
 }
 
 .school-notes-loading {
@@ -71,10 +91,10 @@
   font-size: 14px;
 }
 
-
-.school-notes-row:hover {
-  background: rgba(0, 0, 0, 0.02);
-  transform: translateY(-1px);
+.school-notes-error {
+  padding: 12px 18px;
+  font-size: 14px;
+  color: #b91c1c;
 }
 
 @media (max-width: 900px) {
@@ -82,15 +102,8 @@
     white-space: normal;
   }
 }
-
-.school-notes-table,
-.school-notes-table thead th,
+/* FORCE LEFT ALIGNMENT FOR ALL COLUMNS */
+.school-notes-table th,
 .school-notes-table td {
-  transform: none !important;
-  direction: ltr !important;
-  unicode-bidi: embed !important;
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
   text-align: left !important;
-  vertical-align: middle !important;
 }

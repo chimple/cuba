@@ -36,6 +36,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -1814,13 +1815,14 @@ export class ApiHandler implements ServiceApi {
     return this.s.createNoteForSchool(params);
   }
 
-  async getNotesBySchoolId(
-    schoolId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<any[]> {
-    return this.s.getNotesBySchoolId(schoolId, limit, offset);
-  }
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  return this.s.getNotesBySchoolId(schoolId, limit, offset);
+}
+
 
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,

@@ -9967,38 +9967,62 @@ export class SupabaseApi implements ServiceApi {
 }
 
 
-async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[]> {
+async getNotesBySchoolId(
+  schoolId: string,
+  limit = 10,
+  offset = 0
+): Promise<{ data: any[]; totalCount: number }> {
   if (!this.supabase) {
     console.error("Supabase client not initialized.");
-    return [];
+    return { data: [], totalCount: 0 };
   }
+
   try {
-    // basic list with user name and role (left joins implemented as separate subselects)
     const notesRes = await this.supabase
       .from("fc_user_forms")
-      .select("id, comment, class_id, visit_id, user_id, created_at")
+      .select(
+        "id, comment, class_id, visit_id, user_id, created_at",
+        { count: "exact" } // ✅ IMPORTANT
+      )
       .eq("school_id", schoolId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
-      .limit(limit)
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + limit - 1); // ✅ pagination
 
     if (notesRes.error) {
       console.error("Error fetching notes:", notesRes.error.message);
-      return [];
+      return { data: [], totalCount: 0 };
     }
-    const rows = notesRes.data || [];
 
-    // fetch user info + roles for all user_ids in batch
-    const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+    const rows = notesRes.data || [];
+    const totalCount = notesRes.count ?? 0;
+
+    // ---- batch fetch users ----
+    const userIds = Array.from(
+      new Set(rows.map((r: any) => r.user_id).filter(Boolean))
+    );
+
     let usersById: Record<string, any> = {};
+
     if (userIds.length > 0) {
-      const usersQ = await this.supabase.from("user").select("id, name").in("id", userIds);
-      if (!usersQ.error && usersQ.data) {
-        usersQ.data.forEach((u: any) => (usersById[u.id] = u));
+      const usersQ = await this.supabase
+        .from("user")
+        .select("id, name")
+        .in("id", userIds);
+
+      if (usersQ.data) {
+        usersQ.data.forEach((u: any) => {
+          usersById[u.id] = u;
+        });
       }
-      const specialQ = await this.supabase.from("special_users").select("user_id, role").in("user_id", userIds).eq("is_deleted", false);
-      if (!specialQ.error && specialQ.data) {
+
+      const specialQ = await this.supabase
+        .from("special_users")
+        .select("user_id, role")
+        .in("user_id", userIds)
+        .eq("is_deleted", false);
+
+      if (specialQ.data) {
         specialQ.data.forEach((s: any) => {
           if (!usersById[s.user_id]) usersById[s.user_id] = {};
           usersById[s.user_id].role = s.role;
@@ -10006,12 +10030,24 @@ async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[
       }
     }
 
-    // optionally fetch class names for class_ids
-    const classIds = Array.from(new Set(rows.map((r: any) => r.class_id).filter(Boolean)));
+    // ---- fetch classes ----
+    const classIds = Array.from(
+      new Set(rows.map((r: any) => r.class_id).filter(Boolean))
+    );
+
     let classById: Record<string, any> = {};
+
     if (classIds.length > 0) {
-      const clsQ = await this.supabase.from("class").select("id, name").in("id", classIds);
-      if (!clsQ.error && clsQ.data) clsQ.data.forEach((c: any) => (classById[c.id] = c));
+      const clsQ = await this.supabase
+        .from("class")
+        .select("id, name")
+        .in("id", classIds);
+
+      if (clsQ.data) {
+        clsQ.data.forEach((c: any) => {
+          classById[c.id] = c;
+        });
+      }
     }
 
     const mapped = rows.map((r: any) => ({
@@ -10028,12 +10064,16 @@ async getNotesBySchoolId(schoolId: string, limit = 50, offset = 0): Promise<any[
       },
     }));
 
-    return mapped;
+    return {
+      data: mapped,
+      totalCount,
+    };
   } catch (e) {
     console.error("getNotesBySchoolId error:", e);
-    return [];
+    return { data: [], totalCount: 0 };
   }
 }
+
 
 
 

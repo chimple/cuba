@@ -34,6 +34,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2457,7 +2458,12 @@ export interface ServiceApi {
     content: string;
   }): Promise<CreateSchoolNoteInput>;
 
-  getNotesBySchoolId(schoolId: string, limit?: number, offset?: number): Promise<SchoolNote[]>;
+  getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>>;
+
 
 
   /**
