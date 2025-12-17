@@ -607,12 +607,12 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (isUserExists){
         createdUser = await api.getUserByDocId(id);
-        this._currentUser = createdUser;
       }
       if (!createdUser) {
         console.error("Failed to initialize user record: User could not be created or retrieved.");
         return null;
       }
+      this._currentUser = createdUser;
 
       await api.updateFcmToken(id);
       if (isUserExists) {
