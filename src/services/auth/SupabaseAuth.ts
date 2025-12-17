@@ -544,7 +544,7 @@ export class SupabaseAuth implements ServiceAuth {
       const name = meta.full_name || meta.name || meta.given_name || "";
       const avatarUrl = meta.avatar_url || meta.picture || null;
 
-      const rpcRes = await this.rpcRetry<boolean>(async () => {
+      const isUserExists = await this.rpcRetry<boolean>(async () => {
         const { data, error } = await this._supabaseDb!.rpc("isUserExists", {
           user_email: email || "",
           user_phone: "",
@@ -554,7 +554,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       let createdUser: TableTypes<"user"> | undefined;
 
-      if (!rpcRes) {
+      if (!isUserExists) {
         createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
@@ -584,16 +584,7 @@ export class SupabaseAuth implements ServiceAuth {
           reward: null,
           stars: null,
         });
-      } else {
-        createdUser = await api.getUserByDocId(id);
       }
-
-      if (!createdUser) {
-        console.error("Failed to initialize user record: User could not be created or retrieved.");
-        return null;
-      }
-
-      this._currentUser = createdUser;
 
       const isSplQuery = await this.rpcRetry<boolean>(async () => {
         const { data, error } = await this._supabaseDb!.rpc(
@@ -614,8 +605,17 @@ export class SupabaseAuth implements ServiceAuth {
         );
       }
 
+      if (isUserExists){
+        createdUser = await api.getUserByDocId(id);
+      }
+      if (!createdUser) {
+        console.error("Failed to initialize user record: User could not be created or retrieved.");
+        return null;
+      }
+      this._currentUser = createdUser;
+
       await api.updateFcmToken(id);
-      if (rpcRes) {
+      if (isUserExists) {
         await api.subscribeToClassTopic();
       }
 
