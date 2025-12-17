@@ -381,7 +381,7 @@ const LidoPlayer: FC = () => {
             "xml-path": xmlPath,
             "base-url": basePath, 
             "code-folder-path": "/Lido-player-code-versions",
-            "common-audio-path": "/commonAudios",
+            "common-audio-path": "/Lido-CommonAudios",
           })
         : null}
     </IonPage>
