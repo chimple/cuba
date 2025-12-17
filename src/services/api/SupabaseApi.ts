@@ -9464,6 +9464,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async addStudentWithParentValidation(params: {
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -9472,12 +9473,24 @@ export class SupabaseApi implements ServiceApi {
     parentName?: string;
     email?: string;
     studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     if (!this.supabase) {
       return { success: false, message: "Supabase client is not initialized" };
     }
 
-      params;
+    const {
+      phone,
+      name,
+      gender,
+      age,
+      classId,
+      schoolId,
+      parentName,
+      email,
+      studentID,
+      atSchool,
+    } = params;
     const timestamp = new Date().toISOString();
     const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     try {
