@@ -501,9 +501,14 @@ const LoginScreen: React.FC = () => {
           return history.replace(PAGES.SELECT_MODE);
         }
       }
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const currentUser = await authHandler?.getCurrentUser();
 
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
+      if(!currentUser?.name || currentUser.name.trim() === ""){
+        return history.replace(PAGES.ADD_TEACHER_NAME);
+      }
       return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
   };
