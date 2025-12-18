@@ -201,6 +201,16 @@
   background-color: #1557b0;
 }
 
+.btn-checkout {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-checkout:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
 /* Confirmation Card */
 .confirmation-card {
   background: #ffffff;

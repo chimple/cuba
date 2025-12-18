@@ -259,10 +259,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
   const onConfirmAction = async () => {
       if (isSchoolLocationMissing) {
-          const success = await handleUpdateSchoolLocation();
-          if (success) {
-            onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
-          }
+        if (isConfirmedInSchool === true) {
+            const success = await handleUpdateSchoolLocation();
+            if (success) {
+              onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
+            }
+        } else {
+             onConfirm(userLocation?.lat, userLocation?.lng, undefined);
+        }
       } else {
           onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
       }
@@ -306,7 +310,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
   const isCheckIn = status === 'check_in';
   
-  const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool !== true) || isUpdatingLocation;
+  const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool === undefined) || isUpdatingLocation;
 
   return (
     <div className="check-in-modal-overlay" onClick={onClose}>
@@ -468,7 +472,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               Cancel
             </button>
             <button 
-              className={`check-in-btn btn-confirm ${isConfirmDisabled ? 'disabled' : ''}`}
+              className={`check-in-btn btn-confirm ${!isCheckIn ? 'btn-checkout' : ''} ${isConfirmDisabled ? 'disabled' : ''}`}
               onClick={isConfirmDisabled ? undefined : onConfirmAction}
               disabled={isConfirmDisabled}
             >
