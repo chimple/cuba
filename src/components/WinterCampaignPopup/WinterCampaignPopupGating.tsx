@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import CampaignPopup from "./CampaignPopup";
+import WinterCampaignPopup from "./WinterCampaignPopup";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
 
-type CampaignPopupConfig = {
+type WinterCampaignPopupConfig = {
   enabled: boolean;
-  allowedDays: number[] | null; // null = show every day
+  allowedDays: number[] | null;
   content: string;
 };
 
@@ -18,10 +18,10 @@ type PopupContent = {
   ctaText: string;
 };
 
-const CampaignPopupGating: React.FC = () => {
+const WinterCampaignPopupGating: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
-  const growthbook = useGrowthBook();
   const [popupContent, setPopupContent] = useState<PopupContent | null>(null);
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     if (!growthbook) return;
@@ -38,8 +38,8 @@ const CampaignPopupGating: React.FC = () => {
       student_id: student.id,
     });
 
-    const config = growthbook.getFeatureValue<CampaignPopupConfig>(
-      "campaign-popup",
+    const config = growthbook.getFeatureValue<WinterCampaignPopupConfig>(
+      "winter-campaign-popup",
       {
         enabled: false,
         allowedDays: null,
@@ -49,7 +49,6 @@ const CampaignPopupGating: React.FC = () => {
 
     if (!config.enabled) return;
 
-    // ✅ Parse content
     const [
       title = "",
       subtitle = "",
@@ -58,33 +57,25 @@ const CampaignPopupGating: React.FC = () => {
       ctaText = "",
     ] = config.content.split("||");
 
-    setPopupContent({
-      title,
-      subtitle,
-      rowText,
-      dateText,
-      ctaText,
-    });
-
     const today = new Date();
     const day = today.getDay();
 
-    if (Array.isArray(config.allowedDays)) {
-      if (!config.allowedDays.includes(day)) return;
-    }
+    if (Array.isArray(config.allowedDays) && !config.allowedDays.includes(day))
+      return;
 
     const dateKey = today.toLocaleDateString("en-CA");
-    const storageKey = `campaignLastShown_${student.id}_${dateKey}`;
-
+    const storageKey = `winterCampaignLastShown_${student.id}_${dateKey}`;
     if (localStorage.getItem(storageKey)) return;
 
+    setPopupContent({ title, subtitle, rowText, dateText, ctaText });
     setShowPopup(true);
     localStorage.setItem(storageKey, "true");
   }, [growthbook]);
 
   if (!showPopup || !popupContent) return null;
+
   return (
-    <CampaignPopup
+    <WinterCampaignPopup
       isOpen={showPopup}
       onClose={() => setShowPopup(false)}
       onConfirm={() => setShowPopup(false)}
@@ -93,4 +84,4 @@ const CampaignPopupGating: React.FC = () => {
   );
 };
 
-export default CampaignPopupGating;
+export default WinterCampaignPopupGating;
