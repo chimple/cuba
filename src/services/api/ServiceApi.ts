@@ -153,7 +153,8 @@ export interface ServiceApi {
     lat: number,
     lng: number,
     action: "check_in" | "check_out",
-    visitType?: string
+    visitType?: string,
+    distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   /**

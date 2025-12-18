@@ -6966,7 +6966,8 @@ order by
     lat: number,
     lng: number,
     action: "check_in" | "check_out",
-    visitType?: string
+    visitType?: string,
+    distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
       // Direct Supabase call, bypassing local DB
@@ -6987,7 +6988,8 @@ order by
         lat,
         lng,
         action,
-        formattedVisitType
+        formattedVisitType,
+        distanceFromSchool
       );
     } catch (error) {
       console.error("❌ Error recording school visit:", error);

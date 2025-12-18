@@ -1675,8 +1675,16 @@ export class ApiHandler implements ServiceApi {
     lat: number,
     lng: number,
     action: "check_in" | "check_out",
-    visitType?: string
+    visitType?: string,
+    distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return this.s.recordSchoolVisit(schoolId, lat, lng, action, visitType);
+    return this.s.recordSchoolVisit(
+      schoolId,
+      lat,
+      lng,
+      action,
+      visitType,
+      distanceFromSchool
+    );
   }
 }

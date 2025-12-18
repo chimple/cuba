@@ -122,13 +122,13 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     setIsCheckInModalOpen(true);
   };
 
-  const handleConfirmCheckInAction = async (lat?: number, lng?: number) => { 
+  const handleConfirmCheckInAction = async (lat?: number, lng?: number, distance?: number) => { 
     const api = ServiceConfig.getI().apiHandler;
     if (checkInStatus === 'checked_out') {
       // Perform Check In
       if (lat && lng) {
          try {
-             await api.recordSchoolVisit(id, lat, lng, 'check_in', selectedVisitType);
+             await api.recordSchoolVisit(id, lat, lng, 'check_in', selectedVisitType, distance);
          } catch (e) {
              console.error("Failed to record check-in", e);
          }
@@ -140,7 +140,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       // Perform Check Out
       if (lat && lng) {
           try {
-             await api.recordSchoolVisit(id, lat, lng, 'check_out');
+             await api.recordSchoolVisit(id, lat, lng, 'check_out', undefined, distance);
           } catch (e) {
               console.error("Failed to record check-out", e);
           }

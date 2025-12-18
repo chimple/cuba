@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (lat?: number, lng?: number) => void;
+  onConfirm: (lat?: number, lng?: number, distance?: number) => void;
   status: 'check_in' | 'check_out';
   schoolName: string;
   isFirstTime?: boolean;
@@ -261,10 +261,10 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       if (isSchoolLocationMissing) {
           const success = await handleUpdateSchoolLocation();
           if (success) {
-            onConfirm(userLocation?.lat, userLocation?.lng);
+            onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
           }
       } else {
-          onConfirm(userLocation?.lat, userLocation?.lng);
+          onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
       }
   };
 

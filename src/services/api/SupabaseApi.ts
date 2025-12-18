@@ -818,7 +818,8 @@ export class SupabaseApi implements ServiceApi {
     lat: number,
     lng: number,
     action: "check_in" | "check_out",
-    visitType?: string
+    visitType?: string,
+    distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
       if (!this.supabase) {
@@ -854,7 +855,7 @@ export class SupabaseApi implements ServiceApi {
           check_in_lng: lng,
           type: formattedType,
           is_deleted: false,
-          distance_from_school: null,
+          distance_from_school: distanceFromSchool ?? null,
         };
 
         const { data, error } = await this.supabase
@@ -893,7 +894,9 @@ export class SupabaseApi implements ServiceApi {
               check_out_at: now,
               check_out_lat: lat,
               check_out_lng: lng,
-              updated_at: now, // Ensure updated_at is set
+              updated_at: now, 
+              distance_from_school:
+                distanceFromSchool ?? visitToUpdate.distance_from_school,
             })
             .eq("id", visitToUpdate.id)
             .select()
