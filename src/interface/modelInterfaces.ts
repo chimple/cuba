@@ -135,3 +135,12 @@ export interface PaginatedResponse<T> {
   data: T[];
   totalCount: number;
 }
+
+export interface Note {
+  id: string;
+  createdBy: string;
+  role: string;
+  className?: string | null;
+  date?: string;
+  text: string;
+}
