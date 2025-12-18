@@ -813,6 +813,111 @@ export class SupabaseApi implements ServiceApi {
     );
   }
 
+  async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: "check_in" | "check_out",
+    visitType?: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client not initialized");
+        return null;
+      }
+
+      const {
+        data: { user },
+      } = await this.supabase.auth.getUser();
+      if (!user) {
+        console.error("SupabaseApi: User not logged in");
+        throw "User is not Logged in";
+      }
+
+      const now = new Date().toISOString();
+
+      if (action === "check_in") {
+        // Enforce enum format: "Regular Visit" -> "regular_visit"
+        let formattedType = visitType;
+        if (formattedType) {
+          formattedType = formattedType
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, "_");
+        }
+
+        const newVisit = {
+          school_id: schoolId,
+          user_id: user.id,
+          check_in_at: now,
+          check_in_lat: lat,
+          check_in_lng: lng,
+          type: formattedType,
+          is_deleted: false,
+          distance_from_school: null,
+        };
+
+        const { data, error } = await this.supabase
+          .from(TABLES.FcSchoolVisit)
+          .insert(newVisit)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("SupabaseApi: Insert Error:", error);
+          throw error;
+        }
+        return data;
+      } else {
+
+        const { data: openVisits, error: fetchError } = await this.supabase
+          .from(TABLES.FcSchoolVisit)
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("school_id", schoolId)
+          .is("check_out_at", null)
+          .order("check_in_at", { ascending: false })
+          .limit(1);
+
+        if (fetchError) {
+          console.error("SupabaseApi: Error fetching open visit:", fetchError);
+          throw fetchError;
+        }
+
+        if (openVisits && openVisits.length > 0) {
+          const visitToUpdate = openVisits[0];
+
+          const { data, error } = await this.supabase
+            .from(TABLES.FcSchoolVisit)
+            .update({
+              check_out_at: now,
+              check_out_lat: lat,
+              check_out_lng: lng,
+              updated_at: now, // Ensure updated_at is set
+            })
+            .eq("id", visitToUpdate.id)
+            .select()
+            .single();
+
+          if (error) {
+            console.error("SupabaseApi: Update Error:", error);
+            throw error;
+          }
+          return data;
+        } else {
+          console.warn("SupabaseApi: No active visit found to check out from.");
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "SupabaseApi: Unexpected error recording school visit:",
+        error
+      );
+      return null;
+    }
+  }
+
   async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,

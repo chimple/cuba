@@ -919,6 +919,75 @@ export type Database = {
           },
         ]
       }
+      fc_school_visit: {
+        Row: {
+          check_in_at: string;
+          check_in_lat: number | null;
+          check_in_lng: number | null;
+          check_out_at: string | null;
+          check_out_lat: number | null;
+          check_out_lng: number | null;
+          created_at: string;
+          distance_from_school: number | null;
+          id: string;
+          is_deleted: boolean;
+          notes: string | null;
+          school_id: string;
+          type: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          check_in_at: string;
+          check_in_lat?: number | null;
+          check_in_lng?: number | null;
+          check_out_at?: string | null;
+          check_out_lat?: number | null;
+          check_out_lng?: number | null;
+          created_at?: string;
+          distance_from_school?: number | null;
+          id?: string;
+          is_deleted?: boolean;
+          notes?: string | null;
+          school_id: string;
+          type?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          check_in_at?: string;
+          check_in_lat?: number | null;
+          check_in_lng?: number | null;
+          check_out_at?: string | null;
+          check_out_lat?: number | null;
+          check_out_lng?: number | null;
+          created_at?: string;
+          distance_from_school?: number | null;
+          id?: string;
+          is_deleted?: boolean;
+          notes?: string | null;
+          school_id?: string;
+          type?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fc_visit_school_id_fkey";
+            columns: ["school_id"];
+            isOneToOne: false;
+            referencedRelation: "school";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       gb_response: {
         Row: {
           content: Json | null

@@ -6961,4 +6961,37 @@ order by
     }
   }
 
+  async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: "check_in" | "check_out",
+    visitType?: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      // Direct Supabase call, bypassing local DB
+      console.log(
+        `SqliteApi: recordSchoolVisit called. _serverApi defined? ${!!this
+          ._serverApi}`
+      );
+      // Convert format to snake_case for Supabase if needed (e.g. "Regular Visit" -> "regular_visit")
+      let formattedVisitType = visitType;
+      if (formattedVisitType) {
+        formattedVisitType = formattedVisitType
+          .toLowerCase()
+          .replace(/ /g, "_");
+      }
+
+      return await this._serverApi.recordSchoolVisit(
+        schoolId,
+        lat,
+        lng,
+        action,
+        formattedVisitType
+      );
+    } catch (error) {
+      console.error("❌ Error recording school visit:", error);
+      return null;
+    }
+  }
 }

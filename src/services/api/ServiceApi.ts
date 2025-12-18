@@ -135,6 +135,28 @@ export interface ServiceApi {
   ): Promise<void>;
 
   /**
+   * Records a school visit (check-in).
+   * @param schoolId - The school ID.
+   * @param visitData - The visit data including time and location.
+   * @returns {Promise<TableTypes<"fc_school_visit"> | null>} The recorded visit.
+   */
+  /**
+   * Records a school visit (check-in or check-out).
+   * @param schoolId - The school ID.
+   * @param lat - Latitude.
+   * @param lng - Longitude.
+   * @param action - 'check_in' or 'check_out'.
+   * @param visitType - Type of visit (optional, for check-in).
+   */
+  recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: "check_in" | "check_out",
+    visitType?: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  /**
    * Clears all rows from the specified tables in the local SQLite database.
    * Keeps the database structure and files intact.
    * Primarily used during logout or reset operations.

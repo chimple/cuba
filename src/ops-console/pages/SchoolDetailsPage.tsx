@@ -11,7 +11,8 @@ import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/Sc
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
-import { Button } from "@mui/material";
+import { Button, Menu, MenuItem } from "@mui/material";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -69,14 +70,10 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     avg_weekly_time_minutes: 0,
   });
 
-  // Calculate coordinates
   const [schoolLocation, setSchoolLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
 
   useEffect(() => {
     if (data.schoolData?.location_link) {
-        // Try to parse basic lat,lng string
-        // Example: "28.5244, 77.0855" or Google Maps URL
-        // Simple regex for "lat, lng"
         const regex = /(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)/;
         const match = data.schoolData.location_link.match(regex);
         if (match) {
@@ -92,31 +89,62 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [checkInStatus, setCheckInStatus] = useState<'checked_in' | 'checked_out'>('checked_out');
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
+  
+  // Dropdown state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedVisitType, setSelectedVisitType] = useState<string>('Regular Visit');
+  const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
-    // Load persisted status
     const storedStatus = localStorage.getItem(`school_visit_status_${id}`);
     if (storedStatus) {
       setCheckInStatus(storedStatus as 'checked_in' | 'checked_out');
     }
   }, [id]);
 
+  const handleOpenCheckInMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+      setAnchorEl(null);
+  };
+
+  const handleSelectVisitType = (type: string) => {
+      setSelectedVisitType(type);
+      handleCloseMenu();
+      handleOpenCheckInModal();
+  };
+
   const handleOpenCheckInModal = () => {
-    // Determine if it's first time (mock logic: if never checked in before for this school)
-    // For simplicity in this dummy impl, let's say if localStorage is empty, it's first time
     const hasCheckedInBefore = localStorage.getItem(`has_checked_in_before_${id}`);
     setIsFirstTimeCheckIn(!hasCheckedInBefore);
     setIsCheckInModalOpen(true);
   };
 
-  const handleConfirmCheckInAction = () => {
+  const handleConfirmCheckInAction = async (lat?: number, lng?: number) => { 
+    const api = ServiceConfig.getI().apiHandler;
     if (checkInStatus === 'checked_out') {
       // Perform Check In
+      if (lat && lng) {
+         try {
+             await api.recordSchoolVisit(id, lat, lng, 'check_in', selectedVisitType);
+         } catch (e) {
+             console.error("Failed to record check-in", e);
+         }
+      }
       setCheckInStatus('checked_in');
       localStorage.setItem(`school_visit_status_${id}`, 'checked_in');
       localStorage.setItem(`has_checked_in_before_${id}`, 'true');
     } else {
       // Perform Check Out
+      if (lat && lng) {
+          try {
+             await api.recordSchoolVisit(id, lat, lng, 'check_out');
+          } catch (e) {
+              console.error("Failed to record check-out", e);
+          }
+      }
       setCheckInStatus('checked_out');
       localStorage.setItem(`school_visit_status_${id}`, 'checked_out');
     }
@@ -155,7 +183,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         active_teacher_percentage: result.active_teacher_percentage ?? 0,
         avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
       };
-      // this must be called for all the class ids
       setSchoolStats(newSchoolStats);
       const studentsData = studentsResponse.data;
       const totalStudentCount = studentsResponse.total;
@@ -304,29 +331,47 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
             endActions={
-               <div style={{ display: 'flex', gap: '10px' }}>
-                    <Button 
-                        variant="outlined" 
-                        color="primary"
-                        sx={{ textTransform: 'none', fontWeight: 600 }}
-                    >
-                        + Add Notes
-                    </Button>
-                    <Button 
-                        variant="contained" 
-                        onClick={handleOpenCheckInModal}
-                        sx={{ 
-                            textTransform: 'none', 
-                            fontWeight: 600,
-                            backgroundColor: checkInStatus === 'checked_in' ? '#d32f2f' : '#2e7d32', // Red for Check-Out, Green for Check-In
-                            '&:hover': {
-                                backgroundColor: checkInStatus === 'checked_in' ? '#b71c1c' : '#1b5e20',
-                            }
-                        }}
-                    >
-                        {checkInStatus === 'checked_in' ? "Check Out" : "Check In"}
-                    </Button>
-               </div>
+                     checkInStatus === 'checked_out' ? (
+                        <>
+                            <Button 
+                                variant="contained" 
+                                onClick={handleOpenCheckInMenu}
+                                endIcon={<ArrowDropDownIcon />}
+                                sx={{ 
+                                    textTransform: 'none', 
+                                    fontWeight: 600,
+                                    backgroundColor: '#2e7d32', 
+                                    '&:hover': { backgroundColor: '#1b5e20' }
+                                }}
+                            >
+                                Check In
+                            </Button>
+                            <Menu
+                                anchorEl={anchorEl}
+                                open={openMenu}
+                                onClose={handleCloseMenu}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                            >
+                                <MenuItem onClick={() => handleSelectVisitType('Regular Visit')}>Regular Visit</MenuItem>
+                                <MenuItem onClick={() => handleSelectVisitType('Parents Teacher Meeting')}>Parents Teacher Meeting</MenuItem>
+                                <MenuItem onClick={() => handleSelectVisitType('Teacher Training Meeting')}>Teacher Training Meeting</MenuItem>
+                            </Menu>
+                        </>
+                     ) : (
+                        <Button 
+                            variant="contained" 
+                            onClick={handleOpenCheckInModal}
+                            sx={{ 
+                                textTransform: 'none', 
+                                fontWeight: 600,
+                                backgroundColor: '#d32f2f',
+                                '&:hover': { backgroundColor: '#b71c1c' }
+                            }}
+                        >
+                            Check Out
+                        </Button>
+                     )
             }
           />
         </div>

@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './SchoolCheckInModal.css';
 import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
-
 import { Geolocation } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
 import { ServiceConfig } from '../../../services/ServiceConfig';
-
-
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useMemo } from 'react';
 
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
@@ -23,7 +20,7 @@ L.Icon.Default.mergeOptions({
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (lat?: number, lng?: number) => void;
   status: 'check_in' | 'check_out';
   schoolName: string;
   isFirstTime?: boolean;
@@ -39,7 +36,6 @@ const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng
   
     useEffect(() => {
       if (userLoc) {
-        // Deconstruct to ensure effective dependency change only on value change
         const bounds = L.latLngBounds([
           [schoolLoc.lat, schoolLoc.lng],
           [userLoc.lat, userLoc.lng]
@@ -68,7 +64,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
-  const [isInsidePremises, setIsInsidePremises] = useState<boolean>(true); // Default true to avoid flash of warning
+  const [isInsidePremises, setIsInsidePremises] = useState<boolean>(true); 
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isSchoolLocationMissing, setIsSchoolLocationMissing] = useState<boolean>(false);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
@@ -87,7 +83,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     return {
         lat: 0,
         lng: 0,
-        address1: "Location not set", // Indicating missing location
+        address1: "Location not set",
         address2: "Please set location",
         isMissing: true 
     };
@@ -168,7 +164,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     setIsInsidePremises(false);
                 }
             } else {
-                // Native Capacitor Logic
                 const watchConfig = {
                     enableHighAccuracy: true,
                     timeout: 20000,
@@ -265,10 +260,10 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       if (isSchoolLocationMissing) {
           const success = await handleUpdateSchoolLocation();
           if (success) {
-            onConfirm();
+            onConfirm(userLocation?.lat, userLocation?.lng);
           }
       } else {
-          onConfirm();
+          onConfirm(userLocation?.lat, userLocation?.lng);
       }
   };
 
@@ -470,6 +465,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       </div>
     </div>
   );
+
+
 };
 
 export default SchoolCheckInModal;

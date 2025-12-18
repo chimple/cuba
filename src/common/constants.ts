@@ -78,6 +78,7 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  FcSchoolVisit = "fc_school_visit",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -713,6 +714,7 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.Assignment_cart,
   TABLES.ReqNewSchool,
   TABLES.Program,
+  TABLES.FcSchoolVisit,
 ];
 
 export const AVATARS: string[] = [

@@ -1669,4 +1669,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.insertSchoolDetails(schoolId, schoolModel, locationLink, keyContacts);
   }
+
+  public async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: "check_in" | "check_out",
+    visitType?: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this.s.recordSchoolVisit(schoolId, lat, lng, action, visitType);
+  }
 }
