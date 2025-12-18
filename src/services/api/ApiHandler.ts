@@ -39,6 +39,9 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
+  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType) {
+    return this.s.createAtSchoolUser(id,schoolName,udise,role);
+  }
   public static i: ApiHandler;
 
   private s: ServiceApi;

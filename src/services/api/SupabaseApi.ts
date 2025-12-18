@@ -9470,6 +9470,83 @@ export class SupabaseApi implements ServiceApi {
 
     return { user, schoolUser, classUsers, isNewUser };
   }
+
+  async createAtSchoolUser(
+    schoolId: string,
+    schoolName: string,
+    udise: string,
+    roleType: RoleType
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    schoolName =
+      schoolName?.trim().split(/\s+/)[0].toLowerCase() || "";
+
+    const schoolUdise =
+      udise ? `${udise}${schoolName}@chimple.net` : "";
+
+    const { data: apiData, error: apiError } =
+      await this.supabase.functions.invoke("get_or_create_user", {
+        body: {
+          name: schoolName,
+          phone: undefined,
+          email: schoolUdise,
+        },
+      });
+
+    if (apiError) {
+      console.error("user-upsert failed:", apiError);
+      throw apiError;
+    }
+
+    if (!apiData?.user) {
+      throw new Error("Invalid response from user-upsert");
+    }
+
+    const userId = apiData.user.id;
+
+    const insertPayload = {
+      school_id: schoolId,
+      user_id: userId,
+      role: roleType,
+      is_deleted: false,
+      updated_at: new Date().toISOString(),
+    };
+
+    const updatePayload = {
+      user_id: userId,
+      role: roleType,
+      is_deleted: false,
+      updated_at: new Date().toISOString(),
+    };
+
+      const { data: existing } = await this.supabase
+        .from("school_user")
+        .select("id")
+        .eq("school_id", schoolId)
+        .eq("role", roleType)
+        .maybeSingle();
+
+      if (!existing) {
+        const { error } = await this.supabase
+          .from("school_user")
+          .insert(insertPayload);
+
+        if (error) {
+          console.error("Error inserting at_school/hybrid user:", error);
+        }
+      } else {
+        const { error } = await this.supabase
+          .from("school_user")
+          .update(updatePayload)
+          .eq("id", existing.id);
+
+        if (error) {
+          console.error("Error updating at_school/hybrid user:", error);
+        }
+      }
+  }
+
   async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,

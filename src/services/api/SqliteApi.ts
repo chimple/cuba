@@ -4024,7 +4024,7 @@ export class SqliteApi implements ServiceApi {
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
-      JOIN ${TABLES.Lesson} l 
+      JOIN ${TABLES.Lesson} l
         ON fl.lesson_id = l.id
       WHERE fl.user_id = '${userId}'
       ORDER BY fl.created_at DESC
@@ -4769,10 +4769,10 @@ order by
     allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     const courseholders = courseIds.map(() => "?").join(", ");
-    let query = `SELECT * FROM ${TABLES.Assignment} 
-             WHERE class_id = ? 
-             AND created_at BETWEEN ? AND ? 
-             AND course_id IN (${courseholders}) 
+    let query = `SELECT * FROM ${TABLES.Assignment}
+             WHERE class_id = ?
+             AND created_at BETWEEN ? AND ?
+             AND course_id IN (${courseholders})
              AND is_deleted = false`;
 
     const params: any[] = [classId, endDate, startDate, ...courseIds];
@@ -5222,8 +5222,8 @@ order by
 
     // Define the common WHERE clause conditions for both queries
     const whereConditions = `
-    su.school_id = ? 
-    AND su.role = ? 
+    su.school_id = ?
+    AND su.role = ?
     AND su.is_deleted = false
   `;
     const queryParams = [schoolId, RoleType.PRINCIPAL];
@@ -5308,8 +5308,8 @@ order by
 
     // Define the common WHERE clause conditions and parameters for both queries
     const whereConditions = `
-    su.school_id = ? 
-    AND su.role = ? 
+    su.school_id = ?
+    AND su.role = ?
     AND su.is_deleted = false
   `;
     const queryParams = [schoolId, RoleType.COORDINATOR];
@@ -5788,7 +5788,7 @@ order by
     this.deleteOldDebugInfoData();
 
     const query = `
-    SELECT 
+    SELECT
       parent_id,
       SUM(No_of_pushed) AS total_pushed,
       SUM(No_of_pulled) AS total_pulled,
@@ -6197,7 +6197,7 @@ order by
 
     // Step 2: Fetch paginated data
     const query = `
-    SELECT 
+    SELECT
       u.*,
       c.name as class_name,
       p.id as parent_id,
@@ -6497,7 +6497,7 @@ order by
 
       if (results.length > 0) {
         await this._db.run(
-          `UPDATE result SET student_id = ?, updated_at = ? 
+          `UPDATE result SET student_id = ?, updated_at = ?
          WHERE student_id = ? AND is_deleted = 0`,
           [existingStudentId, now, newStudentId]
         );
@@ -7160,6 +7160,11 @@ order by
     params: UserSchoolClassParams
   ): Promise<UserSchoolClassResult> {
     return this._serverApi.getOrcreateschooluser(params);
+  }
+  public async createAtSchoolUser(
+    id: string, schoolName: string,udise: string, role: RoleType
+  ): Promise<void> {
+    console.error("Method not implemented.");
   }
   async insertSchoolDetails(
     schoolId: string,
