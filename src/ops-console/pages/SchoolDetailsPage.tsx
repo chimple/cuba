@@ -11,7 +11,7 @@ import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/Sc
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
-import { Button, Menu, MenuItem } from "@mui/material";
+import { Button, Menu, MenuItem, Divider } from "@mui/material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 interface SchoolDetailComponentProps {
@@ -353,10 +353,13 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                                 onClose={handleCloseMenu}
                                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                classes={{ paper: 'check-in-menu-paper' }}
                             >
-                                <MenuItem onClick={() => handleSelectVisitType('Regular Visit')}>Regular Visit</MenuItem>
-                                <MenuItem onClick={() => handleSelectVisitType('Parents Teacher Meeting')}>Parents Teacher Meeting</MenuItem>
-                                <MenuItem onClick={() => handleSelectVisitType('Teacher Training Meeting')}>Teacher Training Meeting</MenuItem>
+                                <MenuItem onClick={() => handleSelectVisitType('Regular Visit')} className="check-in-menu-item">Regular Visit</MenuItem>
+                                <Divider className="check-in-menu-divider" />
+                                <MenuItem onClick={() => handleSelectVisitType('Parents Teacher Meeting')} className="check-in-menu-item">Parents Teacher Meeting</MenuItem>
+                                <Divider className="check-in-menu-divider" />
+                                <MenuItem onClick={() => handleSelectVisitType('Teacher Training Meeting')} className="check-in-menu-item">Teacher Training Meeting</MenuItem>
                             </Menu>
                         </>
                      ) : (

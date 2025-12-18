@@ -58,3 +58,19 @@
   margin-top: 10px;
   margin-bottom: 15px;
 }
+
+/* Check-In Menu Styles according to design */
+.check-in-menu-paper {
+  border-radius: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.check-in-menu-divider {
+  margin: 0 !important;
+}
+
+.check-in-menu-item {
+  font-size: 0.9rem !important;
+  padding: 10px 16px !important;
+}
