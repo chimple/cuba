@@ -7330,10 +7330,11 @@ async getNotesBySchoolId(
 ): Promise<PaginatedResponse<SchoolNote>> {
   console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
-  return {
-    data: [],
-    totalCount: 0,
-  };
+  return this._serverApi.getNotesBySchoolId(
+    schoolId,
+    limit,
+    offset
+  );
 }
 
 
