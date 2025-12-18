@@ -36,8 +36,12 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
+  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType) {
+    return this.s.createAtSchoolUser(id,schoolName,udise,role);
+  }
   public static i: ApiHandler;
 
   private s: ServiceApi;
@@ -1807,14 +1811,34 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     return await this.s.getSchoolVisitById(visitId);
   }
+
+  async createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<any> {
+    return this.s.createNoteForSchool(params);
+  }
+
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  return this.s.getNotesBySchoolId(schoolId, limit, offset);
+}
+
+
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
+  
   public async getSchoolStatsForSchool(
-    schoolId: string
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
     return await this.s.getSchoolStatsForSchool(schoolId);
   }
