@@ -26,6 +26,7 @@ interface SchoolCheckInModalProps {
   isFirstTime?: boolean;
   schoolId?: string; 
   schoolLocation?: { lat: number; lng: number };
+  schoolAddress?: string;
   onLocationUpdated?: () => void;
 }
 
@@ -59,10 +60,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   schoolName,
   schoolId,
   schoolLocation,
+  schoolAddress,
   onLocationUpdated,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [isInsidePremises, setIsInsidePremises] = useState<boolean>(true); 
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -75,7 +77,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         return {
             lat: schoolLocation.lat,
             lng: schoolLocation.lng,
-            address1: "School Location",
+            address1: schoolAddress || "School Location",
             address2: "",
         };
     }
@@ -334,10 +336,12 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   
                   {!isSchoolLocationMissing && (
                     <>
-                        <div className="location-detail-text" style={{ marginTop: '8px' }}>
-                            <span className="location-coords-label">School Coords: </span>
-                            {targetLocation.lat.toFixed(4)}° N, {targetLocation.lng.toFixed(4)}° E
-                        </div>
+                        {userLocation && (
+                             <div className="location-detail-text" style={{ marginTop: '4px' }}>
+                                <span className="location-coords-label">User Coordinates: </span>
+                                {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
+                            </div>
+                        )}
                         {distance !== null && !isLoadingLocation && (
                             <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
                                 Distance: {Math.round(distance)} meters away
@@ -406,7 +410,17 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                                 pathOptions={{ color: 'red', dashArray: '5, 10', weight: 2 }}
                             />
                         )}
-                        <Marker position={[targetLocation.lat, targetLocation.lng]}>
+                        <Marker 
+                            position={[targetLocation.lat, targetLocation.lng]}
+                            icon={new L.Icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            })}
+                        >
                             <Popup>School Location</Popup>
                         </Marker>
                     </>

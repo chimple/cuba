@@ -315,6 +315,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         schoolName={schoolName || "Unknown School"}
         isFirstTime={isFirstTimeCheckIn}
         schoolLocation={schoolLocation}
+        schoolAddress={data.schoolData?.address}
         schoolId={id}
         onLocationUpdated={fetchAll}
       />
