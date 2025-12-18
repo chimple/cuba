@@ -5075,51 +5075,30 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
-    // 1. Fetch results with assignment_id IS NULL
-    const { data: nullAssignments, error: nullError } = await this.supabase
+    // Build the OR condition for assignment_id
+    // Format: assignment_id.is.null,assignment_id.in.(id1,id2,...)
+    let orCondition = "assignment_id.is.null";
+    if (assignmentIds.length > 0) {
+      orCondition += `,assignment_id.in.(${assignmentIds.join(",")})`;
+    }
+
+    const { data, error } = await this.supabase
       .from("result")
       .select("*")
       .eq("student_id", studentId)
       .in("course_id", courseIds)
       .eq("class_id", classId)
-      .is("assignment_id", null)
+      .or(orCondition)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
-      .limit(5);
+      .limit(10);
 
-    if (nullError) {
-      console.error("Error fetching null assignments:", nullError.message);
+    if (error) {
+      console.error("Error fetching student results:", error.message);
+      return [];
     }
 
-    // 2. Fetch results with assignment_id IN (provided IDs)
-    let nonNullAssignments: TableTypes<"result">[] = [];
-    if (assignmentIds.length > 0) {
-      const { data, error } = await this.supabase
-        .from("result")
-        .select("*")
-        .eq("student_id", studentId)
-        .in("course_id", courseIds)
-        .eq("class_id", classId)
-        .in("assignment_id", assignmentIds)
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error("Error fetching non-null assignments:", error.message);
-      } else {
-        nonNullAssignments = data ?? [];
-      }
-    }
-
-    // 3. Combine and sort the results by created_at desc
-    const combinedResults = [...(nullAssignments ?? []), ...nonNullAssignments];
-    combinedResults.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-
-    return combinedResults.slice(0, 10);
+    return data ?? [];
   }
   async getAssignmentUserByAssignmentIds(
     assignmentIds: string[]

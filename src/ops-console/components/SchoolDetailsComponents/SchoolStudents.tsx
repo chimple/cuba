@@ -121,7 +121,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [totalCount, setTotalCount] = useState<number>(
     data.totalStudentCount || 0
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasInitialStudents =
+    Array.isArray(data?.students) && data.students.length > 0;
+  const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -207,8 +209,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? "Students";
 
+  // Fetch fresh data when the component mounts
   useEffect(() => {
-    // Don't fetch on the initial render for page 1, because we already have the data from props.
+    fetchStudents(1, "", true);
+  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
+
+  useEffect(() => {
     const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
@@ -216,9 +222,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filters.section.length === 0;
 
     if (isInitial) {
-      setStudents(data.students || []);
-      setTotalCount(data.totalStudentCount || 0);
-      fetchStudents(page, debouncedSearchTerm, true);
+      if (data.students && data.students.length > 0) {
+        setStudents(data.students);
+        setTotalCount(data.totalStudentCount || 0);
+      }
     } else {
       fetchStudents(page, debouncedSearchTerm);
     }
@@ -226,8 +233,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     page,
     debouncedSearchTerm,
     fetchStudents,
-    data.students,
-    data.totalStudentCount,
     filters.grade.length,
     filters.section.length,
   ]);
@@ -374,17 +379,30 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentPerformanceMap, setStudentPerformanceMap] = useState<
     Map<string, string>
   >(new Map());
+
+  const studentIdsKey = useMemo(
+    () => sortedStudents.map((s) => s.user.id).join(","),
+    [sortedStudents]
+  );
+  const classDataRef = useMemo(() => {
+    return Array.isArray(data.classData) ? data.classData[0] : undefined;
+  }, [data.classData]);
+
   useEffect(() => {
     const fetchStudentPerformance = async () => {
       if (optionalGrade == null || optionalSection == null || issTotal) {
         return;
       }
+
+      const currentClass = classDataRef;
+      const classId = currentClass?.id ?? "";
+      if (!classId || sortedStudents.length === 0) {
+        return;
+      }
+
       setIsPerformanceLoading(true);
       const performanceMap = new Map<string, string>();
-      const currentClass = Array.isArray(data.classData)
-        ? data.classData[0]
-        : undefined;
-      const classId = currentClass?.id ?? "";
+
       try {
         const courseIds =
           currentClass?.courses?.map((course) => course.id) ?? [];
@@ -428,7 +446,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [sortedStudents, optionalGrade, optionalSection, issTotal, baseStudents]);
+  }, [studentIdsKey, optionalGrade, optionalSection, issTotal, classDataRef]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(baseStudentData)) return null;
@@ -761,7 +779,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           name: "phone",
           label: "Phone Number",
           kind: "phone" as const,
-          required: !isAtSchool, 
+          required: !isAtSchool,
           placeholder: isAtSchool
             ? "Enter phone number (optional)"
             : "Enter phone number",
@@ -827,7 +845,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           name: "phone",
           label: "Phone Number",
           kind: "phone" as const,
-          required: !isAtSchool, 
+          required: !isAtSchool,
           placeholder: isAtSchool
             ? "Enter phone number (optional)"
             : "Enter phone number",
