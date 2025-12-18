@@ -374,6 +374,13 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
                 zoom={15}
                 style={{ height: '100%', width: '100%' }}
+                dragging={false}
+                zoomControl={false}
+                scrollWheelZoom={false}
+                touchZoom={false}
+                doubleClickZoom={false}
+                keyboard={false}
+                boxZoom={false}
              >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
