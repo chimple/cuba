@@ -4,15 +4,14 @@ import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 
 import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 
 
-// Leaflet Imports
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { useMemo } from 'react';
 
-// Fix for default marker icon issues in Leaflet with React
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -28,14 +27,13 @@ interface SchoolCheckInModalProps {
   status: 'check_in' | 'check_out';
   schoolName: string;
   isFirstTime?: boolean;
-  schoolId?: string; // Add schoolId
+  schoolId?: string; 
   schoolLocation?: { lat: number; lng: number };
   onLocationUpdated?: () => void;
 }
 
-const MAX_DISTANCE_METERS = 300; // Allowed radius in meters
+const MAX_DISTANCE_METERS = 300; 
 
-// Component to handle auto-fitting bounds
 const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng: number }; userLoc: { lat: number; lng: number } | null }) => {
     const map = useMap();
   
@@ -63,8 +61,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   onConfirm,
   status,
   schoolName,
-  isFirstTime = false,
-  schoolId, // Add schoolId prop
+  schoolId,
   schoolLocation,
   onLocationUpdated,
 }) => {
@@ -76,12 +73,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [isSchoolLocationMissing, setIsSchoolLocationMissing] = useState<boolean>(false);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
 
-  // Use provided school location or fallback to dummy
-  // Use provided school location or fallback to dummy
   const targetLocation = useMemo(() => {
-    // If we have valid coordinates, use them.
-    // NOTE: This check depends on how schoolLocation is passed when missing.
-    // If it's undefined or lat/lng are 0 or null, we treat as missing.
     if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
       console.log("School Location001", schoolLocation);
         return {
@@ -93,16 +85,15 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     }
     // Fallback/Missing State
     return {
-        lat: 28.5244, // Default (Noida)
-        lng: 77.0855,
+        lat: 0,
+        lng: 0,
         address1: "Location not set", // Indicating missing location
         address2: "Please set location",
-        isMissing: true // Flag to trigger update UI
+        isMissing: true 
     };
   }, [schoolLocation]);
 
   useEffect(() => {
-      // Check if location is effectively missing (flagged in memo)
       if ((targetLocation as any).isMissing) {
           setIsSchoolLocationMissing(true);
       } else {
@@ -110,7 +101,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       }
   }, [targetLocation]);
 
-  // UI State for "Are you sure?" toggle
   const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
 
@@ -118,65 +108,136 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     if (open) {
       setIsLoadingLocation(true);
       const timer = setInterval(() => setCurrentDate(new Date()), 1000);
+      let watcherId: string | number | null = null;
+      let isMounted = true;
 
-      const fetchLocation = async () => {
+      const startWatching = async () => {
         try {
-            const permissionStatus = await Geolocation.checkPermissions();
-            if (permissionStatus.location !== 'granted') {
-                const requestStatus = await Geolocation.requestPermissions();
-                if (requestStatus.location !== 'granted') {
-                    setLocationError("Location permission denied.");
-                    setIsInsidePremises(false);
-                    return;
+            const isWeb = Capacitor.getPlatform() === 'web';
+            
+            if (!isWeb) {
+                const permissionStatus = await Geolocation.checkPermissions();
+                if (permissionStatus.location !== 'granted') {
+                    const requestStatus = await Geolocation.requestPermissions();
+                    if (requestStatus.location !== 'granted') {
+                        if (isMounted) {
+                            setLocationError("Location permission denied.");
+                            setIsInsidePremises(false);
+                            setIsLoadingLocation(false);
+                        }
+                        return;
+                    }
                 }
+            } else {
             }
 
-            let position;
-            try {
-                // Try High Accuracy first with 10s timeout
-                position = await Geolocation.getCurrentPosition({ 
-                    enableHighAccuracy: true, 
-                    timeout: 10000, 
-                    maximumAge: 0 
-                });
-            } catch (err) {
-                console.warn("High accuracy location failed, falling back to cached/low accuracy", err);
-                try {
-                    // Fallback: Accept any cached location (Infinity) or low accuracy
-                    position = await Geolocation.getCurrentPosition({ 
-                        enableHighAccuracy: false, 
-                        timeout: 10000,
-                        maximumAge: Infinity 
+            const successHandler = (position: any) => {
+                 if (!isMounted) return;
+                 setIsLoadingLocation(false);
+                 setLocationError(null);
+                 
+                 const userLat = position.coords.latitude;
+                 const userLng = position.coords.longitude;
+
+                 setUserLocation({ lat: userLat, lng: userLng });
+                 console.log("User Location (Continuous)", userLat, userLng);
+
+                 const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+                 setDistance(dist);
+                 setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+            };
+
+            if (isWeb) {
+                if ('geolocation' in navigator) {
+                    const id = navigator.geolocation.watchPosition(successHandler, (err) => {
+                        console.error("Web Geolocation Error", err);
+                        if (isLoadingLocation) {
+                             setLocationError("Could not retrieve location. Please check browser permissions.");
+                             setIsLoadingLocation(false);
+                             setIsInsidePremises(false);
+                        }
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 20000,
+                        maximumAge: 0
                     });
-                } catch (fallbackErr) {
-                    console.error("Fallback location also failed", fallbackErr);
-                    throw fallbackErr;
+                    watcherId = id;
+                } else {
+                    setLocationError("Geolocation is not supported by this browser.");
+                    setIsLoadingLocation(false);
+                    setIsInsidePremises(false);
+                }
+            } else {
+                // Native Capacitor Logic
+                const watchConfig = {
+                    enableHighAccuracy: true,
+                    timeout: 20000,
+                    maximumAge: 3000
+                };
+
+                // Start watching location continuously (High Accuracy)
+                const id = await Geolocation.watchPosition(watchConfig, (position, err) => {
+                    if (!isMounted) return;
+
+                    if (err) {
+                        console.warn("High accuracy watch error", err);
+                        // Fallback to low accuracy
+                        if (watcherId !== null) Geolocation.clearWatch({ id: watcherId as string });
+                        
+                        console.log("Falling back to low accuracy...");
+                        Geolocation.watchPosition({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 3000
+                        }, (fallbackPos, fallbackErr) => {
+                            if (!isMounted) return;
+                            if (fallbackErr) {
+                                console.error("Fallback watch error", fallbackErr);
+                                if (isLoadingLocation) {
+                                    setLocationError("Could not retrieve location. Please check GPS settings.");
+                                    setIsLoadingLocation(false);
+                                }
+                                return;
+                            }
+                            successHandler(fallbackPos);
+                        }).then(fallbackId => {
+                            if (isMounted) watcherId = fallbackId;
+                        });
+                        return;
+                    }
+                    successHandler(position);
+                });
+
+                if (isMounted) {
+                    watcherId = id;
+                } else {
+                    Geolocation.clearWatch({ id });
                 }
             }
 
-            if (position) {
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
-
-                setUserLocation({ lat: userLat, lng: userLng });
-                console.log("User Location0001", userLat, userLng);
-
-                const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
-                setDistance(dist);
-                setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
-            }
         } catch (error) {
-            console.error("Error getting location", error);
-            setLocationError("Could not retrieve location. Please check your GPS settings.");
-            setIsInsidePremises(false);
-        } finally {
-            setIsLoadingLocation(false);
+            console.error("Error starting location watch", error);
+            if (isMounted) {
+                setLocationError("Could not start location tracking. Please check your GPS settings.");
+                setIsLoadingLocation(false);
+                setIsInsidePremises(false);
+            }
         }
       };
 
-      fetchLocation();
+      startWatching();
 
-      return () => clearInterval(timer);
+      return () => {
+        isMounted = false;
+        clearInterval(timer);
+        if (watcherId !== null) {
+            if (Capacitor.getPlatform() === 'web') {
+                 navigator.geolocation.clearWatch(watcherId as number);
+            } else {
+                 Geolocation.clearWatch({ id: watcherId as string });
+            }
+        }
+      };
     }
   }, [open, targetLocation.lat, targetLocation.lng]);
 
@@ -184,7 +245,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     if (!userLocation || !schoolId) return;
     setIsUpdatingLocation(true);
     try {
-        const api = ServiceConfig.getI().apiHandler; // Access apiHandler
+        const api = ServiceConfig.getI().apiHandler;
         await api.updateSchoolLocation(schoolId, userLocation.lat, userLocation.lng);
         setIsSchoolLocationMissing(false);
         if (onLocationUpdated) {
@@ -249,14 +310,12 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
   const isCheckIn = status === 'check_in';
   
-  // Disable if loading location, OR if missing location and NOT confirmed YES
   const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool !== true) || isUpdatingLocation;
 
   return (
     <div className="check-in-modal-overlay" onClick={onClose}>
       <div className="check-in-modal-container" onClick={(e) => e.stopPropagation()}>
         
-        {/* Header */}
         <div className="check-in-modal-header">
           <h2 className="check-in-modal-title">
             {isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out'}
@@ -266,10 +325,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
         <div className="check-in-modal-content">
           
-          {/* Location Card */}
           <div className="check-in-card">
               <div className="check-in-icon-wrapper">
                  <IoLocationOutline />
@@ -277,7 +334,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               <div className="check-in-card-content">
                   <div className="location-name">{schoolName || "XYZ School"}</div>
                   
-                  {/* Hide address addresses if school location missing? Or keep name/address but hide coords/distance */}
                   <div className="location-detail-text">{targetLocation.address1}</div>
                    <div className="location-detail-text">{targetLocation.address2}</div>
                   
@@ -303,7 +359,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               </div>
           </div>
 
-          {/* Time Card */}
           <div className="check-in-card">
               <div className="check-in-icon-wrapper">
                   <IoTimeOutline />
@@ -314,7 +369,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               </div>
           </div>
 
-          {/* Map Widget */}
           <div className="map-container" style={{ height: '200px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
              <MapContainer
                 center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
@@ -326,7 +380,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
                 
-                {/* Only fit bounds if we have school location. If missing, just follow user? */}
                 {!isSchoolLocationMissing && (
                      <MapBoundsFitter schoolLoc={targetLocation} userLoc={userLocation} />
                 )}
@@ -335,7 +388,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 )}
 
 
-                {/* School Radius & Connection Line - Only if School Location VALID */}
                 {!isSchoolLocationMissing && (
                     <>
                         <Circle 
@@ -358,7 +410,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     </>
                 )}
 
-                {/* User Location Marker */}
                 {userLocation && (
                     <Marker position={[userLocation.lat, userLocation.lng]}>
                          <Popup>
@@ -369,7 +420,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              </MapContainer>
           </div>
           
-           {/* Confirmation Prompt - Only if School Location Missing */}
            {isSchoolLocationMissing && (
                <div className="check-in-confirmation-section">
                    <div className="confirmation-question">Are you sure you're in the school?</div>
@@ -398,7 +448,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
         </div>
 
-        {/* Footer Actions */}
         <div className="check-in-modal-actions">
             <button className="check-in-btn btn-cancel" onClick={onClose}>
               Cancel
