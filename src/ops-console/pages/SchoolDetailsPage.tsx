@@ -337,7 +337,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                             <Button 
                                 variant="contained" 
                                 onClick={handleOpenCheckInMenu}
-                                endIcon={<ArrowDropDownIcon />}
+                                endIcon={<ArrowDropDownIcon style={{ transform: openMenu ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
                                 sx={{ 
                                     textTransform: 'none', 
                                     fontWeight: 600,
