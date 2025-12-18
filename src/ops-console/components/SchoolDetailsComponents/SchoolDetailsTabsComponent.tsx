@@ -45,65 +45,58 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   }, [activeTab, onTabChange]);
 
   return (
-    <div className="school-detail-role-tabs-wrapper">
-      <div className="school-detail-role-tabs-container">
-        {tabEnumValues.map((tabKey) => (
-          <button
-            key={tabKey}
-            onClick={() => setActiveTab(tabKey)}
-            className={`school-detail-role-tab-button ${
-              activeTab === tabKey ? "selectedtab" : ""
-            }`}
-          >
-            {t(tabKey)}
-          </button>
-        ))}
-      </div>
-      <div className="school-detail-tabschool-detail-tab-content">
-  {activeTab === SchoolTabs.Overview && (
-    <SchoolOverview data={data} isMobile={isMobile} />
-  )}
-
-  {activeTab === SchoolTabs.Classes && (
-    <SchoolClasses
-      data={data}
-      isMobile={isMobile}
-      schoolId={schoolId}
-      refreshClasses={refreshClasses}
-    />
-  )}
-
-  {activeTab === SchoolTabs.Students && (
-    <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
-  )}
-
-  {activeTab === SchoolTabs.Teachers && (
-    <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
-  )}
-
-  {activeTab === SchoolTabs.Principals && (
-    <SchoolPrincipals
-      data={data}
-      isMobile={isMobile}
-      schoolId={schoolId}
-    />
-  )}
-
-  {activeTab === SchoolTabs.Coordinators && (
-    <SchoolCoordinators
-      data={data}
-      isMobile={isMobile}
-      schoolId={schoolId}
-    />
-  )}
-
-  {activeTab === SchoolTabs.Notes && (
-    <SchoolNotes />
-  )}
-</div>
-
+  <div className="school-detail-role-tabs-wrapper">
+    {/* ===== FIXED TABS ===== */}
+    <div className="school-detail-role-tabs-container">
+      {tabEnumValues.map((tabKey) => (
+        <button
+          key={tabKey}
+          onClick={() => setActiveTab(tabKey)}
+          className={`school-detail-role-tab-button ${
+            activeTab === tabKey ? "selectedtab" : ""
+          }`}
+        >
+          {t(tabKey)}
+        </button>
+      ))}
     </div>
-  );
+
+    {/* ===== SCROLL AREA ===== */}
+    <div className="school-detail-tab-content">
+      {activeTab === SchoolTabs.Overview && (
+        <SchoolOverview data={data} isMobile={isMobile} />
+      )}
+
+      {activeTab === SchoolTabs.Classes && (
+        <SchoolClasses
+          data={data}
+          isMobile={isMobile}
+          schoolId={schoolId}
+          refreshClasses={refreshClasses}
+        />
+      )}
+
+      {activeTab === SchoolTabs.Students && (
+        <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
+      )}
+
+      {activeTab === SchoolTabs.Teachers && (
+        <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
+      )}
+
+      {activeTab === SchoolTabs.Principals && (
+        <SchoolPrincipals data={data} isMobile={isMobile} schoolId={schoolId} />
+      )}
+
+      {activeTab === SchoolTabs.Coordinators && (
+        <SchoolCoordinators data={data} isMobile={isMobile} schoolId={schoolId} />
+      )}
+
+      {activeTab === SchoolTabs.Notes && <SchoolNotes />}
+    </div>
+  </div>
+);
+
 };
 
 export default SchoolDetailsTabsComponent;
