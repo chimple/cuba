@@ -9881,6 +9881,7 @@ export class SupabaseApi implements ServiceApi {
     .select("id")
     .eq("user_id", currentUserId)
     .eq("school_id", schoolId)
+    .eq("is_deleted", false)
     .gte("check_in_at", startOfDay)
     .lt("check_in_at", endOfDay)
     .is("check_out_at", null)
@@ -9897,6 +9898,7 @@ export class SupabaseApi implements ServiceApi {
     school_id: schoolId,
     class_id: classId,
     comment: content,
+    is_deleted: false,
 
     // Required NOT NULL:
     contact_target: "school" as any,

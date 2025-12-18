@@ -7320,7 +7320,7 @@ order by
   content: string;
 }): Promise<any> {
   console.warn("createNoteForSchool is not supported in SQLite mode");
-  return null;
+  return this._serverApi.createNoteForSchool(params);
 }
 
 async getNotesBySchoolId(
