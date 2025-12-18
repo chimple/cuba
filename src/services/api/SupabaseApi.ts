@@ -801,7 +801,7 @@ export class SupabaseApi implements ServiceApi {
     lat: number,
     lng: number
   ): Promise<void> {
-    const locationString = `${lat},${lng}`;
+    const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
     const updatedAt = new Date().toISOString();
 
     // Update directly in supabase

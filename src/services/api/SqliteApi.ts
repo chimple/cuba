@@ -1101,7 +1101,7 @@ export class SqliteApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
-    const locationString = `${lat},${lng}`;
+    const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
     const query = `UPDATE school SET location_link = ?, updated_at = ? WHERE id = ?`;
     const updatedAt = new Date().toISOString();
 
