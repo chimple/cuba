@@ -7,6 +7,7 @@ import {
 } from "../common/constants";
 import IconButton from "./IconButton";
 import { IonBadge } from "@ionic/react";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 const HeaderIcon: React.FC<{
   headerConfig: any;
@@ -22,9 +23,18 @@ const HeaderIcon: React.FC<{
   onHeaderIconClick,
 }) => {
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
+  const isHomeworkNotificationIconOn = useFeatureIsOn("homework_notification_icon");
 
   return (
-    <div style={{textAlign: "center", display: "flex", alignItems: "center", flexDirection:"column", justifyContent: "center"}}>
+    <div
+      style={{
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
       {/* <div className="home-header-indicator">
       {isCurrentHeaderActive ? (
         <p>&#9679;</p>
@@ -35,12 +45,22 @@ const HeaderIcon: React.FC<{
       {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (
-          <div id="homework-notification">
-            <IonBadge class="badge-notification">
-              {pendingAssignmentCount}
-            </IonBadge>
-          </div>
-        )}
+    <div id="homework-notification">
+      {!isHomeworkNotificationIconOn ? (
+        // Show number badge
+        <IonBadge class="badge-notification">
+          {pendingAssignmentCount}
+        </IonBadge>
+      ) : (
+        // Show image icon
+        <img
+          src="/assets/icons/BellNotifyIcon.svg"
+          alt="Homework Notification"
+          className="headericon-bell-notification"
+        />
+      )}
+    </div>
+  )}
       {headerConfig.headerList == HOMEHEADERLIST.LIVEQUIZ &&
         !!pendingLiveQuizCount &&
         pendingLiveQuizCount > 0 && (

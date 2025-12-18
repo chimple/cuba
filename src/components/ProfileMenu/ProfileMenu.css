@@ -2,14 +2,15 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 260px;
+  width: 300px;
   height: 100vh;
   border-radius: 20px 0 0 20px;
   background: #fffdee;
-  font-family: sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   flex-direction: column;
   z-index: 999;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
 }
 
 .slide-in-right {
@@ -38,94 +39,165 @@
   }
 }
 
+/* --- HEADER LAYOUT --- */
+
 .profile-menu-header {
   position: relative;
   text-align: left;
-  padding: 16px 16px;
+  padding: 25px 20px; /* Increased padding */
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-shrink: 0;
+  min-height: 140px;
 }
 
 .profile-menu-close-icon {
   position: absolute;
   top: 15px;
-  right: 25px;
-  width: 44px;
-  height: 44px;
+  right: 15px;
+  width: 42px;
+  height: 42px;
   cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s;
 }
+
+.profile-menu-close-icon:active {
+  transform: scale(0.9);
+}
+
+.profile-header-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  padding-right: 35px;
+  gap: 15px;
+  cursor: pointer;
+  margin-top: 3px;
+}
+
+/* --- PROFILE IMAGE FIX --- */
+.profile-image-container {
+  flex-shrink: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  background-color: #f0f0f0;
+}
+
+/* --- TEXT & SPACING FIXES --- */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  /* no vertical centering */
+  flex: 1;
+  min-width: 0;
+
+  /* 👇 this is the main change: move all three lines slightly down */
+  padding-top: 10px;            /* try 8–12px to match exactly */
+}
+
+
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  display: block;
+}
+
+/* User Name Styling */
+.profile-header-name {
+  font-size: clamp(18px, 2.6vh, 25px);
+  font-weight: 580;
+  color: #182a4f;
+  line-height: 1.1;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+/* Row Container for Icon + Text */
+.profile-sub-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;  /* was 12px – tighter like mockup */
+  width: 100%;
+}
+
+
+.info-icon {
+  width: 16px; /* Slightly larger icons */
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 1;
+}
+
+/* Class and School Text */
+.sub-text {
+  font-size: clamp(18px, 2.6vh, 25px);
+  font-weight: 500;
+  color: #304366; /* Slightly lighter than name */
+  line-height: 1.2;
+}
+
+/* --- MENU LIST --- */
+
 .profile-menu-list {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 10px;
+  padding-bottom: 20px;
+  padding-top: 10px;
 }
 
 .profile-menu-item {
   display: flex;
-  gap: 0.5vh;
-  padding: 0 0.6vw;
   flex-direction: column;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.profile-menu-icon {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.profile-menu-label {
-  color: #182a4f;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: normal;
-}
 .profile-menu-item:hover {
-  background-color: #fff3e0;
+  background-color: #fff6e6;
 }
 
 .profile-menu-item-row {
   display: flex;
   align-items: center;
-  padding: clamp(10px, 2.8vh, 13px) 18px;
+  padding: 18px 24px; /* More comfortable padding */
 }
 
 .profile-menu-icon {
-  margin-right: 16px;
-}
-.profile-header-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  margin-right: 20px;
 }
 
-.profile-header-name {
-  font-size: 16px;
-  font-weight: 600;
+.profile-menu-label {
   color: #182a4f;
-  width: 100%; 
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; 
-}
-.profile-header-center .profile-header-name {
-  text-align: center;
-}
-.profile-header-left .profile-header-name {
-  text-align: left;
-}
-
-.profile-header-content img {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
+  font-size: 17px; /* Larger menu text */
+  font-weight: 500;
 }
 
 .profile-menu-horizontal-line {
-  width: 223px;
+  width: 85%;
   height: 1px;
-  background: #dff2f2;
-  margin: 0 18px;
+  background: #e0e0e0;
+  margin: 0 auto;
+  border: none;
 }

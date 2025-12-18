@@ -4,7 +4,14 @@ import { CHIMPLE_RIVE_STATE_MACHINE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../..
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 
-export default function ChimpleRiveMascot() {
+interface ChimpleRiveMascotProps {
+  stateMachine?: string;
+  animationName?: string;
+  stateValue?: number;
+  inputName?: string;
+}
+
+export default function ChimpleRiveMascot({ stateMachine, animationName, stateValue, inputName }: ChimpleRiveMascotProps) {
 
   const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS)==="true")? true : false;
 
@@ -19,21 +26,21 @@ export default function ChimpleRiveMascot() {
   const { rive, RiveComponent } = useRive({
     src: should_show_remote_asset? riveSrc : "/pathwayAssets/chimpleRive.riv",
     artboard: "Artboard",
-    // stateMachines: "State Machine 2",
-    animations: "id",
+    stateMachines: animationName ? undefined : stateMachine,
+    animations: animationName ? [animationName] : undefined,
     autoplay: true,
     layout: new Layout({
       fit: Fit.Contain,
       alignment: Alignment.Center,
     }),
   });
-
-  // const numberInput = useStateMachineInput(rive, "State Machine 2", "Number 1", CHIMPLE_RIVE_STATE_MIN);
+  const stateInputName = inputName? inputName : "Number 2";
+  const numberInput = useStateMachineInput(rive, stateMachine, stateInputName, stateValue ? stateValue : CHIMPLE_RIVE_STATE_MIN);
   // Get today's date and map to state 1-MAX
   const today = new Date();
   const day = today.getDate();
   const mappedState = ((day - 1) % CHIMPLE_RIVE_STATE_MAX) + 1;
-  const [value, setValue] = useState<number>(mappedState);
+  const [value, setValue] = useState<number>(stateValue ? stateValue : mappedState);
 
   useEffect(() => {
     if (!should_show_remote_asset) return;
@@ -60,15 +67,16 @@ export default function ChimpleRiveMascot() {
     getRemoteMascotUrl();
   }, [should_show_remote_asset]);
 
-  // useEffect(() => {
-  //   try {
-  //     if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
-  //       numberInput.value = value;
-  //     }
-  //   } catch (error) {
-  //     console.error("Failed to set numberInput value:", error);
-  //   }
-  // }, [value, numberInput]);
+  useEffect(() => {
+    if (animationName) return; // Don't set state machine input if using animation
+    try {
+      if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
+        numberInput.value = value;
+      }
+    } catch (error) {
+      console.error("Failed to set numberInput value:", error);
+    }
+  }, [value, numberInput, animationName]);
 
   return <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />;
 }

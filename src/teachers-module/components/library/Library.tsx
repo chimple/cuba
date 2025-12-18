@@ -37,7 +37,7 @@ const Library: React.FC = () => {
           className="lesson-search"
           onClick={() => history.replace(PAGES.SEARCH_LESSON)}
         >
-          <SearchOutlinedIcon style={{ color: "black" }} />
+          <SearchOutlinedIcon id="subject-search-icon" style={{ color: "black" }} />
           <span className="text">{t("Search")}...</span>
         </div>
         <span className="library-title"> {t("Library")}</span>

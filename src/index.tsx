@@ -30,6 +30,7 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
 import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
 import {
   SpeechSynthesis,
@@ -37,11 +38,18 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
+import {
+  CAN_HOT_UPDATE,
+  CURRENT_USER,
+  EVENTS,
+  IS_OPS_USER,
+  VERSION_KEY,
+} from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
+import { Preferences } from "@capacitor/preferences";
 
 Sentry.init(
   {
@@ -69,9 +77,44 @@ Sentry.init(
   // Forward the init method from @sentry/react
   SentryReact.init
 );
-const userData = localStorage.getItem(CURRENT_USER);
-const userId = userData ? JSON.parse(userData).id : undefined;
+let userId: string = "anonymous";
+let userData;
+try {
+  const data = localStorage.getItem(CURRENT_USER);
+  if (data) {
+    userData = JSON.parse(data);
+    userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+  }
+} catch (error) {
+  console.error("Error retrieving user ID for Sentry:", error);
+}
 if (userId) Sentry.setUser({ id: userId });
+const isNativePlatform = Capacitor.isNativePlatform();
+// This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
+if (isNativePlatform) {
+  try {
+    async function checkNativeVersionAndReset() {
+      const { versionName } = await LiveUpdate.getVersionName();
+      const { value: storedVersion } = await Preferences.get({
+        key: VERSION_KEY,
+      });
+      if (versionName !== storedVersion) {
+        console.log("⚠️ APK version changed → clearing old hot update bundle");
+        // reset the hot update bundle
+        await LiveUpdate.reset();
+        // store new version
+        await Preferences.set({ key: VERSION_KEY, value: versionName });
+      }
+    }
+    await checkNativeVersionAndReset();
+    await LiveUpdate.ready();
+  } catch (error) {
+    console.error(
+      "Error in checkNativeVersionAndReset() or LiveUpdate.ready()",
+      error
+    );
+  }
+}
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -130,12 +173,31 @@ const gb = new GrowthBook({
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
     try {
-      const userData = localStorage.getItem(CURRENT_USER);
-      const userId = userData ? JSON.parse(userData).id : undefined;
+      let userId = "anonymous";
+      try {
+        const data = localStorage.getItem(CURRENT_USER);
+        if (data) {
+          const userData = JSON.parse(data);
+          if (typeof userData === "object" && userData !== null) {
+            userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+          } else {
+            const auth = ServiceConfig.getI().authHandler;
+            const currentUser = await auth.getCurrentUser();
+            userId = currentUser?.id ?? "anonymous";
+          }
+        } else {
+          const auth = ServiceConfig.getI().authHandler;
+          const currentUser = await auth.getCurrentUser();
+          userId = currentUser?.id ?? "anonymous";
+        }
+      } catch (e) {
+        console.log("Error reading user:", e);
+        userId = "anonymous";
+      }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
         user_id: userId,
-        experimentId: experiment.key,
-        variationId: result.key,
+        experiment_id: experiment.key,
+        variation_id: result.key,
       });
     } catch (error) {
       console.error("Error in GrowthBook tracking callback:", error);
@@ -148,6 +210,111 @@ gb.init({
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
+async function checkForUpdate() {
+  let majorVersion = "0";
+  const maxRetries = 5;
+  try {
+    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
+      const { versionName } = await LiveUpdate.getVersionName();
+      majorVersion = versionName.split(".")[0];
+      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+      const result = await LiveUpdate.fetchLatestBundle({
+        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+      });
+      let isUpdateAllowed = false;
+      if (result.customProperties && result.customProperties.version) {
+        isUpdateAllowed = Util.isVersionAllowed(
+          result.customProperties.version,
+          versionName
+        );
+      }
+      if (
+        result.bundleId &&
+        currentBundleId !== result.bundleId &&
+        isUpdateAllowed
+      ) {
+        console.log("🚀 LiveUpdate fetch latest bundle result", result);
+        Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
+          user_id: userId,
+          current_bundle_id: currentBundleId,
+          new_bundle_id: result.bundleId,
+          timestamp: new Date().toISOString(),
+          channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+          app_version: versionName,
+          update_type: result.artifactType,
+        });
+        let attempt = 0;
+        let success = false;
+
+        while (attempt < maxRetries && !success) {
+          attempt++;
+
+          try {
+            // Check online/offline
+            if (!navigator.onLine) throw new Error("Device is offline");
+            console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
+            const start = performance.now();
+            await LiveUpdate.sync({
+              channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+            });
+            const totalEnd = performance.now();
+            Util.logEvent(EVENTS.LIVE_UPDATE_APPLIED, {
+              user_id: userId,
+              previous_bundle_id: currentBundleId,
+              new_bundle_id: result.bundleId,
+              timestamp: new Date().toISOString(),
+              time_taken_ms: (totalEnd - start).toFixed(2),
+              channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+              app_version: versionName,
+              update_type: result.artifactType,
+            });
+            console.log(
+              `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`
+            );
+            console.log(
+              `⏱️ Total time taken to download and set nextBundle ID: ${(
+                totalEnd - start
+              ).toFixed(2)} ms`
+            );
+            success = true;
+          } catch (err: any) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error(`❌ Sync attempt ${attempt} failed`, err);
+
+            if (attempt === maxRetries) {
+              console.error("❌ All retry attempts failed");
+              Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
+                user_id: userId,
+                timestamp: new Date().toISOString(),
+                channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+                error: msg || "All attempts to apply update failed, Device offline",
+                retries: attempt,
+              });
+            } else {
+              // Wait before retry
+              await new Promise((res) => setTimeout(res, 3000));
+            }
+          }
+        }
+      } else {
+        console.log(
+          "🚀 LiveUpdate: No new update available, Current applied bundleID: ",
+          currentBundleId
+        );
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("LiveUpdate failed❌", err);
+    Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
+      user_id: userId,
+      timestamp: new Date().toISOString(),
+      channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+      error: msg || "LiveUpdate failed unknown error",
+    });
+  }
+}
+
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
   root.render(
@@ -158,6 +325,11 @@ if (isOpsUser) {
     </GrowthBookProvider>
   );
   SplashScreen.hide();
+  setTimeout(() => {
+    if (isNativePlatform && userData) {
+      checkForUpdate();
+    }
+  }, 60000);
 } else {
   SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
@@ -170,6 +342,11 @@ if (isOpsUser) {
       </GrowthBookProvider>
     );
     SplashScreen.hide();
+    setTimeout(() => {
+      if (isNativePlatform && userData) {
+        checkForUpdate();
+      }
+    }, 60000);
   });
 }
 

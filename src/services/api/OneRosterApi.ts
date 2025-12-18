@@ -391,7 +391,9 @@ export class OneRosterApi implements ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
@@ -1293,6 +1295,11 @@ export class OneRosterApi implements ServiceApi {
   }
 
   searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
+    throw new Error("Method not implemented.");
+  }
+  async getActiveStudentsCountByClass(
+    classId: string
+  ): Promise<string> {
     throw new Error("Method not implemented.");
   }
 }

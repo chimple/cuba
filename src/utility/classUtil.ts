@@ -33,7 +33,7 @@ export class ClassUtil {
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
     const assignmentResult =
-      await this.api.getResultByAssignmentIds(assignmentIds);
+      await this.api.getResultByAssignmentIdsForCurrentClassMembers(assignmentIds, classId);
 
     assignmentResult?.forEach((res) => {
       totalScore = totalScore + (res.score ?? 0);

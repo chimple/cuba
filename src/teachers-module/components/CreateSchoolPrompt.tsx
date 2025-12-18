@@ -5,11 +5,29 @@ import { PAGES } from "../../common/constants";
 import "./CreateSchoolPrompt.css";
 import { t } from "i18next";
 
-const CreateSchoolPrompt: FC = () => {
+interface CreateSchoolPromptProps {
+  country?: string;
+  state?: string;
+  district?: string;
+  block?: string;
+}
+
+const CreateSchoolPrompt: FC<CreateSchoolPromptProps> = ({
+  country,
+  state,
+  district,
+  block,
+}) => {
   const history = useHistory();
 
   const handleCreateSchool = () => {
-    history.push(PAGES.CREATE_SCHOOL, { origin: PAGES.SEARCH_SCHOOL });
+    history.push(PAGES.CREATE_SCHOOL, {
+      origin: PAGES.SEARCH_SCHOOL,
+      country,
+      state,
+      district,
+      block,
+    });
   };
 
   return (

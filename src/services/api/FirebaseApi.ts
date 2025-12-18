@@ -858,7 +858,8 @@ export class FirebaseApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?:boolean
   ): Promise<TableTypes<"result">> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -2063,6 +2064,12 @@ export class FirebaseApi implements ServiceApi {
     Record<string, string[]>
   > {
     throw new Error("getSchoolFilterOptions() is not implemented.");
+  }
+
+  async getSchoolFilterOptionsForProgram(programId: string): Promise<
+    Record<string, string[]>
+  > {
+    throw new Error("getSchoolFilterOptionsForProgram() is not implemented.");
   }
 
   async getFilteredSchoolsForSchoolListing(params: {

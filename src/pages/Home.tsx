@@ -16,6 +16,7 @@ import {
   STARS_COUNT,
   LANGUAGE,
   LANG,
+  IS_REWARD_FEATURE_ON,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -44,6 +45,7 @@ import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { Device } from "@capacitor/device";
 import i18n from "../i18n";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -80,6 +82,13 @@ const Home: FC = () => {
   }>({});
   let currentStudent: TableTypes<"user"> | undefined;
   const { setGbUpdated } = useGbContext();
+  const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
+
+  if (isRewardFeatureOn === true) {
+    localStorage.setItem(IS_REWARD_FEATURE_ON, "true");
+  } else if (isRewardFeatureOn === false) {
+    localStorage.setItem(IS_REWARD_FEATURE_ON, "false");
+  }
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -129,8 +138,15 @@ const Home: FC = () => {
       return;
     }
     const studentDetails = student;
-    updateLocalAttributes({ studentDetails });
-    setGbUpdated(true);
+    let parent;
+    (async () => {
+      if (!(studentDetails as any).parent_id) {
+        parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
+        (studentDetails as any).parent_id = parent?.id;
+      }
+      updateLocalAttributes({ studentDetails });
+      setGbUpdated(true);
+    })();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -362,6 +378,7 @@ const Home: FC = () => {
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
@@ -699,7 +716,12 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
-              <AssignmentPage assignmentCount={setPendingAssignmentCount} />
+              <AssignmentPage
+                assignmentCount={setPendingAssignmentCount}
+                onPlayMoreHomework={() => {
+                  setCurrentHeader(HOMEHEADERLIST.HOME); 
+                }}
+              />
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}

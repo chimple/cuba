@@ -1,0 +1,113 @@
+/* RewardModal overlay */
+.RewardModal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* RewardModal content */
+.RewardModal-content {
+  position: relative;
+  width: 485px;
+  height: 285px;
+  background: #fffdee;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 21px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #333;
+  overflow: hidden;
+  background-size: contain;
+  z-index: 1000;
+}
+
+/* Text inside modal */
+.RewardModal-text {
+  font-weight: 600;
+  z-index: 1;
+  font-size: 18px;
+  color: #182A4F;
+  text-align: center;
+}
+
+/* Close button */
+.RewardModal-close {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  background: #fffdee;
+  border-radius: 50%;
+  border: none;
+  /* box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1); */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.RewardModal-close::before {
+  transform: rotate(45deg);
+}
+
+.RewardModal-close::after {
+  transform: rotate(-45deg);
+}
+
+.RewardModal-width {
+  width: 40vw;
+}
+
+.RewardModal-OK-button {
+    width: 30vw;
+    max-width: 173px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    border-bottom: 5px solid #8a2901;
+    background: #f34d08;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 600;
+    transition: transform 0.1s ease;
+    transform: translateY(2px);
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%) translateY(2px); 
+}
+.RewardModal-OK-button:active {
+  border-bottom: 2px solid #8a2901 !important;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+.RewardModal-ok-text {
+  line-height: 30px;
+  display: inline-block;
+}
+.RewardModal-reward-box-container{
+  width: 163px;
+  height: 148px;
+  min-width: 160px;
+  min-height: 145px;
+  max-width: 170px;
+  max-height: 150px;
+  margin: -20% auto 0 auto;
+}

@@ -74,6 +74,15 @@ const DisplayStudents: FC<{}> = () => {
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
     await Util.setCurrentStudent(student, undefined, true);
+    // 2) Update GrowthBook attributes immediately for the newly selected student
+    updateLocalAttributes({
+      student_id: student.id,
+      age: student.age ?? null,
+      grade_id: student.grade_id ?? null,
+    });
+
+    // 3) Signal to GrowthBook context that attributes were updated
+    setGbUpdated(true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
@@ -123,17 +132,18 @@ const DisplayStudents: FC<{}> = () => {
   };
   return (
     <IonPage id="display-students">
-      {/* <IonContent> */} 
+      {/* <IonContent> */}
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon">
-          {Util.getCurrentStudent() &&<img
-            src="/assets/icons/BackButtonIcon.svg"
-            alt="BackButtonIcon"
-            onClick={() => {
-              Util.setPathToBackButton(PAGES.HOME, history);
-            }}
-          />
-          }
+          {Util.getCurrentStudent() && (
+            <img
+              src="/assets/icons/BackButtonIcon.svg"
+              alt="BackButtonIcon"
+              onClick={() => {
+                Util.setPathToBackButton(PAGES.HOME, history);
+              }}
+            />
+          )}
         </div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}

@@ -48,6 +48,8 @@ import {
   SearchSchoolsResult,
   GeoDataParams,
   School,
+  REWARD_LESSON,
+  OPS_ROLES,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -69,6 +71,10 @@ import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
 import { SqliteApi } from "./SqliteApi";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
@@ -470,272 +476,39 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<Map<string, any[]>> {
     try {
       const data = new Map<string, any[]>();
-
-      const fetchPromises = tableNames.map(async (tableName) => {
-        const lastModifiedDate =
-          tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-        let rpcName;
-        let res;
-        switch (tableName) {
-          case TABLES.Assignment: {
-            rpcName = "sql_get_assignments";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Assignment_cart: {
-            rpcName = "sql_get_assignment_cart";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Assignment_user: {
-            rpcName = "sql_get_assignment_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Badge: {
-            rpcName = "sql_get_badge";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Chapter: {
-            rpcName = "sql_get_chapter";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ChapterLesson: {
-            rpcName = "sql_get_chapter_lesson";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Class: {
-            rpcName = "sql_get_class";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassCourse: {
-            rpcName = "sql_get_class_course";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassInvite_code: {
-            rpcName = "sql_get_class_invite_codes";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassUser: {
-            rpcName = "sql_get_class_user";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          // case TABLES.OpsRequests: {
-          //   rpcName = "sql_get_accessible_ops_requests";
-          //   res = await this.supabase?.rpc(rpcName, {
-          //     p_updated_at: lastModifiedDate,
-          //   });
-          //   break;
-          // }
-          case TABLES.Course: {
-            rpcName = "sql_get_course";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Curriculum: {
-            rpcName = "sql_get_curriculum";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.FavoriteLesson: {
-            rpcName = "sql_get_favorite_lessons";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Grade: {
-            rpcName = "sql_get_grade";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Language: {
-            rpcName = "sql_get_language";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Lesson: {
-            rpcName = "sql_get_lessons";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ParentUser: {
-            rpcName = "sql_get_parent_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-
-          case TABLES.Result: {
-            rpcName = "sql_get_results";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Reward: {
-            rpcName = "sql_get_reward";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.School: {
-            rpcName = "sql_get_schools";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.SchoolCourse: {
-            rpcName = "sql_get_school_courses";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.SchoolUser: {
-            rpcName = "sql_get_school_user";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Sticker: {
-            rpcName = "sql_get_sticker";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Subject: {
-            rpcName = "sql_get_subject";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.User: {
-            rpcName = "sql_get_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserBadge: {
-            rpcName = "sql_get_user_badges";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserBonus: {
-            rpcName = "sql_get_user_bonus";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserCourse: {
-            rpcName = "sql_get_user_courses";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserSticker: {
-            rpcName = "sql_get_user_stickers";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Live_quiz_room: {
-            rpcName = "sql_get_live_quiz_rooms";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          default:
-            res = await this.supabase
-              ?.from(tableName)
-              .select("*")
-              .gte("updated_at", lastModifiedDate);
-            data.set(tableName, res?.data ?? []);
-        }
-
-        if (res == null || res.error || !res.data) {
-          let parent_user;
-          try {
-            parent_user =
-              await ServiceConfig.getI().authHandler.getCurrentUser();
-          } catch (error: any) {
-            console.error("User Error", error);
-          }
-          Util.logEvent(EVENTS.SYNCHING_ERROR, {
-            user_name: parent_user?.name || null,
-            user_id: parent_user?.id || null,
-            user_username: parent_user?.email || null,
-            rpc_fn_name: rpcName || "not found",
-            table_name: tableName || "not found",
-            last_modified_date: lastModifiedDate || "not found",
-            error_code: res?.error?.code || null,
-            error_deatils: res?.error?.details || null,
-            error_hint: res?.error?.hint || null,
-            error_message: res?.error?.message || null,
-          });
-          if (isInitialFetch) {
-            throw new Error(
-              `Initial fetch failed for ${rpcName || tableName}: ${res?.error?.message}`
-            );
-          }
-        }
-        // console.log(
-        //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
-        // );
-        data.set(tableName, res?.data ?? []);
+      const DEFAULT_LAST_MODIFIED = "2024-01-01T00:00:00.000Z";
+      const updatedAtPayload: Record<string, string> = {};
+      for (const tableName of tableNames) {
+        // TABLES.User -> "user", TABLES.Class -> "class", etc.
+        updatedAtPayload[tableName] =
+          tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
+      }
+      const res = await this.supabase?.rpc("sql_sync_all", {
+        p_updated_at: updatedAtPayload,
+        p_tables: tableNames,
+        p_is_first_time:isInitialFetch // TABLES[] should be string[] under the hood
       });
-
-      await Promise.all(fetchPromises);
+      if (res == null || res.error || !res.data) {
+        let parent_user;
+        try {
+          parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+        } catch (error: any) {
+          console.error("User Error", error);
+        }
+        Util.logEvent(EVENTS.SYNCHING_ERROR, {
+          user_name: parent_user?.name || null,
+          user_id: parent_user?.id || null,
+          user_username: parent_user?.email || null,
+          last_modified_date: updatedAtPayload || "not found",
+          error_code: res?.error?.code || null,
+          error_deatils: res?.error?.details || null,
+          error_hint: res?.error?.hint || null,
+          error_message: res?.error?.message || null,
+        });
+      }
+      tableNames.map(async (tableName) => {
+        data.set(tableName, res?.data?.[tableName] ?? []);
+      });
       return data;
     } catch (err: any) {
       let parent_user;
@@ -748,15 +521,309 @@ export class SupabaseApi implements ServiceApi {
         user_name: parent_user?.name || null,
         user_id: parent_user?.id || null,
         user_username: parent_user?.email || null,
-        rpc_fn_name: "not found",
-        table_name: "not found",
         last_modified_date: "not found",
         error_message: err || "Unknown error",
       });
-      console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+      console.error(":rocket: ~ Api ~ getTablesData ~ error:", err);
       throw err;
     }
   }
+  // async getTablesData(
+  //   tableNames: TABLES[] = Object.values(TABLES),
+  //   tablesLastModifiedTime: Map<string, string> = new Map(),
+  //   isInitialFetch = false
+  // ): Promise<Map<string, any[]>> {
+  //   try {
+  //     const data = new Map<string, any[]>();
+
+  //     const fetchPromises = tableNames.map(async (tableName) => {
+  //       const lastModifiedDate =
+  //         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
+  //       let rpcName;
+  //       let res;
+  //       switch (tableName) {
+  //         case TABLES.Assignment: {
+  //           rpcName = "sql_get_assignments";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Assignment_cart: {
+  //           rpcName = "sql_get_assignment_cart";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Assignment_user: {
+  //           rpcName = "sql_get_assignment_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Badge: {
+  //           rpcName = "sql_get_badge";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Chapter: {
+  //           rpcName = "sql_get_chapter";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ChapterLesson: {
+  //           rpcName = "sql_get_chapter_lesson";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Class: {
+  //           rpcName = "sql_get_class";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassCourse: {
+  //           rpcName = "sql_get_class_course";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassInvite_code: {
+  //           rpcName = "sql_get_class_invite_codes";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassUser: {
+  //           rpcName = "sql_get_class_user";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.OpsRequests: {
+  //           rpcName = "sql_get_ops_requests";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Course: {
+  //           rpcName = "sql_get_course";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Curriculum: {
+  //           rpcName = "sql_get_curriculum";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.FavoriteLesson: {
+  //           rpcName = "sql_get_favorite_lessons";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Grade: {
+  //           rpcName = "sql_get_grade";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Language: {
+  //           rpcName = "sql_get_language";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Lesson: {
+  //           rpcName = "sql_get_lessons";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ParentUser: {
+  //           rpcName = "sql_get_parent_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+
+  //         case TABLES.Result: {
+  //           rpcName = "sql_get_results";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Reward: {
+  //           rpcName = "sql_get_reward";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.School: {
+  //           rpcName = "sql_get_schools";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.SchoolCourse: {
+  //           rpcName = "sql_get_school_courses";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.SchoolUser: {
+  //           rpcName = "sql_get_school_user";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Sticker: {
+  //           rpcName = "sql_get_sticker";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Subject: {
+  //           rpcName = "sql_get_subject";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.User: {
+  //           rpcName = "sql_get_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserBadge: {
+  //           rpcName = "sql_get_user_badges";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserBonus: {
+  //           rpcName = "sql_get_user_bonus";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserCourse: {
+  //           rpcName = "sql_get_user_courses";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserSticker: {
+  //           rpcName = "sql_get_user_stickers";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Live_quiz_room: {
+  //           rpcName = "sql_get_live_quiz_rooms";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         default:
+  //           res = await this.supabase
+  //             ?.from(tableName)
+  //             .select("*")
+  //             .gte("updated_at", lastModifiedDate);
+  //           data.set(tableName, res?.data ?? []);
+  //       }
+
+  //       if (res == null || res.error || !res.data) {
+  //         let parent_user;
+  //         try {
+  //           parent_user =
+  //             await ServiceConfig.getI().authHandler.getCurrentUser();
+  //         } catch (error: any) {
+  //           console.error("User Error", error);
+  //         }
+  //         Util.logEvent(EVENTS.SYNCHING_ERROR, {
+  //           user_name: parent_user?.name || null,
+  //           user_id: parent_user?.id || null,
+  //           user_username: parent_user?.email || null,
+  //           rpc_fn_name: rpcName || "not found",
+  //           table_name: tableName || "not found",
+  //           last_modified_date: lastModifiedDate || "not found",
+  //           error_code: res?.error?.code || null,
+  //           error_deatils: res?.error?.details || null,
+  //           error_hint: res?.error?.hint || null,
+  //           error_message: res?.error?.message || null,
+  //         });
+  //         if (isInitialFetch) {
+  //           throw new Error(
+  //             `Initial fetch failed for ${rpcName || tableName}: ${
+  //               res?.error?.message
+  //             }`
+  //           );
+  //         }
+  //       }
+  //       // console.log(
+  //       //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
+  //       // );
+  //       data.set(tableName, res?.data ?? []);
+  //     });
+
+  //     await Promise.all(fetchPromises);
+  //     return data;
+  //   } catch (err: any) {
+  //     let parent_user;
+  //     try {
+  //       parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+  //     } catch (error: any) {
+  //       console.error("User Error", error);
+  //     }
+  //     Util.logEvent(EVENTS.SYNCHING_ERROR, {
+  //       user_name: parent_user?.name || null,
+  //       user_id: parent_user?.id || null,
+  //       user_username: parent_user?.email || null,
+  //       rpc_fn_name: "not found",
+  //       table_name: "not found",
+  //       last_modified_date: "not found",
+  //       error_message: err || "Unknown error",
+  //     });
+  //     console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+  //     throw err;
+  //   }
+  // }
 
   async mutate(
     mutateType: MUTATE_TYPES,
@@ -837,6 +904,7 @@ export class SupabaseApi implements ServiceApi {
       status: null,
       key_contacts: null,
       country: null,
+      location_link: null,
     };
 
     const { error } = await this.supabase
@@ -967,7 +1035,6 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     const updatedAt = new Date().toISOString();
-
     try {
       const { error } = await this.supabase
         .from(TABLES.ClassUser)
@@ -983,19 +1050,19 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error deleting user from class_user:", error);
       }
 
-      // const { error: reqerror } = await this.supabase
-      //   .from(TABLES.OpsRequests)
-      //   .update({
-      //     is_deleted: true,
-      //     updated_at: updatedAt,
-      //   })
-      //   .eq("requested_by", userId)
-      //   .eq("class_id", class_id)
-      //   .eq("is_deleted", false);
+      const { error: reqerror } = await this.supabase
+        .from(TABLES.OpsRequests)
+        .update({
+          is_deleted: true,
+          updated_at: updatedAt,
+        })
+        .eq("requested_by", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
 
-      // if (reqerror) {
-      //   console.error("Error deleting user from ops_requests:", reqerror);
-      // }
+      if (reqerror) {
+        console.error("Error deleting user from ops_requests:", reqerror);
+      }
     } catch (err) {
       console.error("Exception in deleteUserFromClass:", err);
     }
@@ -1011,7 +1078,9 @@ export class SupabaseApi implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-    country: string | null
+    country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1020,73 +1089,79 @@ export class SupabaseApi implements ServiceApi {
 
     const schoolId = uuidv4();
     const timestamp = new Date().toISOString();
+    const oSchool = onlySchool ?? true;
+    const oSchoolUser = onlySchoolUser ?? true;
 
-    // Handle optional image upload
-    const result = image
-      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
-      : null;
+    let newSchool: TableTypes<"school"> | null = null;
 
-    const newSchool: TableTypes<"school"> = {
-      id: schoolId,
-      name,
-      group1: group1 ?? null,
-      group2: group2 ?? null,
-      group3: group3 ?? null,
-      image: result ?? null,
-      group4: group4 ?? null,
-      program_id: program_id ?? null,
-      udise: udise ?? null,
-      address: address ?? null,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      model: null,
-      academic_year: null,
-      firebase_id: null,
-      is_firebase: null,
-      is_ops: null,
-      language: null,
-      ops_created_by: null,
-      student_login_type: null,
-      status: STATUS.REQUESTED,
-      key_contacts: null,
-      country: country ?? null,
-    };
+    if (oSchool) {
+      const result = image
+        ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+        : null;
 
-    // Insert school
-    const { error: schoolError } = await this.supabase
-      .from(TABLES.School)
-      .insert([newSchool]);
+      newSchool = {
+        id: schoolId,
+        name,
+        group1: group1 ?? null,
+        group2: group2 ?? null,
+        group3: group3 ?? null,
+        image: result ?? null,
+        group4: group4 ?? null,
+        program_id: program_id ?? null,
+        udise: udise ?? null,
+        address: address ?? null,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        model: null,
+        academic_year: null,
+        firebase_id: null,
+        is_firebase: null,
+        is_ops: null,
+        language: null,
+        ops_created_by: null,
+        student_login_type: null,
+        status: STATUS.REQUESTED,
+        key_contacts: null,
+        country: country ?? null,
+        location_link: null,
+      };
 
-    if (schoolError) {
-      console.error("Error inserting into school:", schoolError);
-      throw schoolError;
+      const { error: schoolError } = await this.supabase
+        .from(TABLES.School)
+        .insert([newSchool]);
+
+      if (schoolError) {
+        console.error("Error inserting into school:", schoolError);
+        throw schoolError;
+      }
     }
 
-    // Create school_user entry
-    const newSchoolUser: TableTypes<"school_user"> = {
-      id: uuidv4(),
-      school_id: schoolId,
-      user_id: _currentUser.id,
-      role: RoleType.PRINCIPAL,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      is_firebase: null,
-      is_ops: null,
-      ops_created_by: null,
-    };
+    if (oSchoolUser) {
+      const newSchoolUser: TableTypes<"school_user"> = {
+        id: uuidv4(),
+        school_id: schoolId,
+        user_id: _currentUser.id,
+        role: RoleType.PRINCIPAL,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        is_firebase: null,
+        is_ops: null,
+        ops_created_by: null,
+      };
 
-    const { error: userError } = await this.supabase
-      .from(TABLES.SchoolUser)
-      .insert([newSchoolUser]);
+      const { error: userError } = await this.supabase
+        .from(TABLES.SchoolUser)
+        .insert([newSchoolUser]);
 
-    if (userError) {
-      console.error("Error inserting into school_user:", userError);
-      throw userError;
+      if (userError) {
+        console.error("Error inserting into school_user:", userError);
+        throw userError;
+      }
     }
 
-    return newSchool;
+    return newSchool ?? ({} as TableTypes<"school">);
   }
 
   async requestNewSchool(
@@ -1168,15 +1243,15 @@ export class SupabaseApi implements ServiceApi {
     return newRequest;
   }
   async getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null> {
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null> {
     if (!this.supabase) return null;
 
     const { data, error } = await this.supabase
-      .from(TABLES.ReqNewSchool)
+      .from(TABLES.OpsRequests)
       .select("*")
-      .eq("user_id", userId)
-      .eq("is_resolved", false)
+      .eq("requested_by", requested_by)
+      .eq("request_status", STATUS.REQUESTED)
       .eq("is_deleted", false)
       .limit(1)
       .maybeSingle();
@@ -2044,7 +2119,7 @@ export class SupabaseApi implements ServiceApi {
     return favorite;
   }
   async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -2068,7 +2143,7 @@ export class SupabaseApi implements ServiceApi {
       lesson_id: lessonId,
       school_id: schoolId ?? null,
       score,
-      student_id: studentId,
+      student_id: student.id,
       time_spent: timeSpent,
       wrong_moves: wrongMoves,
       created_at: now,
@@ -2090,32 +2165,80 @@ export class SupabaseApi implements ServiceApi {
       return {} as TableTypes<"result">;
     }
 
+    // ⭐ reward update
+    const currentUser = await this.getUserByDocId(student.id);
+    const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
+    let newReward: { reward_id: string; timestamp: string } | null = null;
+    let currentUserReward: { reward_id: string; timestamp: string } | null =
+      null;
+
+    if (rewardLesson == "true" && currentUser) {
+      sessionStorage.removeItem(REWARD_LESSON);
+
+      const todaysReward = await Util.fetchTodaysReward();
+      const todaysTimestamp = new Date().toISOString();
+
+      currentUserReward = currentUser.reward
+        ? JSON.parse(currentUser.reward as string)
+        : null;
+
+      if (todaysReward) {
+        const alreadyGiven =
+          currentUserReward &&
+          currentUserReward.reward_id === todaysReward.id &&
+          new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
+            todaysTimestamp.split("T")[0];
+
+        if (!alreadyGiven) {
+          newReward = {
+            reward_id: todaysReward.id,
+            timestamp: todaysTimestamp,
+          };
+        }
+      }
+    }
+
     // Calculate earned stars
     let starsEarned = 0;
     if (score > 25) starsEarned++;
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[studentId]
-      : 0;
-    const totalStars = currentStars + starsEarned;
+    const totalStars = Util.bumpLocalStarsForStudent(student.id, starsEarned);
 
+    const updateData: any = { stars: totalStars };
+    if (newReward) updateData.reward = JSON.stringify(newReward);
     // Update user stars
     const { error: updateError } = await this.supabase
       .from("user")
-      .update({ stars: totalStars })
-      .eq("id", studentId);
+      .update(updateData)
+      .eq("id", student.id);
 
     if (updateError) {
       console.error("Error updating student stars:", updateError);
     }
 
     // Sync local student data
-    const updatedStudent = await this.getUserByDocId(studentId);
+    const updatedStudent = await this.getUserByDocId(student.id);
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
+    }
+    // 8️⃣ Log reward event if any
+    if (newReward && currentUser) {
+      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+        user_id: currentUser.id,
+        reward_id: newReward.reward_id,
+        prev_reward_id: currentUserReward?.reward_id ?? null,
+        timestamp: newReward.timestamp,
+        course_id: courseId ?? null,
+        chapter_id: chapterId,
+        lesson_id: lessonId,
+        assignment_id: assignmentId ?? null,
+        class_id: classId ?? null,
+        school_id: schoolId ?? null,
+        score,
+        stars_earned: starsEarned,
+      });
     }
 
     return newResult;
@@ -2668,167 +2791,172 @@ export class SupabaseApi implements ServiceApi {
 
     return filtered;
   }
- async getSchoolsForUser(
-  userId: string,
-  options?: { page?: number; page_size?: number; search?: string }
-): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-  if (!this.supabase) return [];
+  async getSchoolsForUser(
+    userId: string,
+    options?: { page?: number; page_size?: number; search?: string }
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+    if (!this.supabase) return [];
 
-  const search = options?.search?.trim();
-  const page = options?.page ?? 1;
-  const page_size = options?.page_size ?? 20;
-  const from = (page - 1) * page_size;
-  const to = from + page_size - 1;
+    const search = options?.search?.trim();
+    const page = options?.page ?? 1;
+    const page_size = options?.page_size ?? 20;
+    const from = (page - 1) * page_size;
+    const to = from + page_size - 1;
 
-  // --- Special users ---
-  const { data: specialUser, error: specialError } = await this.supabase
-    .from(TABLES.SpecialUsers)
-    .select("role")
-    .eq("user_id", userId)
-    .eq("is_deleted", false)
-    .single();
+    // --- Special users ---
+    const { data: specialUser, error: specialError } = await this.supabase
+      .from(TABLES.SpecialUsers)
+      .select("role")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .single();
 
-  if (specialError) {
-    console.error("Error fetching special_users:", specialError);
-  } else if (specialUser) {
-    const role = specialUser.role as RoleType;
+    if (specialError) {
+      console.error("Error fetching special_users:", specialError);
+    } else if (specialUser) {
+      const role = specialUser.role as RoleType;
 
-    // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
-    if (role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR) {
-      let query = this.supabase
-        .from(TABLES.School)
-        .select("*")
-        .eq("is_deleted", false)
-        .order("name", { ascending: true })
-        .range(from, to);
-
-      if (search) query = query.ilike("name", `%${search}%`);
-
-      const { data: allSchools, error: allErr } = await query;
-      if (allErr) {
-        console.error("Error fetching all schools:", allErr);
-        return [];
-      }
-      return (allSchools ?? []).map((school) => ({ school, role }));
-    }
-
-    // --- PROGRAM MANAGER / FIELD COORDINATOR ---
-    if (role === RoleType.PROGRAM_MANAGER || role === RoleType.FIELD_COORDINATOR) {
-      const { data: progUsers, error: puErr } = await this.supabase
-        .from(TABLES.ProgramUser)
-        .select("program_id")
-        .eq("user", userId)
-        .eq("is_deleted", false);
-
-      if (puErr) {
-        console.error("Error fetching program_user:", puErr);
-        return [];
-      }
-
-      if (progUsers?.length) {
-        const programIds = progUsers.map((pu) => pu.program_id);
+      // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
+      if (
+        role === RoleType.SUPER_ADMIN ||
+        role === RoleType.OPERATIONAL_DIRECTOR
+      ) {
         let query = this.supabase
           .from(TABLES.School)
           .select("*")
-          .in("program_id", programIds)
           .eq("is_deleted", false)
           .order("name", { ascending: true })
           .range(from, to);
 
         if (search) query = query.ilike("name", `%${search}%`);
 
-        const { data: progSchools, error: psErr } = await query;
-        if (psErr) {
-          console.error("Error fetching program schools:", psErr);
+        const { data: allSchools, error: allErr } = await query;
+        if (allErr) {
+          console.error("Error fetching all schools:", allErr);
+          return [];
+        }
+        return (allSchools ?? []).map((school) => ({ school, role }));
+      }
+
+      // --- PROGRAM MANAGER / FIELD COORDINATOR ---
+      if (
+        role === RoleType.PROGRAM_MANAGER ||
+        role === RoleType.FIELD_COORDINATOR
+      ) {
+        const { data: progUsers, error: puErr } = await this.supabase
+          .from(TABLES.ProgramUser)
+          .select("program_id")
+          .eq("user", userId)
+          .eq("is_deleted", false);
+
+        if (puErr) {
+          console.error("Error fetching program_user:", puErr);
           return [];
         }
 
-        // Deduplicate by school id
-        const unique = new Map<string, { school: any; role: RoleType }>();
-        for (const school of progSchools ?? []) {
-          unique.set(school.id, { school, role });
+        if (progUsers?.length) {
+          const programIds = progUsers.map((pu) => pu.program_id);
+          let query = this.supabase
+            .from(TABLES.School)
+            .select("*")
+            .in("program_id", programIds)
+            .eq("is_deleted", false)
+            .order("name", { ascending: true })
+            .range(from, to);
+
+          if (search) query = query.ilike("name", `%${search}%`);
+
+          const { data: progSchools, error: psErr } = await query;
+          if (psErr) {
+            console.error("Error fetching program schools:", psErr);
+            return [];
+          }
+
+          // Deduplicate by school id
+          const unique = new Map<string, { school: any; role: RoleType }>();
+          for (const school of progSchools ?? []) {
+            unique.set(school.id, { school, role });
+          }
+          return Array.from(unique.values());
         }
-        return Array.from(unique.values());
+        return [];
       }
-      return [];
     }
-  }
 
-  // --- Fallback to original logic ---
-  const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
-  const schoolIds: Set<string> = new Set();
+    // --- Fallback to original logic ---
+    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
+    const schoolIds: Set<string> = new Set();
 
-  // Teacher-linked schools
-  const { data: classUsers, error: classUserError } = await this.supabase
-    .from(TABLES.ClassUser)
-    .select("class_id")
-    .eq("user_id", userId)
-    .eq("role", RoleType.TEACHER)
-    .eq("is_deleted", false);
-
-  if (classUserError) {
-    console.error("Error fetching class users:", classUserError);
-  } else if (classUsers?.length) {
-    const classIds = classUsers.map((cu) => cu.class_id);
-    const { data: classes } = await this.supabase
-      .from(TABLES.Class)
-      .select("school_id")
-      .in("id", classIds)
+    // Teacher-linked schools
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("class_id")
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
       .eq("is_deleted", false);
 
-    if (classes?.length) {
-      const schoolIdList = classes.map((c) => c.school_id);
-      let query = this.supabase
-        .from(TABLES.School)
-        .select("*")
-        .in("id", schoolIdList)
+    if (classUserError) {
+      console.error("Error fetching class users:", classUserError);
+    } else if (classUsers?.length) {
+      const classIds = classUsers.map((cu) => cu.class_id);
+      const { data: classes } = await this.supabase
+        .from(TABLES.Class)
+        .select("school_id")
+        .in("id", classIds)
         .eq("is_deleted", false);
 
-      if (search) query = query.ilike("name", `%${search}%`);
+      if (classes?.length) {
+        const schoolIdList = classes.map((c) => c.school_id);
+        let query = this.supabase
+          .from(TABLES.School)
+          .select("*")
+          .in("id", schoolIdList)
+          .eq("is_deleted", false);
 
-      const { data: schools, error: schoolError } = await query;
-      if (!schoolError && schools?.length) {
-        for (const school of schools) {
-          if (!schoolIds.has(school.id)) {
-            schoolIds.add(school.id);
-            finalData.push({ school, role: RoleType.TEACHER });
+        if (search) query = query.ilike("name", `%${search}%`);
+
+        const { data: schools, error: schoolError } = await query;
+        if (!schoolError && schools?.length) {
+          for (const school of schools) {
+            if (!schoolIds.has(school.id)) {
+              schoolIds.add(school.id);
+              finalData.push({ school, role: RoleType.TEACHER });
+            }
           }
         }
       }
     }
-  }
 
-  // Schools linked via school_user (non-parent)
-  const { data: schoolUsers } = await this.supabase
-    .from(TABLES.SchoolUser)
-    .select("role, school_id")
-    .eq("user_id", userId)
-    .neq("role", RoleType.PARENT)
-    .eq("is_deleted", false);
-
-  if (schoolUsers?.length) {
-    const schoolUserIds = schoolUsers.map((su) => su.school_id);
-    let query = this.supabase
-      .from(TABLES.School)
-      .select("*")
-      .in("id", schoolUserIds)
+    // Schools linked via school_user (non-parent)
+    const { data: schoolUsers } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("role, school_id")
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
       .eq("is_deleted", false);
 
-    if (search) query = query.ilike("name", `%${search}%`);
+    if (schoolUsers?.length) {
+      const schoolUserIds = schoolUsers.map((su) => su.school_id);
+      let query = this.supabase
+        .from(TABLES.School)
+        .select("*")
+        .in("id", schoolUserIds)
+        .eq("is_deleted", false);
 
-    const { data: schools } = await query;
-    for (const su of schoolUsers) {
-      const school = schools?.find((s) => s.id === su.school_id);
-      if (school && !schoolIds.has(school.id)) {
-        schoolIds.add(school.id);
-        finalData.push({ school, role: su.role as RoleType });
+      if (search) query = query.ilike("name", `%${search}%`);
+
+      const { data: schools } = await query;
+      for (const su of schoolUsers) {
+        const school = schools?.find((s) => s.id === su.school_id);
+        if (school && !schoolIds.has(school.id)) {
+          schoolIds.add(school.id);
+          finalData.push({ school, role: su.role as RoleType });
+        }
       }
     }
+
+    return finalData;
   }
-
-  return finalData;
-}
-
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
@@ -2974,6 +3102,7 @@ export class SupabaseApi implements ServiceApi {
         grade,
         classSection: section,
         parent,
+        classWithidname: cls,
       };
     });
 
@@ -3303,6 +3432,7 @@ export class SupabaseApi implements ServiceApi {
         user,
         grade: grade,
         classSection: section,
+        classWithidname: cls,
       };
     });
 
@@ -3403,7 +3533,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">> {
     if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
@@ -3419,7 +3550,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
-      group_id: null,
+      group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -3521,16 +3652,22 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string) {
+  async updateClass(classId: string, className: string, groupId?: string) {
     if (!this.supabase) return;
 
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
 
+    const updateData: any = {
+      name: className,
+      updated_at: new Date().toISOString(),
+    };
+    if (groupId !== undefined) updateData.group_id = groupId;
+
     const { error } = await this.supabase
       .from("class")
-      .update({ name: className })
+      .update(updateData)
       .eq("id", classId);
 
     if (error) {
@@ -4290,6 +4427,29 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+  async getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null> {
+    if (!this.supabase) return null;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("school_data")
+        .select("*")
+        .eq("udise_code", udiseCode)
+        .single();
+
+      if (error || !data) {
+        console.error("Error fetching school_data record:", error);
+        return null;
+      }
+
+      return data; // return entire row
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDataByUdise:", err);
+      return null;
+    }
+  }
 
   async getUserByDocId(
     studentId: string
@@ -4800,6 +4960,41 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? [];
   }
+
+  async getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[],
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    if (!this.supabase || assignmentIds.length === 0) return;
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select(
+        `
+        *,
+        class_user!inner(
+          class_id,
+          is_deleted,
+          role
+        )
+      `
+      )
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false)
+      .eq("class_user.class_id", classId)
+      .eq("class_user.is_deleted", false)
+      .eq("class_user.role", "student");
+
+    if (error) {
+      console.error(
+        "Error fetching results for current class members:",
+        error.message
+      );
+      return;
+    }
+
+    return data ?? [];
+  }
   async getLastAssignmentsForRecommendations(
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
@@ -4908,7 +5103,6 @@ export class SupabaseApi implements ServiceApi {
           );
         }
       }
-
     } catch (error) {
       console.error("Unexpected error in createAssignment:", error);
     }
@@ -4980,6 +5174,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async addTeacherToClass(
+    schoolId: string,
     classId: string,
     user: TableTypes<"user">
   ): Promise<void> {
@@ -5011,8 +5206,32 @@ export class SupabaseApi implements ServiceApi {
 
     // Fetch user doc from your server API
     // const user_doc = await this.getUserByDocId(userId);
+    const { error: schoolUpdateError } = await this.supabase
+      .from(TABLES.School)
+      .update({ updated_at: now })
+      .eq("id", schoolId)
+      .eq("is_deleted", false);
 
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
+      .from(TABLES.SchoolCourse)
+      .update({ updated_at: now })
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
     // Insert into user table with upsert logic (on conflict do nothing)
+
+    const { error: classUpdateError } = await this.supabase
+      .from(TABLES.Class)
+      .update({ updated_at: now })
+      .eq("id", classId)
+      .eq("is_deleted", false);
+
+    // 🔹 Update 'school_course' table
+    const { error: classCourseUpdateError } = await this.supabase
+      .from(TABLES.ClassCourse)
+      .update({ updated_at: now })
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
     if (user) {
       const { error: userInsertError } = await this.supabase
         .from(TABLES.User)
@@ -5279,6 +5498,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     try {
+      const updatedAt = new Date().toISOString();
       // Step 1: Fetch class_user entry
       const { data: existingEntries, error: fetchError } = await this.supabase
         .from(TABLES.ClassUser)
@@ -5302,7 +5522,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 2: Soft delete the class_user record
       const { error: updateError } = await this.supabase
         .from(TABLES.ClassUser)
-        .update({ is_deleted: true })
+        .update({ is_deleted: true, updated_at: updatedAt })
         .eq("id", entryToUpdate.id);
 
       if (updateError) {
@@ -5619,7 +5839,17 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school_user:", insertError);
       return;
     }
-
+    const { error: schoolUpdateError } = await this.supabase
+      .from(TABLES.School)
+      .update({ updated_at: timestamp })
+      .eq("id", schoolId)
+      .eq("is_deleted", false);
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
+      .from(TABLES.SchoolCourse)
+      .update({ updated_at: timestamp })
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
     // const user_doc = await this.getUserByDocId(user.id);
 
     if (user) {
@@ -6899,8 +7129,7 @@ export class SupabaseApi implements ServiceApi {
 
     try {
       const { data, error } = await this.supabase.rpc(
-        "get_school_filter_options",
-        {}
+        "get_school_filter_options"
       );
 
       if (error) {
@@ -6937,6 +7166,58 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_school_filter_options_for_program",
+        { input_program_id: programId }
+      );
+
+      if (error) {
+        console.error("RPC error in getSchoolFilterOptionsForProgram:", error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {
+        state: [],
+        district: [],
+        block: [],
+        cluster: [],
+        programType: [],
+        partner: [],
+        programManager: [],
+        fieldCoordinator: [],
+        model: [],
+      };
+
+      if (data && typeof data === "object") {
+        for (const key in parsed) {
+          const val = data[key];
+          parsed[key] = Array.isArray(val)
+            ? val.filter(
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
+            : [];
+        }
+      }
+
+      return parsed;
+    } catch (err) {
+      console.error(
+        "Unexpected error in getSchoolFilterOptionsForProgram:",
+        err
+      );
+      return {};
+    }
+  }
+
   async createOrAddUserOps(payload: {
     name: string;
     email?: string;
@@ -6948,21 +7229,95 @@ export class SupabaseApi implements ServiceApi {
     message?: string;
     error?: string;
   }> {
-    if (!this.supabase)
+    if (!this.supabase) {
       return { success: false, error: "Supabase not initialized" };
+    }
     try {
       const { data, error: functionError } =
-        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
-          body: payload,
+        await this.supabase.functions.invoke("get_or_create_user", {
+          body: {
+            name: payload.name,
+            email: payload.email || undefined,
+            phone: payload.phone || undefined,
+          },
         });
+      if (functionError) {
+        const body = data as any;
+        const errorCode = body?.message || "unknown-error";
+        const errorDetail = body?.error || functionError.message;
+        return {
+          success: false,
+          message: errorCode,
+          error: errorDetail || "Unexpected error occurred",
+        };
+      }
+      const body = data as any;
+      const user = body?.user;
+      const isNew = body?.is_new === true;
+      if (!user || !user.id) {
+        return {
+          success: false,
+          message: "unexpected-error",
+          error: "Invalid response from ops_adding_and_creating_user",
+        };
+      }
+      const userId: string = user.id as string;
+      const { data: existingSpecial, error: specialError } = await this.supabase
+        .from("special_users")
+        .select("id, role")
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+      if (specialError) {
+        return {
+          success: false,
+          message: "db-role-check-failed",
+          error: specialError.message,
+        };
+      }
+      const rolesToBlock: RoleType[] = [
+        RoleType.PROGRAM_MANAGER,
+        RoleType.FIELD_COORDINATOR,
+      ];
+      const hasBlockedRole =
+        existingSpecial?.some((entry) =>
+          rolesToBlock.includes(entry.role as RoleType)
+        ) ?? false;
+      if (hasBlockedRole) {
+        return {
+          success: true,
+          user_id: userId,
+          message: "success-user-already-exists",
+        };
+      }
+      const roleForInsert = OPS_ROLES.find((r) => r === payload.role) as
+        | RoleType
+        | any;
+      const { error: insertSpecialError } = await this.supabase
+        .from("special_users")
+        .insert({
+          user_id: userId,
+          role: roleForInsert,
+          is_deleted: false,
+        });
+      if (insertSpecialError) {
+        return {
+          success: false,
+          message: "insert-role-failed",
+          error: insertSpecialError.message,
+        };
+      }
+      const successMessage = isNew
+        ? "success-created"
+        : "success-added-to-special_users";
       return {
         success: true,
-        user_id: data?.user_id,
-        message: data?.message,
+        user_id: userId,
+        message: successMessage,
       };
     } catch (err: any) {
       return {
         success: false,
+        message: "unexpected-error",
         error: err?.message || "Unexpected error occurred",
       };
     }
@@ -7658,192 +8013,246 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getOpsRequests(
+    this: any,
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 20,
     orderBy: string = "created_at",
     orderDir: "asc" | "desc" = "asc",
-    filters?: { request_type?: string[]; school?: string[] },
+    filters?: {
+      request_type?: EnumType<"ops_request_type">[];
+      school?: string[];
+    },
     searchTerm?: string
-  ) {
+  ): Promise<{
+    data: any[];
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  }> {
     try {
-      if (!this.supabase) return;
+      if (!this.supabase)
+        return { data: [], total: 0, totalPages: 0, page, limit };
 
-      const offset = (page - 1) * limit;
-      const allowedOrderByDb = ["created_at", "updated_at"];
-      const isSchoolNameOrder = orderBy === "school_name";
+      const offset = Math.max(0, (page - 1) * limit);
+      const allowedOrderByDb = [
+        "created_at",
+        "updated_at",
+        "school(name)",
+      ] as const;
+      if (!allowedOrderByDb.includes(orderBy as any)) orderBy = "created_at";
+      if (!["asc", "desc"].includes(orderDir.toLowerCase())) orderDir = "asc";
 
-      if (!isSchoolNameOrder && !allowedOrderByDb.includes(orderBy)) {
-        console.warn(
-          `[getOpsRequests] Invalid orderBy "${orderBy}", defaulting to "created_at"`
-        );
-        orderBy = "created_at";
+      const trimmedSearchTerm = searchTerm?.trim();
+      const doTextSearch = !!trimmedSearchTerm && trimmedSearchTerm.length >= 3;
+
+      let searchSchoolIds: string[] = [];
+      let searchUserIds: string[] = [];
+
+      if (doTextSearch) {
+        const [{ data: schoolData }, { data: userData }] = await Promise.all([
+          this.supabase
+            .from(TABLES.School)
+            .select("id")
+            .eq("is_deleted", false)
+            .ilike("name", `%${trimmedSearchTerm}%`),
+          this.supabase
+            .from(TABLES.User)
+            .select("id")
+            .eq("is_deleted", false)
+            .ilike("name", `%${trimmedSearchTerm}%`),
+        ]);
+        if (schoolData?.length)
+          searchSchoolIds = schoolData.map((s: any) => String(s.id));
+        if (userData?.length)
+          searchUserIds = userData.map((u: any) => String(u.id));
       }
 
-      if (!["asc", "desc"].includes(orderDir.toLowerCase())) {
-        console.warn(
-          `[getOpsRequests] Invalid orderDir "${orderDir}", defaulting to "asc"`
-        );
-        orderDir = "asc";
-      }
+      const applyFilters = (q: any) => {
+        q = q.eq("is_deleted", false);
 
-      // Filters + ordering helper
-      const applyFilters = (query: any, schoolIds?: string[]) => {
-        if (filters?.request_type?.length) {
-          query = query.in("request_type", filters.request_type);
-        }
-        if (schoolIds?.length) {
-          query = query.in("school_id", schoolIds);
-        }
-        if (searchTerm?.trim()) {
-          query = query.ilike("request_id", `%${searchTerm}%`);
-        }
+        const RS = Constants.public.Enums.ops_request_status;
+        const nowIso = new Date().toISOString();
+        const isComplexStatus =
+          requestStatus === RS[0] || requestStatus === RS[2];
 
-        if (isSchoolNameOrder) {
-          query = query.order("school(name)", {
-            ascending: orderDir === "asc",
-          });
+        if (isComplexStatus) {
+          if (requestStatus === RS[2]) {
+            q = q.or(
+              [
+                `request_status.eq.${requestStatus}`,
+                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.lte.${nowIso})`,
+              ].join(",")
+            );
+          } else {
+            q = q.or(
+              [
+                `and(request_status.eq.requested,request_type.neq.student)`,
+                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.gt.${nowIso})`,
+              ].join(",")
+            );
+          }
         } else {
-          query = query.order(orderBy, { ascending: orderDir === "asc" });
+          q = q.eq("request_status", requestStatus);
         }
 
-        return query;
+        if (filters?.request_type?.length)
+          q = q.in("request_type", filters.request_type);
+
+        const schoolFilterIds: string[] | undefined = filters?.school?.filter(
+          (x: unknown): x is string => typeof x === "string"
+        );
+        if (schoolFilterIds?.length) q = q.in("school_id", schoolFilterIds);
+
+        if (doTextSearch) {
+          const orConditions: string[] = [];
+
+          const allRequestTypes: string[] = Object.values(
+            RequestTypes
+          ) as string[];
+          const st = trimmedSearchTerm!.toLowerCase();
+
+          const matchingRequestTypes = allRequestTypes.filter((rt) =>
+            rt.toLowerCase().includes(st)
+          );
+          if (matchingRequestTypes.length)
+            orConditions.push(
+              `request_type.in.(${matchingRequestTypes.join(",")})`
+            );
+
+          if (trimmedSearchTerm.length) {
+            orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
+          }
+
+          if (searchSchoolIds.length)
+            orConditions.push(`school_id.in.(${searchSchoolIds.join(",")})`);
+          if (searchUserIds.length) {
+            orConditions.push(
+              `requested_by.in.(${searchUserIds.join(",")})`,
+              `responded_by.in.(${searchUserIds.join(",")})`
+            );
+          }
+
+          if (orConditions.length) q = q.or(orConditions.join(","));
+          else return { q, earlyEmpty: true };
+        }
+
+        return { q, earlyEmpty: false };
       };
 
-      // School filter
-      let schoolIds: string[] | undefined;
-      if (filters?.school?.length) {
-        const { data: schoolData, error: schoolError } = await this.supabase
-          .from(TABLES.School)
-          .select("id")
-          .in("name", filters.school)
-          .eq("is_deleted", false);
+      let countQ = this.supabase
+        .from(TABLES.OpsRequests)
+        .select("id", { count: "exact", head: true });
+      const { q: cq, earlyEmpty } = applyFilters(countQ);
+      if (earlyEmpty) return { data: [], total: 0, totalPages: 0, page, limit };
+      const { error: countErr, count: total } = await cq;
+      if (countErr) throw countErr;
 
-        if (schoolError) throw schoolError;
-        schoolIds = (schoolData || []).map((s) => s.id);
-
-        if (!schoolIds.length) {
-          return { data: [], total: 0 };
-        }
-      }
-
-      let combinedData: any[] = [];
-      let totalCount = 0;
-
-      if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
-        // ✅ Approved requests
-        let approvedQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", Constants.public.Enums.ops_request_status[2]);
-
-        approvedQuery = applyFilters(approvedQuery, schoolIds);
-
-        const {
-          data: approvedData,
-          error: approvedError,
-          count: approvedCount,
-        } = await approvedQuery.range(offset, offset + limit - 1);
-
-        if (approvedError) throw approvedError;
-        let expiredQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", Constants.public.Enums.ops_request_status[0])
-          .eq("request_type", RequestTypes.STUDENT)
-          .lte("request_ends_at", new Date().toISOString());
-
-        expiredQuery = applyFilters(expiredQuery, schoolIds);
-
-        let expiredPendingData: any[] = [];
-        let expiredCount = 0;
-
-        try {
-          const { data, error, count } = await expiredQuery.range(
-            offset,
-            offset + limit - 1
-          );
-          if (error) {
-            console.error("Expired query error:", error);
-          }
-          expiredPendingData = data || [];
-          expiredCount = count ?? 0;
-        } catch (err: any) {
-          console.error("Unexpected expiredQuery error:", err);
-        }
-
-        combinedData = [...(approvedData || []), ...expiredPendingData];
-        totalCount = (approvedCount ?? 0) + expiredCount;
-      } else if (
-        requestStatus === Constants.public.Enums.ops_request_status[0]
-      ) {
-        // ✅ Pending requests
-        const now = new Date().toISOString();
-        let pendingQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", requestStatus)
-          .or(
-            `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
-          );
-
-        pendingQuery = applyFilters(pendingQuery, schoolIds);
-
-        const { data, error, count } = await pendingQuery.range(
-          offset,
-          offset + limit - 1
+      let rowsQ = this.supabase
+        .from(TABLES.OpsRequests)
+        .select(
+          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type, school:school_id(*)"
         );
-        if (error) throw error;
+      const { q: rq } = applyFilters(rowsQ);
 
-        combinedData = data || [];
-        totalCount = count ?? 0;
-      } else {
-        // ✅ Other statuses (Rejected, etc.)
-        let query = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", requestStatus);
+      const { data: rows, error: rowsErr } = await rq
+        .order(orderBy, { ascending: orderDir === "asc" })
+        .range(offset, offset + limit - 1);
+      if (rowsErr) throw rowsErr;
 
-        query = applyFilters(query, schoolIds);
-
-        const { data, error, count } = await query.range(
-          offset,
-          offset + limit - 1
-        );
-        if (error) throw error;
-
-        combinedData = data || [];
-        totalCount = count ?? 0;
+      if (!rows?.length) {
+        const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
+        return { data: [], total: total ?? 0, totalPages, page, limit };
       }
 
-      if (!combinedData.length) {
-        return { data: [], total: totalCount };
-      }
-
-      // Map related entities
-      const mappedRequests = await Promise.all(
-        combinedData.map(async (req) => {
-          const [school, classInfo, requestedBy, respondedBy] =
-            await Promise.all([
-              this.getSchoolById(req.school_id!),
-              req.class_id ? this.getClassById(req.class_id) : null,
-              this.getUserByDocId(req.requested_by!),
-              req.responded_by ? this.getUserByDocId(req.responded_by) : null,
-            ]);
-          return { ...req, school, classInfo, requestedBy, respondedBy };
-        })
+      const schoolIds: string[] = Array.from(
+        new Set(
+          rows
+            .map((r: any) => r.school_id)
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
+      );
+      const userIds: string[] = Array.from(
+        new Set(
+          rows
+            .flatMap((r: any) => [r.requested_by, r.responded_by])
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
+      );
+      const classIds: string[] = Array.from(
+        new Set(
+          rows
+            .map((r: any) => r.class_id)
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
       );
 
-      return { data: mappedRequests, total: totalCount };
-    } catch (error) {
-      console.error("Error in getOpsRequests:", error);
-      return { data: [], total: 0 };
+      const [schoolsResp, usersResp, classesResp] = await Promise.all([
+        schoolIds.length
+          ? this.supabase
+              .from(TABLES.School)
+              .select("id, name, udise, group1,group2, group3, country")
+              .in("id", schoolIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        userIds.length
+          ? this.supabase
+              .from(TABLES.User)
+              .select("id, name, email, phone")
+              .in("id", userIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        classIds.length
+          ? this.supabase
+              .from(TABLES.Class)
+              .select("id, name, school_id")
+              .in("id", classIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+      ]);
+      if (schoolsResp.error) throw schoolsResp.error;
+      if (usersResp.error) throw usersResp.error;
+      if (classesResp.error) throw classesResp.error;
+
+      const schoolMap = new Map(
+        (schoolsResp.data || []).map((s: any): [string, any] => [
+          s.id as string,
+          s,
+        ])
+      );
+      const userMap = new Map(
+        (usersResp.data || []).map((u: any): [string, any] => [
+          u.id as string,
+          u,
+        ])
+      );
+      const classMap = new Map(
+        (classesResp.data || []).map((c: any): [string, any] => [
+          c.id as string,
+          c,
+        ])
+      );
+
+      const data = rows.map((r: any) => ({
+        ...r,
+        school: r.school_id
+          ? schoolMap.get(r.school_id) ?? r.school ?? null
+          : null,
+        requestedBy: r.requested_by
+          ? userMap.get(r.requested_by) ?? null
+          : null,
+        respondedBy: r.responded_by
+          ? userMap.get(r.responded_by) ?? null
+          : null,
+        classInfo: r.class_id ? classMap.get(r.class_id) ?? null : null,
+      }));
+
+      const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
+      return { data, total: total ?? 0, totalPages, page, limit };
+    } catch (err) {
+      console.error("Error in getOpsRequests:", err);
+      return { data: [], total: 0, totalPages: 0, page, limit };
     }
   }
+
   async getRequestFilterOptions() {
     try {
       if (!this.supabase) return null;
@@ -7856,7 +8265,7 @@ export class SupabaseApi implements ServiceApi {
 
         this.supabase
           .from(TABLES.OpsRequests)
-          .select("school:school(name)")
+          .select("school_id, school:school(id, name)")
           .eq("is_deleted", false)
           .not("school_id", "is", null),
       ]);
@@ -7879,20 +8288,23 @@ export class SupabaseApi implements ServiceApi {
       );
       const uniqueRequestTypes = [...new Set(allRequestTypes)];
 
-      // 2. Get unique school names
-      const schoolNames = new Set<string>();
+      // 2. Get unique schools with id and name
+      const schoolMap = new Map<string, { id: string; name: string }>();
 
       ((schoolResponse.data as any[]) || []).forEach((item) => {
-        if (item.school && item.school.name) {
-          schoolNames.add(item.school.name);
+        if (item.school && item.school.id && item.school.name) {
+          schoolMap.set(item.school.id, {
+            id: item.school.id,
+            name: item.school.name,
+          });
         }
       });
 
-      const uniqueSchoolNames = Array.from(schoolNames);
+      const uniqueSchools = Array.from(schoolMap.values());
 
       return {
         requestType: uniqueRequestTypes,
-        school: uniqueSchoolNames,
+        school: uniqueSchools,
       };
     } catch (error) {
       console.error("Error in getRequestFilterOptions:", error);
@@ -8132,16 +8544,17 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
 
-    if (role === "principal" && schoolId) {
+    if (schoolId) {
       updatePayload.school_id = schoolId;
-    } else if (classId) {
-      updatePayload.class_id = classId;
     }
 
+    if (classId) {
+      updatePayload.class_id = classId;
+    }
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("request_id", requestId)
+      .eq("id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
@@ -8157,7 +8570,8 @@ export class SupabaseApi implements ServiceApi {
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     if (!this.supabase) return undefined;
 
@@ -8166,8 +8580,11 @@ export class SupabaseApi implements ServiceApi {
       responded_by: respondedBy,
       updated_at: new Date().toISOString(),
     };
-    if (status === STATUS.REJECTED && rejectionReason) {
-      updatePayload.rejected_reason_description = rejectionReason;
+    if (rejectedReasonType) {
+      updatePayload.rejected_reason_type = rejectedReasonType;
+    }
+    if (rejectedReasonDescription) {
+      updatePayload.rejected_reason_description = rejectedReasonDescription;
     }
 
     const { data, error } = await this.supabase
@@ -8313,7 +8730,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
-      updatePayload.key_contacts = keyContacts; // jsonb column
+      updatePayload.key_contacts = JSON.stringify(keyContacts);
     }
     const { error } = await this.supabase
       .from("school")
@@ -8404,5 +8821,696 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
     return classes || [];
+  }
+  async getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined> {
+    if (!this.supabase) return undefined;
+    try {
+      const { data, error } = await this.supabase
+        .from("rive_reward")
+        .select("*")
+        .eq("id", rewardId)
+        .eq("is_deleted", false);
+      if (error) {
+        console.error("Error fetching reward by ID:", error);
+      }
+      return data && data.length > 0
+        ? (data[0] as TableTypes<"rive_reward">)
+        : undefined;
+    } catch (error) {
+      console.log("Unexpected error fetching reward by ID:", error);
+      return undefined;
+    }
+  }
+  async getAllRewards(): Promise<TableTypes<"rive_reward">[] | []> {
+    if (!this.supabase) return [];
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.RiveReward)
+        .select("*")
+        .eq("type", "normal")
+        .eq("is_deleted", false)
+        .order("state_number_input");
+
+      if (error) {
+        console.error("Error fetching all rewards", error);
+        return [];
+      }
+      return data as TableTypes<"rive_reward">[];
+    } catch (error) {
+      console.error("Error fetching all rewards", error);
+      return [];
+    }
+  }
+  async updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void> {
+    if (!this.supabase) return;
+    try {
+      const currentUser = (await this.getUserByDocId(
+        userId
+      )) as TableTypes<"user"> | null;
+      if (!currentUser) {
+        console.warn(`No user found`);
+        return;
+      }
+
+      const timestamp = created_at ?? new Date().toISOString();
+
+      const newReward = {
+        reward_id: rewardId,
+        timestamp: timestamp,
+      };
+      const rewardString = JSON.stringify(newReward);
+
+      // Update the same currentUser object
+      currentUser.reward = rewardString;
+      const { error } = await this.supabase
+        .from("user")
+        .update({ reward: currentUser.reward, updated_at: timestamp })
+        .eq("id", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating user reward:", error);
+        return;
+      }
+      Util.setCurrentStudent(currentUser);
+    } catch (error) {
+      console.error("❌ Error updating user reward:", error);
+    }
+  }
+  async getActiveStudentsCountByClass(
+    classId: string,
+    days: number = 7
+  ): Promise<string> {
+    if (!this.supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { data, error } = await this.supabase.rpc(
+      "get_active_students_count_by_class",
+      {
+        p_class_id: classId,
+        p_days: days,
+      }
+    );
+    if (error) {
+      console.error("Error fetching active students count:", error);
+      throw error;
+    }
+    return (data ?? 0).toString();
+  }
+  async getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]> {
+    if (!this.supabase) return [];
+
+    try {
+      // Query to get count of completed lessons per subject for the student for given subjects
+      const { data, error } = await this.supabase
+        .from("result")
+        .select("lesson:lesson_id(subject_id)")
+        .eq("student_id", studentId)
+        .in("lesson.subject_id", subjectIds)
+        .is("is_deleted", false);
+
+      if (error) {
+        console.error("Error fetching completed homework counts:", error);
+        return [];
+      }
+
+      // Aggregate counts by subject_id
+      const completedCountMap: { [key: string]: number } = {};
+      data.forEach((row: any) => {
+        const subjId = row.lesson.subject_id;
+        completedCountMap[subjId] = (completedCountMap[subjId] || 0) + 1;
+      });
+
+      return Object.entries(completedCountMap).map(
+        ([subject_id, completed_count]) => ({
+          subject_id,
+          completed_count,
+        })
+      );
+    } catch (err) {
+      console.error("Exception in getCompletedHomeworkCountForSubjects:", err);
+      return [];
+    }
+  }
+  async deleteApprovedOpsRequestsForUser(
+    userId: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    let query = this.supabase
+      .from("ops_requests")
+      .update({
+        is_deleted: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("requested_by", userId)
+      .eq("request_status", "approved")
+      .eq("is_deleted", false);
+
+    if (schoolId) query = query.eq("school_id", schoolId);
+    if (classId) query = query.eq("class_id", classId);
+
+    const { error } = await query;
+
+    if (error) {
+      console.error("Error deleting approved ops_requests:", error);
+    }
+  }
+
+  async getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult> {
+    if (!this.supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { name, phoneNumber, email, schoolId, role, classId } = params;
+    if (!role) {
+      throw new Error("A role is required to link a user to a school.");
+    }
+    const classIds = classId
+      ? Array.isArray(classId)
+        ? classId
+        : [classId]
+      : [];
+
+    const timestamp = new Date().toISOString();
+    const { data, error } = await this.supabase.functions.invoke(
+      "get_or_create_user",
+      {
+        body: { name, phone: phoneNumber, email },
+      }
+    );
+    if (error) {
+      console.error("user-upsert failed:", error);
+      throw error;
+    }
+    if (!data || !data.user) {
+      console.error("Invalid response from user-upsert:", data);
+      throw new Error("Invalid response from user-upsert");
+    }
+    const { message, user } = data as {
+      message: string;
+      user: { id: string; [key: string]: any };
+    };
+    const isNewUser = message === "success-created";
+    const isPrincipalRole = role === RoleType.PRINCIPAL;
+    const isTeacherRole = role === RoleType.TEACHER;
+    if (isPrincipalRole) {
+      const { data: teacherClassUser, error: teacherClassUserError } =
+        await this.supabase
+          .from("class_user")
+          .select("id, class_id, role")
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.TEACHER || "teacher")
+          .limit(1)
+          .maybeSingle();
+      if (teacherClassUserError) {
+        console.error(
+          "Failed to check teacher role in class_user:",
+          teacherClassUserError
+        );
+        throw teacherClassUserError;
+      }
+      if (teacherClassUser) {
+        throw new Error(
+          "This user is already assigned as a Teacher in a class and cannot be made Principal."
+        );
+      }
+    }
+
+    if (isTeacherRole && schoolId) {
+      const { data: principalSchoolUser, error: principalSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("id, role")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.PRINCIPAL || "principal")
+          .maybeSingle();
+      if (principalSchoolUserError) {
+        console.error(
+          "Failed to check principal role in school_user:",
+          principalSchoolUserError
+        );
+        throw principalSchoolUserError;
+      }
+      if (principalSchoolUser) {
+        throw new Error(
+          "This user is already assigned as Principal in this school and cannot be added as Teacher."
+        );
+      }
+    }
+
+    let schoolUser: any | null = null;
+    if (schoolId) {
+      const { data: existingSchoolUser, error: existingSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("*")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .maybeSingle();
+      if (existingSchoolUserError) {
+        console.error("Failed to fetch school_user:", existingSchoolUserError);
+        throw existingSchoolUserError;
+      }
+      if (existingSchoolUser) {
+        const { data: updated, error: updateError } = await this.supabase
+          .from("school_user")
+          .update({
+            role,
+            is_deleted: false,
+            updated_at: timestamp,
+          })
+          .eq("id", existingSchoolUser.id)
+          .select("*")
+          .maybeSingle();
+        if (updateError) {
+          console.error("Failed to update school_user:", updateError);
+          throw updateError;
+        }
+        schoolUser = updated ?? existingSchoolUser;
+      } else {
+        const schoolUserPayload = {
+          id: uuidv4(),
+          school_id: schoolId,
+          user_id: user.id,
+          role,
+          is_deleted: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+        const { data: inserted, error: insertError } = await this.supabase
+          .from("school_user")
+          .insert([schoolUserPayload])
+          .select("*")
+          .maybeSingle();
+        if (insertError) {
+          console.error("Failed to insert school_user:", insertError);
+          throw insertError;
+        }
+        schoolUser = inserted;
+      }
+    }
+
+    const classUsers: any[] = [];
+    for (const classIdItem of classIds) {
+      const { data: existingClassUser, error: existingClassUserError } =
+        await this.supabase
+          .from("class_user")
+          .select("*")
+          .eq("class_id", classIdItem)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .maybeSingle();
+      if (existingClassUserError) {
+        console.error("Failed to fetch class_user:", existingClassUserError);
+        throw existingClassUserError;
+      }
+      if (existingClassUser) {
+        const { data: updatedClass, error: updateClassError } =
+          await this.supabase
+            .from("class_user")
+            .update({
+              role,
+              is_deleted: false,
+              updated_at: timestamp,
+            })
+            .eq("id", existingClassUser.id)
+            .select("*")
+            .maybeSingle();
+        if (updateClassError) {
+          console.error("Failed to update class_user:", updateClassError);
+          throw updateClassError;
+        }
+        classUsers.push(updatedClass ?? existingClassUser);
+      } else {
+        const classUserPayload = {
+          id: uuidv4(),
+          class_id: classIdItem,
+          user_id: user.id,
+          role,
+          is_deleted: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+        const { data: insertedClass, error: insertClassError } =
+          await this.supabase
+            .from("class_user")
+            .insert([classUserPayload])
+            .select("*")
+            .maybeSingle();
+        if (insertClassError) {
+          console.error("Failed to insert class_user:", insertClassError);
+          throw insertClassError;
+        }
+        classUsers.push(insertedClass);
+      }
+    }
+
+    return {
+      user,
+      schoolUser,
+      classUsers,
+      isNewUser,
+    };
+  }
+  async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    if (!this.supabase) return;
+    const insertPayload: any = {
+      model: schoolModel,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (locationLink !== undefined && locationLink !== null) {
+      insertPayload.location_link = locationLink;
+    }
+
+    if (keyContacts) {
+      insertPayload.key_contacts = JSON.stringify(keyContacts);
+    }
+
+    const { error } = await this.supabase
+      .from("school")
+      .update(insertPayload)
+      .eq("id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error inserting school details:", error);
+    }
+  }
+  async updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const now = new Date().toISOString();
+
+    // Delete all existing course for this class
+    const { error: deleteError } = await this.supabase
+      .from("class_course")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
+
+    if (deleteError) {
+      console.error("Error removing old class_course entries:", deleteError);
+      throw deleteError;
+    }
+
+    // Insert the new course
+    if (selectedCourseIds.length > 0) {
+      const newEntries = selectedCourseIds.map((courseId) => ({
+        id: uuidv4(),
+        class_id: classId,
+        course_id: courseId,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      }));
+
+      const { error: insertError } = await this.supabase
+        .from("class_course")
+        .insert(newEntries);
+
+      if (insertError) {
+        console.error("Error inserting new class_course entries:", insertError);
+        throw insertError;
+      }
+    }
+  }
+
+  async addStudentWithParentValidation(params: {
+    phone: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string; data?: any }> {
+    if (!this.supabase) {
+      return { success: false, message: "Supabase client is not initialized" };
+    }
+
+    const { phone, name, gender, age, classId, schoolId, parentName, email } =
+      params;
+    const timestamp = new Date().toISOString();
+    const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    try {
+      let languageId;
+      if (schoolId) {
+        const { data: schoolData, error: schoolError } = await this.supabase
+          .from(TABLES.School)
+          .select("language")
+          .eq("id", schoolId)
+          .maybeSingle();
+
+        if (schoolData?.language) {
+          languageId = schoolData?.language;
+        }
+      }
+      if (!languageId) {
+        languageId = "7eaf3509-e44e-460f-80a1-7f6a13a8a883";
+      }
+
+      const { data: userData, error: userError } =
+        await this.supabase.functions.invoke("get_or_create_user", {
+          body: {
+            name: parentName || "Parent",
+            phone: phone,
+            email: email || "",
+          },
+        });
+
+      if (userError) {
+        console.error("Error creating/getting parent user:", userError);
+        return {
+          success: false,
+          message: "Error creating parent account",
+        };
+      }
+
+      if (!userData || !userData.user) {
+        console.error("Invalid response from user-upsert:", userData);
+        return { success: false, message: "Invalid response from server" };
+      }
+
+      const parentId = userData.user.id;
+
+      const { count, error: countError } = await this.supabase
+        .from(TABLES.ParentUser)
+        .select("*", { count: "exact", head: true })
+        .eq("parent_id", parentId)
+        .eq("is_deleted", false);
+
+      if (countError) {
+        console.error("Error counting children:", countError);
+        return {
+          success: false,
+          message: "Error checking existing profiles",
+        };
+      }
+
+      if (count !== null && count >= 3) {
+        return {
+          success: false,
+          message: "This number already has 3 profiles.",
+        };
+      }
+
+      const childId = uuidv4();
+      const { error: childCreateError } = await this.supabase
+        .from(TABLES.User)
+        .insert({
+          id: childId,
+          name: name,
+          gender: gender,
+          age: parseInt(age) || 0,
+          language_id: languageId,
+          avatar: finalAvatar,
+          created_at: timestamp,
+          updated_at: timestamp,
+          is_deleted: false,
+        });
+
+      if (childCreateError) {
+        console.error("Error creating child user:", childCreateError);
+        return { success: false, message: "Error creating student profile" };
+      }
+
+      const { error: parentUserError } = await this.supabase
+        .from(TABLES.ParentUser)
+        .insert({
+          id: uuidv4(),
+          parent_id: parentId,
+          student_id: childId,
+          created_at: timestamp,
+          updated_at: timestamp,
+          is_deleted: false,
+        });
+
+      if (parentUserError) {
+        console.error("Error linking child to parent:", parentUserError);
+        return { success: false, message: "Error linking student to parent" };
+      }
+
+      const { error: studentClassError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .insert({
+          id: uuidv4(),
+          class_id: classId,
+          user_id: childId,
+          role: RoleType.STUDENT,
+          created_at: timestamp,
+          updated_at: timestamp,
+          is_deleted: false,
+        });
+
+      if (studentClassError) {
+        console.error("Error adding student to class:", studentClassError);
+        return { success: false, message: "Error adding student to class" };
+      }
+
+      const { data: parentInClass, error: parentCheckError } =
+        await this.supabase
+          .from(TABLES.ClassUser)
+          .select("id")
+          .eq("class_id", classId)
+          .eq("user_id", parentId)
+          .eq("role", RoleType.PARENT)
+          .eq("is_deleted", false)
+          .maybeSingle();
+
+      if (parentCheckError) {
+        console.error("Error checking parent in class:", parentCheckError);
+      }
+
+      if (!parentInClass) {
+        const { error: parentClassError } = await this.supabase
+          .from(TABLES.ClassUser)
+          .insert({
+            id: uuidv4(),
+            class_id: classId,
+            user_id: parentId,
+            role: RoleType.PARENT,
+            created_at: timestamp,
+            updated_at: timestamp,
+            is_deleted: false,
+          });
+
+        if (parentClassError) {
+          console.error("Error adding parent to class:", parentClassError);
+        }
+      }
+
+      return {
+        success: true,
+        message: "Student added successfully",
+        data: {
+          studentId: childId,
+          parentId: parentId,
+        },
+      };
+    } catch (error) {
+      console.error(
+        "Unexpected error in addStudentWithParentValidation:",
+        error
+      );
+      return {
+        success: false,
+        message: "An unexpected error occurred while adding the student",
+      };
+    }
+  }
+  async getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("fc_user_forms")
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching user forms:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+  async getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from("fc_school_visit")
+      .select("*")
+      .eq("id", visitId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error fetching visit:", error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getActivitiesFilterOptions() {
+    try {
+      if (!this.supabase) return null;
+
+      const { data, error } = await this.supabase
+        .from("fc_user_forms")
+        .select("contact_target, support_level")
+        .eq("is_deleted", false);
+
+      if (error) throw error;
+
+      const forms = data || [];
+
+      const contactTypes = [
+        ...new Set(forms.map((f) => f.contact_target).filter(Boolean)),
+      ];
+      const performance = [
+        ...new Set(forms.map((f) => f.support_level).filter(Boolean)),
+      ];
+
+      return {
+        contactType: contactTypes,
+        performance: performance,
+      };
+    } catch (error) {
+      console.error("Error in getActivitiesFilterOptions:", error);
+      throw error;
+    }
   }
 }

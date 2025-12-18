@@ -24,6 +24,13 @@
   color: var(--text-color);
 }
 
+.assignment-body.slider-mode {
+  position: relative;
+  top: 2%;
+  bottom: 0%;
+}
+
+
 .classname-header {
   font-size: clamp(18px, 3.1vh, 25px);
   font-weight: bold;
@@ -52,7 +59,7 @@
   display: flex;
   position: relative;
   height: 100vh;
-  top: 25vh;
+  top: 14vh;
 }
 
 .school-class-header {

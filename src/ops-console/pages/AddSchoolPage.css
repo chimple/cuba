@@ -1,0 +1,83 @@
+.add-school-main-container {
+  height: 100vh;
+  width: 100%;          
+  overflow-y: auto;
+  padding: 16px;          
+  box-sizing: border-box;
+  background-color: #F9FAFB;
+}
+
+.add-school-secondary-header {
+  width: calc(100%);
+  margin: 0 auto;
+  padding-left: 11px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.add-school-secondary-header > * {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.add-school-container {
+  background-color: #FFFFFF;
+  padding: 20px;
+}
+
+.add-school-dropdown-container {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.add-school-dropdown-title {
+  margin-bottom: 16px !important;
+  color: #222;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  text-align: left;
+}
+
+.add-school-button-row {
+  display: flex;
+  justify-content: right;
+  margin-top: 30px;
+  gap: 30px;
+}
+
+.add-school-cancel-btn {
+  background: none;
+  border: none;
+  color: #1A71F6;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.add-school-save-btn {
+  background-color: #1A71F6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.add-school-save-btn:disabled {
+  background-color: #cccccc; 
+  color: #666666;    
+  cursor: not-allowed;  
+  opacity: 0.7;
+}
+.add-school-requird {
+  color: red;
+}

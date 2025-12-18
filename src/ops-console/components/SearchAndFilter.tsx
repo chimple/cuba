@@ -20,6 +20,7 @@ interface SearchAndFilterProps {
   filters: Record<string, string[]>;
   onFilterClick: () => void;
   onClearFilters?: () => void;
+  isFilter?: boolean;
 }
 
 const DEBOUNCE_MS = 400;
@@ -30,10 +31,12 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   filters,
   onFilterClick,
   onClearFilters,
+  isFilter,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width: 900px)");
+  const showfilter = isFilter ?? true;
   const isPortraitMobile = useMediaQuery(
     "(max-width: 600px) and (orientation: portrait)"
   );
@@ -42,14 +45,14 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   const [inputValue, setInputValue] = useState(searchTerm);
 
   useEffect(() => {
-    setInputValue(searchTerm); 
+    setInputValue(searchTerm);
   }, [searchTerm]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
       if (inputValue !== searchTerm) {
         onSearchChange({
-          target: { value: inputValue }
+          target: { value: inputValue },
         } as React.ChangeEvent<HTMLInputElement>);
       }
     }, DEBOUNCE_MS);
@@ -69,7 +72,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <TextField
           variant="outlined"
           placeholder={t("Search") || "Search"}
-          onChange={e => setInputValue(e.target.value)}
+          onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
           size="small"
@@ -87,7 +90,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           <TextField
             variant="outlined"
             placeholder={t("Search") || "Search"}
-            onChange={e => setInputValue(e.target.value)}
+            onChange={(e) => setInputValue(e.target.value)}
             value={inputValue}
             className="search-input-SearchAndFilter"
             size="small"
@@ -121,7 +124,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <TextField
           variant="outlined"
           placeholder={t("Search") || "Search"}
-          onChange={e => setInputValue(e.target.value)}
+          onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
           InputProps={{
@@ -134,7 +137,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         />
       )}
 
-      {isMobile ? (
+      {showfilter &&
+        (isMobile ? (
           <IconButton
             aria-label="Open Filters"
             onClick={onFilterClick}
@@ -142,18 +146,16 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           >
             <FilterListIcon />
           </IconButton>
-      ) : (
-        <Button
-          variant="outlined"
-          startIcon={<FilterListIcon />}
-          className={`filter-button-SearchAndFilter`}
-          onClick={onFilterClick}
-        >
-          <span style={{ color: "black" }}>
-            {t("Filter")}
-          </span>
-        </Button>
-      )}
+        ) : (
+          <Button
+            variant="outlined"
+            startIcon={<FilterListIcon />}
+            className="filter-button-SearchAndFilter"
+            onClick={onFilterClick}
+          >
+            <span style={{ color: "black" }}>{t("Filter")}</span>
+          </Button>
+        ))}
     </Stack>
   );
 };

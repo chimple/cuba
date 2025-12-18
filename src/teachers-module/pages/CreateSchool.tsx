@@ -1,17 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./CreateSchool.css";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { t } from "i18next";
 import Header from "../components/homePage/Header";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { RequestTypes } from "../../common/constants";
+import { PAGES, RequestTypes } from "../../common/constants";
 import SelectField from "../components/SelectField";
 
+interface CreateSchoolLocationState {
+  country?: string;
+  state?: string;
+  district?: string;
+  block?: string;
+}
+
 const CreateSchool: React.FC = () => {
-  const [country, setCountry] = useState("");
-  const [state, setState] = useState("");
-  const [district, setDistrict] = useState("");
-  const [block, setBlock] = useState("");
+  const history = useHistory();
+  const location = useLocation<CreateSchoolLocationState>();
+  const api = ServiceConfig.getI().apiHandler;
+
+  const prefilledData = location.state || {};
+  const isInitialLoad = useRef(true);
+
+  const [country, setCountry] = useState(prefilledData.country || "");
+  const [state, setState] = useState(prefilledData.state || "");
+  const [district, setDistrict] = useState(prefilledData.district || "");
+  const [block, setBlock] = useState(prefilledData.block || "");
   const [schoolName, setSchoolName] = useState("");
   const [udise, setUdise] = useState("");
   const [sending, setSending] = useState(false);
@@ -26,9 +40,6 @@ const CreateSchool: React.FC = () => {
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
 
-  const history = useHistory();
-  const api = ServiceConfig.getI().apiHandler;
-
   // Load countries
   useEffect(() => {
     const loadCountries = async () => {
@@ -42,8 +53,15 @@ const CreateSchool: React.FC = () => {
 
   // Load states when country changes
   useEffect(() => {
-    setState("");
-    setStates([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setState("");
+      setDistrict("");
+      setBlock("");
+      setStates([]);
+      setDistricts([]);
+      setBlocks([]);
+    }
     if (country) {
       const loadStates = async () => {
         setStatesLoading(true);
@@ -57,8 +75,13 @@ const CreateSchool: React.FC = () => {
 
   // Load districts when state changes
   useEffect(() => {
-    setDistrict("");
-    setDistricts([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setDistrict("");
+      setBlock("");
+      setDistricts([]);
+      setBlocks([]);
+    }
     if (country && state) {
       const loadDistricts = async () => {
         setDistrictsLoading(true);
@@ -75,8 +98,11 @@ const CreateSchool: React.FC = () => {
 
   // Load blocks when district changes
   useEffect(() => {
-    setBlock("");
-    setBlocks([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setBlock("");
+      setBlocks([]);
+    }
     if (state && district) {
       const loadBlocks = async () => {
         setBlocksLoading(true);
@@ -92,22 +118,37 @@ const CreateSchool: React.FC = () => {
     }
   }, [district, state, country, api]);
 
+  // This effect runs only once after the initial render
+  useEffect(() => {
+    // After all initial effects have run, set the ref to false.
+    // Any subsequent changes will be from user interaction.
+    isInitialLoad.current = false;
+  }, []); // <-- 2. Empty dependency array ensures this runs only once
+
   const handleSendRequest = async () => {
-    setSending(true);
-    const school = await api.createSchool(
-      schoolName,
-      state,
-      district,
-      block,
-      null,
-      null,
-      null,
-      udise,
-      null,
-      country
-    );
-    await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
-    setSending(false);
+    try {
+      setSending(true);
+      const school = await api.createSchool(
+        schoolName,
+        state,
+        district,
+        block,
+        null,
+        null,
+        null,
+        udise,
+        null,
+        country,
+        true,
+        false,
+      );
+      await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
+      history.replace(PAGES.POST_SUCCESS);
+    } catch (error) {
+      console.error("Error creating school:", error);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

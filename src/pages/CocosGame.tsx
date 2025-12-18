@@ -5,9 +5,12 @@ import {
   EVENTS,
   GAME_END,
   GAME_EXIT,
+  HOMEWORK_PATHWAY,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
+  REWARD_LEARNING_PATH,
+  REWARD_LESSON,
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
@@ -32,6 +35,7 @@ const CocosGame: React.FC = () => {
     from?: string;
     assignment?: any;
   };
+
   // const playedFrom = location?.from?.split('/')[1].split('?')[0]
   const playedFrom = localStorage.getItem("currentHeader");
   const assignmentType = location?.assignment?.type || "self-played";
@@ -40,20 +44,23 @@ const CocosGame: React.FC = () => {
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
-  // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const [isDeviceAwake, setDeviceAwake] = useState(false);
   const currentStudent = Util.getCurrentStudent();
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
+  const selectedLesson: Map<string, string> = state.selectedLesson ?? undefined;
+
   const chapterDetail: TableTypes<"chapter"> = state.chapter
     ? JSON.parse(state.chapter)
     : undefined;
   const lessonDetail: TableTypes<"lesson"> = state.lesson
     ? JSON.parse(state.lesson)
     : undefined;
+
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -68,25 +75,30 @@ const CocosGame: React.FC = () => {
       ],
     });
   };
+
   useEffect(() => {
     init();
     Util.checkingIfGameCanvasAvailable();
-    ScreenOrientation.lock({ orientation: "landscape" });
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAppStateChange = (state) => {
+  const handleAppStateChange = (state: any) => {
     if (state.isActive) {
       setDeviceAwake(true);
     } else {
       setDeviceAwake(false);
     }
   };
+
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(true);
@@ -98,22 +110,53 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
-        history.replace(fromPath + "&isReload=true");
-        // window.location.reload();
+        history.replace(fromPath + "&isReload=true", {
+          course: courseDetail,
+          lesson: lesson,
+          chapterId: chapterDetail?.id,
+          selectedLesson: selectedLesson,
+          fromCocos: true,
+        });
       } else {
-        history.replace(fromPath + "&isReload=false");
+        history.replace(fromPath + "&isReload=false", {
+          course: courseDetail,
+          lesson: lesson,
+          chapterId: chapterDetail?.id,
+          selectedLesson: selectedLesson,
+          fromCocos: true,
+        });
       }
       setIsLoading(false);
     } else {
       if (!!urlParams.get("isReload")) {
         if (fromPath.includes("?"))
-          history.replace(fromPath + "&isReload=true");
-        else history.replace(fromPath + "?isReload=true");
+          history.replace(fromPath + "&isReload=true", {
+            course: courseDetail,
+            lesson: lesson,
+            chapterId: chapterDetail?.id,
+            selectedLesson: selectedLesson,
+            fromCocos: true,
+          });
+        else
+          history.replace(fromPath + "?isReload=true", {
+            course: courseDetail,
+            lesson: lesson,
+            chapterId: chapterDetail?.id,
+            selectedLesson: selectedLesson,
+            fromCocos: true,
+          });
         window.location.reload();
       } else {
-        history.replace(fromPath);
+        history.replace(fromPath, {
+          course: courseDetail,
+          lesson: lesson,
+          chapterId: chapterDetail?.id,
+          selectedLesson: selectedLesson,
+          fromCocos: true,
+        });
       }
     }
     setIsLoading(false);
@@ -121,10 +164,12 @@ const CocosGame: React.FC = () => {
 
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     const data = e.detail as CocosLessonData;
 
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent!.id,
+      user_id: api.currentStudent?.id ?? _currentUser?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -160,112 +205,10 @@ const CocosGame: React.FC = () => {
       push();
     }, 100);
   };
-  const handleLessonEndListner = (event) => {
+
+  const handleLessonEndListner = (event: any) => {
     saveTempData(event.detail);
     setGameResult(event);
-  };
-
-  const updateLearningPath = async () => {
-    if (!currentStudent) return;
-    const learningPath = currentStudent.learning_path
-      ? JSON.parse(currentStudent.learning_path)
-      : null;
-
-    if (!learningPath) return;
-
-    try {
-      const { courses } = learningPath;
-      const currentCourse = courses.courseList[courses.currentCourseIndex];
-
-      const prevLessonId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].lesson_id;
-      const prevChapterId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].chapter_id;
-      const prevCourseId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .course_id;
-      const prevPathId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
-      // Update currentIndex
-      currentCourse.currentIndex += 1;
-
-      // Check if currentIndex exceeds pathEndIndex
-      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
-        }
-
-        // Move to the next course
-        courses.currentCourseIndex += 1;
-
-        await api.setStarsForStudents(currentStudent.id, 10);
-        // Loop back to the first course if at the last course
-        if (courses.currentCourseIndex >= courses.courseList.length) {
-          courses.currentCourseIndex = 0;
-        }
-        const pathwayEndData = {
-          user_id: currentStudent.id,
-          current_path_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path_id,
-          current_course_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].course_id,
-          current_lesson_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].lesson_id,
-          current_chapter_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].chapter_id,
-          prev_path_id: prevPathId,
-          prev_course_id: prevCourseId,
-          prev_lesson_id: prevLessonId,
-          prev_chapter_id: prevChapterId,
-        };
-        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      }
-
-      // Update the learning path in the database
-      await api.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath)
-      );
-      // Update the current student object
-      const updatedStudent = await api.getUserByDocId(currentStudent.id);
-      if (updatedStudent) {
-        Util.setCurrentStudent(updatedStudent);
-      }
-    } catch (error) {
-      console.error("Error updating learning path:", error);
-    }
   };
 
   async function init() {
@@ -281,22 +224,16 @@ const CocosGame: React.FC = () => {
       return;
     }
     setIsLoading(false);
+
     Util.launchCocosGame();
-
-    //Just fot Testing
-
-    // const onProblemEnd = async (e: any) => {
-    //   push();
-    // };
 
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
     });
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
-
-    // document.body.addEventListener("problemEnd", onProblemEnd);
   }
+
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
   let ChapterDetail: Chapter | undefined;
@@ -307,10 +244,7 @@ const CocosGame: React.FC = () => {
     const currentStudent = Util.getCurrentStudent();
     const lesson: Lesson = JSON.parse(state.lesson);
     if (currentStudent != null) {
-      const result = await api.updateFavoriteLesson(
-        currentStudent.id,
-        lesson.id
-      );
+      await api.updateFavoriteLesson(currentStudent.id, lesson.id);
     }
   };
 
@@ -326,6 +260,7 @@ const CocosGame: React.FC = () => {
     let classId;
     let schoolId;
     let chapter_id;
+
     if (isStudentLinked) {
       const studentResult = await api.getStudentClassesAndSchools(
         currentStudent.id
@@ -352,9 +287,52 @@ const CocosGame: React.FC = () => {
         currentStudent.id
       );
     }
-    // Check if the game was played from `learning_pathway`
-    const learning_path: string = state?.learning_path ?? false;
 
+    // Check if the game was played from `learning_pathway`
+    const learning_path: boolean = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false;
+    const homeworkIndex: number | undefined = state?.homeworkIndex;
+    const isReward: boolean = state?.reward ?? false;
+
+    if (isReward === true) {
+      sessionStorage.setItem(REWARD_LESSON, "true");
+    }
+
+    // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+    let shouldGiveHomeworkBonus = false;
+
+    if (is_homework) {
+      try {
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+
+        if (!pathStr) {
+          console.warn(
+            "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+          );
+        } else {
+          const path = JSON.parse(pathStr) as {
+            lessons?: any[];
+            currentIndex?: number;
+          };
+
+          const lessonsLen = path.lessons?.length ?? 0;
+          const isLastLessonInPath =
+            lessonsLen > 0 &&
+            typeof homeworkIndex === "number" &&
+            homeworkIndex === lessonsLen - 1;
+          if (isLastLessonInPath) {
+            shouldGiveHomeworkBonus = true;
+          }
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+          err
+        );
+      }
+    }
+
+    // Avatar / time spent updates
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -365,7 +343,7 @@ const CocosGame: React.FC = () => {
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
     const result = await api.updateResult(
-      currentStudent.id,
+      currentStudent,
       courseDocId,
       lesson.id,
       data.score!,
@@ -375,46 +353,54 @@ const CocosGame: React.FC = () => {
       assignmentId,
       chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
-      schoolId
+      schoolId,
+      shouldGiveHomeworkBonus,
+      is_homework
     );
-    // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
+
+    // Update the learning path / homework path
     if (learning_path) {
-      await updateLearningPath();
+      await Util.updateLearningPath(currentStudent, isReward);
+    } else if (is_homework) {
+      await Util.updateHomeworkPath(homeworkIndex);
     }
-    // if (!!lessonDetail.cocos_chapter_code) {
-    //   let cChap = courseDetail.chapters.find(
-    //     (chap) => lessonDetail.cocos_chapter_code === chap.id
-    //   );
-    //   if (cChap) {
-    //     ChapterDetail = cChap;
-    //   }
-    //   let existing = new Map();
-    //   let res: { [key: string]: string } = JSON.parse(
-    //     localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
-    //       "{}"
-    //   );
-    //   const finalLesson = await Util.getNextLessonFromGivenChapter(
-    //     courseDetail.chapters,
-    //     lessonData.chapterId,
-    //     lesson.id,
-    //     ChapterDetail
-    //   );
-    //   existing.set(courseDetail.courseCode, finalLesson?.id);
-    //   for (let [key, value] of existing) {
-    //     res[key] = value;
-    //   }
-    //   localStorage.setItem(
-    //     `${currentStudentDocId}-${RECOMMENDATIONS}`,
-    //     JSON.stringify(res)
-    //   );
-    // }
+
+    // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+    if (shouldGiveHomeworkBonus) {
+      try {
+        const student = Util.getCurrentStudent();
+
+        if (student?.id) {
+          const bonusStars = 10;
+
+          const newLocalStars = Util.bumpLocalStarsForStudent(
+            student.id,
+            bonusStars,
+            student.stars || 0
+          );
+
+          try {
+            await api.updateStudentStars(student.id, newLocalStars);
+          } catch (err) {
+            console.warn(
+              "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
+              err
+            );
+          }
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus] Failed to award homework completion bonus",
+          err
+        );
+      }
+    }
+
     await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
-      // assignment_id: lesson.assignment?.id,
       chapter_id: data.chapterId,
-      // chapter_name: ChapterDetail ? ChapterDetail.name : "",
       lesson_id: data.lessonId,
-      // lesson_name: lesson.name,
       lesson_type: data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
@@ -437,6 +423,7 @@ const CocosGame: React.FC = () => {
       played_from: playedFrom,
       assignment_type: assignmentType,
     });
+
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -449,13 +436,11 @@ const CocosGame: React.FC = () => {
     if (!assignmentCompletedIds[api.currentStudent?.id!]) {
       assignmentCompletedIds[api.currentStudent?.id!] = [];
     }
-    // assignmentCompletedIds[api.currentStudent?.id!].push(lesson.assignment?.id);
     localStorage.setItem(
       ASSIGNMENT_COMPLETED_IDS,
       JSON.stringify(assignmentCompletedIds)
     );
   };
-
   return (
     <IonPage id="cocos-game-page">
       <IonContent>
@@ -463,36 +448,17 @@ const CocosGame: React.FC = () => {
         {showDialogBox && (
           <div>
             <ScoreCard
-              title={t("🎉Congratulations🎊")}
-              score={gameResult.detail?.score ?? 0}
+              score={gameResult?.detail?.score ?? 0}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={t("Like the Game")}
-              lessonName={lessonDetail.name ?? ""}
+              lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
-                //  saveTempData(gameResult.detail, undefined);
-                // push();
-              }}
-              onYesButtonClicked={async (e: any) => {
-                setShowDialogBox(false);
-                setIsLoading(true);
-                await updateLessonAsFavorite();
-                if (initialCount >= 5) {
-                  Util.showInAppReview();
-                  initialCount = 0;
-                  localStorage.setItem(
-                    LESSONS_PLAYED_COUNT,
-                    initialCount.toString()
-                  );
-                }
-                push();
               }}
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 setIsLoading(true);
-                // await saveTempData(gameResult.detail, undefined);
                 push();
               }}
             />

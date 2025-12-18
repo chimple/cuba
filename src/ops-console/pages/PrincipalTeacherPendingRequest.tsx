@@ -16,6 +16,7 @@ import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
 import { BsFillBellFill } from "react-icons/bs";
+import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -36,12 +37,16 @@ const PrincipalTeacherPendingRequest = () => {
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [requestData, setRequestData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
   const editClicked = async () => {
-    const options = Object.values(RequestTypes).map((type) => ({
-      label: type.charAt(0).toUpperCase() + type.slice(1),
-      value: type,
-    }));
+    const options = Object.values(RequestTypes)
+      .filter((t) => t === RequestTypes.TEACHER || t === RequestTypes.PRINCIPAL)
+      .map((type) => ({
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+        value: type,
+      }));
     setRoleOptions(options);
     if (requestData?.school?.id) {
       try {
@@ -123,7 +128,7 @@ const PrincipalTeacherPendingRequest = () => {
 
       const classId =
         isEditing &&
-        (role === RequestTypes.TEACHER || role === RequestTypes.STUDENT)
+          (role === RequestTypes.TEACHER || role === RequestTypes.STUDENT)
           ? selectedGradeId
           : requestData?.class_id || undefined;
 
@@ -143,7 +148,7 @@ const PrincipalTeacherPendingRequest = () => {
           }
         } else if (role === RequestTypes.TEACHER) {
           try {
-            await api.addTeacherToClass(classId, requestData.requestedBy);
+            await api.addTeacherToClass(schoolId, classId, requestData.requestedBy);
           } catch (err) {
             console.error("Error adding teacher to class:", err);
           }
@@ -151,7 +156,7 @@ const PrincipalTeacherPendingRequest = () => {
       }
 
       await api.approveOpsRequest(
-        requestData.request_id,
+        requestData.id,
         respondedBy,
         role,
         schoolId,
@@ -165,7 +170,19 @@ const PrincipalTeacherPendingRequest = () => {
       console.error("Error approving request:", error);
     }
   };
-  const handleRemoveClick = () => {};
+
+  const handleRejectClick = async () => {
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!user?.id) {
+      console.error("No logged-in user found. Cannot reject request.");
+      return;
+    }
+    const userId = user?.id;
+    setCurrentUserId(userId ?? "");
+    setShowRejectPopup(true);
+  };
+
   if (loading || !requestData)
     return (
       <div className="centered">
@@ -305,26 +322,26 @@ const PrincipalTeacherPendingRequest = () => {
 
                 {(editableRequestType === RequestTypes.TEACHER ||
                   editableRequestType === RequestTypes.STUDENT) && (
-                  <div className="principal-teacher-pending-first-pending-row">
-                    <span className="principal-teacher-pending-first-pending-row-title">
-                      {t("Grade")}
-                    </span>
-                    <span>
-                      <OpsCustomDropdown
-                        placeholder={"Select Grade"}
-                        value={selectedGradeId}
-                        options={gradeOptions}
-                        onChange={(val: string) => {
-                          setSelectedGradeId(val);
-                          setRequestData((prev: any) => ({
-                            ...prev,
-                            class_id: val,
-                          }));
-                        }}
-                      />
-                    </span>
-                  </div>
-                )}
+                    <div className="principal-teacher-pending-first-pending-row">
+                      <span className="principal-teacher-pending-first-pending-row-title">
+                        {t("Grade")}
+                      </span>
+                      <span>
+                        <OpsCustomDropdown
+                          placeholder={"Select Grade"}
+                          value={selectedGradeId}
+                          options={gradeOptions}
+                          onChange={(val: string) => {
+                            setSelectedGradeId(val);
+                            setRequestData((prev: any) => ({
+                              ...prev,
+                              class_id: val,
+                            }));
+                          }}
+                        />
+                      </span>
+                    </div>
+                  )}
               </>
             ) : (
               <>
@@ -337,16 +354,16 @@ const PrincipalTeacherPendingRequest = () => {
 
                 {(request_type === RequestTypes.TEACHER ||
                   request_type === RequestTypes.STUDENT) && (
-                  <div className="principal-teacher-pending-first-pending-row">
-                    <span className="principal-teacher-pending-first-pending-row-title">
-                      {t("Grade")}
-                    </span>
-                    <span>
-                      {parsedGrade > 0 ? parsedGrade : "-"}
-                      {parsedSection ? parsedSection : ""}
-                    </span>
-                  </div>
-                )}
+                    <div className="principal-teacher-pending-first-pending-row">
+                      <span className="principal-teacher-pending-first-pending-row-title">
+                        {t("Grade")}
+                      </span>
+                      <span>
+                        {parsedGrade > 0 ? parsedGrade : "-"}
+                        {parsedSection ? parsedSection : ""}
+                      </span>
+                    </div>
+                  )}
               </>
             )}
           </Paper>
@@ -385,7 +402,7 @@ const PrincipalTeacherPendingRequest = () => {
                 <div className="principal-teacher-pending-label">
                   {t("District")}
                 </div>
-                <div>{school.group3 || "N/A"}</div>
+                <div>{school.group2 || "N/A"}</div>
               </div>
               <div
                 className="principal-teacher-pending-field-stack"
@@ -398,8 +415,10 @@ const PrincipalTeacherPendingRequest = () => {
               </div>
             </div>
             <div className="principal-teacher-pending-field-stack">
-              <div className="principal-teacher-pending-label">{t("City")}</div>
-              <div>{school.group2 || "N/A"}</div>
+              <div className="principal-teacher-pending-label">
+                {t("Country")}
+              </div>
+              <div>{school.country || "N/A"}</div>
             </div>
           </Paper>
 
@@ -452,7 +471,7 @@ const PrincipalTeacherPendingRequest = () => {
                     fontSize: "1.1rem",
                     textTransform: "none",
                   }}
-                  onClick={handleRemoveClick}
+                  onClick={handleRejectClick}
                 >
                   {t("Reject")}
                 </Button>
@@ -482,6 +501,17 @@ const PrincipalTeacherPendingRequest = () => {
           </div>
         </Grid>
       </Grid>
+
+      {showRejectPopup && (
+        <RejectRequestPopup
+          requestData={{
+            ...requestData,
+            type: requestData.request_type,
+            respondedBy: { id: currentUserId }
+          }}
+          onClose={() => setShowRejectPopup(false)}
+        />
+      )}
     </div>
   );
 };

@@ -686,6 +686,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
             : "";
+           const classSection11 = row["CLASS SECTION"]?.toString().trim();
           const teacherName = row["TEACHER NAME"]?.toString().trim();
           const teacherContact = row["TEACHER PHONE NUMBER OR EMAIL"]
             ?.toString()
