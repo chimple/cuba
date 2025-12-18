@@ -9547,6 +9547,7 @@ export class SupabaseApi implements ServiceApi {
       }
   }
 
+
   async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,
@@ -9772,6 +9773,7 @@ export class SupabaseApi implements ServiceApi {
           created_at: timestamp,
           updated_at: timestamp,
           is_deleted: false,
+          student_id: studentID || null,
         });
 
       if (childCreateError) {
@@ -10361,10 +10363,13 @@ export class SupabaseApi implements ServiceApi {
       let students_interacted = 0;
       let teachers_interacted = 0;
       (forms || []).forEach((row: any) => {
-        const hasInteraction =
-          row.contact_method === "call" || row.call_status === "call_picked";
-        if (hasInteraction) {
+        const isCallInteraction =
+          row.contact_method === "call";
+        const isInPersonInteraction = row.contact_method === "in_person";
+        if (isCallInteraction) {
           calls_made += 1;
+        }
+        if (isCallInteraction || isInPersonInteraction) {
           if (row.contact_target === "parent") {
             parents_interacted += 1;
           } else if (row.contact_target === "student") {

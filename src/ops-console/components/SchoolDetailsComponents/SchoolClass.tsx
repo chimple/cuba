@@ -206,7 +206,7 @@ const SchoolClasses: React.FC<Props> = ({
   }, [data?.schoolData?.model]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
-    return [
+    const fields: FieldConfig[] = [
       {
         name: "studentName",
         label: "Student Name",
@@ -254,17 +254,18 @@ const SchoolClasses: React.FC<Props> = ({
           },
         ],
       },
-      {
+    ];
+    if (!isAtSchool) {
+      fields.push({
         name: "phone",
         label: "Phone Number",
         kind: "phone" as const,
-        required: !isAtSchool,
-        placeholder: isAtSchool
-          ? "Enter phone number (optional)"
-          : "Enter phone number",
+        required: true,
+        placeholder: "Enter phone number",
         column: 2 as const,
-      },
-    ];
+      });
+    }
+    return fields;
   }, [isAtSchool]);
 
   const handleCloseAddStudentModal = () => {

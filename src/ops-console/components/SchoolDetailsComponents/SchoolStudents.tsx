@@ -713,7 +713,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     if (issTotal) {
-      return [
+      const fields: FieldConfig[] = [
         {
           name: "studentName",
           label: "Student Name",
@@ -775,19 +775,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             },
           ],
         },
-        {
+      ];
+      if (!isAtSchool) {
+        fields.push({
           name: "phone",
           label: "Phone Number",
           kind: "phone" as const,
-          required: !isAtSchool,
-          placeholder: isAtSchool
-            ? "Enter phone number (optional)"
-            : "Enter phone number",
+          required: true,
+          placeholder: "Enter phone number",
           column: 2 as const,
-        },
-      ];
+        });
+      }
+      return fields;
     } else {
-      return [
+      const fields: FieldConfig[] = [
         {
           name: "studentName",
           label: "Student Name",
@@ -841,17 +842,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             },
           ],
         },
-        {
+      ];
+      if (!isAtSchool) {
+        fields.push({
           name: "phone",
           label: "Phone Number",
           kind: "phone" as const,
-          required: !isAtSchool,
-          placeholder: isAtSchool
-            ? "Enter phone number (optional)"
-            : "Enter phone number",
+          required: true,
+          placeholder: "Enter phone number",
           column: 2 as const,
-        },
-      ];
+        });
+      }
+      return fields;
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
