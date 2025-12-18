@@ -28,12 +28,13 @@ import {
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2451,6 +2452,21 @@ export interface ServiceApi {
     teacherId: string,
     classId: string
   ): Promise<number | null>;
+
+    // notes
+  createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<CreateSchoolNoteInput>;
+
+  getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>>;
+
+
 
   /**
    * Get interactions metrics for a school.

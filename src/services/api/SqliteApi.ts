@@ -80,6 +80,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -7314,6 +7315,31 @@ order by
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");
   }
+
+  async createNoteForSchool(params: {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}): Promise<any> {
+  console.warn("createNoteForSchool is not supported in SQLite mode");
+  return this._serverApi.createNoteForSchool(params);
+}
+
+async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  console.warn("getNotesBySchoolId is not supported in SQLite mode");
+
+  return this._serverApi.getNotesBySchoolId(
+    schoolId,
+    limit,
+    offset
+  );
+}
+
+
   async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string

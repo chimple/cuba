@@ -90,6 +90,7 @@ export enum SchoolTabs {
   Teachers = "Teachers",
   Principals = "Principals",
   Coordinators = "Coordinators",
+  Notes = "Notes"
 }
 
 export interface FcActivity {
@@ -112,3 +113,35 @@ export interface FcActivity {
   } | null;
 }
 
+export interface CreateSchoolNoteInput {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}
+
+export interface SchoolNote {
+  id: string;
+  text: string;
+  className: string | null;
+  createdAt: string;
+
+  createdBy: {
+    userId: string;
+    name: string;
+    role: string | null;
+  };
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+}
+
+export interface Note {
+  id: string;
+  createdBy: string;
+  role: string;
+  className?: string | null;
+  date?: string;
+  text: string;
+}

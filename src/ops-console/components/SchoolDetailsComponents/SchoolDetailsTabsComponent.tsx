@@ -10,6 +10,8 @@ import SchoolPrincipals from "./SchoolPrincipals";
 import SchoolCoordinators from "./SchoolCoordinators";
 import ClassDetailsPage from "./ClassDetailsPage";
 import SchoolClasses from "./SchoolClass";
+import SchoolNotes from "./SchoolNotes";
+
 
 const tabEnumValues = Object.values(SchoolTabs);
 
@@ -19,6 +21,7 @@ interface SchoolDetailsTabsComponentProps {
   schoolId: string;
   refreshClasses?: () => void;
   goToClassesTab?: boolean;
+  onTabChange?: (tab: SchoolTabs) => void;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
@@ -27,6 +30,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   schoolId,
   refreshClasses,
   goToClassesTab,
+  onTabChange
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
@@ -35,6 +39,10 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
       setActiveTab(SchoolTabs.Classes);
     }
   }, [goToClassesTab]);
+
+  useEffect(() => {
+    if (onTabChange) onTabChange(activeTab);
+  }, [activeTab, onTabChange]);
 
   return (
     <div className="school-detail-role-tabs-wrapper">
@@ -51,39 +59,49 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           </button>
         ))}
       </div>
-      <div className="school-detail-tab-content">
-        {activeTab === SchoolTabs.Overview && (
-          <SchoolOverview data={data} isMobile={isMobile} />
-        )}
-        {activeTab === SchoolTabs.Classes && (
-          <SchoolClasses
-            data={data}
-            isMobile={isMobile}
-            schoolId={schoolId}
-            refreshClasses={refreshClasses}
-          />
-        )}
-        {activeTab === SchoolTabs.Students && (
-          <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
-        )}
-        {activeTab === SchoolTabs.Teachers && (
-          <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
-        )}
-        {activeTab === SchoolTabs.Principals && (
-          <SchoolPrincipals
-            data={data}
-            isMobile={isMobile}
-            schoolId={schoolId}
-          />
-        )}
-        {activeTab === SchoolTabs.Coordinators && (
-          <SchoolCoordinators
-            data={data}
-            isMobile={isMobile}
-            schoolId={schoolId}
-          />
-        )}
-      </div>
+      <div className="school-detail-tabschool-detail-tab-content">
+  {activeTab === SchoolTabs.Overview && (
+    <SchoolOverview data={data} isMobile={isMobile} />
+  )}
+
+  {activeTab === SchoolTabs.Classes && (
+    <SchoolClasses
+      data={data}
+      isMobile={isMobile}
+      schoolId={schoolId}
+      refreshClasses={refreshClasses}
+    />
+  )}
+
+  {activeTab === SchoolTabs.Students && (
+    <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
+  )}
+
+  {activeTab === SchoolTabs.Teachers && (
+    <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
+  )}
+
+  {activeTab === SchoolTabs.Principals && (
+    <SchoolPrincipals
+      data={data}
+      isMobile={isMobile}
+      schoolId={schoolId}
+    />
+  )}
+
+  {activeTab === SchoolTabs.Coordinators && (
+    <SchoolCoordinators
+      data={data}
+      isMobile={isMobile}
+      schoolId={schoolId}
+    />
+  )}
+
+  {activeTab === SchoolTabs.Notes && (
+    <SchoolNotes />
+  )}
+</div>
+
     </div>
   );
 };
