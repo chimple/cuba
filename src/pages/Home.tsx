@@ -45,6 +45,7 @@ import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { Device } from "@capacitor/device";
 import i18n from "../i18n";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import CampaignPopupGating from "../components/CampaignPopup/CampaignPopupGating";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -481,6 +482,7 @@ const Home: FC = () => {
         ) : null}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
+      <CampaignPopupGating />
     </IonPage>
   );
 };
