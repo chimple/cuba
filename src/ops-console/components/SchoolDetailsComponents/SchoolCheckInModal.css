@@ -244,26 +244,32 @@
 .check-in-confirmation-section {
     margin-top: 16px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     width: 100%;
-    padding: 10px;
-    background-color: #f8f9fa; /* Slight background to make it pop */
+    padding: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
+    gap: 16px; /* Space between question and options on mobile if wrapped */
 }
 
 .confirmation-question {
     font-weight: 700;
-    color: #212529 !important; /* Force black color */
-    margin-bottom: 12px;
-    font-size: 1rem;
-    text-align: center;
+    color: #212529 !important;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+    text-align: left;
+    flex: 1;
 }
 
 .radio-options-container {
     display: flex;
-    gap: 30px;
-    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
 }
 
 .radio-option {
@@ -274,28 +280,51 @@
 }
 
 .radio-option span {
-    color: #212529 !important; /* Force black color */
+    color: #212529 !important;
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .radio-option input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 20px;
     height: 20px;
+    border: 2px solid #757575;
+    border-radius: 50%;
+    margin: 0;
+    outline: none;
     cursor: pointer;
-    accent-color: #1a73e8; /* Blue accent */
+    background-color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radio-option input[type="radio"]:checked {
+    border-color: #1a73e8;
+}
+
+.radio-option input[type="radio"]:checked::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: #1a73e8;
+    border-radius: 50%;
+    display: block;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 600px) {
   .check-in-modal-container {
-    width: 92%; /* Good margin on sides */
+    width: 92%;
     max-width: 400px;
-    margin: auto; /* True centering */
-    max-height: 85vh; /* Never full height */
+    margin: auto;
+    max-height: 85vh;
     overflow: hidden;
     position: relative;
-    border-radius: 16px; /* Rounder on mobile */
+    border-radius: 16px;
   }
 
   .check-in-modal-content {
@@ -325,6 +354,11 @@
       width: 100%;
       justify-content: flex-start;
       gap: 24px;
+  }
+
+  /* Ensure confirmation section flows well on very small screens, though row is preferred */
+  .check-in-confirmation-section {
+      padding: 12px;
   }
 
   .check-in-icon-wrapper {
