@@ -9547,6 +9547,7 @@ export class SupabaseApi implements ServiceApi {
       }
   }
 
+
   async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,
@@ -9772,6 +9773,7 @@ export class SupabaseApi implements ServiceApi {
           created_at: timestamp,
           updated_at: timestamp,
           is_deleted: false,
+          student_id: studentID || null,
         });
 
       if (childCreateError) {
