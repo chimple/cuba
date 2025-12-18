@@ -50,7 +50,20 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
-  createAtSchoolUser(id: string, schoolModel: string, role: RoleType): Promise<void>;
+
+  /**
+   * Creates a AutoUser for at_school and hybrid school models when a new school is created
+   * @param {string} id - school id
+   * @param {string} schoolName - name of the school
+   * @param {string} udise - udise of the school
+   * @param {RoleType} role - RoleType of the coordinator(here : Autouser)
+   */
+  createAtSchoolUser(
+    id: string,
+    schoolName:string,
+    udise:string,
+    role: RoleType
+  ): Promise<void>;
 
   /**
    * Creates a student profile for a parent and returns the student object

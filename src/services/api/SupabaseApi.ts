@@ -9395,29 +9395,17 @@ export class SupabaseApi implements ServiceApi {
 
   async createAtSchoolUser(
     schoolId: string,
-    schoolModel: NonNullable<"hybrid" | "at_home" | "at_school" | null>,
+    schoolName: string,
+    udise: string,
     roleType: RoleType
   ): Promise<void> {
     if (!this.supabase) return;
 
-    const { data: school, error: schoolError } = await this.supabase
-      .from("school")
-      .select("*")
-      .eq("id", schoolId)
-      .eq("model", schoolModel)
-      .eq("is_deleted", false)
-      .maybeSingle();
-
-    if (schoolError) {
-      console.error("Error fetching school data:", schoolError);
-      return;
-    }
-
-    const schoolName =
-      school?.name?.trim().split(/\s+/)[0].toLowerCase() || "";
+    schoolName =
+      schoolName?.trim().split(/\s+/)[0].toLowerCase() || "";
 
     const schoolUdise =
-      school?.udise ? `${school.udise}@chimple.net` : "";
+      udise ? `${udise}${schoolName}@chimple.net` : "";
 
     const { data: apiData, error: apiError } =
       await this.supabase.functions.invoke("get_or_create_user", {
@@ -9458,6 +9446,7 @@ export class SupabaseApi implements ServiceApi {
         .from("school_user")
         .select("id")
         .eq("school_id", schoolId)
+        .eq("role", roleType)
         .maybeSingle();
 
       if (!existing) {
@@ -9466,17 +9455,16 @@ export class SupabaseApi implements ServiceApi {
           .insert(insertPayload);
 
         if (error) {
-          console.error("Error inserting at_school user:", error);
+          console.error("Error inserting at_school/hybrid user:", error);
         }
       } else {
         const { error } = await this.supabase
           .from("school_user")
           .update(updatePayload)
-          .eq("school_id", schoolId)
-          .eq("role",roleType);
+          .eq("id", existing.id);
 
         if (error) {
-          console.error("Error updating at_school user:", error);
+          console.error("Error updating at_school/hybrid user:", error);
         }
       }
   }

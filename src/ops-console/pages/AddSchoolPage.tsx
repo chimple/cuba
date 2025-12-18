@@ -394,7 +394,8 @@ const AddSchoolPage: React.FC = () => {
         if(schoolModel=="at_school" || schoolModel=="hybrid") {
           await api.createAtSchoolUser(
             editData.schoolData.id,
-            schoolModel,
+            schoolName,
+            udise,
             RoleType.AUTOUSER
           );
         }
@@ -429,7 +430,8 @@ const AddSchoolPage: React.FC = () => {
         if(schoolModel=="at_school" || schoolModel=="hybrid") {
           await api.createAtSchoolUser(
             school.id,
-            schoolModel,
+            schoolName,
+            udise,
             RoleType.AUTOUSER
           );
         }
