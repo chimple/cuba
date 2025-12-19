@@ -73,7 +73,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
   const targetLocation = useMemo(() => {
     if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
-      console.log("School Location001", schoolLocation);
         return {
             lat: schoolLocation.lat,
             lng: schoolLocation.lng,
@@ -137,7 +136,6 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                  const userLng = position.coords.longitude;
 
                  setUserLocation({ lat: userLat, lng: userLng });
-                 console.log("User Location (Continuous)", userLat, userLng);
 
                  const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
                  setDistance(dist);
@@ -416,7 +414,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                         <Marker 
                             position={[targetLocation.lat, targetLocation.lng]}
                             icon={new L.Icon({
-                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                                iconUrl: require('../../../assets/images/marker-icon-2x-green.png'),
                                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                                 iconSize: [30, 41],
                                 iconAnchor: [12, 41],

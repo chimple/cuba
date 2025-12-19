@@ -125,12 +125,12 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
 
   useEffect(() => {
     if (data.schoolData?.location_link) {
-        const regex = /q=([+-]?[\d.]+),([+-]?[\d.]+)/;
+        const regex = /(?:q|query|ll)=([+-]?[\d.]+),([+-]?[\d.]+)/;
         const match = data.schoolData.location_link.match(regex);
         if (match) {
             setSchoolLocation({
                 lat: parseFloat(match[1]),
-                lng: parseFloat(match[3])
+                lng: parseFloat(match[2])
             });
         }
     }

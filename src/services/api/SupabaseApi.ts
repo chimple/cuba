@@ -988,6 +988,40 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      if (!this.supabase) return null;
+      const {
+        data: { user },
+      } = await this.supabase.auth.getUser();
+
+      if (!user) return null;
+
+      const { data, error } = await this.supabase
+        .from(TABLES.FcSchoolVisit)
+        .select("*")
+        .eq("school_id", schoolId)
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") return null;
+        console.error("SupabaseApi: Error getting last visit:", error);
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      console.error("SupabaseApi: getLastSchoolVisit exception:", e);
+      return null;
+    }
+  }
+
   async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,

@@ -252,6 +252,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateSchoolLocation(schoolId, lat, lng);
   }
 
+  public async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getLastSchoolVisit(schoolId);
+  }
+
   public async requestNewSchool(
     name: string,
     state: string,

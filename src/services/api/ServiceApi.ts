@@ -156,12 +156,6 @@ export interface ServiceApi {
   ): Promise<void>;
 
   /**
-   * Records a school visit (check-in).
-   * @param schoolId - The school ID.
-   * @param visitData - The visit data including time and location.
-   * @returns {Promise<TableTypes<"fc_school_visit"> | null>} The recorded visit.
-   */
-  /**
    * Records a school visit (check-in or check-out).
    * @param schoolId - The school ID.
    * @param lat - Latitude.
@@ -176,6 +170,10 @@ export interface ServiceApi {
     action: "check_in" | "check_out",
     visitType?: string,
     distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  getLastSchoolVisit(
+    schoolId: string
   ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   /**
