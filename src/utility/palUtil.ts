@@ -439,21 +439,25 @@ export class palUtil {
     }
 
     const subjectId = graph.subjects[0]?.id ?? "";
-    const outcomeEvents: OutcomeEvent[] = outcomes.map((correct) => ({
-      skillId,
-      correct,
-    }));
-    const updated = updateAbilities({
-      graph,
-      abilities: abilityState,
-      events: outcomeEvents,
-    });
+    let newAbilityState = abilityState;
 
-    const newAbilityState = updated?.abilities ?? abilityState;
-    this.abilityGraphCache.set(cacheKey, {
-      abilityState: newAbilityState,
-      graph,
-    });
+    if (outcomes && outcomes.length > 0) {
+      const outcomeEvents: OutcomeEvent[] = outcomes.map((correct) => ({
+        skillId,
+        correct,
+      }));
+      const updated = updateAbilities({
+        graph,
+        abilities: abilityState,
+        events: outcomeEvents,
+      });
+
+      newAbilityState = updated?.abilities ?? abilityState;
+      this.abilityGraphCache.set(cacheKey, {
+        abilityState: newAbilityState,
+        graph,
+      });
+    }
 
     const skillNode = graph.skills.find((s) => s.id === skillId);
     const outcomeId = skillNode?.outcomeId;
