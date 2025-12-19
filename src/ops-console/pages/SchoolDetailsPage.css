@@ -1,11 +1,14 @@
 .school-detail-container {
   background: white;
   width: 100%;
-  position: relative !important;
-  overflow: hidden !important;
+  height: 100vh;          /* FIXED HEIGHT */
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  overflow: hidden;      /* ❗IMPORTANT */
+}
+.school-detail-tertiary-header {
+  flex: 1;               /* takes remaining space */
+  min-height: 0;         /* CRITICAL for scroll */
 }
 
 .school-detail-gap {
@@ -22,6 +25,24 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
+}
+
+.add-note-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #4F46E5;
+  background: white;
+  color: #4F46E5;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 24px;
+  width: auto;
+  max-width: max-content;
+}
+
+.add-note-button:hover {
+  background: #f6f6ff;
 }
 
 .school-detail-secondary-header {

@@ -4,6 +4,8 @@ import "./Assignment.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
@@ -25,14 +27,21 @@ import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import LearningPathway from "../components/LearningPathway";
 import HomeworkPathway from "../components/assignment/HomeworkPathway";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
+import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";
+import { useGbContext } from "../growthbook/Growthbook";
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   assignmentCount: any;
+  onPlayMoreHomework?: () => void;
 }
 
-const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
+const AssignmentPage: React.FC<AssignmentPageProps> = ({
+  assignmentCount,
+  onPlayMoreHomework, // ✅ grab it from props
+}) => {
+  const growthbook = useGrowthBook();
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
@@ -57,9 +66,19 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
+  const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
+    useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
-  const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
+  const { gbUpdated, setGbUpdated } = useGbContext();
+
+  const isHomeworkPathwayOnHook = useFeatureIsOn("homework-learning-pathway");
+  const [isHomeworkPathwayOnLocal, setIsHomeworkPathwayOnLocal] =
+    useState<boolean>(false);
+
+  // used to avoid re-evaluating for same student repeatedly
+  const lastEvaluatedStudentId = useRef<string | null>(null);
+  const [assignmentSyncDone, setAssignmentSyncDone] = useState(false);
 
   const updateLessonChapterAndCourseMaps = useCallback(
     async (assignments: TableTypes<"assignment">[]) => {
@@ -185,6 +204,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
     }, 1000);
   }, [init]);
 
+  useEffect(() => {
+    if (assignmentSyncDone && !loading) {
+      setShowHomeworkCompleteModal(assignments.length === 0);
+    }
+  }, [assignmentSyncDone, loading, assignments.length]);
+
   // --- Listener setup ---
   useEffect(() => {
     isMounted.current = true;
@@ -230,8 +255,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
     init(false, true);
 
     api
-      .syncDB(Object.values(TABLES))
+      .syncDB([TABLES.Assignment])
       .then(() => {
+        setAssignmentSyncDone(true);
         init(false, false);
       })
       .catch((error) => {
@@ -265,7 +291,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       checkAllHomeworkDownloaded
     );
   };
-
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
@@ -309,78 +334,130 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       });
     }
   }, []);
+
+  // GrowthBook: detect student change and re-evaluate feature
+  useEffect(() => {
+    try {
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
+
+      // If no student — make sure local flag is false
+      if (!studentId) {
+        lastEvaluatedStudentId.current = null;
+        setIsHomeworkPathwayOnLocal(false);
+        // If gbUpdated was used as a trigger, clear it now (optional)
+        if (gbUpdated && typeof setGbUpdated === "function")
+          setGbUpdated(false);
+        return;
+      }
+
+      // If nothing changed and no manual refresh requested, skip
+      if (lastEvaluatedStudentId.current === studentId && !gbUpdated) {
+        return;
+      }
+
+      // Build attributes (defensive)
+      const attrs = {
+        student_id: studentId,
+        age: student?.age ?? null,
+        grade_id: student?.grade_id ?? null,
+      };
+
+      // Set attributes BEFORE evaluating
+      growthbook.setAttributes(attrs);
+
+      // Synchronously evaluate feature
+      const val = (growthbook.getFeatureValue?.(
+        "homework-learning-pathway",
+        false
+      ) ?? false) as boolean;
+
+      setIsHomeworkPathwayOnLocal(Boolean(val));
+      lastEvaluatedStudentId.current = studentId;
+
+      // reset the gbUpdated flag after handling it
+      if (gbUpdated && typeof setGbUpdated === "function") setGbUpdated(false);
+    } catch (e) {
+      console.warn("GrowthBook evaluation error:", e);
+    }
+    // Run on mount and whenever gbUpdated changes
+  }, [growthbook, gbUpdated]);
+
+  // ⬆ inside AssignmentPage component, before JSX:
+  const bodyClass = !isLinked
+    ? "lesson-body"
+    : !isHomeworkPathwayOnLocal
+    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+      lessons.length < 1
+      ? "lesson-body"
+      : "assignment-body"
+    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+      "assignment-body";
+
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        <div
-          className={
-            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
-          }
-        >
-          {isHomeworkPathwayOn && (
-            <div className="assignment-header">
-              <div className="right-button"></div>
+        <div className={bodyClass}>
+          {!isHomeworkPathwayOnLocal &&
+            !showHomeworkCompleteModal &&
+            assignments.length > 0 && (
+              <div className="assignment-header">
+                <div className="right-button"></div>
 
-              <div className="dowload-homework-button-container">
-                <div className="school-class-header">
-                  <div className="classname-header">{schoolName}</div>
-                  <div className="classname-header">
-                    {currentClass?.name ? currentClass?.name : ""}
+                <div className="dowload-homework-button-container">
+                  <div className="school-class-header">
+                    <div className="classname-header">{schoolName}</div>
+                    <div className="classname-header">
+                      {currentClass?.name ? currentClass?.name : ""}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {isLinked &&
-              showDownloadHomeworkButton &&
-              lessons.length > 0 &&
-              Capacitor.isNativePlatform() ? (
-                <IonButton
-                  size="small"
-                  color="white"
-                  shape="round"
-                  disabled={downloadButtonLoading}
-                  className="dowload-homework-button"
-                  onClick={() => {
-                    if (!online) {
-                      presentToast({
-                        message: t(`Device is offline.`),
-                        color: "danger",
-                        duration: 3000,
-                        position: "bottom",
-                        buttons: [{ text: "Dismiss", role: "cancel" }],
-                      });
-                      setLoading(false);
-                      return;
-                    }
-                    downloadAllHomeWork(lessons);
-                  }}
-                >
-                  <div className="download-homework-label">
-                    {downloadButtonLoading
-                      ? t("Downloading...")
-                      : t("Download all")}
-                  </div>
-
-                  {!downloadButtonLoading && (
-                    <div className="dowload-homework-icon-container">
-                      <TfiDownload className="dowload-homework-icon" />
+                {isLinked &&
+                !showDownloadHomeworkButton &&
+                lessons.length > 0 &&
+                Capacitor.isNativePlatform() ? (
+                  <IonButton
+                    size="small"
+                    color="white"
+                    shape="round"
+                    disabled={downloadButtonLoading}
+                    className="dowload-homework-button"
+                    onClick={() => {
+                      if (!online) {
+                        presentToast({
+                          message: t(`Device is offline.`),
+                          color: "danger",
+                          duration: 3000,
+                          position: "bottom",
+                          buttons: [{ text: "Dismiss", role: "cancel" }],
+                        });
+                        setLoading(false);
+                        return;
+                      }
+                      downloadAllHomeWork(lessons);
+                    }}
+                  >
+                    <div className="download-homework-label">
+                      {downloadButtonLoading
+                        ? t("Downloading...")
+                        : t("Download all")}
                     </div>
-                  )}
-                </IonButton>
-              ) : (
-                <div className="right-button"></div>
-              )}
-            </div>
-          )}
+
+                    {!downloadButtonLoading && (
+                      <div className="dowload-homework-icon-container">
+                        <TfiDownload className="dowload-homework-icon" />
+                      </div>
+                    )}
+                  </IonButton>
+                ) : (
+                  <div className="right-button"></div>
+                )}
+              </div>
+            )}
 
           {!loading && (
-            <div
-              className={
-                !isLinked || lessons.length < 1
-                  ? "lesson-body"
-                  : "assignment-body"
-              }
-            >
+            <div>
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
@@ -389,10 +466,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                 />
               ) : (
                 <div>
-                  {assignments.length > 0 ? (
-                    // 3. Conditionally render based on the feature flag
-                    // If the feature is ON, show the original slider
-                    isHomeworkPathwayOn ? (
+                  {!isHomeworkPathwayOnLocal ? (
+                    // ✅ Flag ON → old LessonSlider flow
+                    assignments.length > 0 ? (
                       <LessonSlider
                         key={assignments.length}
                         lessonData={lessons}
@@ -410,15 +486,50 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                         lessonCourseMap={assignmentLessonCourseMap}
                       />
                     ) : (
-                      // If the feature is OFF, show the new pathway
-
-                      <HomeworkPathway />
+                      <div className="pending-assignment">
+                        {showHomeworkCompleteModal && (
+                          <HomeworkCompleteModal
+                            text={t(
+                              "Yay!! You have completed all the Homework!!"
+                            )}
+                            borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                            onClose={() => setShowHomeworkCompleteModal(false)}
+                            onPlayMore={() => {
+                              setShowHomeworkCompleteModal(false);
+                              if (onPlayMoreHomework) {
+                                onPlayMoreHomework();
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
                     )
+                  ) : // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+
+                  // <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  assignments.length > 0 ? (
+                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
                   ) : (
                     <div className="pending-assignment">
-                      {t("You don't have any pending assignments.")}
+                      {showHomeworkCompleteModal && (
+                        <HomeworkCompleteModal
+                          text={t(
+                            "Yay!! You have completed all the Homework!!"
+                          )}
+                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                          onClose={() => setShowHomeworkCompleteModal(false)}
+                          onPlayMore={() => {
+                            setShowHomeworkCompleteModal(false);
+                            if (onPlayMoreHomework) {
+                              onPlayMoreHomework();
+                            }
+                          }}
+                        />
+                      )}
                     </div>
                   )}
+
+                  {/* retained older commented logic in case you want to revert */}
                 </div>
               )}
             </div>

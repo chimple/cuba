@@ -15,7 +15,7 @@ import {
   PAGES,
   USER_ROLE,
 } from "../../common/constants";
-import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
+import { SupabaseClient, UserAttributes, Session } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import { Util } from "../../utility/util";
@@ -31,7 +31,7 @@ export class SupabaseAuth implements ServiceAuth {
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
 
-  private constructor() {}
+  private constructor() { }
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -179,6 +179,7 @@ export class SupabaseAuth implements ServiceAuth {
     }
     return true;
   }
+
   async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     try {
       if (!this._auth) return { success: false, isSpl: false };
@@ -194,12 +195,21 @@ export class SupabaseAuth implements ServiceAuth {
           },
         });
       } else {
-        response = await SocialLogin.login({
+        const { data, error } = await this._auth.signInWithOAuth({
           provider: "google",
           options: {
-            scopes: ["profile", "email"],
+            redirectTo: window.location.origin,
+            queryParams: {
+              prompt: "select_account",
+            },
           },
         });
+
+        if (error) {
+          console.error("Web Google login failed:", error);
+          return { success: false, isSpl: false };
+        }
+        return { success: true, isSpl: false };
       }
       if (response.result?.responseType !== "online") {
         return { success: false, isSpl: false };
@@ -222,69 +232,11 @@ export class SupabaseAuth implements ServiceAuth {
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
-      const rpcRes = await this.rpcRetry<boolean>(async () => {
-        const { data, error } = await this._supabaseDb!.rpc("isUserExists", {
-          user_email: authUser.email!,
-          user_phone: "",
-        }).maybeSingle();
-        return { data: !!data, error };
-      });
 
-      if (!rpcRes) {
-        const createdUser = await api.createUserDoc({
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          gender: null,
-          grade_id: null,
-          id: data.user?.id ?? authUser.id,
-          image: authUser.imageUrl,
-          is_deleted: false,
-          is_tc_accepted: true,
-          language_id: null,
-          name: authUser.name,
-          updated_at: new Date().toISOString(),
-          email: authUser.email,
-          phone: data.user?.phone ?? null,
-          music_off: false,
-          sfx_off: false,
-          fcm_token: null,
-          student_id: null,
-          firebase_id: null,
-          is_firebase: null,
-          is_ops: null,
-          learning_path: null,
-          ops_created_by: null,
-          reward: null,
-          stars: null,
-        });
-        this._currentUser = createdUser;
-      }
+      if (!data.session) return { success: false, isSpl: false };
 
-      const isSpl = await this.rpcRetry<boolean>(async () => {
-        const { data, error } = await this._supabaseDb!.rpc(
-          "is_special_or_program_user"
-        ).maybeSingle();
-
-        return { data: !!data, error } as { data: boolean; error: any };
-      });
-      if (isSpl) {
-        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-      } else {
-        let isFirstSync = true;
-        await api.syncDB(
-          Object.values(TABLES),
-          REFRESH_TABLES_ON_LOGIN,
-          isFirstSync
-        );
-      }
-
-      await api.updateFcmToken(data.user?.id ?? authUser.id);
-      if (rpcRes) {
-        await api.subscribeToClassTopic();
-      }
-      return { success: true, isSpl: isSpl };
+      const initResult = await this.initializeUserRecord(data.session);
+      return { success: !!initResult, isSpl: initResult?.isSpl ?? false };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
@@ -305,6 +257,7 @@ export class SupabaseAuth implements ServiceAuth {
       // await this.doRefreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
+      const session = authData.data.session;
 
       const api = ServiceConfig.getI().apiHandler;
       const userRole = await api.getUserSpecialRoles(
@@ -319,6 +272,13 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = user;
         return this._currentUser;
       } else {
+        // If user is not found in DB but we have a session (e.g. fresh OAuth login), try to create/init them
+        const initResult = await this.initializeUserRecord(session);
+        if (initResult && initResult.user) {
+          this._currentUser = initResult.user;
+          return this._currentUser;
+        }
+        // If still fails, sign out
         this._auth?.signOut();
         return;
       }
@@ -384,9 +344,11 @@ export class SupabaseAuth implements ServiceAuth {
     if (navigator.onLine) {
       await this.doRefreshSession();
       // const authData = await this._auth?.getUser();
-      const authData = await this._auth?.getSession();
-      // const user = await this.getCurrentUser();
-      return !!authData?.data?.session?.user;
+      // const authData = await this._auth?.getSession();
+      const user = await this.getCurrentUser();
+
+      // return !!authData?.data?.session?.user;
+      return !!user;
     } else {
       const isUser = localStorage.getItem(CURRENT_USER);
       return !!isUser;
@@ -454,7 +416,7 @@ export class SupabaseAuth implements ServiceAuth {
     max = 5
   ): Promise<T> {
     let attempt = 1;
-    for (;;) {
+    for (; ;) {
       try {
         const { data, error } = await fn();
         if (error) throw error;
@@ -465,8 +427,7 @@ export class SupabaseAuth implements ServiceAuth {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${
-            burn ? "" : " (not counting)"
+          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"
           }; retrying in ${backoff}ms`,
           err
         );
@@ -521,6 +482,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_deleted: false,
           is_tc_accepted: true,
           language_id: null,
+          locale_id: null,
           name: null,
           updated_at: new Date().toISOString(),
           email: null,
@@ -559,13 +521,108 @@ export class SupabaseAuth implements ServiceAuth {
           isFirstSync
         );
       }
-
-      await api.updateFcmToken(user?.user?.id ?? "");
+      try {
+        await api.updateFcmToken(user.user?.id ?? "");
+      } catch (err) { }
       if (isUserExist) await api.subscribeToClassTopic();
 
       return { user, isUserExist: !!isUserExist, isSpl };
     } catch (_err) {
       return { user: null, isUserExist: false, isSpl: false };
+    }
+  }
+
+  private async initializeUserRecord(session: Session): Promise<{ user: TableTypes<"user">; isSpl: boolean } | null> {
+    try {
+      if (!this._supabaseDb || !session.user) return null;
+      const api = ServiceConfig.getI().apiHandler;
+      const user = session.user;
+      const email = user.email;
+      const id = user.id;
+      // Map metadata. logic handles both Google and potentially other providers if standardized
+      const meta = user.user_metadata || {};
+      const name = meta.full_name || meta.name || meta.given_name || "";
+      const avatarUrl = meta.avatar_url || meta.picture || null;
+
+      const isUserExists = await this.rpcRetry<boolean>(async () => {
+        const { data, error } = await this._supabaseDb!.rpc("isUserExists", {
+          user_email: email || "",
+          user_phone: "",
+        }).maybeSingle();
+        return { data: !!data, error };
+      });
+
+      let createdUser: TableTypes<"user"> | undefined;
+
+      if (!isUserExists) {
+        createdUser = await api.createUserDoc({
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          gender: null,
+          grade_id: null,
+          id: id,
+          image: avatarUrl,
+          is_deleted: false,
+          is_tc_accepted: true,
+          language_id: null,
+          locale_id: null,
+          name: name,
+          updated_at: new Date().toISOString(),
+          email: email || null,
+          phone: user.phone || null,
+          music_off: false,
+          sfx_off: false,
+          fcm_token: null,
+          student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          reward: null,
+          stars: null,
+        });
+      }
+
+      const isSplQuery = await this.rpcRetry<boolean>(async () => {
+        const { data, error } = await this._supabaseDb!.rpc(
+          "is_special_or_program_user"
+        ).maybeSingle();
+
+        return { data: !!data, error } as { data: boolean; error: any };
+      });
+
+      if (isSplQuery) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        let isFirstSync = true;
+        await api.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN,
+          isFirstSync
+        );
+      }
+
+      if (isUserExists){
+        createdUser = await api.getUserByDocId(id);
+      }
+      if (!createdUser) {
+        console.error("Failed to initialize user record: User could not be created or retrieved.");
+        return null;
+      }
+      this._currentUser = createdUser;
+
+      await api.updateFcmToken(id);
+      if (isUserExists) {
+        await api.subscribeToClassTopic();
+      }
+
+      return { user: createdUser, isSpl: isSplQuery };
+    } catch (error) {
+      console.error("initializeUserRecord failed:", error);
+      return null;
     }
   }
 

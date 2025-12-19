@@ -1,34 +1,36 @@
-.dropdown-main {
+.dropdownmenu-dropdown-main {
   display: flex;
   flex-direction: column;
   gap: 1vh;
-  left: 3vh;
+  left: 5%;
   top: 42%;
   position: absolute;
+  z-index: 1;
 }
 
 .homework-dropdown-wrapper .dropdown-main {
-  top: 200%;
+  top: 143%;
   bottom: 100%; /* Position the bottom of the menu at the top of the wrapper */
   left: 5%; /* Or adjust as needed, e.g., 50% with a transform for centering */
 }
 /* Tablet and mobile landscape */
-@media (max-width: 1024px) and (orientation: landscape) {
-  .homework-dropdown-wrapper .dropdown-main {
-    top: 106%;  
+@media (orientation: landscape) and (max-height: 450px) {
+  .homework-dropdown-wrapper .dropdownmenu-dropdown-main {
+    top: 88%;
   }
 }
-.truncate-style {
+
+.dropdownmenu-truncate-style {
   font-size: 10px;
   margin-top: -6px;
 }
 
-.dropdown-main.dropdown-disabled {
+/* .dropdown-main.dropdown-disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
+} */
 
-.dropdown-container {
+.dropdownmenu-dropdown-container {
   max-width: 9vw;
   min-height: 13vh;
   height: auto;
@@ -43,17 +45,17 @@
   position: absolute;
 }
 
-.dropdown-container.expanded {
+.dropdownmenu-dropdown-container.dropdownmenu-expanded {
   display: flex;
   align-items: flex-start;
   background-color: white;
 }
-.dropdown-container.expanded .dropdown-left {
+.dropdownmenu-dropdown-container.dropdownmenu-expanded .dropdownmenu-dropdown-left {
   max-height: 52vh;
   overflow-y: auto;
 }
 
-.dropdown-left {
+.dropdownmenu-dropdown-left {
   background-color: #FFF9CF;
   display: flex;
   flex-direction: column;
@@ -62,10 +64,9 @@
   width: 11vw;
   height: auto;
   max-height: 12vh;
-  transition: max-height 0.1s ease-in-out;
 }
 
-.selected-icon {
+.dropdownmenu-selected-icon {
   position: absolute;
   height: auto;
   width: auto;
@@ -80,13 +81,13 @@
   display: none;
 }
 
-.dropdown-items {
+.dropdownmenu-dropdown-items {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.dropdown-arrow {
+.dropdownmenu-dropdown-arrow {
   width: 4vw;
   background-color: white;
   display: flex;
@@ -96,7 +97,7 @@
   border-bottom-right-radius: 2.5vh;
 }
 
-.dropdown-arrow.expanded-arrow {
+.dropdownmenu-dropdown-arrow.dropdownmenu-expanded-arrow {
   padding-bottom: 0 !important; 
   margin-top: 5vh;                
   padding-right: 0.1vw;          
@@ -112,7 +113,7 @@
   height: auto;
 }
 
-.dropdown-label {
+.dropdownmenu-dropdown-label {
   text-align: center;
   font-size: 12px;
   font-weight: 400;
@@ -123,7 +124,7 @@
   margin-top: 13vh;
 }
 
-.menu-item {
+.dropdownmenu-menu-item {
   display: flex;
   align-items: center;
   gap: 0.5vh;
@@ -137,7 +138,7 @@
   height: auto;
 }
 
-.menu-item.selected-expanded {
+.dropdownmenu-menu-item.dropdownmenu-selected-expanded {
   background-color: #FFB792;
   width: auto;
   height: auto;
@@ -151,7 +152,7 @@
   font-weight: 400;
 }
 
-.menu-selected {
+.dropdownmenu-menu-selected {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -159,4 +160,61 @@
   gap: 1vh;
   height: 100%;
   width: 100%;
+}
+/* ensure parent is not transformed (selected icon stays visible) */
+.dropdownmenu-dropdown-left {
+  transform: none;
+  transform-origin: top;
+}
+
+/* List base — always present but collapsed by default */
+.dropdownmenu-dropdown-items {
+  transform-origin: top;
+  transform: scaleY(0);
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;            /* avoid clicks when closed */
+  transition:
+    transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
+    opacity 0.18s ease,
+    max-height 0.28s ease;
+  will-change: transform, opacity, max-height;
+}
+
+/* When open, animate to visible */
+.dropdownmenu-dropdown-items.dropdownmenu-open {
+  transform: scaleY(1);
+  opacity: 1;
+  max-height: 52vh;                /* same as your expanded max-height */
+  pointer-events: auto;
+}
+
+/* Per-item fade/slide (unchanged) */
+.dropdownmenu-menu-item {
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+/* Use descendant selector so items animate only when list is open */
+.dropdownmenu-dropdown-items.dropdownmenu-open .dropdownmenu-menu-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* small accessibility nicety: hide from screen readers when closed */
+.dropdownmenu-dropdown-items.dropdownmenu-closed {
+  visibility: hidden;
+}
+.dropdownmenu-dropdown-items.dropdownmenu-open {
+  visibility: visible;
+}
+
+/* Optional: reduce layout thrash by using transform on arrow */
+.dropdownmenu-dropdown-arrow {
+  transition: transform 0.25s ease;
+}
+.dropdownmenu-dropdown-arrow.dropdownmenu-expanded-arrow {
+  transform: rotate(180deg);
 }

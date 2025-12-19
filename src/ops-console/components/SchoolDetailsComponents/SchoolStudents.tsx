@@ -8,21 +8,40 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
+  Chip,
+  IconButton,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { StudentInfo } from "../../../common/constants";
+import {
+  AGE_OPTIONS,
+  GENDER,
+  PerformanceLevel,
+  StudentInfo,
+  BANDS,
+  EnumType,
+  SupportLevelMap,
+  ContactTarget,
+} from "../../../common/constants";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
   sortSchoolTeachers,
   paginateSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
+import { normalizePhone10 } from "../../pages/NewUserPageOps";
+import { ClassRow, SchoolData, SchoolDetailsData } from "./SchoolClass";
+import { ClassUtil } from "../../../utility/classUtil";
+import ActionMenu from "./ActionMenu";
+import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import BorderColorIcon from "@mui/icons-material/BorderColor";
+import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
 
 type ApiStudentData = StudentInfo;
 
@@ -30,17 +49,39 @@ interface DisplayStudent {
   id: string;
   studentIdDisplay: string;
   name: string;
+  schstudents_interact?: string;
   gender: string;
   grade: number;
   classSection: string;
   phoneNumber: string;
   class: string;
+  schstudents_performance?: string;
+  schstudents_actions?: string;
 }
+
+const getPerformanceChipClass = (schstudents_performance: string): string => {
+  const normalizedPerf = schstudents_performance
+    .toLowerCase()
+    .replace(/ /g, "_");
+  switch (normalizedPerf) {
+    case PerformanceLevel.DOING_GOOD:
+      return "performance-chip-doing-good";
+    case PerformanceLevel.NEED_HELP:
+      return "performance-chip-need-help";
+    case PerformanceLevel.STILL_LEARNING:
+      return "performance-chip-still-learning";
+    case PerformanceLevel.NOT_TRACKED:
+    default:
+      return "performance-chip-not-tracked";
+  }
+};
 
 interface SchoolStudentsProps {
   data: {
+    schoolData?: SchoolData;
     students?: ApiStudentData[];
     totalStudentCount?: number;
+    classData?: ClassRow[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -71,6 +112,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   optionalGrade,
   optionalSection,
 }) => {
+  const [openPopup, setOpenPopup] = useState(false);
   const history = useHistory();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [students, setStudents] = useState<ApiStudentData[]>(
@@ -79,7 +121,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [totalCount, setTotalCount] = useState<number>(
     data.totalStudentCount || 0
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasInitialStudents =
+    Array.isArray(data?.students) && data.students.length > 0;
+  const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -94,6 +138,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [performanceFilter, setPerformanceFilter] = useState<PerformanceLevel>(
+    PerformanceLevel.ALL
+  );
+  const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
+  const [studentData, setStudentData] = useState<StudentInfo>();
+  const [studentStatus, setStudentStatus] =
+    useState<EnumType<"fc_support_level">>();
+
+  let baseStudentData: StudentInfo[] = [];
+  const api = ServiceConfig.getI().apiHandler;
+  const isAtSchool = useMemo(() => {
+    const raw = (data?.schoolData?.model ?? "").toString();
+    const norm = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    return norm === "at_school";
+  }, [data?.schoolData?.model]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -105,8 +170,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [searchTerm]);
 
   const fetchStudents = useCallback(
-    async (currentPage: number, search: string) => {
-      setIsLoading(true);
+    async (currentPage: number, search: string, silent = false) => {
+      if (!silent) {
+        setIsLoading(true);
+      }
       const api = ServiceConfig.getI().apiHandler;
       try {
         let response;
@@ -125,6 +192,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             currentPage,
             ROWS_PER_PAGE
           );
+          baseStudentData = response.data;
           setStudents(response.data);
           setTotalCount(response.total);
         }
@@ -141,25 +209,30 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? "Students";
 
+  // Fetch fresh data when the component mounts
   useEffect(() => {
-    // Don't fetch on the initial render for page 1, because we already have the data from props.
-    if (
+    fetchStudents(1, "", true);
+  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
+
+  useEffect(() => {
+    const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
       filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
-      setStudents(data.students || []);
-      setTotalCount(data.totalStudentCount || 0);
-      return;
+      filters.section.length === 0;
+
+    if (isInitial) {
+      if (data.students && data.students.length > 0) {
+        setStudents(data.students);
+        setTotalCount(data.totalStudentCount || 0);
+      }
+    } else {
+      fetchStudents(page, debouncedSearchTerm);
     }
-    fetchStudents(page, debouncedSearchTerm);
   }, [
     page,
     debouncedSearchTerm,
     fetchStudents,
-    data.students,
-    data.totalStudentCount,
     filters.grade.length,
     filters.section.length,
   ]);
@@ -202,15 +275,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     const sectionOn =
       optionalSection !== undefined && String(optionalSection).trim() !== "";
     if (!gradeOn && !sectionOn) return students;
-
-    const filtered = students.filter((row: any) => {
+    return students.filter((row: any) => {
       const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
       const sectionOk =
         !sectionOn || sameSection(row.classSection, optionalSection);
       return gradeOk && sectionOk;
     });
-
-    return filtered.length > 0 ? filtered : students;
   }, [students, optionalGrade, optionalSection]);
 
   const normalizedStudents = useMemo(
@@ -233,6 +303,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             id: s.parent_id ?? undefined,
             name: s.parent_name ?? "",
             phone: s.phone ?? undefined,
+            email: s.email ?? undefined,
           },
         };
       }),
@@ -267,9 +338,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         case "name":
           aValue = a.user.name || "";
           bValue = b.user.name || "";
-          return order === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
+
+          if (order === "asc") {
+            if (aValue > bValue) return 1;
+            if (aValue < bValue) return -1;
+            return 0;
+          } else {
+            if (aValue < bValue) return 1;
+            if (aValue > bValue) return -1;
+            return 0;
+          }
         case "gender":
           aValue = a.user.gender || "";
           bValue = b.user.gender || "";
@@ -298,8 +376,88 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [filteredStudents, orderBy, order]);
 
+  const [studentPerformanceMap, setStudentPerformanceMap] = useState<
+    Map<string, string>
+  >(new Map());
+
+  const studentIdsKey = useMemo(
+    () => sortedStudents.map((s) => s.user.id).join(","),
+    [sortedStudents]
+  );
+  const classDataRef = useMemo(() => {
+    return Array.isArray(data.classData) ? data.classData[0] : undefined;
+  }, [data.classData]);
+
+  useEffect(() => {
+    const fetchStudentPerformance = async () => {
+      if (optionalGrade == null || optionalSection == null || issTotal) {
+        return;
+      }
+
+      const currentClass = classDataRef;
+      const classId = currentClass?.id ?? "";
+      if (!classId || sortedStudents.length === 0) {
+        return;
+      }
+
+      setIsPerformanceLoading(true);
+      const performanceMap = new Map<string, string>();
+
+      try {
+        const courseIds =
+          currentClass?.courses?.map((course) => course.id) ?? [];
+        if (courseIds.length === 0) {
+          sortedStudents.forEach((student) => {
+            performanceMap.set(student.user.id, "Not Tracked");
+          });
+          setStudentPerformanceMap(performanceMap);
+          return;
+        }
+
+        const _classUtil = new ClassUtil();
+        const groups = await _classUtil.divideStudents(classId, courseIds);
+
+        const processGroup = (band: string, status: string) => {
+          const group = groups.get(band);
+          if (group && Array.isArray(group)) {
+            group.forEach((item: any) => {
+              const student = item.get("student");
+              if (student && student.id) {
+                performanceMap.set(student.id, status);
+              }
+            });
+          }
+        };
+
+        processGroup(BANDS.GREENGROUP, "Doing Good");
+        processGroup(BANDS.YELLOWGROUP, "Still Learning");
+        processGroup(BANDS.REDGROUP, "Need Help");
+        processGroup(BANDS.GREYGROUP, "Not Tracked");
+
+        setStudentPerformanceMap(performanceMap);
+      } catch (error) {
+        console.error("Error fetching student performance data:", error);
+        sortedStudents.forEach((student) => {
+          performanceMap.set(student.user.id, "Not Tracked");
+        });
+        setStudentPerformanceMap(performanceMap);
+      } finally {
+        setIsPerformanceLoading(false);
+      }
+    };
+    fetchStudentPerformance();
+  }, [studentIdsKey, optionalGrade, optionalSection, issTotal, classDataRef]);
+  const getStudentInfoById = useCallback(
+    (id: string): StudentInfo | null => {
+      if (!Array.isArray(baseStudentData)) return null;
+      const full = baseStudentData.find((x) => x.user.id === id);
+      return baseStudentData.find((stu) => stu.user?.id === id) || null;
+    },
+    [baseStudentData]
+  );
+
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    return sortedStudents.map(
+    let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
         studentIdDisplay: s_api.user.student_id ?? "N/A",
@@ -307,11 +465,23 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender ?? "N/A",
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? "N/A",
-        phoneNumber: s_api.parent?.phone ?? "N/A",
+        phoneNumber: s_api.parent?.phone || s_api.parent?.email || "N/A", //here
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
+        schstudents_performance:
+          studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
       })
     );
-  }, [sortedStudents]);
+    // Filter by performance if not "all"
+    if (performanceFilter !== PerformanceLevel.ALL) {
+      filtered = filtered.filter((student) => {
+        const perf = student.schstudents_performance
+          ?.toLowerCase()
+          .replace(" ", "_");
+        return perf === performanceFilter;
+      });
+    }
+    return filtered;
+  }, [sortedStudents, performanceFilter, studentPerformanceMap]);
 
   const pageCount = useMemo(() => {
     return Math.ceil(totalCount / ROWS_PER_PAGE);
@@ -322,7 +492,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
 
-  const handleAddNewStudent = useCallback(() => {}, [history]);
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
@@ -344,33 +513,474 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
-  const columns: Column<DisplayStudent>[] = [
-    { key: "studentIdDisplay", label: t("Student ID") },
-    {
-      key: "name",
-      label: t("Student Name"),
-      renderCell: (s) => (
-        <Typography variant="body2" className="student-name-data">
-          {s.name}
-        </Typography>
-      ),
+  const columns: Column<DisplayStudent>[] = useMemo(() => {
+    const commonColumns: Column<DisplayStudent>[] = [
+      {
+        key: "studentIdDisplay",
+        label: t("Student ID"),
+        sortable: !issTotal ? false : undefined,
+      },
+      {
+        key: "name",
+        label: t("Student Name"),
+        align: "left",
+        render: (s) => (
+          <Typography variant="body2" className="student-name-data">
+            {s.name}
+          </Typography>
+        ),
+      },
+    ];
+    if (!issTotal) {
+      return [
+        ...commonColumns,
+        {
+          key: "schstudents_interact",
+          label: t("Interact"),
+          sortable: false,
+          render: (s) => (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "left",
+                alignItems: "left",
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={async () => {
+                  const fullStudent = getStudentInfoById(s.id);
+                  if (!fullStudent) return;
+                  const mappedType = s.schstudents_performance
+                    ? SupportLevelMap[
+                        s.schstudents_performance as keyof typeof SupportLevelMap
+                      ]
+                    : null;
+
+                  setStudentData(fullStudent);
+                  setStudentStatus(mappedType!);
+                  setOpenPopup(true);
+                }}
+              >
+                <img
+                  src="/assets/icons/Interact.svg"
+                  alt="Interact"
+                  style={{ width: 30, height: 30 }}
+                />
+              </IconButton>
+            </Box>
+          ),
+        },
+        {
+          key: "gender",
+          label: t("Gender"),
+          sortable: false,
+          render: (s) => (
+            <Typography variant="body2" className="student-name-data">
+              {s.gender
+                ? s.gender.charAt(0).toUpperCase() +
+                  s.gender.slice(1).toLowerCase()
+                : ""}
+            </Typography>
+          ),
+        },
+        {
+          key: "schstudents_performance",
+          label: t("Performance"),
+          sortable: false,
+          render: (s) => (
+            <Chip
+              label={t(s.schstudents_performance || "Not Tracked")}
+              size="small"
+              className={getPerformanceChipClass(
+                s.schstudents_performance || "Not Tracked"
+              )}
+              sx={{
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                height: 24,
+                borderRadius: "4px",
+              }}
+            />
+          ),
+        },
+        {
+          key: "schstudents_actions",
+          label: "",
+          sortable: false,
+          render: (s) => (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActionMenu
+                items={[
+                  {
+                    name: t("Send Message"),
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
+                  },
+                  {
+                    name: t("Edit Details"),
+                    icon: <BorderColorIcon fontSize="small" />,
+                  },
+                ]}
+                renderTrigger={(open) => (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      open(e);
+                    }}
+                    sx={{
+                      color: "#6B7280",
+                      "&:hover": { bgcolor: "#F3F4F6" },
+                    }}
+                  >
+                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                  </IconButton>
+                )}
+              />
+            </Box>
+          ),
+        },
+      ];
+    } else {
+      return [
+        ...commonColumns,
+        {
+          key: "gender",
+          label: t("Gender"),
+          render: (s) => (
+            <Typography variant="body2" className="student-name-data">
+              {s.gender
+                ? s.gender.charAt(0).toUpperCase() +
+                  s.gender.slice(1).toLowerCase()
+                : ""}
+            </Typography>
+          ),
+        },
+        { key: "phoneNumber", label: t("Phone Number / Email") },
+        { key: "class", label: t("Class") },
+      ];
+    }
+  }, [issTotal]);
+
+  const classOptions = useMemo(() => {
+    const classes = data.classData || (data as any).classdata || [];
+    if (!classes || classes.length === 0) return [];
+    return classes
+      .map((c: any) => ({ value: c.id, label: c.name }))
+      .filter((opt: any) => opt.value && opt.label)
+      .sort((a: any, b: any) => a.label.localeCompare(b.label));
+  }, [data.classData, (data as any).classdata]);
+
+  const currentClass = useMemo(() => {
+    if (
+      !issTotal &&
+      optionalGrade !== undefined &&
+      optionalSection !== undefined
+    ) {
+      const classDataArray = data.classData || [];
+      if (classDataArray.length > 0) {
+        const classFromData = classDataArray[0];
+        if (classFromData?.id && classFromData?.name) {
+          return { id: classFromData.id, name: classFromData.name };
+        }
+      }
+      const matchingStudent = baseStudents.find((student: any) => {
+        const classInfo = student.classWithidname;
+        return (
+          student.grade === optionalGrade &&
+          sameSection(student.classSection, optionalSection) &&
+          classInfo?.id &&
+          classInfo?.class_name
+        );
+      });
+      if (matchingStudent?.classWithidname) {
+        const classInfo = matchingStudent.classWithidname as any;
+        return {
+          id: classInfo.id,
+          name: classInfo.class_name || classInfo.name,
+        };
+      }
+      return null;
+    }
+    return null;
+  }, [issTotal, optionalGrade, optionalSection, baseStudents, data.classData]);
+
+  const addStudentFields: FieldConfig[] = useMemo(() => {
+    if (issTotal) {
+      const fields: FieldConfig[] = [
+        {
+          name: "studentName",
+          label: "Student Name",
+          kind: "text" as const,
+          required: true,
+          placeholder: "Enter Student Name",
+          column: 2 as const,
+        },
+        {
+          name: "studentID",
+          label: "Student ID",
+          kind: "text" as const,
+          placeholder: "Enter Student ID",
+          column: 0 as const,
+        },
+        {
+          name: "gender",
+          label: "Gender",
+          kind: "select" as const,
+          required: true,
+          column: 1 as const,
+          options: [
+            { label: t("GIRL"), value: GENDER.GIRL },
+            { label: t("BOY"), value: GENDER.BOY },
+            {
+              label: t("UNSPECIFIED"),
+              value: GENDER.OTHER,
+            },
+          ],
+        },
+        {
+          name: "class",
+          label: "Class",
+          kind: "select" as const,
+          required: true,
+          column: 0 as const,
+          options: classOptions,
+        },
+        {
+          name: "ageGroup",
+          label: "Age",
+          kind: "select" as const,
+          required: true,
+          placeholder: "Select Age Group",
+          column: 1 as const,
+          options: [
+            {
+              value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+              label: `≤${t("4 years")}`,
+            },
+            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+            { value: AGE_OPTIONS.SIX, label: t("6 years") },
+            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            {
+              value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+              label: `≥${t("10 years")}`,
+            },
+          ],
+        },
+      ];
+      if (!isAtSchool) {
+        fields.push({
+          name: "phone",
+          label: "Phone Number",
+          kind: "phone" as const,
+          required: true,
+          placeholder: "Enter phone number",
+          column: 2 as const,
+        });
+      }
+      return fields;
+    } else {
+      const fields: FieldConfig[] = [
+        {
+          name: "studentName",
+          label: "Student Name",
+          kind: "text" as const,
+          required: true,
+          placeholder: "Enter Student Name",
+          column: 0 as const,
+        },
+        {
+          name: "studentID",
+          label: "Student ID",
+          kind: "text" as const,
+          placeholder: "Enter Student ID",
+          column: 1 as const,
+        },
+        {
+          name: "gender",
+          label: "Gender",
+          kind: "select" as const,
+          required: true,
+          column: 0 as const,
+          options: [
+            { label: t("GIRL"), value: GENDER.GIRL },
+            { label: t("BOY"), value: GENDER.BOY },
+            {
+              label: t("UNSPECIFIED"),
+              value: GENDER.OTHER,
+            },
+          ],
+        },
+        {
+          name: "ageGroup",
+          label: "Age",
+          kind: "select" as const,
+          required: true,
+          placeholder: "Select Age Group",
+          column: 1 as const,
+          options: [
+            {
+              value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+              label: `≤${t("4 years")}`,
+            },
+            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+            { value: AGE_OPTIONS.SIX, label: t("6 years") },
+            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            {
+              value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+              label: `≥${t("10 years")}`,
+            },
+          ],
+        },
+      ];
+      if (!isAtSchool) {
+        fields.push({
+          name: "phone",
+          label: "Phone Number",
+          kind: "phone" as const,
+          required: true,
+          placeholder: "Enter phone number",
+          column: 2 as const,
+        });
+      }
+      return fields;
+    }
+  }, [issTotal, classOptions, isAtSchool, baseStudents]);
+
+  const handleAddNewStudent = useCallback(() => {
+    setIsAddStudentModalOpen(true);
+    setErrorMessage(undefined);
+  }, [history]);
+
+  const handleCloseAddStudentModal = useCallback(() => {
+    setIsAddStudentModalOpen(false);
+    setErrorMessage(undefined);
+    setIsSubmitting(false);
+  }, []);
+
+  const handleSubmitAddStudentModal = useCallback(
+    async (formValues: Record<string, string>) => {
+      setIsSubmitting(true);
+      setErrorMessage(undefined);
+
+      const fail = (text: string) => {
+        setErrorMessage({ text, type: "error" });
+        setIsSubmitting(false);
+      };
+
+      const rawPhone = (formValues.phone ?? "").toString();
+      let digits = rawPhone.replace(/\D/g, "");
+      if (digits === "" || digits === "91") digits = "";
+      if (digits.length === 12 && digits.startsWith("91"))
+        digits = digits.slice(2);
+      if (digits.length === 11 && digits.startsWith("0"))
+        digits = digits.slice(1);
+      // Phone validation
+      if (!isAtSchool) {
+        if (digits.length !== 10)
+          return fail("Phone number must be 10 digits.");
+      } else {
+        if (digits.length !== 0 && digits.length !== 10) {
+          return fail("Phone number must be 10 digits when provided.");
+        }
+      }
+      // Class validation (this is needed for BOTH flows)
+      const classId = issTotal ? formValues.class : currentClass?.id;
+      if (!classId) return fail("Please select a class.");
+      const normalizedPhone = digits.length === 10 ? digits : undefined;
+      try {
+        const payload: any = {
+          phone: normalizedPhone,
+          name: formValues.studentName || "",
+          gender: formValues.gender || "",
+          age: formValues.ageGroup || "",
+          classId: classId,
+          schoolId: schoolId,
+          studentID: formValues.studentID || "",
+          atSchool: isAtSchool,
+        };
+        const result = await api.addStudentWithParentValidation(payload);
+        if (result.success) {
+          setErrorMessage({
+            text: "Student added successfully.",
+            type: "success",
+          });
+          setTimeout(() => {
+            setIsAddStudentModalOpen(false);
+            setErrorMessage(undefined);
+          }, 2000);
+          setPage(1);
+          fetchStudents(1, debouncedSearchTerm);
+        } else {
+          setErrorMessage({ text: result.message, type: "error" });
+        }
+      } catch (error) {
+        console.error("Error adding student:", error);
+        setErrorMessage({
+          text: "An unexpected error occurred. Please try again.",
+          type: "error",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    { key: "gender", label: t("Gender") },
-    {
-      key: "class",
-      label: t("Class Name"),
-      renderCell: (s) => (
-        <Typography variant="body2" className="student-name-data">
-          {s.class}
-        </Typography>
-      ),
-    },
-    { key: "phoneNumber", label: t("Phone Number") },
-  ];
+    [
+      api,
+      isAtSchool,
+      issTotal,
+      currentClass,
+      schoolId,
+      fetchStudents,
+      debouncedSearchTerm,
+      setIsAddStudentModalOpen,
+    ]
+  );
 
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
+
+  const performanceFilters = [
+    { key: PerformanceLevel.ALL, label: t("All") },
+    { key: PerformanceLevel.NEED_HELP, label: t("Need Help") },
+    { key: PerformanceLevel.DOING_GOOD, label: t("Doing Good") },
+    { key: PerformanceLevel.STILL_LEARNING, label: t("Still Learning") },
+    { key: PerformanceLevel.NOT_TRACKED, label: t("Not Tracked") },
+  ];
+
   return (
     <div className="schoolStudents-pageContainer">
+      <FormCard
+        open={isAddStudentModalOpen}
+        title={
+          !issTotal && currentClass
+            ? `${t("Add New Student")} - ${currentClass.name}`
+            : t("Add New Student")
+        }
+        submitLabel={isSubmitting ? t("Adding...") : t("Add Student")}
+        fields={addStudentFields}
+        onClose={handleCloseAddStudentModal}
+        onSubmit={handleSubmitAddStudentModal}
+        message={errorMessage}
+      />
+      {openPopup && studentData && (
+        <FcInteractPopUp
+          studentData={studentData}
+          schoolId={schoolId}
+          status={studentStatus}
+          onClose={() => setOpenPopup(false)}
+          initialUserType={ContactTarget.STUDENT}
+        />
+      )}
+
       <Box className="schoolStudents-headerActionsRow">
         <Box className="schoolStudents-titleArea">
           <Typography variant="h5" className="schoolStudents-titleHeading">
@@ -402,6 +1012,49 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       </Box>
 
+      {!issTotal && (
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+          {performanceFilters.map((filter) => {
+            const isActive = performanceFilter === filter.key;
+
+            let className = "performance-filter-pill";
+            if (isActive) {
+              switch (filter.key) {
+                case PerformanceLevel.ALL:
+                  className = "performance-filter-pill-active-all";
+                  break;
+                case PerformanceLevel.DOING_GOOD:
+                  className = "performance-filter-pill-active-doing-good";
+                  break;
+                case PerformanceLevel.NEED_HELP:
+                  className = "performance-filter-pill-active-need-help";
+                  break;
+                case PerformanceLevel.STILL_LEARNING:
+                  className = "performance-filter-pill-active-still-learning";
+                  break;
+                case PerformanceLevel.NOT_TRACKED:
+                  className = "performance-filter-pill-active-not-tracked";
+                  break;
+              }
+            }
+
+            return (
+              <Chip
+                key={filter.key}
+                label={filter.label}
+                onClick={() => setPerformanceFilter(filter.key)}
+                className={className}
+                sx={{
+                  fontWeight: isActive ? 600 : 400,
+                  height: "26px",
+                  cursor: "pointer",
+                }}
+              />
+            );
+          })}
+        </Box>
+      )}
+
       {Object.values(filters).some((arr) => arr.length > 0) && (
         <SelectedFilters
           filters={filters}
@@ -413,7 +1066,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(baseStudents), 
+          grade: getGradeOptions(baseStudents),
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
@@ -421,7 +1074,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         filterConfigs={filterConfigsForSchool}
       />
 
-      {isLoading ? (
+      {isLoading || isPerformanceLoading ? (
         <Box
           display="flex"
           justifyContent="center"
@@ -458,22 +1111,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             {t(custoomTitle)}
           </Typography>
           <Typography className="schoolStudents-emptyStateMessage">
-            {isFilteringOrSearching
+            {performanceFilter !== PerformanceLevel.ALL
+              ? t("No student data found for the selected filter")
+              : isFilteringOrSearching
               ? t("No students found matching your criteria.")
+              : !issTotal &&
+                optionalGrade != null &&
+                String(optionalSection ?? "").trim() !== ""
+              ? t("No students found for your class.")
               : t("No students data found for the selected school")}
           </Typography>
-          {!isFilteringOrSearching && (
-            <MuiButton
-              variant="text"
-              onClick={handleAddNewStudent}
-              className="schoolStudents-emptyStateAddButton"
-              startIcon={
-                <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
-              }
-            >
-              {t("Add Student")}
-            </MuiButton>
-          )}
+          {!isFilteringOrSearching &&
+            performanceFilter === PerformanceLevel.ALL && (
+              <MuiButton
+                variant="text"
+                onClick={handleAddNewStudent}
+                className="schoolStudents-emptyStateAddButton"
+                startIcon={
+                  <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
+                }
+              >
+                {t("Add Student")}
+              </MuiButton>
+            )}
         </Box>
       )}
     </div>

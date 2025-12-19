@@ -1,49 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./ClassForm.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+
 const ClassForm: React.FC<{
   onClose: () => void;
   mode: "create" | "edit";
   classData?: any;
   schoolId?: string;
   onSaved?: () => void;
-}> = ({ onClose, mode, classData, schoolId, onSaved}) => {
+}> = ({ onClose, mode, classData, schoolId, onSaved }) => {
   const [formValues, setFormValues] = useState<any>({
     grade: "",
     section: "",
-    subjectGrade: "",
-    curriculum: "",
-    studentCount: "",
     groupId: "",
   });
 
-  const [grades, setGrades] = useState<any[]>([]);
-  const [curriculums, setCurriculums] = useState<any[]>([]);
+  const [AllCourses, setAllCourses] = useState<any[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const api = ServiceConfig.getI().apiHandler;
   const [errorMessage, setErrorMessage] = useState("");
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     if (mode === "edit" && classData) {
+      const grade = (classData.name || "").replace(/[^0-9]/g, "");
+      const section = (classData.name || "").replace(/[0-9]/g, "");
+
       setFormValues({
-        grade: (classData.name || "").replace(/[^0-9]/g, "") || "",
-        section: (classData.name || "").replace(/[0-9]/g, "") || "",
-        subjectGrade: classData.courses[0].grade_id ?? "",
-        curriculum: classData.curriculum ?? "",
-        studentCount: classData.studentCount ?? "0",
+        grade: grade || "",
+        section: section || "",
         groupId: classData.group_id ?? "",
       });
-    } else {
-      setFormValues({
-        grade: "",
-        section: "",
-        subjectGrade: "",
-        curriculum: "",
-        studentCount: "",
-        groupId: "",
-      });
+
+      setSelectedCourse(classData.courses.map((c: any) => c.id));
     }
   }, [mode, classData]);
 
@@ -51,22 +45,60 @@ const ClassForm: React.FC<{
     const fetchDropdownData = async () => {
       setLoading(true);
       try {
-        const [gradesRes, curriculumsRes] = await Promise.all([
-          api.getAllGrades(),
-          api.getAllCurriculums(),
+        const schoolCourse = await api.getCoursesBySchoolId(schoolId ?? "");
+
+        if (!schoolCourse?.length) {
+          setErrorMessage("No Courses available in this school.");
+          setAllCourses([]);
+          setLoading(false);
+          return;
+        }
+
+        const courseIds = schoolCourse.map((item: any) => item.course_id);
+
+        const courseDetails = await api.getCourses(courseIds);
+        setAllCourses(courseDetails);
+
+        const curriculumIds = [
+          ...new Set(courseDetails.map((c: any) => c.curriculum_id)),
+        ];
+        const gradeIds = [
+          ...new Set(courseDetails.map((c: any) => c.grade_id)),
+        ];
+
+        const [curriculums, grades] = await Promise.all([
+          api.getCurriculumsByIds(curriculumIds),
+          api.getGradesByIds(gradeIds),
         ]);
 
-        setGrades(gradesRes || []);
-        setCurriculums(curriculumsRes || []);
+        const curriculumMap = new Map(
+          curriculums.map((c: any) => [c.id, c.name])
+        );
+        const gradeMap = new Map(grades.map((g: any) => [g.id, g.name]));
+
+        // Merge into display-ready structure
+        const coursesWithNames = courseDetails.map((course: any) => ({
+          ...course,
+          curriculum_name: curriculumMap.get(course.curriculum_id) || "",
+          grade_name: gradeMap.get(course.grade_id) || "",
+        }));
+
+        setAllCourses(coursesWithNames);
+
+        if (mode === "edit" && classData?.Courses) {
+          setSelectedCourse(classData.Courses.map((c: any) => c.course_id));
+        }
+
+        setErrorMessage("");
       } catch (error) {
-        console.error("Error fetching dropdown data:", error);
+        console.error("Error fetching courses:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDropdownData();
-  }, []);
+  }, [schoolId, mode]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -75,200 +107,186 @@ const ClassForm: React.FC<{
     setFormValues((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectCourse = (id: string) => {
+    setSelectedCourse((prev: string[]) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
+
   const isFormValid =
-    (formValues.grade || "").toString().trim() !== "" &&
-    (formValues.section || "").toString().trim() !== "" &&
-    (formValues.subjectGrade || "").toString().trim() !== "" &&
-    (formValues.curriculum || "").toString().trim() !== "";
+    formValues.grade.trim() !== "" &&
+    formValues.section.trim() !== "" &&
+    selectedCourse.length > 0 &&
+    !(
+      mode === "edit" &&
+      classData?.name === formValues.grade + formValues.section &&
+      (formValues.groupId ?? "") === (classData?.group_id ?? "") &&
+      JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
+        JSON.stringify(selectedCourse)
+    );
+
+  const placeholder =
+    selectedCourse.length > 0
+      ? `${selectedCourse.length} Subjects Selected`
+      : t("Select Courses");
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
-    if (!schoolId) {
-      console.error("School ID is required to create a class.");
-      return;
-    }
+    if (!schoolId) return;
+
     setSaving(true);
     try {
-      const classes = await api.getClassesBySchoolId(schoolId);
-      const className = formValues.grade + formValues.section;
-      const existing = classes.find((c: any) => c.name === className);
-
-      if (existing ) {
-        console.error("Class name already exists.");
-        setErrorMessage("Class name already exists.");
-
-        setSaving(false);
-        return;
-      }
-
       let classId = classData?.id;
-      if (mode === "edit") {
-        if (!classId) {
-          console.error("Class ID is missing.");
+      const name = formValues.grade + formValues.section;
+      if (mode === "create" || classData.name !== name) {
+        const classes = await api.getClassesBySchoolId(schoolId);
+        if (classes.find((c: any) => c.name === name)) {
+          setErrorMessage("Class name already exists.");
+          setSaving(false);
           return;
         }
-        await api.updateClass(
-          classId,
-          formValues.grade + formValues.section,
-          formValues.groupId
-        );
-      } else if (mode === "create") {
+      }
+
+      if (mode === "edit") {
+        await api.updateClass(classId, name, formValues.groupId);
+      } else {
         const newClass = await api.createClass(
           schoolId,
-          formValues.grade + formValues.section,
+          name,
           formValues.groupId
         );
         classId = newClass.id;
       }
 
-      const allCourse = await api.getCourseByUserGradeId(
-        formValues.subjectGrade,
-        formValues.curriculum
-      );
-      await api.updateClassCourseSelection(
-        classId,
-        allCourse.map((c: any) => c.id)
-      );
-    } catch (error) {
-      console.error("Error creating/updating class:", error);
+      await api.updateClassCourses(classId, selectedCourse);
+    } catch (e) {
+      console.error("Error:", e);
     } finally {
       setSaving(false);
     }
-    if(onSaved) onSaved();
+    if (onSaved) onSaved();
     onClose();
   };
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="class-form-overlay">
       <div className="class-form-container">
         <div className="class-form-title">
           {mode === "edit"
-            ? `Class ${formValues.grade || ""} - ${formValues.section || ""}`
+            ? `Class ${formValues.grade} - ${formValues.section}`
             : t("Create Class")}
         </div>
 
         <div className="class-form-row">
           <div className="class-form-group">
-            <label>
-              {t("Grade")} <span className="class-form-required">*</span>
-            </label>
+            <label>{t("Grade")} *</label>
             <input
               name="grade"
               type="number"
               min={1}
               max={10}
-              value={formValues.grade || ""}
+              value={formValues.grade}
               onChange={handleChange}
               placeholder={t("Enter Grade") ?? ""}
             />
           </div>
 
           <div className="class-form-group">
-            <label>
-              {t("Class Section")}{" "}
-              <span className="class-form-required">*</span>
-            </label>
+            <label>{t("Class Section")} *</label>
             <input
               name="section"
               type="text"
-              value={formValues.section || ""}
+              value={formValues.section}
               onChange={handleChange}
               placeholder={t("Enter Class Section") ?? ""}
             />
           </div>
         </div>
 
-        <div className="class-form-group class-form-full-width">
-          <label>
-            {t("Subject Grade")} <span className="class-form-required">*</span>
-          </label>
-          <div className="class-form-select-wrapper">
-            <select
-              name="subjectGrade"
-              value={formValues.subjectGrade || ""}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="" disabled>
-                {t("Select Subject Grade")}
-              </option>
-              {grades.map((g: any) => (
-                <option key={g.id} value={g.id}>
-                  {g.name ?? g.value}
-                </option>
-              ))}
-            </select>
+        <div
+          className="class-form-group class-form-full-width"
+          ref={dropdownRef}
+        >
+          <label>{t("Courses")} *</label>
 
+          <div
+            className="multi-select-input"
+            onClick={() => setDropdownOpen((prev) => !prev)}
+          >
+            {placeholder}
             <img
               src="/assets/loginAssets/DropDownArrow.svg"
-              alt="Dropdown"
-              className="class-form-dropdown-icon"
+              className={dropdownOpen ? "rotate" : ""}
             />
           </div>
+
+          {dropdownOpen && (
+            <div className="class-form-multi-dropdown">
+              {[...AllCourses]
+                .sort(
+                  (a, b) =>
+                    a.curriculum_name.localeCompare(b.curriculum_name) ||
+                    a.grade_name.localeCompare(b.grade_name) ||
+                    a.name.localeCompare(b.name)
+                )
+                .map((course: any) => (
+                  <label key={course.id} className="class-form-multi-option">
+                    <div className="class-option-text">
+                      <span className="class-form-subject">{course.name}</span>
+                      <span className="class-form-sub">
+                        {course.curriculum_name} – {course.grade_name}
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="class-form-checkbox"
+                      checked={selectedCourse.includes(course.id)}
+                      onChange={() => handleSelectCourse(course.id)}
+                    />
+                  </label>
+                ))}
+            </div>
+          )}
         </div>
 
-        <div className="class-form-group class-form-full-width">
-          <label>
-            {t("Curriculum")} <span className="class-form-required">*</span>
-          </label>
-          <div className="class-form-select-wrapper">
-            <select
-              name="curriculum"
-              value={formValues.curriculum || ""}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="" disabled>
-                {t("Select Curriculum")}
-              </option>
-              {curriculums.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-
-            <img
-              src="/assets/loginAssets/DropDownArrow.svg"
-              alt="Dropdown"
-              className="class-form-dropdown-icon"
-            />
-          </div>
-        </div>
+        {errorMessage && <div className="class-form-error">{errorMessage}</div>}
 
         <div className="class-form-group class-form-full-width">
           <label>WhatsApp Group ID</label>
           <input
             name="groupId"
-            type="text"
-            value={formValues.groupId || ""}
+            value={formValues.groupId}
             onChange={handleChange}
             placeholder={t("Enter WhatsApp Group ID") ?? ""}
           />
         </div>
-        {errorMessage && (
-          <div className="class-form-error">
-            {errorMessage}
-          </div>
-        )}
 
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
             {t("Cancel")}
           </button>
-          {saving ? (
-            <button className="class-form-save-btn" disabled>
-              {t("Saving...")}
-            </button>
-          ) : (
-            <button
-              className="class-form-save-btn"
-              onClick={handleSubmit}
-              disabled={!isFormValid || loading}
-            >
-              {mode === "edit" ? t("Save") : t("Create Class")}
-            </button>
-          )}
+          <button
+            className="class-form-save-btn"
+            onClick={handleSubmit}
+            disabled={!isFormValid || loading || saving}
+          >
+            {saving
+              ? t("Saving") + "..."
+              : mode === "edit"
+              ? t("Save")
+              : t("Create Class")}
+          </button>
         </div>
       </div>
     </div>

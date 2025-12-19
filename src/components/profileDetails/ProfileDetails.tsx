@@ -32,11 +32,11 @@ import i18n from "../../i18n";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V1:
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_1:
       return FORM_MODES.ALL_REQUIRED;
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V2:
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2:
       return FORM_MODES.NAME_REQUIRED;
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V3:
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3:
       return FORM_MODES.ALL_OPTIONAL;
     default:
       return FORM_MODES.ALL_REQUIRED;
@@ -53,8 +53,8 @@ const ProfileDetails = () => {
   const location = useLocation();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
   const variation = useFeatureValue<string>(
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_ONBOARDING,
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
   );
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
@@ -288,12 +288,13 @@ const ProfileDetails = () => {
         selectedLanguage?.code ?? undefined,
         true
       );
-      Util.logEvent(EVENTS.PROFILE_SKIPPED, {
-        user_id: student?.id,
+      const user = await auth.getCurrentUser();
+      Util.logEvent(EVENTS.PROFILE_CREATED, {
+        user_id: user?.id,
         name: fullName,
         variation,
         page_path: window.location.pathname,
-        action_type: ACTION_TYPES.PROFILE_SKIPPED,
+        action_type: ACTION_TYPES.PROFILE_CREATED,
       });
       // Redirect to home page
       history.replace(PAGES.HOME);
@@ -355,6 +356,7 @@ const ProfileDetails = () => {
                   <img
                     src="/assets/icons/scholarIcon.svg"
                     alt="school"
+                    className="profiledetails-info-icon"
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                   <span>{schoolName}</span>

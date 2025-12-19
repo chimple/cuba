@@ -16,6 +16,7 @@ import { AvatarObj } from "../animation/Avatar";
 import ParentalLock from "../parent/ParentalLock";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { updateLocalAttributes, useGbContext } from "../../growthbook/Growthbook";
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -28,6 +29,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [schoolName, setSchoolName] = useState<string>("");
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
+  const { setGbUpdated } = useGbContext();
+
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
 
@@ -60,7 +63,13 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
-    sessionStorage.removeItem(HOMEWORK_PATHWAY);
+    localStorage.removeItem(HOMEWORK_PATHWAY);
+    // Also tell GrowthBook attributes are now cleared (or set to parent-level)
+  updateLocalAttributes({
+    student_id: null,
+  });
+
+  setGbUpdated(true); // cause consumers to re-evaluate
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
 
@@ -110,6 +119,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           }
         : item
     );
+  const hasDetails = !!(className || schoolName);
 
   return (
     <div
@@ -148,7 +158,10 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
           {/* Details Section */}
           <div className="profile-details">
-            <span className="profile-header-name text-truncate">
+            <span
+              className="profile-header-name text-truncate"
+              style={{ marginBottom: hasDetails ? "8px" : "60px" }}
+            >
               {student?.name ?? "Profile"}
             </span>
 
@@ -167,7 +180,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
             {schoolName && (
               <div className="profile-sub-info">
                 <img
-                  src="/assets/icons/scholarIcon.svg"
+                  src="/assets/icons/schoolIcon.svg"
                   alt="school"
                   className="info-icon"
                   onError={(e) => (e.currentTarget.style.display = "none")}
@@ -207,6 +220,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           showDialogBox={showDialogBox}
           handleClose={() => setShowDialogBox(true)}
           onHandleClose={() => setShowDialogBox(false)}
+          onUnlock={() => {
+            localStorage.removeItem(HOMEWORK_PATHWAY);
+          }}
         />
       )}
     </div>

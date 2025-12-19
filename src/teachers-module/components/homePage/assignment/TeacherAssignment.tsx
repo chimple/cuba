@@ -422,6 +422,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
+                  id="checkbox-subject"
                   className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
                   onClick={() =>
                     toggleAssignmentSelection(

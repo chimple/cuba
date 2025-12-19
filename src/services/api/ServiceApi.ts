@@ -28,7 +28,13 @@ import {
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -45,6 +51,21 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
+
+  /**
+   * Creates a AutoUser for at_school and hybrid school models when a new school is created
+   * @param {string} id - school id
+   * @param {string} schoolName - name of the school
+   * @param {string} udise - udise of the school
+   * @param {RoleType} role - RoleType of the coordinator(here : Autouser)
+   */
+  createAtSchoolUser(
+    id: string,
+    schoolName:string,
+    udise:string,
+    role: RoleType
+  ): Promise<void>;
+
   /**
    * Creates a student profile for a parent and returns the student object
    * @param {string} name - name of the student
@@ -498,7 +519,19 @@ export interface ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -571,6 +604,57 @@ export interface ServiceApi {
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
   getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
+
+  /**
+   * Fetches domains for a given subject and framework.
+   */
+  getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]>;
+
+  /**
+   * Fetches competencies linked to the given domain ids.
+   */
+  getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]>;
+
+  /**
+   * Fetches outcomes linked to the given competency ids.
+   */
+  getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]>;
+
+  /**
+   * Fetches skills linked to the given outcome ids.
+   */
+  getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]>;
+
+  /**
+   * Fetches results for the given student and skill ids.
+   */
+  getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]>;
+
+  /**
+   * Fetches prerequisite relations where target skill is in the provided list.
+   */
+  getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]>;
+
+  /**
+   * Fetches skill-lesson mapping rows for the given skills.
+   */
+  getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1611,7 +1695,11 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+  setStarsForStudents(
+    studentId: string,
+    starsCount: number,
+    is_immediate_sync?: boolean
+  ): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -1640,7 +1728,8 @@ export interface ServiceApi {
    */
   updateLearningPath(
     student: TableTypes<"user">,
-    learning_path: string
+    learning_path: string,
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -1799,7 +1888,7 @@ export interface ServiceApi {
    * Fetch available filter options for schools.
    * Each key in the returned object represents a filter category,
    * and the value is an array of possible filter values.
-   * 
+   *
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
@@ -2058,9 +2147,11 @@ export interface ServiceApi {
   /**
    * Fetch SchoolData by UDISE code.
    * @param {string} udiseCode - UDISE code of the school.
-   * @returns SchoolData row 
+   * @returns SchoolData row
    */
-  getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> ;
+  getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
@@ -2253,9 +2344,14 @@ export interface ServiceApi {
     studentId: string,
     subjectIds: string[]
   ): Promise<{ subject_id: string; completed_count: number }[]>;
+  /**
+   * Get or create a user and link them to a school (and optionally a class).
+   */
+  getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult>;
 
-
-/**
+  /**
    * Update school model to at_school or at_home.
    * Update location link and key contacts if provided.
    * @param schoolId School ID
@@ -2268,5 +2364,165 @@ export interface ServiceApi {
     schoolModel: string,
     locationLink?: string,
     keyContacts?: any
-  ): Promise<void> ;
+  ): Promise<void>;
+
+  /**
+   * Add a student with parent validation and class linking
+   *
+   * @param params - Object containing student details
+   * @param params.phone - Parent phone number (10 digits)
+   * @param params.name - Student name
+   * @param params.gender - Student gender
+   * @param params.age - Student age
+   * @param params.classId - Class ID to add the student to
+   * @param params.schoolId - School ID to fetch language from
+   * @param params.parentName - Parent name (optional)
+   * @param params.email - Parent email (optional)
+   * @returns Object with success status and message
+   */
+  addStudentWithParentValidation(params: {
+    phone?: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+    studentID?: string;
+    atSchool?: boolean;
+  }): Promise<{ success: boolean; message: string; data?: any }>;
+  /**
+   * Update class courses belongs to that curriculum and grade
+   * @param {string } classId - class id
+   * @param {string } selectedCourseIds - array of courseIds
+   */
+  updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void>;
+  /**
+   * Fetches filtered FC (Field Coordinator) questions based on support level and engagement target.
+   *
+   * @param type - The support level of the student, e.g., "doing_good", "need_help", etc.
+   *               Can be null to fetch questions without filtering by support level.
+   * @param targetType - The engagement target for whom the questions are intended, e.g., "student" or "parent" or "teacher" or "principal.
+   * @returns A promise that resolves to an array of FC question objects (TableTypes<"fc_question">) or an empty array if no questions found.
+   */
+  getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []>;
+
+  /**
+   * Saves the FC user interaction form.
+   *
+   * @param payload - Object containing all the data collected during the FC interaction.
+   *
+   * Properties:
+   * - visitId?: string | null → Optional. The unique ID of today's visit (can be null if not available).
+   * - userId: string → ID of the current user submitting the form.
+   * - schoolId: string → ID of the school where the interaction took place.
+   * - classId?: string | null → Optional. Class ID of the student or teacher (if applicable).
+   * - contactUserId?: string | null → Optional. ID of the user being contacted (student/parent/etc.).
+   * - contactTarget: EnumType<"fc_engagement_target"> → Who the interaction is with, e.g., "student", "parent".
+   * - contactMethod: EnumType<"fc_contact_method"> → Mode of interaction, e.g., "in_person", "call".
+   * - callStatus?: EnumType<"fc_call_result"> | null → Optional. Only relevant for calls, e.g., "call_picked", "call_later", or null.
+   * - supportLevel?: EnumType<"fc_support_level"> | null → Optional. Support level observed during the interaction.
+   * - questionResponse: Record<string, string> → Map of question text → user response.
+   * - techIssuesReported: boolean → Indicates if any tech issues were reported during the interaction.
+   * - comment?: string | null → Optional. Any additional comments about the interaction.
+   * - techIssueComment?: string | null → Optional. Detailed notes about reported tech issues.
+   *
+   * @returns Promise resolving when the data is successfully saved.
+   */
+  saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  });
+
+  /**
+   * Retrieves the visit ID for a specific user at a school for today.
+   *
+   * @param userId - ID of the user (FC) for whom the visit ID is being fetched.
+   * @param schoolId - ID of the school for which the visit ID is relevant.
+   * @returns Promise that resolves to a string representing today's visit ID or null if no visit exists.
+   */
+  getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;
+
+  /**
+   * Fetch all activities created by FC users for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch activities for.
+   * @returns Promise resolving to a list of activities.
+   */
+  getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]>;
+
+  /**
+   * Fetch school visit details for a given visit ID.
+   * @param {string} visitId - The ID of the visit to fetch.
+   * @returns Promise resolving to school visit details or null if not found.
+   */
+  getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  /**
+   * Fetch filter options for FC activities.
+   */
+  getActivitiesFilterOptions();
+  /**
+   * Returns the number of times a teacher has assigned assignments
+   * to a specific class in the last 15 days.
+   *
+   * Each assignment action is counted once using `batch_id`,
+   * even if it includes multiple assignments.
+   *
+   * - Considers only non-deleted assignments
+   * - Time window is limited to the last 15 days
+   *
+   * @param teacherId - ID of the teacher who assigned the work
+   * @param classId - ID of the class to which assignments were given
+   * @returns Number of assignment occurrences in the last 15 days,
+   *          0 if none are found,
+   *          or null if an error occurs
+   */
+  getRecentAssignmentCountByTeacher(
+    teacherId: string,
+    classId: string
+  ): Promise<number | null>;
+
+    // notes
+  createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<CreateSchoolNoteInput>;
+
+  getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>>;
+
+
+
+  /**
+   * Get interactions metrics for a school.
+   */
+  getSchoolStatsForSchool(
+    schoolId: string
+  ): Promise<FCSchoolStats>;
 }

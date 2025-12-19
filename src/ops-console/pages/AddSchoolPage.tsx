@@ -7,7 +7,7 @@ import "./AddSchoolPage.css";
 import { t } from "i18next";
 import { PAGES, STATUS } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { RoleType } from "../../interface/modelInterfaces";
 import DropdownField from "../components/DropdownField";
 
@@ -15,6 +15,8 @@ const DEFAULT_COUNTRY = "India";
 
 const AddSchoolPage: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
+  const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState("");
@@ -25,17 +27,8 @@ const AddSchoolPage: React.FC = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [fieldCoordinator, setFieldCoordinator] = useState<any>(null);
   const [fieldCoordinators, setFieldCoordinators] = useState<any[]>([]);
-
-  const [address, setAddress] = useState({
-    state: "",
-    city: "",
-    district: "",
-    address: "",
-    cluster: "",
-    block: "",
-    link: "",
-  });
-
+  const [errorMessage, setErrorMessage] = useState("");
+  const [lockDropdowns, setLockDropdowns] = useState(false);
   const [states, setStates] = useState<string[]>([]);
   const [districts, setDistricts] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<string[]>([]);
@@ -43,9 +36,21 @@ const AddSchoolPage: React.FC = () => {
   const [isStatesLoading, setStatesLoading] = useState(false);
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [initialData, setInitialData] = useState<any>(null);
+
+  const [address, setAddress] = useState({
+    state: "",
+    district: "",
+    block: "",
+    cluster: "",
+    address: "",
+    link: "",
+  });
+
   const [contacts, setContacts] = useState([
     {
-      subheader: t("Contact")+ " 1",
+      subheader: t("Contact") + " 1",
       required: true,
       fields: [
         { label: t("Name"), name: "name", value: "", required: true },
@@ -53,7 +58,7 @@ const AddSchoolPage: React.FC = () => {
       ],
     },
     {
-      subheader: t("Contact")+ " 1",
+      subheader: t("Contact") + " 2",
       fields: [
         { label: t("Name"), name: "name", value: "" },
         { label: t("Phone Number"), name: "phone", value: "" },
@@ -61,8 +66,139 @@ const AddSchoolPage: React.FC = () => {
     },
   ]);
 
+  useEffect(() => {
+    if (!editData) return;
+
+    const school = editData.schoolData;
+
+    setSchoolName(school?.name || "");
+    setUdise(school?.udise || "");
+    setSchoolModel(school?.model || "");
+
+    setAddress({
+      state: school?.group1 || "",
+      district: school?.group2 || "",
+      block: school?.group3 || "",
+      cluster: school?.group4 || "",
+      address: school?.address || "",
+      link: school?.location_link || "",
+    });
+
+    const rawKeyContacts = school?.key_contacts;
+    let parsedKeyContacts = [];
+    if (rawKeyContacts) {
+      try {
+        parsedKeyContacts =
+          typeof rawKeyContacts === "string"
+            ? JSON.parse(rawKeyContacts)
+            : rawKeyContacts;
+        if (!Array.isArray(parsedKeyContacts)) parsedKeyContacts = [];
+      } catch (e) {
+        parsedKeyContacts = [];
+      }
+    }
+
+    if (parsedKeyContacts.length) {
+      const contactsArray = [
+        parsedKeyContacts[0] || {},
+        parsedKeyContacts[1] || {},
+      ];
+
+      setContacts(
+        contactsArray.map((c: any, i: number) => ({
+          subheader: `Contact ${i + 1}`,
+          required: i === 0,
+          fields: [
+            {
+              label: t("Name"),
+              name: "name",
+              value: c.name || "",
+              required: i === 0,
+            },
+            {
+              label: t("Phone Number"),
+              name: "phone",
+              value: c.phone || "",
+              required: i === 0,
+            },
+          ],
+        }))
+      );
+    }
+
+    setProgram(editData.programData);
+
+    async function fetch() {
+      const fcs = await api.getFieldCoordinatorsForSchools([school.id]);
+      const fc = fcs[0]?.users[0] || null;
+      setFieldCoordinator(fc);
+
+      // Only lock if both exist at the beginning
+      if (editData.programData && fc) {
+        setLockDropdowns(true);
+      }
+    }
+    fetch();
+  }, [editData]);
+  useEffect(() => {
+    if (!editData) return;
+    if (!program) return;
+    if (fieldCoordinator === null) return;
+    if (initialData) return; // Prevent reset once initialized
+
+    const school = editData.schoolData;
+
+    setInitialData({
+      schoolName: school?.name || "",
+      udise: school?.udise || "",
+      schoolModel: school?.model || "",
+      address: {
+        state: school?.group1 || "",
+        district: school?.group2 || "",
+        block: school?.group3 || "",
+        cluster: school?.group4 || "",
+        address: school?.address || "",
+        link: school?.location_link || "",
+      },
+      programId: editData.programData?.id || null,
+      fieldCoordinatorId: fieldCoordinator?.id || null,
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+    });
+  }, [editData, program, fieldCoordinator]);
+
+  const hasChanges = () => {
+    if (!initialData) return false;
+    const currentData = {
+      schoolName,
+      udise,
+      schoolModel,
+      address,
+      programId: program?.id,
+      fieldCoordinatorId: fieldCoordinator?.id,
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+    };
+
+    return JSON.stringify(initialData) !== JSON.stringify(currentData);
+  };
+
   const handleAddressChange = (name: string, value: string) => {
-    setAddress((prev) => ({ ...prev, [name]: value }));
+    setAddress((prev) => {
+      const updated = { ...prev, [name]: value };
+
+      if (name === "state") {
+        updated.district = "";
+        updated.block = "";
+        updated.cluster = "";
+      }
+      if (name === "district") {
+        updated.block = "";
+        updated.cluster = "";
+      }
+      if (name === "block") {
+        updated.cluster = "";
+      }
+      return updated;
+    });
   };
 
   const handleContactChange = (
@@ -80,24 +216,35 @@ const AddSchoolPage: React.FC = () => {
   };
 
   const isSaveDisabled = () => {
-    return (
-      !schoolName ||
-      !udise ||
-      !schoolModel ||
-      !address.state ||
-      !address.district ||
-      !program ||
-      !fieldCoordinator ||
-      !contacts[0].fields[0].value ||
-      !contacts[0].fields[1].value
-    );
+    const isFormValid =
+      !!schoolName &&
+      !!udise &&
+      !!schoolModel &&
+      !!address.state &&
+      !!address.district &&
+      !!program &&
+      !!fieldCoordinator &&
+      !!contacts[0].fields[0].value &&
+      !!contacts[0].fields[1].value &&
+      (contacts[0].fields[1].value?.length === 10) &&
+      (contacts[1].fields[1].value?.length === 0 || contacts[1].fields[1].value?.length === 10)&&
+      !errorMessage;
+
+    return editData ? !isFormValid || !hasChanges() : !isFormValid;
   };
+
   const handleUdiseChange = async (value: string) => {
     value = value.replace(/\D/g, "").slice(0, 11);
     setUdise(value);
+    setErrorMessage("");
 
     if (value.length === 11) {
       try {
+        const exist = await api.getSchoolDetailsByUdise(value);
+        if (exist &&  (!editData || editData.schoolData.udise !== value)) {
+          setErrorMessage("A school with this UDISE code already exists.");
+          return;
+        }
         const res = await api.getSchoolDataByUdise(value);
         if (res) {
           if (res.school_name) setSchoolName(res.school_name);
@@ -107,7 +254,6 @@ const AddSchoolPage: React.FC = () => {
             state: res.state || prev.state,
             district: res.district || prev.district,
             block: res.block || prev.block,
-            city: res.village || prev.city,
             cluster: res.cluster || prev.cluster,
           }));
         }
@@ -203,10 +349,10 @@ const AddSchoolPage: React.FC = () => {
       try {
         const fc = await api.getFieldCoordinatorsByProgram(program.id);
         setFieldCoordinators(fc.data || []);
-        setFieldCoordinator(null);
       } catch {
         setFieldCoordinators([]);
-        setFieldCoordinator(null);
+      } finally {
+        if (!editData) setFieldCoordinator(null);
       }
     }
 
@@ -225,34 +371,85 @@ const AddSchoolPage: React.FC = () => {
       .filter((c) => Object.values(c).some((v) => v));
 
     try {
-      const school = await api.createSchool(
-        schoolName,
-        address.state,
-        address.district,
-        address.block,
-        address.cluster,
-        null,
-        program.id,
-        udise,
-        address.address,
-        DEFAULT_COUNTRY
-      );
-      await api.insertSchoolDetails(
-        school.id,
-        schoolModel,
-        address.link,
-        keyContacts
-      );
+      setIsSaving(true);
+      if (editData) {
+        await api.updateSchoolProfile(
+          editData.schoolData,
+          schoolName,
+          address.state,
+          address.district,
+          address.block,
+          null,
+          address.cluster,
+          program.id,
+          udise,
+          address.address
+        );
+        await api.insertSchoolDetails(
+          editData.schoolData.id,
+          schoolModel,
+          address.link,
+          keyContacts
+        );
+        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+          await api.createAtSchoolUser(
+            editData.schoolData.id,
+            schoolName,
+            udise,
+            RoleType.AUTOUSER
+          );
+        }
+        if (!lockDropdowns && schoolModel !== "at_school") {
+          await api.addUserToSchool(
+            editData.schoolData.id,
+            fieldCoordinator,
+            RoleType.FIELD_COORDINATOR
+          );
+        }
+      } else {
+        const school = await api.createSchool(
+          schoolName,
+          address.state,
+          address.district,
+          address.block,
+          address.cluster,
+          null,
+          program.id,
+          udise,
+          address.address,
+          DEFAULT_COUNTRY,
+          true,
+          false
+        );
+        await api.insertSchoolDetails(
+          school.id,
+          schoolModel,
+          address.link,
+          keyContacts
+        );
+        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+          await api.createAtSchoolUser(
+            school.id,
+            schoolName,
+            udise,
+            RoleType.AUTOUSER
+          );
+        }
 
-      await api.addUserToSchool(
-        school.id,
-        fieldCoordinator,
-        RoleType.FIELD_COORDINATOR
-      );
+        if(schoolModel !== "at_school") {
+          await api.addUserToSchool(
+            school.id,
+            fieldCoordinator,
+            RoleType.FIELD_COORDINATOR
+          );
+        }
+      }
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
       console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -260,14 +457,31 @@ const AddSchoolPage: React.FC = () => {
     <div className="add-school-main-container">
       <div className="add-school-secondary-header">
         <Breadcrumb
-          crumbs={[
-            {
-              label: t("Schools"),
-              onClick: () =>
-                history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
-            },
-            { label: t("Add School") },
-          ]}
+          crumbs={
+            !editData
+              ? [
+                  {
+                    label: t("Schools"),
+                    onClick: () =>
+                      history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
+                  },
+                  { label: t("Add School") },
+                ]
+              : [
+                  {
+                    label: "Schools",
+                    onClick: () =>
+                      history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
+                  },
+                  {
+                    label: schoolName,
+                    onClick: () => history.goBack(),
+                  },
+                  {
+                    label: "Edit",
+                  },
+                ]
+          }
         />
       </div>
 
@@ -291,20 +505,21 @@ const AddSchoolPage: React.FC = () => {
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4.5 }}>
               <FormLabel sx={{ color: "#111827" }}>
-                {t("School Name")} <span style={{ color: "red" }}>*</span>
+                {t("School Name")} <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
                 fullWidth
                 size="small"
                 value={schoolName}
-                placeholder={t("School Name")??""}
+                placeholder={t("School Name") ?? ""}
                 onChange={(e) => setSchoolName(e.target.value)}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 4.5 }}>
               <FormLabel sx={{ color: "#111827" }}>
-                {t("School ID (UDISE)")} <span style={{ color: "red" }}>*</span>
+                {t("School ID (UDISE)")}{" "}
+                <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
                 fullWidth
@@ -315,9 +530,12 @@ const AddSchoolPage: React.FC = () => {
                   inputMode: "numeric",
                   pattern: "[0-9]*",
                 }}
-                placeholder={t("Enter 11 digit UDISE code")??""}
+                placeholder={t("Enter 11 digit UDISE code") ?? ""}
                 onChange={(e) => handleUdiseChange(e.target.value)}
               />
+              {errorMessage && (
+                <div className="class-form-error">{errorMessage}</div>
+              )}
             </Grid>
 
             <Grid size={{ xs: 12, md: 3 }}>
@@ -405,7 +623,7 @@ const AddSchoolPage: React.FC = () => {
               </FormLabel>
               <TextField
                 fullWidth
-                placeholder={t("Enter Cluster")??""}
+                placeholder={t("Enter Cluster") ?? ""}
                 value={address.cluster}
                 onChange={(e) => handleAddressChange("cluster", e.target.value)}
                 variant="outlined"
@@ -453,6 +671,7 @@ const AddSchoolPage: React.FC = () => {
                 }}
                 options={programs.map((p) => ({ label: p.name, value: p.id }))}
                 placeholder={t("Select Program") ?? ""}
+                disabled={lockDropdowns}
                 openDirection="down"
               />
             </Grid>
@@ -471,6 +690,7 @@ const AddSchoolPage: React.FC = () => {
                   value: fc.id,
                 }))}
                 placeholder={t("Select Field Coordinator") ?? ""}
+                disabled={lockDropdowns}
                 openDirection="down"
               />
             </Grid>
@@ -488,9 +708,9 @@ const AddSchoolPage: React.FC = () => {
           <button
             className="add-school-save-btn"
             onClick={handleApprove}
-            disabled={isSaveDisabled()}
+            disabled={isSaveDisabled() || isSaving}
           >
-            {t("Save")}
+            {isSaving ? t("Saving") + "..." : t("Save")}
           </button>
         </div>
       </div>

@@ -97,6 +97,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
         lesson.cocos_subject_code
       );
       const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+      setTimeout(()=>{
+        Util.launchCocosGame();
+      },1000)
       history.replace(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: lesson.cocos_lesson_id,

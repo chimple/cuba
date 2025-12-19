@@ -19,7 +19,9 @@ import ClassDetailsPage from "./ClassDetailsPage";
 import { t } from "i18next";
 import ClassForm from "../ClassForm";
 import { ClassWithDetails, SchoolStats } from "../../pages/SchoolDetailsPage";
-import { TableTypes } from "../../../common/constants";
+import { TableTypes, AGE_OPTIONS, GENDER } from "../../../common/constants";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
+import { normalizePhone10 } from "../../pages/NewUserPageOps";
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;
@@ -27,10 +29,10 @@ export type SchoolDetailsData = {
   programManagers?: any[];
   principals?: any[];
   totalPrincipalCount?: number;
-  coordinators?: any[]; 
+  coordinators?: any[];
   totalCoordinatorCount?: number;
-  teachers?: any[]; 
-  students?: any[]; 
+  teachers?: any[];
+  students?: any[];
   totalTeacherCount?: number;
   totalStudentCount?: number;
   schoolStats?: SchoolStats;
@@ -99,7 +101,7 @@ const SchoolClasses: React.FC<Props> = ({
   schoolId,
   isMobile,
   onGenerateCode,
-  refreshClasses
+  refreshClasses,
 }) => {
   const isSmall = useMediaQuery("(max-width: 768px)");
   const api = ServiceConfig.getI().apiHandler;
@@ -107,6 +109,14 @@ const SchoolClasses: React.FC<Props> = ({
   const [mode, setMode] = useState<"create" | "edit">("edit");
   const [showForm, setShowForm] = useState<boolean>(false);
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
+
+  // Add Student Modal State
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [studentErrorMessage, setStudentErrorMessage] = useState<
+    MessageConfig | undefined
+  >();
+  const [isStudentSubmitting, setIsStudentSubmitting] = useState(false);
+  const [classForStudent, setClassForStudent] = useState<ClassRow | null>(null);
 
   const allDataRef = useRef<SchoolDetailsData>(data);
   useEffect(() => {
@@ -186,6 +196,158 @@ const SchoolClasses: React.FC<Props> = ({
     }
   };
 
+  const isAtSchool = useMemo(() => {
+    const raw = (data?.schoolData?.model ?? "").toString();
+    const norm = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    return norm === "at_school";
+  }, [data?.schoolData?.model]);
+
+  const addStudentFields: FieldConfig[] = useMemo(() => {
+    const fields: FieldConfig[] = [
+      {
+        name: "studentName",
+        label: "Student Name",
+        kind: "text" as const,
+        required: true,
+        placeholder: "Enter Student Name",
+        column: 0 as const,
+      },
+      {
+        name: "studentID",
+        label: "Student ID",
+        kind: "text" as const,
+        placeholder: "Enter Student ID",
+        column: 1 as const,
+      },
+      {
+        name: "gender",
+        label: "Gender",
+        kind: "select" as const,
+        required: true,
+        column: 0 as const,
+        options: [
+          { label: t("GIRL"), value: GENDER.GIRL },
+          { label: t("BOY"), value: GENDER.BOY },
+          { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+        ],
+      },
+      {
+        name: "ageGroup",
+        label: "Age",
+        kind: "select" as const,
+        required: true,
+        placeholder: "Select Age Group",
+        column: 1 as const,
+        options: [
+          { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t("4 years")}` },
+          { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+          { value: AGE_OPTIONS.SIX, label: t("6 years") },
+          { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+          { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+          { value: AGE_OPTIONS.NINE, label: t("9 years") },
+          {
+            value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+            label: `≥${t("10 years")}`,
+          },
+        ],
+      },
+    ];
+    if (!isAtSchool) {
+      fields.push({
+        name: "phone",
+        label: "Phone Number",
+        kind: "phone" as const,
+        required: true,
+        placeholder: "Enter phone number",
+        column: 2 as const,
+      });
+    }
+    return fields;
+  }, [isAtSchool]);
+
+  const handleCloseAddStudentModal = () => {
+    setIsAddStudentModalOpen(false);
+    setStudentErrorMessage(undefined);
+    setIsStudentSubmitting(false);
+    setClassForStudent(null);
+  };
+
+  const handleSubmitAddStudentModal = async (
+    formValues: Record<string, string>
+  ) => {
+    if (!classForStudent) return;
+    setIsStudentSubmitting(true);
+    setStudentErrorMessage(undefined);
+
+    const rawPhone = (formValues.phone ?? "").toString();
+    let digits = rawPhone.replace(/\D/g, "");
+    if (digits === "" || digits === "91") {
+      digits = "";
+    }
+    if (digits.length === 12 && digits.startsWith("91"))
+      digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("0"))
+      digits = digits.slice(1);
+    if (!isAtSchool) {
+      if (digits.length !== 10) {
+        setStudentErrorMessage({
+          text: "Phone number must be 10 digits.",
+          type: "error",
+        });
+        setIsStudentSubmitting(false);
+        return;
+      }
+    } else {
+      if (digits.length !== 0 && digits.length !== 10) {
+        setStudentErrorMessage({
+          text: "Phone number must be 10 digits when provided.",
+          type: "error",
+        });
+        setIsStudentSubmitting(false);
+        return;
+      }
+    }
+
+    const normalizedPhone = digits.length === 10 ? digits : undefined;
+    try {
+      const payload: any = {
+        phone: normalizedPhone,
+        name: formValues.studentName || "",
+        gender: formValues.gender || "",
+        age: formValues.ageGroup || "",
+        classId: classForStudent.id,
+        schoolId: schoolId,
+        studentID: formValues.studentID || "",
+        atSchool: isAtSchool,
+      };
+      const result = await api.addStudentWithParentValidation(payload);
+      if (result.success) {
+        setStudentErrorMessage({
+          text: "Student added successfully.",
+          type: "success",
+        });
+        setTimeout(() => {
+          setIsAddStudentModalOpen(false);
+          setStudentErrorMessage(undefined);
+        }, 2000);
+        refreshClasses?.();
+      } else {
+        setStudentErrorMessage({ text: result.message, type: "error" });
+      }
+    } catch (error) {
+      console.error("Error adding student:", error);
+      setStudentErrorMessage({
+        text: "An unexpected error occurred. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsStudentSubmitting(false);
+    }
+  };
+
   const rows = useMemo<TableRowData[]>(() => {
     return safeClasses.map((c) => {
       const classLabel = typeof c.name === "string" ? c.name.trim() : "";
@@ -254,6 +416,10 @@ const SchoolClasses: React.FC<Props> = ({
                   {
                     name: t("Add Student"),
                     icon: <PersonAddAlt1Outlined fontSize="small" />,
+                    onClick: () => {
+                      setClassForStudent(c);
+                      setIsAddStudentModalOpen(true);
+                    },
                   },
                   {
                     name: t("Setup WhatsApp Group"),
@@ -402,7 +568,29 @@ const SchoolClasses: React.FC<Props> = ({
         </Box>
       </Box>
 
-      {showForm && <ClassForm mode = {mode} classData={editingClass} schoolId={schoolId} onSaved={refreshClasses} onClose={() => setShowForm(false)} />}
+      {showForm && (
+        <ClassForm
+          mode={mode}
+          classData={editingClass}
+          schoolId={schoolId}
+          onSaved={refreshClasses}
+          onClose={() => setShowForm(false)}
+        />
+      )}
+
+      <FormCard
+        open={isAddStudentModalOpen}
+        title={
+          classForStudent
+            ? `${t("Add New Student")} - ${classForStudent.name}`
+            : t("Add New Student")
+        }
+        submitLabel={isStudentSubmitting ? t("Adding...") : t("Add Student")}
+        fields={addStudentFields}
+        onClose={handleCloseAddStudentModal}
+        onSubmit={handleSubmitAddStudentModal}
+        message={studentErrorMessage}
+      />
 
       <div className="schoolclass-table-container">
         <DataTableBody

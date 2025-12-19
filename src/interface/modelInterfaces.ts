@@ -90,4 +90,58 @@ export enum SchoolTabs {
   Teachers = "Teachers",
   Principals = "Principals",
   Coordinators = "Coordinators",
+  Notes = "Notes"
+}
+
+export interface FcActivity {
+  raw: {
+    created_at: string;
+    contact_target: string;
+    call_status: string;
+    support_level: string;
+    tech_issues_reported: boolean;
+    question_response?: string;
+    comment?: string;
+    how_helped? : string;
+    tech_issue_comment?: string;
+  };
+  user: {
+    name: string;
+  } | null;
+  classInfo: {
+    name: string;
+  } | null;
+}
+
+export interface CreateSchoolNoteInput {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}
+
+export interface SchoolNote {
+  id: string;
+  text: string;
+  className: string | null;
+  createdAt: string;
+
+  createdBy: {
+    userId: string;
+    name: string;
+    role: string | null;
+  };
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+}
+
+export interface Note {
+  id: string;
+  createdBy: string;
+  role: string;
+  className?: string | null;
+  date?: string;
+  text: string;
 }

@@ -19,6 +19,7 @@ import {
   CLASS,
   SCHOOL,
   School_Creation_Stages,
+  USER_ROLE,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
@@ -411,7 +412,26 @@ const SubjectSelection: React.FC = () => {
       } else if (paramSchoolId) {
         await api.updateSchoolCourseSelection(paramSchoolId, selectedCourseIds);
       }
+      let userRole: RoleType | null = null;
+      const storedRoleData = localStorage.getItem(USER_ROLE);
+      if (storedRoleData) {
+        const parsed = JSON.parse(storedRoleData);
+        const flat = Array.isArray(parsed[0]) ? parsed[0] : parsed;
+        userRole = flat[0] ?? null;
+      }
+      if (!userRole) {
+        const auth = ServiceConfig.getI().authHandler;
+        const currentUser = await auth.getCurrentUser();
 
+        if (currentUser) {
+          const schools = await api.getSchoolsForUser(currentUser.id);
+
+          if (schools && schools.length > 0) {
+            userRole = schools[0].role;
+          }
+        }
+      }
+      const finalRole: RoleType = userRole ?? RoleType.PRINCIPAL;
       if (previousOrigin === PAGES.DISPLAY_SCHOOLS) {
         Util.setNavigationState(School_Creation_Stages.CREATE_CLASS);
         history.replace(PAGES.ADD_CLASS, {
@@ -419,13 +439,13 @@ const SubjectSelection: React.FC = () => {
           origin: PAGES.SUBJECTS_PAGE,
         });
       } else if (previousOrigin === PAGES.HOME_PAGE) {
-        Util.setCurrentSchool(currentSchool!, RoleType.PRINCIPAL);
+        Util.setCurrentSchool(currentSchool!, finalRole);
         Util.setCurrentClass(currentClass!);
         Util.clearNavigationState();
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       } else {
         if (navigationState?.stage === School_Creation_Stages.CLASS_COURSE) {
-          Util.setCurrentSchool(currentSchool!, RoleType.PRINCIPAL);
+          Util.setCurrentSchool(currentSchool!, finalRole);
           Util.setCurrentClass(currentClass!);
           Util.clearNavigationState();
           history.replace(PAGES.HOME_PAGE, { tabValue: 0 });

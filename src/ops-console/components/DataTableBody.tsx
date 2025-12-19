@@ -171,12 +171,12 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                 <TableRow
                   key={idx}
                   hover
-                  onClick={() => handleRowClick(row)}
-                  sx={{
-                    cursor: "pointer",
-                    height: "48px",
+                  onClick={() => {
+                    handleRowClick(row);
                   }}
+                  sx={{ cursor: "pointer", height: "48px" }}
                 >
+
                   {columns.map((col) => (
                     <TableCell
                       key={col.key}
@@ -187,8 +187,10 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                         maxWidth: col.width,
                       }}
                     >
-                      {typeof row[col.key] === "object" &&
-                      row[col.key]?.render !== undefined
+                      {col.render
+                        ? col.render(row)
+                        : typeof row[col.key] === "object" &&
+                          row[col.key]?.render !== undefined
                         ? row[col.key].render
                         : row[col.key]}
                     </TableCell>

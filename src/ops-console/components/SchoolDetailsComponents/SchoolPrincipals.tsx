@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Typography, Box, CircularProgress } from "@mui/material";
+import { Typography, Box, CircularProgress, IconButton } from "@mui/material";
 import { t } from "i18next";
 import "./SchoolPrincipals.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PrincipalInfo } from "../../../common/constants";
+import { ContactTarget, PrincipalInfo } from "../../../common/constants";
+import { Button as MuiButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
+import { RoleType } from "../../../interface/modelInterfaces";
+import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
+import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
 
 interface DisplayPrincipal {
   id: string;
@@ -13,6 +19,8 @@ interface DisplayPrincipal {
   gender: string;
   phoneNumber: string;
   emailDisplay: string;
+  interact: "";
+  interactPayload: PrincipalInfo;
 }
 
 interface SchoolPrincipalsProps {
@@ -29,6 +37,7 @@ const ROWS_PER_PAGE = 20;
 const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   data,
   schoolId,
+  isMobile,
 }) => {
   const [principals, setPrincipals] = useState<PrincipalInfo[]>(
     data.principals || []
@@ -40,10 +49,17 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<string>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [isAddPrincipalModalOpen, setIsAddPrincipalModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
+  const [openPopup, setOpenPopup] = useState(false);
+  const [currentPrincipal, setCurrentPrincipal] = useState<PrincipalInfo>();
+  const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
-    async (currentPage: number) => {
-      setIsLoading(true);
+    async (currentPage: number, silent = false) => {
+      if (!silent) {
+        setIsLoading(true);
+      }
       const api = ServiceConfig.getI().apiHandler;
       try {
         const response = await api.getPrincipalsForSchoolPaginated(
@@ -63,12 +79,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   );
 
   useEffect(() => {
-    if (page === 1) {
+    const isInitial = page === 1;
+    if (isInitial) {
       setPrincipals(data.principals || []);
-      setTotalCount(data.totalPrincipalCount || 0);
-      return;
+      fetchPrincipals(page, true);
+    } else {
+      fetchPrincipals(page);
     }
-    fetchPrincipals(page);
   }, [page, fetchPrincipals, data.principals, data.totalPrincipalCount]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
@@ -80,7 +97,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     },
     [order, orderBy]
   );
-
+  const getPrincipalInfo = useCallback(
+    (id: string): PrincipalInfo | null => {
+      if (!Array.isArray(principals)) return null;
+      return principals.find((p) => p?.id === id) || null;
+    },
+    [principals]
+  );
   const displayPrincipals = useMemo((): DisplayPrincipal[] => {
     let sorted = [...principals].sort((a, b) => {
       let aValue, bValue;
@@ -119,11 +142,119 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       gender: p.gender || "N/A",
       phoneNumber: p.phone || "N/A",
       emailDisplay: p.email || "N/A",
+      interact: "",
+      interactPayload: p,
     }));
   }, [principals, order, orderBy]);
 
   const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
   const isDataPresent = displayPrincipals.length > 0;
+  const handleAddNewPrincipal = useCallback(() => {
+    setErrorMessage(undefined);
+    setIsAddPrincipalModalOpen(true);
+  }, []);
+
+  const handleCloseAddTeacherModal = () => {
+    setIsAddPrincipalModalOpen(false);
+    setErrorMessage(undefined);
+  };
+
+  const handlePrincipalSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        const name = (values.name ?? "").toString().trim();
+        const rawEmail = (values.email ?? "").toString().trim();
+        const rawPhone = (values.phoneNumber ?? "").toString();
+        if (!name) {
+          setErrorMessage({
+            text: "Principal name is required.",
+            type: "error",
+          });
+          return;
+        }
+        const email = rawEmail.toLowerCase();
+        const normalizedPhone = normalizePhone10(rawPhone);
+        const hasEmail = !!email;
+        const hasPhone = !!normalizedPhone;
+        if (!hasEmail && !hasPhone) {
+          setErrorMessage({
+            text: "Please provide either an email or a phone number.",
+            type: "error",
+          });
+          return;
+        }
+        let finalEmail = "";
+        let finalPhone = "";
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            setErrorMessage({
+              text: "Please enter a valid email address.",
+              type: "error",
+            });
+            return;
+          }
+          finalEmail = email;
+        }
+        if (hasPhone) {
+          if (normalizedPhone.length !== 10) {
+            setErrorMessage({
+              text: "Phone number must be 10 digits.",
+              type: "error",
+            });
+            return;
+          }
+          finalPhone = normalizedPhone;
+        }
+        await api.getOrcreateschooluser({
+          name,
+          phoneNumber: finalPhone || undefined,
+          email: finalEmail || undefined,
+          schoolId,
+          role: RoleType.PRINCIPAL,
+        });
+        setIsAddPrincipalModalOpen(false);
+        setPage(1);
+        await fetchPrincipals(1);
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({
+          text: message,
+          type: "error",
+        });
+        console.error("Failed to add principal:", e);
+      }
+    },
+    [schoolId, fetchPrincipals]
+  );
+
+  const teacherFormFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: "name",
+        label: "Principal Name",
+        kind: "text",
+        required: true,
+        placeholder: "Enter Principal name",
+        column: 2,
+      },
+      {
+        name: "phoneNumber",
+        label: "Phone Number",
+        kind: "phone",
+        required: true,
+        placeholder: "Enter phone number",
+        column: 2,
+      },
+      {
+        name: "email",
+        label: "Email",
+        kind: "email",
+        placeholder: "Enter email address",
+        column: 2,
+      },
+    ],
+    []
+  );
 
   const columns: Column<DisplayPrincipal>[] = [
     {
@@ -135,7 +266,39 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Typography>
       ),
     },
-    { key: "gender", label: t("Gender") },
+    {
+      key: "interactPayload",
+      label: t("Interact"),
+      align: "center",
+      width: 60,
+      sortable: false,
+      render: (row) => (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "flex-start",
+            alignItems: "flex-start",
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={async () => {
+              setOpenPopup(true);
+              const currPrincipal = getPrincipalInfo(row.id);
+              if (currPrincipal) {
+                setCurrentPrincipal(currPrincipal);
+              }
+            }}
+          >
+            <img
+              src="/assets/icons/Interact.svg"
+              alt="Interact"
+              style={{ width: 30, height: 30 }}
+            />
+          </IconButton>
+        </Box>
+      ),
+    },
     { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "emailDisplay",
@@ -150,6 +313,26 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   return (
     <div className="school-principals-page-container">
+      <Box className="school-principals-headerActionsRow">
+        <Box className="school-principals-titleArea">
+          <Typography variant="h5" className="school-principals-titleHeading">
+            {t("Principals")}
+          </Typography>
+          <Typography variant="body2" className="school-principals-totalText">
+            {t("Total")}: {totalCount} {t("principals")}
+          </Typography>
+        </Box>
+        <Box className="school-principals-actionsGroup">
+          <MuiButton
+            variant="outlined"
+            onClick={handleAddNewPrincipal}
+            className="school-principals-newTeacherButton-outlined"
+          >
+            <AddIcon className="school-principals-newTeacherButton-outlined-icon" />
+            {!isMobile && t("New Principal")}
+          </MuiButton>
+        </Box>
+      </Box>
       {isLoading ? (
         <Box
           display="flex"
@@ -161,6 +344,14 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Box>
       ) : isDataPresent ? (
         <>
+          {openPopup && currentPrincipal && (
+            <FcInteractPopUp
+              principalData={currentPrincipal}
+              schoolId={schoolId}
+              onClose={() => setOpenPopup(false)}
+              initialUserType={ContactTarget.PRINCIPAL}
+            />
+          )}
           <div className="school-principals-data-table-container">
             <DataTableBody
               columns={columns}
@@ -192,8 +383,28 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           <Typography className="school-principals-empty-state-message">
             {t("No principals data found for the selected school")}
           </Typography>
+          <MuiButton
+            variant="text"
+            onClick={handleAddNewPrincipal}
+            className="school-principals-emptyStateAddButton"
+            startIcon={
+              <AddIcon className="school-principals-emptyStateAddButton-icon" />
+            }
+          >
+            {t("Add Principal")}
+          </MuiButton>
         </Box>
       )}
+
+      <FormCard
+        open={isAddPrincipalModalOpen}
+        title={t("Add New Principal")}
+        submitLabel={t("Add Principal")}
+        fields={teacherFormFields}
+        onClose={handleCloseAddTeacherModal}
+        onSubmit={handlePrincipalSubmit}
+        message={errorMessage}
+      />
     </div>
   );
 };

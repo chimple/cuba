@@ -10,7 +10,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+        with:
+          submodules: true  
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,6 +46,30 @@ jobs:
           echo "Using channel: $CHANNEL_NAME"
 
       - name: Build project
+        env:
+          CI: false
+          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY_PROD }}
+          REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN_PROD }}
+          REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID_PROD }}
+          REACT_APP_STORAGE_BUCKET: ${{ secrets.REACT_APP_STORAGE_BUCKET_PROD }}
+          REACT_APP_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_MESSAGING_SENDER_ID_PROD }}
+          REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID_PROD }}
+          REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID_PROD}}
+          REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
+          REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.HOT_UPDATE_SERVER }}
+          REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME_PROD}}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_PROD_SUPABASE_URL}}
+          REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_PROD_SUPABASE_KEY}}
+          REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_PROD_CLIENT_ID}}
+          REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
+          REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
+          REACT_APP_GROWTHBOOK_ID: ${{ secrets.REACT_APP_GROWTHBOOK_ID_PROD }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
+          REACT_APP_ENV: ${{vars.REACT_APP_ENV_PROD}}  
+          REACT_IS_HOT_UPDATE_ENABLED: ${{vars.REACT_IS_HOT_UPDATE_ENABLED_PROD}}
+              
         run: export GENERATE_SOURCEMAP=false && npx craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build
 
       - name: Login to Capawesome Cloud
@@ -58,7 +84,8 @@ jobs:
           CHANNEL="${{ steps.channel.outputs.channelName }}"
           echo "Checking channel: $CHANNEL"
 
-          if npx @capawesome/cli apps:channels:list --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID" | grep -q "$CHANNEL"; then
+          CHANNELS=$(npx @capawesome/cli apps:channels:list --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID")
+          if echo "$CHANNELS" | grep -q "$CHANNEL"; then
             echo "Channel '$CHANNEL' exists."
           else
             echo "Channel '$CHANNEL' does not exist. Creating..."
@@ -77,6 +104,7 @@ jobs:
             --path build \
             --channel "$CHANNEL" \
             --artifact-type manifest \
+            --custom-property version="${{ steps.version.outputs.versionName }}" \
             --commit-message "${{ github.event.head_commit.message || 'manual deploy' }}" \
             --commit-ref "${{ github.ref }}" \
             --commit-sha "${{ github.sha }}"

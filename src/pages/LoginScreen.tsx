@@ -433,6 +433,9 @@ const LoginScreen: React.FC = () => {
     try {
       const ok = await authInstance.googleSign();
       if (!ok.success) throw new Error("Google sign in failed");
+      if (!Capacitor.isNativePlatform()) {
+        return;
+      }
 
       const user: any = await authInstance.getCurrentUser();
       if (!user) throw new Error("No user returned from auth handler");
@@ -501,9 +504,14 @@ const LoginScreen: React.FC = () => {
           return history.replace(PAGES.SELECT_MODE);
         }
       }
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const currentUser = await authHandler?.getCurrentUser();
 
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
+      if(!currentUser?.name || currentUser.name.trim() === ""){
+        return history.replace(PAGES.ADD_TEACHER_NAME);
+      }
       return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
   };

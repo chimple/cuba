@@ -3,6 +3,7 @@ import { useHistory } from "react-router";
 import { Util } from "../utility/util";
 import {
   EVENTS,
+  HOMEWORK_PATHWAY,
   LidoActivityChangeKey,
   LidoActivityEndKey,
   LidoGameCompletedKey,
@@ -14,12 +15,15 @@ import {
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
+import ScoreCard from "../components/parent/ScoreCard";
 import { IonPage, useIonToast } from "@ionic/react";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Lesson } from "../interface/curriculumInterfaces";
 import { AvatarObj } from "../components/animation/Avatar";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
+import { t } from "i18next";
+import { App as CapApp } from "@capacitor/app";
 import React from "react";
 
 const LidoPlayer: FC = () => {
@@ -31,19 +35,21 @@ const LidoPlayer: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
-
+  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [gameResult, setGameResult] = useState<any>(null);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
   const onNextContainer = (e: any) => {};
 
   const gameCompleted = (e: any) => {
-    push();
+    setShowDialogBox(true);
   };
 
   const push = () => {
     const fromPath: string = state?.from ?? PAGES.HOME;
-    Util.setPathToBackButton(fromPath, history);
+    history.replace(fromPath);
+    setIsLoading(false);
   };
   const onActivityEnd = (e: any) => {
     // push();
@@ -100,6 +106,45 @@ const LidoPlayer: FC = () => {
         currentStudent.id
       );
     }
+
+    // Check if the game was played from `learning_pathway`
+    const learning_path: boolean = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false;
+    const homeworkIndex: number | undefined = state?.homeworkIndex;
+
+     // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+        let shouldGiveHomeworkBonus = false;
+    
+        if (is_homework) {
+          try {
+            const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+    
+            if (!pathStr) {
+              console.warn(
+                "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+              );
+            } else {
+              const path = JSON.parse(pathStr) as {
+                lessons?: any[];
+                currentIndex?: number;
+              };
+    
+              const lessonsLen = path.lessons?.length ?? 0;
+              const isLastLessonInPath =
+                lessonsLen > 0 &&
+                typeof homeworkIndex === "number" &&
+                homeworkIndex === lessonsLen - 1;
+              if (isLastLessonInPath) {
+                shouldGiveHomeworkBonus = true;
+              }
+            }
+          } catch (err) {
+            console.error(
+              "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+              err
+            );
+          }
+        }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimeSpent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -109,11 +154,7 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
-    // Check if the game was played from `learning_pathway`
-    const learning_path: string = state?.learning_path ?? false;
-    const is_homework: boolean = state?.isHomework ?? false; // Check for our new flag
-    const homeworkIndex: number | undefined = state?.homeworkIndex; // 👈 ADD THIS
-
+    setGameResult(data);
     const isReward: boolean = state?.reward ?? false;
     if (isReward === true) {
       sessionStorage.setItem(REWARD_LESSON, "true");
@@ -134,10 +175,42 @@ const LidoPlayer: FC = () => {
     // Update the learning path
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
-    }else if (is_homework) {
+    } else if (is_homework) {
       // This handles our temporary homework path
       await Util.updateHomeworkPath(homeworkIndex);
     }
+
+     // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+        if (shouldGiveHomeworkBonus) {
+          try {
+            const student = Util.getCurrentStudent();
+    
+            if (student?.id) {
+              const bonusStars = 10;
+    
+              const newLocalStars = Util.bumpLocalStarsForStudent(
+                student.id,
+                bonusStars,
+                student.stars || 0
+              );
+    
+              try {
+                await api.updateStudentStars(student.id, newLocalStars);
+              } catch (err) {
+                console.warn(
+                  "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
+                  err
+                );
+              }
+              localStorage.removeItem(HOMEWORK_PATHWAY);
+            }
+          } catch (err) {
+            console.error(
+              "[Homework bonus] Failed to award homework completion bonus",
+              err
+            );
+          }
+        }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,
@@ -179,7 +252,6 @@ const LidoPlayer: FC = () => {
     if (!assignmentCompletedIds[api.currentStudent?.id!]) {
       assignmentCompletedIds[api.currentStudent?.id!] = [];
     }
-    // assignmentCompletedIds[api.currentStudent?.id!].push(lesson.assignment?.id);
     localStorage.setItem(
       ASSIGNMENT_COMPLETED_IDS,
       JSON.stringify(assignmentCompletedIds)
@@ -187,9 +259,7 @@ const LidoPlayer: FC = () => {
   };
   const onGameExit = (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
-    const lessonData = e.detail;
-
-    const data = lessonData;
+    const data = e.detail;
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       // assignment_id: lessonDetail.assignment?.id,
@@ -222,6 +292,7 @@ const LidoPlayer: FC = () => {
   };
 
   useEffect(() => {
+    
     init();
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
@@ -232,14 +303,12 @@ const LidoPlayer: FC = () => {
       //   setCurrentIndex(e.detail.index);
     });
     return () => {
-      window.addEventListener(LidoGameExitKey, onGameExit);
+      window.removeEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
       window.removeEventListener(LidoActivityChangeKey, onActivityEnd);
       window.removeEventListener(LidoLessonEndKey, onLessonEnd);
-      window.removeEventListener(LidoActivityEndKey, (e: any) => {
-        //   setCurrentIndex(e.detail.index);
-      });
+      window.removeEventListener(LidoActivityEndKey, (e: any) => {});
     };
   }, []);
 
@@ -260,6 +329,7 @@ const LidoPlayer: FC = () => {
 
   async function init() {
     setIsLoading(true);
+    setShowDialogBox(false);
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
@@ -270,8 +340,12 @@ const LidoPlayer: FC = () => {
       return;
     }
     if (Capacitor.isNativePlatform()) {
-      const path = await Util.getLessonPath(lessonId);
-      setBasePath(path);
+      const path = await Util.getLessonPath({ lessonId: lessonId });
+      if (path) {
+        setBasePath(path);
+      } else {
+        return;
+      }
     } else {
       const path =
         "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
@@ -283,10 +357,31 @@ const LidoPlayer: FC = () => {
   return (
     <IonPage>
       <Loading isLoading={isLoading} />
+      {showDialogBox && (
+        <ScoreCard
+          // title={t("🎉Congratulations🎊")}
+          score={Math.round(gameResult?.score ?? 0)}
+          message={t("You Completed the Lesson:")}
+          showDialogBox={showDialogBox}
+          // yesText={t("Like the Game")}
+          lessonName={lessonDetail?.name ?? ""}
+          noText={t("Continue Playing")}
+          handleClose={() => {
+            setShowDialogBox(false);
+          }}
+          onContinueButtonClicked={() => {
+            setShowDialogBox(false);
+            setIsLoading(true);
+            push();
+          }}
+        />
+      )}
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
-            "base-url": basePath,
+            "base-url": basePath, 
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": "/Lido-CommonAudios",
           })
         : null}
     </IonPage>
@@ -294,3 +389,4 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
+    

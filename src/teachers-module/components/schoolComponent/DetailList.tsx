@@ -57,6 +57,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
   return (
     <div className="main-list">
+
       {data.map((item) => {
         const name =
           type === IconType.SCHOOL

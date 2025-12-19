@@ -1,12 +1,7 @@
-.homework-dropdown-wrapper {
-  z-index: 10;
-
-}
-
-
 .homework-pathway-container {
   display: flex;
   flex-direction: column;
+  margin-top: 2.6%;
 }
 
 .homeworkpathway-chapter-egg-container {
