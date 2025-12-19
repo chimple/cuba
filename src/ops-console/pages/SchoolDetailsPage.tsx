@@ -399,7 +399,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const schoolName = data.schoolData?.name;
 
   return (
-    <div className="school-detail-container">
+    <div className="schooldetailspage school-detail-container">
       {/* <div className="school-detail-gap" /> */}
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
@@ -462,7 +462,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                       onClose={handleCloseMenu}
                       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                       transformOrigin={{ vertical: "top", horizontal: "right" }}
-                      classes={{ paper: "check-in-menu-paper" }}
+                      classes={{ paper: "schooldetailspage check-in-menu-paper" }}
                     >
                       <MenuItem
                         onClick={() => handleSelectVisitType("Regular Visit")}
