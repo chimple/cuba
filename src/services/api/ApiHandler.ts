@@ -1758,7 +1758,7 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateClassCourses(classId, selectedCourseIds);
   }
   public async addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -1766,6 +1766,8 @@ export class ApiHandler implements ServiceApi {
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this.s.addStudentWithParentValidation(params);
   }
@@ -1814,10 +1816,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
-  public async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null = null
+  public async getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats> {
-    return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
+    return await this.s.getSchoolStatsForSchool(schoolId);
   }
 }

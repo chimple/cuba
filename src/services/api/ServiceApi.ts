@@ -2344,7 +2344,7 @@ export interface ServiceApi {
    * @returns Object with success status and message
    */
   addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -2352,6 +2352,8 @@ export interface ServiceApi {
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }>;
   /**
    * Update class courses belongs to that curriculum and grade
@@ -2468,8 +2470,7 @@ export interface ServiceApi {
   /**
    * Get interactions metrics for a school.
    */
-  getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
+  getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats>;
 }

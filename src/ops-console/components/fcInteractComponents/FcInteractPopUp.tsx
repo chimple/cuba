@@ -7,7 +7,6 @@ import {
   ContactTarget,
   EnumType,
   PERFORMANCE_UI,
-  PerformanceLevel,
   PrincipalInfo,
   StudentInfo,
   TableTypes,
@@ -133,6 +132,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
+    if (techIssueMarked && techIssueDetails.trim() === "") return false;
     if (showMandatory) {
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
@@ -140,7 +140,15 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     }
 
     return true;
-  }, [mode, callOutcome, mandatoryQuestions, responses, spokeWith]);
+  }, [
+    mode,
+    callOutcome,
+    mandatoryQuestions,
+    responses,
+    spokeWith,
+    techIssueMarked,
+    techIssueDetails,
+  ]);
 
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
@@ -482,7 +490,15 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               className="fc-interact-popup-section fc-interact-popup-comments-section"
               id="fc-comments-section"
             >
-              <div className="fc-interact-popup-label" id="fc-comments-label">
+              <div
+                className="fc-interact-popup-label-other-comments"
+                id="fc-comments-label"
+              >
+                {showMandatory && mandatoryQuestions.length > 0 && (
+                  <span className="fc-interact-popup-badge">
+                    {mandatoryQuestions.length + 1}
+                  </span>
+                )}
                 {t("Any other questions or comments?")}
               </div>
               <textarea
@@ -509,7 +525,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 id="fc-tech-radio-group"
               >
                 <label
-                  className="fc-interact-popup-radio-item"
+                  className="fc-interact-popup-radio-item-tech-issues"
                   id="fc-tech-label"
                 >
                   <input
