@@ -1498,6 +1498,7 @@ export type Database = {
           check_out_lat: number | null
           check_out_lng: number | null
           created_at: string
+          distance_from_school: number | null
           id: string
           is_deleted: boolean
           notes: string | null
@@ -1513,6 +1514,7 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
+          distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
           notes?: string | null
@@ -1528,6 +1530,7 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
+          distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
           notes?: string | null

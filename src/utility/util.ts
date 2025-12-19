@@ -1039,12 +1039,10 @@ export class Util {
         userId: params.user_id,
       });
       try {
-        if (Capacitor.isNativePlatform()) {
-          if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-          await Promise.resolve(
-            Util.port.shareUserId({ userId: params.user_id })
-          );
-        }
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        await Promise.resolve(
+          Util.port.shareUserId({ userId: params.user_id })
+        );
       } catch (e) {
         console.warn("Port.shareUserId skipped:", e);
       }
@@ -2057,113 +2055,70 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
-  public static getCurrentSchool(): TableTypes<"school"> | undefined {
-    const api = ServiceConfig.getI().apiHandler;
+public static getCurrentSchool(): TableTypes<"school"> | undefined {
+  const api = ServiceConfig.getI().apiHandler;
 
-    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
-      try {
-        const authHandler = ServiceConfig.getI().authHandler;
-        const currentUser = await authHandler.getCurrentUser();
-        if (!currentUser) return false;
+  const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return false;
 
-        const userId = currentUser.id;
-        const schools = await api.getSchoolsForUser(userId);
+      const userId = currentUser.id;
+      const schools = await api.getSchoolsForUser(userId);
 
-        return schools.some((item) => item.school.id === schoolId);
-      } catch (error) {
-        console.error("Error checking school via user:", error);
-        return false;
-      }
-    };
-
-    const isClassConnected = async (
-      schoolId: string,
-      classId: string
-    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
-      try {
-        const authHandler = ServiceConfig.getI().authHandler;
-        const currentUser = await authHandler.getCurrentUser();
-        if (!currentUser) return;
-
-        const userId = currentUser.id;
-
-        const classes = await api.getClassesForSchool(schoolId, userId);
-
-        return {
-          classExists: classes.some((cls) => cls.id === classId),
-          classCount: classes.length,
-        };
-      } catch (error) {
-        console.error("Error checking class via user:", error);
-        return;
-      }
-    };
-
-    //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
-    if (!!api.currentSchool) {
-      const classes = Util.getCurrentClass();
-      const schoolId = api.currentSchool.id;
-      const classId = classes?.id ?? undefined;
-
-      // SCHOOL CHECK
-      isSchoolConnected(api.currentSchool.id).then((res) => {
-        if (!res) {
-          api.currentSchool = undefined;
-          // schoolUtil.setCurrMode(MODES.SCHOOL);
-          console.log("School no longer connected → removing from storage");
-          localStorage.removeItem(SCHOOL);
-          localStorage.removeItem(CLASS);
-          return;
-        }
-
-        // CLASS CHECK
-
-        if (classId) {
-          isClassConnected(schoolId, classId).then((cls) => {
-            if (!cls) return;
-
-            const { classExists, classCount } = cls;
-
-            if (!classExists) {
-              console.log("Class no longer connected → removing class");
-              localStorage.removeItem(CLASS);
-
-              // If only one class existed and that gets removed → remove school too
-              if (classCount === 1) {
-                console.log("Last class removed → removing school as well");
-                api.currentSchool = undefined;
-                localStorage.removeItem(SCHOOL);
-              }
-            }
-          });
-        }
-      });
-
-      return api.currentSchool;
+      return schools.some((item) => item.school.id === schoolId);
+    } catch (error) {
+      console.error("Error checking school via user:", error);
+      return false;
     }
+  };
 
-    //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
-    const temp = localStorage.getItem(SCHOOL);
-    if (!temp) return;
+  const isClassConnected = async (
+    schoolId: string,
+    classId: string
+  ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+    try {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const currentUser = await authHandler.getCurrentUser();
+      if (!currentUser) return;
 
-    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-    api.currentSchool = currentSchool;
+      const userId = currentUser.id;
 
-    const classId = localStorage.getItem(CLASS) ?? undefined;
+      const classes = await api.getClassesForSchool(schoolId, userId);
+
+      return {
+        classExists: classes.some((cls) => cls.id === classId),
+        classCount: classes.length,
+      };
+    } catch (error) {
+      console.error("Error checking class via user:", error);
+      return;
+    }
+  };
+
+ 
+  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
+  if (!!api.currentSchool) {
+    const classes = Util.getCurrentClass();
+    const schoolId = api.currentSchool.id;
+    const classId = classes?.id ?? undefined;
 
     // SCHOOL CHECK
-    isSchoolConnected(currentSchool.id).then((res) => {
+    isSchoolConnected(api.currentSchool.id).then((res) => {
       if (!res) {
         api.currentSchool = undefined;
         // schoolUtil.setCurrMode(MODES.SCHOOL);
+        console.log("School no longer connected → removing from storage");
         localStorage.removeItem(SCHOOL);
         localStorage.removeItem(CLASS);
         return;
       }
 
-      // CLASS CHECK
+      // CLASS CHECK 
+      
       if (classId) {
-        isClassConnected(currentSchool.id, classId).then((cls) => {
+        isClassConnected(schoolId, classId).then((cls) => {
           if (!cls) return;
 
           const { classExists, classCount } = cls;
@@ -2172,6 +2127,7 @@ export class Util {
             console.log("Class no longer connected → removing class");
             localStorage.removeItem(CLASS);
 
+            // If only one class existed and that gets removed → remove school too
             if (classCount === 1) {
               console.log("Last class removed → removing school as well");
               api.currentSchool = undefined;
@@ -2182,8 +2138,51 @@ export class Util {
       }
     });
 
-    return currentSchool;
+    return api.currentSchool;
   }
+
+  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
+  const temp = localStorage.getItem(SCHOOL);
+  if (!temp) return;
+
+  const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+  api.currentSchool = currentSchool;
+
+  const classId = localStorage.getItem(CLASS) ?? undefined;
+
+  // SCHOOL CHECK 
+  isSchoolConnected(currentSchool.id).then((res) => {
+    if (!res) {
+      api.currentSchool = undefined;
+      // schoolUtil.setCurrMode(MODES.SCHOOL);
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      return;
+    }
+
+    // CLASS CHECK
+    if (classId) {
+      isClassConnected(currentSchool.id, classId).then((cls) => {
+        if (!cls) return;
+
+        const { classExists, classCount } = cls;
+
+        if (!classExists) {
+          console.log("Class no longer connected → removing class");
+          localStorage.removeItem(CLASS);
+
+          if (classCount === 1) {
+            console.log("Last class removed → removing school as well");
+            api.currentSchool = undefined;
+            localStorage.removeItem(SCHOOL);
+          }
+        }
+      });
+    }
+  });
+
+  return currentSchool;
+}
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
@@ -2949,11 +2948,7 @@ export class Util {
             JSON.stringify(learningPath)
           );
         }
-        if (
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].type === RECOMMENDATION_TYPE.CHAPTER
-        ) {
+        if(learningPath.courses.courseList[learningPath.courses.currentCourseIndex].type === RECOMMENDATION_TYPE.CHAPTER) {
           currentCourse.startIndex = currentCourse.currentIndex;
           currentCourse.pathEndIndex += 5;
           currentCourse.path_id = uuidv4();
@@ -2966,7 +2961,7 @@ export class Util {
         } else {
           const palPath = await palUtil.getPalLessonPathForCourse(
             currentCourse.course_id,
-            currentStudent.id
+            currentStudent.id,
           );
           if (palPath?.length) {
             currentCourse.path_id = uuidv4();
