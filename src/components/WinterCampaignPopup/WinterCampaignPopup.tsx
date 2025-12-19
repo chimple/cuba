@@ -31,6 +31,12 @@ const WinterCampaignPopup: React.FC<WinterCampaignPopupProps> = ({
       className="WinterCampaignPopup-overlay"
     >
       <div id="wintercampaign-popup-card" className="WinterCampaignPopup-card">
+        <img
+          src="assets/campaignPopup/campaignPopupBg.svg"
+          alt=""
+          aria-hidden="true"
+          className="WinterCampaignPopup-bg"
+        />
         {/* Close button */}
         <button
           id="wintercampaign-popup-close-btn"
