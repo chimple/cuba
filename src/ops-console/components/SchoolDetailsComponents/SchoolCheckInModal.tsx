@@ -311,7 +311,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool === undefined) || isUpdatingLocation;
 
   return (
-    <div className="check-in-modal-overlay" onClick={onClose}>
+    <div className="schoolcheckinmodal check-in-modal-overlay" onClick={onClose}>
       <div className="check-in-modal-container" onClick={(e) => e.stopPropagation()}>
         
         <div className="check-in-modal-header">
