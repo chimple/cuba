@@ -39,8 +39,8 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType) {
-    return this.s.createAtSchoolUser(id,schoolName,udise,role);
+  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType) {
+    return this.s.createAtSchoolUser(id, schoolName, udise, role);
   }
   public static i: ApiHandler;
 
@@ -535,7 +535,9 @@ export class ApiHandler implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined,
+
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -560,7 +562,8 @@ export class ApiHandler implements ServiceApi {
       domain_id,
       domain_ability,
       subject_id,
-      subject_ability
+      subject_ability,
+      activities_scores
     );
   }
 

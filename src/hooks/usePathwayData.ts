@@ -236,6 +236,7 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
+          skillId: course.path[currentIndex]?.skill_id,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.replace(
@@ -246,6 +247,7 @@ export const usePathwayData = () => {
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
+            skillId: course.path[currentIndex]?.skill_id,
           }
         );
       } else if (lesson.plugin_type === LIDO) {
@@ -259,6 +261,7 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
+          skillId: course.path[currentIndex]?.skill_id,
         });
       }
     } catch (error) {
