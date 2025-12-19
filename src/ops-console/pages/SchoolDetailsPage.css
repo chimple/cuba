@@ -27,23 +27,7 @@
   align-items: center;
 }
 
-.add-note-button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #4F46E5;
-  background: white;
-  color: #4F46E5;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  margin-right: 24px;
-  width: auto;
-  max-width: max-content;
-}
 
-.add-note-button:hover {
-  background: #f6f6ff;
-}
 
 .school-detail-secondary-header {
   width: calc(100% - 32px);
@@ -94,4 +78,47 @@
 .check-in-menu-item {
   font-size: 0.9rem !important;
   padding: 10px 16px !important;
+}
+
+.btn-add-notes {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border-color: #4F46E5 !important;
+  color: #4F46E5 !important;
+  border-radius: 8px !important;
+}
+
+.btn-add-notes:hover {
+  background-color: #f6f6ff !important;
+  border-color: #4F46E5 !important;
+}
+
+.btn-check-in {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  background-color: #2e7d32 !important;
+  border-radius: 8px !important;
+}
+
+.btn-check-in:hover {
+  background-color: #1b5e20 !important;
+}
+
+.btn-check-out {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  background-color: #d32f2f !important;
+  border-radius: 8px !important;
+}
+
+.btn-check-out:hover {
+  background-color: #b71c1c !important;
+}
+
+.check-in-icon {
+  transition: transform 0.2s !important;
+}
+
+.check-in-icon-rotated {
+  transform: rotate(180deg) !important;
 }

@@ -432,61 +432,77 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
             endActions={
-                     checkInStatus === 'checked_out' ? (
-                        <>
-                            <Button 
-                                variant="contained" 
-                                onClick={handleOpenCheckInMenu}
-                                endIcon={<ArrowDropDownIcon style={{ transform: openMenu ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />}
-                                sx={{ 
-                                    textTransform: 'none', 
-                                    fontWeight: 600,
-                                    backgroundColor: '#2e7d32', 
-                                    '&:hover': { backgroundColor: '#1b5e20' }
-                                }}
-                            >
-                                Check In
-                            </Button>
-                            <Menu
-                                anchorEl={anchorEl}
-                                open={openMenu}
-                                onClose={handleCloseMenu}
-                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                                classes={{ paper: 'check-in-menu-paper' }}
-                            >
-                                <MenuItem onClick={() => handleSelectVisitType('Regular Visit')} className="check-in-menu-item">Regular Visit</MenuItem>
-                                <Divider className="check-in-menu-divider" />
-                                <MenuItem onClick={() => handleSelectVisitType('Parents Teacher Meeting')} className="check-in-menu-item">Parents Teacher Meeting</MenuItem>
-                                <Divider className="check-in-menu-divider" />
-                                <MenuItem onClick={() => handleSelectVisitType('Teacher Training Meeting')} className="check-in-menu-item">Teacher Training Meeting</MenuItem>
-                            </Menu>
-                        </>
-                     ) : (
-                        <Button 
-                            variant="contained" 
-                            onClick={handleOpenCheckInModal}
-                            sx={{ 
-                                textTransform: 'none', 
-                                fontWeight: 600,
-                                backgroundColor: '#d32f2f',
-                                '&:hover': { backgroundColor: '#b71c1c' }
-                            }}
-                        >
-                            Check Out
-                        </Button>
-                     )
+              <>
+                {activeTab == SchoolTabs.Overview && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowAddModal(true)}
+                    className="btn-add-notes"
+                  >
+                    + {t("Add Notes")}
+                  </Button>
+                )}
+                {checkInStatus === "checked_out" ? (
+                  <>
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenCheckInMenu}
+                      endIcon={
+                        <ArrowDropDownIcon
+                          className={`check-in-icon ${openMenu ? "check-in-icon-rotated" : ""}`}
+                        />
+                      }
+                      className="btn-check-in"
+                    >
+                      Check In
+                    </Button>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={openMenu}
+                      onClose={handleCloseMenu}
+                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                      transformOrigin={{ vertical: "top", horizontal: "right" }}
+                      classes={{ paper: "check-in-menu-paper" }}
+                    >
+                      <MenuItem
+                        onClick={() => handleSelectVisitType("Regular Visit")}
+                        className="check-in-menu-item"
+                      >
+                        Regular Visit
+                      </MenuItem>
+                      <Divider className="check-in-menu-divider" />
+                      <MenuItem
+                        onClick={() =>
+                          handleSelectVisitType("Parents Teacher Meeting")
+                        }
+                        className="check-in-menu-item"
+                      >
+                        Parents Teacher Meeting
+                      </MenuItem>
+                      <Divider className="check-in-menu-divider" />
+                      <MenuItem
+                        onClick={() =>
+                          handleSelectVisitType("Teacher Training Meeting")
+                        }
+                        className="check-in-menu-item"
+                      >
+                        Teacher Training Meeting
+                      </MenuItem>
+                    </Menu>
+                  </>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleOpenCheckInModal}
+                    className="btn-check-out"
+                  >
+                    Check Out
+                  </Button>
+                )}
+              </>
             }
           />
 
-          {activeTab == SchoolTabs.Overview && (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="add-note-button"
-            >
-              + {t("add note")}
-            </button>
-          )}
         </div>
       )}
       {/* Modal outside the header */}
