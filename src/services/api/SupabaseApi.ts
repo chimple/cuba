@@ -9241,7 +9241,7 @@ export class SupabaseApi implements ServiceApi {
     let effectiveSchoolId: string | undefined = schoolId;
     if (!effectiveSchoolId && classIds.length > 0) {
       const { data: clsRows, error: clsErr } = await this.supabase
-        .from("class") 
+        .from("class")
         .select("id, school_id")
         .in("id", classIds)
         .order("id", { ascending: true });
@@ -9274,7 +9274,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (isPrincipalRole && effectiveSchoolId) {
-      
+
       const { data: teacherCU, error: teacherCUErr } = await this.supabase
         .from("class_user")
         .select("id, class_id, role, updated_at")
@@ -9294,9 +9294,9 @@ export class SupabaseApi implements ServiceApi {
         .filter(Boolean);
 
       if (teacherClassIds.length > 0) {
-        
+
         const { data: match, error: matchErr } = await this.supabase
-          .from("class") 
+          .from("class")
           .select("id")
           .eq("school_id", effectiveSchoolId)
           .in("id", teacherClassIds)
@@ -9476,7 +9476,8 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     schoolName: string,
     udise: string,
-    roleType: RoleType
+    roleType: RoleType,
+    isEmailVerified: boolean
   ): Promise<void> {
     if (!this.supabase) return;
 
@@ -9490,8 +9491,9 @@ export class SupabaseApi implements ServiceApi {
       await this.supabase.functions.invoke("get_or_create_user", {
         body: {
           name: schoolName,
-          phone: undefined,
+          phone: "",
           email: schoolUdise,
+          is_email_verified: isEmailVerified,
         },
       });
 

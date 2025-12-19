@@ -1236,7 +1236,7 @@ export class SqliteApi implements ServiceApi {
     WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
 
     const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
-    
+
     let ops_rq;
     if (res1 && res1.values && res1.values.length > 0) {
       ops_rq = res1.values[0];
@@ -7164,7 +7164,7 @@ order by
     return this._serverApi.getOrcreateschooluser(params);
   }
   public async createAtSchoolUser(
-    id: string, schoolName: string,udise: string, role: RoleType
+    id: string, schoolName: string,udise: string, role: RoleType, isEmailVerified: boolean
   ): Promise<void> {
     console.error("Method not implemented.");
   }
