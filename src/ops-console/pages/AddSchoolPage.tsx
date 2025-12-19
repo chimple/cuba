@@ -396,7 +396,8 @@ const AddSchoolPage: React.FC = () => {
             editData.schoolData.id,
             schoolName,
             udise,
-            RoleType.AUTOUSER
+            RoleType.AUTOUSER,
+            true
           );
         }
         if (!lockDropdowns && schoolModel !== "at_school") {
@@ -432,7 +433,8 @@ const AddSchoolPage: React.FC = () => {
             school.id,
             schoolName,
             udise,
-            RoleType.AUTOUSER
+            RoleType.AUTOUSER,
+            true
           );
         }
 

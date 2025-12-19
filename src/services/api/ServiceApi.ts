@@ -58,12 +58,14 @@ export interface ServiceApi {
    * @param {string} schoolName - name of the school
    * @param {string} udise - udise of the school
    * @param {RoleType} role - RoleType of the coordinator(here : Autouser)
+   * @param {boolean} isEmailVerified - Whether the email is verified
    */
   createAtSchoolUser(
     id: string,
     schoolName:string,
     udise:string,
-    role: RoleType
+    role: RoleType,
+    isEmailVerified: boolean
   ): Promise<void>;
 
   /**
