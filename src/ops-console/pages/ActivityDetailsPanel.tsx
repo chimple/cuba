@@ -43,7 +43,7 @@ const InfoRow = ({
         fontSize: "14px",
         fontWeight: 500,
         color: "text.secondary",
-        width: "120px",
+        width: "90px",
         textAlign: "left",
         whiteSpace: "nowrap",
       }}
@@ -185,8 +185,6 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         </IconButton>
       </Box>
 
-      <Divider sx={{ my: 2 }} />
-
       {/* TOP INFO CARD */}
       <Paper
         id="fc-top-info-card"
@@ -195,7 +193,9 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         sx={{
           border: "1px solid #e0e0e0",
           borderRadius: 2,
-          p: 2.5,
+          pt: 1.5,
+          pb: 0.3,
+          px: 1.5,
           mb: 4,
           bgcolor: "#ffffff",
         }}
@@ -288,7 +288,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
           <DetailSection
             id="fc-tech-issue-reported"
             label={t("Tech Issue Reported")}
-            text={raw.tech_issue_comment?? ""}
+            text={raw.tech_issue_comment ?? ""}
           />
         )}
 
