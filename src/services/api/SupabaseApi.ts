@@ -2147,7 +2147,8 @@ export class SupabaseApi implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | null
   ): Promise<TableTypes<"result">> {
     if (!this.supabase) return {} as TableTypes<"result">;
 
@@ -2182,7 +2183,7 @@ export class SupabaseApi implements ServiceApi {
       domain_ability: domain_ability ?? null,
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
-      activities_scores: null,
+      activities_scores: activities_scores ?? null,
     };
 
     const { error: insertError } = await this.supabase
