@@ -301,8 +301,7 @@ export function usePathwaySVG({
             );
             activeGroup.setAttribute(
               "transform",
-              `translate(${
-                positionMappings.activeGroup.x[idx] ?? flowerX - 20
+              `translate(${positionMappings.activeGroup.x[idx] ?? flowerX - 20
               }, ${positionMappings.activeGroup.y[idx] ?? flowerY - 20})`
             );
 
@@ -339,7 +338,8 @@ export function usePathwaySVG({
 
             activeGroup.style.cursor = "pointer";
             activeGroup.addEventListener("click", () => {
-              handleLessonClick(lesson, course);
+              const pathEntry = course.path[startIndex + idx];
+              handleLessonClick(lesson, course, pathEntry?.skill_id);
             });
 
             fragment.appendChild(activeGroup);
@@ -747,7 +747,7 @@ export function usePathwaySVG({
     });
   }
 
-  function handleLessonClick(lesson: any, course: any) {
+  function handleLessonClick(lesson: any, course: any, skillId?: string) {
     if (!history) return;
 
     const currentCourse = (window as any).__currentCourseForPathway__;
@@ -764,6 +764,7 @@ export function usePathwaySVG({
         chapter: JSON.stringify(currentChapter),
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
+        skillId: skillId,
       });
     } else if (lesson.plugin_type === LIVE_QUIZ) {
       history.replace(
@@ -773,6 +774,7 @@ export function usePathwaySVG({
           lesson: JSON.stringify(lesson),
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
+          skillId: skillId,
         }
       );
     } else if (lesson.plugin_type === LIDO) {
@@ -785,6 +787,7 @@ export function usePathwaySVG({
         chapter: JSON.stringify(currentChapter),
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
+        skillId: skillId,
       });
     }
   }

@@ -292,6 +292,7 @@ const LidoPlayer: FC = () => {
   };
 
   useEffect(() => {
+    
     init();
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
@@ -379,7 +380,8 @@ const LidoPlayer: FC = () => {
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
             "base-url": basePath, 
-            "code-folder-path": "/Lido-player-code-versions"
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": "/Lido-CommonAudios",
           })
         : null}
     </IonPage>

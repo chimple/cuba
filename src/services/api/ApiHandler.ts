@@ -36,8 +36,12 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
+  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType) {
+    return this.s.createAtSchoolUser(id, schoolName, udise, role);
+  }
   public static i: ApiHandler;
 
   private s: ServiceApi;
@@ -517,7 +521,9 @@ export class ApiHandler implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined,
+
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -542,7 +548,8 @@ export class ApiHandler implements ServiceApi {
       domain_id,
       domain_ability,
       subject_id,
-      subject_ability
+      subject_ability,
+      activities_scores
     );
   }
 
@@ -1755,7 +1762,7 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateClassCourses(classId, selectedCourseIds);
   }
   public async addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -1763,6 +1770,8 @@ export class ApiHandler implements ServiceApi {
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this.s.addStudentWithParentValidation(params);
   }
@@ -1805,14 +1814,34 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     return await this.s.getSchoolVisitById(visitId);
   }
+
+  async createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<any> {
+    return this.s.createNoteForSchool(params);
+  }
+
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  return this.s.getNotesBySchoolId(schoolId, limit, offset);
+}
+
+
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
+  
   public async getSchoolStatsForSchool(
-    schoolId: string
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
     return await this.s.getSchoolStatsForSchool(schoolId);
   }
