@@ -148,7 +148,10 @@
       "ALTER TABLE result ADD COLUMN skill_ability REAL;",
       "ALTER TABLE result ADD COLUMN outcome_ability REAL;",
       "ALTER TABLE result ADD COLUMN competency_ability REAL;",
-      "ALTER TABLE result ADD COLUMN domain_ability REAL;"
+      "ALTER TABLE result ADD COLUMN domain_ability REAL;",
+      "ALTER TABLE result ADD COLUMN activities_scores TEXT;",
+      "ALTER TABLE result ADD COLUMN subject_id TEXT;",
+      "ALTER TABLE result ADD COLUMN subject_ability REAL;"
     ]
   }
 }
