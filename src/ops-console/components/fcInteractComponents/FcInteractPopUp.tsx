@@ -57,8 +57,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   const [callOutcome, setCallOutcome] = useState<
     EnumType<"fc_call_result"> | ""
   >("");
-  const [spokeWith, setSpokeWith] =
-    useState<EnumType<"fc_engagement_target">>();
+  const [spokeWith, setSpokeWith] = useState<EnumType<"fc_engagement_target">>(
+    initialUserType === ContactTarget.STUDENT
+      ? ContactTarget.STUDENT
+      : initialUserType
+  );
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [otherComments, setOtherComments] = useState("");
   const [techIssueMarked, setTechIssueMarked] = useState(false);
@@ -73,16 +76,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   let className = "";
   let classId: string | null = null;
   if (studentData) {
-    const { user, parent, classSection, grade, classWithidname } = studentData;
+    const { user, parent, classWithidname } = studentData;
     userData = user;
     parentData = parent ? parent : null;
     classId = classWithidname?.id ?? null;
-    className = classSection ?? grade ?? "";
+    className = classWithidname?.class_name!;
   } else if (teacherData) {
-    const { user, grade, classSection, classWithidname } = teacherData;
+    const { user, classWithidname } = teacherData;
     userData = user;
     classId = classWithidname.id;
-    className = classSection || grade?.toString() || "";
+    className = classWithidname.name;
   } else if (principalData) {
     userData = principalData;
   }
