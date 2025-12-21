@@ -7318,10 +7318,9 @@ order by
   ): Promise<number | null> {
     throw new Error("Method not implemented.");
   }
-  public async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null = null
+  public async getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats> {
-    return this._serverApi.getFCSchoolStatsForSchool(schoolId, currentUser);
+    return this._serverApi.getSchoolStatsForSchool(schoolId);
   }
 }

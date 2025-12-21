@@ -1811,10 +1811,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
-  public async getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null = null
+  public async getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats> {
-    return await this.s.getFCSchoolStatsForSchool(schoolId, currentUser);
+    return await this.s.getSchoolStatsForSchool(schoolId);
   }
 }

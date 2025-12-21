@@ -2453,8 +2453,7 @@ export interface ServiceApi {
   /**
    * Get interactions metrics for a school.
    */
-  getFCSchoolStatsForSchool(
-    schoolId: string,
-    currentUser: TableTypes<"user"> | null
+  getSchoolStatsForSchool(
+    schoolId: string
   ): Promise<FCSchoolStats>;
 }
