@@ -43,7 +43,7 @@ const InfoRow = ({
         fontSize: "14px",
         fontWeight: 500,
         color: "text.secondary",
-        width: "120px",
+        width: "90px",
         textAlign: "left",
         whiteSpace: "nowrap",
       }}
@@ -118,8 +118,15 @@ interface Props {
 const CALL_STATUS_LABEL: Record<string, string> = {
   call_picked: t("Call Attended"),
   call_later: t("Call Later"),
-  call_not_reachable: t("Call Not Reachable"),
+  call_not_reachable: t("No Response"),
 };
+
+const isValidText = (value?: string) => {
+  if (!value) return false;
+  const trimmed = value.trim();
+  return trimmed !== "" && trimmed !== "--";
+};
+
 
 const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
   if (!activity) return null;
@@ -135,10 +142,18 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
   const callOutcome =
     CALL_STATUS_LABEL[raw.call_status] || raw.call_status || "--";
 
-  const challenges = raw.question_response || "--";
-  const howHelped = raw.how_helped || "--";
+  let questionAnswerPairs: Record<string, string> = {};
+
+  try {
+    questionAnswerPairs =
+      typeof raw.question_response === "string"
+        ? JSON.parse(raw.question_response)
+        : raw.question_response || {};
+  } catch (error) {
+    questionAnswerPairs = {};
+  }
+
   const otherComments = raw.comment || "--";
-  const techIssueDetails = raw.tech_issues_reported ? "Yes" : "No";
 
   return (
     <Drawer
@@ -170,8 +185,6 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         </IconButton>
       </Box>
 
-      <Divider sx={{ my: 2 }} />
-
       {/* TOP INFO CARD */}
       <Paper
         id="fc-top-info-card"
@@ -180,7 +193,9 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         sx={{
           border: "1px solid #e0e0e0",
           borderRadius: 2,
-          p: 2.5,
+          pt: 1.5,
+          pb: 0.3,
+          px: 1.5,
           mb: 4,
           bgcolor: "#ffffff",
         }}
@@ -251,17 +266,16 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         text={callOutcome}
       />
 
-      <DetailSection
-        id="fc-challenges"
-        label={t("What challenges did they mention while using the app?")}
-        text={challenges}
-      />
-
-      <DetailSection
-        id="fc-how-helped"
-        label={t("How did you help them understand its use?")}
-        text={howHelped}
-      />
+      {Object.entries(questionAnswerPairs).map(
+        ([question, answer], index) => (
+          <DetailSection
+            key={index}
+            id={`fc-question-${index}`}
+            label={question}
+            text={answer}
+          />
+        )
+      )}
 
       <DetailSection
         id="fc-other-comments"
@@ -269,11 +283,16 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         text={otherComments}
       />
 
-      <DetailSection
-        id="fc-tech-issue-reported"
-        label={t("Tech Issue Reported")}
-        text={techIssueDetails}
-      />
+      {raw.tech_issues_reported === true &&
+        isValidText(raw.tech_issue_comment) && (
+          <DetailSection
+            id="fc-tech-issue-reported"
+            label={t("Tech Issue Reported")}
+            text={raw.tech_issue_comment ?? ""}
+          />
+        )}
+
+
     </Drawer>
   );
 };

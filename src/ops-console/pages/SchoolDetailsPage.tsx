@@ -1,3 +1,4 @@
+// SchoolDetailsPage.tsx
 import React, { useEffect, useState } from "react";
 import "./SchoolDetailsPage.css";
 import { Box } from "@mui/material";
@@ -10,6 +11,9 @@ import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
+import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
+import { SchoolTabs } from "../../interface/modelInterfaces";
+import { NOTES_UPDATED_EVENT } from "../../common/constants";
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -85,10 +89,38 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     teachers_interacted: 0,
   });
   const [goToClassesTab, setGoToClassesTab] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
+
+  // Handler moved INSIDE the component so it has access to id, setShowAddModal, setActiveTab
+  const handleAddNoteHeader = async (payload: { text: string }) => {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      // call the API you added; classId = null for school-level note
+      const created = await api.createNoteForSchool({
+        schoolId: id,
+        classId: null,
+        content: payload.text,
+      });
+
+      // close modal
+      setShowAddModal(false);
+
+      // dispatch event so Notes tab component can update if it listens to this
+      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
+
+      // switch to Notes tab
+      setActiveTab(SchoolTabs.Notes);
+    } catch (err) {
+      console.error("Failed to create note:", err);
+      // optional: show UI error (not added to keep changes minimal)
+    }
+  };
 
   useEffect(() => {
     fetchAll();
   }, [id]);
+
   async function fetchAll() {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
@@ -260,7 +292,10 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
       {!isMobile && schoolName && (
-        <div className="school-detail-secondary-header">
+        <div
+          className="school-detail-secondary-header"
+        >
+          {/* Left Side: Breadcrumb */}
           <Breadcrumb
             crumbs={[
               {
@@ -272,8 +307,25 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
           />
+
+          {activeTab == SchoolTabs.Overview && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="add-note-button"
+            >
+              + {t("add note")}
+            </button>
+          )}
         </div>
       )}
+      {/* Modal outside the header */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddNoteHeader}
+        source="school"
+      />
+
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
         <SchoolDetailsTabsComponent
@@ -285,6 +337,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
+          onTabChange={(tab) => setActiveTab(tab)} // new prop
         />
       </div>
       <div className="school-detail-columns-gap" />

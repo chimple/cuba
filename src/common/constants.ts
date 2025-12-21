@@ -1197,3 +1197,4 @@ export const PERFORMANCE_UI: Record<
   },
 };
 export const COURSE_CHANGED = "courseChanged";
+export const NOTES_UPDATED_EVENT = "notes:updated";

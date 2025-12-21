@@ -28,12 +28,13 @@ import {
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -50,6 +51,23 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
+
+  /**
+   * Creates a AutoUser for at_school and hybrid school models when a new school is created
+   * @param {string} id - school id
+   * @param {string} schoolName - name of the school
+   * @param {string} udise - udise of the school
+   * @param {RoleType} role - RoleType of the coordinator(here : Autouser)
+   * @param {boolean} isEmailVerified - Whether the email is verified
+   */
+  createAtSchoolUser(
+    id: string,
+    schoolName:string,
+    udise:string,
+    role: RoleType,
+    isEmailVerified: boolean
+  ): Promise<void>;
+
   /**
    * Creates a student profile for a parent and returns the student object
    * @param {string} name - name of the student
@@ -479,7 +497,8 @@ export interface ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -1836,7 +1855,7 @@ export interface ServiceApi {
    * Fetch available filter options for schools.
    * Each key in the returned object represents a filter category,
    * and the value is an array of possible filter values.
-   * 
+   *
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
@@ -2329,7 +2348,7 @@ export interface ServiceApi {
    * @returns Object with success status and message
    */
   addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -2337,6 +2356,8 @@ export interface ServiceApi {
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }>;
   /**
    * Update class courses belongs to that curriculum and grade
@@ -2449,6 +2470,21 @@ export interface ServiceApi {
     teacherId: string,
     classId: string
   ): Promise<number | null>;
+
+    // notes
+  createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+  }): Promise<CreateSchoolNoteInput>;
+
+  getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>>;
+
+
 
   /**
    * Get interactions metrics for a school.

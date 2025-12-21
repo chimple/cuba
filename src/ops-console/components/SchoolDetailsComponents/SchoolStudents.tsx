@@ -36,7 +36,7 @@ import {
 } from "../../OpsUtility/SearchFilterUtility";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { normalizePhone10 } from "../../pages/NewUserPageOps";
-import { ClassRow } from "./SchoolClass";
+import { ClassRow, SchoolData, SchoolDetailsData } from "./SchoolClass";
 import { ClassUtil } from "../../../utility/classUtil";
 import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
@@ -78,6 +78,7 @@ const getPerformanceChipClass = (schstudents_performance: string): string => {
 
 interface SchoolStudentsProps {
   data: {
+    schoolData?: SchoolData;
     students?: ApiStudentData[];
     totalStudentCount?: number;
     classData?: ClassRow[];
@@ -120,7 +121,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [totalCount, setTotalCount] = useState<number>(
     data.totalStudentCount || 0
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const hasInitialStudents =
+    Array.isArray(data?.students) && data.students.length > 0;
+  const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -148,6 +151,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
+  const isAtSchool = useMemo(() => {
+    const raw = (data?.schoolData?.model ?? "").toString();
+    const norm = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    return norm === "at_school";
+  }, [data?.schoolData?.model]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -198,8 +209,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? "Students";
 
+  // Fetch fresh data when the component mounts
   useEffect(() => {
-    // Don't fetch on the initial render for page 1, because we already have the data from props.
+    fetchStudents(1, "", true);
+  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
+
+  useEffect(() => {
     const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
@@ -207,9 +222,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filters.section.length === 0;
 
     if (isInitial) {
-      setStudents(data.students || []);
-      setTotalCount(data.totalStudentCount || 0);
-      fetchStudents(page, debouncedSearchTerm, true);
+      if (data.students && data.students.length > 0) {
+        setStudents(data.students);
+        setTotalCount(data.totalStudentCount || 0);
+      }
     } else {
       fetchStudents(page, debouncedSearchTerm);
     }
@@ -217,8 +233,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     page,
     debouncedSearchTerm,
     fetchStudents,
-    data.students,
-    data.totalStudentCount,
     filters.grade.length,
     filters.section.length,
   ]);
@@ -365,17 +379,30 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentPerformanceMap, setStudentPerformanceMap] = useState<
     Map<string, string>
   >(new Map());
+
+  const studentIdsKey = useMemo(
+    () => sortedStudents.map((s) => s.user.id).join(","),
+    [sortedStudents]
+  );
+  const classDataRef = useMemo(() => {
+    return Array.isArray(data.classData) ? data.classData[0] : undefined;
+  }, [data.classData]);
+
   useEffect(() => {
     const fetchStudentPerformance = async () => {
       if (optionalGrade == null || optionalSection == null || issTotal) {
         return;
       }
+
+      const currentClass = classDataRef;
+      const classId = currentClass?.id ?? "";
+      if (!classId || sortedStudents.length === 0) {
+        return;
+      }
+
       setIsPerformanceLoading(true);
       const performanceMap = new Map<string, string>();
-      const currentClass = Array.isArray(data.classData)
-        ? data.classData[0]
-        : undefined;
-      const classId = currentClass?.id ?? "";
+
       try {
         const courseIds =
           currentClass?.courses?.map((course) => course.id) ?? [];
@@ -419,7 +446,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [sortedStudents, optionalGrade, optionalSection, issTotal, baseStudents]);
+  }, [studentIdsKey, optionalGrade, optionalSection, issTotal, classDataRef]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(baseStudentData)) return null;
@@ -685,76 +712,150 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [issTotal, optionalGrade, optionalSection, baseStudents, data.classData]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
-    const fields: FieldConfig[] = [
-      {
-        name: "studentName",
-        label: "Student Name",
-        kind: "text" as const,
-        required: true,
-        placeholder: "Enter Student Name",
-        column: 2 as const,
-      },
-      {
-        name: "gender",
-        label: "Gender",
-        kind: "select" as const,
-        required: true,
-        column: 0 as const,
-        options: [
-          { label: t("GIRL"), value: GENDER.GIRL },
-          { label: t("BOY"), value: GENDER.BOY },
-          {
-            label: t("UNSPECIFIED"),
-            value: GENDER.OTHER,
-          },
-        ],
-      },
-      {
-        name: "ageGroup",
-        label: "Age",
-        kind: "select" as const,
-        required: true,
-        placeholder: "Select Age Group",
-        column: 1 as const,
-        options: [
-          {
-            value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-            label: `≤${t("4 years")}`,
-          },
-          { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-          { value: AGE_OPTIONS.SIX, label: t("6 years") },
-          { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-          { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-          { value: AGE_OPTIONS.NINE, label: t("9 years") },
-          {
-            value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-            label: `≥${t("10 years")}`,
-          },
-        ],
-      },
-      {
-        name: "phone",
-        label: "Phone Number",
-        kind: "phone" as const,
-        required: true,
-        placeholder: "Enter phone number",
-        column: 2 as const,
-      },
-    ];
-
     if (issTotal) {
-      fields.splice(3, 0, {
-        name: "class",
-        label: "Class",
-        kind: "select" as const,
-        required: true,
-        column: 0 as const,
-        options: classOptions,
-      });
+      const fields: FieldConfig[] = [
+        {
+          name: "studentName",
+          label: "Student Name",
+          kind: "text" as const,
+          required: true,
+          placeholder: "Enter Student Name",
+          column: 2 as const,
+        },
+        {
+          name: "studentID",
+          label: "Student ID",
+          kind: "text" as const,
+          placeholder: "Enter Student ID",
+          column: 0 as const,
+        },
+        {
+          name: "gender",
+          label: "Gender",
+          kind: "select" as const,
+          required: true,
+          column: 1 as const,
+          options: [
+            { label: t("GIRL"), value: GENDER.GIRL },
+            { label: t("BOY"), value: GENDER.BOY },
+            {
+              label: t("UNSPECIFIED"),
+              value: GENDER.OTHER,
+            },
+          ],
+        },
+        {
+          name: "class",
+          label: "Class",
+          kind: "select" as const,
+          required: true,
+          column: 0 as const,
+          options: classOptions,
+        },
+        {
+          name: "ageGroup",
+          label: "Age",
+          kind: "select" as const,
+          required: true,
+          placeholder: "Select Age Group",
+          column: 1 as const,
+          options: [
+            {
+              value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+              label: `≤${t("4 years")}`,
+            },
+            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+            { value: AGE_OPTIONS.SIX, label: t("6 years") },
+            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            {
+              value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+              label: `≥${t("10 years")}`,
+            },
+          ],
+        },
+      ];
+      if (!isAtSchool) {
+        fields.push({
+          name: "phone",
+          label: "Phone Number",
+          kind: "phone" as const,
+          required: true,
+          placeholder: "Enter phone number",
+          column: 2 as const,
+        });
+      }
+      return fields;
+    } else {
+      const fields: FieldConfig[] = [
+        {
+          name: "studentName",
+          label: "Student Name",
+          kind: "text" as const,
+          required: true,
+          placeholder: "Enter Student Name",
+          column: 0 as const,
+        },
+        {
+          name: "studentID",
+          label: "Student ID",
+          kind: "text" as const,
+          placeholder: "Enter Student ID",
+          column: 1 as const,
+        },
+        {
+          name: "gender",
+          label: "Gender",
+          kind: "select" as const,
+          required: true,
+          column: 0 as const,
+          options: [
+            { label: t("GIRL"), value: GENDER.GIRL },
+            { label: t("BOY"), value: GENDER.BOY },
+            {
+              label: t("UNSPECIFIED"),
+              value: GENDER.OTHER,
+            },
+          ],
+        },
+        {
+          name: "ageGroup",
+          label: "Age",
+          kind: "select" as const,
+          required: true,
+          placeholder: "Select Age Group",
+          column: 1 as const,
+          options: [
+            {
+              value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+              label: `≤${t("4 years")}`,
+            },
+            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+            { value: AGE_OPTIONS.SIX, label: t("6 years") },
+            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            {
+              value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+              label: `≥${t("10 years")}`,
+            },
+          ],
+        },
+      ];
+      if (!isAtSchool) {
+        fields.push({
+          name: "phone",
+          label: "Phone Number",
+          kind: "phone" as const,
+          required: true,
+          placeholder: "Enter phone number",
+          column: 2 as const,
+        });
+      }
+      return fields;
     }
-
-    return fields;
-  }, [baseStudents, issTotal, classOptions]);
+  }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
   const handleAddNewStudent = useCallback(() => {
     setIsAddStudentModalOpen(true);
@@ -772,40 +873,43 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsSubmitting(true);
       setErrorMessage(undefined);
 
-      const normalizedPhone = normalizePhone10(
-        (formValues.phone ?? "").toString()
-      );
-
-      if (normalizedPhone.length !== 10) {
-        setErrorMessage({
-          text: "Phone number must be 10 digits.",
-          type: "error",
-        });
+      const fail = (text: string) => {
+        setErrorMessage({ text, type: "error" });
         setIsSubmitting(false);
-        return;
-      }
+      };
 
+      const rawPhone = (formValues.phone ?? "").toString();
+      let digits = rawPhone.replace(/\D/g, "");
+      if (digits === "" || digits === "91") digits = "";
+      if (digits.length === 12 && digits.startsWith("91"))
+        digits = digits.slice(2);
+      if (digits.length === 11 && digits.startsWith("0"))
+        digits = digits.slice(1);
+      // Phone validation
+      if (!isAtSchool) {
+        if (digits.length !== 10)
+          return fail("Phone number must be 10 digits.");
+      } else {
+        if (digits.length !== 0 && digits.length !== 10) {
+          return fail("Phone number must be 10 digits when provided.");
+        }
+      }
+      // Class validation (this is needed for BOTH flows)
       const classId = issTotal ? formValues.class : currentClass?.id;
-
-      if (!classId) {
-        setErrorMessage({
-          text: "Please select a class.",
-          type: "error",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
+      if (!classId) return fail("Please select a class.");
+      const normalizedPhone = digits.length === 10 ? digits : undefined;
       try {
-        const result = await api.addStudentWithParentValidation({
+        const payload: any = {
           phone: normalizedPhone,
           name: formValues.studentName || "",
           gender: formValues.gender || "",
           age: formValues.ageGroup || "",
           classId: classId,
           schoolId: schoolId,
-        });
-
+          studentID: formValues.studentID || "",
+          atSchool: isAtSchool,
+        };
+        const result = await api.addStudentWithParentValidation(payload);
         if (result.success) {
           setErrorMessage({
             text: "Student added successfully.",
@@ -818,10 +922,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setPage(1);
           fetchStudents(1, debouncedSearchTerm);
         } else {
-          setErrorMessage({
-            text: result.message,
-            type: "error",
-          });
+          setErrorMessage({ text: result.message, type: "error" });
         }
       } catch (error) {
         console.error("Error adding student:", error);
@@ -833,7 +934,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setIsSubmitting(false);
       }
     },
-    [schoolId, fetchStudents, debouncedSearchTerm, issTotal, currentClass]
+    [
+      api,
+      isAtSchool,
+      issTotal,
+      currentClass,
+      schoolId,
+      fetchStudents,
+      debouncedSearchTerm,
+      setIsAddStudentModalOpen,
+    ]
   );
 
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];

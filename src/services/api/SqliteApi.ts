@@ -80,6 +80,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -1235,7 +1236,7 @@ export class SqliteApi implements ServiceApi {
     WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
 
     const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
-    
+
     let ops_rq;
     if (res1 && res1.values && res1.values.length > 0) {
       ops_rq = res1.values[0];
@@ -2257,7 +2258,8 @@ export class SqliteApi implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined,
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2300,13 +2302,13 @@ export class SqliteApi implements ServiceApi {
       domain_ability: domain_ability ?? null,
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
-      activities_scores: null,
+      activities_scores: activities_scores ?? null,
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2334,6 +2336,7 @@ export class SqliteApi implements ServiceApi {
         newResult.domain_ability,
         newResult.subject_id,
         newResult.subject_ability,
+        newResult.activities_scores,
       ]
     );
     // ⭐ reward update
@@ -4023,7 +4026,7 @@ export class SqliteApi implements ServiceApi {
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
-      JOIN ${TABLES.Lesson} l 
+      JOIN ${TABLES.Lesson} l
         ON fl.lesson_id = l.id
       WHERE fl.user_id = '${userId}'
       ORDER BY fl.created_at DESC
@@ -4768,10 +4771,10 @@ order by
     allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     const courseholders = courseIds.map(() => "?").join(", ");
-    let query = `SELECT * FROM ${TABLES.Assignment} 
-             WHERE class_id = ? 
-             AND created_at BETWEEN ? AND ? 
-             AND course_id IN (${courseholders}) 
+    let query = `SELECT * FROM ${TABLES.Assignment}
+             WHERE class_id = ?
+             AND created_at BETWEEN ? AND ?
+             AND course_id IN (${courseholders})
              AND is_deleted = false`;
 
     const params: any[] = [classId, endDate, startDate, ...courseIds];
@@ -5221,8 +5224,8 @@ order by
 
     // Define the common WHERE clause conditions for both queries
     const whereConditions = `
-    su.school_id = ? 
-    AND su.role = ? 
+    su.school_id = ?
+    AND su.role = ?
     AND su.is_deleted = false
   `;
     const queryParams = [schoolId, RoleType.PRINCIPAL];
@@ -5307,8 +5310,8 @@ order by
 
     // Define the common WHERE clause conditions and parameters for both queries
     const whereConditions = `
-    su.school_id = ? 
-    AND su.role = ? 
+    su.school_id = ?
+    AND su.role = ?
     AND su.is_deleted = false
   `;
     const queryParams = [schoolId, RoleType.COORDINATOR];
@@ -5787,7 +5790,7 @@ order by
     this.deleteOldDebugInfoData();
 
     const query = `
-    SELECT 
+    SELECT
       parent_id,
       SUM(No_of_pushed) AS total_pushed,
       SUM(No_of_pulled) AS total_pulled,
@@ -6196,7 +6199,7 @@ order by
 
     // Step 2: Fetch paginated data
     const query = `
-    SELECT 
+    SELECT
       u.*,
       c.name as class_name,
       p.id as parent_id,
@@ -6496,7 +6499,7 @@ order by
 
       if (results.length > 0) {
         await this._db.run(
-          `UPDATE result SET student_id = ?, updated_at = ? 
+          `UPDATE result SET student_id = ?, updated_at = ?
          WHERE student_id = ? AND is_deleted = 0`,
           [existingStudentId, now, newStudentId]
         );
@@ -7160,6 +7163,11 @@ order by
   ): Promise<UserSchoolClassResult> {
     return this._serverApi.getOrcreateschooluser(params);
   }
+  public async createAtSchoolUser(
+    id: string, schoolName: string,udise: string, role: RoleType, isEmailVerified: boolean
+  ): Promise<void> {
+    console.error("Method not implemented.");
+  }
   async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,
@@ -7259,7 +7267,7 @@ order by
     }
   }
   public async addStudentWithParentValidation(params: {
-    phone: string;
+    phone?: string;
     name: string;
     gender: string;
     age: string;
@@ -7267,6 +7275,8 @@ order by
     schoolId?: string;
     parentName?: string;
     email?: string;
+    studentID?: string;
+    atSchool?: boolean;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this._serverApi.addStudentWithParentValidation(params);
   }
@@ -7312,6 +7322,31 @@ order by
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");
   }
+
+  async createNoteForSchool(params: {
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+}): Promise<any> {
+  console.warn("createNoteForSchool is not supported in SQLite mode");
+  return this._serverApi.createNoteForSchool(params);
+}
+
+async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  console.warn("getNotesBySchoolId is not supported in SQLite mode");
+
+  return this._serverApi.getNotesBySchoolId(
+    schoolId,
+    limit,
+    offset
+  );
+}
+
+
   async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string

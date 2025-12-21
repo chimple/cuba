@@ -162,8 +162,6 @@ const SelectMode: FC = () => {
           history.replace(PAGES.CREATE_STUDENT);
         } else history.replace(PAGES.DISPLAY_STUDENT);
         return;
-      } else {
-        setIsLoading(false);
       }
       for (let i = 0; i < matchedSchools.length; i++) {
         const element = matchedSchools[i];
@@ -194,6 +192,11 @@ const SelectMode: FC = () => {
         }
       } else if (allSchool.length === 0) {
         onParentSelect();
+      }else {
+        // Teacher logic
+        schoolUtil.setCurrMode(MODES.TEACHER);
+        history.replace(PAGES.DISPLAY_SCHOOLS);
+        return;
       }
     }
 
