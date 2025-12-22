@@ -449,22 +449,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   )}
 
                   {isPermissionDenied || locationError ? (
-                    <div className="permission-denied-container" style={{ marginTop: '10px' }}>
-                        <div className="error-text" style={{ color: 'red', fontSize: '12px', marginBottom: '5px' }}>
+                    <div id="check-in-permission-denied-section" className="permission-denied-container">
+                        <div id="check-in-permission-error-msg" className="permission-error-text">
                             {isPermissionDenied ? t("Location permission denied") : t("Unable to fetch location. Please try again.")}
                         </div>
                         <button 
+                            id="check-in-retry-permission-btn"
                             className="retry-permission-btn" 
                             onClick={handleRetryLocation}
-                            style={{
-                                padding: '5px 10px',
-                                fontSize: '12px',
-                                backgroundColor: '#007bff',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer'
-                            }}
                         >
                             {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
                         </button>
@@ -487,7 +479,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              <MapContainer
                 center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
                 zoom={15}
-                style={{ height: '100%', width: '100%' }}
+                className="map-leaf-container"
                 dragging={false}
                 zoomControl={false}
                 scrollWheelZoom={false}

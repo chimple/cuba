@@ -399,3 +399,29 @@
     font-size: 0.85rem;
   }
 }
+
+/* Permission Denied Section */
+.schoolcheckinmodal .permission-denied-container {
+    margin-top: 10px;
+}
+
+.schoolcheckinmodal .permission-error-text {
+    color: red;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.schoolcheckinmodal .retry-permission-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.schoolcheckinmodal .map-leaf-container {
+    height: 100%;
+    width: 100%;
+}
