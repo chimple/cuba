@@ -1,5 +1,5 @@
 // NoteDetailsDrawer.tsx
-import {useState} from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -7,14 +7,11 @@ import {
   Paper,
   Divider,
   Drawer,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { t } from "i18next";
 import "./NoteDetailsDrawer.css";
+import MediaDisplay , { MediaItem } from "../../components/MediaDisplay";
 
 /* helpers */
 function parseMonthNameToNumber(mon: string): number | null {
@@ -67,153 +64,6 @@ const DetailSection = ({ label, text }: { label: string; text: string }) => (
   </div>
 );
 
-interface MediaItem {
-  url: string;
-  type: "image" | "video";
-}
-
-const MediaSection = ({
-  id,
-  label,
-  media,
-}: {
-  id: string;
-  label: string;
-  media: MediaItem[];
-}) => {
-  const [open, setOpen] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-
-  const handleClick = (item: MediaItem) => {
-    setSelectedMedia(item);
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedMedia(null);
-  };
-
-  if (!media || media.length === 0) {
-    return (
-      <Box id={id} data-testid={id} sx={{ mb: 3 }}>
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: "15px",
-            mb: 1,
-            textAlign: "left",
-          }}
-        >
-          {label}
-        </Typography>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2,
-            borderRadius: 2,
-            border: "1px solid #e0e0e0",
-            bgcolor: "#fafafa",
-            fontSize: "14px",
-          }}
-        >
-          --
-        </Paper>
-      </Box>
-    );
-  }
-
-  return (
-    <>
-      <Box id={id} data-testid={id} sx={{ mb: 3 }}>
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: "15px",
-            mb: 1,
-            textAlign: "left",
-          }}
-        >
-          {label}
-        </Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {media.map((item, index) => (
-            <Box
-              key={index}
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: 1,
-                overflow: "hidden",
-                cursor: "pointer",
-                border: "1px solid #e0e0e0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "#fafafa",
-              }}
-              onClick={() => handleClick(item)}
-            >
-              {item.type === "image" ? (
-                <img
-                  src={item.url}
-                  alt={`Media ${index + 1}`}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                <video
-                  src={item.url}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                  muted
-                  preload="metadata"
-                />
-              )}
-            </Box>
-          ))}
-        </Box>
-      </Box>
-
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogContent sx={{ p: 0 }}>
-          {selectedMedia && selectedMedia.type === "image" ? (
-            <img
-              src={selectedMedia.url}
-              alt="Full size"
-              style={{
-                width: "100%",
-                height: "auto",
-                maxHeight: "80vh",
-                objectFit: "contain",
-              }}
-            />
-          ) : selectedMedia ? (
-            <video
-              src={selectedMedia.url}
-              controls
-              style={{
-                width: "100%",
-                height: "auto",
-                maxHeight: "80vh",
-              }}
-            />
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>{t("Close")}</Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
-};
-
 type Note = {
   id: string;
   createdBy: string;
@@ -233,8 +83,6 @@ interface Props {
 const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
   if (!note) return null;
 
-  console.log("NoteDetailsDrawer rendering with note:", note);
-
   let mediaItems: MediaItem[] = [];
 
 if (note.media_links) {
@@ -243,7 +91,6 @@ if (note.media_links) {
       typeof note.media_links === "string"
         ? JSON.parse(note.media_links)
         : [];
-      console.log("Parsed media links:🙌🙌🙌🙌🙌", links);
 
     mediaItems = links.map((url) => ({
       url,
@@ -306,7 +153,7 @@ if (note.media_links) {
 
       {/* Media Section */}
       <div className="note-details-drawer-media-container" id="note-details-drawer-media-container">
-        <MediaSection
+        <MediaDisplay
           id="note-details-drawer-media-section"
           label={t("Attached Media")}
           media={mediaItems}

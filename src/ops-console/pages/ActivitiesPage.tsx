@@ -47,7 +47,6 @@ const ActivitiesPage: React.FC = () => {
 
         for (const item of activities) {
           const date = OpsUtil.formatDateToDDMMMyyyy(item.created_at);
-          console.log("Fetching activity for date:", item);
           
           if (!grouped[date]) {
             grouped[date] = {
@@ -66,14 +65,12 @@ const ActivitiesPage: React.FC = () => {
             };
           }
           grouped[date].activitiesList.push(item);
-          console.log("Processing activity item:", item ,"for date group:", date);
 
           if (item.contact_method === "call") grouped[date].calls += 1;
           else if (item.contact_method === "in_person") grouped[date].f2f += 1;
 
           if (item.tech_issues_reported) grouped[date].issues += 1;
         }
-        console.log("Grouped activities:", grouped);
         for (const key in grouped) {
           const visitIds = new Set(
             grouped[key].activitiesList
@@ -98,8 +95,6 @@ const ActivitiesPage: React.FC = () => {
               minDistance = Math.min(minDistance, visit.distance_from_school);
             }
           }
-
-          // ✅ store final values
 
           // ✅ CHECK-IN → 0th index
           if (visitDetailsList[0]?.check_in_at) {
