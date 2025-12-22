@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { IoClose } from "react-icons/io5";
 import "./FcInteractPopUp.css";
 import { LaunchRounded } from "@mui/icons-material";
@@ -14,6 +14,8 @@ import {
 } from "../../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
+import { useMediaActions } from "../../common/mediaactions";
+import AttachMedia from "../../common/AttachMedia";
 
 type Q = { id: string; question: string };
 
@@ -64,9 +66,14 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   );
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [otherComments, setOtherComments] = useState("");
-  const [techIssueMarked, setTechIssueMarked] = useState(false);
+  const [techIssueMarked, setTechIssueMarked] = useState<boolean | null>(null);
   const [techIssueDetails, setTechIssueDetails] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const media = useMediaActions({ t: (key) => t(key).toString(), schoolId });
+  const translate = (key: string) => t(key).toString();
+  const hasProcessingMedia = media.mediaUploads.some(
+    (m) => m.status !== "done"
+  );
 
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
@@ -125,6 +132,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     setResponses((p) => ({ ...p, [id]: value }));
   };
 
+  const handleClosePopup = () => {
+    media.cancelCamera();
+    onClose();
+  };
+
   const mandatoryQuestions = localQuestions;
   const otherQuestions: Q[] = [];
 
@@ -135,7 +147,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
-    if (techIssueMarked && techIssueDetails.trim() === "") return false;
+    if (techIssueMarked === true && techIssueDetails.trim() === "")
+      return false;
     if (showMandatory) {
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
@@ -155,6 +168,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
+    if (media.mediaUploads.length > 0 && hasProcessingMedia) return;
     setIsSaving(true);
 
     try {
@@ -170,6 +184,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       const currentUser = await authHandler.getCurrentUser();
       const visitId = await api.getTodayVisitId(currentUser?.id!, schoolId);
 
+      const mediaLinks = await media.uploadAllMedia((file) =>
+        api.uploadSchoolVisitMediaFile({ schoolId, file })
+      );
+
       const payload = {
         visitId: visitId ?? null,
         userId: currentUser!.id,
@@ -182,8 +200,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         supportLevel: status ?? null,
         questionResponse: mappedResponses,
         comment: otherComments.trim() || null,
-        techIssueComment: techIssueMarked ? techIssueDetails.trim() : null,
-        techIssuesReported: techIssueMarked,
+        techIssueComment:
+          techIssueMarked === true ? techIssueDetails.trim() : null,
+        techIssuesReported: techIssueMarked === true,
+        mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
         activityType: mode === "call" ? "call" : "in_person",
       };
       await api.saveFcUserForm(payload);
@@ -205,7 +225,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       >
         <button
           className="fc-interact-popup-close"
-          onClick={onClose}
+          onClick={handleClosePopup}
           aria-label="Close"
           id="fc-close-btn"
         >
@@ -419,7 +439,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-question-row"
                     id={`fc-question-${q.id}`}
                   >
-                    <div className="fc-interact-popup-question-header">
+                    <div
+                      className="fc-interact-popup-question-header"
+                      id={`fc-question-header-${q.id}`}
+                    >
                       <span
                         className="fc-interact-popup-badge"
                         id={`fc-badge-${q.id}`}
@@ -461,7 +484,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   className="fc-interact-popup-question-row"
                   id={`fc-question-${q.id}`}
                 >
-                  <div className="fc-interact-popup-question-header">
+                  <div
+                    className="fc-interact-popup-question-header"
+                    id={`fc-question-header-${q.id}`}
+                  >
                     <span
                       className="fc-interact-popup-badge"
                       id={`fc-badge-${q.id}`}
@@ -524,26 +550,72 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               id="fc-tech-section"
             >
               <div
-                className="fc-interact-popup-radio-group"
-                id="fc-tech-radio-group"
+                className="fc-interact-popup-question-row"
+                id="fc-tech-question-row"
               >
-                <label
-                  className="fc-interact-popup-radio-item-tech-issues"
-                  id="fc-tech-label"
+                <div
+                  className="fc-interact-popup-tech-header"
+                  id="fc-tech-header"
                 >
-                  <input
-                    type="radio"
-                    name="tech-issue"
-                    id="fc-tech-radio"
-                    checked={techIssueMarked}
-                    onChange={() => setTechIssueMarked(true)}
-                  />
-                  {t("Any tech issues reported")}
-                </label>
-              </div>
+                  <div
+                    className="fc-interact-popup-question-header"
+                    id="fc-tech-question-header"
+                  >
+                    {showMandatory && mandatoryQuestions.length > 0 && (
+                      <span
+                        className="fc-interact-popup-badge"
+                        id="fc-tech-badge"
+                      >
+                        {mandatoryQuestions.length + 2}
+                      </span>
+                    )}
 
-              {techIssueMarked && (
-                <div style={{ marginTop: 8 }} id="fc-tech-details-wrapper">
+                    <div
+                      className="fc-interact-popup-question-text"
+                      id="fc-tech-label"
+                    >
+                      {t("Any tech issues reported")}?
+                    </div>
+                  </div>
+
+                  <div
+                    className="fc-interact-popup-radio-group fc-interact-popup-tech-radio-options"
+                    id="fc-tech-radio-group"
+                  >
+                    <label
+                      className="fc-interact-popup-radio-item"
+                      id="fc-tech-yes-label"
+                    >
+                      <input
+                        type="radio"
+                        name="tech-issue"
+                        id="fc-tech-yes"
+                        checked={techIssueMarked === true}
+                        onChange={() => setTechIssueMarked(true)}
+                      />
+                      {t("Yes")}
+                    </label>
+
+                    <label
+                      className="fc-interact-popup-radio-item"
+                      id="fc-tech-no-label"
+                    >
+                      <input
+                        type="radio"
+                        name="tech-issue"
+                        id="fc-tech-no"
+                        checked={techIssueMarked === false}
+                        onChange={() => {
+                          setTechIssueMarked(false);
+                          setTechIssueDetails("");
+                        }}
+                      />
+                      {t("No")}
+                    </label>
+                  </div>
+                </div>
+
+                {techIssueMarked && (
                   <textarea
                     className="fc-interact-popup-textarea-input"
                     rows={3}
@@ -554,16 +626,160 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       t("Add if any tech issues were reported...") || ""
                     }
                   />
-                </div>
-              )}
+                )}
+              </div>
             </div>
+
+            <AttachMedia
+              variant="fc-interact"
+              t={translate}
+              media={media}
+              disabled={isSaving}
+            />
           </div>
         </div>
+
+        {media.isCameraOpen && (
+          <div
+            className="fc-interact-popup-camera-overlay"
+            id="fc-camera-overlay"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div
+              className="fc-interact-popup-camera-modal"
+              id="fc-camera-modal"
+            >
+              <div
+                className="fc-interact-popup-camera-header"
+                id="fc-camera-header"
+              >
+                <div
+                  className="fc-interact-popup-camera-title"
+                  id="fc-camera-title"
+                >
+                  {t("Capture") || "Capture"}
+                </div>
+                <button
+                  type="button"
+                  className="fc-interact-popup-camera-close"
+                  aria-label={t("Close") || "Close"}
+                  onClick={media.cancelCamera}
+                >
+                  ×
+                </button>
+              </div>
+
+              {media.cameraError && (
+                <div
+                  className="fc-interact-popup-camera-error"
+                  id="fc-camera-error"
+                >
+                  {media.cameraError}
+                </div>
+              )}
+
+              {media.cameraUiMode === "desktop" && media.cameraStream && (
+                <>
+                  <div
+                    className="fc-interact-popup-camera-preview"
+                    id="fc-camera-preview"
+                  >
+                    <video
+                      ref={media.videoRef}
+                      className="fc-interact-popup-camera-video"
+                      id="fc-camera-video"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    {media.isRecording &&
+                      media.recordingSecondsLeft !== null && (
+                        <div
+                          className="fc-interact-popup-camera-timer"
+                          id="fc-camera-timer"
+                          aria-live="polite"
+                        >
+                          {media.recordingSecondsLeft}
+                        </div>
+                      )}
+                  </div>
+                  <canvas
+                    ref={media.canvasRef}
+                    id="fc-camera-canvas"
+                    style={{ display: "none" }}
+                  />
+                </>
+              )}
+
+              {media.cameraUiMode === "mobile" && (
+                <div
+                  className="fc-interact-popup-camera-hint"
+                  id="fc-camera-hint"
+                >
+                  {/* {t("Camera permission is required to use the in-app camera.") ||
+                    "Camera permission is required to use the in-app camera."} */}
+                </div>
+              )}
+
+              <div
+                className="fc-interact-popup-camera-actions"
+                id="fc-camera-actions"
+              >
+                {media.cameraStream && (
+                  <button
+                    type="button"
+                    id="fc-camera-shutter"
+                    className={`fc-interact-popup-camera-shutter ${
+                      media.isRecording
+                        ? "fc-interact-popup-camera-shutter-recording"
+                        : ""
+                    }`}
+                    aria-label={t("Shutter") || "Shutter"}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressStart();
+                    }}
+                    onPointerUp={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressEnd();
+                    }}
+                    onPointerCancel={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressCancel();
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <span
+                      className="fc-interact-popup-camera-shutter-inner"
+                      id="fc-camera-shutter-inner"
+                    />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="fc-interact-popup-footer" id="fc-footer">
           <button
             className="fc-interact-popup-cancel-btn"
-            onClick={onClose}
+            onClick={handleClosePopup}
             id="fc-cancel-btn"
           >
             {t("Cancel")}
@@ -571,11 +787,19 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
           <button
             className={`fc-interact-popup-save-btn ${
-              !isFormValid || isSaving ? "fc-interact-popup-save-disabled" : ""
+              !isFormValid ||
+              isSaving ||
+              (media.mediaUploads.length > 0 && hasProcessingMedia)
+                ? "fc-interact-popup-save-disabled"
+                : ""
             }`}
             id="fc-save-btn"
             onClick={handleSave}
-            disabled={!isFormValid || isSaving}
+            disabled={
+              !isFormValid ||
+              isSaving ||
+              (media.mediaUploads.length > 0 && hasProcessingMedia)
+            }
           >
             {isSaving ? `${t("Saving...")} ` : `${t("Save")}`}
           </button>

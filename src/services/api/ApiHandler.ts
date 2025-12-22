@@ -1795,6 +1795,7 @@ export class ApiHandler implements ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     return this.s.saveFcUserForm(payload);
   }
@@ -1819,6 +1820,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<any> {
     return this.s.createNoteForSchool(params);
   }
@@ -1844,5 +1846,12 @@ export class ApiHandler implements ServiceApi {
     currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
     return await this.s.getSchoolStatsForSchool(schoolId);
+  }
+
+  public async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    return await this.s.uploadSchoolVisitMediaFile(params);
   }
 }
