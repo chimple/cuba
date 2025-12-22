@@ -15,6 +15,7 @@ type ApiNote = {
   visitId?: string | null;
   createdAt?: string;
   createdBy?: { userId?: string; name?: string; role?: string | null } | null;
+  media_links?: string; 
 };
 
 type Note = {
@@ -24,6 +25,7 @@ type Note = {
   className?: string | null;
   date: string;
   text: string;
+  media_links?: string;
 };
 
 const NOTES_PER_PAGE = 10;
@@ -72,6 +74,7 @@ const SchoolNotes: React.FC = () => {
     className: r.className ?? null,
     date: parseDateForDisplay(r.createdAt),
     text: r.content ?? "",
+    media_links: r.media_links,
   });
 
   const handleCreatedBySort = () => {
@@ -267,6 +270,7 @@ const SchoolNotes: React.FC = () => {
               className: selectedNote.className ?? "--",
               date: selectedNote.date,
               text: selectedNote.text,
+              media_links: selectedNote.media_links,
             }
             : null
         }

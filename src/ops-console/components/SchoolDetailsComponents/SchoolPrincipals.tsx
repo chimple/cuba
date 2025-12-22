@@ -140,8 +140,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       id: p.id,
       name: p.name || "N/A",
       gender: p.gender || "N/A",
-      phoneNumber: p.phone || "N/A",
-      emailDisplay: p.email || "N/A",
+      phoneNumber: p.phone || "-",
+      emailDisplay: p.email || "—",
       interact: "",
       interactPayload: p,
     }));
@@ -299,7 +299,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Box>
       ),
     },
-    { key: "phoneNumber", label: t("Phone Number") },
+    // { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "emailDisplay",
       label: t("Email"),

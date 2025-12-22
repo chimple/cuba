@@ -18,6 +18,7 @@ import DetailList from "../components/schoolComponent/DetailList";
 import { RoleType } from "../../interface/modelInterfaces";
 import "./ManageClass.css";
 import { Util } from "../../utility/util";
+import DetailListHeader from "../components/schoolComponent/DetailListHeader";
 
 const ManageClass: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
@@ -59,7 +60,7 @@ const ManageClass: React.FC = () => {
   const storedRoles: string[] = JSON.parse(
     localStorage.getItem(USER_ROLE) ?? "[]"
   );
-  
+
   const canCreate = useMemo(
     () => OPS_ROLES.some((role) => storedRoles.includes(role)),
     [storedRoles]
@@ -98,6 +99,7 @@ const ManageClass: React.FC = () => {
         />
       </div>
       <div className="school-div">{t("Classes")}</div>
+      {!(allClasses.length === 0) && <DetailListHeader />}
 
       <div className="school-list">
         <DetailList

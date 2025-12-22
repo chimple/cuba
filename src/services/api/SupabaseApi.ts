@@ -9991,24 +9991,25 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
   async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    if (!this.supabase) return null;
+  visitIds: string[]
+): Promise<TableTypes<"fc_school_visit">[]> {
+  if (!this.supabase || visitIds.length === 0) return [];
 
-    const { data, error } = await this.supabase
-      .from("fc_school_visit")
-      .select("*")
-      .eq("id", visitId)
-      .eq("is_deleted", false)
-      .single();
+  const { data, error } = await this.supabase
+    .from("fc_school_visit")
+    .select("*")
+    .in("id", visitIds)        // ✅ pass array directly
+    .eq("is_deleted", false)
+    .order("check_in_at", { ascending: true });
 
-    if (error) {
-      console.error("Error fetching visit:", error);
-      return null;
-    }
-
-    return data;
+  if (error) {
+    console.error("Error fetching visit:", error);
+    return [];
   }
+
+  return data ?? [];
+}
+
 
   async getActivitiesFilterOptions() {
     try {
@@ -10206,7 +10207,7 @@ export class SupabaseApi implements ServiceApi {
       const notesRes = await this.supabase
         .from("fc_user_forms")
         .select(
-          "id, comment, class_id, visit_id, user_id, created_at",
+          "id, comment, class_id, visit_id, user_id, created_at, media_links",
           { count: "exact" } // ✅ IMPORTANT
         )
         .eq("school_id", schoolId)
@@ -10289,6 +10290,7 @@ export class SupabaseApi implements ServiceApi {
           name: usersById[r.user_id]?.name ?? "Unknown",
           role: usersById[r.user_id]?.role ?? null,
         },
+         media_links: r.media_links ?? null,
       }));
 
       return {

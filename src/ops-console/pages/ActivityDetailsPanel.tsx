@@ -5,7 +5,6 @@ import {
   IconButton,
   Paper,
   Chip,
-  Divider,
   Drawer,
 } from "@mui/material";
 
@@ -14,6 +13,8 @@ import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
 import { FcActivity } from "../../interface/modelInterfaces";
+import MediaDisplay , { MediaItem } from "../components/MediaDisplay";
+
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak  (with ID)
@@ -107,6 +108,7 @@ const DetailSection = ({
   );
 };
 
+
 /* -------------------------------------------------------
    MAIN PANEL
 --------------------------------------------------------*/
@@ -128,7 +130,7 @@ const isValidText = (value?: string) => {
 };
 
 
-const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
+const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose}) => {
   if (!activity) return null;
 
   const { raw, user, classInfo } = activity;
@@ -154,6 +156,25 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
   }
 
   const otherComments = raw.comment || "--";
+  let mediaItems: MediaItem[] = [];
+
+if (raw.media_links) {
+  try {
+    const links: string[] =
+      typeof raw.media_links === "string"
+        ? JSON.parse(raw.media_links)
+        : [];
+
+    mediaItems = links.map((url) => ({
+      url,
+      type: url.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|mpg|mpeg|3gp|m4v)$/i) ? "video" : "image",
+    }));
+  } catch (err) {
+    console.error("Invalid media_links JSON", err);
+    mediaItems = [];
+  }
+}
+
 
   return (
     <Drawer
@@ -290,7 +311,19 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
             label={t("Tech Issue Reported")}
             text={raw.tech_issue_comment ?? ""}
           />
-        )}
+        )
+      }
+
+      {raw.tech_issues_reported === true &&
+        isValidText(raw.tech_issue_comment) && (
+        <MediaDisplay
+        id="fc-media"
+        label={t("Attached Media")}
+        media={mediaItems}
+      />
+        )
+      }
+
 
 
     </Drawer>

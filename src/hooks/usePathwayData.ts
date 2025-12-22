@@ -16,10 +16,12 @@ import {
   PAGES,
   CONTINUE,
   COURSE_CHANGED,
+  CAMPAIGN_SEQUENCE_FINISHED,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { useReward } from "./useReward";
+import { schoolUtil } from "../utility/schoolUtil";
 
 export interface MascotProps {
   stateMachine: string;
@@ -73,6 +75,7 @@ export const usePathwayData = () => {
   // Reward modal
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [isRewardPathLoaded, setIsRewardPathLoaded] = useState(false);
+  const [isCampaignFinished, setIsCampaignFinished] = useState(false);
 
   // Mascot state
   const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
@@ -160,6 +163,27 @@ export const usePathwayData = () => {
     }
   };
 
+  // 🟡 Decide campaign applicability per student
+  useEffect(() => {
+    const student = Util.getCurrentStudent();
+    const school = schoolUtil.getCurrentClass();
+
+    // No student → campaign irrelevant
+    if (!student?.id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student exists but no school → campaign irrelevant
+    if (!school?.school_id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student has a school → wait for WinterCampaignPopupGating
+    setIsCampaignFinished(false);
+  }, [Util.getCurrentStudent()?.id]);
+
   // COURSE CHANGE RELOAD
   useEffect(() => {
     const handleCourseChange = () => {
@@ -167,6 +191,15 @@ export const usePathwayData = () => {
     };
     window.addEventListener(COURSE_CHANGED, handleCourseChange);
     return () => window.removeEventListener(COURSE_CHANGED, handleCourseChange);
+  }, []);
+
+  useEffect(() => {
+    const handleFinished = () => {
+      setIsCampaignFinished(true);
+    };
+    window.addEventListener(CAMPAIGN_SEQUENCE_FINISHED, handleFinished);
+    return () =>
+      window.removeEventListener(CAMPAIGN_SEQUENCE_FINISHED, handleFinished);
   }, []);
 
   // INITIALIZE REWARD PATH
@@ -181,6 +214,8 @@ export const usePathwayData = () => {
 
   useEffect(() => {
     if (!isRewardFeatureOn) return;
+    if (!isCampaignFinished) return;
+
     if (hasRunDailyCheckRef.current) return;
 
     hasRunDailyCheckRef.current = true;
@@ -188,10 +223,11 @@ export const usePathwayData = () => {
     const showModalIfNeeded = async () => {
       const showModal = await shouldShowDailyRewardModal();
       setRewardModalOpen(showModal);
+      hasRunDailyCheckRef.current = true;
     };
 
     showModalIfNeeded();
-  }, []);
+  }, [isCampaignFinished, isRewardFeatureOn]);
 
   const handleRewardBoxOpen = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -311,6 +347,7 @@ export const usePathwayData = () => {
     setModalText,
     shouldAnimate,
     rewardModalOpen,
+    isCampaignFinished,
     handleRewardBoxOpen,
     handleRewardModalClose,
     handleRewardModalPlay,

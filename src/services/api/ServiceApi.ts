@@ -2443,8 +2443,8 @@ export interface ServiceApi {
    * @returns Promise resolving to school visit details or null if not found.
    */
   getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null>;
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]>;
 
   /**
    * Fetch filter options for FC activities.
