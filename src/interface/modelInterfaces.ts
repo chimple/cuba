@@ -104,6 +104,7 @@ export interface FcActivity {
     comment?: string;
     how_helped? : string;
     tech_issue_comment?: string;
+    media_links?: string;
   };
   user: {
     name: string;
@@ -144,4 +145,5 @@ export interface Note {
   className?: string | null;
   date?: string;
   text: string;
+  media_links?: string;
 }

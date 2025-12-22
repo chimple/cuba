@@ -7315,9 +7315,9 @@ order by
     return this._serverApi.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return this._serverApi.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return this._serverApi.getSchoolVisitById(visitIds);
   }
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");
