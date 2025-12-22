@@ -25,6 +25,7 @@ import {
   TabType,
   TeacherAPIResponse,
   SchoolVisitAction,
+  SchoolVisitType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -169,7 +170,7 @@ export interface ServiceApi {
     lat: number,
     lng: number,
     action: SchoolVisitAction,
-    visitType?: string,
+    visitType?: SchoolVisitType,
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null>;
 

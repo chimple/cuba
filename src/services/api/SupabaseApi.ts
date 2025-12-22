@@ -1,6 +1,7 @@
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import {
   SchoolVisitAction,
+  SchoolVisitType,
   MODES,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -886,7 +887,7 @@ export class SupabaseApi implements ServiceApi {
     lat: number,
     lng: number,
     action: SchoolVisitAction,
-    visitType?: string,
+    visitType?: SchoolVisitType,
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
@@ -907,21 +908,13 @@ export class SupabaseApi implements ServiceApi {
 
       if (action === SchoolVisitAction.CheckIn) {
         // Enforce enum format: "Regular Visit" -> "regular_visit"
-        let formattedType = visitType;
-        if (formattedType) {
-          formattedType = formattedType
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, "_");
-        }
-
         const newVisit = {
           school_id: schoolId,
           user_id: user.id,
           check_in_at: now,
           check_in_lat: lat,
           check_in_lng: lng,
-          type: formattedType,
+          type: visitType,
           is_deleted: false,
           distance_from_school: distanceFromSchool ?? null,
         };

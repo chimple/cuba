@@ -38,6 +38,8 @@ import {
   TeacherInfo,
   PrincipalInfo,
   PrincipalAPIResponse,
+  SchoolVisitAction,
+  SchoolVisitType,
   CoordinatorInfo,
   CoordinatorAPIResponse,
   EVENTS,
@@ -50,7 +52,6 @@ import {
   SearchSchoolsResult,
   REWARD_LESSON,
   CURRENT_USER,
-  SchoolVisitAction,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -7253,23 +7254,16 @@ order by
     lat: number,
     lng: number,
     action: SchoolVisitAction,
-    visitType?: string,
+    visitType?: SchoolVisitType,
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
-      let formattedVisitType = visitType;
-      if (formattedVisitType) {
-        formattedVisitType = formattedVisitType
-          .toLowerCase()
-          .replace(/ /g, "_");
-      }
-
       return await this._serverApi.recordSchoolVisit(
         schoolId,
         lat,
         lng,
         action,
-        formattedVisitType,
+        visitType,
         distanceFromSchool
       );
     } catch (error) {

@@ -1,6 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-import { SchoolVisitAction } from "../../common/constants";
+import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -1866,7 +1866,7 @@ export class ApiHandler implements ServiceApi {
     lat: number,
     lng: number,
     action: SchoolVisitAction,
-    visitType?: string,
+    visitType?: SchoolVisitType,
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     return this.s.recordSchoolVisit(

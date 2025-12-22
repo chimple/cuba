@@ -1152,6 +1152,18 @@ export enum SchoolVisitAction {
   CheckOut = "check_out",
 }
 
+export enum SchoolVisitType {
+  Regular = "regular_visit",
+  ParentsTeacherMeeting = "parents_teacher_meeting",
+  TeacherTraining = "teacher_training_meeting",
+}
+
+export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
+  [SchoolVisitType.Regular]: "Regular Visit",
+  [SchoolVisitType.ParentsTeacherMeeting]: "Parents Teacher Meeting",
+  [SchoolVisitType.TeacherTraining]: "Teacher Training Meeting",
+};
+
 export enum SchoolVisitStatus {
   CheckedIn = "checked_in",
   CheckedOut = "checked_out",

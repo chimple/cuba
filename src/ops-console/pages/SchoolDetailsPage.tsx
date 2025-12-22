@@ -13,7 +13,7 @@ import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/Sc
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
-import { SchoolVisitAction, SchoolVisitStatus } from "../../common/constants";
+import { SchoolVisitAction, SchoolVisitStatus, SchoolVisitType, SchoolVisitTypeLabels } from "../../common/constants";
 import { Button, Menu, MenuItem, Divider } from "@mui/material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
@@ -144,7 +144,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   
   // Dropdown state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('Regular Visit');
+  const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(SchoolVisitType.Regular);
   const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
@@ -168,7 +168,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       setAnchorEl(null);
   };
 
-  const handleSelectVisitType = (type: string) => {
+  const handleSelectVisitType = (type: SchoolVisitType) => {
       setSelectedVisitType(type);
       handleCloseMenu();
       handleOpenCheckInModal();
@@ -466,28 +466,28 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                       classes={{ paper: "schooldetailspage check-in-menu-paper" }}
                     >
                       <MenuItem
-                        onClick={() => handleSelectVisitType("Regular Visit")}
+                        onClick={() => handleSelectVisitType(SchoolVisitType.Regular)}
                         className="check-in-menu-item"
                       >
-                        Regular Visit
+                        {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
                       </MenuItem>
                       <Divider className="check-in-menu-divider" />
                       <MenuItem
                         onClick={() =>
-                          handleSelectVisitType("Parents Teacher Meeting")
+                          handleSelectVisitType(SchoolVisitType.ParentsTeacherMeeting)
                         }
                         className="check-in-menu-item"
                       >
-                        Parents Teacher Meeting
+                         {t(SchoolVisitTypeLabels[SchoolVisitType.ParentsTeacherMeeting])}
                       </MenuItem>
                       <Divider className="check-in-menu-divider" />
                       <MenuItem
                         onClick={() =>
-                          handleSelectVisitType("Teacher Training Meeting")
+                          handleSelectVisitType(SchoolVisitType.TeacherTraining)
                         }
                         className="check-in-menu-item"
                       >
-                        Teacher Training Meeting
+                         {t(SchoolVisitTypeLabels[SchoolVisitType.TeacherTraining])}
                       </MenuItem>
                     </Menu>
                   </>
