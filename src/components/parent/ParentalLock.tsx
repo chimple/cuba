@@ -8,6 +8,7 @@ import { changeLanguage, t } from "i18next";
 import "./ParentalLock.css";
 import { FcLock } from "react-icons/fc";
 import { Util } from "../../utility/util";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
@@ -46,6 +47,7 @@ const ParentalLock: React.FC<{
         await Util.setParentLanguagetoLocal();
         Util.setPathToBackButton(PAGES.PARENT, history);
         Util.setCurrentStudent(null);
+        schoolUtil.setCurrentClass(undefined);
       }
     };
 
