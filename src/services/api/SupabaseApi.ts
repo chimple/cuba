@@ -10293,8 +10293,6 @@ export class SupabaseApi implements ServiceApi {
          media_links: r.media_links ?? null,
       }));
 
-      console.log("Mapped notes with media:", mapped[0]);
-
       return {
         data: mapped,
         totalCount,
