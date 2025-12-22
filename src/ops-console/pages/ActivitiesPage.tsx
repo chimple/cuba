@@ -206,10 +206,13 @@ const ActivitiesPage: React.FC = () => {
             },
             {
               label: school.name,
-              onClick: () => history.goBack(),
+              onClick: () =>
+                history.push(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${school.id}`
+                ),
             },
             {
-              label: t("Activities")
+              label: t("Activities"),
             },
           ]}
         />
