@@ -7256,12 +7256,6 @@ order by
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
-      // Direct Supabase call, bypassing local DB
-      console.log(
-        `SqliteApi: recordSchoolVisit called. _serverApi defined? ${!!this
-          ._serverApi}`
-      );
-      // Convert format to snake_case for Supabase if needed (e.g. "Regular Visit" -> "regular_visit")
       let formattedVisitType = visitType;
       if (formattedVisitType) {
         formattedVisitType = formattedVisitType
