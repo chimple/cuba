@@ -5,14 +5,15 @@ const IconButton: React.FC<{
   iconSrc: string;
   name: string;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ iconSrc, name, onClick }) => {
+  isProfile?: boolean;
+}> = ({ iconSrc, name, onClick, isProfile }) => {
   const student = Util.getCurrentStudent();
-  const iconButtonClass = `icon-button${iconSrc === student?.image ? ' circular-icon' : ''}`;
+  const iconButtonClass = `icon-button${isProfile ? ' circular-icon' : ''}`;
 
   return (
     <div className={iconButtonClass} onClick={onClick}>
       <div>
-        <img className={`${iconSrc.includes("assets/avatars") ? 'iconButton-profile-img' : 'img'}`} alt={iconSrc} src={iconSrc} />
+        <img className={`${isProfile ? 'iconButton-profile-img' : 'img'}`} alt={iconSrc} src={iconSrc} />
       </div>
       <p className="child-Name">{name}</p>
     </div>
