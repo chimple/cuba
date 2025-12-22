@@ -16,10 +16,20 @@ type VariantConfig = {
 
   captureButtonClassName: string;
   captureButtonId: string;
+  captureButtonIconId: string;
+
   uploadButtonClassName: string;
   uploadButtonId: string;
+  uploadButtonIconId: string;
 
   iconClassName: string;
+
+  errorId: string;
+
+  captureAnyInputId: string;
+  captureImageInputId: string;
+  captureVideoInputId: string;
+  uploadInputId: string;
 
   mediaListClassName: string;
   mediaListId: string;
@@ -37,7 +47,8 @@ type VariantConfig = {
 
 const variantConfig: Record<AttachMediaVariant, VariantConfig> = {
   "fc-interact": {
-    sectionClassName: "fc-interact-popup-section fc-interact-popup-attach-section",
+    sectionClassName:
+      "fc-interact-popup-section fc-interact-popup-attach-section",
     sectionId: "fc-attach-section",
 
     labelClassName: "fc-interact-popup-label",
@@ -48,10 +59,19 @@ const variantConfig: Record<AttachMediaVariant, VariantConfig> = {
 
     captureButtonClassName: "fc-interact-popup-attach-btn",
     captureButtonId: "fc-attach-capture",
+    captureButtonIconId: "fc-attach-capture-icon",
     uploadButtonClassName: "fc-interact-popup-attach-btn",
     uploadButtonId: "fc-attach-upload",
+    uploadButtonIconId: "fc-attach-upload-icon",
 
     iconClassName: "fc-interact-popup-attach-icon",
+
+    errorId: "fc-attach-error",
+
+    captureAnyInputId: "fc-attach-capture-any-input",
+    captureImageInputId: "fc-attach-capture-image-input",
+    captureVideoInputId: "fc-attach-capture-video-input",
+    uploadInputId: "fc-attach-upload-input",
 
     mediaListClassName: "fc-interact-popup-media-list",
     mediaListId: "fc-media-list",
@@ -78,10 +98,19 @@ const variantConfig: Record<AttachMediaVariant, VariantConfig> = {
 
     captureButtonClassName: "add-note-modal-attach-btn",
     captureButtonId: "add-note-modal-attach-capture",
+    captureButtonIconId: "add-note-modal-attach-capture-icon",
     uploadButtonClassName: "add-note-modal-attach-btn",
     uploadButtonId: "add-note-modal-attach-upload",
+    uploadButtonIconId: "add-note-modal-attach-upload-icon",
 
     iconClassName: "add-note-modal-attach-icon",
+
+    errorId: "add-note-modal-attach-error",
+
+    captureAnyInputId: "add-note-modal-capture-any-input",
+    captureImageInputId: "add-note-modal-capture-image-input",
+    captureVideoInputId: "add-note-modal-capture-video-input",
+    uploadInputId: "add-note-modal-upload-input",
 
     mediaListClassName: "add-note-modal-media-list",
     mediaListId: "add-note-modal-media-list",
@@ -134,7 +163,10 @@ export default function AttachMedia({
           }}
           disabled={disabled}
         >
-          <PhotoCameraOutlined className={cfg.iconClassName} />
+          <PhotoCameraOutlined
+            className={cfg.iconClassName}
+            id={cfg.captureButtonIconId}
+          />
           {t("Capture")}
         </button>
 
@@ -148,18 +180,22 @@ export default function AttachMedia({
           }}
           disabled={disabled}
         >
-          <FileUploadOutlined className={cfg.iconClassName} />
+          <FileUploadOutlined
+            className={cfg.iconClassName}
+            id={cfg.uploadButtonIconId}
+          />
           {t("Upload")}
         </button>
       </div>
 
       {media.mediaError && (
-        <div className={errorClassName} role="alert">
+        <div className={errorClassName} role="alert" id={cfg.errorId}>
           {media.mediaError}
         </div>
       )}
 
       <input
+        id={cfg.captureAnyInputId}
         ref={media.captureAnyInputRef}
         type="file"
         accept="image/*,video/*"
@@ -174,6 +210,7 @@ export default function AttachMedia({
       />
 
       <input
+        id={cfg.captureImageInputId}
         ref={media.captureImageInputRef}
         type="file"
         accept="image/*"
@@ -189,6 +226,7 @@ export default function AttachMedia({
       />
 
       <input
+        id={cfg.captureVideoInputId}
         ref={media.captureVideoInputRef}
         type="file"
         accept="video/*"
@@ -204,6 +242,7 @@ export default function AttachMedia({
       />
 
       <input
+        id={cfg.uploadInputId}
         ref={media.uploadInputRef}
         type="file"
         accept="image/*,video/*"
@@ -226,15 +265,20 @@ export default function AttachMedia({
               id={`${cfg.mediaItemIdPrefix}${m.id}`}
             >
               {m.mediaType !== "file" && (
-                <div className={cfg.mediaPreviewClassName}>
+                <div
+                  className={cfg.mediaPreviewClassName}
+                  id={`${cfg.mediaItemIdPrefix}${m.id}-preview`}
+                >
                   {m.mediaType === "image" ? (
                     <img
+                      id={`${cfg.mediaItemIdPrefix}${m.id}-thumb`}
                       className={cfg.mediaThumbClassName}
                       src={m.previewUrl}
                       alt={m.file.name}
                     />
                   ) : (
                     <video
+                      id={`${cfg.mediaItemIdPrefix}${m.id}-video`}
                       className={cfg.mediaThumbClassName}
                       src={m.previewUrl}
                       controls
@@ -243,13 +287,21 @@ export default function AttachMedia({
                   )}
                 </div>
               )}
-              <div className={cfg.mediaTopRowClassName}>
-                <div className={cfg.mediaNameClassName} title={m.file.name}>
+              <div
+                className={cfg.mediaTopRowClassName}
+                id={`${cfg.mediaItemIdPrefix}${m.id}-top-row`}
+              >
+                <div
+                  className={cfg.mediaNameClassName}
+                  id={`${cfg.mediaItemIdPrefix}${m.id}-name`}
+                  title={m.file.name}
+                >
                   {m.file.name}
                 </div>
                 <button
                   type="button"
                   className={cfg.mediaRemoveClassName}
+                  id={`${cfg.mediaItemIdPrefix}${m.id}-remove`}
                   aria-label={t("Remove") || "Remove"}
                   onClick={() => media.removeMedia(m.id)}
                   disabled={disabled}
@@ -257,9 +309,13 @@ export default function AttachMedia({
                   x
                 </button>
               </div>
-              <div className={cfg.mediaProgressClassName}>
+              <div
+                className={cfg.mediaProgressClassName}
+                id={`${cfg.mediaItemIdPrefix}${m.id}-progress`}
+              >
                 <div
                   className={cfg.mediaProgressBarClassName}
+                  id={`${cfg.mediaItemIdPrefix}${m.id}-progress-bar`}
                   style={{ width: `${m.progress}%` }}
                 />
               </div>
@@ -270,4 +326,3 @@ export default function AttachMedia({
     </div>
   );
 }
-
