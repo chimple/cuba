@@ -16,7 +16,11 @@ import { AvatarObj } from "../animation/Avatar";
 import ParentalLock from "../parent/ParentalLock";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { updateLocalAttributes, useGbContext } from "../../growthbook/Growthbook";
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from "../../growthbook/Growthbook";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -30,7 +34,6 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
   const { setGbUpdated } = useGbContext();
-
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
 
@@ -63,13 +66,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
+    schoolUtil.setCurrentClass(undefined);
     localStorage.removeItem(HOMEWORK_PATHWAY);
     // Also tell GrowthBook attributes are now cleared (or set to parent-level)
-  updateLocalAttributes({
-    student_id: null,
-  });
+    updateLocalAttributes({
+      student_id: null,
+    });
 
-  setGbUpdated(true); // cause consumers to re-evaluate
+    setGbUpdated(true); // cause consumers to re-evaluate
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
 

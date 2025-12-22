@@ -28,6 +28,7 @@ import RewardBox from "./RewardBox";
 import DailyRewardModal from "./DailyRewardModal";
 import RewardRive from "./RewardRive";
 import { useReward } from "../../hooks/useReward";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 // Define a new type for the reward animation state
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -58,16 +59,17 @@ const PathwayStructure: React.FC = () => {
   const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
     string | undefined
   >("id");
-  const [mascotKey, setMascotKey] = useState(0); 
+  const [mascotKey, setMascotKey] = useState(0);
 
   const {
-  hasTodayReward,
-  setHasTodayReward,
-  checkAndUpdateReward,
-  shouldShowDailyRewardModal,
+    hasTodayReward,
+    setHasTodayReward,
+    checkAndUpdateReward,
+    shouldShowDailyRewardModal,
   } = useReward();
   const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
   const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
+  const [isCampaignFinished, setIsCampaignFinished] = useState(false);
 
   // State for daily reward modal and reward box visibility
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
@@ -77,7 +79,8 @@ const PathwayStructure: React.FC = () => {
   );
   const rewardText = t("Complete these 5 lessons to earn rewards");
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
-  const isRewardFeatureOn: boolean = localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
+  const isRewardFeatureOn: boolean =
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
 
   const shouldAnimate = modalText === rewardText;
   const fetchLocalSVGGroup = async (
@@ -189,143 +192,141 @@ const PathwayStructure: React.FC = () => {
     return image;
   };
 
-   // Cache lesson data
-    const lessonCache = new Map<string, any>();
+  // Cache lesson data
+  const lessonCache = new Map<string, any>();
 
-    const getCachedLesson = async (lessonId: string): Promise<any> => {
-      if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
+  const getCachedLesson = async (lessonId: string): Promise<any> => {
+    if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
 
-      const key = `lesson_${lessonId}`;
-      const cached = sessionStorage.getItem(key);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        lessonCache.set(lessonId, parsed);
-        return parsed;
+    const key = `lesson_${lessonId}`;
+    const cached = sessionStorage.getItem(key);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      lessonCache.set(lessonId, parsed);
+      return parsed;
+    }
+
+    const lesson = await api.getLesson(lessonId);
+    lessonCache.set(lessonId, lesson);
+    sessionStorage.setItem(key, JSON.stringify(lesson));
+    return lesson;
+  };
+
+  const preloadImage = (src: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  };
+
+  const preloadAllLessonImages = async (lessons: any[]) => {
+    await Promise.all(
+      lessons.map((lesson) => {
+        const isValidUrl =
+          typeof lesson.image === "string" &&
+          /^(https?:\/\/|\/)/.test(lesson.image);
+        const src = isValidUrl ? lesson.image : "assets/icons/DefaultIcon.png";
+        return preloadImage(src);
+      })
+    );
+  };
+
+  const loadSVG = async (updatedStudent?: any) => {
+    if (!containerRef.current) return;
+
+    try {
+      const startTime = performance.now();
+
+      const currentStudent = Util.getCurrentStudent();
+      let learningPath;
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+
+      if (rewardLearningPath) {
+        learningPath = JSON.parse(rewardLearningPath);
+      } else {
+        learningPath = currentStudent?.learning_path
+          ? JSON.parse(currentStudent.learning_path)
+          : null;
       }
+      if (!learningPath) return;
 
-      const lesson = await api.getLesson(lessonId);
-      lessonCache.set(lessonId, lesson);
-      sessionStorage.setItem(key, JSON.stringify(lesson));
-      return lesson;
-    };
+      const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+      const course = learningPath?.courses.courseList[currentCourseIndex];
+      const { startIndex, currentIndex, pathEndIndex } = course;
+      const [courseData, chapterData] = await Promise.all([
+        api.getCourse(course.id),
+        api.getChapterById(course.path[currentIndex].chapter_id),
+      ]);
+      setCurrentCourse(courseData);
+      setCurrentChapter(chapterData);
 
-    const preloadImage = (src: string): Promise<void> => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
-      });
-    };
+      const [
+        svgContent,
+        lessons,
+        flowerActive,
+        flowerInactive,
+        playedLessonSVG,
+        giftSVG,
+        giftSVG2,
+        giftSVG3,
+        haloPath,
+      ] = await Promise.all([
+        loadPathwayContent(
+          "remoteAsset/Pathway.svg",
+          "/pathwayAssets/English/Pathway.svg"
+        ),
+        Promise.all(
+          course.path
+            .slice(startIndex, pathEndIndex + 1)
+            .map(({ lesson_id }) => getCachedLesson(lesson_id))
+        ),
+        tryFetchSVG(
+          "remoteAsset/FlowerActive.svg",
+          "/pathwayAssets/English/FlowerActive.svg",
+          "flowerActive isSelected"
+        ),
+        fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
+        tryFetchSVG(
+          "remoteAsset/PlayedLesson.svg",
+          "/pathwayAssets/English/PlayedLesson.svg",
+          "playedLessonSVG"
+        ),
+        tryFetchSVG(
+          "remoteAsset/pathGift1.svg",
+          "/pathwayAssets/English/pathGift1.svg",
+          "giftSVG"
+        ),
+        tryFetchSVG(
+          "remoteAsset/pathGift2.svg",
+          "/pathwayAssets/English/pathGift2.svg",
+          "giftSVG2"
+        ),
+        tryFetchSVG(
+          "remoteAsset/pathGift3.svg",
+          "/pathwayAssets/English/pathGift3.svg",
+          "giftSVG3"
+        ),
+        loadHaloAnimation(
+          "remoteAsset/halo.svg",
+          "/pathwayAssets/English/halo.svg"
+        ),
+      ]);
 
-    const preloadAllLessonImages = async (lessons: any[]) => {
-      await Promise.all(
-        lessons.map((lesson) => {
-          const isValidUrl =
-            typeof lesson.image === "string" &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-          const src = isValidUrl
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
-          return preloadImage(src);
-        })
+      preloadAllLessonImages(lessons);
+
+      // Declare chimple here to be accessible in different scopes
+      let chimple: SVGForeignObjectElement | null = null;
+      chimple = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "foreignObject"
       );
-    };
+      chimple.setAttribute("width", "32.5%");
+      chimple.setAttribute("height", "100%");
 
-    const loadSVG = async (updatedStudent?: any) => {
-      if (!containerRef.current) return;
-
-      try {
-        const startTime = performance.now();
-
-        const currentStudent = Util.getCurrentStudent()
-        let learningPath;
-        const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
-
-        if (rewardLearningPath) {
-          learningPath = JSON.parse(rewardLearningPath);
-        } else {
-          learningPath = currentStudent?.learning_path
-            ? JSON.parse(currentStudent.learning_path)
-            : null;
-        }
-        if (!learningPath) return;
-
-        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
-        const course = learningPath?.courses.courseList[currentCourseIndex];
-        const { startIndex, currentIndex, pathEndIndex } = course;
-        const [courseData, chapterData] = await Promise.all([
-            api.getCourse(course.id),
-            api.getChapterById(course.path[currentIndex].chapter_id)
-        ]);
-        setCurrentCourse(courseData);
-        setCurrentChapter(chapterData);
-
-        const [
-          svgContent,
-          lessons,
-          flowerActive,
-          flowerInactive,
-          playedLessonSVG,
-          giftSVG,
-          giftSVG2,
-          giftSVG3,
-          haloPath,
-        ] = await Promise.all([
-          loadPathwayContent(
-            "remoteAsset/Pathway.svg",
-            "/pathwayAssets/English/Pathway.svg"
-          ),
-          Promise.all(
-            course.path
-              .slice(startIndex, pathEndIndex + 1)
-              .map(({ lesson_id }) => getCachedLesson(lesson_id))
-          ),
-          tryFetchSVG(
-            "remoteAsset/FlowerActive.svg",
-            "/pathwayAssets/English/FlowerActive.svg",
-            "flowerActive isSelected"
-          ),
-          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          tryFetchSVG(
-            "remoteAsset/PlayedLesson.svg",
-            "/pathwayAssets/English/PlayedLesson.svg",
-            "playedLessonSVG"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift1.svg",
-            "/pathwayAssets/English/pathGift1.svg",
-            "giftSVG"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift2.svg",
-            "/pathwayAssets/English/pathGift2.svg",
-            "giftSVG2"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift3.svg",
-            "/pathwayAssets/English/pathGift3.svg",
-            "giftSVG3"
-          ),
-          loadHaloAnimation(
-            "remoteAsset/halo.svg",
-            "/pathwayAssets/English/halo.svg"
-          ),
-        ]);
-
-        preloadAllLessonImages(lessons);
-
-        // Declare chimple here to be accessible in different scopes
-        let chimple: SVGForeignObjectElement | null = null;
-        chimple = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "foreignObject"
-        );
-        chimple.setAttribute("width", "32.5%");
-        chimple.setAttribute("height", "100%");
-
-        requestAnimationFrame(async () => {
-          if(containerRef.current){
+      requestAnimationFrame(async () => {
+        if (containerRef.current) {
           containerRef.current.innerHTML = svgContent;
           const svg = containerRef.current!.querySelector(
             "svg"
@@ -442,11 +443,12 @@ const PathwayStructure: React.FC = () => {
                     chapter: JSON.stringify(currentChapter),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     course: JSON.stringify(currentCourse),
-                    learning_path: true
+                    learning_path: true,
                   });
-                } else if(lesson.plugin_type === LIVE_QUIZ){
+                } else if (lesson.plugin_type === LIVE_QUIZ) {
                   history.replace(
-                    PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+                    PAGES.LIVE_QUIZ_GAME +
+                      `?lessonId=${lesson.cocos_lesson_id}`,
                     {
                       courseId: course.course_id,
                       lesson: JSON.stringify(lesson),
@@ -455,17 +457,17 @@ const PathwayStructure: React.FC = () => {
                     }
                   );
                 } else if (lesson.plugin_type === LIDO) {
-                    const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                    history.replace(PAGES.LIDO_PLAYER + parmas, {
-                      lessonId: lesson.cocos_lesson_id,
-                      courseDocId: course.course_id,
-                      course: JSON.stringify(currentCourse),
-                      lesson: JSON.stringify(lesson),
-                      chapter: JSON.stringify(currentChapter),
-                      from: history.location.pathname + `?${CONTINUE}=true`,
-                      learning_path: true,
-                    });
-                  }
+                  const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+                  history.replace(PAGES.LIDO_PLAYER + parmas, {
+                    lessonId: lesson.cocos_lesson_id,
+                    courseDocId: course.course_id,
+                    course: JSON.stringify(currentCourse),
+                    lesson: JSON.stringify(lesson),
+                    chapter: JSON.stringify(currentChapter),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                    learning_path: true,
+                  });
+                }
               });
               fragment.appendChild(activeGroup);
             } else {
@@ -542,10 +544,10 @@ const PathwayStructure: React.FC = () => {
           const animateChimpleMovement = () => {
             if (!chimple) return;
 
-            if(currentIndex>pathEndIndex){
+            if (currentIndex > pathEndIndex) {
               sessionStorage.removeItem(REWARD_LEARNING_PATH);
               setIsRewardPathLoaded(true);
-              return ;
+              return;
             }
             // The mascot's current visual position on screen
             const currentLessonIndex = lessons.findIndex(
@@ -667,7 +669,6 @@ const PathwayStructure: React.FC = () => {
             };
 
             const onBoxArrival = async () => {
-              
               setRewardRiveState(RewardBoxState.BLAST);
 
               await delay(2000); // Wait for blast to finish
@@ -685,7 +686,7 @@ const PathwayStructure: React.FC = () => {
 
               // Step 2: Revert to the new normal state
               await updateMascotToNormalState(newRewardId);
-              
+
               await delay(500); // Small delay to ensure state is set before moving
               // Step 3: Animate mascot movement to the new active lesson
               animateChimpleMovement();
@@ -703,7 +704,11 @@ const PathwayStructure: React.FC = () => {
           };
 
           const newRewardId = await checkAndUpdateReward();
-          if (newRewardId !== null && typeof newRewardId === "string" && isRewardFeatureOn) {
+          if (
+            newRewardId !== null &&
+            typeof newRewardId === "string" &&
+            isRewardFeatureOn
+          ) {
             runRewardAnimation(newRewardId);
           }
 
@@ -712,14 +717,14 @@ const PathwayStructure: React.FC = () => {
 
           if (chimple) {
             const idx = lessons.findIndex(
-              (_, idx) => startIndex + idx === (currentIndex) - 1
+              (_, idx) => startIndex + idx === currentIndex - 1
             );
-            const chimpleXValues = [-60, 66, 180, 295, 412]
+            const chimpleXValues = [-60, 66, 180, 295, 412];
             if (idx < 0 || newRewardId == null || !isRewardFeatureOn) {
               chimple.setAttribute("x", `${xValues[idx + 1] - 87}`);
             } else {
-            chimple.setAttribute("x", `${chimpleXValues[idx]}`);
-          }
+              chimple.setAttribute("x", `${chimpleXValues[idx]}`);
+            }
             chimple.setAttribute("y", `${startPoint.y - 15}`);
             chimple.style.pointerEvents = "none";
             const riveDiv = document.createElement("div");
@@ -733,41 +738,76 @@ const PathwayStructure: React.FC = () => {
 
           const endTime = performance.now();
           console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
-          }
-        });
-      } catch (error) {
-        console.error("Failed to load SVG:", error);
-      }
-    };
+        }
+      });
+    } catch (error) {
+      console.error("Failed to load SVG:", error);
+    }
+  };
 
-    // Reusable position helper
-    const placeElement = (element: SVGGElement, x: number, y: number) => {
-      element.setAttribute("transform", `translate(${x}, ${y})`);
-    };
+  // Reusable position helper
+  const placeElement = (element: SVGGElement, x: number, y: number) => {
+    element.setAttribute("transform", `translate(${x}, ${y})`);
+  };
 
-    const initializePathway = async () => {
-      // Load SVG and check for new rewards in parallel
-      const todaysReward = await Promise.all([
-        loadSVG(),
-        checkAndUpdateReward(),
-        Util.fetchTodaysReward(),
-      ]).then(([, , resultOfFetchTodaysReward]) => resultOfFetchTodaysReward);
-      const currentReward = Util.retrieveUserReward();
-      const today = new Date().toISOString().split("T")[0];
-      const receivedTodayReward =
-        currentReward?.timestamp &&
-        new Date(currentReward.timestamp).toISOString().split("T")[0] ===
-          today &&
-        todaysReward?.id === currentReward?.reward_id;
-      setHasTodayReward(!receivedTodayReward);
-      if (currentReward.reward_id !== IDLE_REWARD_ID) {
-        await updateMascotToNormalState(currentReward.reward_id);
-      }
-    };
+  const initializePathway = async () => {
+    // Load SVG and check for new rewards in parallel
+    const todaysReward = await Promise.all([
+      loadSVG(),
+      checkAndUpdateReward(),
+      Util.fetchTodaysReward(),
+    ]).then(([, , resultOfFetchTodaysReward]) => resultOfFetchTodaysReward);
+    const currentReward = Util.retrieveUserReward();
+    const today = new Date().toISOString().split("T")[0];
+    const receivedTodayReward =
+      currentReward?.timestamp &&
+      new Date(currentReward.timestamp).toISOString().split("T")[0] === today &&
+      todaysReward?.id === currentReward?.reward_id;
+    setHasTodayReward(!receivedTodayReward);
+    if (currentReward.reward_id !== IDLE_REWARD_ID) {
+      await updateMascotToNormalState(currentReward.reward_id);
+    }
+  };
+  useEffect(() => {
+  const handleCampaignFinished = () => {
+    setIsCampaignFinished(true);
+  };
 
+  window.addEventListener(
+    "CAMPAIGN_SEQUENCE_FINISHED",
+    handleCampaignFinished
+  );
+
+  return () => {
+    window.removeEventListener(
+      "CAMPAIGN_SEQUENCE_FINISHED",
+      handleCampaignFinished
+    );
+  };
+}, []);
+
+  // 🟡 Decide campaign applicability per student
+  useEffect(() => {
+    const student = Util.getCurrentStudent();
+    const school = schoolUtil.getCurrentClass();
+
+    // No student → campaign irrelevant
+    if (!student?.id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student exists but no school → campaign irrelevant
+    if (!school?.school_id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student has a school → wait for WinterCampaignPopupGating
+    setIsCampaignFinished(false);
+  }, [Util.getCurrentStudent()?.id]);
 
   useEffect(() => {
-
     // Listen for course changes
     const handleCourseChange = (event: Event) => {
       const customEvent = event as CustomEvent;
@@ -778,11 +818,11 @@ const PathwayStructure: React.FC = () => {
       "courseChanged",
       handleCourseChange as EventListener
     );
-      if (isRewardFeatureOn) {
-        initializePathway();
-      } else {
-        loadSVG();
-      }
+    if (isRewardFeatureOn) {
+      initializePathway();
+    } else {
+      loadSVG();
+    }
 
     return () => {
       window.removeEventListener("courseChanged", handleCourseChange);
@@ -790,12 +830,17 @@ const PathwayStructure: React.FC = () => {
   }, [isRewardPathLoaded]);
 
   useEffect(() => {
+    if (!isRewardFeatureOn) return;
+
+    if (!isCampaignFinished) return;
     const showModalIfNeeded = async () => {
       const showModal = await shouldShowDailyRewardModal();
       setRewardModalOpen(showModal);
     };
-  if(isRewardFeatureOn) {showModalIfNeeded();}
-  }, []);
+    if (isRewardFeatureOn) {
+      showModalIfNeeded();
+    }
+  }, [isCampaignFinished, isRewardFeatureOn]);
 
   const updateMascotToNormalState = async (rewardId: string) => {
     const rewardRecord = await api.getRewardById(rewardId);
@@ -837,7 +882,7 @@ const PathwayStructure: React.FC = () => {
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
- 
+
       if (!lesson) return;
 
       if (lesson.plugin_type === COCOS) {
@@ -882,7 +927,6 @@ const PathwayStructure: React.FC = () => {
     }
   };
 
-
   return (
     <>
       {isModalOpen && (
@@ -912,9 +956,11 @@ const PathwayStructure: React.FC = () => {
           rewardRiveContainer
         )}
 
-      {(hasTodayReward && isRewardFeatureOn) && <RewardBox onRewardClick={handleOpen} />}
+      {hasTodayReward && isRewardFeatureOn && (
+        <RewardBox onRewardClick={handleOpen} />
+      )}
 
-      {(rewardModalOpen && isRewardFeatureOn) && (
+      {rewardModalOpen && isRewardFeatureOn && (
         <DailyRewardModal
           text={t("Play one lesson and collect your daily reward!")}
           onClose={handleClose}

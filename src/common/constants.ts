@@ -854,6 +854,8 @@ export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
 
 export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 
+export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
+
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;
