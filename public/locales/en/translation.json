@@ -1402,5 +1402,8 @@
   "Role": "Role",
   "Type your note here": "Type your note here",
   "Note Details": "Note Details",
-  "Notes": "Notes"
+  "Notes": "Notes",
+  "User Coordinates": "User Coordinates",
+  "meters away": "meters away",
+  "Fetching your location...": "Fetching your location..."
 }
