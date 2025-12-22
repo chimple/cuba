@@ -73,6 +73,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isSchoolLocationMissing, setIsSchoolLocationMissing] = useState<boolean>(false);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
+  const [isPermissionDenied, setIsPermissionDenied] = useState<boolean>(false);
+  const [retryTrigger, setRetryTrigger] = useState<number>(0);
 
   const targetLocation = useMemo(() => {
     if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
@@ -111,6 +113,13 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       let isMounted = true;
 
       const startWatching = async () => {
+        if (!open) return;
+        setIsLoadingLocation(true);
+        setLocationError(null);
+        setIsPermissionDenied(false); // Reset permission state
+        setUserLocation(null);
+        setDistance(null);
+
         try {
             const isWeb = Capacitor.getPlatform() === 'web';
             
@@ -121,6 +130,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     if (requestStatus.location !== 'granted') {
                         if (isMounted) {
                             setLocationError("Location permission denied.");
+                            setIsPermissionDenied(true);
                             setIsInsidePremises(false);
                             setIsLoadingLocation(false);
                         }
@@ -149,6 +159,16 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 if ('geolocation' in navigator) {
                     const id = navigator.geolocation.watchPosition(successHandler, (err) => {
                         console.error("Web Geolocation Error", err);
+                        
+                        // Check if error is permission denied (code 1)
+                        if (err.code === 1 || err.message?.includes("denied")) {
+                             setIsPermissionDenied(true);
+                             setLocationError("Location permission denied.");
+                             setIsLoadingLocation(false);
+                             setIsInsidePremises(false);
+                             return;
+                        }
+
                         if (isLoadingLocation) {
                              setLocationError("Could not retrieve location. Please check browser permissions.");
                              setIsLoadingLocation(false);
@@ -178,6 +198,17 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
                     if (err) {
                         console.warn("High accuracy watch error", err);
+                        
+                        // Check if error is permission denied (code 1)
+                        if (err.code === 1 || err.message?.includes("denied")) {
+                             if (isMounted) {
+                                  setIsPermissionDenied(true);
+                                  setLocationError("Location permission denied.");
+                                  setIsLoadingLocation(false);
+                             }
+                             return;
+                        }
+
                         // Fallback to low accuracy
                         if (watcherId !== null) Geolocation.clearWatch({ id: watcherId as string });
                         
@@ -190,6 +221,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                             if (!isMounted) return;
                             if (fallbackErr) {
                                 console.error("Fallback watch error", fallbackErr);
+                                // Check permission on fallback too
+                                if (fallbackErr.code === 1 || fallbackErr.message?.includes("denied")) {
+                                     setIsPermissionDenied(true);
+                                     setLocationError("Location permission denied.");
+                                     setIsLoadingLocation(false);
+                                     return;
+                                }
+
                                 if (isLoadingLocation) {
                                     setLocationError("Could not retrieve location. Please check GPS settings.");
                                     setIsLoadingLocation(false);
@@ -212,10 +251,16 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 }
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error starting location watch", error);
             if (isMounted) {
-                setLocationError("Could not start location tracking. Please check your GPS settings.");
+                // Check if error is permission denied (code 1)
+                if (error?.code === 1 || error?.message?.includes("denied")) {
+                     setIsPermissionDenied(true);
+                     setLocationError("Location permission denied.");
+                } else {
+                     setLocationError("Could not start location tracking. Please check your GPS settings.");
+                }
                 setIsLoadingLocation(false);
                 setIsInsidePremises(false);
             }
@@ -236,7 +281,41 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         }
       };
     }
-  }, [open, targetLocation.lat, targetLocation.lng]);
+  }, [open, targetLocation.lat, targetLocation.lng, retryTrigger]);
+
+  const handleRetryLocation = async () => {
+    setIsLoadingLocation(true);
+    setLocationError(null);
+    setIsPermissionDenied(false);
+    setUserLocation(null);
+    setDistance(null);
+
+    try {
+        const isWeb = Capacitor.getPlatform() === 'web';
+        if (!isWeb) {
+            // Explicitly request permission again if it was denied
+            const requestStatus = await Geolocation.requestPermissions();
+             if (requestStatus.location !== 'granted') {
+                setIsPermissionDenied(true);
+                setLocationError("Location permission denied.");
+                setIsLoadingLocation(false);
+                return;
+            }
+        }
+        // Force re-run of the watcher effect
+        setRetryTrigger(prev => prev + 1);
+        
+    } catch (e: any) {
+        console.error("Retry failed", e);
+        if (e?.code === 1 || e?.message?.includes("denied")) {
+             setIsPermissionDenied(true);
+             setLocationError("Location permission denied.");
+        } else {
+             setLocationError("Unable to fetch location. Please try again."); 
+        }
+        setIsLoadingLocation(false);
+    }
+  };
 
   const handleUpdateSchoolLocation = async () => {
     if (!userLocation || !schoolId) return;
@@ -311,7 +390,16 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
   const isCheckIn = status === SchoolVisitAction.CheckIn;
   
-  const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool === undefined) || isUpdatingLocation;
+  // Disable confirm check-in if:
+  // 1. Location is currently loading/updating
+  // 2. School location is missing AND user hasn't confirmed (Yes/No)
+  // 3. Permission is explicitly denied
+  // 4. User location failed to fetch (userLocation is null) AND not currently loading
+  const isConfirmDisabled = isLoadingLocation 
+                            || isUpdatingLocation
+                            || (isSchoolLocationMissing && isConfirmedInSchool === undefined)
+                            || isPermissionDenied
+                            || (userLocation === null && !isLoadingLocation);
 
   return (
     <div id="check-in-modal-overlay" className="schoolcheckinmodal check-in-modal-overlay" onClick={onClose}>
@@ -338,7 +426,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   <div id="check-in-address-1" className="location-detail-text">{targetLocation.address1}</div>
                    <div id="check-in-address-2" className="location-detail-text">{targetLocation.address2}</div>
                   
-                  {!isSchoolLocationMissing && (
+                  {!isSchoolLocationMissing && !isPermissionDenied && (
                     <>
                         {userLocation && (
                              <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
@@ -359,6 +447,29 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                           <i>{t("Fetching your location...")}</i>
                       </div>
                   )}
+
+                  {isPermissionDenied || locationError ? (
+                    <div className="permission-denied-container" style={{ marginTop: '10px' }}>
+                        <div className="error-text" style={{ color: 'red', fontSize: '12px', marginBottom: '5px' }}>
+                            {isPermissionDenied ? t("Location permission denied") : t("Unable to fetch location. Please try again.")}
+                        </div>
+                        <button 
+                            className="retry-permission-btn" 
+                            onClick={handleRetryLocation}
+                            style={{
+                                padding: '5px 10px',
+                                fontSize: '12px',
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
+                        </button>
+                    </div>
+                  ) : null}
               </div>
           </div>
 
