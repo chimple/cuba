@@ -34,8 +34,8 @@
   max-width: 9vw;
   min-height: 13vh;
   height: auto;
-  border: 2px solid #F34D08;
-  border-radius: 20px;
+  border: clamp(2px, 0.4vh, 2.8px)  solid #F34D08;
+  border-radius: 5.5vh;
   background-color: #FFF9CF;
   overflow: hidden;
   cursor: pointer;
@@ -99,7 +99,7 @@
 
 .dropdownmenu-dropdown-arrow.dropdownmenu-expanded-arrow {
   padding-bottom: 0 !important; 
-  margin-top: 5vh;                
+  margin-top: 4vh;                
   padding-right: 0.1vw;          
   width: 4vw;                     
   align-items: center;
@@ -121,7 +121,7 @@
   width: 8vw;
   height: 2vh;
   color: #182A4F;
-  margin-top: 13vh;
+  margin-top: 13.5vh;
 }
 
 .dropdownmenu-menu-item {
@@ -173,7 +173,6 @@
   transform: scaleY(0);
   opacity: 0;
   max-height: 0;
-  overflow: hidden;
   pointer-events: none;            /* avoid clicks when closed */
   transition:
     transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
@@ -211,10 +210,14 @@
   visibility: visible;
 }
 
-/* Optional: reduce layout thrash by using transform on arrow */
-.dropdownmenu-dropdown-arrow {
-  transition: transform 0.25s ease;
-}
-.dropdownmenu-dropdown-arrow.dropdownmenu-expanded-arrow {
-  transform: rotate(180deg);
+@media screen and (min-width: 767px)  and (min-height: 479px)  {
+    .dropdownmenu-dropdown-container {
+        max-width: 10.5vw;
+    }
+    .dropdownmenu-dropdown-label {
+        width: 10vw;
+    }
+    .dropdownmenu-dropdown-main {
+      top: 45%;
+    }
 }

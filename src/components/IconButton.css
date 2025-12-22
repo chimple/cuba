@@ -58,3 +58,8 @@
 .circular-icon .img {
   border-radius: 50%;
 }
+
+.iconButton-profile-img {
+  height: 11.5vh;
+  width: auto;
+}

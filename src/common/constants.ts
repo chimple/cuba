@@ -1020,7 +1020,7 @@ export interface StudentInfo {
   parent: TableTypes<"user"> | null;
   classWithidname?: {
     id: string;
-    name: string;
+    class_name: string;
   };
 }
 export interface StudentAPIResponse {
