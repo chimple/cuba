@@ -94,9 +94,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [teacherStatus, setTeacherStatus] =
     useState<EnumType<"fc_support_level">>();
   const getTeacherInfo = useCallback(
-    (id: string): TeacherInfo | null => {
+    (userId: string, classId: string): TeacherInfo | null => {
       if (!Array.isArray(teachers)) return null;
-      return teachers.find((t) => t.user?.id === id) || null;
+
+      return (
+        teachers.find(
+          (t) => t.user?.id === userId && t.classWithidname.id === classId
+        ) || null
+      );
     },
     [teachers]
   );
@@ -236,16 +241,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           return order === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "gender":
-          aValue = a.user.gender || "";
-          bValue = b.user.gender || "";
+        case "class": {
+          const gradeCompare = (a.grade || 0) - (b.grade || 0);
+          if (gradeCompare !== 0) {
+            return order === "asc" ? gradeCompare : -gradeCompare;
+          }
           return order === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        case "grade":
-          aValue = a.grade || 0;
-          bValue = b.grade || 0;
-          return order === "asc" ? aValue - bValue : bValue - aValue;
+            ? (a.classSection || "").localeCompare(b.classSection || "")
+            : (b.classSection || "").localeCompare(a.classSection || "");
+        }
         case "classSection":
           aValue = a.classSection || "";
           bValue = b.classSection || "";
@@ -271,37 +275,56 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [filteredTeachers, orderBy, order]);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
-    return sortedTeachers.map(
-      (apiTeacher): DisplayTeacher => ({
-        id: apiTeacher.user.id,
-        name: apiTeacher.user.name || "N/A",
-        gender: apiTeacher.user.gender || "N/A",
-        grade: apiTeacher.grade,
-        classSection: apiTeacher.classSection,
-        phoneNumber: apiTeacher.user.phone || "N/A",
-        emailDisplay: apiTeacher.user.email || "N/A",
-        class: apiTeacher.grade + apiTeacher.classSection,
-        classId: apiTeacher.classWithidname.id,
-        interactData: "",
-        interactPayload: apiTeacher,
-        performance:
-          teachersWithPerformance.find((t) => t.id === apiTeacher.user.id)
-            ?.performance ?? "not_assigning",
-      })
-    );
-  }, [sortedTeachers]);
+    return sortedTeachers.map((apiTeacher) => ({
+      id: apiTeacher.user.id,
+      name: apiTeacher.user.name || "N/A",
+      gender: apiTeacher.user.gender || "N/A",
+      grade: apiTeacher.grade,
+      classSection: apiTeacher.classSection,
+      phoneNumber: apiTeacher.user.phone || "—",
+      emailDisplay: apiTeacher.user.email || "—",
+      class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+      classId: apiTeacher.classWithidname?.id ?? "",
+      interactData: "",
+      interactPayload: apiTeacher,
+      performance:
+        teachersWithPerformance.find(
+          (t) =>
+            t.id === apiTeacher.user.id &&
+            t.classId === apiTeacher.classWithidname?.id
+        )?.performance ?? "not_assigning",
+    }));
+  }, [sortedTeachers, teachersWithPerformance]);
 
   useEffect(() => {
     if (!sortedTeachers.length) {
       setTeachersWithPerformance([]);
       return;
     }
-
     async function loadPerformance() {
-      const enriched = await Promise.all(
+      const enriched: DisplayTeacher[] = await Promise.all(
         sortedTeachers.map(async (apiTeacher) => {
-          const teacherId = apiTeacher.user.id;
-          const classId = apiTeacher.classWithidname.id;
+          const teacherId = apiTeacher.user?.id;
+          const classId =
+            apiTeacher.classId ?? apiTeacher.classWithidname?.id ?? "";
+
+          if (!teacherId || !classId) {
+            return {
+              id: teacherId ?? "",
+              name: apiTeacher.user?.name || "N/A",
+              gender: apiTeacher.user?.gender || "N/A",
+              grade: apiTeacher.grade,
+              classSection: apiTeacher.classSection,
+              phoneNumber: apiTeacher.user?.phone || "—",
+              emailDisplay: apiTeacher.user?.email || "—",
+              class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+              classId: "",
+              interactData: "",
+              interactPayload: apiTeacher,
+              performance:
+                PerformanceLevel.NOT_ASSIGNING as EnumType<"fc_support_level">,
+            };
+          }
 
           const count = await api.getRecentAssignmentCountByTeacher(
             teacherId,
@@ -311,15 +334,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           const perfLevel = mapCountToPerformance(count);
 
           return {
-            id: apiTeacher.user.id,
-            name: apiTeacher.user.name || "N/A",
-            gender: apiTeacher.user.gender || "N/A",
+            id: teacherId,
+            name: apiTeacher.user?.name || "N/A",
+            gender: apiTeacher.user?.gender || "N/A",
             grade: apiTeacher.grade,
             classSection: apiTeacher.classSection,
-            phoneNumber: apiTeacher.user.phone || "N/A",
-            emailDisplay: apiTeacher.user.email || "N/A",
-            class: apiTeacher.grade + apiTeacher.classSection,
-            classId: apiTeacher.classWithidname.id,
+            phoneNumber: apiTeacher.user?.phone || "—",
+            emailDisplay: apiTeacher.user?.email || "—",
+            class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+            classId,
             interactData: "",
             interactPayload: apiTeacher,
             performance: perfLevel as EnumType<"fc_support_level">,
@@ -537,13 +560,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             size="small"
             onClick={async () => {
               setOpenPopup(true);
-              const currentTeacher = getTeacherInfo(row.id);
+              const currentTeacher = getTeacherInfo(row.id, row.classId);
               if (currentTeacher) {
                 setcurrentTeachers(currentTeacher);
               }
               const performance =
                 teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.class === row.class // grade + section match
+                  (t) => t.id === row.id && t.classId === row.classId
                 )?.performance ?? null;
               if (performance) setTeacherStatus(performance);
             }}
@@ -557,10 +580,10 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Box>
       ),
     },
-    { key: "gender", label: t("Gender") },
     {
       key: "class",
       label: t("Class Name"),
+      sortable: true,
       renderCell: (s) => (
         <Typography variant="body2" className="student-name-data">
           {s.class}
@@ -596,7 +619,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         );
       },
     },
-    { key: "phoneNumber", label: t("Phone Number") },
+    // { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "emailDisplay",
       label: t("Email"),
