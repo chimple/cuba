@@ -42,17 +42,6 @@
   cursor: pointer;
 }
 
-/* Textarea */
-.add-note-modal-textarea {
-  width: 100%;
-  margin-top: 16px;
-  padding: 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #d6d6d6;
-  resize: vertical;
-}
-
 /* Error */
 .add-note-modal-error {
   color: red;
@@ -73,15 +62,15 @@
   padding: 10px 20px;
   border-radius: 8px;
   background: transparent;
-  border: 1px solid #4f46e5;
-  color: #4f46e5;
+  border: 1px solid #2563eb;
+  color: #2563eb;
   cursor: pointer;
 }
 
 .add-note-modal-btn-primary {
   padding: 10px 24px;
   border-radius: 8px;
-  background: #4f46e5;
+  background: #2563eb;
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -94,11 +83,13 @@
   padding: 12px;
   font-size: 14px;
 
-  /* ✅ FIX */
   background-color: #ffffff;
   color: #111111;
 
   border-radius: 8px;
   border: 1px solid #d6d6d6;
-  resize: vertical;
+
+  /* 🔥 FINAL FIX — no resizing allowed */
+  resize: none;
+  overflow-y: auto;  /* scroll inside instead of expanding */
 }

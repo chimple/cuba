@@ -22,14 +22,18 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   if (!isOpen) return null;
 
   const handleSave = () => {
-    if (!text.trim()) {
-      setError(t("please_enter_note").toString());
-      return;
-    }
-    setError("");
-    onSave({ text });
-    setText("");
-  };
+  if (!text.trim()) {
+    setError(t("Please enter note").toString());
+    return;
+  }
+
+  const note = text.trim();
+  setText("");
+  setError("");
+  onClose();
+  onSave({ text: note });
+};
+
 
   const handleCancel = () => {
     setText("");
@@ -67,9 +71,13 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         <textarea
           className="add-note-modal-textarea"
           id="add-note-modal-textarea"
-          placeholder={t("Type your note here").toString()}
+          placeholder={t("Type your note here...").toString()}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (error) setError("");
+          }}
+
           rows={6}
         />
 

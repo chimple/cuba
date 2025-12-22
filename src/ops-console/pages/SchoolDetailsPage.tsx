@@ -313,7 +313,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               onClick={() => setShowAddModal(true)}
               className="add-note-button"
             >
-              + {t("add note")}
+              + {t("Add Notes")}
             </button>
           )}
         </div>

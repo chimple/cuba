@@ -82,7 +82,7 @@
 /* Active page */
 .school-notes-pagination-container
   .MuiPaginationItem-root.Mui-selected {
-  background-color: #4f46e5;
+  background-color: #2563eb;
   color: #ffffff;
 }
 

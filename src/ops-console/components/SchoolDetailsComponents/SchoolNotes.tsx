@@ -30,11 +30,17 @@ const NOTES_PER_PAGE = 10;
 
 function parseDateForDisplay(isoOrString?: string) {
   if (!isoOrString) return "--";
+
   const d = new Date(isoOrString);
-  return !isNaN(d.getTime())
-    ? d.toLocaleDateString("en-GB")
-    : isoOrString;
+  if (isNaN(d.getTime())) return "--";
+
+  const day = d.getDate();
+  const month = d.toLocaleString("en-US", { month: "short" });
+  const year = d.getFullYear();
+
+  return `${day} - ${month} - ${year}`;
 }
+
 
 function detectSchoolIdFromUrl(): string | null {
   try {
@@ -171,8 +177,8 @@ const SchoolNotes: React.FC = () => {
         <thead>
           <tr>
             <th>{t("Created By")}</th>
-            <th>{t("Role")}</th>
             <th>{t("Class")}</th>
+            <th>{t("Role")}</th>
             <th>{t("Date")}</th>
           </tr>
         </thead>
@@ -190,8 +196,8 @@ const SchoolNotes: React.FC = () => {
               }}
             >
               <td>{note.createdBy}</td>
-              <td>{note.role ?? "—"}</td>
               <td>{note.className ?? "—"}</td>
+              <td>{note.role ?? "—"}</td>
               <td>{note.date}</td>
             </tr>
           ))}

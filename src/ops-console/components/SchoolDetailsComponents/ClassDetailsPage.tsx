@@ -197,8 +197,8 @@ const ClassDetailsPage: React.FC<Props> = ({
             textTransform: "none",
             borderRadius: "10px",
             border: "1.5px solid",
-            borderColor: "#4f46e5",
-            color: "#4f46e5",
+            borderColor: "#2563eb",
+            color: "#2563eb",
             background: "#fff",
             fontWeight: 600,
             px: 2,
@@ -207,7 +207,7 @@ const ClassDetailsPage: React.FC<Props> = ({
             boxShadow: "none",
             "&:hover": {
               background: "rgba(79,70,229,0.06)",
-              borderColor: "#4f46e5",
+              borderColor: "#2563eb",
               boxShadow: "none",
             },
             "&:focus": {
