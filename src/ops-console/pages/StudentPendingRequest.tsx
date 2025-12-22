@@ -158,8 +158,15 @@ const StudentPendingRequestDetails = () => {
           respondedBy
         );
       } else {
-        const requestRole = requestData?.request_type; // e.g., 'student'
-        await api.approveOpsRequest(currentRequestId, respondedBy, requestRole);
+        const requestRole = requestData; // e.g., 'student'
+         await api.approveOpsRequest(
+        requestData?.id,
+        respondedBy,
+        requestRole,
+        requestData?.school_id || undefined,
+        requestData?.class_id || undefined
+      );
+        // await api.approveOpsRequest(currentRequestId, respondedBy, requestRole);
       }
 
       history.push(
