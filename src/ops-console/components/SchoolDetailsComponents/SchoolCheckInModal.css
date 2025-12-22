@@ -142,13 +142,34 @@
 
 /* Map Widget */
 .schoolcheckinmodal .map-container {
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  height: 160px;
+  height: 200px;
   width: 100%;
   border: 1px solid #e9ecef;
   background-color: #f8f9fa;
   flex-shrink: 0;
+}
+
+.schoolcheckinmodal .location-coords-wrapper {
+  margin-top: 4px;
+}
+
+.schoolcheckinmodal .distance-text {
+  margin-top: 4px;
+}
+
+.schoolcheckinmodal .distance-text.inside {
+  color: green;
+}
+
+.schoolcheckinmodal .distance-text.outside {
+  color: red;
+}
+
+.schoolcheckinmodal .fetching-location-text {
+  margin-top: 4px;
+  color: #666;
 }
 
 .schoolcheckinmodal .map-iframe {

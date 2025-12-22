@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { t } from 'i18next';
 import './SchoolCheckInModal.css';
 import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
@@ -76,15 +77,15 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         return {
             lat: schoolLocation.lat,
             lng: schoolLocation.lng,
-            address1: schoolAddress || "Please set the school address.",
+            address1: schoolAddress || t("Please set the school address."),
         };
     }
     // Fallback/Missing State
     return {
         lat: 0,
         lng: 0,
-        address1: "Location not set",
-        address2: "Please set location",
+        address1: t("Location not set"),
+        address2: t("Please set location"),
         isMissing: true 
     };
   }, [schoolLocation]);
@@ -316,16 +317,16 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         
         <div className="check-in-modal-header">
           <h2 className="check-in-modal-title">
-            {isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out'}
+            {isCheckIn ? t('Confirm Check-In') : t('Confirm Check-Out')}
           </h2>
-          <button className="check-in-modal-close" onClick={onClose}>
+          <button id="sc-modal-close-btn" className="check-in-modal-close" onClick={onClose}>
             <IoClose />
           </button>
         </div>
 
         <div className="check-in-modal-content">
           
-          <div className="check-in-card">
+          <div id="sc-location-card" className="check-in-card">
               <div className="check-in-icon-wrapper">
                  <IoLocationOutline />
               </div>
@@ -338,28 +339,28 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   {!isSchoolLocationMissing && (
                     <>
                         {userLocation && (
-                             <div className="location-detail-text" style={{ marginTop: '4px' }}>
-                                <span className="location-coords-label">User Coordinates: </span>
+                             <div className="location-detail-text location-coords-wrapper">
+                                <span className="location-coords-label">{t("User Coordinates")}: </span>
                                 {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
                             </div>
                         )}
                         {distance !== null && !isLoadingLocation && (
-                            <div className="location-detail-text" style={{ marginTop: '4px', color: isInsidePremises ? 'green' : 'red' }}>
-                                Distance: {Math.round(distance)} meters away
+                            <div className={`location-detail-text distance-text ${isInsidePremises ? 'inside' : 'outside'}`}>
+                                {t("Distance")}: {Math.round(distance)} {t("meters away")}
                             </div>
                         )}
                     </>
                   )}
                   
                   {isLoadingLocation && (
-                      <div className="location-detail-text" style={{ marginTop: '4px', color: '#666' }}>
-                          <i>Fetching your location...</i>
+                      <div className="location-detail-text fetching-location-text">
+                          <i>{t("Fetching your location...")}</i>
                       </div>
                   )}
               </div>
           </div>
 
-          <div className="check-in-card">
+          <div id="sc-time-card" className="check-in-card">
               <div className="check-in-icon-wrapper">
                   <IoTimeOutline />
               </div>
@@ -369,7 +370,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               </div>
           </div>
 
-          <div className="map-container" style={{ height: '200px', width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+          <div id="sc-map-container" className="map-container">
              <MapContainer
                 center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
                 zoom={15}
@@ -422,7 +423,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                                 shadowSize: [41, 41]
                             })}
                         >
-                            <Popup>School Location</Popup>
+                            <Popup>{t("School Location")}</Popup>
                         </Marker>
                     </>
                 )}
@@ -430,7 +431,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 {userLocation && (
                     <Marker position={[userLocation.lat, userLocation.lng]}>
                          <Popup>
-                            Your Location
+                            {t("Your Location")}
                         </Popup>
                     </Marker>
                 )}
@@ -438,26 +439,28 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </div>
           
            {isSchoolLocationMissing && (
-               <div className="check-in-confirmation-section">
-                   <div className="confirmation-question">Are you sure you're in the school?</div>
+               <div id="sc-confirmation-section" className="check-in-confirmation-section">
+                   <div className="confirmation-question">{t("Are you sure you're in the school?")}</div>
                    <div className="radio-options-container">
                        <label className="radio-option">
                            <input 
+                                id="sc-radio-yes"
                                 type="radio" 
                                 name="school-confirm"
                                 checked={isConfirmedInSchool === true} 
                                 onChange={() => setIsConfirmedInSchool(true)} 
                            /> 
-                           <span>Yes</span>
+                           <span>{t("Yes")}</span>
                        </label>
                        <label className="radio-option">
                            <input 
+                                id="sc-radio-no"
                                 type="radio" 
                                 name="school-confirm"
                                 checked={isConfirmedInSchool === false} 
                                 onChange={() => setIsConfirmedInSchool(false)} 
                            /> 
-                           <span>No</span>
+                           <span>{t("No")}</span>
                        </label>
                    </div>
                </div>
@@ -466,15 +469,16 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         </div>
 
         <div className="check-in-modal-actions">
-            <button className="check-in-btn btn-cancel" onClick={onClose}>
-              Cancel
+            <button id="sc-cancel-btn" className="check-in-btn btn-cancel" onClick={onClose}>
+              {t("Cancel")}
             </button>
             <button 
+              id="sc-confirm-btn"
               className={`check-in-btn btn-confirm ${!isCheckIn ? 'btn-checkout' : ''} ${isConfirmDisabled ? 'disabled' : ''}`}
               onClick={isConfirmDisabled ? undefined : onConfirmAction}
               disabled={isConfirmDisabled}
             >
-              {isLoadingLocation || isUpdatingLocation ? 'Locating...' : (isCheckIn ? 'Confirm Check-In' : 'Confirm Check-Out')}
+              {isLoadingLocation || isUpdatingLocation ? t('Locating...') : (isCheckIn ? t('Confirm Check-In') : t('Confirm Check-Out'))}
             </button>
         </div>
       </div>
