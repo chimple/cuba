@@ -938,6 +938,7 @@ export class SupabaseApi implements ServiceApi {
           .eq("user_id", user.id)
           .eq("school_id", schoolId)
           .is("check_out_at", null)
+          .eq("is_deleted", false)
           .order("check_in_at", { ascending: false })
           .limit(1);
 
