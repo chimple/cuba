@@ -13,6 +13,7 @@ import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/Sc
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
+import { SchoolVisitAction, SchoolVisitStatus } from "../../common/constants";
 import { Button, Menu, MenuItem, Divider } from "@mui/material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
@@ -137,7 +138,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   }, [data.schoolData]);
 
   // Check-In Logic
-  const [checkInStatus, setCheckInStatus] = useState<'checked_in' | 'checked_out'>('checked_out');
+  const [checkInStatus, setCheckInStatus] = useState<SchoolVisitStatus>(SchoolVisitStatus.CheckedOut);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
   
@@ -151,9 +152,9 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       const api = ServiceConfig.getI().apiHandler;
       const lastVisit = await api.getLastSchoolVisit(id);
       if (lastVisit && !lastVisit.check_out_at) {
-        setCheckInStatus("checked_in");
+        setCheckInStatus(SchoolVisitStatus.CheckedIn);
       } else {
-        setCheckInStatus("checked_out");
+        setCheckInStatus(SchoolVisitStatus.CheckedOut);
       }
     };
     fetchVisitStatus();
@@ -186,19 +187,19 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     try {
-      if (checkInStatus === "checked_out") {
+      if (checkInStatus === SchoolVisitStatus.CheckedOut) {
         // Perform Check In
         if (lat && lng) {
           const res = await api.recordSchoolVisit(
             id,
             lat,
             lng,
-            "check_in",
+            SchoolVisitAction.CheckIn,
             selectedVisitType,
             distance
           );
           if (res) {
-            setCheckInStatus("checked_in");
+            setCheckInStatus(SchoolVisitStatus.CheckedIn);
             await Toast.show({ text: "Checked in successfully!" });
           }
         }
@@ -209,12 +210,12 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             id,
             lat,
             lng,
-            "check_out",
+            SchoolVisitAction.CheckOut,
             undefined,
             distance
           );
           if (res) {
-            setCheckInStatus("checked_out");
+            setCheckInStatus(SchoolVisitStatus.CheckedOut);
             await Toast.show({ text: "Checked out successfully!" });
           }
         }
@@ -408,7 +409,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         open={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
         onConfirm={handleConfirmCheckInAction}
-        status={checkInStatus === 'checked_in' ? 'check_out' : 'check_in'}
+        status={checkInStatus === SchoolVisitStatus.CheckedIn ? SchoolVisitAction.CheckOut : SchoolVisitAction.CheckIn}
         schoolName={schoolName || "Unknown School"}
         isFirstTime={isFirstTimeCheckIn}
         schoolLocation={schoolLocation}
@@ -442,7 +443,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                     + {t("Add Notes")}
                   </Button>
                 )}
-                {checkInStatus === "checked_out" ? (
+                {checkInStatus === SchoolVisitStatus.CheckedOut ? (
                   <>
                     <Button
                       variant="contained"

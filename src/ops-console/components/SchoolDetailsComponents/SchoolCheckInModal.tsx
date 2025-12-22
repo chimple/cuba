@@ -18,11 +18,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
+import { SchoolVisitAction } from '../../../common/constants';
+
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (lat?: number, lng?: number, distance?: number) => void;
-  status: 'check_in' | 'check_out';
+  status: SchoolVisitAction;
   schoolName: string;
   isFirstTime?: boolean;
   schoolId?: string; 
@@ -307,7 +309,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     });
   };
 
-  const isCheckIn = status === 'check_in';
+  const isCheckIn = status === SchoolVisitAction.CheckIn;
   
   const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool === undefined) || isUpdatingLocation;
 

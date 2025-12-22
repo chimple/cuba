@@ -1147,6 +1147,15 @@ export enum ContactTarget {
   SCHOOL = "school",
   CLASS = "class",
 }
+export enum SchoolVisitAction {
+  CheckIn = "check_in",
+  CheckOut = "check_out",
+}
+
+export enum SchoolVisitStatus {
+  CheckedIn = "checked_in",
+  CheckedOut = "checked_out",
+}
 export const PERFORMANCE_UI: Record<
   PerformanceLevel,
   { label: string; bgColor: string; textColor: string }

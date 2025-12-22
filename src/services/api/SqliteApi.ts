@@ -50,6 +50,7 @@ import {
   SearchSchoolsResult,
   REWARD_LESSON,
   CURRENT_USER,
+  SchoolVisitAction,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -7251,7 +7252,7 @@ order by
     schoolId: string,
     lat: number,
     lng: number,
-    action: "check_in" | "check_out",
+    action: SchoolVisitAction,
     visitType?: string,
     distanceFromSchool?: number
   ): Promise<TableTypes<"fc_school_visit"> | null> {
