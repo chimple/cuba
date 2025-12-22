@@ -87,14 +87,10 @@ const NewUserPage: React.FC = () => {
     (field: "name" | "email") =>
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
-      setForm((prev) => {
-        if (field === "email") {
-          return value
-            ? { ...prev, email: value, phone: "" }
-            : { ...prev, email: value };
-        }
-        return { ...prev, [field]: value };
-      });
+      setForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     };
 
   const handlePhoneChange = (value: string) => {
@@ -146,12 +142,11 @@ const NewUserPage: React.FC = () => {
         return;
       }
     }
-
     const payload = {
       name: name.trim(),
       role: role.trim(),
-      email: hasEmail ? chosenEmail : "",
-      phone: hasEmail ? "" : normalizedPhone10,
+      email: chosenEmail,
+      phone: normalizePhone10(phone),
     };
 
     const { success, message } = await api.createOrAddUserOps(payload);
@@ -279,7 +274,6 @@ const NewUserPage: React.FC = () => {
                 }}
               />
             </Grid>
-
 
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
