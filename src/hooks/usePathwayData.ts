@@ -21,6 +21,7 @@ import {
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { useReward } from "./useReward";
+import { schoolUtil } from "../utility/schoolUtil";
 
 export interface MascotProps {
   stateMachine: string;
@@ -161,6 +162,27 @@ export const usePathwayData = () => {
       console.error("Error in initializePathway:", err);
     }
   };
+
+  // 🟡 Decide campaign applicability per student
+  useEffect(() => {
+    const student = Util.getCurrentStudent();
+    const school = schoolUtil.getCurrentClass();
+
+    // No student → campaign irrelevant
+    if (!student?.id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student exists but no school → campaign irrelevant
+    if (!school?.school_id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student has a school → wait for WinterCampaignPopupGating
+    setIsCampaignFinished(false);
+  }, [Util.getCurrentStudent()?.id]);
 
   // COURSE CHANGE RELOAD
   useEffect(() => {
