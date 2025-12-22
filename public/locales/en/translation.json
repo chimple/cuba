@@ -1405,5 +1405,17 @@
   "Notes": "Notes",
   "User Coordinates": "User Coordinates",
   "meters away": "meters away",
-  "Fetching your location...": "Fetching your location..."
+  "Fetching your location...": "Fetching your location...",
+  "Check In": "Check In",
+  "Check Out": "Check Out",
+  "Locating...": "Locating...",
+  "Confirm Check-In": "Confirm Check-In",
+  "Confirm Check-Out": "Confirm Check-Out",
+  "Distance": "Distance",
+  "School Location": "School Location",
+  "Your Location": "Your Location",
+  "Are you sure you're in the school?": "Are you sure you're in the school?",
+  "Please set the school address.": "Please set the school address.",
+  "Location not set": "Location not set",
+  "Please set location": "Please set location"
 }
