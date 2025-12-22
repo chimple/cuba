@@ -256,7 +256,7 @@ const ActivitiesPage: React.FC = () => {
             {
               label: school.name,
               onClick: () =>
-                history.push(
+                history.replace(
                   `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${school.id}`
                 ),
             },
