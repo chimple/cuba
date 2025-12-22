@@ -52,7 +52,6 @@ function detectSchoolIdFromUrl(): string | null {
 }
 
 const SchoolNotes: React.FC = () => {
-  const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +60,8 @@ const SchoolNotes: React.FC = () => {
 
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<"default" | "nameAsc">("default");
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
 
   const schoolId = detectSchoolIdFromUrl();
 
@@ -72,6 +73,11 @@ const SchoolNotes: React.FC = () => {
     date: parseDateForDisplay(r.createdAt),
     text: r.content ?? "",
   });
+
+  const handleCreatedBySort = () => {
+    setSortMode(prev => (prev === "default" ? "nameAsc" : "default"));
+  };
+
 
   const loadNotes = useCallback(async () => {
     setLoading(true);
@@ -85,26 +91,26 @@ const SchoolNotes: React.FC = () => {
         throw new Error("Notes API not available");
       }
 
-      const offset = (currentPage - 1) * NOTES_PER_PAGE;
-
-      const res = await api.getNotesBySchoolId(
-        schoolId,
-        NOTES_PER_PAGE,
-        offset
-      );
+      // Fetch ALL notes (big number like 10k to ensure full fetch)
+      const res = await api.getNotesBySchoolId(schoolId, 10000, 0);
 
       const mapped = res.data.map((r: ApiNote) => mapApiNote(r));
 
-      setNotes(mapped);
-      setTotalPages(Math.max(1, Math.ceil(res.totalCount / NOTES_PER_PAGE)));
+      // Store full dataset
+      setAllNotes(mapped);
+
+      // Compute pages
+      setTotalPages(Math.max(1, Math.ceil(mapped.length / NOTES_PER_PAGE)));
+
     } catch (err) {
       console.error("Error loading notes:", err);
-      setNotes([]);
+      setAllNotes([]);
       setError(t("Failed to load notes") as string);
     } finally {
       setLoading(false);
     }
-  }, [schoolId, currentPage]);
+  }, [schoolId]);
+
 
   useEffect(() => {
     loadNotes();
@@ -129,7 +135,7 @@ const SchoolNotes: React.FC = () => {
         });
 
         setCurrentPage(1);
-        setNotes((prev) => [mapped, ...prev.slice(0, NOTES_PER_PAGE - 1)]);
+        setAllNotes(prev => [mapped, ...prev]);
         setSelectedNote(mapped);
         setDrawerOpen(true);
       } catch (e) {
@@ -150,86 +156,111 @@ const SchoolNotes: React.FC = () => {
     );
   }
 
+  let displayedNotes = [...allNotes];
+
+  if (sortMode === "nameAsc") {
+    displayedNotes.sort((a, b) =>
+      a.createdBy.localeCompare(b.createdBy)
+    );
+  }
+
+  displayedNotes = displayedNotes.slice(
+    (currentPage - 1) * NOTES_PER_PAGE,
+    currentPage * NOTES_PER_PAGE
+  );
+
+
+
   return (
-  <div
-    id="school-notes-panel"
-    className="school-notes-panel"
-  >
-    {error && (
-      <div
-        id="school-notes-error"
-        className="school-notes-error"
-      >
-        {error}
-      </div>
-    )}
-
-    {/* SCROLLABLE TABLE AREA */}
     <div
-      id="school-notes-table-container"
-      className="school-notes-table-container"
+      id="school-notes-panel"
+      className="school-notes-panel"
     >
-      <table
-        id="school-notes-table"
-        className="school-notes-table"
-        role="table"
-      >
-        <thead>
-          <tr>
-            <th>{t("Created By")}</th>
-            <th>{t("Class")}</th>
-            <th>{t("Role")}</th>
-            <th>{t("Date")}</th>
-          </tr>
-        </thead>
+      {error && (
+        <div
+          id="school-notes-error"
+          className="school-notes-error"
+        >
+          {error}
+        </div>
+      )}
 
-        <tbody>
-          {notes.map((note) => (
-            <tr
-              key={note.id}
-              id={`school-notes-row-${note.id}`}
-              className="school-notes-row"
-              tabIndex={0}
-              onClick={() => {
-                setSelectedNote(note);
-                setDrawerOpen(true);
-              }}
-            >
-              <td>{note.createdBy}</td>
-              <td>{note.className ?? "—"}</td>
-              <td>{note.role ?? "—"}</td>
-              <td>{note.date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    {/* FIXED PAGINATION AREA */}
-    {totalPages > 1 && (
+      {/* SCROLLABLE TABLE AREA */}
       <div
-        id="school-notes-pagination-container"
-        className="school-notes-pagination-container"
+        id="school-notes-table-container"
+        className="school-notes-table-container"
       >
-        <Pagination
-          id="school-notes-pagination"
-          count={totalPages}
-          page={currentPage}
-          onChange={(_, page) => setCurrentPage(page)}
-          shape="rounded"
-        />
-      </div>
-    )}
+        <table
+          id="school-notes-table"
+          className="school-notes-table"
+          role="table"
+        >
+          <thead>
+            <tr>
+              <th
+                onClick={handleCreatedBySort}
+                style={{ cursor: "pointer", userSelect: "none" }}
+              >
+                {t("Created By")}{" "}
+                <span style={{ fontSize: "12px" }}>
+                  {sortMode === "default" ? "↓" : "↑"}
+                </span>
+              </th>
 
-    <NoteDetailsDrawer
-      open={drawerOpen}
-      onClose={() => {
-        setDrawerOpen(false);
-        setSelectedNote(null);
-      }}
-      note={
-        selectedNote
-          ? {
+              <th>{t("Class")}</th>
+              <th>{t("Role")}</th>
+              <th>{t("Date")}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {displayedNotes.map((note) => (
+              <tr
+                key={note.id}
+                id={`school-notes-row-${note.id}`}
+                className="school-notes-row"
+                tabIndex={0}
+                onClick={() => {
+                  setSelectedNote(note);
+                  setDrawerOpen(true);
+                }}
+              >
+                <td>{note.createdBy}</td>
+                <td>{note.className ?? "—"}</td>
+                <td>{note.role ?? "—"}</td>
+                <td>{note.date}</td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
+      </div>
+
+      {/* FIXED PAGINATION AREA */}
+      {totalPages > 1 && (
+        <div
+          id="school-notes-pagination-container"
+          className="school-notes-pagination-container"
+        >
+          <Pagination
+            id="school-notes-pagination"
+            count={totalPages}
+            page={currentPage}
+            onChange={(_, page) => setCurrentPage(page)}
+            shape="rounded"
+          />
+        </div>
+      )}
+
+      <NoteDetailsDrawer
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedNote(null);
+        }}
+        note={
+          selectedNote
+            ? {
               id: selectedNote.id,
               createdBy: selectedNote.createdBy,
               role: selectedNote.role ?? "--",
@@ -237,11 +268,11 @@ const SchoolNotes: React.FC = () => {
               date: selectedNote.date,
               text: selectedNote.text,
             }
-          : null
-      }
-    />
-  </div>
-);
+            : null
+        }
+      />
+    </div>
+  );
 
 };
 
