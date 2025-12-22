@@ -12,7 +12,7 @@ const IconButton: React.FC<{
   return (
     <div className={iconButtonClass} onClick={onClick}>
       <div>
-        <img className="img" alt={iconSrc} src={iconSrc} />
+        <img className={`${iconSrc.includes("assets/avatars") ? 'iconButton-profile-img' : 'img'}`} alt={iconSrc} src={iconSrc} />
       </div>
       <p className="child-Name">{name}</p>
     </div>
