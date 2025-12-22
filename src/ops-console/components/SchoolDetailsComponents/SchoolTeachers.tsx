@@ -241,10 +241,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           return order === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "class":
-          aValue = a.grade || 0;
-          bValue = b.grade || 0;
-          return order === "asc" ? aValue - bValue : bValue - aValue;
+        case "class": {
+          const gradeCompare = (a.grade || 0) - (b.grade || 0);
+          if (gradeCompare !== 0) {
+            return order === "asc" ? gradeCompare : -gradeCompare;
+          }
+          return order === "asc"
+            ? (a.classSection || "").localeCompare(b.classSection || "")
+            : (b.classSection || "").localeCompare(a.classSection || "");
+        }
         case "classSection":
           aValue = a.classSection || "";
           bValue = b.classSection || "";
