@@ -328,6 +328,12 @@
   transition: width 180ms linear;
 }
 
+.fc-interact-popup-media-error {
+  font-size: 12px;
+  color: #b91c1c;
+  margin-top: 8px;
+}
+
 @media (max-width: 480px) {
   .fc-interact-popup-modal {
     width: 95%;

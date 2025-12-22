@@ -112,6 +112,10 @@ export default function AttachMedia({
   disabled = false,
 }: AttachMediaProps) {
   const cfg = variantConfig[variant];
+  const errorClassName =
+    variant === "fc-interact"
+      ? "fc-interact-popup-media-error"
+      : "add-note-modal-error";
 
   return (
     <div className={cfg.sectionClassName} id={cfg.sectionId}>
@@ -124,7 +128,10 @@ export default function AttachMedia({
           type="button"
           className={cfg.captureButtonClassName}
           id={cfg.captureButtonId}
-          onClick={media.openCapture}
+          onClick={() => {
+            media.clearMediaError();
+            media.openCapture();
+          }}
           disabled={disabled}
         >
           <PhotoCameraOutlined className={cfg.iconClassName} />
@@ -135,13 +142,22 @@ export default function AttachMedia({
           type="button"
           className={cfg.uploadButtonClassName}
           id={cfg.uploadButtonId}
-          onClick={() => media.uploadInputRef.current?.click()}
+          onClick={() => {
+            media.clearMediaError();
+            media.uploadInputRef.current?.click();
+          }}
           disabled={disabled}
         >
           <FileUploadOutlined className={cfg.iconClassName} />
           {t("Upload")}
         </button>
       </div>
+
+      {media.mediaError && (
+        <div className={errorClassName} role="alert">
+          {media.mediaError}
+        </div>
+      )}
 
       <input
         ref={media.captureAnyInputRef}
@@ -151,6 +167,7 @@ export default function AttachMedia({
         style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
+          media.clearMediaError();
           media.addMediaFiles(e.target.files);
           e.currentTarget.value = "";
         }}
@@ -164,6 +181,7 @@ export default function AttachMedia({
         style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
+          media.clearMediaError();
           media.addMediaFiles(e.target.files);
           e.currentTarget.value = "";
           media.closeCamera();
@@ -178,6 +196,7 @@ export default function AttachMedia({
         style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
+          media.clearMediaError();
           media.addMediaFiles(e.target.files);
           e.currentTarget.value = "";
           media.closeCamera();
@@ -192,6 +211,7 @@ export default function AttachMedia({
         style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
+          media.clearMediaError();
           media.addMediaFiles(e.target.files);
           e.currentTarget.value = "";
         }}

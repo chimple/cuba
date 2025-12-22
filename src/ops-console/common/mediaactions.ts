@@ -12,6 +12,9 @@ export type MediaUploadItem = {
   uploadedUrl?: string | null;
 };
 
+const MAX_VIDEO_UPLOAD_MB = 25;
+const MAX_VIDEO_UPLOAD_BYTES = MAX_VIDEO_UPLOAD_MB * 1024 * 1024;
+
 const inferMediaType = (file: File): MediaUploadItem["mediaType"] => {
   const type = (file.type || "").toLowerCase();
   if (type.startsWith("image/")) return "image";
@@ -60,6 +63,8 @@ type UseMediaActionsOptions = {
 
 export type UseMediaActionsResult = {
   mediaUploads: MediaUploadItem[];
+  mediaError: string | null;
+  clearMediaError: () => void;
   addMediaFiles: (files: FileList | null) => void;
   removeMedia: (id: string) => void;
   resetMedia: () => void;
@@ -102,6 +107,7 @@ export function useMediaActions(
   const schoolId = options.schoolId;
 
   const [mediaUploads, setMediaUploads] = useState<MediaUploadItem[]>([]);
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const mediaUploadsRef = useRef<MediaUploadItem[]>([]);
   const uploadTimersRef = useRef<Map<string, number>>(new Map());
   const compressionTimersRef = useRef<Map<string, number>>(new Map());
@@ -255,9 +261,20 @@ export function useMediaActions(
   };
 
   const addMediaFile = (file: File) => {
+    const mediaType = inferMediaType(file);
+    if (mediaType === "video" && file.size > MAX_VIDEO_UPLOAD_BYTES) {
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+      setMediaError(
+        translate(
+          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`
+        )
+      );
+      return;
+    }
+
+    setMediaError(null);
     const id = createMediaId();
     const previewUrl = URL.createObjectURL(file);
-    const mediaType = inferMediaType(file);
     const compressionMaxProgress = 95;
     const item: MediaUploadItem = {
       id,
@@ -412,7 +429,10 @@ export function useMediaActions(
     closeCamera();
   };
 
+  const clearMediaError = () => setMediaError(null);
+
   const resetMedia = () => {
+    setMediaError(null);
     for (const timer of uploadTimersRef.current.values()) {
       window.clearInterval(timer);
     }
@@ -454,6 +474,15 @@ export function useMediaActions(
       if (item.uploadedUrl) {
         urls.push(item.uploadedUrl);
         continue;
+      }
+
+      if (inferMediaType(item.file) === "video" && item.file.size > MAX_VIDEO_UPLOAD_BYTES) {
+        const sizeMb = (item.file.size / (1024 * 1024)).toFixed(2);
+        const msg = translate(
+          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`
+        );
+        setMediaError(msg);
+        throw new Error(msg);
       }
 
       // Mark as uploading (UI) and start a lightweight simulated progress while awaiting the real upload.
@@ -830,6 +859,8 @@ export function useMediaActions(
 
   return {
     mediaUploads,
+    mediaError,
+    clearMediaError,
     addMediaFiles,
     removeMedia,
     resetMedia,

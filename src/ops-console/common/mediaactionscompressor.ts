@@ -163,6 +163,19 @@ const formatBytes = (bytes: number) => {
   return `${value.toFixed(precision)} ${units[idx]}`;
 };
 
+const nowMs = () =>
+  typeof performance !== "undefined" && typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
+
+const formatDurationMs = (ms: number) => {
+  const safe = Math.max(0, Math.round(ms));
+  if (safe < 1000) return `${safe}ms`;
+  const s = safe / 1000;
+  const precision = s < 10 ? 1 : 0;
+  return `${s.toFixed(precision)}s`;
+};
+
 const inferMediaKind = (file: File): "video" | "image" | "other" => {
   const mime = (file.type || "").toLowerCase();
   if (mime.startsWith("video/")) return "video";
@@ -253,6 +266,7 @@ async function compressVideo(
     videoQuality = "medium",
     logTag = "media",
   } = options;
+  const startedAt = nowMs();
 
   const mime = (file.type || "").toLowerCase();
   const beforeSize = file.size;
@@ -263,10 +277,11 @@ async function compressVideo(
   const isWebm = mime.includes("webm") || ext === "webm";
   if (beforeSize < 2 * 1024 * 1024 || isWebm) {
     onProgress?.(1);
+    const elapsed = nowMs() - startedAt;
     console.info(
       `[${logTag}] compression skipped (kept original): ${
         file.name
-      } (${formatBytes(beforeSize)})`
+      } (${formatBytes(beforeSize)}) in ${formatDurationMs(elapsed)}`
     );
     return file;
   }
@@ -366,21 +381,23 @@ async function compressVideo(
 
         // check size
         if (compressedFile.size >= beforeSize) {
+          const elapsed = nowMs() - startedAt;
           console.info(
             `[${logTag}] kept original (compressed larger): ${
               file.name
             } (${formatBytes(beforeSize)} -> ${formatBytes(
               compressedFile.size
-            )})`
+            )}) in ${formatDurationMs(elapsed)}`
           );
           onProgress?.(1);
           return file;
         }
 
+        const elapsed = nowMs() - startedAt;
         console.info(
           `[${logTag}] compressed: ${file.name} (${formatBytes(
             beforeSize
-          )} -> ${formatBytes(compressedFile.size)})`
+          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(elapsed)}`
         );
         onProgress?.(1);
         return compressedFile;
@@ -402,7 +419,11 @@ async function compressVideo(
     ) {
       throw error;
     }
-    console.error(`[${logTag}] video compression failed:`, error);
+    const elapsed = nowMs() - startedAt;
+    console.error(
+      `[${logTag}] video compression failed in ${formatDurationMs(elapsed)}:`,
+      error
+    );
     onProgress?.(1);
     return file;
   }
@@ -420,6 +441,7 @@ async function compressImage(
     imageQuality = 0.72,
     logTag = "media",
   } = options;
+  const startedAt = nowMs();
 
   const mime = (file.type || "").toLowerCase();
   const beforeSize = file.size;
@@ -461,10 +483,11 @@ async function compressImage(
 
     if (!blob) {
       onProgress?.(1);
+      const elapsed = nowMs() - startedAt;
       console.info(
         `[${logTag}] compression failed (kept original): ${
           file.name
-        } (${formatBytes(beforeSize)})`
+        } (${formatBytes(beforeSize)}) in ${formatDurationMs(elapsed)}`
       );
       return file;
     }
@@ -482,19 +505,23 @@ async function compressImage(
 
     // Only use compressed version if it's actually smaller
     if (compressed.size >= beforeSize) {
+      const elapsed = nowMs() - startedAt;
       console.info(
         `[${logTag}] compression skipped (no size reduction): ${
           file.name
-        } (${formatBytes(beforeSize)} -> ${formatBytes(compressed.size)})`
+        } (${formatBytes(beforeSize)} -> ${formatBytes(
+          compressed.size
+        )}) in ${formatDurationMs(elapsed)}`
       );
       onProgress?.(1);
       return file;
     }
 
+    const elapsed = nowMs() - startedAt;
     console.info(
       `[${logTag}] compressed: ${file.name} (${formatBytes(
         beforeSize
-      )} -> ${formatBytes(compressed.size)})`
+      )} -> ${formatBytes(compressed.size)}) in ${formatDurationMs(elapsed)}`
     );
     return compressed;
   } finally {
@@ -508,6 +535,7 @@ async function compressImageWithFFmpeg(
   options: CompressOptions
 ): Promise<File> {
   const { signal, onProgress, logTag = "media" } = options;
+  const startedAt = nowMs();
   const beforeSize = file.size;
 
   try {
@@ -570,21 +598,23 @@ async function compressImageWithFFmpeg(
         });
 
         if (compressedFile.size >= beforeSize) {
+          const elapsed = nowMs() - startedAt;
           console.info(
             `[${logTag}] kept original (compressed larger): ${
               file.name
             } (${formatBytes(beforeSize)} -> ${formatBytes(
               compressedFile.size
-            )})`
+            )}) in ${formatDurationMs(elapsed)}`
           );
           onProgress?.(1);
           return file;
         }
 
+        const elapsed = nowMs() - startedAt;
         console.info(
           `[${logTag}] compressed: ${file.name} (${formatBytes(
             beforeSize
-          )} -> ${formatBytes(compressedFile.size)})`
+          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(elapsed)}`
         );
         onProgress?.(1);
         return compressedFile;
@@ -605,7 +635,13 @@ async function compressImageWithFFmpeg(
     ) {
       throw error;
     }
-    console.error(`[${logTag}] image compression (FFmpeg) failed:`, error);
+    const elapsed = nowMs() - startedAt;
+    console.error(
+      `[${logTag}] image compression (FFmpeg) failed in ${formatDurationMs(
+        elapsed
+      )}:`,
+      error
+    );
     onProgress?.(1);
     return file;
   }
