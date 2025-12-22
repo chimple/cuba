@@ -53,6 +53,299 @@
   resize: vertical;
 }
 
+/* Attach media */
+.add-note-modal-attach-section {
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.add-note-modal-attach-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.add-note-modal-attach-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 65px;
+  width: 100%;
+}
+
+.add-note-modal-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-note-modal-attach-btn:hover {
+  background: #f9fafb;
+}
+
+.add-note-modal-attach-icon {
+  color: #2563eb;
+  font-size: 18px !important;
+}
+
+.add-note-modal-attach-btn:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.add-note-modal-media-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: min(520px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  max-height: min(300px, 35vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.add-note-modal-media-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px 10px;
+}
+
+.add-note-modal-media-preview {
+  margin-bottom: 8px;
+}
+
+.add-note-modal-media-thumb {
+  width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #111827;
+}
+
+.add-note-modal-media-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.add-note-modal-media-name {
+  font-size: 12px;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-note-modal-media-remove {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.add-note-modal-media-remove:hover {
+  color: #111827;
+}
+
+.add-note-modal-media-progress {
+  margin-top: 6px;
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.add-note-modal-media-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #2563eb;
+  transition: width 180ms linear;
+}
+
+@media (max-width: 480px) {
+  .add-note-modal-container {
+    width: min(520px, 96vw);
+    padding: 16px;
+    max-height: 90vh;
+    overflow: auto;
+  }
+
+  .add-note-modal-attach-buttons {
+    gap: 45px;
+    flex-wrap: wrap;
+  }
+
+  .add-note-modal-attach-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .add-note-modal-media-list {
+    width: 100%;
+  }
+}
+
+/* Camera modal */
+.add-note-modal-camera-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 22000;
+}
+
+.add-note-modal-camera-modal {
+  width: min(560px, 92vw);
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+.add-note-modal-camera-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.add-note-modal-camera-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #111827;
+  margin-bottom: 0;
+}
+
+.add-note-modal-camera-close {
+  border: none;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.add-note-modal-camera-close:hover {
+  background: #f3f4f6;
+}
+
+.add-note-modal-camera-error {
+  font-size: 12px;
+  color: #b91c1c;
+  margin-bottom: 8px;
+}
+
+.add-note-modal-camera-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.add-note-modal-camera-video {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: #000;
+}
+
+.add-note-modal-camera-preview {
+  position: relative;
+}
+
+.add-note-modal-camera-timer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  z-index: 1;
+}
+
+.add-note-modal-camera-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.add-note-modal-camera-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-note-modal-camera-primary {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.add-note-modal-camera-shutter {
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  border: 3px solid #e5e7eb;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.add-note-modal-camera-shutter-inner {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid #111827;
+}
+
+.add-note-modal-camera-shutter-recording .add-note-modal-camera-shutter-inner {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
 /* Error */
 .add-note-modal-error {
   color: red;

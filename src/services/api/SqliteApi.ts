@@ -7374,6 +7374,7 @@ order by
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     throw new Error("Method not implemented.");
   }
@@ -7398,13 +7399,14 @@ order by
   }
 
   async createNoteForSchool(params: {
-    schoolId: string;
-    classId?: string | null;
-    content: string;
-  }): Promise<any> {
-    console.warn("createNoteForSchool is not supported in SQLite mode");
-    return this._serverApi.createNoteForSchool(params);
-  }
+  schoolId: string;
+  classId?: string | null;
+  content: string;
+  mediaLinks?: string[] | null;
+}): Promise<any> {
+  console.warn("createNoteForSchool is not supported in SQLite mode");
+  return this._serverApi.createNoteForSchool(params);
+}
 
   async getNotesBySchoolId(
     schoolId: string,
@@ -7426,5 +7428,11 @@ order by
     schoolId: string
   ): Promise<FCSchoolStats> {
     return this._serverApi.getSchoolStatsForSchool(schoolId);
+  }
+  public async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    return this._serverApi.uploadSchoolVisitMediaFile(params);
   }
 }

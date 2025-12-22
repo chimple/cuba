@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { IoClose } from "react-icons/io5";
 import "./FcInteractPopUp.css";
 import { LaunchRounded } from "@mui/icons-material";
@@ -14,6 +14,8 @@ import {
 } from "../../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
+import { useMediaActions } from "../../common/mediaactions";
+import AttachMedia from "../../common/AttachMedia";
 
 type Q = { id: string; question: string };
 
@@ -64,9 +66,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   );
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [otherComments, setOtherComments] = useState("");
-  const [techIssueMarked, setTechIssueMarked] = useState(false);
+  const [techIssueMarked, setTechIssueMarked] = useState<boolean | null>(null);
   const [techIssueDetails, setTechIssueDetails] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const media = useMediaActions({ t: (key) => t(key).toString(), schoolId });
+  const translate = (key: string) => t(key).toString();
+  const hasProcessingMedia = media.mediaUploads.some((m) => m.status !== "done");
 
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
@@ -125,6 +130,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     setResponses((p) => ({ ...p, [id]: value }));
   };
 
+  const handleClosePopup = () => {
+    media.cancelCamera();
+    onClose();
+  };
+
   const mandatoryQuestions = localQuestions;
   const otherQuestions: Q[] = [];
 
@@ -135,7 +145,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
-    if (techIssueMarked && techIssueDetails.trim() === "") return false;
+    if (techIssueMarked === true && techIssueDetails.trim() === "") return false;
     if (showMandatory) {
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
@@ -155,6 +165,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
+    if (media.mediaUploads.length > 0 && hasProcessingMedia) return;
     setIsSaving(true);
 
     try {
@@ -170,6 +181,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       const currentUser = await authHandler.getCurrentUser();
       const visitId = await api.getTodayVisitId(currentUser?.id!, schoolId);
 
+      const mediaLinks = await media.uploadAllMedia((file) =>
+        api.uploadSchoolVisitMediaFile({ schoolId, file })
+      );
+
       const payload = {
         visitId: visitId ?? null,
         userId: currentUser!.id,
@@ -182,8 +197,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         supportLevel: status ?? null,
         questionResponse: mappedResponses,
         comment: otherComments.trim() || null,
-        techIssueComment: techIssueMarked ? techIssueDetails.trim() : null,
-        techIssuesReported: techIssueMarked,
+        techIssueComment:
+          techIssueMarked === true ? techIssueDetails.trim() : null,
+        techIssuesReported: techIssueMarked === true,
+        mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
         activityType: mode === "call" ? "call" : "in_person",
       };
       await api.saveFcUserForm(payload);
@@ -205,7 +222,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       >
         <button
           className="fc-interact-popup-close"
-          onClick={onClose}
+          onClick={handleClosePopup}
           aria-label="Close"
           id="fc-close-btn"
         >
@@ -523,47 +540,315 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               className="fc-interact-popup-section fc-interact-popup-tech-section"
               id="fc-tech-section"
             >
-              <div
-                className="fc-interact-popup-radio-group"
-                id="fc-tech-radio-group"
-              >
-                <label
-                  className="fc-interact-popup-radio-item-tech-issues"
-                  id="fc-tech-label"
-                >
-                  <input
-                    type="radio"
-                    name="tech-issue"
-                    id="fc-tech-radio"
-                    checked={techIssueMarked}
-                    onChange={() => setTechIssueMarked(true)}
-                  />
-                  {t("Any tech issues reported")}
-                </label>
-              </div>
+              <div className="fc-interact-popup-question-row">
+                <div className="fc-interact-popup-tech-header">
+                  <div className="fc-interact-popup-question-header">
+                    {showMandatory && mandatoryQuestions.length > 0 && (
+                      <span className="fc-interact-popup-badge" id="fc-tech-badge">
+                        {mandatoryQuestions.length + 2}
+                      </span>
+                    )}
 
-              {techIssueMarked && (
-                <div style={{ marginTop: 8 }} id="fc-tech-details-wrapper">
+                    <div className="fc-interact-popup-question-text" id="fc-tech-label">
+                      {t("Any tech issues reported")}?
+                    </div>
+                  </div>
+
+                  <div
+                    className="fc-interact-popup-radio-group fc-interact-popup-tech-radio-options"
+                    id="fc-tech-radio-group"
+                  >
+                    <label className="fc-interact-popup-radio-item" id="fc-tech-yes-label">
+                      <input
+                        type="radio"
+                        name="tech-issue"
+                        id="fc-tech-yes"
+                        checked={techIssueMarked === true}
+                        onChange={() => setTechIssueMarked(true)}
+                      />
+                      {t("Yes")}
+                    </label>
+
+                    <label className="fc-interact-popup-radio-item" id="fc-tech-no-label">
+                      <input
+                        type="radio"
+                        name="tech-issue"
+                        id="fc-tech-no"
+                        checked={techIssueMarked === false}
+                        onChange={() => {
+                          setTechIssueMarked(false);
+                          setTechIssueDetails("");
+                        }}
+                      />
+                      {t("No")}
+                    </label>
+                  </div>
+                </div>
+
+                {techIssueMarked && (
                   <textarea
                     className="fc-interact-popup-textarea-input"
                     rows={3}
                     id="fc-tech-textarea"
                     value={techIssueDetails}
                     onChange={(e) => setTechIssueDetails(e.target.value)}
-                    placeholder={
-                      t("Add if any tech issues were reported...") || ""
-                    }
+                    placeholder={t("Add if any tech issues were reported...") || ""}
                   />
+                )}
+              </div>
+            </div>
+
+            <AttachMedia
+              variant="fc-interact"
+              t={translate}
+              media={media}
+              disabled={isSaving}
+            />
+            {/*
+            <div
+              className="fc-interact-popup-section fc-interact-popup-attach-section"
+              id="fc-attach-section"
+            >
+              <div className="fc-interact-popup-label" id="fc-attach-label">
+                {t("Attach Media")}
+              </div>
+
+              <div
+                className="fc-interact-popup-attach-buttons"
+                id="fc-attach-buttons"
+              >
+                <button
+                  type="button"
+                  className="fc-interact-popup-attach-btn"
+                  id="fc-attach-capture"
+                  onClick={media.openCapture}
+                >
+                  <PhotoCameraOutlined className="fc-interact-popup-attach-icon" />
+                  {t("Capture")}
+                </button>
+
+                <button
+                  type="button"
+                  className="fc-interact-popup-attach-btn"
+                  id="fc-attach-upload"
+                  onClick={() => media.uploadInputRef.current?.click()}
+                >
+                  <FileUploadOutlined className="fc-interact-popup-attach-icon" />
+                  {t("Upload")}
+                </button>
+              </div>
+
+              <input
+                ref={media.captureAnyInputRef}
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  media.addMediaFiles(e.target.files);
+                  e.currentTarget.value = "";
+                }}
+              />
+
+              <input
+                ref={media.captureImageInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  media.addMediaFiles(e.target.files);
+                  e.currentTarget.value = "";
+                  media.closeCamera();
+                }}
+              />
+
+              <input
+                ref={media.captureVideoInputRef}
+                type="file"
+                accept="video/*"
+                capture="environment"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  media.addMediaFiles(e.target.files);
+                  e.currentTarget.value = "";
+                  media.closeCamera();
+                }}
+              />
+
+              <input
+                ref={media.uploadInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  media.addMediaFiles(e.target.files);
+                  e.currentTarget.value = "";
+                }}
+              />
+
+              {media.mediaUploads.length > 0 && (
+                <div className="fc-interact-popup-media-list" id="fc-media-list">
+                  {media.mediaUploads.map((m) => (
+                    <div
+                      key={m.id}
+                      className="fc-interact-popup-media-item"
+                      id={`fc-media-${m.id}`}
+                    >
+                      {m.mediaType !== "file" && (
+                        <div className="fc-interact-popup-media-preview">
+                          {m.mediaType === "image" ? (
+                            <img
+                              className="fc-interact-popup-media-thumb"
+                              src={m.previewUrl}
+                              alt={m.file.name}
+                            />
+                          ) : (
+                            <video
+                              className="fc-interact-popup-media-thumb"
+                              src={m.previewUrl}
+                              controls
+                              preload="metadata"
+                            />
+                          )}
+                        </div>
+                      )}
+                      <div className="fc-interact-popup-media-top-row">
+                        <div
+                          className="fc-interact-popup-media-name"
+                          title={m.file.name}
+                        >
+                          {m.file.name}
+                        </div>
+                        <button
+                          type="button"
+                          className="fc-interact-popup-media-remove"
+                          aria-label={t("Remove") || "Remove"}
+                          onClick={() => media.removeMedia(m.id)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <div className="fc-interact-popup-media-progress">
+                        <div
+                          className="fc-interact-popup-media-progress-bar"
+                          style={{ width: `${m.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
+            */}
           </div>
         </div>
+
+        {media.isCameraOpen && (
+          <div
+            className="fc-interact-popup-camera-overlay"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="fc-interact-popup-camera-modal">
+              <div className="fc-interact-popup-camera-header">
+                <div className="fc-interact-popup-camera-title">
+                  {t("Capture") || "Capture"}
+                </div>
+                <button
+                  type="button"
+                  className="fc-interact-popup-camera-close"
+                  aria-label={t("Close") || "Close"}
+                  onClick={media.cancelCamera}
+                >
+                  ×
+                </button>
+              </div>
+
+              {media.cameraError && (
+                <div className="fc-interact-popup-camera-error">{media.cameraError}</div>
+              )}
+
+              {media.cameraUiMode === "desktop" && media.cameraStream && (
+                <>
+                  <div className="fc-interact-popup-camera-preview">
+                    <video
+                      ref={media.videoRef}
+                      className="fc-interact-popup-camera-video"
+                      autoPlay
+                      playsInline
+                      muted
+                    />
+                    {media.isRecording && media.recordingSecondsLeft !== null && (
+                      <div
+                        className="fc-interact-popup-camera-timer"
+                        aria-live="polite"
+                      >
+                        {media.recordingSecondsLeft}
+                      </div>
+                    )}
+                  </div>
+                  <canvas ref={media.canvasRef} style={{ display: "none" }} />
+                </>
+              )}
+
+              {media.cameraUiMode === "mobile" && (
+                <div className="fc-interact-popup-camera-hint">
+                  {/* {t("Camera permission is required to use the in-app camera.") ||
+                    "Camera permission is required to use the in-app camera."} */}
+                </div>
+              )}
+
+              <div className="fc-interact-popup-camera-actions">
+                {media.cameraStream && (
+                  <button
+                    type="button"
+                    className={`fc-interact-popup-camera-shutter ${
+                      media.isRecording ? "fc-interact-popup-camera-shutter-recording" : ""
+                    }`}
+                    aria-label={t("Shutter") || "Shutter"}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressStart();
+                    }}
+                    onPointerUp={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressEnd();
+                    }}
+                    onPointerCancel={(e) => {
+                      e.preventDefault();
+                      try {
+                        e.currentTarget.releasePointerCapture(e.pointerId);
+                      } catch {
+                        // ignore
+                      }
+                      media.shutterPressCancel();
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <span className="fc-interact-popup-camera-shutter-inner" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="fc-interact-popup-footer" id="fc-footer">
           <button
             className="fc-interact-popup-cancel-btn"
-            onClick={onClose}
+            onClick={handleClosePopup}
             id="fc-cancel-btn"
           >
             {t("Cancel")}
@@ -571,11 +856,13 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
           <button
             className={`fc-interact-popup-save-btn ${
-              !isFormValid || isSaving ? "fc-interact-popup-save-disabled" : ""
+              !isFormValid || isSaving || (media.mediaUploads.length > 0 && hasProcessingMedia)
+                ? "fc-interact-popup-save-disabled"
+                : ""
             }`}
             id="fc-save-btn"
             onClick={handleSave}
-            disabled={!isFormValid || isSaving}
+            disabled={!isFormValid || isSaving || (media.mediaUploads.length > 0 && hasProcessingMedia)}
           >
             {isSaving ? `${t("Saving...")} ` : `${t("Save")}`}
           </button>

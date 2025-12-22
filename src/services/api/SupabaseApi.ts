@@ -353,6 +353,38 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
+  async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    if (!this.supabase) {
+      throw new Error("Supabase client not initialized.");
+    }
+
+    const { schoolId, file } = params;
+    const filePath = `${file.name}`;
+
+    const uploadResponse = await this.supabase.storage
+      .from("school-visits")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadResponse.error) {
+      console.error("Error uploading school visit media:", uploadResponse.error);
+      throw uploadResponse.error;
+    }
+
+    const urlData = this.supabase.storage
+      .from("school-visits")
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData.data.publicUrl;
+    if (!publicUrl) {
+      throw new Error("Failed to generate public URL for uploaded media.");
+    }
+
+    return publicUrl;
+  }
+
   async uploadData(payload: any): Promise<boolean | null> {
     if (!this.supabase) return false;
 
@@ -9915,6 +9947,7 @@ export class SupabaseApi implements ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     if (!this.supabase) {
       return { data: null, error: new Error("Supabase not initialized") };
@@ -9936,6 +9969,10 @@ export class SupabaseApi implements ServiceApi {
         tech_issues_reported: payload.techIssuesReported,
         comment: payload.comment ?? null,
         tech_issue_comment: payload.techIssueComment ?? null,
+        media_links:
+          payload.mediaLinks && payload.mediaLinks.length > 0
+            ? JSON.stringify(payload.mediaLinks)
+            : null,
       })
       .select()
       .single();
@@ -10074,13 +10111,14 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<any> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return null;
     }
 
-    const { schoolId, classId = null, content } = params;
+    const { schoolId, classId = null, content, mediaLinks = null } = params;
 
     // ---- GET CURRENT USER ----
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -10121,6 +10159,8 @@ export class SupabaseApi implements ServiceApi {
       class_id: classId,
       comment: content,
       is_deleted: false,
+      media_links:
+        mediaLinks && mediaLinks.length > 0 ? JSON.stringify(mediaLinks) : null,
 
       // Required NOT NULL:
       contact_target: "school" as any,

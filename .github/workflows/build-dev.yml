@@ -1,9 +1,10 @@
-name: Build Android
+name: Build Android Dev
 
 on:
   push:
     branches:
-      - dev
+      - dev-ng-3
+  workflow_dispatch:
 
 jobs:
   build:
@@ -65,30 +66,16 @@ jobs:
 
         run: npm run build
 
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@v13.0.3
-        with:
-          args: deploy --only hosting:cuba-stage-dev
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
       - name: Make gradlew executable
         working-directory: ./android/
         run: chmod +x ./gradlew
 
-      - name: Generate the Android App assembleDebug
+      - name: Generate the Android App apk (Debug)
         working-directory: ./android/
         run: ./gradlew assembleDebug
 
-      - name: Deploy apk
-        working-directory: .
-        run: |
-          cd android/app/build/outputs/apk/debug/
-          git init
-          git config --global user.email vinay@sutara.org
-          git config --global user.name  vinaypanduga
-          git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b dev-apk
-          git add app-debug.apk
-          git commit -m "created apk"
-          git push origin dev-apk -f
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
