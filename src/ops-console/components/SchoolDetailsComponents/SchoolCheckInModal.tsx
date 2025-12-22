@@ -314,40 +314,40 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const isConfirmDisabled = isLoadingLocation || (isSchoolLocationMissing && isConfirmedInSchool === undefined) || isUpdatingLocation;
 
   return (
-    <div className="schoolcheckinmodal check-in-modal-overlay" onClick={onClose}>
-      <div className="check-in-modal-container" onClick={(e) => e.stopPropagation()}>
+    <div id="check-in-modal-overlay" className="schoolcheckinmodal check-in-modal-overlay" onClick={onClose}>
+      <div id="check-in-modal-container" className="check-in-modal-container" onClick={(e) => e.stopPropagation()}>
         
-        <div className="check-in-modal-header">
-          <h2 className="check-in-modal-title">
+        <div id="check-in-modal-header" className="check-in-modal-header">
+          <h2 id="check-in-modal-title" className="check-in-modal-title">
             {isCheckIn ? t('Confirm Check-In') : t('Confirm Check-Out')}
           </h2>
-          <button id="sc-modal-close-btn" className="check-in-modal-close" onClick={onClose}>
+          <button id="check-in-modal-close-btn" className="check-in-modal-close" onClick={onClose}>
             <IoClose />
           </button>
         </div>
 
-        <div className="check-in-modal-content">
+        <div id="check-in-modal-content" className="check-in-modal-content">
           
-          <div id="sc-location-card" className="check-in-card">
-              <div className="check-in-icon-wrapper">
+          <div id="check-in-location-card" className="check-in-card">
+              <div id="check-in-location-icon-wrapper" className="check-in-icon-wrapper">
                  <IoLocationOutline />
               </div>
-              <div className="check-in-card-content">
-                  <div className="location-name">{schoolName || "XYZ School"}</div>
+              <div id="check-in-location-content" className="check-in-card-content">
+                  <div id="check-in-school-name" className="location-name">{schoolName || "XYZ School"}</div>
                   
-                  <div className="location-detail-text">{targetLocation.address1}</div>
-                   <div className="location-detail-text">{targetLocation.address2}</div>
+                  <div id="check-in-address-1" className="location-detail-text">{targetLocation.address1}</div>
+                   <div id="check-in-address-2" className="location-detail-text">{targetLocation.address2}</div>
                   
                   {!isSchoolLocationMissing && (
                     <>
                         {userLocation && (
-                             <div className="location-detail-text location-coords-wrapper">
+                             <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
                                 <span className="location-coords-label">{t("User Coordinates")}: </span>
                                 {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
                             </div>
                         )}
                         {distance !== null && !isLoadingLocation && (
-                            <div className={`location-detail-text distance-text ${isInsidePremises ? 'inside' : 'outside'}`}>
+                            <div id="check-in-distance" className={`location-detail-text distance-text ${isInsidePremises ? 'inside' : 'outside'}`}>
                                 {t("Distance")}: {Math.round(distance)} {t("meters away")}
                             </div>
                         )}
@@ -355,24 +355,24 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   )}
                   
                   {isLoadingLocation && (
-                      <div className="location-detail-text fetching-location-text">
+                      <div id="check-in-loading-location" className="location-detail-text fetching-location-text">
                           <i>{t("Fetching your location...")}</i>
                       </div>
                   )}
               </div>
           </div>
 
-          <div id="sc-time-card" className="check-in-card">
-              <div className="check-in-icon-wrapper">
+          <div id="check-in-time-card" className="check-in-card">
+              <div id="check-in-time-icon-wrapper" className="check-in-icon-wrapper">
                   <IoTimeOutline />
               </div>
-              <div className="check-in-card-content">
-                  <div className="date-text">{formatDate(currentDate)}</div>
-                  <div className="time-text">{formatTime(currentDate)}</div>
+              <div id="check-in-time-content" className="check-in-card-content">
+                  <div id="check-in-date-text" className="date-text">{formatDate(currentDate)}</div>
+                  <div id="check-in-time-text" className="time-text">{formatTime(currentDate)}</div>
               </div>
           </div>
 
-          <div id="sc-map-container" className="map-container">
+          <div id="check-in-map-container" className="map-container">
              <MapContainer
                 center={userLocation ? [userLocation.lat, userLocation.lng] : [targetLocation.lat, targetLocation.lng]}
                 zoom={15}
@@ -441,12 +441,12 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           </div>
           
            {isSchoolLocationMissing && (
-               <div id="sc-confirmation-section" className="check-in-confirmation-section">
-                   <div className="confirmation-question">{t("Are you sure you're in the school?")}</div>
-                   <div className="radio-options-container">
-                       <label className="radio-option">
+               <div id="check-in-confirmation-section" className="check-in-confirmation-section">
+                   <div id="check-in-confirmation-question" className="confirmation-question">{t("Are you sure you're in the school?")}</div>
+                   <div id="check-in-radio-container" className="radio-options-container">
+                       <label id="check-in-radio-label-yes" className="radio-option" htmlFor="check-in-radio-yes">
                            <input 
-                                id="sc-radio-yes"
+                                id="check-in-radio-yes"
                                 type="radio" 
                                 name="school-confirm"
                                 checked={isConfirmedInSchool === true} 
@@ -454,9 +454,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                            /> 
                            <span>{t("Yes")}</span>
                        </label>
-                       <label className="radio-option">
+                       <label id="check-in-radio-label-no" className="radio-option" htmlFor="check-in-radio-no">
                            <input 
-                                id="sc-radio-no"
+                                id="check-in-radio-no"
                                 type="radio" 
                                 name="school-confirm"
                                 checked={isConfirmedInSchool === false} 
@@ -470,12 +470,12 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
         </div>
 
-        <div className="check-in-modal-actions">
-            <button id="sc-cancel-btn" className="check-in-btn btn-cancel" onClick={onClose}>
+        <div id="check-in-modal-actions" className="check-in-modal-actions">
+            <button id="check-in-cancel-btn" className="check-in-btn btn-cancel" onClick={onClose}>
               {t("Cancel")}
             </button>
             <button 
-              id="sc-confirm-btn"
+              id="check-in-confirm-btn"
               className={`check-in-btn btn-confirm ${!isCheckIn ? 'btn-checkout' : ''} ${isConfirmDisabled ? 'disabled' : ''}`}
               onClick={isConfirmDisabled ? undefined : onConfirmAction}
               disabled={isConfirmDisabled}
