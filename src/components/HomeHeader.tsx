@@ -217,6 +217,7 @@ const HomeHeader: React.FC<{
           onHeaderIconClick={() => {
             setProfileMenuOpen(true);
           }}
+          isProfile={true}
         />
       </div>
       {isProfileMenuOpen && (

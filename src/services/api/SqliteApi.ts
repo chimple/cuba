@@ -2286,7 +2286,7 @@ export class SqliteApi implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined,
+    activities_scores?: string | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -3294,6 +3294,72 @@ export class SqliteApi implements ServiceApi {
         },
         false
       );
+      const parentRes = await this.executeQuery(
+        `SELECT parent_id 
+       FROM parent_user 
+       WHERE student_id = ? AND is_deleted = 0 
+       LIMIT 1`,
+        [userId]
+      );
+      const parentRows = parentRes && parentRes.values ? parentRes.values : [];
+
+      if (parentRows.length > 0) {
+        const parentId = parentRows[0].parent_id;
+        const siblingCheckRes = await this.executeQuery(
+          `SELECT 1 
+         FROM parent_user pu
+         JOIN class_user cu ON pu.student_id = cu.user_id
+         WHERE pu.parent_id = ? 
+           AND cu.class_id = ? 
+           AND pu.student_id != ?  -- Exclude the student we are currently deleting
+           AND pu.is_deleted = 0 
+           AND cu.is_deleted = 0 
+         LIMIT 1`,
+          [parentId, class_id, userId]
+        );
+
+        const existingSiblings =
+          siblingCheckRes && siblingCheckRes.values
+            ? siblingCheckRes.values
+            : [];
+        if (existingSiblings.length === 0) {
+          await this.executeQuery(
+            `UPDATE class_user 
+           SET is_deleted = 1, updated_at = ? 
+           WHERE user_id = ? AND class_id = ? AND role = 'parent' AND is_deleted = 0`,
+            [updatedAt, parentId, class_id]
+          );
+          const parentQuery = `
+          SELECT *
+          FROM ${TABLES.ClassUser}
+          WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
+
+          const parentDeletedRes = await this._db?.query(parentQuery, [
+            parentId,
+            class_id,
+            updatedAt,
+          ]);
+
+          if (
+            parentDeletedRes &&
+            parentDeletedRes.values &&
+            parentDeletedRes.values.length > 0
+          ) {
+            const parentData = parentDeletedRes.values[0];
+
+            this.updatePushChanges(
+              TABLES.ClassUser,
+              MUTATE_TYPES.UPDATE,
+              {
+                id: parentData.id,
+                is_deleted: true,
+                updated_at: updatedAt,
+              },
+              false
+            );
+          }
+        }
+      }
 
       await this.executeQuery(
         `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
@@ -7194,7 +7260,8 @@ order by
     id: string,
     schoolName: string,
     udise: string,
-    role: RoleType
+    role: RoleType,
+    isEmailVerified: boolean
   ): Promise<void> {
     console.error("Method not implemented.");
   }
@@ -7377,9 +7444,9 @@ order by
     return this._serverApi.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return this._serverApi.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return this._serverApi.getSchoolVisitById(visitIds);
   }
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");

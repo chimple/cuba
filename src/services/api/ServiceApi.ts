@@ -60,12 +60,14 @@ export interface ServiceApi {
    * @param {string} schoolName - name of the school
    * @param {string} udise - udise of the school
    * @param {RoleType} role - RoleType of the coordinator(here : Autouser)
+   * @param {boolean} isEmailVerified - Whether the email is verified
    */
   createAtSchoolUser(
     id: string,
     schoolName:string,
     udise:string,
-    role: RoleType
+    role: RoleType,
+    isEmailVerified: boolean
   ): Promise<void>;
 
   /**
@@ -2477,8 +2479,8 @@ export interface ServiceApi {
    * @returns Promise resolving to school visit details or null if not found.
    */
   getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null>;
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]>;
 
   /**
    * Fetch filter options for FC activities.

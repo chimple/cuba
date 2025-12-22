@@ -40,8 +40,8 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType) {
-    return this.s.createAtSchoolUser(id, schoolName, udise, role);
+  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType,isEmailVerified: boolean) {
+    return this.s.createAtSchoolUser(id,schoolName,udise,role,isEmailVerified);
   }
   public static i: ApiHandler;
 
@@ -1825,9 +1825,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return await this.s.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return await this.s.getSchoolVisitById(visitIds);
   }
 
   async createNoteForSchool(params: {
@@ -1853,7 +1853,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
-  
+
   public async getSchoolStatsForSchool(
     schoolId: string,
     currentUser: TableTypes<"user"> | null = null

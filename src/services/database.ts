@@ -1503,6 +1503,7 @@ export type Database = {
           is_deleted: boolean
           notes: string | null
           school_id: string
+          type: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at: string
           user_id: string
         }
@@ -1519,6 +1520,7 @@ export type Database = {
           is_deleted?: boolean
           notes?: string | null
           school_id: string
+          type?: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at?: string
           user_id: string
         }
@@ -1535,6 +1537,7 @@ export type Database = {
           is_deleted?: boolean
           notes?: string | null
           school_id?: string
+          type?: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at?: string
           user_id?: string
         }
@@ -6397,6 +6400,10 @@ export type Database = {
         | "operational_director"
         | "field_coordinator"
         | "super_admin"
+      school_visit_type:
+        | "teacher_training_meeting"
+        | "parents_teacher_meeting"
+        | "regular_visit"
       special_roles:
         | "super_admin"
         | "operational_director"
@@ -6576,6 +6583,11 @@ export const Constants = {
         "operational_director",
         "field_coordinator",
         "super_admin",
+      ],
+      school_visit_type: [
+        "teacher_training_meeting",
+        "parents_teacher_meeting",
+        "regular_visit",
       ],
       special_roles: [
         "super_admin",
