@@ -200,7 +200,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedIn);
-            await Toast.show({ text: "Checked in successfully!" });
+            await Toast.show({ text: t("Checked in successfully!") });
           }
         }
       } else {
@@ -216,14 +216,14 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedOut);
-            await Toast.show({ text: "Checked out successfully!" });
+            await Toast.show({ text: t("Checked out successfully!") });
           }
         }
       }
     } catch (e) {
       console.error("Failed to record visit", e);
       await Toast.show({
-        text: "Failed to record visit. Please try again.",
+        text: t("Failed to record visit. Please try again."),
         duration: "long",
       });
     }
@@ -410,7 +410,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         onClose={() => setIsCheckInModalOpen(false)}
         onConfirm={handleConfirmCheckInAction}
         status={checkInStatus === SchoolVisitStatus.CheckedIn ? SchoolVisitAction.CheckOut : SchoolVisitAction.CheckIn}
-        schoolName={schoolName || "Unknown School"}
+        schoolName={schoolName || t("Unknown School")}
         isFirstTime={isFirstTimeCheckIn}
         schoolLocation={schoolLocation}
         schoolAddress={data.schoolData?.address}

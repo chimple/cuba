@@ -1,6 +1,10 @@
 {
   " OFF ": " OFF ",
   " ON ": " ON ",
+  "Checked in successfully!": "Checked in successfully!",
+  "Checked out successfully!": "Checked out successfully!",
+  "Failed to record visit. Please try again.": "Failed to record visit. Please try again.",
+  "Unknown School": "Unknown School",
   " to choose and assign.": " to choose and assign.",
   "***Be among the top performers in your class to win an exciting reward": "***Be among the top performers in your class to win an exciting reward",
   "🎉Congratulations🎊": "🎉Congratulations🎊",
