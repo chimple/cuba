@@ -1810,9 +1810,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return await this.s.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return await this.s.getSchoolVisitById(visitIds);
   }
 
   async createNoteForSchool(params: {

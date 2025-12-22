@@ -340,7 +340,7 @@ const SchoolActivities: React.FC = () => {
                   onClick: () => history.goBack(),
                 },
                 {
-                  label: t("Activities"),
+                  label: t("Interactions"),
                   onClick: () => history.goBack(),
                 },
                 {

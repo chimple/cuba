@@ -11,6 +11,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { t } from "i18next";
 import "./NoteDetailsDrawer.css";
+import MediaDisplay , { MediaItem } from "../../components/MediaDisplay";
 
 /* helpers */
 function parseMonthNameToNumber(mon: string): number | null {
@@ -70,6 +71,7 @@ type Note = {
   className?: string | null;
   date?: string;
   text: string;
+  media_links?: string;
 };
 
 interface Props {
@@ -80,6 +82,25 @@ interface Props {
 
 const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
   if (!note) return null;
+
+  let mediaItems: MediaItem[] = [];
+
+if (note.media_links) {
+  try {
+    const links: string[] =
+      typeof note.media_links === "string"
+        ? JSON.parse(note.media_links)
+        : [];
+
+    mediaItems = links.map((url) => ({
+      url,
+      type: url.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|mpg|mpeg|3gp|m4v)$/i) ? "video" : "image",
+    }));
+  } catch (err) {
+    console.error("Invalid media_links JSON", err);
+    mediaItems = [];
+  }
+}
 
   const displayDate = formatDate(note.date);
 
@@ -128,6 +149,15 @@ const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
       {/* Notes */}
       <div className="note-details-drawer-notes-container" id="note-details-drawer-notes-container">
         <DetailSection label={t("Notes")} text={note.text} />
+      </div>
+
+      {/* Media Section */}
+      <div className="note-details-drawer-media-container" id="note-details-drawer-media-container">
+        <MediaDisplay
+          id="note-details-drawer-media-section"
+          label={t("Attached Media")}
+          media={mediaItems}
+        />
       </div>
     </Drawer>
   );

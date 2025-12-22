@@ -47,11 +47,13 @@ const ActivitiesPage: React.FC = () => {
 
         for (const item of activities) {
           const date = OpsUtil.formatDateToDDMMMyyyy(item.created_at);
-
+          
           if (!grouped[date]) {
             grouped[date] = {
               date,
               rawDate: item.created_at,
+              visitType: "--",     
+              distance: "--",      
               f2f: 0,
               calls: 0,
               issues: 0,
@@ -68,25 +70,62 @@ const ActivitiesPage: React.FC = () => {
           else if (item.contact_method === "in_person") grouped[date].f2f += 1;
 
           if (item.tech_issues_reported) grouped[date].issues += 1;
+        }
+        for (const key in grouped) {
+          const visitIds = new Set(
+            grouped[key].activitiesList
+              .map((act: any) => act.visit_id)
+              .filter((id: any) => id !== null)
+          );
+          const visitIdsArray = Array.from(visitIds);
+          console.log("Unique visit IDs for date", key, ":", visitIds);
+          const visitDetailsList = await api.getSchoolVisitById(visitIdsArray as string[]);
 
-          if (item.visit_id && !grouped[date].visitDetails) {
-            const visitDetails = await api.getSchoolVisitById(item.visit_id);
+          // 🔹 collect types
+          const visitTypeSet = new Set<string>();
 
-            grouped[date].visitDetails = visitDetails || null;
-            grouped[date].visitId = item.visit_id;
+          // 🔹 min distance
+          let minDistance: number = Infinity;
 
-            if (visitDetails?.check_in_at) {
-              grouped[date].checkIn = OpsUtil.formatTimeToIST(
-                visitDetails.check_in_at
-              );
+          for (const visit of visitDetailsList) {
+            if (visit?.type) {
+              visitTypeSet.add(visit.type);
             }
-
-            if (visitDetails?.check_out_at) {
-              grouped[date].checkOut = OpsUtil.formatTimeToIST(
-                visitDetails.check_out_at
-              );
+            if (typeof visit?.distance_from_school === "number"){
+              minDistance = Math.min(minDistance, visit.distance_from_school);
             }
           }
+
+          // ✅ CHECK-IN → 0th index
+          if (visitDetailsList[0]?.check_in_at) {
+            grouped[key].checkIn = OpsUtil.formatTimeToIST(
+              visitDetailsList[0].check_in_at
+            );
+          } else {
+            grouped[key].checkIn = "--";
+          }
+
+          // ✅ CHECK-OUT → last index
+          let checkOutValue: string | null = null;
+
+          for (let i = visitDetailsList.length - 1; i >= 0; i--) {
+            const checkOutAt = visitDetailsList[i]?.check_out_at;
+            if (checkOutAt) {
+              checkOutValue = OpsUtil.formatTimeToIST(checkOutAt);
+              break;
+            }
+          }
+          grouped[key].checkOut = checkOutValue ?? "--";
+
+          grouped[key].visitType =
+            visitTypeSet.size > 0
+              ? Array.from(visitTypeSet).join(", ")
+              : "--";
+
+          grouped[key].distance =
+            minDistance !== Infinity
+              ? `${minDistance} km`
+              : "--";
         }
 
         const finalData = Object.values(grouped);
@@ -125,6 +164,11 @@ const ActivitiesPage: React.FC = () => {
       orderBy: "date",
     },
     {
+      key: "visitType",
+      label: t("Visit Type"),
+      sortable: false,
+    },
+    {
       key: "f2f",
       label: t("F2F- Discussions"),
       sortable: false,
@@ -161,6 +205,11 @@ const ActivitiesPage: React.FC = () => {
       label: t("Checked-Out"),
       sortable: false,
     },
+    {
+      key: "distance",
+      label: t("Distance"),
+      sortable: false,
+    },
   ];
 
   const handleSort = (colKey: string) => {
@@ -194,7 +243,7 @@ const ActivitiesPage: React.FC = () => {
   return (
     <div className="activities-container" id="act-container">
       <div className="activities-header">
-        <SchoolNameHeaderComponent schoolName={"Activities"} />
+        <SchoolNameHeaderComponent schoolName={"Interactions"} />
       </div>
       <div className="activities-secondary-header" id="act-breadcrumb">
         <Breadcrumb
@@ -209,7 +258,7 @@ const ActivitiesPage: React.FC = () => {
               onClick: () => history.goBack(),
             },
             {
-              label: t("Activities")
+              label: t("Interactions"),
             },
           ]}
         />
