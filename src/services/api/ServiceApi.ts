@@ -28,7 +28,11 @@ import {
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  RoleType,
+  CreateSchoolNoteInput,
+  SchoolNote,
+} from "../../interface/modelInterfaces";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -51,7 +55,6 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
-
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
    * @param {string} id - school id
@@ -62,8 +65,8 @@ export interface ServiceApi {
    */
   createAtSchoolUser(
     id: string,
-    schoolName:string,
-    udise:string,
+    schoolName: string,
+    udise: string,
     role: RoleType,
     isEmailVerified: boolean
   ): Promise<void>;
@@ -260,7 +263,11 @@ export interface ServiceApi {
    * @param {string } studentId - Student Id
    * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
+  // ServiceApi.ts
+  deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<Boolean | void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -597,9 +604,7 @@ export interface ServiceApi {
   /**
    * Fetches skills linked to the given outcome ids.
    */
-  getSkillsByOutcomeIds(
-    outcomeIds: string[]
-  ): Promise<TableTypes<"skill">[]>;
+  getSkillsByOutcomeIds(outcomeIds: string[]): Promise<TableTypes<"skill">[]>;
 
   /**
    * Fetches results for the given student and skill ids.
@@ -2471,7 +2476,7 @@ export interface ServiceApi {
     classId: string
   ): Promise<number | null>;
 
-    // notes
+  // notes
   createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;
@@ -2479,17 +2484,13 @@ export interface ServiceApi {
   }): Promise<CreateSchoolNoteInput>;
 
   getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>>;
-
-
+    schoolId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<PaginatedResponse<SchoolNote>>;
 
   /**
    * Get interactions metrics for a school.
    */
-  getSchoolStatsForSchool(
-    schoolId: string
-  ): Promise<FCSchoolStats>;
+  getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
 }
