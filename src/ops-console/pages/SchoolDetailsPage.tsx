@@ -455,7 +455,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                       }
                       className="btn-check-in"
                     >
-                      Check In
+                      {t("Check In")}
                     </Button>
                     <Menu
                       anchorEl={anchorEl}
@@ -497,7 +497,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                     onClick={handleOpenCheckInModal}
                     className="btn-check-out"
                   >
-                    Check Out
+                     {t("Check Out")}
                   </Button>
                 )}
               </>
