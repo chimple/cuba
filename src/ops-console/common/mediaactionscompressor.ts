@@ -33,6 +33,45 @@ const runWithFFmpegLock = async <T>(task: () => Promise<T>): Promise<T> => {
   }
 };
 
+// Cache version
+const FFMPEG_CACHE_PREFIX = "ffmpeg-core-cache-v0.12.6";
+
+// Fetch a URL once, persist it, then return a fresh blob: URL for this session.
+// Note: Blob URLs themselves are NOT persistent across reloads; the BYTES in Cache Storage are.
+async function toCachedBlobURL(
+  url: string,
+  mimeType: string,
+  cacheBucket: string
+): Promise<string> {
+  // Cache Storage works on HTTPS (and localhost). If unavailable, fall back.
+  const hasCacheStorage = typeof caches !== "undefined";
+  if (!hasCacheStorage) {
+    return toBlobURL(url, mimeType);
+  }
+
+  const cacheName = `${FFMPEG_CACHE_PREFIX}:${cacheBucket}`;
+  const cache = await caches.open(cacheName);
+
+  // Try cache first
+  let res = await cache.match(url);
+
+  // If not cached, fetch and store
+  if (!res) {
+    res = await fetch(url, { mode: "cors" });
+    if (!res.ok) {
+      throw new Error(
+        `Failed to fetch ${url}: ${res.status} ${res.statusText}`
+      );
+    }
+    // Store a clone because responses are streams
+    await cache.put(url, res.clone());
+  }
+
+  const ab = await res.arrayBuffer();
+  const blob = new Blob([ab], { type: mimeType });
+  return URL.createObjectURL(blob);
+}
+
 const getFFmpeg = async (): Promise<FFmpeg> => {
   if (ffmpegLoadFailed) {
     throw new Error("FFmpeg failed to load previously");
@@ -51,18 +90,25 @@ const getFFmpeg = async (): Promise<FFmpeg> => {
         typeof (globalThis as any).SharedArrayBuffer !== "undefined";
 
       const loadCore = async (coreBaseUrl: string, multithread: boolean) => {
-        const coreURL = await toBlobURL(
+        const bucket = multithread ? "mt" : "st";
+
+        const coreURL = await toCachedBlobURL(
           `${coreBaseUrl}/ffmpeg-core.js`,
-          "text/javascript"
+          "text/javascript",
+          bucket
         );
-        const wasmURL = await toBlobURL(
+
+        const wasmURL = await toCachedBlobURL(
           `${coreBaseUrl}/ffmpeg-core.wasm`,
-          "application/wasm"
+          "application/wasm",
+          bucket
         );
+
         const workerURL = multithread
-          ? await toBlobURL(
+          ? await toCachedBlobURL(
               `${coreBaseUrl}/ffmpeg-core.worker.js`,
-              "text/javascript"
+              "text/javascript",
+              bucket
             )
           : undefined;
 
@@ -72,11 +118,9 @@ const getFFmpeg = async (): Promise<FFmpeg> => {
         const endedAt =
           typeof performance !== "undefined" ? performance.now() : Date.now();
 
-        if (process.env.NODE_ENV !== "production") {
-          const kind = multithread ? "mt" : "st";
-          const ms = Math.max(0, Math.round(endedAt - startedAt));
-          console.info(`[media] FFmpeg core loaded (${kind}) in ${ms}ms`);
-        }
+        const kind = multithread ? "mt" : "st";
+        const ms = Math.max(0, Math.round(endedAt - startedAt));
+        console.info(`[media] FFmpeg core loaded (${kind}) in ${ms}ms`);
       };
 
       const localBase = (process.env.PUBLIC_URL ?? "").replace(/\/$/, "");
@@ -397,7 +441,9 @@ async function compressVideo(
         console.info(
           `[${logTag}] compressed: ${file.name} (${formatBytes(
             beforeSize
-          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(elapsed)}`
+          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(
+            elapsed
+          )}`
         );
         onProgress?.(1);
         return compressedFile;
@@ -614,7 +660,9 @@ async function compressImageWithFFmpeg(
         console.info(
           `[${logTag}] compressed: ${file.name} (${formatBytes(
             beforeSize
-          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(elapsed)}`
+          )} -> ${formatBytes(compressedFile.size)}) in ${formatDurationMs(
+            elapsed
+          )}`
         );
         onProgress?.(1);
         return compressedFile;
