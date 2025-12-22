@@ -8,6 +8,8 @@ import { Capacitor } from '@capacitor/core';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { SchoolVisitAction } from '../../../common/constants';
+
 import L from 'leaflet';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,8 +19,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
-
-import { SchoolVisitAction } from '../../../common/constants';
 
 interface SchoolCheckInModalProps {
   open: boolean;
@@ -33,7 +33,7 @@ interface SchoolCheckInModalProps {
   onLocationUpdated?: () => void;
 }
 
-const MAX_DISTANCE_METERS = 300; 
+const MAX_DISTANCE_METERS = 1000; 
 
 const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng: number }; userLoc: { lat: number; lng: number } | null }) => {
     const map = useMap();
