@@ -255,7 +255,10 @@ const ActivitiesPage: React.FC = () => {
             },
             {
               label: school.name,
-              onClick: () => history.goBack(),
+              onClick: () =>
+                history.replace(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${school.id}`
+                ),
             },
             {
               label: t("Interactions"),
