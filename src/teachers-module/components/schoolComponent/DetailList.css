@@ -121,11 +121,18 @@
 
 .detail-list-header-row {
   display: grid;
-  grid-template-columns: 1fr 80px 80px;
-  padding: 8px 0;
+  grid-template-columns: 1fr 90px 55px;
+  padding: 6px 13px;
   font-weight: 600;
   color: #888;
   margin-bottom: 6px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .detail-list-header-row {
+    grid-template-columns: 1fr 41px 55px;
+  }
 }
 
 .detail-list-header-empty {
@@ -134,5 +141,9 @@
 
 .detail-list-header-users,
 .detail-list-header-subjects {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }

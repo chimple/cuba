@@ -1,4 +1,4 @@
-.school-detail-container {
+.schooldetailspage.school-detail-container {
   background: white;
   width: 100%;
   height: 100vh;          /* FIXED HEIGHT */
@@ -6,17 +6,17 @@
   flex-direction: column;
   overflow: hidden;      /* ❗IMPORTANT */
 }
-.school-detail-tertiary-header {
+.schooldetailspage .school-detail-tertiary-header {
   flex: 1;               /* takes remaining space */
   min-height: 0;         /* CRITICAL for scroll */
 }
 
-.school-detail-gap {
+.schooldetailspage .school-detail-gap {
   height: 10px;
   width: 100%;
 }
 
-.school-detail-header {
+.schooldetailspage .school-detail-header {
   width: calc(100% - 32px);
   margin: 0 auto;
   height: 65px;
@@ -27,25 +27,7 @@
   align-items: center;
 }
 
-.add-note-button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #2563eb;
-  background: white;
-  color: #2563eb;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  margin-right: 24px;
-  width: auto;
-  max-width: max-content;
-}
-
-.add-note-button:hover {
-  background: #f6f6ff;
-}
-
-.school-detail-secondary-header {
+.schooldetailspage .school-detail-secondary-header {
   width: calc(100% - 32px);
   margin: 0 auto;
   padding-left: 11px;
@@ -57,18 +39,18 @@
   align-items: center;
 }
 
-.school-detail-secondary-header > * {
+.schooldetailspage .school-detail-secondary-header > * {
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
 }
 
-.school-detail-tertiary-gap {
+.schooldetailspage .school-detail-tertiary-gap {
   height: 15px;
   width: 100%;
 }
 
-.school-detail-tertiary-header {
+.schooldetailspage .school-detail-tertiary-header {
   width: calc(100% - 32px);
   margin: 0 auto;
   background: white;
@@ -78,4 +60,63 @@
   min-width: 0;
   margin-top: 10px;
   margin-bottom: 15px;
+}
+
+/* Check-In Menu Styles according to design */
+.schooldetailspage.check-in-menu-paper {
+  border-radius: 12px !important;
+  border: 1px solid #e0e0e0 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+.schooldetailspage .check-in-menu-divider {
+  margin: 0 !important;
+}
+
+.schooldetailspage .check-in-menu-item {
+  font-size: 0.9rem !important;
+  padding: 10px 16px !important;
+}
+
+.schooldetailspage .btn-add-notes {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border-color: #4F46E5 !important;
+  color: #4F46E5 !important;
+  border-radius: 8px !important;
+}
+
+.schooldetailspage .btn-add-notes:hover {
+  background-color: #f6f6ff !important;
+  border-color: #4F46E5 !important;
+}
+
+.schooldetailspage .btn-check-in {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  background-color: #2e7d32 !important;
+  border-radius: 8px !important;
+}
+
+.schooldetailspage .btn-check-in:hover {
+  background-color: #1b5e20 !important;
+}
+
+.schooldetailspage .btn-check-out {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  background-color: #d32f2f !important;
+  border-radius: 8px !important;
+}
+
+.schooldetailspage .btn-check-out:hover {
+  background-color: #b71c1c !important;
+}
+
+.schooldetailspage .check-in-icon {
+  transition: transform 0.2s !important;
+}
+
+.schooldetailspage .check-in-icon-rotated {
+  transform: rotate(180deg) !important;
 }

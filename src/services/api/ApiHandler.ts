@@ -1,5 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -242,6 +243,20 @@ export class ApiHandler implements ServiceApi {
       udise ?? null,
       address ?? null
     );
+  }
+
+  public async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    return await this.s.updateSchoolLocation(schoolId, lat, lng);
+  }
+
+  public async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getLastSchoolVisit(schoolId);
   }
 
   public async requestNewSchool(
@@ -1853,6 +1868,24 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolStatsForSchool(schoolId);
   }
 
+  public async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this.s.recordSchoolVisit(
+      schoolId,
+      lat,
+      lng,
+      action,
+      visitType,
+      distanceFromSchool
+    );
+  }
+  
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;

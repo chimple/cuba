@@ -1498,7 +1498,7 @@ export type Database = {
           check_out_lat: number | null
           check_out_lng: number | null
           created_at: string
-          distance_from_school: string | null
+          distance_from_school: number | null
           id: string
           is_deleted: boolean
           notes: string | null
@@ -1515,7 +1515,7 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
-          distance_from_school?: string | null
+          distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
           notes?: string | null
@@ -1532,7 +1532,7 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
-          distance_from_school?: string | null
+          distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
           notes?: string | null
@@ -4832,8 +4832,8 @@ export type Database = {
       }
       delete_user: { Args: { uuid: string }; Returns: boolean }
       delete_user_from_class: {
-        Args: { p_class_id: string; p_user_id: string };
-        Returns: undefined;
+        Args: { p_class_id: string; p_user_id: string }
+        Returns: boolean
       }
       dump_user_table_policies: { Args: never; Returns: string }
       enqueue_message: {
