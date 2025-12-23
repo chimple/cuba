@@ -41,6 +41,7 @@ const PathwayStructure: React.FC = () => {
     hasTodayReward,
     isRewardFeatureOn,
     rewardModalOpen,
+    isCampaignFinished,
     handleRewardBoxOpen,
     handleRewardModalClose,
     handleRewardModalPlay,
@@ -122,7 +123,7 @@ const PathwayStructure: React.FC = () => {
       )}
 
       {/* Daily Reward modal */}
-      {rewardModalOpen && isRewardFeatureOn && (
+      {rewardModalOpen && isRewardFeatureOn  && (
         <DailyRewardModal
           text={"Play one lesson and collect your daily reward!"}
           onClose={handleRewardModalClose}

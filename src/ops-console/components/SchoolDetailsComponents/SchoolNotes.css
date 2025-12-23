@@ -1,0 +1,109 @@
+.school-notes-container {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 8px 18px 40px 18px;
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.school-notes-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.school-notes-table thead tr {
+  background: #f5f7fb;
+}
+
+.school-notes-table thead th {
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  border-bottom: 1px solid #e5e7eb;
+  height: 40px;
+  white-space: nowrap;
+  background-color: #f5f7fb !important;
+  text-align: left !important;
+}
+
+.school-notes-table thead th,
+.school-notes-table td {
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  transform: none !important;
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+  vertical-align: middle !important;
+}
+
+.school-notes-table td {
+  padding: 18px 14px;
+  font-size: 14px;
+  color: #111;
+  border-bottom: 1px solid #f0f0f0;
+  height: 48px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400 !important;
+}
+
+.school-notes-table td:first-child {
+  width: 25%;
+  padding-left: 24px;
+}
+
+.school-notes-table tr:last-child td {
+  border-bottom: none;
+}
+
+.school-notes-row {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.school-notes-row:hover {
+  background: #fafafa;
+}
+
+.school-notes-pagination-container {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+
+/* Active page */
+.school-notes-pagination-container
+  .MuiPaginationItem-root.Mui-selected {
+  background-color: #4f46e5;
+  color: #ffffff;
+}
+
+.school-notes-loading {
+  padding: 24px;
+  font-size: 14px;
+}
+
+.school-notes-error {
+  padding: 12px 18px;
+  font-size: 14px;
+  color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  .school-notes-table td {
+    white-space: normal;
+  }
+}
+/* FORCE LEFT ALIGNMENT FOR ALL COLUMNS */
+.school-notes-table th,
+.school-notes-table td {
+  text-align: left !important;
+}

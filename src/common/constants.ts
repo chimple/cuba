@@ -862,6 +862,7 @@ export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
 
 export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
+export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 
 export type LeaderboardBadge = {
   id: string;
@@ -1019,7 +1020,7 @@ export interface StudentInfo {
   parent: TableTypes<"user"> | null;
   classWithidname?: {
     id: string;
-    name: string;
+    class_name: string;
   };
 }
 export interface StudentAPIResponse {
@@ -1197,3 +1198,4 @@ export const PERFORMANCE_UI: Record<
   },
 };
 export const COURSE_CHANGED = "courseChanged";
+export const NOTES_UPDATED_EVENT = "notes:updated";

@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -1498,10 +1498,12 @@ export type Database = {
           check_out_lat: number | null
           check_out_lng: number | null
           created_at: string
+          distance_from_school: string | null
           id: string
           is_deleted: boolean
           notes: string | null
           school_id: string
+          type: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at: string
           user_id: string
         }
@@ -1513,10 +1515,12 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
+          distance_from_school?: string | null
           id?: string
           is_deleted?: boolean
           notes?: string | null
           school_id: string
+          type?: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at?: string
           user_id: string
         }
@@ -1528,10 +1532,12 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
+          distance_from_school?: string | null
           id?: string
           is_deleted?: boolean
           notes?: string | null
           school_id?: string
+          type?: Database["public"]["Enums"]["school_visit_type"] | null
           updated_at?: string
           user_id?: string
         }
@@ -4825,6 +4831,10 @@ export type Database = {
         Returns: undefined
       }
       delete_user: { Args: { uuid: string }; Returns: boolean }
+      delete_user_from_class: {
+        Args: { p_class_id: string; p_user_id: string };
+        Returns: undefined;
+      }
       dump_user_table_policies: { Args: never; Returns: string }
       enqueue_message: {
         Args: { delay_seconds?: number; payload: Json; queue_name: string }
@@ -6394,6 +6404,10 @@ export type Database = {
         | "operational_director"
         | "field_coordinator"
         | "super_admin"
+      school_visit_type:
+        | "teacher_training_meeting"
+        | "parents_teacher_meeting"
+        | "regular_visit"
       special_roles:
         | "super_admin"
         | "operational_director"
@@ -6573,6 +6587,11 @@ export const Constants = {
         "operational_director",
         "field_coordinator",
         "super_admin",
+      ],
+      school_visit_type: [
+        "teacher_training_meeting",
+        "parents_teacher_meeting",
+        "regular_visit",
       ],
       special_roles: [
         "super_admin",

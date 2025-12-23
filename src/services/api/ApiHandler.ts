@@ -36,8 +36,12 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
+  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType,isEmailVerified: boolean) {
+    return this.s.createAtSchoolUser(id,schoolName,udise,role,isEmailVerified);
+  }
   public static i: ApiHandler;
 
   private s: ServiceApi;
@@ -313,7 +317,7 @@ export class ApiHandler implements ServiceApi {
   public async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<void> {
+  ): Promise<Boolean|void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -517,7 +521,9 @@ export class ApiHandler implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    activities_scores?: string | undefined,
+
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -542,7 +548,8 @@ export class ApiHandler implements ServiceApi {
       domain_id,
       domain_ability,
       subject_id,
-      subject_ability
+      subject_ability,
+      activities_scores
     );
   }
 
@@ -1788,6 +1795,7 @@ export class ApiHandler implements ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     return this.s.saveFcUserForm(payload);
   }
@@ -1803,19 +1811,47 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return await this.s.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return await this.s.getSchoolVisitById(visitIds);
   }
+
+  async createNoteForSchool(params: {
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+    mediaLinks?: string[] | null;
+  }): Promise<any> {
+    return this.s.createNoteForSchool(params);
+  }
+
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit?: number,
+  offset?: number
+): Promise<PaginatedResponse<SchoolNote>> {
+  return this.s.getNotesBySchoolId(schoolId, limit, offset);
+}
+
+
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string
   ): Promise<number | null> {
     return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
   }
+
   public async getSchoolStatsForSchool(
-    schoolId: string
+    schoolId: string,
+    currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
     return await this.s.getSchoolStatsForSchool(schoolId);
+  }
+
+  public async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    return await this.s.uploadSchoolVisitMediaFile(params);
   }
 }
