@@ -121,7 +121,6 @@
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
     "test": "craco test",
-    "test:deubg": "craco test --detectOpenHandles",
     "eject": "craco eject",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build --output-dir build/storybook"

@@ -24,8 +24,10 @@ module.exports = {
         "^@ionic/react$": "<rootDir>/src/tests/__mocks__/@ionic/react.tsx",
         "^@ionic/react-router$":
           "<rootDir>/src/tests/__mocks__/@ionic/react-router.tsx",
+
         "^@algolia/autocomplete-theme-classic$":
           "<rootDir>/src/tests/__mocks__/@algolia/autocomplete-theme-classic.ts",
+
         "^@capacitor/app$": "<rootDir>/src/tests/__mocks__/@capacitor/app.ts",
         "^@capacitor/core$": "<rootDir>/src/tests/__mocks__/@capacitor/core.ts",
         "^@capacitor/filesystem$":
@@ -40,6 +42,8 @@ module.exports = {
           "<rootDir>/src/tests/__mocks__/@capacitor/haptics.ts",
         "^@capacitor/device$":
           "<rootDir>/src/tests/__mocks__/@capacitor/device.ts",
+        "^@capacitor/geolocation$":
+          "<rootDir>/src/tests/__mocks__/@capacitor/geolocation.ts",
         "^@capacitor/screen-orientation$":
           "<rootDir>/src/tests/__mocks__/@capacitor/screen-orientation.ts",
         "^@capacitor/splash-screen$":
@@ -52,6 +56,7 @@ module.exports = {
           "<rootDir>/src/tests/__mocks__/@capacitor/browser.ts",
         "^@capacitor/barcode-scanner$":
           "<rootDir>/src/tests/__mocks__/@capacitor/barcode-scanner.ts",
+
         "^@capacitor-community/firebase-analytics$":
           "<rootDir>/src/tests/__mocks__/@capacitor-community/firebase-analytics.ts",
         "^@capacitor-community/sqlite$":
@@ -62,6 +67,7 @@ module.exports = {
           "<rootDir>/src/tests/__mocks__/@capacitor-community/in-app-review.ts",
         "^@capacitor-community/http$":
           "<rootDir>/src/tests/__mocks__/@capacitor-community/http.ts",
+
         "^@capacitor-firebase/authentication$":
           "<rootDir>/src/tests/__mocks__/@capacitor-firebase/authentication.ts",
         "^@capacitor-firebase/crashlytics$":
@@ -70,23 +76,33 @@ module.exports = {
           "<rootDir>/src/tests/__mocks__/@capacitor-firebase/messaging.ts",
         "^@capacitor-firebase/remote-config$":
           "<rootDir>/src/tests/__mocks__/@capacitor-firebase/remote-config.ts",
+
         "^@capawesome/capacitor-app-update$":
           "<rootDir>/src/tests/__mocks__/@capawesome/capacitor-app-update.ts",
         "^@capawesome/capacitor-live-update$":
           "<rootDir>/src/tests/__mocks__/@capawesome/capacitor-live-update.ts",
+
         "^@capgo/capacitor-social-login$":
           "<rootDir>/src/tests/__mocks__/@capgo/capacitor-social-login.ts",
+
         "^@chimple/palau-recommendation$":
           "<rootDir>/src/tests/__mocks__/@chimple/palau-recommendation.ts",
+
         "^@growthbook/growthbook-react$":
           "<rootDir>/src/tests/__mocks__/@growthbook/growthbook-react.ts",
+
         "^@splidejs/react-splide/css/core$":
           "<rootDir>/src/tests/__mocks__/@splidejs/react-splide/css/core.ts",
         "^@splidejs/react-splide/css$":
           "<rootDir>/src/tests/__mocks__/@splidejs/react-splide/css.ts",
+        "^react-leaflet$": "<rootDir>/src/tests/__mocks__/react-leaflet.tsx",
+        "^leaflet$": "<rootDir>/src/tests/__mocks__/leaflet.ts",
+
         "^query-string$": "<rootDir>/src/tests/__mocks__/query-string.ts",
         "^uuid$": "<rootDir>/src/tests/__mocks__/uuid.ts",
-
+        "^@ffmpeg/ffmpeg$":
+          "<rootDir>/src/tests/__mocks__/@ffmpeg/ffmpeg.ts",
+        "^@ffmpeg/util$": "<rootDir>/src/tests/__mocks__/@ffmpeg/util.ts",
         "^@/(.*)$": "<rootDir>/src/$1",
         ".+\\.(css|styl|less|sass|scss|gif|png|jpg|jpeg|svg|webp|ttf|woff|woff2)$":
           "identity-obj-proxy",
@@ -126,8 +142,8 @@ module.exports = {
         "!src/serviceWorker.ts",
         "!src/**/__mocks__/**",
         "!src/stories/**",
-        "!src/commom/constants.ts",
-        "!src/commom/courseConstants.ts",
+        "!src/common/constants.ts",
+        "!src/common/courseConstants.ts",
       ],
 
       coverageDirectory: "<rootDir>/coverage",
