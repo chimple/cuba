@@ -38,6 +38,8 @@ import {
   TeacherInfo,
   PrincipalInfo,
   PrincipalAPIResponse,
+  SchoolVisitAction,
+  SchoolVisitType,
   CoordinatorInfo,
   CoordinatorAPIResponse,
   EVENTS,
@@ -1139,6 +1141,27 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
 
     return updatedSchool;
+  }
+
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
+    const query = `UPDATE school SET location_link = ?, updated_at = ? WHERE id = ?`;
+    const updatedAt = new Date().toISOString();
+
+    await this.executeQuery(query, [locationString, updatedAt, schoolId]);
+
+    const school = await this.getSchoolById(schoolId);
+    if (school) {
+      this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, school);
+    }
   }
 
   // add request for creating new school
@@ -7194,6 +7217,38 @@ order by
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
     }
+  }
+
+  async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      return await this._serverApi.recordSchoolVisit(
+        schoolId,
+        lat,
+        lng,
+        action,
+        visitType,
+        distanceFromSchool
+      );
+    } catch (error) {
+      console.error("❌ Error recording school visit:", error);
+      return null;
+    }
+  }
+
+  async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    if (this._serverApi) {
+      return this._serverApi.getLastSchoolVisit(schoolId);
+    }
+    return Promise.resolve(null);
   }
 
   async updateClassCourses(
