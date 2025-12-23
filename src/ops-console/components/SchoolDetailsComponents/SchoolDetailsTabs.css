@@ -119,15 +119,15 @@
 }
 
 .btn-outline {
-  border: 1px solid #4F46E5;
+  border: 1px solid #2563eb;
   background: white;
-  color: #4F46E5;
+  color: #2563eb;
   padding: 8px 16px;
   border-radius: 6px;
 }
 
 .btn-primary {
-  background: #4F46E5;
+  background: #2563eb;
   color: white;
   padding: 8px 20px;
   border-radius: 6px;

@@ -507,7 +507,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               </>
             }
           />
-
         </div>
       )}
       {/* Modal outside the header */}
