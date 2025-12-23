@@ -520,8 +520,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                         <Marker 
                             position={[targetLocation.lat, targetLocation.lng]}
                             icon={new L.Icon({
-                                iconUrl: require('../../../assets/images/marker-icon-2x-green.png'),
-                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconUrl: require('../../../assets/images/marker-icon-2x-green.webp'),
+                                shadowUrl: require('../../../assets/images/marker-shadow.webp'),
                                 iconSize: [30, 41],
                                 iconAnchor: [12, 41],
                                 popupAnchor: [1, -34],
