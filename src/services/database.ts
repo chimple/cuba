@@ -4832,8 +4832,8 @@ export type Database = {
       }
       delete_user: { Args: { uuid: string }; Returns: boolean }
       delete_user_from_class: {
-        Args: { p_class_id: string; p_user_id: string };
-        Returns: undefined;
+        Args: { p_class_id: string; p_user_id: string }
+        Returns: boolean
       }
       dump_user_table_policies: { Args: never; Returns: string }
       enqueue_message: {
