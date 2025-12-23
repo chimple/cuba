@@ -333,7 +333,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -351,6 +351,38 @@ export class SupabaseApi implements ServiceApi {
       .getPublicUrl(filePath);
     const imageUrl = urlData?.data.publicUrl;
     return imageUrl || null;
+  }
+
+  async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    if (!this.supabase) {
+      throw new Error("Supabase client not initialized.");
+    }
+
+    const { schoolId, file } = params;
+    const filePath = `${file.name}`;
+
+    const uploadResponse = await this.supabase.storage
+      .from("school-visits")
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadResponse.error) {
+      console.error("Error uploading school visit media:", uploadResponse.error);
+      throw uploadResponse.error;
+    }
+
+    const urlData = this.supabase.storage
+      .from("school-visits")
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData.data.publicUrl;
+    if (!publicUrl) {
+      throw new Error("Failed to generate public URL for uploaded media.");
+    }
+
+    return publicUrl;
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
@@ -406,38 +438,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-          .channel(`upload-fallback-${uploadingUser}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "upload_queue",
-              filter: `uploading_user=eq.${uploadingUser}`,
-            },
-            async (payload) => {
-              const status = payload.new?.status;
-              const id = payload.new?.id;
-              console.log(
-                "🔄 [Fallback] Realtime update:",
-                status,
-                "ID:",
-                id
-              );
-              if (
-                (status === "success" || status === "failed") &&
-                !resolved
-              ) {
-                resolved = true;
-                await fallbackChannel?.unsubscribe();
+            .channel(`upload-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (payload) => {
+                const status = payload.new?.status;
+                const id = payload.new?.id;
                 console.log(
-                  `✅ / ❌ Fallback resolved with status: ${status}`
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
                 );
-                resolve(status === "success");
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
+                  resolve(status === "success");
+                }
               }
-            }
-          )
-          .subscribe()
+            )
+            .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -1034,41 +1066,22 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
-    if (!this.supabase) return;
+  // ServerApi.ts
+  async deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<Boolean | void> {
+    if (!this.supabase) return false;
+    const rpcRes = await this.supabase.rpc("delete_user_from_class", {
+      p_user_id: userId,
+      p_class_id: class_id,
+    });
 
-    const updatedAt = new Date().toISOString();
-    try {
-      const { error } = await this.supabase
-        .from(TABLES.ClassUser)
-        .update({
-          is_deleted: true,
-          updated_at: updatedAt,
-        })
-        .eq("user_id", userId)
-        .eq("class_id", class_id)
-        .eq("is_deleted", false);
-
-      if (error) {
-        console.error("Error deleting user from class_user:", error);
-      }
-
-      const { error: reqerror } = await this.supabase
-        .from(TABLES.OpsRequests)
-        .update({
-          is_deleted: true,
-          updated_at: updatedAt,
-        })
-        .eq("requested_by", userId)
-        .eq("class_id", class_id)
-        .eq("is_deleted", false);
-
-      if (reqerror) {
-        console.error("Error deleting user from ops_requests:", reqerror);
-      }
-    } catch (err) {
-      console.error("Exception in deleteUserFromClass:", err);
+    if (!rpcRes || rpcRes.error) {
+      return false;
     }
+
+    return true;
   }
 
   async createSchool(
@@ -2217,7 +2230,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -7334,8 +7347,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -7383,8 +7396,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -8373,21 +8386,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-            .from(TABLES.School)
-            .select("id, name, udise, group1,group2, group3, country")
-            .in("id", schoolIds)
+              .from(TABLES.School)
+              .select("id, name, udise, group1,group2, group3, country")
+              .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-            .from(TABLES.User)
-            .select("id, name, email, phone")
-            .in("id", userIds)
+              .from(TABLES.User)
+              .select("id, name, email, phone")
+              .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-            .from(TABLES.Class)
-            .select("id, name, school_id")
-            .in("id", classIds)
+              .from(TABLES.Class)
+              .select("id, name, school_id")
+              .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -9213,7 +9226,7 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string;[key: string]: any };
+      user: { id: string; [key: string]: any };
     };
     const isNewUser = message === "success-created";
     const dedupeAndPickLatest = async (
@@ -9274,7 +9287,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (isPrincipalRole && effectiveSchoolId) {
-
       const { data: teacherCU, error: teacherCUErr } = await this.supabase
         .from("class_user")
         .select("id, class_id, role, updated_at")
@@ -9294,7 +9306,6 @@ export class SupabaseApi implements ServiceApi {
         .filter(Boolean);
 
       if (teacherClassIds.length > 0) {
-
         const { data: match, error: matchErr } = await this.supabase
           .from("class")
           .select("id")
@@ -9481,11 +9492,9 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     if (!this.supabase) return;
 
-    schoolName =
-      schoolName?.trim().split(/\s+/)[0].toLowerCase() || "";
+    schoolName = schoolName?.trim().split(/\s+/)[0].toLowerCase() || "";
 
-    const schoolUdise =
-      udise ? `${udise}${schoolName}@chimple.net` : "";
+    const schoolUdise = udise ? `${udise}${schoolName}@chimple.net` : "";
 
     const { data: apiData, error: apiError } =
       await this.supabase.functions.invoke("get_or_create_user", {
@@ -9523,33 +9532,32 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
 
-      const { data: existing } = await this.supabase
+    const { data: existing } = await this.supabase
+      .from("school_user")
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("role", roleType)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error } = await this.supabase
         .from("school_user")
-        .select("id")
-        .eq("school_id", schoolId)
-        .eq("role", roleType)
-        .maybeSingle();
+        .insert(insertPayload);
 
-      if (!existing) {
-        const { error } = await this.supabase
-          .from("school_user")
-          .insert(insertPayload);
-
-        if (error) {
-          console.error("Error inserting at_school/hybrid user:", error);
-        }
-      } else {
-        const { error } = await this.supabase
-          .from("school_user")
-          .update(updatePayload)
-          .eq("id", existing.id);
-
-        if (error) {
-          console.error("Error updating at_school/hybrid user:", error);
-        }
+      if (error) {
+        console.error("Error inserting at_school/hybrid user:", error);
       }
-  }
+    } else {
+      const { error } = await this.supabase
+        .from("school_user")
+        .update(updatePayload)
+        .eq("id", existing.id);
 
+      if (error) {
+        console.error("Error updating at_school/hybrid user:", error);
+      }
+    }
+  }
 
   async insertSchoolDetails(
     schoolId: string,
@@ -9915,6 +9923,7 @@ export class SupabaseApi implements ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     if (!this.supabase) {
       return { data: null, error: new Error("Supabase not initialized") };
@@ -9936,6 +9945,10 @@ export class SupabaseApi implements ServiceApi {
         tech_issues_reported: payload.techIssuesReported,
         comment: payload.comment ?? null,
         tech_issue_comment: payload.techIssueComment ?? null,
+        media_links:
+          payload.mediaLinks && payload.mediaLinks.length > 0
+            ? JSON.stringify(payload.mediaLinks)
+            : null,
       })
       .select()
       .single();
@@ -10041,7 +10054,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
   async getRecentAssignmentCountByTeacher(
     teacherId: string,
     classId: string
@@ -10074,13 +10086,14 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<any> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return null;
     }
 
-    const { schoolId, classId = null, content } = params;
+    const { schoolId, classId = null, content, mediaLinks = null } = params;
 
     // ---- GET CURRENT USER ----
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -10092,8 +10105,22 @@ export class SupabaseApi implements ServiceApi {
 
     // ---- TODAY TIME WINDOW ----
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0).toISOString();
+    const startOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0
+    ).toISOString();
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0
+    ).toISOString();
 
     let visitId: string | null = null;
 
@@ -10121,6 +10148,8 @@ export class SupabaseApi implements ServiceApi {
       class_id: classId,
       comment: content,
       is_deleted: false,
+      media_links:
+        mediaLinks && mediaLinks.length > 0 ? JSON.stringify(mediaLinks) : null,
 
       // Required NOT NULL:
       contact_target: "school" as any,
@@ -10137,7 +10166,7 @@ export class SupabaseApi implements ServiceApi {
     // ---- 2) INSERT ROW ----
     const insertRes = await this.supabase
       .from("fc_user_forms")
-      .insert([insertPayload])  // MUST be an array
+      .insert([insertPayload]) // MUST be an array
       .select("*")
       .single();
 
@@ -10191,7 +10220,6 @@ export class SupabaseApi implements ServiceApi {
       },
     };
   }
-
 
   async getNotesBySchoolId(
     schoolId: string,
@@ -10303,9 +10331,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
-
-
   async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
       return {
@@ -10368,8 +10393,7 @@ export class SupabaseApi implements ServiceApi {
       let students_interacted = 0;
       let teachers_interacted = 0;
       (forms || []).forEach((row: any) => {
-        const isCallInteraction =
-          row.contact_method === "call";
+        const isCallInteraction = row.contact_method === "call";
         const isInPersonInteraction = row.contact_method === "in_person";
         if (isCallInteraction) {
           calls_made += 1;

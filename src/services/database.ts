@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -4831,6 +4831,10 @@ export type Database = {
         Returns: undefined
       }
       delete_user: { Args: { uuid: string }; Returns: boolean }
+      delete_user_from_class: {
+        Args: { p_class_id: string; p_user_id: string };
+        Returns: undefined;
+      }
       dump_user_table_policies: { Args: never; Returns: string }
       enqueue_message: {
         Args: { delay_seconds?: number; payload: Json; queue_name: string }

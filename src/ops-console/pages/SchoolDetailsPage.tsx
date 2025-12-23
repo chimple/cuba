@@ -93,7 +93,10 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
   // Handler moved INSIDE the component so it has access to id, setShowAddModal, setActiveTab
-  const handleAddNoteHeader = async (payload: { text: string }) => {
+  const handleAddNoteHeader = async (payload: {
+    text: string;
+    mediaLinks?: string[] | null;
+  }) => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       // call the API you added; classId = null for school-level note
@@ -101,6 +104,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         schoolId: id,
         classId: null,
         content: payload.text,
+        mediaLinks: payload.mediaLinks ?? null,
       });
 
       // close modal
@@ -324,6 +328,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         onClose={() => setShowAddModal(false)}
         onSave={handleAddNoteHeader}
         source="school"
+        schoolId={id}
       />
 
       <div className="school-detail-tertiary-gap" />

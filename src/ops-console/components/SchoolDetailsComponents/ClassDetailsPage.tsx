@@ -120,7 +120,10 @@ const ClassDetailsPage: React.FC<Props> = ({
   const finalActiveStudentsSt = String(activeStudentCount);
 
   // UPDATED: call the API and dispatch NOTES_UPDATED_EVENT so SchoolNotes will update and open preview
-  const handleAddNoteSave = async (payload: { text: string }) => {
+  const handleAddNoteSave = async (payload: {
+    text: string;
+    mediaLinks?: string[] | null;
+  }) => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       if (!api || !api.createNoteForSchool) {
@@ -134,6 +137,7 @@ const ClassDetailsPage: React.FC<Props> = ({
         schoolId,
         classId,
         content: payload.text,
+        mediaLinks: payload.mediaLinks ?? null,
       });
 
       // created should be the structured object returned by your supabase API
@@ -227,6 +231,7 @@ const ClassDetailsPage: React.FC<Props> = ({
         onClose={handleAddNoteCancel}
         onSave={handleAddNoteSave}
         source="class"
+        schoolId={schoolId}
       />
 
       <Box
