@@ -724,6 +724,7 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.Assignment_cart,
   TABLES.ReqNewSchool,
   TABLES.Program,
+  TABLES.FcSchoolVisit,
 ];
 
 export const AVATARS: string[] = [
@@ -862,6 +863,7 @@ export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
 
 export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
+export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 
 export type LeaderboardBadge = {
   id: string;
@@ -1019,7 +1021,7 @@ export interface StudentInfo {
   parent: TableTypes<"user"> | null;
   classWithidname?: {
     id: string;
-    name: string;
+    class_name: string;
   };
 }
 export interface StudentAPIResponse {
@@ -1124,7 +1126,7 @@ export enum SupportLevelMap {
 
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = "framework",
-  CHAPTER = "chapter"
+  CHAPTER = "chapter",
 }
 
 export enum PerformanceLevel {
@@ -1145,6 +1147,27 @@ export enum ContactTarget {
   PARENT = "parent",
   SCHOOL = "school",
   CLASS = "class",
+}
+export enum SchoolVisitAction {
+  CheckIn = "check_in",
+  CheckOut = "check_out",
+}
+
+export enum SchoolVisitType {
+  Regular = "regular_visit",
+  ParentsTeacherMeeting = "parents_teacher_meeting",
+  TeacherTraining = "teacher_training_meeting",
+}
+
+export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
+  [SchoolVisitType.Regular]: "Regular Visit",
+  [SchoolVisitType.ParentsTeacherMeeting]: "Parents Teacher Meeting",
+  [SchoolVisitType.TeacherTraining]: "Teacher Training Meeting",
+};
+
+export enum SchoolVisitStatus {
+  CheckedIn = "checked_in",
+  CheckedOut = "checked_out",
 }
 export const PERFORMANCE_UI: Record<
   PerformanceLevel,

@@ -15,12 +15,14 @@ const HeaderIcon: React.FC<{
   pendingAssignmentCount: number | undefined;
   pendingLiveQuizCount: number | undefined;
   onHeaderIconClick: Function;
+  isProfile?: boolean;
 }> = ({
   headerConfig,
   currentHeader,
   pendingAssignmentCount,
   pendingLiveQuizCount,
   onHeaderIconClick,
+  isProfile = false,
 }) => {
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
   const isHomeworkNotificationIconOn = useFeatureIsOn("homework_notification_icon");
@@ -82,6 +84,7 @@ const HeaderIcon: React.FC<{
             onHeaderIconClick(headerConfig.headerList);
           }
         }}
+        isProfile={isProfile}
       />
     </div>
   );

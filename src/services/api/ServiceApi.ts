@@ -24,11 +24,17 @@ import {
   TableTypes,
   TabType,
   TeacherAPIResponse,
+  SchoolVisitAction,
+  SchoolVisitType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { RoleType, CreateSchoolNoteInput, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  RoleType,
+  CreateSchoolNoteInput,
+  SchoolNote,
+} from "../../interface/modelInterfaces";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -51,7 +57,6 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
-
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
    * @param {string} id - school id
@@ -62,8 +67,8 @@ export interface ServiceApi {
    */
   createAtSchoolUser(
     id: string,
-    schoolName:string,
-    udise:string,
+    schoolName: string,
+    udise: string,
     role: RoleType,
     isEmailVerified: boolean
   ): Promise<void>;
@@ -143,6 +148,40 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Updates the school's location (coordinates).
+   * @param {string} schoolId - The unique identifier of the school.
+   * @param {number} lat - Latitude.
+   * @param {number} lng - Longitude.
+   * @returns {Promise<void>}
+   */
+  updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void>;
+
+  /**
+   * Records a school visit (check-in or check-out).
+   * @param schoolId - The school ID.
+   * @param lat - Latitude.
+   * @param lng - Longitude.
+   * @param action - 'check_in' or 'check_out'.
+   * @param visitType - Type of visit (optional, for check-in).
+   */
+  recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   /**
    * Clears all rows from the specified tables in the local SQLite database.
@@ -260,7 +299,11 @@ export interface ServiceApi {
    * @param {string } studentId - Student Id
    * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
+  // ServiceApi.ts
+  deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<Boolean | void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -597,9 +640,7 @@ export interface ServiceApi {
   /**
    * Fetches skills linked to the given outcome ids.
    */
-  getSkillsByOutcomeIds(
-    outcomeIds: string[]
-  ): Promise<TableTypes<"skill">[]>;
+  getSkillsByOutcomeIds(outcomeIds: string[]): Promise<TableTypes<"skill">[]>;
 
   /**
    * Fetches results for the given student and skill ids.
@@ -2417,6 +2458,7 @@ export interface ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   });
 
   /**
@@ -2443,8 +2485,8 @@ export interface ServiceApi {
    * @returns Promise resolving to school visit details or null if not found.
    */
   getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null>;
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]>;
 
   /**
    * Fetch filter options for FC activities.
@@ -2471,25 +2513,27 @@ export interface ServiceApi {
     classId: string
   ): Promise<number | null>;
 
-    // notes
+  // notes
   createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<CreateSchoolNoteInput>;
 
+  uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string>;
+
   getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>>;
-
-
+    schoolId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<PaginatedResponse<SchoolNote>>;
 
   /**
    * Get interactions metrics for a school.
    */
-  getSchoolStatsForSchool(
-    schoolId: string
-  ): Promise<FCSchoolStats>;
+  getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
 }

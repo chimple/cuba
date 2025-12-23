@@ -38,6 +38,8 @@ import {
   TeacherInfo,
   PrincipalInfo,
   PrincipalAPIResponse,
+  SchoolVisitAction,
+  SchoolVisitType,
   CoordinatorInfo,
   CoordinatorAPIResponse,
   EVENTS,
@@ -1141,6 +1143,27 @@ export class SqliteApi implements ServiceApi {
     return updatedSchool;
   }
 
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
+    const query = `UPDATE school SET location_link = ?, updated_at = ? WHERE id = ?`;
+    const updatedAt = new Date().toISOString();
+
+    await this.executeQuery(query, [locationString, updatedAt, schoolId]);
+
+    const school = await this.getSchoolById(schoolId);
+    if (school) {
+      this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, school);
+    }
+  }
+
   // add request for creating new school
   async requestNewSchool(
     name: string,
@@ -1235,13 +1258,17 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.OpsRequests}
     WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
 
-    const res1 = await this._db?.query(query1, [requested_by,class_id,school_id]);
+    const res1 = await this._db?.query(query1, [
+      requested_by,
+      class_id,
+      school_id,
+    ]);
 
     let ops_rq;
     if (res1 && res1.values && res1.values.length > 0) {
       ops_rq = res1.values[0];
     }
-    if(!ops_rq){
+    if (!ops_rq) {
       return;
     }
 
@@ -2259,7 +2286,7 @@ export class SqliteApi implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined,
+    activities_scores?: string | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -3241,54 +3268,23 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
-    const updatedAt = new Date().toISOString();
-    try {
-      await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
-      );
-      const query = `
-      SELECT *
-      FROM ${TABLES.ClassUser}
-      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
-      let userData;
-      if (res && res.values && res.values.length > 0) {
-        userData = res.values[0];
-      }
-      this.updatePushChanges(
-        TABLES.ClassUser,
-        MUTATE_TYPES.UPDATE,
-        {
-          id: userData.id,
-          is_deleted: true,
-          updated_at: updatedAt,
-        },
-        false
-      );
-
-      await this.executeQuery(
-        `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
-      );
-      const query1 = `
-      SELECT *
-      FROM ${TABLES.OpsRequests}
-      WHERE requested_by = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res1 = await this._db?.query(query1, [userId, class_id, updatedAt]);
-      let userData1;
-      if (res1 && res1.values && res1.values.length > 0) {
-        userData1 = res1.values[0];
-      }
-      this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
-        id: userData1.id,
-        is_deleted: true,
-        updated_at: updatedAt,
-      });
-    } catch (error) {
-      console.error("Error deleting user from class_user", error);
+  async deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<Boolean | void> {
+    if (!userId || !class_id) {
+      throw new Error("User ID and Class ID are required");
     }
+
+    // 1️⃣ Call server (RPC)
+    const res = await this._serverApi.deleteUserFromClass(userId, class_id);
+
+    if (res === false) {
+      throw new Error("Failed to delete user from class");
+    }
+
+    // 2️⃣ Sync local DB (pull latest)
+    this.syncDB();
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
@@ -7164,7 +7160,11 @@ order by
     return this._serverApi.getOrcreateschooluser(params);
   }
   public async createAtSchoolUser(
-    id: string, schoolName: string,udise: string, role: RoleType, isEmailVerified: boolean
+    id: string,
+    schoolName: string,
+    udise: string,
+    role: RoleType,
+    isEmailVerified: boolean
   ): Promise<void> {
     console.error("Method not implemented.");
   }
@@ -7217,6 +7217,38 @@ order by
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
     }
+  }
+
+  async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      return await this._serverApi.recordSchoolVisit(
+        schoolId,
+        lat,
+        lng,
+        action,
+        visitType,
+        distanceFromSchool
+      );
+    } catch (error) {
+      console.error("❌ Error recording school visit:", error);
+      return null;
+    }
+  }
+
+  async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    if (this._serverApi) {
+      return this._serverApi.getLastSchoolVisit(schoolId);
+    }
+    return Promise.resolve(null);
   }
 
   async updateClassCourses(
@@ -7300,6 +7332,7 @@ order by
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     throw new Error("Method not implemented.");
   }
@@ -7315,9 +7348,9 @@ order by
     return this._serverApi.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return this._serverApi.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return this._serverApi.getSchoolVisitById(visitIds);
   }
   async getActivitiesFilterOptions() {
     throw new Error("Method not implemented.");
@@ -7327,25 +7360,21 @@ order by
   schoolId: string;
   classId?: string | null;
   content: string;
+  mediaLinks?: string[] | null;
 }): Promise<any> {
   console.warn("createNoteForSchool is not supported in SQLite mode");
   return this._serverApi.createNoteForSchool(params);
 }
 
-async getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>> {
-  console.warn("getNotesBySchoolId is not supported in SQLite mode");
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<PaginatedResponse<SchoolNote>> {
+    console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
-  return this._serverApi.getNotesBySchoolId(
-    schoolId,
-    limit,
-    offset
-  );
-}
-
+    return this._serverApi.getNotesBySchoolId(schoolId, limit, offset);
+  }
 
   async getRecentAssignmentCountByTeacher(
     teacherId: string,
@@ -7357,5 +7386,11 @@ async getNotesBySchoolId(
     schoolId: string
   ): Promise<FCSchoolStats> {
     return this._serverApi.getSchoolStatsForSchool(schoolId);
+  }
+  public async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    return this._serverApi.uploadSchoolVisitMediaFile(params);
   }
 }

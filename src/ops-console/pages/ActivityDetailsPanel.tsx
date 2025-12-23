@@ -5,7 +5,6 @@ import {
   IconButton,
   Paper,
   Chip,
-  Divider,
   Drawer,
 } from "@mui/material";
 
@@ -14,6 +13,8 @@ import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
 import { FcActivity } from "../../interface/modelInterfaces";
+import MediaDisplay , { MediaItem } from "../components/MediaDisplay";
+
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak  (with ID)
@@ -43,7 +44,7 @@ const InfoRow = ({
         fontSize: "14px",
         fontWeight: 500,
         color: "text.secondary",
-        width: "120px",
+        width: "90px",
         textAlign: "left",
         whiteSpace: "nowrap",
       }}
@@ -107,6 +108,7 @@ const DetailSection = ({
   );
 };
 
+
 /* -------------------------------------------------------
    MAIN PANEL
 --------------------------------------------------------*/
@@ -128,7 +130,7 @@ const isValidText = (value?: string) => {
 };
 
 
-const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
+const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose}) => {
   if (!activity) return null;
 
   const { raw, user, classInfo } = activity;
@@ -154,6 +156,25 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
   }
 
   const otherComments = raw.comment || "--";
+  let mediaItems: MediaItem[] = [];
+
+if (raw.media_links) {
+  try {
+    const links: string[] =
+      typeof raw.media_links === "string"
+        ? JSON.parse(raw.media_links)
+        : [];
+
+    mediaItems = links.map((url) => ({
+      url,
+      type: url.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|mpg|mpeg|3gp|m4v)$/i) ? "video" : "image",
+    }));
+  } catch (err) {
+    console.error("Invalid media_links JSON", err);
+    mediaItems = [];
+  }
+}
+
 
   return (
     <Drawer
@@ -185,8 +206,6 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         </IconButton>
       </Box>
 
-      <Divider sx={{ my: 2 }} />
-
       {/* TOP INFO CARD */}
       <Paper
         id="fc-top-info-card"
@@ -195,7 +214,9 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         sx={{
           border: "1px solid #e0e0e0",
           borderRadius: 2,
-          p: 2.5,
+          pt: 1.5,
+          pb: 0.3,
+          px: 1.5,
           mb: 4,
           bgcolor: "#ffffff",
         }}
@@ -288,9 +309,21 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
           <DetailSection
             id="fc-tech-issue-reported"
             label={t("Tech Issue Reported")}
-            text={raw.tech_issue_comment?? ""}
+            text={raw.tech_issue_comment ?? ""}
           />
-        )}
+        )
+      }
+
+      {raw.tech_issues_reported === true &&
+        isValidText(raw.tech_issue_comment) && (
+        <MediaDisplay
+        id="fc-media"
+        label={t("Attached Media")}
+        media={mediaItems}
+      />
+        )
+      }
+
 
 
     </Drawer>

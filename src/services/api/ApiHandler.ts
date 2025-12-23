@@ -1,5 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -244,6 +245,20 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    return await this.s.updateSchoolLocation(schoolId, lat, lng);
+  }
+
+  public async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getLastSchoolVisit(schoolId);
+  }
+
   public async requestNewSchool(
     name: string,
     state: string,
@@ -317,7 +332,7 @@ export class ApiHandler implements ServiceApi {
   public async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<void> {
+  ): Promise<Boolean|void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -1795,6 +1810,7 @@ export class ApiHandler implements ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   }) {
     return this.s.saveFcUserForm(payload);
   }
@@ -1810,15 +1826,16 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
-    visitId: string
-  ): Promise<TableTypes<"fc_school_visit"> | null> {
-    return await this.s.getSchoolVisitById(visitId);
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    return await this.s.getSchoolVisitById(visitIds);
   }
 
   async createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<any> {
     return this.s.createNoteForSchool(params);
   }
@@ -1844,5 +1861,30 @@ export class ApiHandler implements ServiceApi {
     currentUser: TableTypes<"user"> | null = null
   ): Promise<FCSchoolStats> {
     return await this.s.getSchoolStatsForSchool(schoolId);
+  }
+
+  public async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this.s.recordSchoolVisit(
+      schoolId,
+      lat,
+      lng,
+      action,
+      visitType,
+      distanceFromSchool
+    );
+  }
+  
+  public async uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string> {
+    return await this.s.uploadSchoolVisitMediaFile(params);
   }
 }
