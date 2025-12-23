@@ -2453,6 +2453,7 @@ export interface ServiceApi {
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
+    mediaLinks?: string[] | null;
   });
 
   /**
@@ -2512,7 +2513,13 @@ export interface ServiceApi {
     schoolId: string;
     classId?: string | null;
     content: string;
+    mediaLinks?: string[] | null;
   }): Promise<CreateSchoolNoteInput>;
+
+  uploadSchoolVisitMediaFile(params: {
+    schoolId: string;
+    file: File;
+  }): Promise<string>;
 
   getNotesBySchoolId(
   schoolId: string,
