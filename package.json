@@ -29,11 +29,13 @@
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/keyboard": "^7.0.3",
     "@capacitor/local-notifications": "^7.0.3",
+    "@capacitor/preferences": "^7.0.2",
     "@capacitor/screen-orientation": "^7.0.2",
     "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
     "@capacitor/toast": "^7.0.2",
     "@capawesome/capacitor-app-update": "^7.0.1",
+    "@capawesome/capacitor-live-update": "^7.2.2",
     "@capgo/capacitor-social-login": "^7.11.8",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -109,7 +111,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "GENERATE_SOURCEMAP=false craco build && npm run copy-build && npm run create-check-sum && cap sync",
+    "build": "GENERATE_SOURCEMAP=false craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build && cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
@@ -139,6 +141,7 @@
     ]
   },
   "devDependencies": {
+    "@capawesome/cli": "^3.3.0",
     "@chromatic-com/storybook": "^1.4.0",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/addon-interactions": "^8.6.14",

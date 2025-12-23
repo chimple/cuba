@@ -23,6 +23,7 @@ import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { OneRosterAuth } from "./OneRosterAuth";
+import { Capacitor } from "@capacitor/core";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -36,7 +37,6 @@ export class SupabaseAuth implements ServiceAuth {
   refreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -189,13 +189,23 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return { success: false, isSpl: false };
 
       const api = ServiceConfig.getI().apiHandler;
-      const response = await SocialLogin.login({
-        provider: "google",
-        options: {
-          scopes: ["profile", "email"],
-          forceRefreshToken: true,
-        },
-      });
+      let response;
+      if (Capacitor.isNativePlatform()) {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+            forceRefreshToken: true,
+          },
+        });
+      } else {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+          },
+        });
+      }
       if (response.result?.responseType !== "online") {
         return { success: false, isSpl: false };
       }
@@ -463,7 +473,7 @@ export class SupabaseAuth implements ServiceAuth {
     max = 5
   ): Promise<T> {
     let attempt = 1;
-    for (;;) {
+    for (; ;) {
       try {
         const { data, error } = await fn();
         if (error) throw error;
@@ -474,8 +484,7 @@ export class SupabaseAuth implements ServiceAuth {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${
-            burn ? "" : " (not counting)"
+          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"
           }; retrying in ${backoff}ms`,
           err
         );
@@ -568,8 +577,11 @@ export class SupabaseAuth implements ServiceAuth {
           isFirstSync
         );
       }
+      try {
+        await api.updateFcmToken(user.user?.id ?? "");
+      } catch (err) {
 
-      await api.updateFcmToken(user?.user?.id ?? "");
+      }
       if (isUserExist) await api.subscribeToClassTopic();
 
       return { user, isUserExist: !!isUserExist, isSpl };

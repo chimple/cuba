@@ -1,3 +1,45 @@
+.reject-reason-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.reject-reason-radio {
+  display: flex;
+  align-items: flex-start;
+  background: #f6f7fb;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+.reject-reason-radio.selected {
+  border: 2px solid #1a73e8;
+  background: #eaf1fe;
+}
+.reject-reason-radio input[type="radio"] {
+  margin-right: 12px;
+  margin-top: 2px;
+  accent-color: #1a73e8;
+  flex-shrink: 0;
+}
+.reject-reason-radio span {
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 4px;
+  display: block;
+}
+.reject-reason-desc {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.reject-reason-section {
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
 .reject-popup-overlay {
   position: fixed;
   top: 0;
@@ -8,17 +50,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
+}
+
+.reject-popup-custom-field {
+    display: flex;
+    flex-direction: column;
 }
 
 .reject-popup-container {
-  width: 400px;
-  height: 300px;
+  width: 480px;
+  max-height: 90vh;
   background: #fff;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow-y: auto;
 }
 
 .reject-popup-header {
@@ -62,30 +111,54 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.reject-error-message {
+  background: #fdecea;
+  color: #d93025;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  border: 1px solid #f5c6cb;
 }
 
 .reject-popup-body label {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: #374151;
 }
 
 .reject-popup-body textarea {
-  flex: 1;
-  resize: none;
-  padding: 8px;
+  min-height: 80px;
+  resize: vertical;
+  padding: 12px;
   color: #374151;
   background-color: #ffffff;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 14px;
+  font-family: inherit;
+  margin-top: 4px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.reject-popup-body textarea:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 
 .reject-popup-footer {
   display: flex;
   justify-content: space-between;
-  margin-top: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+  gap: 12px;
 }
 
 .reject-popup-cancel-btn {
@@ -110,4 +183,64 @@
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+}
+
+.reject-popup-flag-btn {
+  width: 160px;
+  height: 40px;
+  background: #ff9800;
+  color: #fff;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.reject-popup-cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+.reject-popup-reject-btn:hover {
+  background: #c62d42;
+}
+
+.reject-popup-flag-btn:hover {
+  background: #f57c00;
+}
+
+.reject-popup-cancel-btn:disabled,
+.reject-popup-reject-btn:disabled,
+.reject-popup-flag-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 640px) {
+  .reject-popup-container {
+    width: 90vw;
+    max-width: 90vw;
+    margin: 20px;
+    padding: 20px;
+  }
+  
+  .reject-popup-footer {
+    flex-direction: column;
+  }
+  
+  .reject-popup-cancel-btn,
+  .reject-popup-reject-btn,
+  .reject-popup-flag-btn {
+    width: 100%;
+  }
+  
+  .reject-reason-radio {
+    padding: 10px 12px;
+  }
+  
+  .reject-popup-header-img img {
+    width: 35px;
+    height: 35px;
+  }
 }

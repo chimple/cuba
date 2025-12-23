@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./SchoolUserList.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { SCHOOL_USERS, TableTypes, USER_ROLE } from "../../../common/constants";
+import {
+  SCHOOL_USERS,
+  TableTypes,
+  USER_ROLE,
+  OPS_ROLES,
+} from "../../../common/constants";
 import { IonIcon } from "@ionic/react";
 import { RoleType } from "../../../interface/modelInterfaces";
 import SchoolUserDetail from "./SchoolUserDetail";
 import { trashOutline } from "ionicons/icons";
 import CommonDialogBox from "../../../common/CommonDialogBox";
 import { t } from "i18next";
+import { Util } from "../../../utility/util";
 
 const SchoolUserList: React.FC<{
   schoolDoc: TableTypes<"school">;
   userType: SCHOOL_USERS;
-}> = ({ schoolDoc, userType }) => {
+  role: RoleType;
+}> = ({ schoolDoc, userType, role }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [allPrincipals, setAllPrincipals] = useState<TableTypes<"user">[]>();
   const [allCoordinators, setAllCoordinators] =
@@ -27,7 +34,7 @@ const SchoolUserList: React.FC<{
     null
   );
   const auth = ServiceConfig.getI()?.authHandler;
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+
   useEffect(() => {
     init();
   }, []);
@@ -35,6 +42,7 @@ const SchoolUserList: React.FC<{
   const init = async () => {
     const user = await auth?.getCurrentUser();
     setCurrentUser(user!);
+    Util.setCurrentSchool(schoolDoc, role);
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);
       setAllPrincipals(principalDocs);
@@ -94,9 +102,16 @@ const SchoolUserList: React.FC<{
       }
       await api.updateSchoolLastModified(schoolDoc.id);
       await api.updateUserLastModified(selectedUser.id);
-
     }
   };
+
+  const canDelete = useMemo(
+    () =>
+      OPS_ROLES.includes(role) ||
+      role === RoleType.PRINCIPAL ||
+      role === RoleType.COORDINATOR,
+    [role]
+  );
 
   return (
     <div>
@@ -112,8 +127,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -141,8 +155,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -170,8 +183,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

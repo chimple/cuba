@@ -56,62 +56,57 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   };
 
   return (
-    <div className="detail-list-div">
-      <div className="detail-list__header">
-        <div />
-        <div className="detail-list__icon-container">
-          <div className="detail-list__icon-container-users">{t("Users")}</div>
-          <div className="detail-list__icon-container-subjects">
-            {t("Subjects")}
-          </div>
-        </div>
+    <div className="main-list">
+
+      <div className="detail-header-row">
+      <span className="detail-header-empty"></span>
+      <span className="detail-header-users">{t("Users")}</span>
+      <span className="detail-header-subjects">{t("Subjects")}</span>
       </div>
 
-      <div className="main-list">
-        {data.map((item) => {
-          const name =
-            type === IconType.SCHOOL
-              ? (item as SchoolWithRole).school.name
-              : (item as TableTypes<"class">).name;
+      {data.map((item) => {
+        const name =
+          type === IconType.SCHOOL
+            ? (item as SchoolWithRole).school.name
+            : (item as TableTypes<"class">).name;
 
-          const id =
-            type === IconType.SCHOOL
-              ? (item as SchoolWithRole).school.id
-              : (item as TableTypes<"class">).id;
+        const id =
+          type === IconType.SCHOOL
+            ? (item as SchoolWithRole).school.id
+            : (item as TableTypes<"class">).id;
 
-          return (
-            <div key={id}>
-              <div className="detail-container">
-                <div
-                  className="detail-section"
-                  onClick={() => handleItemClick(item)}
-                >
-                  {type === IconType.SCHOOL && (
-                    <SchoolIcon className="list-icon" />
-                  )}
-                  <span className="detail-school-name">{name}</span>
-                </div>
-
-                <div className="class-icons">
-                  <img
-                    src="assets/icons/schoolUserIcon.svg"
-                    alt="User_Icon"
-                    onClick={() => handleUserIconClick(item)}
-                    className="class-user-icon"
-                  />
-                  <img
-                    src="assets/icons/subjectUserIcon.svg"
-                    alt="User_Subject"
-                    onClick={() => handleSubjectIconClick(item)}
-                    className="class-subjects-icon"
-                  />
-                </div>
+        return (
+          <div key={id}>
+            <div className="detail-container">
+              <div
+                className="detail-section"
+                onClick={() => handleItemClick(item)}
+              >
+                {type === IconType.SCHOOL && (
+                  <SchoolIcon className="list-icon" />
+                )}
+                <span className="detail-school-name">{name}</span>
               </div>
-              <hr className="detail-horizontal-line" />
+
+              <div className="class-icons">
+                <img
+                  src="assets/icons/schoolUserIcon.svg"
+                  alt="User_Icon"
+                  onClick={() => handleUserIconClick(item)}
+                  className="class-user-icon"
+                />
+                <img
+                  src="assets/icons/subjectUserIcon.svg"
+                  alt="User_Subject"
+                  onClick={() => handleSubjectIconClick(item)}
+                  className="class-subjects-icon"
+                />
+              </div>
             </div>
-          );
-        })}
-      </div>
+            <hr className="detail-horizontal-line" />
+          </div>
+        );
+      })}
     </div>
   );
 };

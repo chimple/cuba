@@ -1,0 +1,191 @@
+.post-success-page {
+  background: white;
+  height: 100%;
+}
+
+.post-success-confirm-page {
+  background: white;
+  height: 100%;
+  text-align: center;
+}
+
+.post-success-confirm-message {
+  box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.25);
+  padding: 10px;
+  border-radius: 8px;
+  color: #808080;
+  margin: 15px auto;
+  width: 90%;
+}
+
+.post-success-sent-request-header {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #7c5db0 !important;
+}
+
+.post-success-request-box {
+  padding: 10px;
+  text-align: center;
+  width: 90%;
+  height: auto;
+  cursor: pointer;
+  /* min-height: 100%; */
+  margin: 15px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-success-request-box > * {
+  width: 45%;
+}
+
+.post-success-create-school-whatsapp-support {
+  position: relative;
+  border: 1.5px solid #67D449;
+  border-radius: 10px;
+  padding: 0px; 
+  display: flex;
+  align-items: center;
+  background: #fff;
+  height: 50px;
+  max-width: 90%;
+  margin: 15px auto;
+  cursor: pointer;
+}
+
+.post-success-create-school-whatsapp-support-text {
+  text-align: center;
+  margin: auto; 
+}
+
+.post-success-create-school-whatsapp-support-text p {
+  font-weight: 500;
+  color: #7c5db0;
+  font-size: 14px;
+  margin: auto;
+}
+
+.post-success-whatsapp-support-icon {
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #25D366;
+  border-radius: 50%;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-success-create-school-whatsapp-support-text {
+  text-align: center;
+  margin: auto; 
+}
+
+.post-success-create-school-whatsapp-support-text p {
+  font-weight: 500;
+  color: #7c5db0;
+  font-size: 14px;
+  margin: auto;
+}
+
+.post-success-span-text-whatsapp{
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.post-success-create-school-youtube-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.post-success-create-school-youtube-video {
+  width: 120px;
+  height: 80px;
+  border-radius: 10px;
+  border: none;
+}
+
+.post-success-create-school-youtube-subtext {
+  font-size: 12px;
+  font-weight: 600;
+  color: #808080;
+}
+
+.post-success-divider {
+  border: none;
+  background-color: #7c5db0;
+  width: 90%;
+  height: 2px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  margin-left: 5%;
+}
+
+.post-success-create-school-confirm-subtext p{
+  font-size: 16px;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #808080;
+}
+
+.post-success-app-links, .post-success-create-school-app-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.post-success-app-card {
+  background-color: #F4EEFE;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  width: 70vw;
+  height: auto;
+  cursor: pointer;
+  min-height: 100%;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+.post-success-card-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
+
+.post-success-create-school-app-subtext {
+  color: #666;
+  max-width: 12rem;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.post-success-create-school-card-content-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.post-success-card-content-img {
+  width: 5rem;
+  max-width: 100%;
+  height: 4rem;
+}
+
+.post-success-create-school-img-footer {
+  font-size: 8px;
+  margin-top: 0px;
+  color: #666;
+}

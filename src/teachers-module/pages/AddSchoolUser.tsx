@@ -160,7 +160,7 @@ const AddSchoolUser: React.FC = () => {
                     "assets/icons/userIcon.png";
                 }}
               />
-              <p>{user.name}</p>
+              <p id="add-school-user-name">{user.name}</p>
               <IonButton
                 color="#7C5DB0"
                 onClick={handleAddSchoolUser}

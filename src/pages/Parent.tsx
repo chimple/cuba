@@ -320,38 +320,14 @@ const Parent: React.FC = () => {
           </div>
           <div className="parent-teachermode-toggle">
             {!Util.isRespectMode && (
-              <ToggleButton
-                title={"Switch to Teacher's Mode"}
-                layout="vertical"
-                onIonChangeClick={async () => {
-                  const isNativePlatform = Capacitor.isNativePlatform();
-                  if (localSchool && localClass) {
-                    schoolUtil.setCurrMode(MODES.TEACHER);
-                    history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                  } else if (schools && schools.length > 0) {
-                    if (schools?.length === 1) {
-                      Util.setCurrentSchool(schools[0].school, schools[0].role);
-                      const tempClasses = await api.getClassesForSchool(
-                        schools[0].school.id,
-                        currentUser?.id!
-                      );
-                      if (tempClasses.length > 0) {
-                        Util.setCurrentClass(tempClasses[0]);
-                        schoolUtil.setCurrMode(MODES.TEACHER);
-                        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      }
-                    } else {
-                      schoolUtil.setCurrMode(MODES.TEACHER);
-                      history.replace(PAGES.DISPLAY_SCHOOLS);
-                    }
-                  } else {
-                    schoolUtil.setCurrMode(MODES.TEACHER);
-                    history.replace(PAGES.DISPLAY_SCHOOLS);
-                    isNativePlatform && window.location.reload();
-                    isNativePlatform && window.location.reload();
-                  }
-                }}
-              />
+            <ToggleButton
+              title={"Switch to Teacher's Mode"}
+              layout="vertical"
+              onIonChangeClick={async () => {
+                schoolUtil.setCurrMode(MODES.TEACHER);
+                history.replace(PAGES.DISPLAY_SCHOOLS);
+              }}
+            />
             )}
           </div>
         </div>

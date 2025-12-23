@@ -140,7 +140,11 @@ const SideMenu: React.FC<{
         setClassCode(classCode);
       }
 
-      const allSchools = await api.getSchoolsForUser(currentUser.id);
+      const allSchools = await api.getSchoolsForUser(currentUser.id, {
+        page: 1,
+        page_size: 20,
+      });
+
       if (allSchools && allSchools.length > 0) {
         const schoolMap = allSchools.map(({ school }: any) => ({
           id: school.id,
@@ -171,6 +175,9 @@ const SideMenu: React.FC<{
   };
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
+    setTimeout(() => {
+      Util.killCocosGame()
+    }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 
@@ -185,7 +192,8 @@ const SideMenu: React.FC<{
   const handleSchoolSelect = async ({
     id,
     name,
-  }: { id?: string | number; name?: string } = {}) => {
+    role,
+  }: { id?: string | number; name?: string; role?: RoleType } = {}) => {
     try {
       if (!id) {
         console.warn("Invalid ID or no ID provided for school selection");
@@ -196,7 +204,8 @@ const SideMenu: React.FC<{
         console.warn("School not found");
         return;
       }
-      const schoolRole = schoolRoles.find((item) => item.schoolId === id)?.role;
+      const schoolRole =
+        role || schoolRoles.find((item) => item.schoolId === id)?.role;
       if (!schoolRole) {
         return;
       }
@@ -206,7 +215,6 @@ const SideMenu: React.FC<{
         id: school.id,
         name: name || school.name,
       });
-
       const classes = await api.getClassesForSchool(school.id, currentUserId);
       if (!classes || classes.length === 0) {
         console.warn("No classes found for the selected school");

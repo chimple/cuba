@@ -21,6 +21,7 @@ import "./StudentPendingRequest.css";
 import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
 
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +69,12 @@ const StudentPendingRequestDetails = () => {
       setLoading(true);
       try {
         const state = location.state as { request?: any } | undefined;
+        const authHandler = ServiceConfig.getI().authHandler;
+        const respondedBy = await authHandler.getCurrentUser();
+        
         if (state?.request && state.request.request_id === id) {
+          state.request.responded_by = respondedBy?.id;
+          state.request.respondedBy = respondedBy;
           setRequestData(state.request);
         } else {
           const [pendingRequests, approvedRequests, rejectedRequests] =
@@ -103,6 +109,8 @@ const StudentPendingRequestDetails = () => {
             setRequestData(null);
           }
         }
+      } catch (error) {
+        console.error("Error fetching request data:", error);
       } finally {
         setLoading(false);
       }
@@ -164,15 +172,9 @@ const StudentPendingRequestDetails = () => {
     }
   };
 
-  const handleRemoveClick = async () => {
-    try {
-      history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
-      );
-    } catch (error) {
-      console.error(t("Error rejecting request:"), error);
-    } finally {
-    }
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const handleRemoveClick = () => {
+    setShowRejectPopup(true);
   };
 
   if (loading || !requestData)
@@ -213,8 +215,9 @@ const StudentPendingRequestDetails = () => {
     totalStudents - (students.length - filteredStudents.length);
 
   return (
-    <div className="student-pending-request-details-layout">
-      <Typography
+    <>
+      <div className="student-pending-request-details-layout">
+        <Typography
         variant="h4"
         className="student-pending-request-details-page-title"
       >
@@ -293,9 +296,9 @@ const StudentPendingRequestDetails = () => {
             <div className="student-pending-request-details-field-row">
               <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin">
                 <div className="student-pending-request-details-label">
-                  {t("City")}
+                  {t("Block")}
                 </div>
-                <div>{school.group2 || t("N/A")}</div>
+                <div>{school.group3 || t("N/A")}</div>
               </div>
               <div className="student-pending-request-details-field-stack">
                 <div className="student-pending-request-details-label">
@@ -308,7 +311,7 @@ const StudentPendingRequestDetails = () => {
               <div className="student-pending-request-details-label">
                 {t("District")}
               </div>
-              <div>{school.group3 || t("N/A")}</div>
+              <div>{school.group2 || t("N/A")}</div>
             </div>
           </Paper>
           <div className="student-pending-request-details-action-buttons-row">
@@ -424,8 +427,18 @@ const StudentPendingRequestDetails = () => {
           </Paper>
         </Grid>
       </Grid>
-    </div>
+      </div>
+      {showRejectPopup && (
+        <RejectRequestPopup
+          requestData={{
+            ...requestData,
+            school: requestData?.school || {},
+          }}
+          onClose={() => setShowRejectPopup(false)}
+        />
+      )}
+    </>
   );
-};
+}
 
 export default StudentPendingRequestDetails;

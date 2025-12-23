@@ -15,7 +15,9 @@ import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
+  LANGUAGE,
   PAGES,
+  STATUS,
   TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
@@ -88,6 +90,9 @@ const HomePage: React.FC = () => {
       updateLocalAttributes({
         teacher_class_id: tempClass?.id,
         teacher_school_id: currentSchool?.id,
+        teacher_school_state: currentSchool?.group1,
+        teacher_school_district: currentSchool?.group2,
+        teacher_school_block: currentSchool?.group3,
       });
       setGbUpdated(true);
     } catch (error) {
@@ -99,6 +104,11 @@ const HomePage: React.FC = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
     const currentUser = await auth.getCurrentUser();
+    const languageCode = localStorage.getItem(LANGUAGE);
+    await Util.updateUserLanguage(languageCode!);
+
+    const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
+    if(existingRequest && existingRequest.request_status ===  STATUS.REQUESTED) history.replace(PAGES.POST_SUCCESS)
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,

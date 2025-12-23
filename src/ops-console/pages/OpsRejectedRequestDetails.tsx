@@ -17,17 +17,20 @@ const StudentRejectedRequestDetails = () => {
     school?: {
       name?: string;
       udise?: string;
-      group2?: string;
+      country?: string;
       group1?: string;
+      group2?: string;
       group3?: string;
     };
     rejectedBy?: { name?: string };
-    requestedBy?: { name?: string; phone_number?: string; email?: string };
+    respondedBy?: { name?: string };
+    requestedBy?: { name?: string; phone?: string; email?: string };
     request_id?: string;
     request_type?: string;
     created_at?: string;
     updated_at?: string;
     rejected_reason_type?: string;
+    rejected_reason_description?: string;
   };
 
   const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(
@@ -93,7 +96,7 @@ const StudentRejectedRequestDetails = () => {
       : t("-"); // Translated '-'
 
   const school = requestDetails.school || {};
-  const rejectedBy = requestDetails.rejectedBy || {};
+  const rejectedBy = requestDetails.respondedBy || {};
   const requestedBy = requestDetails.requestedBy || {};
 
   return (
@@ -172,7 +175,7 @@ const StudentRejectedRequestDetails = () => {
                 className="ops-rejected-request-details-field-stack ops-rejected-request-details-field-stack-margin" // Class name updated
               >
                 <div className="ops-rejected-request-details-label">
-                  {t("City")}
+                  {t("District")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
                 <div>{school.group2 || t("-")}</div> {/* Translated '-' */}
@@ -187,10 +190,10 @@ const StudentRejectedRequestDetails = () => {
             </div>
             <div className="ops-rejected-request-details-field-stack">
               <div className="ops-rejected-request-details-label">
-                {t("District")}
+                {t("Country")}
               </div>{" "}
               {/* Class name updated & Translated */}
-              <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
+              <div>{school.country || t("-")}</div> {/* Translated '-' */}
             </div>
             <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
@@ -231,16 +234,7 @@ const StudentRejectedRequestDetails = () => {
             </Typography>
             <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="ops-rejected-request-details-label-row">
-              <span className="ops-rejected-request-details-label-reject">
-                {t("Reason :")}
-              </span>{" "}
-              {/* Class name updated & Translated */}
-              <span>
-                {requestDetails.rejected_reason_type || t("-")}{" "}
-                {/* Translated '-' */}
-              </span>
-            </div>
+            <div className="ops-rejected-request-details-label-row"></div>
             <div className="ops-rejected-request-details-label-row">
               <span className="ops-rejected-request-details-label-reject">
                 {t("Rejected By:")}
@@ -254,6 +248,15 @@ const StudentRejectedRequestDetails = () => {
               </span>{" "}
               {/* Class name updated & Translated */}
               <span>{formatDT(requestDetails.updated_at)}</span>
+            </div>
+            <Divider className="ops-rejected-request-details-divider-margin" />
+            <div className="ops-rejected-request-details-label-row">
+              <span className="ops-rejected-request-details-label-reject">
+                {t("Message to Admin:")}
+              </span>
+            </div>
+            <div className="ops-rejected-request-details-message-box">
+              {requestDetails.rejected_reason_description?.trim()}
             </div>
           </Paper>
           <Paper className="ops-rejected-request-details-details-card">
@@ -277,7 +280,7 @@ const StudentRejectedRequestDetails = () => {
                 {t("Phone Number :")}
               </div>{" "}
               {/* Class name updated & Translated */}
-              <div>{requestedBy.phone_number || t("N/A")}</div>{" "}
+              <div>{requestedBy.phone || t("N/A")}</div>{" "}
               {/* Translated 'N/A' */}
             </div>
             <div className="ops-rejected-request-details-field-stack">

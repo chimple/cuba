@@ -8,9 +8,12 @@ import {
   GAME_END,
   GAME_EXIT,
   HOMEHEADERLIST,
+  HOMEWORK_PATHWAY,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
+  REWARD_LEARNING_PATH,
+  REWARD_LESSON,
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
@@ -37,6 +40,7 @@ const CocosGame: React.FC = () => {
     from?: string;
     assignment?: any;
   };
+
   // const playedFrom = location?.from?.split('/')[1].split('?')[0]
   const playedFrom = localStorage.getItem("currentHeader");
   const assignmentType = location?.assignment?.type || "self-played";
@@ -46,20 +50,23 @@ const CocosGame: React.FC = () => {
   const [present] = useIonToast();
   const [isSaveTempDataFinished, setIsSaveTempDataFinished] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
-  // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const [isDeviceAwake, setDeviceAwake] = useState(false);
   const currentStudent = Util.getCurrentStudent();
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
+  const selectedLesson: Map<string, string> = state.selectedLesson ?? undefined;
+
   const chapterDetail: TableTypes<"chapter"> = state.chapter
     ? JSON.parse(state.chapter)
     : undefined;
   const lessonDetail: TableTypes<"lesson"> = state.lesson
     ? JSON.parse(state.lesson)
     : undefined;
+
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -79,22 +86,26 @@ const CocosGame: React.FC = () => {
   useEffect(() => {
     init();
     Util.checkingIfGameCanvasAvailable();
-    ScreenOrientation.lock({ orientation: "landscape" });
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       CapApp.addListener(APP_URL_OPEN, Util.onAppUrlOpen);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAppStateChange = (state) => {
+  const handleAppStateChange = (state: any) => {
     if (state.isActive) {
       setDeviceAwake(true);
     } else {
       setDeviceAwake(false);
     }
   };
+
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
@@ -167,9 +178,11 @@ const CocosGame: React.FC = () => {
 
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     const data = e.detail as CocosLessonData;
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent!.id,
+      user_id: api.currentStudent?.id ?? _currentUser?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -208,151 +221,9 @@ const CocosGame: React.FC = () => {
     push();
   };
 
-  const sendDataToRespect = async () => {
-    if(Util.isDeepLink) {
-      Util.isDeepLink = false;
-      await PortPlugin.returnDataToRespect();
-      return;
-    }
-  }
-
-  const handleLessonEndListner = async (event) => {
-    if(Util.isRespectMode){
-      setIsSaveTempDataFinished(false);
-      setIsLoading(true);
-      try {
-        await saveTempData(event.detail);
-      } catch (err) {
-        console.error("Error saving tempData", err);
-      } finally {
-        setIsSaveTempDataFinished(true);
-        setGameResult(event);
-        setIsLoading(false);
-      }
-    } else {
-      saveTempData(event.detail);
-      setGameResult(event);
-    }
-  };
-
-  const updateLearningPath = async () => {
-    if (!currentStudent) return;
-    const learningPath = currentStudent.learning_path
-      ? JSON.parse(currentStudent.learning_path)
-      : null;
-
-    if (!learningPath) return;
-
-    try {
-      const { courses } = learningPath;
-      const currentCourse = courses.courseList[courses.currentCourseIndex];
-
-      const prevLessonId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].lesson_id;
-      const prevChapterId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].chapter_id;
-      const prevCourseId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .course_id;
-      const prevPathId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
-      // Update currentIndex
-      currentCourse.currentIndex += 1;
-      // Check if currentIndex exceeds pathEndIndex
-      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
-        }
-
-        // Move to the next course
-        courses.currentCourseIndex += 1;
-
-        await api.setStarsForStudents(currentStudent.id, 10);
-        // Loop back to the first course if at the last course
-        if (courses.currentCourseIndex >= courses.courseList.length) {
-          courses.currentCourseIndex = 0;
-        }
-        const pathwayEndData = {
-          user_id: currentStudent.id,
-          current_path_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path_id,
-          current_course_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].course_id,
-          current_lesson_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].lesson_id,
-          current_chapter_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].chapter_id,
-          prev_path_id: prevPathId,
-          prev_course_id: prevCourseId,
-          prev_lesson_id: prevLessonId,
-          prev_chapter_id: prevChapterId,
-        };
-        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      }
-
-      // Update the learning path in the database
-      await api.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath)
-      );
-      
-      // For APIs with real database persistence, fetch the updated user
-      // but ensure we don't overwrite with stale data
-      try {
-        const updatedStudent = await api.getUserByDocId(currentStudent.id);
-        if (updatedStudent && updatedStudent.learning_path) {
-          // Only use the fetched user if it has the learning_path
-          await Util.setCurrentStudent(updatedStudent, undefined);
-        } else {
-          // Fallback: update current user locally with our fresh data
-          await Util.setCurrentStudent(
-            { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-            undefined
-          );
-        }
-      } catch (error) {
-        // If getUserByDocId fails (e.g., FirebaseApi), use local update
-        console.warn("getUserByDocId failed, using local update:", error);
-        await Util.setCurrentStudent(
-          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-          undefined
-        );
-      }
-    } catch (error) {
-      console.error("Error updating learning path:", error);
-    }
+  const handleLessonEndListner = (event: any) => {
+    saveTempData(event.detail);
+    setGameResult(event);
   };
 
   async function init() {
@@ -368,13 +239,8 @@ const CocosGame: React.FC = () => {
       return;
     }
     setIsLoading(false);
+
     Util.launchCocosGame();
-
-    //Just fot Testing
-
-    // const onProblemEnd = async (e: any) => {
-    //   push();
-    // };
 
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
@@ -382,6 +248,7 @@ const CocosGame: React.FC = () => {
     document.body.addEventListener(GAME_END, gameEnd, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
   }
+
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
   let ChapterDetail: Chapter | undefined;
@@ -417,6 +284,23 @@ const CocosGame: React.FC = () => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
+      const lesson: Lesson = JSON.parse(state.lesson);
+      const assignment = state.assignment;
+      const currentStudent = api.currentStudent!;
+      const data = lessonData;
+      let assignmentId = assignment ? assignment.id : null;
+      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+      let classId;
+      let schoolId;
+      let chapter_id;
+
+    if (isStudentLinked) {
+      const studentResult = await api.getStudentClassesAndSchools(
+        currentStudent.id
+      );
+      if (!!studentResult && studentResult.classes.length > 0) {
+        classId = studentResult.classes[0].id;
+        schoolId = studentResult.schools[0].id;
       let lesson;
       const lessonNormal: Lesson = state.lesson
         ? JSON.parse(state.lesson)
@@ -435,6 +319,7 @@ const CocosGame: React.FC = () => {
       if (!currentStudentObj?.id) {
         console.error("saveTempData: No current student found; aborting result save.");
         return;
+      }
       }
       const data = lessonData;
       let assignmentId = assignment ? assignment?.id : null;
@@ -555,6 +440,159 @@ const CocosGame: React.FC = () => {
       console.error("Error: SaveTempData", error);
       throw error; // throw the error to caller
     }
+
+    // Check if the game was played from `learning_pathway`
+    const learning_path: boolean = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false;
+    const homeworkIndex: number | undefined = state?.homeworkIndex;
+    const isReward: boolean = state?.reward ?? false;
+
+    if (isReward === true) {
+      sessionStorage.setItem(REWARD_LESSON, "true");
+    }
+
+    // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+    let shouldGiveHomeworkBonus = false;
+
+    if (is_homework) {
+      try {
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+
+        if (!pathStr) {
+          console.warn(
+            "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+          );
+        } else {
+          const path = JSON.parse(pathStr) as {
+            lessons?: any[];
+            currentIndex?: number;
+          };
+
+          const lessonsLen = path.lessons?.length ?? 0;
+          const isLastLessonInPath =
+            lessonsLen > 0 &&
+            typeof homeworkIndex === "number" &&
+            homeworkIndex === lessonsLen - 1;
+          if (isLastLessonInPath) {
+            shouldGiveHomeworkBonus = true;
+          }
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+          err
+        );
+      }
+    }
+
+    // Avatar / time spent updates
+    let avatarObj = AvatarObj.getInstance();
+    let finalProgressTimespent =
+      avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
+    finalProgressTimespent = finalProgressTimespent + data.timeSpent;
+    let computeMinutes = Math.floor(finalProgressTimespent / 60);
+    let computeSec = finalProgressTimespent % 60;
+    avatarObj.weeklyTimeSpent["min"] = computeMinutes;
+    avatarObj.weeklyTimeSpent["sec"] = computeSec;
+    avatarObj.weeklyPlayedLesson++;
+    const result = await api.updateResult(
+      currentStudent,
+      courseDocId,
+      lesson.id,
+      data.score!,
+      data.correctMoves,
+      data.wrongMoves,
+      data.timeSpent,
+      assignmentId,
+      chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
+      classId,
+      schoolId,
+      shouldGiveHomeworkBonus,
+      is_homework
+    );
+
+    // Update the learning path / homework path
+    if (learning_path) {
+      await Util.updateLearningPath(currentStudent, isReward);
+    } else if (is_homework) {
+      await Util.updateHomeworkPath(homeworkIndex);
+    }
+
+    // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+    if (shouldGiveHomeworkBonus) {
+      try {
+        const student = Util.getCurrentStudent();
+
+        if (student?.id) {
+          const bonusStars = 10;
+
+          const newLocalStars = Util.bumpLocalStarsForStudent(
+            student.id,
+            bonusStars,
+            student.stars || 0
+          );
+
+          try {
+            await api.updateStudentStars(student.id, newLocalStars);
+          } catch (err) {
+            console.warn(
+              "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
+              err
+            );
+          }
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus] Failed to award homework completion bonus",
+          err
+        );
+      }
+    }
+
+    await Util.logEvent(EVENTS.LESSON_END, {
+      user_id: currentStudent.id,
+      chapter_id: data.chapterId,
+      lesson_id: data.lessonId,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: data.courseName,
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+      score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
+    });
+
+    let tempAssignmentCompletedIds = localStorage.getItem(
+      ASSIGNMENT_COMPLETED_IDS
+    );
+    let assignmentCompletedIds;
+    if (!tempAssignmentCompletedIds) {
+      assignmentCompletedIds = {};
+    } else {
+      assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
+    }
+    if (!assignmentCompletedIds[api.currentStudent?.id!]) {
+      assignmentCompletedIds[api.currentStudent?.id!] = [];
+    }
+    localStorage.setItem(
+      ASSIGNMENT_COMPLETED_IDS,
+      JSON.stringify(assignmentCompletedIds)
+    );
   };
   return (
     <IonPage id="cocos-game-page">
@@ -563,40 +601,17 @@ const CocosGame: React.FC = () => {
         {showDialogBox && (!Util.isRespectMode || isSaveTempDataFinished) && (
           <div>
             <ScoreCard
-              title={t("🎉Congratulations🎊")}
-              score={gameResult.detail?.score ?? 0}
+              score={gameResult?.detail?.score ?? 0}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={t("Like the Game")}
               lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={async (e: any) => {
                 setShowDialogBox(true);
               }}
-              onYesButtonClicked={async (e: any) => {
-                setShowDialogBox(false);
-                setIsLoading(true);
-                await updateLessonAsFavorite();
-                if (initialCount >= 5) {
-                  Util.showInAppReview();
-                  initialCount = 0;
-                  localStorage.setItem(
-                    LESSONS_PLAYED_COUNT,
-                    initialCount.toString()
-                  );
-                }
-                sendDataToRespect();
-                push();
-              }}
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 setIsLoading(true);
-                // await saveTempData(gameResult.detail, undefined);
-                console.log(
-                  "------------------the game result ",
-                  gameResult.detail.score
-                );
-                sendDataToRespect();
                 push();
               }}
             />

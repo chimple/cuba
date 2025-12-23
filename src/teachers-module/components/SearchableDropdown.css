@@ -1,0 +1,169 @@
+/* Container for the entire component */
+.searchable-dropdown-container {
+  position: relative;
+  width: 90%;
+  left: 10%;
+}
+
+/* Wrapper for the input field and icons */
+.searchable-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* The main text input field */
+.searchable-input {
+  width: 100%;
+  padding: 10px 0px 10px 0px; /* Right padding for icons */
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: white;
+  white-space: nowrap; 
+  color: black;
+  border: none;
+}
+
+.searchable-input:focus {
+  border-color: #007bff; /* Highlight when focused */
+}
+
+/* Position for both the clear icon and the spinner */
+.searchable-clear-icon,
+.searchable-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #707070;
+}
+
+.searchable-clear-icon {
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Simple CSS spinner animation */
+.searchable-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* The dropdown list itself */
+.searchable-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 4px;
+}
+
+/* A single option in the list */
+.searchable-option {
+  padding: 10px 14px;
+  cursor: pointer;
+  color: #333;
+  background: #fff;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.searchable-option:hover {
+  background: #f0f0f0;
+}
+
+/* Style for the currently selected option in the list */
+.searchable-option.selected {
+  background: #e0eaff;
+  font-weight: 600;
+  color: #0056b3;
+}
+
+/* Style for loading messages */
+.searchable-option.loading {
+  text-align: center;
+  font-style: italic;
+  color: #777;
+  cursor: default;
+}
+
+/* Style for the 'no results' message */
+.searchable-no-results {
+  padding: 10px 14px;
+  color: #999;
+  font-style: italic;
+}
+
+.clear-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+}
+
+.clear-button:hover {
+  color: #000;
+}
+
+/* 👇 The key part for scrolling & proper list display */
+.searchable-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #ffffff !important;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 220px; /* Limit height so we can scroll */
+  overflow-y: auto; /* Enable scroll */
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.15);
+  color: #000; /* 👈 Ensure text is visible on white */
+}
+
+.dropdown-toggle-button {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.dropdown-toggle-button:hover {
+  color: #000;
+}

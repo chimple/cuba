@@ -85,6 +85,7 @@ export const RoleLabels: Record<RoleType, string> = {
 
 export enum SchoolTabs {
   Overview = "Overview",
+  Classes = "Classes",
   Students = "Students",
   Teachers = "Teachers",
   Principals = "Principals",

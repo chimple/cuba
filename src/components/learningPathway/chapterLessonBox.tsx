@@ -5,10 +5,14 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
+  chapterName?: string; 
+  lessonName?: string;
 }
 
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
+  chapterName,
+  lessonName,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
@@ -64,7 +68,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     return () => {
       window.removeEventListener("courseChanged", syncHandleCourseChange);
     };
-  }, []);
+  }, [chapterName, lessonName]);
 
   return (
     <div
