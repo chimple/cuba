@@ -3245,120 +3245,23 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
-    const updatedAt = new Date().toISOString();
-    try {
-      await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
-      );
-      const query = `
-      SELECT *
-      FROM ${TABLES.ClassUser}
-      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
-      let userData;
-      if (res && res.values && res.values.length > 0) {
-        userData = res.values[0];
-      }
-      this.updatePushChanges(
-        TABLES.ClassUser,
-        MUTATE_TYPES.UPDATE,
-        {
-          id: userData.id,
-          is_deleted: true,
-          updated_at: updatedAt,
-        },
-        false
-      );
-      const parentRes = await this.executeQuery(
-        `SELECT parent_id 
-       FROM parent_user 
-       WHERE student_id = ? AND is_deleted = 0 
-       LIMIT 1`,
-        [userId]
-      );
-      const parentRows = parentRes && parentRes.values ? parentRes.values : [];
-
-      if (parentRows.length > 0) {
-        const parentId = parentRows[0].parent_id;
-        const siblingCheckRes = await this.executeQuery(
-          `SELECT 1 
-         FROM parent_user pu
-         JOIN class_user cu ON pu.student_id = cu.user_id
-         WHERE pu.parent_id = ? 
-           AND cu.class_id = ? 
-           AND pu.student_id != ?  -- Exclude the student we are currently deleting
-           AND pu.is_deleted = 0 
-           AND cu.is_deleted = 0 
-         LIMIT 1`,
-          [parentId, class_id, userId]
-        );
-
-        const existingSiblings =
-          siblingCheckRes && siblingCheckRes.values
-            ? siblingCheckRes.values
-            : [];
-        if (existingSiblings.length === 0) {
-          await this.executeQuery(
-            `UPDATE class_user 
-           SET is_deleted = 1, updated_at = ? 
-           WHERE user_id = ? AND class_id = ? AND role = 'parent' AND is_deleted = 0`,
-            [updatedAt, parentId, class_id]
-          );
-          const parentQuery = `
-          SELECT *
-          FROM ${TABLES.ClassUser}
-          WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-
-          const parentDeletedRes = await this._db?.query(parentQuery, [
-            parentId,
-            class_id,
-            updatedAt,
-          ]);
-
-          if (
-            parentDeletedRes &&
-            parentDeletedRes.values &&
-            parentDeletedRes.values.length > 0
-          ) {
-            const parentData = parentDeletedRes.values[0];
-
-            this.updatePushChanges(
-              TABLES.ClassUser,
-              MUTATE_TYPES.UPDATE,
-              {
-                id: parentData.id,
-                is_deleted: true,
-                updated_at: updatedAt,
-              },
-              false
-            );
-          }
-        }
-      }
-
-      await this.executeQuery(
-        `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
-      );
-      const query1 = `
-      SELECT *
-      FROM ${TABLES.OpsRequests}
-      WHERE requested_by = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res1 = await this._db?.query(query1, [userId, class_id, updatedAt]);
-      let userData1;
-      if (res1 && res1.values && res1.values.length > 0) {
-        userData1 = res1.values[0];
-      }
-      this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
-        id: userData1.id,
-        is_deleted: true,
-        updated_at: updatedAt,
-      });
-    } catch (error) {
-      console.error("Error deleting user from class_user", error);
+  async deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<Boolean | void> {
+    if (!userId || !class_id) {
+      throw new Error("User ID and Class ID are required");
     }
+
+    // 1️⃣ Call server (RPC)
+    const res = await this._serverApi.deleteUserFromClass(userId, class_id);
+
+    if (res === false) {
+      throw new Error("Failed to delete user from class");
+    }
+
+    // 2️⃣ Sync local DB (pull latest)
+    this.syncDB();
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
