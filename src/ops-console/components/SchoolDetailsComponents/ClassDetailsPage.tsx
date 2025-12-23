@@ -163,124 +163,71 @@ const ClassDetailsPage: React.FC<Props> = ({
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "grey.50", minHeight: "100vh" }}>
-      {/* Header row: Back button (left) and Add Notes (right) */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 1,
-        }}
+  <Box className="classdetailspage-root">
+    {/* Header row: Back button (left) and Add Notes (right) */}
+    <Box className="classdetailspage-header">
+      <Button
+        variant="text"
+        startIcon={<ArrowBack />}
+        onClick={onBack}
+        className="classdetailspage-back-btn"
       >
-        <Button
-          variant="text"
-          startIcon={<ArrowBack />}
-          onClick={onBack}
-          sx={{
-            textTransform: "none",
-            background: "#fff",
-            color: "#111",
-            border: "1px solid #e5e7eb",
-            borderRadius: "5px",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-            px: 1.5,
-            py: 0.5,
-            fontSize: "14px",
-            fontWeight: 600,
-          }}
-        >
-          {t("Back to Classes")}
-        </Button>
+        {t("Back to Classes")}
+      </Button>
 
-        {/* + Add Notes button on the right */}
-        <Button
-          variant="outlined"
-          onClick={() => setShowAddModal(true)}
-          sx={{
-            textTransform: "none",
-            borderRadius: "10px",
-            border: "1.5px solid",
-            borderColor: "#2563eb",
-            color: "#2563eb",
-            background: "#fff",
-            fontWeight: 600,
-            px: 2,
-            py: 0.6,
-            minWidth: 140,
-            boxShadow: "none",
-            "&:hover": {
-              background: "rgba(79,70,229,0.06)",
-              borderColor: "#2563eb",
-              boxShadow: "none",
-            },
-            "&:focus": {
-              outline: "2px solid rgba(79,70,229,0.14)",
-              outlineOffset: "2px",
-            },
-          }}
-          aria-label="+ Add Notes"
-        >
-          + {t("Add Notes")}
-        </Button>
-      </Box>
-
-      {/* AddNoteModal */}
-      <AddNoteModal
-        isOpen={showAddModal}
-        onClose={handleAddNoteCancel}
-        onSave={handleAddNoteSave}
-        source="class"
-        schoolId={schoolId}
-      />
-
-      <Box
-        sx={{
-          display: "grid",
-          gap: 3,
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          alignItems: "start",
-          mb: 3,
-        }}
+      {/* + Add Notes button on the right */}
+      <Button
+        variant="outlined"
+        onClick={() => setShowAddModal(true)}
+        className="classdetailspage-addnote-btn"
+        aria-label="+ Add Notes"
       >
-        <ClassInfoCard
-          classRow={onlyClassRow}
-          subjects={subjectsSt}
-          curriculum={curriculumSt}
-          totalStudents={finalTotalStudentsSt}
-          activeStudents={finalActiveStudentsSt}
-          classCode={finalClassCode}
-        />
-      </Box>
-
-      <Box
-        className="classdetailspage-students-sticky"
-        sx={{
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          border: "1px solid #e5e7eb",
-          borderRadius: "5px",
-        }}
-      >
-        <SchoolStudents
-          data={{
-            schoolData: data?.schoolData,
-            students: initialStudents,
-            totalStudentCount: initialTotal,
-            classData: classRow ? [classRow] : undefined,
-          }}
-          schoolId={schoolId}
-          isMobile={isMobile}
-          isTotal={false}
-          isFilter={false}
-          customTitle={
-            classNameSt ? `Students in ${classNameSt}` : "Students in Class"
-          }
-          optionalGrade={parsedGrade}
-          optionalSection={parsedSection}
-        />
-      </Box>
+        + {t("Add Notes")}
+      </Button>
     </Box>
-  );
+
+    {/* AddNoteModal */}
+    <AddNoteModal
+      isOpen={showAddModal}
+      onClose={handleAddNoteCancel}
+      onSave={handleAddNoteSave}
+      source="class"
+      schoolId={schoolId}
+    />
+
+    <Box className="classdetailspage-info-grid">
+      <ClassInfoCard
+        classRow={onlyClassRow}
+        subjects={subjectsSt}
+        curriculum={curriculumSt}
+        totalStudents={finalTotalStudentsSt}
+        activeStudents={finalActiveStudentsSt}
+        classCode={finalClassCode}
+      />
+    </Box>
+
+    <Box className="classdetailspage-students-sticky classdetailspage-students-card">
+      <SchoolStudents
+        data={{
+          schoolData: data?.schoolData,
+          students: initialStudents,
+          totalStudentCount: initialTotal,
+          classData: classRow ? [classRow] : undefined,
+        }}
+        schoolId={schoolId}
+        isMobile={isMobile}
+        isTotal={false}
+        isFilter={false}
+        customTitle={
+          classNameSt ? `Students in ${classNameSt}` : "Students in Class"
+        }
+        optionalGrade={parsedGrade}
+        optionalSection={parsedSection}
+      />
+    </Box>
+  </Box>
+);
+
 };
 
 export default ClassDetailsPage;

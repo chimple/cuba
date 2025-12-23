@@ -15,7 +15,7 @@ type ApiNote = {
   visitId?: string | null;
   createdAt?: string;
   createdBy?: { userId?: string; name?: string; role?: string | null } | null;
-  media_links?: string; 
+  media_links?: string;
 };
 
 type Note = {
@@ -63,7 +63,7 @@ const SchoolNotes: React.FC = () => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"default" | "nameAsc">("default");
-  const [allNotes, setAllNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   const schoolId = detectSchoolIdFromUrl();
 
@@ -79,6 +79,7 @@ const SchoolNotes: React.FC = () => {
 
   const handleCreatedBySort = () => {
     setSortMode(prev => (prev === "default" ? "nameAsc" : "default"));
+    setCurrentPage(1);
   };
 
 
@@ -93,26 +94,45 @@ const SchoolNotes: React.FC = () => {
       if (!api?.getNotesBySchoolId) {
         throw new Error("Notes API not available");
       }
+      const offset = (currentPage - 1) * NOTES_PER_PAGE;
 
       // Fetch ALL notes (big number like 10k to ensure full fetch)
-      const res = await api.getNotesBySchoolId(schoolId, 10000, 0);
+      const res = await api.getNotesBySchoolId(
+        schoolId,
+        NOTES_PER_PAGE,
+        offset,
+        sortMode === "nameAsc" ? "createdBy" : "createdAt"
+      );
+
+
+      console.log("[UI] API response:", {
+        totalCount: res.totalCount,
+        dataLength: res.data.length,
+        sample: res.data[0],
+      });
+
 
       const mapped = res.data.map((r: ApiNote) => mapApiNote(r));
 
+      console.log("[UI] Mapped notes:", {
+        mappedLength: mapped.length,
+        sampleMapped: mapped[0],
+      });
+
       // Store full dataset
-      setAllNotes(mapped);
+      setNotes(mapped);
 
       // Compute pages
-      setTotalPages(Math.max(1, Math.ceil(mapped.length / NOTES_PER_PAGE)));
+      setTotalPages(Math.max(1, Math.ceil(res.totalCount / NOTES_PER_PAGE)));
 
     } catch (err) {
       console.error("Error loading notes:", err);
-      setAllNotes([]);
+      setNotes([]);
       setError(t("Failed to load notes") as string);
     } finally {
       setLoading(false);
     }
-  }, [schoolId]);
+  }, [schoolId, currentPage, sortMode]);
 
 
   useEffect(() => {
@@ -138,7 +158,7 @@ const SchoolNotes: React.FC = () => {
         });
 
         setCurrentPage(1);
-        setAllNotes(prev => [mapped, ...prev]);
+        setNotes(prev => [mapped, ...prev]);
         setSelectedNote(mapped);
         setDrawerOpen(true);
       } catch (e) {
@@ -158,21 +178,6 @@ const SchoolNotes: React.FC = () => {
       </div>
     );
   }
-
-  let displayedNotes = [...allNotes];
-
-  if (sortMode === "nameAsc") {
-    displayedNotes.sort((a, b) =>
-      a.createdBy.localeCompare(b.createdBy)
-    );
-  }
-
-  displayedNotes = displayedNotes.slice(
-    (currentPage - 1) * NOTES_PER_PAGE,
-    currentPage * NOTES_PER_PAGE
-  );
-
-
 
   return (
     <div
@@ -201,6 +206,7 @@ const SchoolNotes: React.FC = () => {
           <thead>
             <tr>
               <th
+              id="school-notes-th-created-by"
                 onClick={handleCreatedBySort}
                 style={{ cursor: "pointer", userSelect: "none" }}
               >
@@ -210,31 +216,38 @@ const SchoolNotes: React.FC = () => {
                 </span>
               </th>
 
-              <th>{t("Class")}</th>
-              <th>{t("Role")}</th>
-              <th>{t("Date")}</th>
+              <th id="school-notes-th-class">{t("Class")}</th>
+              <th id="school-notes-th-role">{t("Role")}</th>
+              <th id="school-notes-th-date">{t("Date")}</th>
             </tr>
           </thead>
 
           <tbody>
-            {displayedNotes.map((note) => (
-              <tr
-                key={note.id}
-                id={`school-notes-row-${note.id}`}
-                className="school-notes-row"
-                tabIndex={0}
-                onClick={() => {
-                  setSelectedNote(note);
-                  setDrawerOpen(true);
-                }}
-              >
-                <td>{note.createdBy}</td>
-                <td>{note.className ?? "—"}</td>
-                <td>{note.role ?? "—"}</td>
-                <td>{note.date}</td>
+            {notes.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center", padding: "16px" }}>
+                  {t("No notes found")}
+                </td>
               </tr>
-            ))}
+            ) : (
+              notes.map((note) => (
+                <tr
+                  key={note.id}
+                  className="school-notes-row"
+                  onClick={() => {
+                    setSelectedNote(note);
+                    setDrawerOpen(true);
+                  }}
+                >
+                  <td>{note.createdBy}</td>
+                  <td>{note.className ?? "—"}</td>
+                  <td>{note.role ?? "—"}</td>
+                  <td>{note.date}</td>
+                </tr>
+              ))
+            )}
           </tbody>
+
 
         </table>
       </div>

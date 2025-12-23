@@ -7312,14 +7312,20 @@ order by
 }
 
   async getNotesBySchoolId(
-    schoolId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<PaginatedResponse<SchoolNote>> {
-    console.warn("getNotesBySchoolId is not supported in SQLite mode");
+  schoolId: string,
+  limit?: number,
+  offset?: number,
+  sortBy?: "createdAt" | "createdBy"
+): Promise<PaginatedResponse<SchoolNote>> {
+  console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
-    return this._serverApi.getNotesBySchoolId(schoolId, limit, offset);
-  }
+  return this._serverApi.getNotesBySchoolId(
+    schoolId,
+    limit,
+    offset,
+    sortBy
+  );
+}
 
   async getRecentAssignmentCountByTeacher(
     teacherId: string,

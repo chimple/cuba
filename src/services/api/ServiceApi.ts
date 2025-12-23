@@ -2493,9 +2493,9 @@ export interface ServiceApi {
   getNotesBySchoolId(
     schoolId: string,
     limit?: number,
-    offset?: number
+    offset?: number,
+    sortBy?: "createdAt" | "createdBy",
   ): Promise<PaginatedResponse<SchoolNote>>;
-
   /**
    * Get interactions metrics for a school.
    */
