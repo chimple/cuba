@@ -5,6 +5,7 @@ import NoteDetailsDrawer from "./NoteDetailsDrawer";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { NOTES_UPDATED_EVENT } from "../../../common/constants";
+import TableSortLabel from "@mui/material/TableSortLabel";
 import { Pagination } from "@mui/material";
 
 type ApiNote = {
@@ -103,14 +104,7 @@ const SchoolNotes: React.FC = () => {
         offset,
         sortMode === "nameAsc" ? "createdBy" : "createdAt"
       );
-
-
-      console.log("[UI] API response:", {
-        totalCount: res.totalCount,
-        dataLength: res.data.length,
-        sample: res.data[0],
-      });
-
+      console.log("RAW API NOTES (current user role):", res.data);
 
       const mapped = res.data.map((r: ApiNote) => mapApiNote(r));
 
@@ -205,17 +199,15 @@ const SchoolNotes: React.FC = () => {
         >
           <thead>
             <tr>
-              <th
-              id="school-notes-th-created-by"
-                onClick={handleCreatedBySort}
-                style={{ cursor: "pointer", userSelect: "none" }}
-              >
-                {t("Created By")}{" "}
-                <span style={{ fontSize: "12px" }}>
-                  {sortMode === "default" ? "↓" : "↑"}
-                </span>
+              <th className="school-notes-th school-notes-sortable-th">
+                <TableSortLabel
+                  active
+                  direction={sortMode === "nameAsc" ? "asc" : "desc"}
+                  onClick={handleCreatedBySort}
+                >
+                  {t("Created By")}
+                </TableSortLabel>
               </th>
-
               <th id="school-notes-th-class">{t("Class")}</th>
               <th id="school-notes-th-role">{t("Role")}</th>
               <th id="school-notes-th-date">{t("Date")}</th>
