@@ -107,3 +107,26 @@
 .school-notes-table td {
   text-align: left !important;
 }
+
+/* Root container becomes layout controller */
+.school-notes-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 260px);
+}
+
+/* Table area scrolls */
+.school-notes-table-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Pagination always visible at bottom */
+.school-notes-pagination-container {
+  margin-top: auto;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}

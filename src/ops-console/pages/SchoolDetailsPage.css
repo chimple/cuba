@@ -81,14 +81,14 @@
 .schooldetailspage .btn-add-notes {
   text-transform: none !important;
   font-weight: 600 !important;
-  border-color: #4F46E5 !important;
-  color: #4F46E5 !important;
+  border-color: #2563eb !important;
+  color: #2563eb !important;
   border-radius: 8px !important;
 }
 
 .schooldetailspage .btn-add-notes:hover {
   background-color: #f6f6ff !important;
-  border-color: #4F46E5 !important;
+  border-color: #2563eb !important;
 }
 
 .schooldetailspage .btn-check-in {
