@@ -395,9 +395,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   // 2. School location is missing AND user hasn't confirmed (Yes/No)
   // 3. Permission is explicitly denied
   // 4. User location failed to fetch (userLocation is null) AND not currently loading
+  // 5. User is outside the allowed distance (and school location is known)
   const isConfirmDisabled = isLoadingLocation 
                             || isUpdatingLocation
                             || (isSchoolLocationMissing && isConfirmedInSchool === undefined)
+                            || (!isSchoolLocationMissing && !isInsidePremises)
                             || isPermissionDenied
                             || (userLocation === null && !isLoadingLocation);
 
@@ -520,8 +522,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                         <Marker 
                             position={[targetLocation.lat, targetLocation.lng]}
                             icon={new L.Icon({
-                                iconUrl: require('../../../assets/images/marker-icon-2x-green.webp'),
-                                shadowUrl: require('../../../assets/images/marker-shadow.webp'),
+                                iconUrl: require('../../../assets/images/marker-icon-2x-green.png'),
+                                shadowUrl: require('../../../assets/images/marker-shadow.png'),
                                 iconSize: [30, 41],
                                 iconAnchor: [12, 41],
                                 popupAnchor: [1, -34],
@@ -583,7 +585,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               onClick={isConfirmDisabled ? undefined : onConfirmAction}
               disabled={isConfirmDisabled}
             >
-              {isLoadingLocation || isUpdatingLocation ? t('Locating...') : (isCheckIn ? t('Confirm Check-In') : t('Confirm Check-Out'))}
+              {isLoadingLocation || isUpdatingLocation ? t('Locating...') : 
+               (!isSchoolLocationMissing && !isInsidePremises) ? t('Too Far') :
+               (isCheckIn ? t('Confirm Check-In') : t('Confirm Check-Out'))}
             </button>
         </div>
       </div>
