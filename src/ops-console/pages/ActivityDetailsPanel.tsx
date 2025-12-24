@@ -314,11 +314,15 @@ if (raw.media_links) {
         )
       }
 
-      <MediaDisplay
+      {raw.tech_issues_reported === true &&
+        isValidText(raw.tech_issue_comment) && (
+        <MediaDisplay
         id="fc-media"
         label={t("Attached Media")}
         media={mediaItems}
       />
+        )
+      }
 
 
 

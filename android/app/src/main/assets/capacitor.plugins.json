@@ -56,10 +56,6 @@
 		"classpath": "com.capacitorjs.plugins.filesystem.FilesystemPlugin"
 	},
 	{
-		"pkg": "@capacitor/geolocation",
-		"classpath": "com.capacitorjs.plugins.geolocation.GeolocationPlugin"
-	},
-	{
 		"pkg": "@capacitor/haptics",
 		"classpath": "com.capacitorjs.plugins.haptics.HapticsPlugin"
 	},
@@ -70,10 +66,6 @@
 	{
 		"pkg": "@capacitor/local-notifications",
 		"classpath": "com.capacitorjs.plugins.localnotifications.LocalNotificationsPlugin"
-	},
-	{
-		"pkg": "@capacitor/preferences",
-		"classpath": "com.capacitorjs.plugins.preferences.PreferencesPlugin"
 	},
 	{
 		"pkg": "@capacitor/screen-orientation",
@@ -94,10 +86,6 @@
 	{
 		"pkg": "@capawesome/capacitor-app-update",
 		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
-	},
-	{
-		"pkg": "@capawesome/capacitor-live-update",
-		"classpath": "io.capawesome.capacitorjs.plugins.liveupdate.LiveUpdatePlugin"
 	},
 	{
 		"pkg": "@capgo/capacitor-social-login",

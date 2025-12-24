@@ -2,6 +2,7 @@
 	"appId": "org.chimple.bahama",
 	"appName": "Chimple",
 	"webDir": "build",
+	"bundledWebRuntime": false,
 	"plugins": {
 		"FirebaseAuthentication": {
 			"skipNativeAuth": false,
@@ -20,15 +21,6 @@
 		"Keyboard": {},
 		"LocalNotifications": {
 			"smallIcon": "chimple_monkey_icon"
-		},
-		"SplashScreen": {
-			"launchShowDuration": 5000,
-			"launchAutoHide": false
-		},
-		"LiveUpdate": {
-			"autoDeleteBundles": true,
-			"readyTimeout": 50000,
-			"httpTimeout": 300000
 		}
 	}
 }

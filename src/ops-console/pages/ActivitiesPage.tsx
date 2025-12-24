@@ -124,7 +124,7 @@ const ActivitiesPage: React.FC = () => {
 
           grouped[key].distance =
             minDistance !== Infinity
-              ? `${minDistance/1000} km`
+              ? `${minDistance} km`
               : "--";
         }
 
