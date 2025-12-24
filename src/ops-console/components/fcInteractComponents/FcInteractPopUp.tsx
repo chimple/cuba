@@ -145,7 +145,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   };
 
   const mandatoryQuestions = localQuestions;
-  const otherQuestions: Q[] = [];
+  const otherQuestions: Q[] = useMemo(() => [], []);
 
   const showMandatory =
     mode === "in_person" || (mode === "call" && callOutcome === "call_picked");
@@ -181,6 +181,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     techIssueMarked,
     techIssueDetails,
     showMandatory,
+    initialUserType,
+    ContactTarget,
   ]);
 
   const handleSave = async () => {
