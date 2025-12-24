@@ -88,9 +88,10 @@
 }
 
 .dropdownmenu-dropdown-arrow {
-  width: 4vw;
+  width: 4.5vw;
   background-color: white;
   display: flex;
+  padding: 0.4vw;
   align-items: center;
   justify-content: center;
   border-top-right-radius: 2.5vh;
@@ -99,9 +100,9 @@
 
 .dropdownmenu-dropdown-arrow.dropdownmenu-expanded-arrow {
   padding-bottom: 0 !important; 
-  margin-top: 4vh;                
-  padding-right: 0.1vw;          
-  width: 4vw;                     
+  margin-top: 4vh;  
+  padding: 0.4vw;
+  width: 4.5vw;
   align-items: center;
   justify-content: center;
 }
