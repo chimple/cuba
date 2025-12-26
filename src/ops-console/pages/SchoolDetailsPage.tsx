@@ -218,6 +218,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     lng?: number,
     distance?: number
   ) => {
+    setIsCheckInModalOpen(false);
     const api = ServiceConfig.getI().apiHandler;
     try {
       if (checkInStatus === SchoolVisitStatus.CheckedOut) {
@@ -260,7 +261,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         duration: "long",
       });
     }
-    setIsCheckInModalOpen(false);
   };
 
   useEffect(() => {
