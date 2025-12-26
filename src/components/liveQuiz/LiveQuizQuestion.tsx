@@ -1,5 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
@@ -52,10 +53,13 @@ const LiveQuizQuestion: FC<{
   isLearningPathway,
   isReward = false,
 }) => {
-  const quizPath =
-    (localStorage.getItem("gameUrl") ??
-      "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    (lessonId || cocosLessonId);
+ const quizPathBase =
+  localStorage.getItem("gameUrl") ??
+  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
+
+const quizPath = lessonId || cocosLessonId
+  ? quizPathBase + (lessonId || cocosLessonId)
+  : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -139,7 +143,8 @@ const LiveQuizQuestion: FC<{
     const dow = await Util.downloadZipBundle([lessonId]);
   };
 
-  const getConfigJson = async () => {
+
+ const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     if (!Capacitor.isNativePlatform()) {
       //TODO remove FOR testing
@@ -299,29 +304,66 @@ const LiveQuizQuestion: FC<{
         changeQuestion(config, true);
       return config;
     }
-    let response = await fetch(quizPath + "/config.json");
-    if (!response.ok) {
-      if (response.status === 404) {
-        if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
+    let configFile: LiveQuiz | undefined;
 
-        response = await fetch(quizPath + "/config.json");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch config file after downloadQuiz. Status: ${response.status}`
-          );
-        }
-      } else {
-        throw new Error(
-          `Failed to fetch config file. Status: ${response.status}`
-        );
-      }
+// Try remote URLs first
+const remoteUrls = [
+  "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+  "https://cuba-stage-zip-bundle.web.app/"
+];
+
+for (const baseUrl of remoteUrls) {
+  try {
+    const response = await fetch(baseUrl + (lessonId || cocosLessonId) + "/config.json");
+    if (response.ok) {
+      configFile = (await response.json()) as LiveQuiz;
+      break;
     }
+  } catch (err) {
+    console.warn("Failed to fetch from remote:", baseUrl);
+  }
+}
+// Fallback to local native file if remote fetch failed or on native platform
+if (!configFile) {
+  try {
+    const file = await Filesystem.readFile({
+      path: (lessonId || cocosLessonId) + "/config.json",
+      directory: Directory.External,
+    });
 
-    const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
-    setLiveQuizConfig(configFile);
-    if (onConfigLoaded) onConfigLoaded(configFile);
-    return configFile;
+    const dataStr = await Util.blobToString(file.data);
+    const decoded = new TextDecoder("utf-8").decode(
+    Uint8Array.from(atob(dataStr), (c) => c.charCodeAt(0))
+   );
+   configFile = JSON.parse(decoded) as LiveQuiz;
+  } catch (err) {
+    console.warn("[LiveQuiz] Config not found locally, downloading...", err);
+    if (lessonId) await downloadQuiz(lessonId);
+
+    // Retry reading after download
+    const file = await Filesystem.readFile({
+  path: (lessonId || cocosLessonId) + "/config.json",
+  directory: Directory.External,
+});
+
+const dataStr = await Util.blobToString(file.data);
+
+// Properly decode Hindi/Unicode characters
+const decoded = new TextDecoder("utf-8").decode(
+  Uint8Array.from(atob(dataStr), (c) => c.charCodeAt(0))
+);
+
+configFile = JSON.parse(decoded) as LiveQuiz;
+  }
+}
+// Set state and call callback
+setLiveQuizConfig(configFile!);
+if (onConfigLoaded) onConfigLoaded(configFile!);
+
+return configFile!;
+
   };
+
 
   const handleRoomChange = () => {
     if (!roomDoc || currentQuestionIndex === undefined) return;
