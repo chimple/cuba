@@ -145,7 +145,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   };
 
   const mandatoryQuestions = localQuestions;
-  const otherQuestions: Q[] = [];
+  const otherQuestions: Q[] = useMemo(() => [], []);
 
   const showMandatory =
     mode === "in_person" || (mode === "call" && callOutcome === "call_picked");
@@ -155,14 +155,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
     if (showMandatory) {
-      if (isQuestionsLoading || mandatoryQuestions.length === 0) return false;
+      if (isQuestionsLoading) return false;
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
       }
-      if (otherComments.trim() === "") return false;
-      if (techIssueMarked === null) return false;
     }
-
+    for (const q of otherQuestions) {
+      if (!responses[q.id] || responses[q.id].trim() === "") return false;
+    }
+    if (otherComments.trim() === "") return false;
+    if (techIssueMarked === null) return false;
     if (techIssueMarked === true && techIssueDetails.trim() === "")
       return false;
 
@@ -171,12 +173,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     mode,
     callOutcome,
     mandatoryQuestions,
+    otherQuestions,
     responses,
     spokeWith,
     otherComments,
     isQuestionsLoading,
     techIssueMarked,
     techIssueDetails,
+    showMandatory,
+    initialUserType,
+    ContactTarget,
   ]);
 
   const handleSave = async () => {
