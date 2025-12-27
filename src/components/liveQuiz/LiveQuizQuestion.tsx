@@ -1,5 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { Encoding } from "@capacitor/filesystem";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
@@ -52,10 +54,13 @@ const LiveQuizQuestion: FC<{
   isLearningPathway,
   isReward = false,
 }) => {
-  const quizPath =
-    (localStorage.getItem("gameUrl") ??
-      "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    (lessonId || cocosLessonId);
+ const quizPathBase =
+  localStorage.getItem("gameUrl") ??
+  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
+
+const quizPath = lessonId || cocosLessonId
+  ? quizPathBase + (lessonId || cocosLessonId)
+  : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -139,7 +144,22 @@ const LiveQuizQuestion: FC<{
     const dow = await Util.downloadZipBundle([lessonId]);
   };
 
-  const getConfigJson = async () => {
+const readLocalConfig = async (
+  path: string
+): Promise<LiveQuiz | undefined> => {
+  try {
+    const file = await Filesystem.readFile({
+      path,
+      directory: Directory.External,
+      encoding: Encoding.UTF8, // 🔑 Hindi safe
+    });
+
+    return JSON.parse(file.data as string) as LiveQuiz;
+  } catch (err) {
+    return undefined;
+  }
+};
+ const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     if (!Capacitor.isNativePlatform()) {
       //TODO remove FOR testing
@@ -292,35 +312,68 @@ const LiveQuizQuestion: FC<{
 
         type: "multiOptions",
       } as LiveQuiz;
-      preLoadAudiosWithLiveQuizConfig(config);
-      setLiveQuizConfig(config);
-      if (onConfigLoaded) onConfigLoaded(config);
-      if (currentQuestionIndex == undefined && showQuiz)
-        changeQuestion(config, true);
-      return config;
-    }
-    let response = await fetch(quizPath + "/config.json");
-    if (!response.ok) {
-      if (response.status === 404) {
-        if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
+ preLoadAudiosWithLiveQuizConfig(config);
+    setLiveQuizConfig(config);
+    if (onConfigLoaded) onConfigLoaded(config);
+    if (currentQuestionIndex == undefined && showQuiz)
+      changeQuestion(config, true);
 
-        response = await fetch(quizPath + "/config.json");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch config file after downloadQuiz. Status: ${response.status}`
-          );
-        }
-      } else {
-        throw new Error(
-          `Failed to fetch config file. Status: ${response.status}`
-        );
+    return config;
+  }
+
+  let configFile: LiveQuiz | undefined;
+
+  /* =====================
+     REMOTE FETCH (UNCHANGED)
+     ===================== */
+  const remoteUrls = [
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+    "https://cuba-stage-zip-bundle.web.app/",
+  ];
+
+  for (const baseUrl of remoteUrls) {
+    try {
+      const response = await fetch(
+        baseUrl + (lessonId || cocosLessonId) + "/config.json"
+      );
+      if (response.ok) {
+        configFile = (await response.json()) as LiveQuiz;
+        break;
       }
+    } catch {
+      console.warn("Failed to fetch from remote:", baseUrl);
     }
+  }
 
-    const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
-    setLiveQuizConfig(configFile);
-    if (onConfigLoaded) onConfigLoaded(configFile);
-    return configFile;
+  /* =====================
+     🔥 EXACT HELPER BLOCK 
+     ===================== */
+  if (!configFile) {
+    const configPath = (lessonId || cocosLessonId) + "/config.json";
+
+    configFile = await readLocalConfig(configPath);
+
+    if (!configFile && lessonId) {
+      console.warn("[LiveQuiz] Config not found locally, downloading...");
+      await downloadQuiz(lessonId);
+
+      // Retry reading after download
+      configFile = await readLocalConfig(configPath);
+    }
+  }
+
+  /* =====================
+     SAFETY (NO ! CRASH)
+     ===================== */
+  if (!configFile) {
+    throw new Error("Failed to load live quiz config.");
+  }
+
+  setLiveQuizConfig(configFile);
+  if (onConfigLoaded) onConfigLoaded(configFile);
+
+  return configFile;
+
   };
 
   const handleRoomChange = () => {
