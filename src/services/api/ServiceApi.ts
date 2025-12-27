@@ -24,6 +24,8 @@ import {
   TableTypes,
   TabType,
   TeacherAPIResponse,
+  SchoolVisitAction,
+  SchoolVisitType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -146,6 +148,40 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Updates the school's location (coordinates).
+   * @param {string} schoolId - The unique identifier of the school.
+   * @param {number} lat - Latitude.
+   * @param {number} lng - Longitude.
+   * @returns {Promise<void>}
+   */
+  updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void>;
+
+  /**
+   * Records a school visit (check-in or check-out).
+   * @param schoolId - The school ID.
+   * @param lat - Latitude.
+   * @param lng - Longitude.
+   * @param action - 'check_in' or 'check_out'.
+   * @param visitType - Type of visit (optional, for check-in).
+   */
+  recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   /**
    * Clears all rows from the specified tables in the local SQLite database.
@@ -2496,9 +2532,9 @@ export interface ServiceApi {
   getNotesBySchoolId(
     schoolId: string,
     limit?: number,
-    offset?: number
+    offset?: number,
+    sortBy?: "createdAt" | "createdBy",
   ): Promise<PaginatedResponse<SchoolNote>>;
-
   /**
    * Get interactions metrics for a school.
    */

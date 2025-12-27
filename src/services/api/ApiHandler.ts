@@ -1,5 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -39,8 +40,8 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType,isEmailVerified: boolean) {
-    return this.s.createAtSchoolUser(id,schoolName,udise,role,isEmailVerified);
+  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType, isEmailVerified: boolean) {
+    return this.s.createAtSchoolUser(id, schoolName, udise, role, isEmailVerified);
   }
   public static i: ApiHandler;
 
@@ -244,6 +245,20 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    return await this.s.updateSchoolLocation(schoolId, lat, lng);
+  }
+
+  public async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getLastSchoolVisit(schoolId);
+  }
+
   public async requestNewSchool(
     name: string,
     state: string,
@@ -317,7 +332,7 @@ export class ApiHandler implements ServiceApi {
   public async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean|void> {
+  ): Promise<Boolean | void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -1831,14 +1846,19 @@ export class ApiHandler implements ServiceApi {
     return this.s.createNoteForSchool(params);
   }
 
- async getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>> {
-  return this.s.getNotesBySchoolId(schoolId, limit, offset);
-}
-
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit?: number,
+    offset?: number,
+    sortBy?: "createdAt" | "createdBy",
+  ): Promise<PaginatedResponse<SchoolNote>> {
+    return this.s.getNotesBySchoolId(
+      schoolId,
+      limit,
+      offset,
+      sortBy,
+    );
+  }
 
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,
@@ -1854,6 +1874,24 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolStatsForSchool(schoolId);
   }
 
+  public async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this.s.recordSchoolVisit(
+      schoolId,
+      lat,
+      lng,
+      action,
+      visitType,
+      distanceFromSchool
+    );
+  }
+  
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;

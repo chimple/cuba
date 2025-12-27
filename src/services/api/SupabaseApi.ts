@@ -1,5 +1,7 @@
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import {
+  SchoolVisitAction,
+  SchoolVisitType,
   MODES,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -902,6 +904,158 @@ export class SupabaseApi implements ServiceApi {
   async pushAssignmentCart(data: { [key: string]: any }, id: string) {
     if (!this.supabase) return;
     await this.supabase.from(TABLES.Assignment_cart).upsert({ id, ...data });
+  }
+
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
+    const updatedAt = new Date().toISOString();
+
+    // Update directly in supabase
+    await this.mutate(
+      MUTATE_TYPES.UPDATE,
+      TABLES.School,
+      { location_link: locationString, updated_at: updatedAt },
+      schoolId
+    );
+  }
+
+  async recordSchoolVisit(
+    schoolId: string,
+    lat: number,
+    lng: number,
+    action: SchoolVisitAction,
+    visitType?: SchoolVisitType,
+    distanceFromSchool?: number
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client not initialized");
+        return null;
+      }
+
+      const {
+        data: { user },
+      } = await this.supabase.auth.getUser();
+      if (!user) {
+        console.error("SupabaseApi: User not logged in");
+        throw "User is not Logged in";
+      }
+
+      const now = new Date().toISOString();
+
+      if (action === SchoolVisitAction.CheckIn) {
+        // Enforce enum format: "Regular Visit" -> "regular_visit"
+        const newVisit = {
+          school_id: schoolId,
+          user_id: user.id,
+          check_in_at: now,
+          check_in_lat: lat,
+          check_in_lng: lng,
+          type: visitType,
+          is_deleted: false,
+          distance_from_school: distanceFromSchool ?? null,
+        };
+
+        const { data, error } = await this.supabase
+          .from(TABLES.FcSchoolVisit)
+          .insert(newVisit)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("SupabaseApi: Insert Error:", error);
+          throw error;
+        }
+        return data;
+      } else {
+
+        const { data: openVisits, error: fetchError } = await this.supabase
+          .from(TABLES.FcSchoolVisit)
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("school_id", schoolId)
+          .is("check_out_at", null)
+          .eq("is_deleted", false)
+          .order("check_in_at", { ascending: false })
+          .limit(1);
+
+        if (fetchError) {
+          console.error("SupabaseApi: Error fetching open visit:", fetchError);
+          throw fetchError;
+        }
+
+        if (openVisits && openVisits.length > 0) {
+          const visitToUpdate = openVisits[0];
+
+          const { data, error } = await this.supabase
+            .from(TABLES.FcSchoolVisit)
+            .update({
+              check_out_at: now,
+              check_out_lat: lat,
+              check_out_lng: lng,
+              updated_at: now, 
+              distance_from_school:
+                distanceFromSchool ?? visitToUpdate.distance_from_school,
+            })
+            .eq("id", visitToUpdate.id)
+            .select()
+            .single();
+
+          if (error) {
+            console.error("SupabaseApi: Update Error:", error);
+            throw error;
+          }
+          return data;
+        } else {
+          console.warn("SupabaseApi: No active visit found to check out from.");
+          return null;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "SupabaseApi: Unexpected error recording school visit:",
+        error
+      );
+      return null;
+    }
+  }
+
+  async getLastSchoolVisit(
+    schoolId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    try {
+      if (!this.supabase) return null;
+      const {
+        data: { user },
+      } = await this.supabase.auth.getUser();
+
+      if (!user) return null;
+
+      const { data, error } = await this.supabase
+        .from(TABLES.FcSchoolVisit)
+        .select("*")
+        .eq("school_id", schoolId)
+        .eq("user_id", user.id)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") return null;
+        console.error("SupabaseApi: Error getting last visit:", error);
+        return null;
+      }
+
+      return data;
+    } catch (e) {
+      console.error("SupabaseApi: getLastSchoolVisit exception:", e);
+      return null;
+    }
   }
 
   async updateSchoolProfile(
@@ -10332,115 +10486,91 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
-  async getNotesBySchoolId(
-    schoolId: string,
-    limit = 10,
-    offset = 0
-  ): Promise<{ data: any[]; totalCount: number }> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return { data: [], totalCount: 0 };
-    }
-
-    try {
-      const notesRes = await this.supabase
-        .from("fc_user_forms")
-        .select(
-          "id, comment, class_id, visit_id, user_id, created_at, media_links",
-          { count: "exact" } // ✅ IMPORTANT
-        )
-        .eq("school_id", schoolId)
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1); // ✅ pagination
-
-      if (notesRes.error) {
-        console.error("Error fetching notes:", notesRes.error.message);
-        return { data: [], totalCount: 0 };
-      }
-
-      const rows = notesRes.data || [];
-      const totalCount = notesRes.count ?? 0;
-
-      // ---- batch fetch users ----
-      const userIds = Array.from(
-        new Set(rows.map((r: any) => r.user_id).filter(Boolean))
-      );
-
-      let usersById: Record<string, any> = {};
-
-      if (userIds.length > 0) {
-        const usersQ = await this.supabase
-          .from("user")
-          .select("id, name")
-          .eq("is_deleted", false)
-          .in("id", userIds);
-
-        if (usersQ.data) {
-          usersQ.data.forEach((u: any) => {
-            usersById[u.id] = u;
-          });
-        }
-
-        const specialQ = await this.supabase
-          .from("special_users")
-          .select("user_id, role")
-          .in("user_id", userIds)
-          .eq("is_deleted", false);
-
-        if (specialQ.data) {
-          specialQ.data.forEach((s: any) => {
-            if (!usersById[s.user_id]) usersById[s.user_id] = {};
-            usersById[s.user_id].role = s.role;
-          });
-        }
-      }
-
-      // ---- fetch classes ----
-      const classIds = Array.from(
-        new Set(rows.map((r: any) => r.class_id).filter(Boolean))
-      );
-
-      let classById: Record<string, any> = {};
-
-      if (classIds.length > 0) {
-        const clsQ = await this.supabase
-          .from("class")
-          .select("id, name")
-          .eq("is_deleted", false)
-          .in("id", classIds);
-
-        if (clsQ.data) {
-          clsQ.data.forEach((c: any) => {
-            classById[c.id] = c;
-          });
-        }
-      }
-
-      const mapped = rows.map((r: any) => ({
-        id: r.id,
-        content: r.comment,
-        classId: r.class_id,
-        className: classById[r.class_id]?.name ?? null,
-        visitId: r.visit_id,
-        createdAt: r.created_at,
-        createdBy: {
-          userId: r.user_id,
-          name: usersById[r.user_id]?.name ?? "Unknown",
-          role: usersById[r.user_id]?.role ?? null,
-        },
-         media_links: r.media_links ?? null,
-      }));
-
-      return {
-        data: mapped,
-        totalCount,
-      };
-    } catch (e) {
-      console.error("getNotesBySchoolId error:", e);
-      return { data: [], totalCount: 0 };
-    }
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit = 10,
+  offset = 0,
+  sortBy: "createdAt" | "createdBy" = "createdAt"
+): Promise<{ data: any[]; totalCount: number }> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return { data: [], totalCount: 0 };
   }
+
+  try {
+    let notesQ = this.supabase
+      .from("fc_user_forms")
+      .select(
+        `
+          id,
+          comment,
+          class_id,
+          visit_id,
+          created_at,
+          media_links,
+
+          class:class_id (
+            id,
+            name
+          ),
+
+          user:user!fc_user_forms_user_id_fkey (
+            id,
+            name,
+            special_users (
+              role
+            )
+          )
+        `,
+        { count: "exact" }
+      )
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (sortBy === "createdAt") {
+      notesQ = notesQ
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
+    }
+
+    if (sortBy === "createdBy") {
+      notesQ = notesQ.order("name", {
+        foreignTable: "user",
+        ascending: true,
+      });
+    }
+
+    const notesRes = await notesQ.range(offset, offset + limit - 1);
+
+    if (notesRes.error) {
+      console.error("[API] Supabase error:", notesRes.error);
+      return { data: [], totalCount: 0 };
+    }
+
+    const rows = notesRes.data ?? [];
+    const totalCount = notesRes.count ?? 0;
+
+    const mapped = rows.map((r: any) => ({
+      id: r.id,
+      content: r.comment,
+      classId: r.class_id,
+      className: r.class?.name ?? null,
+      visitId: r.visit_id,
+      createdAt: r.created_at,
+      createdBy: {
+        name: r.user?.name ?? "Unknown",
+        role: r.user?.special_users?.[0]?.role ?? null,
+      },
+      media_links: r.media_links ?? null,
+    }));
+
+    return { data: mapped, totalCount };
+  } catch (e) {
+    console.error("getNotesBySchoolId error:", e);
+    return { data: [], totalCount: 0 };
+  }
+}
+
 
   async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
