@@ -4921,6 +4921,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_client_country_code: { Args: never; Returns: string }
       get_filtered_schools_with_optional_program: {
         Args: {
           _program_id?: string

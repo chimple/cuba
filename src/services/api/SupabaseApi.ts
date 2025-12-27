@@ -50,6 +50,7 @@ import {
   School,
   REWARD_LESSON,
   OPS_ROLES,
+  DEFAULT_LOCALE_ID,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -263,6 +264,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     if (!this.supabase) return;
 
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null = null;
+    if (countryCode) {
+      locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+    }
+    const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+
     const { error } = await this.supabase.from(TABLES.User).insert({
       id: user.id,
       name: user.name,
@@ -272,6 +280,7 @@ export class SupabaseApi implements ServiceApi {
       image: user.image,
       curriculum_id: user.curriculum_id,
       language_id: user.language_id,
+      locale_id: localeId,
     });
 
     if (error) {
@@ -1299,6 +1308,8 @@ export class SupabaseApi implements ServiceApi {
 
     const studentId = uuidv4();
     const now = new Date().toISOString();
+    const countryCode = await this.getClientCountryCode();
+    const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
 
     const newStudent: TableTypes<TABLES.User> = {
       id: studentId,
@@ -1310,7 +1321,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -1445,6 +1456,11 @@ export class SupabaseApi implements ServiceApi {
 
     const userId = uuidv4();
     const timestamp = new Date().toISOString();
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null = null;
+    if (countryCode) {
+      locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+    }
 
     const newStudent: TableTypes<"user"> = {
       id: userId,
@@ -1456,7 +1472,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -1719,9 +1735,14 @@ export class SupabaseApi implements ServiceApi {
   async updateLanguage(userId: string, value: string) {
     if (!this.supabase) return;
     try {
+      const countryCode = await this.getClientCountryCode();
+      let locale: TableTypes<"locale"> | null = null;
+      if (countryCode) {
+        locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      }
       const { error } = await this.supabase
         .from("user")
-        .update({ language_id: value })
+        .update({ language_id: value, locale_id: locale?.id ?? DEFAULT_LOCALE_ID })
         .eq("id", userId);
 
       if (error) {
@@ -1983,13 +2004,31 @@ export class SupabaseApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
     if (!this.supabase) return [] as TableTypes<"lesson">[];
-    const { data, error } = await this.supabase
+
+    let query = this.supabase
       .from(TABLES.ChapterLesson)
       .select("lesson:lesson_id(*)")
       .eq("chapter_id", chapterId)
-      .order("sort_index", { ascending: true })
-      .eq("is_deleted", false);
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (langId) {
+      query = query.or(`language_id.is.null,language_id.eq.${langId}`);
+    } else {
+      query = query.is("language_id", null);
+    }
+
+    if (localeId) {
+      query = query.or(`locale_id.is.null,locale_id.eq.${localeId}`);
+    } else {
+      query = query.is("locale_id", null);
+    }
+
+    const { data, error } = await query;
     if (error) {
       console.error("Error fetching chapter:", error);
       return [] as TableTypes<"lesson">[];
@@ -2295,11 +2334,12 @@ export class SupabaseApi implements ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string
+    languageDocId: string,
+    localeId?: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
 
-    const updatedFields = {
+    const updatedFields: any = {
       name,
       age,
       gender,
@@ -2309,6 +2349,12 @@ export class SupabaseApi implements ServiceApi {
       grade_id: gradeDocId,
       language_id: languageDocId,
     };
+
+    if (student.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     await this.supabase.from("user").update(updatedFields).eq("id", student.id);
     Object.assign(student, updatedFields);
@@ -2368,7 +2414,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
     const now = new Date().toISOString();
-    const updatedFields = {
+    const updatedFields: any = {
       name,
       age,
       gender,
@@ -2380,6 +2426,12 @@ export class SupabaseApi implements ServiceApi {
       student_id: student.student_id ?? null,
       updated_at: now,
     };
+
+    if (student.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     try {
       // Update user table
@@ -2450,6 +2502,12 @@ export class SupabaseApi implements ServiceApi {
       language_id: languageDocId,
       image: profilePic ?? null,
     };
+
+    if (user.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     if (options?.age !== undefined) {
       const parsedAge = parseInt(options.age, 10);
@@ -2786,12 +2844,30 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
 
-    const { data, error } = await this.supabase
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+
+    let query = this.supabase
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .or("is_deleted.eq.false")
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
+
+    if (langId) {
+      query = query.or(`language_id.is.null,language_id.eq.${langId}`);
+    } else {
+      query = query.is("language_id", null);
+    }
+
+    if (localeId) {
+      query = query.or(`locale_id.is.null,locale_id.eq.${localeId}`);
+    } else {
+      query = query.is("locale_id", null);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching skill lessons:", error);
@@ -7347,8 +7423,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -8948,6 +9024,41 @@ export class SupabaseApi implements ServiceApi {
     }
     return data || [];
   }
+  async getClientCountryCode(): Promise<any> {
+    if (!this.supabase) return null;
+    const { data, error } = await this.supabase.rpc("get_client_country_code");
+    if (error) {
+      console.error("Error fetching geo data:", error);
+      return null;
+    }
+    return data;
+  }
+  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string) {
+    if (!this.supabase) {
+      return null;
+    }
+    let query = this.supabase
+      .from("locale")
+      .select("*")
+      .eq("is_deleted", false);
+
+    if (locale_id) {
+      query = query.eq("id", locale_id);
+    } else if (locale_code) {
+      query = query.eq("code", locale_code);
+    } else {
+      return null;
+    }
+    const { data, error } = await query.limit(1).maybeSingle();
+
+    if (error) {
+      console.error("getLocaleByIdOrCode error:", error);
+      throw error;
+    }
+
+    return data;
+  }
+
   async searchSchools(
     params: SearchSchoolsParams
   ): Promise<SearchSchoolsResult> {

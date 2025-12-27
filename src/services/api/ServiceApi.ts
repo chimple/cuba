@@ -2257,6 +2257,9 @@ export interface ServiceApi {
    */
   getGeoData(params: GeoDataParams): Promise<string[]>;
 
+  getClientCountryCode(): Promise<any> ;
+  getLocaleByIdOrCode(locale_id, locale_code);
+
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).
    * The returned data is dependent on the parameters provided, allowing for a cascading fetch.
