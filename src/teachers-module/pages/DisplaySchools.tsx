@@ -144,6 +144,7 @@ const DisplaySchools: FC = () => {
       setLoading(false);
       return;
     }
+    // Previously selected school? Respect it
 
     if (preSelectedSchool) {
       const role = await api.getUserRoleForSchool(
@@ -183,13 +184,13 @@ const DisplaySchools: FC = () => {
     }
 
     if (firstPage.length === 1) {
-      await selectSchool(firstPage[0]);
+      await selectSchool(firstPage[0]); // auto-select the only school → Home
       return;
     }
     // Else: multiple schools → stay on DisplaySchools and let the user choose
     setLoading(false);
   };
-
+  // infinite scroll listener with debounce and robust guard
   const prevSchoolListLength = useRef<number>(0);
   useEffect(() => {
     const el = scrollRef.current;
