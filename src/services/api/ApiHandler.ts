@@ -1710,7 +1710,7 @@ export class ApiHandler implements ServiceApi {
   async getClientCountryCode(): Promise<any> {
     return await this.s.getClientCountryCode();
   }
-  async getLocaleByIdOrCode(locale_id:string, locale_code:string){
+  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>{
     return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
   }
 

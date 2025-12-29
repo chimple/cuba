@@ -4,7 +4,7 @@ import { Constants, Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
-export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf";
+export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf"; //this is the default locale id for india
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",

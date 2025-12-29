@@ -2158,41 +2158,42 @@ export class SupabaseApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [];
+
     const student = this.currentStudent;
     const langId = student?.language_id;
     const localeId = student?.locale_id;
-    if (!this.supabase) return [] as TableTypes<"lesson">[];
 
-    let query = this.supabase
+    const orFilters: string[] = [];
+    orFilters.push("language_id.is.null,locale_id.is.null");
+    if (langId) {
+      orFilters.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+    if (localeId) {
+      orFilters.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+    if (langId && localeId) {
+      orFilters.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+    }
+
+    const { data, error } = await this.supabase
       .from(TABLES.ChapterLesson)
       .select("lesson:lesson_id(*)")
       .eq("chapter_id", chapterId)
       .eq("is_deleted", false)
+      .or(orFilters.join(","))
       .order("sort_index", { ascending: true });
 
-    if (langId) {
-      query = query.or(`language_id.is.null,language_id.eq.${langId}`);
-    } else {
-      query = query.is("language_id", null);
-    }
-
-    if (localeId) {
-      query = query.or(`locale_id.is.null,locale_id.eq.${localeId}`);
-    } else {
-      query = query.is("locale_id", null);
-    }
-
-    const { data, error } = await query;
     if (error) {
-      console.error("Error fetching chapter:", error);
-      return [] as TableTypes<"lesson">[];
+      console.error("Error fetching chapter lessons:", error);
+      return [];
     }
-    // Extract lessons from the joined result
-    const lessons = (data ?? [])
+
+    return (data ?? [])
       .map((item: any) => item.lesson as TableTypes<"lesson">)
-      .filter((lesson) => !!lesson);
-    return lessons ?? ([] as TableTypes<"lesson">[]);
+      .filter(Boolean);
   }
+
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
@@ -2998,30 +2999,12 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
 
-    const student = this.currentStudent;
-    const langId = student?.language_id;
-    const localeId = student?.locale_id;
-
-    let query = this.supabase
+    const { data, error } = await this.supabase
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .eq("is_deleted", false)
+      .or("is_deleted.eq.false")
       .order("sort_index", { ascending: true });
-
-    if (langId) {
-      query = query.or(`language_id.is.null,language_id.eq.${langId}`);
-    } else {
-      query = query.is("language_id", null);
-    }
-
-    if (localeId) {
-      query = query.or(`locale_id.is.null,locale_id.eq.${localeId}`);
-    } else {
-      query = query.is("locale_id", null);
-    }
-
-    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching skill lessons:", error);
@@ -9187,7 +9170,10 @@ export class SupabaseApi implements ServiceApi {
     }
     return data;
   }
-  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string) {
+  async getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null> {
     if (!this.supabase) {
       return null;
     }

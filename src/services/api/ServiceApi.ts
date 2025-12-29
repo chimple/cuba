@@ -2293,8 +2293,18 @@ export interface ServiceApi {
    */
   getGeoData(params: GeoDataParams): Promise<string[]>;
 
-  getClientCountryCode(): Promise<any> ;
-  getLocaleByIdOrCode(locale_id, locale_code);
+  /**
+   * Retrieves the client’s country code from the request context.
+   * Typically derived from edge/CDN headers.
+   * @returns ISO country code (e.g., "IN") or null.
+   */
+  getClientCountryCode(): Promise<string | null>;
+
+  /**
+   * Provide either `locale_id` or `locale_code`.
+   * @returns Locale record or null if not found.
+   */
+  getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>;
 
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).

@@ -801,7 +801,7 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at,, locale_id)
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, locale_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
@@ -2122,9 +2122,13 @@ export class SqliteApi implements ServiceApi {
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
     WHERE cl.chapter_id = "${chapterId}" 
     AND cl.is_deleted = 0
-    AND (cl.language_id IS NULL ${langId ? `OR cl.language_id = "${langId}"` : ""})
-    AND (cl.locale_id IS NULL ${localeId ? `OR cl.locale_id = "${localeId}"` : ""})
-    ORDER BY sort_index ASC;
+    AND (
+      (cl.language_id IS NULL AND cl.locale_id IS NULL)
+      ${langId ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)` : ""}
+      ${localeId ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")` : ""}
+      ${langId && localeId ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")` : ""}
+    )
+    ORDER BY cl.sort_index ASC;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
