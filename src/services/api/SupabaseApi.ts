@@ -1898,7 +1898,10 @@ export class SupabaseApi implements ServiceApi {
       }
       const { error } = await this.supabase
         .from("user")
-        .update({ language_id: value, locale_id: locale?.id ?? DEFAULT_LOCALE_ID })
+        .update({
+          language_id: value,
+          locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
+        })
         .eq("id", userId);
 
       if (error) {
@@ -7562,8 +7565,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -8964,7 +8967,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("id", requestId)
+      .eq("request_id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
@@ -10473,22 +10476,22 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
- async getNotesBySchoolId(
-  schoolId: string,
-  limit = 10,
-  offset = 0,
-  sortBy: "createdAt" | "createdBy" = "createdAt"
-): Promise<{ data: any[]; totalCount: number }> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return { data: [], totalCount: 0 };
-  }
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit = 10,
+    offset = 0,
+    sortBy: "createdAt" | "createdBy" = "createdAt"
+  ): Promise<{ data: any[]; totalCount: number }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return { data: [], totalCount: 0 };
+    }
 
-  try {
-    let notesQ = this.supabase
-      .from("fc_user_forms")
-      .select(
-        `
+    try {
+      let notesQ = this.supabase
+        .from("fc_user_forms")
+        .select(
+          `
           id,
           comment,
           class_id,
@@ -10509,55 +10512,54 @@ export class SupabaseApi implements ServiceApi {
             )
           )
         `,
-        { count: "exact" }
-      )
-      .eq("school_id", schoolId)
-      .eq("is_deleted", false);
+          { count: "exact" }
+        )
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
 
-    if (sortBy === "createdAt") {
-      notesQ = notesQ
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false });
-    }
+      if (sortBy === "createdAt") {
+        notesQ = notesQ
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false });
+      }
 
-    if (sortBy === "createdBy") {
-      notesQ = notesQ.order("name", {
-        foreignTable: "user",
-        ascending: true,
-      });
-    }
+      if (sortBy === "createdBy") {
+        notesQ = notesQ.order("name", {
+          foreignTable: "user",
+          ascending: true,
+        });
+      }
 
-    const notesRes = await notesQ.range(offset, offset + limit - 1);
+      const notesRes = await notesQ.range(offset, offset + limit - 1);
 
-    if (notesRes.error) {
-      console.error("[API] Supabase error:", notesRes.error);
+      if (notesRes.error) {
+        console.error("[API] Supabase error:", notesRes.error);
+        return { data: [], totalCount: 0 };
+      }
+
+      const rows = notesRes.data ?? [];
+      const totalCount = notesRes.count ?? 0;
+
+      const mapped = rows.map((r: any) => ({
+        id: r.id,
+        content: r.comment,
+        classId: r.class_id,
+        className: r.class?.name ?? null,
+        visitId: r.visit_id,
+        createdAt: r.created_at,
+        createdBy: {
+          name: r.user?.name ?? "Unknown",
+          role: r.user?.special_users?.[0]?.role ?? null,
+        },
+        media_links: r.media_links ?? null,
+      }));
+
+      return { data: mapped, totalCount };
+    } catch (e) {
+      console.error("getNotesBySchoolId error:", e);
       return { data: [], totalCount: 0 };
     }
-
-    const rows = notesRes.data ?? [];
-    const totalCount = notesRes.count ?? 0;
-
-    const mapped = rows.map((r: any) => ({
-      id: r.id,
-      content: r.comment,
-      classId: r.class_id,
-      className: r.class?.name ?? null,
-      visitId: r.visit_id,
-      createdAt: r.created_at,
-      createdBy: {
-        name: r.user?.name ?? "Unknown",
-        role: r.user?.special_users?.[0]?.role ?? null,
-      },
-      media_links: r.media_links ?? null,
-    }));
-
-    return { data: mapped, totalCount };
-  } catch (e) {
-    console.error("getNotesBySchoolId error:", e);
-    return { data: [], totalCount: 0 };
   }
-}
-
 
   async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
