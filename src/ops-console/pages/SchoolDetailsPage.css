@@ -98,6 +98,7 @@
   font-weight: 600 !important;
   background-color: #2e7d32 !important;
   border-radius: 8px !important;
+  min-width: 140px !important;
 }
 
 .schooldetailspage .btn-check-in:hover {
@@ -109,6 +110,7 @@
   font-weight: 600 !important;
   background-color: #d32f2f !important;
   border-radius: 8px !important;
+  min-width: 140px !important;
 }
 
 .schooldetailspage .btn-check-out:hover {
