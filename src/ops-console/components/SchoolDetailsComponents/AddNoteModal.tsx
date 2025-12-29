@@ -62,6 +62,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
     setIsSaving(true);
     setError("");
+    onClose();
 
     try {
       const api = ServiceConfig.getI().apiHandler;
@@ -117,9 +118,13 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         <textarea
           className="add-note-modal-textarea"
           id="add-note-modal-textarea"
-          placeholder={t("Type your note here").toString()}
+          placeholder={t("Type your note here...").toString()}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (error) setError("");
+          }}
+
           rows={6}
         />
 

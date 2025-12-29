@@ -297,10 +297,12 @@ const App: React.FC = () => {
       JSON.stringify(shouldShowHomeworkRemoteAssets)
     );
 
-    Filesystem.mkdir({
-      path: CACHE_IMAGE,
-      directory: Directory.Cache,
-    }).catch((_) => {});
+    try {
+      Filesystem.mkdir({
+        path: CACHE_IMAGE,
+        directory: Directory.Cache,
+      }).catch((e) => {throw new Error("Error in creating directory for cache");});
+    } catch (e) { console.log("Error in creating directory for cache"); }
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();

@@ -130,13 +130,42 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
 
   useEffect(() => {
     if (data.schoolData?.location_link) {
-        const regex = /(?:q|query|ll)=([+-]?[\d.]+),([+-]?[\d.]+)/;
-        const match = data.schoolData.location_link.match(regex);
-        if (match) {
-            setSchoolLocation({
-                lat: parseFloat(match[1]),
-                lng: parseFloat(match[2])
-            });
+        const url = data.schoolData.location_link;
+        let lat: number | null = null;
+        let lng: number | null = null;
+
+        // 1. Try "data=!3d...!4d..." format (Place specific coordinates)
+        // Example: ...!3d12.8917379!4d77.5486649...
+        const dataRegex = /!3d([+-]?\d+(\.\d+)?)!4d([+-]?\d+(\.\d+)?)/;
+        const dataMatch = url.match(dataRegex);
+        if (dataMatch) {
+            lat = parseFloat(dataMatch[1]);
+            lng = parseFloat(dataMatch[3]);
+        }
+
+        // 2. Try standard query params (q=lat,lng or ll=lat,lng)
+        if (lat === null || lng === null) {
+            const queryRegex = /(?:q|query|ll)=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+            const queryMatch = url.match(queryRegex);
+            if (queryMatch) {
+                lat = parseFloat(queryMatch[1]);
+                lng = parseFloat(queryMatch[3]);
+            }
+        }
+
+        // 3. Try "@lat,lng" format (Viewport center - Fallback)
+        // Example: .../@12.8917371,77.5311559...
+        if (lat === null || lng === null) {
+             const atRegex = /@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+             const atMatch = url.match(atRegex);
+             if (atMatch) {
+                 lat = parseFloat(atMatch[1]);
+                 lng = parseFloat(atMatch[3]);
+             }
+        }
+
+        if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+            setSchoolLocation({ lat, lng });
         }
     }
   }, [data.schoolData]);
@@ -189,6 +218,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     lng?: number,
     distance?: number
   ) => {
+    setIsCheckInModalOpen(false);
     const api = ServiceConfig.getI().apiHandler;
     try {
       if (checkInStatus === SchoolVisitStatus.CheckedOut) {
@@ -231,7 +261,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         duration: "long",
       });
     }
-    setIsCheckInModalOpen(false);
   };
 
   useEffect(() => {
@@ -507,7 +536,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               </>
             }
           />
-
         </div>
       )}
       {/* Modal outside the header */}

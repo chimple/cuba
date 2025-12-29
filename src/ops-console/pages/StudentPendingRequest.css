@@ -205,6 +205,22 @@ html {
   flex-direction: column;
 }
 
+.radio-like-checkbox {
+  --size: 18px;
+
+  /* Outer circle */
+  --border-radius: 50%;
+  --border-width: 2px;
+  --border-color: #6b6b6b;
+
+  /* Backgrounds */
+  --background: transparent;
+  --background-checked: transparent;
+
+  margin-right: 8px;
+}
+
+
 @media (max-width: 1100px) {
   .student-pending-request-details-card,
   .student-pending-request-details-table-card {

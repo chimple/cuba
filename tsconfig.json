@@ -16,8 +16,9 @@
     "noEmit": true,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
-    "types": ["lido-standalone"],
+    "types": ["jest","lido-standalone"],
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/tests"]
 }

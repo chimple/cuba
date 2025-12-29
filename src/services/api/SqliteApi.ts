@@ -52,6 +52,7 @@ import {
   SearchSchoolsResult,
   REWARD_LESSON,
   CURRENT_USER,
+  DEFAULT_LOCALE_ID,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -764,6 +765,9 @@ export class SqliteApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+    const countryCode = await this.getClientCountryCode();
+    const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+
     const studentId = uuidv4();
     const newStudent: TableTypes<"user"> = {
       id: studentId,
@@ -775,7 +779,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -797,8 +801,8 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, locale_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newStudent.id,
@@ -812,6 +816,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.language_id,
         newStudent.created_at,
         newStudent.updated_at,
+        newStudent.locale_id,
       ]
     );
 
@@ -1321,6 +1326,9 @@ export class SqliteApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null =
+      await this.getLocaleByIdOrCode(undefined, countryCode);
 
     const userId = uuidv4();
     const newStudent: TableTypes<"user"> = {
@@ -1333,7 +1341,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -1355,8 +1363,8 @@ export class SqliteApi implements ServiceApi {
     // Insert into user table
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, student_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, student_id, locale_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newStudent.id,
@@ -1371,6 +1379,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.created_at,
         newStudent.updated_at,
         newStudent.student_id,
+        newStudent.locale_id
       ]
     );
     await this.updatePushChanges(
@@ -1985,15 +1994,20 @@ export class SqliteApi implements ServiceApi {
     });
   }
   async updateLanguage(userId: string, value: string) {
+    const countryCode = await this.getClientCountryCode();
+    const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+    const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+
     const query = `
       UPDATE "user"
-      SET language_id = "${value}"
-      WHERE id = "${userId}";
+      SET language_id = ?, locale_id = ?
+      WHERE id = ?;
     `;
-    const res = await this.executeQuery(query);
+    const res = await this.executeQuery(query, [value, localeId, userId]);
     console.log("🚀 ~ SqliteApi ~ updateLanguage ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
+      locale_id: localeId,
       id: userId,
     });
   }
@@ -2098,12 +2112,23 @@ export class SqliteApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+
     const query = `
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}" AND cl.is_deleted = 0
-    ORDER BY sort_index ASC;
+    WHERE cl.chapter_id = "${chapterId}" 
+    AND cl.is_deleted = 0
+    AND (
+      (cl.language_id IS NULL AND cl.locale_id IS NULL)
+      ${langId ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)` : ""}
+      ${localeId ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")` : ""}
+      ${langId && localeId ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")` : ""}
+    )
+    ORDER BY cl.sort_index ASC;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -2543,6 +2568,15 @@ export class SqliteApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
+    const languageChanged = student.language_id !== languageDocId;
+    let localeId = student.locale_id;
+    if (languageChanged) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
+    console.log("localefinale", localeId);
+
     const updateUserQuery = `
       UPDATE "user"
       SET
@@ -2554,6 +2588,7 @@ export class SqliteApi implements ServiceApi {
         curriculum_id = ?,
         grade_id = ?,
         language_id = ?,
+        locale_id = ?,
         updated_at = ?
       WHERE id = ?;
     `;
@@ -2567,6 +2602,7 @@ export class SqliteApi implements ServiceApi {
       boardDocId ?? null,
       gradeDocId ?? null,
       languageDocId,
+      localeId,
       now,
       student.id,
     ]);
@@ -2584,6 +2620,7 @@ export class SqliteApi implements ServiceApi {
     student.curriculum_id = boardDocId ?? null;
     student.grade_id = gradeDocId ?? null;
     student.language_id = languageDocId;
+    student.locale_id = localeId;
     student.updated_at = now;
 
     if (courses && courses.length > 0) {
@@ -2637,6 +2674,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId,
       grade_id: gradeDocId,
       language_id: languageDocId,
+      locale_id: localeId,
       updated_at: now,
       id: student.id,
     });
@@ -2672,6 +2710,14 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string
   ): Promise<TableTypes<"user">> {
+    const languageChanged = student.language_id !== languageDocId;
+    let localeId = student.locale_id;
+    if (languageChanged) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
+
     const updateUserQuery = `
       UPDATE "user"
       SET
@@ -2683,6 +2729,7 @@ export class SqliteApi implements ServiceApi {
         curriculum_id = ?,
         grade_id = ?,
         language_id = ?,
+        locale_id = ?,
         student_id = ?
       WHERE id = ?;
     `;
@@ -2696,6 +2743,7 @@ export class SqliteApi implements ServiceApi {
         boardDocId,
         gradeDocId,
         languageDocId,
+        localeId,
         student_id,
         student.id,
       ]);
@@ -2708,6 +2756,7 @@ export class SqliteApi implements ServiceApi {
       student.grade_id = gradeDocId;
       student.language_id = languageDocId;
       student.student_id = student_id;
+      student.locale_id = localeId;
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
@@ -2718,6 +2767,7 @@ export class SqliteApi implements ServiceApi {
         grade_id: gradeDocId,
         language_id: languageDocId,
         student_id: student_id,
+        locale_id: localeId,
         id: student.id,
       });
       // Check if the class has changed
@@ -4240,10 +4290,16 @@ export class SqliteApi implements ServiceApi {
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
+
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null =
+    await this.getLocaleByIdOrCode(undefined, countryCode);
+    const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         user.id,
@@ -4254,6 +4310,7 @@ export class SqliteApi implements ServiceApi {
         user.image,
         user.curriculum_id,
         user.language_id,
+        user.locale_id = localeId
       ]
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -6986,6 +7043,38 @@ order by
   async getGeoData(params: GeoDataParams): Promise<string[]> {
     return await this._serverApi.getGeoData(params);
   }
+  async getClientCountryCode(): Promise<any> {
+    return await this._serverApi.getClientCountryCode();
+  }
+  async getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null> {
+    if (!locale_id && !locale_code) {
+      return null;
+    }
+
+    let query = `SELECT * FROM locale WHERE is_deleted = 0`;
+    const params: any[] = [];
+
+    if (locale_id) {
+      query += ` AND id = ?`;
+      params.push(locale_id);
+    } else {
+      query += ` AND code = ?`;
+      params.push(locale_code);
+    }
+    query += ` LIMIT 1`;
+    const res = await this.executeQuery(query, params);
+
+    if (res?.values && res.values.length > 0) {
+      return res.values[0] as TableTypes<"locale">;
+    }
+
+    return null;
+  }
+
+
   async searchSchools(
     params: SearchSchoolsParams
   ): Promise<SearchSchoolsResult> {
@@ -7367,14 +7456,20 @@ order by
 }
 
   async getNotesBySchoolId(
-    schoolId: string,
-    limit?: number,
-    offset?: number
-  ): Promise<PaginatedResponse<SchoolNote>> {
-    console.warn("getNotesBySchoolId is not supported in SQLite mode");
+  schoolId: string,
+  limit?: number,
+  offset?: number,
+  sortBy?: "createdAt" | "createdBy"
+): Promise<PaginatedResponse<SchoolNote>> {
+  console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
-    return this._serverApi.getNotesBySchoolId(schoolId, limit, offset);
-  }
+  return this._serverApi.getNotesBySchoolId(
+    schoolId,
+    limit,
+    offset,
+    sortBy
+  );
+}
 
   async getRecentAssignmentCountByTeacher(
     teacherId: string,

@@ -78,6 +78,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
+  const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
   let userData: TableTypes<"user"> | null = null;
   let parentData: TableTypes<"user"> | null = null;
   let className = "";
@@ -101,6 +102,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     let mounted = true;
 
     const load = async () => {
+      if (mounted) {
+        setIsQuestionsLoading(true);
+        setLocalQuestions([]);
+        setResponses({});
+      }
       try {
         const questions = await api.getFilteredFcQuestions(
           status ?? null,
@@ -109,16 +115,17 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
         const formattedQuestions =
           questions?.map((q) => ({
-            id: q.sort_order.toString(),
+            id: q.id,
             question: q.question_text,
           })) ?? [];
 
         if (mounted) {
           setLocalQuestions(formattedQuestions);
-          setResponses({});
         }
       } catch (err) {
         console.error("Question fetch error", err);
+      } finally {
+        if (mounted) setIsQuestionsLoading(false);
       }
     };
 
@@ -138,7 +145,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   };
 
   const mandatoryQuestions = localQuestions;
-  const otherQuestions: Q[] = [];
+  const otherQuestions: Q[] = useMemo(() => [], []);
 
   const showMandatory =
     mode === "in_person" || (mode === "call" && callOutcome === "call_picked");
@@ -147,23 +154,35 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
-    if (techIssueMarked === true && techIssueDetails.trim() === "")
-      return false;
     if (showMandatory) {
+      if (isQuestionsLoading) return false;
       for (const q of mandatoryQuestions) {
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
       }
     }
+    for (const q of otherQuestions) {
+      if (!responses[q.id] || responses[q.id].trim() === "") return false;
+    }
+    if (otherComments.trim() === "") return false;
+    if (techIssueMarked === null) return false;
+    if (techIssueMarked === true && techIssueDetails.trim() === "")
+      return false;
 
     return true;
   }, [
     mode,
     callOutcome,
     mandatoryQuestions,
+    otherQuestions,
     responses,
     spokeWith,
+    otherComments,
+    isQuestionsLoading,
     techIssueMarked,
     techIssueDetails,
+    showMandatory,
+    initialUserType,
+    ContactTarget,
   ]);
 
   const handleSave = async () => {

@@ -40,8 +40,8 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType,isEmailVerified: boolean) {
-    return this.s.createAtSchoolUser(id,schoolName,udise,role,isEmailVerified);
+  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType, isEmailVerified: boolean) {
+    return this.s.createAtSchoolUser(id, schoolName, udise, role, isEmailVerified);
   }
   public static i: ApiHandler;
 
@@ -332,7 +332,7 @@ export class ApiHandler implements ServiceApi {
   public async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean|void> {
+  ): Promise<Boolean | void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -1707,6 +1707,12 @@ export class ApiHandler implements ServiceApi {
   async getGeoData(params: GeoDataParams): Promise<string[]> {
     return await this.s.getGeoData(params);
   }
+  async getClientCountryCode(): Promise<any> {
+    return await this.s.getClientCountryCode();
+  }
+  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>{
+    return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
+  }
 
   async searchSchools(
     params: SearchSchoolsParams
@@ -1840,14 +1846,19 @@ export class ApiHandler implements ServiceApi {
     return this.s.createNoteForSchool(params);
   }
 
- async getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>> {
-  return this.s.getNotesBySchoolId(schoolId, limit, offset);
-}
-
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit?: number,
+    offset?: number,
+    sortBy?: "createdAt" | "createdBy",
+  ): Promise<PaginatedResponse<SchoolNote>> {
+    return this.s.getNotesBySchoolId(
+      schoolId,
+      limit,
+      offset,
+      sortBy,
+    );
+  }
 
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,

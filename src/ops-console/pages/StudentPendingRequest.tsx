@@ -14,6 +14,7 @@ import {
   Radio,
   TablePagination,
 } from "@mui/material";
+import { IonCheckbox } from "@ionic/react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
@@ -125,8 +126,17 @@ const StudentPendingRequestDetails = () => {
     }
   }, [requestData, currentPage, pageSize, fetchStudents]);
 
-  const handleRadioChange = (studentId: string) =>
-    setSelectedStudent(studentId);
+    const handleRadioChange = (
+    studentId: string,
+    checked: boolean
+  ) => {
+    if (checked) {
+      setSelectedStudent(studentId);
+    } else {
+      setSelectedStudent(null);
+    }
+  };
+
   const handlePageChange = (event: unknown, newPage: number) =>
     setCurrentPage(newPage + 1);
 
@@ -390,9 +400,9 @@ const StudentPendingRequestDetails = () => {
                     return (
                       <TableRow key={stu.user.id}>
                         <TableCell>
-                          <Radio
+                          <IonCheckbox className="radio-like-checkbox"
                             checked={selectedStudent === stu.user.id}
-                            onChange={() => handleRadioChange(stu.user.id)}
+                            onIonChange={(e) => handleRadioChange(stu.user.id,e.detail.checked)}
                             value={stu.user.id}
                             color="primary"
                           />
