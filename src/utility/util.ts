@@ -3369,13 +3369,6 @@ export class Util {
         extractTo: LIDO_COMMON_AUDIO_DIR,
         filepaths: ["."],
         data: buffer,
-        onProgress: (event) =>
-          console.log(
-            "[LidoCommonAudio] Unzipping:",
-            event.filename,
-            event.loaded,
-            event.total
-          ),
       });
 
       // 💾 Cache language
