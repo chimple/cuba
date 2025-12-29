@@ -45,7 +45,10 @@ const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng
           [userLoc.lat, userLoc.lng]
         ]);
         try {
-            map.fitBounds(bounds, { padding: [50, 50] });
+            map.fitBounds(bounds, { 
+                paddingTopLeft: [50, 130],
+                paddingBottomRight: [50, 20]
+            });
         } catch(e) { console.warn("Map fitBounds failed", e); }
       } else {
         map.setView([schoolLoc.lat, schoolLoc.lng], 15);
@@ -549,14 +552,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                                 shadowSize: [41, 41]
                             })}
                         >
-                            <Popup>{t("School Location")}</Popup>
+                            <Popup autoPan={false}>{t("School Location")}</Popup>
                         </Marker>
                     </>
                 )}
 
                 {userLocation && (
                     <Marker position={[userLocation.lat, userLocation.lng]}>
-                         <Popup>
+                         <Popup autoPan={false}>
                             {t("Your Location")}
                         </Popup>
                     </Marker>
