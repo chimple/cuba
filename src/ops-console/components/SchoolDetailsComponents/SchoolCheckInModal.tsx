@@ -79,6 +79,29 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [isPermissionDenied, setIsPermissionDenied] = useState<boolean>(false);
   const [retryTrigger, setRetryTrigger] = useState<number>(0);
 
+
+
+  const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+        if (userLocation) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`);
+                const data = await response.json();
+                if (data && data.display_name) {
+                    setUserAddress(data.display_name);
+                }
+            } catch (error) {
+                console.error("Failed to fetch address", error);
+            }
+        }
+    };
+    fetchAddress();
+  }, [userLocation]);
+
   const targetLocation = useMemo(() => {
     if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
         return {
@@ -91,11 +114,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     return {
         lat: 0,
         lng: 0,
-        address1: t("Location not set"),
+        address1: userAddress || t("Fetching User Address..."),
         address2: t("Please set location"),
         isMissing: true 
     };
-  }, [schoolLocation]);
+  }, [schoolLocation, userAddress]);
 
   useEffect(() => {
       if ((targetLocation as any).isMissing) {
@@ -105,8 +128,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       }
   }, [targetLocation]);
 
-  const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+
 
   useEffect(() => {
     if (open) {
@@ -447,24 +469,23 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               <div id="check-in-location-content" className="check-in-card-content">
                   <div id="check-in-school-name" className="location-name">{schoolName || "XYZ School"}</div>
                   
-                  <div id="check-in-address-1" className="location-detail-text">{targetLocation.address1}</div>
+                  <div id="check-in-address-1" className="location-detail-text">
+                      {userAddress || targetLocation.address1}
+                  </div>
                    <div id="check-in-address-2" className="location-detail-text">{targetLocation.address2}</div>
                   
-                  {!isSchoolLocationMissing && !isPermissionDenied && (
-                    <>
-                        {userLocation && (
-                             <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
-                                <span className="location-coords-label">{t("User Coordinates")}: </span>
-                                {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
-                            </div>
-                        )}
+                  {userLocation && (
+                       <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
+                          <span className="location-coords-label">{t("User Coordinates")}: </span>
+                          {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
+                      </div>
+                  )}
                         {distance !== null && !isLoadingLocation && (
                             <div id="check-in-distance" className={`location-detail-text distance-text ${isInsidePremises ? 'inside' : 'outside'}`}>
                                 {t("Distance")}: {Math.round(distance)} {t("meters away")}
                             </div>
                         )}
-                    </>
-                  )}
+
                   
                   {isLoadingLocation && (
                       <div id="check-in-loading-location" className="location-detail-text fetching-location-text">
