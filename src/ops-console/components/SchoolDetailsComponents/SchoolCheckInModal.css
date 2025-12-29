@@ -128,16 +128,36 @@
     color: #495057;
 }
 
+.schoolcheckinmodal #check-in-time-card {
+  align-items: center;
+}
+
+.schoolcheckinmodal #check-in-time-card .check-in-icon-wrapper {
+  margin-top: 0;
+  display: flex; 
+  align-self: center; 
+}
+
+.schoolcheckinmodal #check-in-time-card .check-in-card-content {
+  justify-content: center;
+  gap: 2px; 
+}
+
 /* Time Card Text */
 .schoolcheckinmodal .date-text {
     font-size: 0.9rem;
     color: #212529;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
 }
 
 .schoolcheckinmodal .time-text {
     font-size: 0.95rem;
     font-weight: 700;
     color: #212529;
+    line-height: 1.2;
+    margin: 0;
 }
 
 /* Map Widget */
