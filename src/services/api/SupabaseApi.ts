@@ -52,6 +52,7 @@ import {
   School,
   REWARD_LESSON,
   OPS_ROLES,
+  DEFAULT_LOCALE_ID,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -265,6 +266,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     if (!this.supabase) return;
 
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null = null;
+    if (countryCode) {
+      locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+    }
+    const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+
     const { error } = await this.supabase.from(TABLES.User).insert({
       id: user.id,
       name: user.name,
@@ -274,6 +282,7 @@ export class SupabaseApi implements ServiceApi {
       image: user.image,
       curriculum_id: user.curriculum_id,
       language_id: user.language_id,
+      locale_id: localeId,
     });
 
     if (error) {
@@ -1455,6 +1464,8 @@ export class SupabaseApi implements ServiceApi {
 
     const studentId = uuidv4();
     const now = new Date().toISOString();
+    const countryCode = await this.getClientCountryCode();
+    const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
 
     const newStudent: TableTypes<TABLES.User> = {
       id: studentId,
@@ -1466,7 +1477,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -1601,6 +1612,11 @@ export class SupabaseApi implements ServiceApi {
 
     const userId = uuidv4();
     const timestamp = new Date().toISOString();
+    const countryCode = await this.getClientCountryCode();
+    let locale: TableTypes<"locale"> | null = null;
+    if (countryCode) {
+      locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+    }
 
     const newStudent: TableTypes<"user"> = {
       id: userId,
@@ -1612,7 +1628,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: boardDocId ?? null,
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
-      locale_id: null,
+      locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -1875,9 +1891,14 @@ export class SupabaseApi implements ServiceApi {
   async updateLanguage(userId: string, value: string) {
     if (!this.supabase) return;
     try {
+      const countryCode = await this.getClientCountryCode();
+      let locale: TableTypes<"locale"> | null = null;
+      if (countryCode) {
+        locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      }
       const { error } = await this.supabase
         .from("user")
-        .update({ language_id: value })
+        .update({ language_id: value, locale_id: locale?.id ?? DEFAULT_LOCALE_ID })
         .eq("id", userId);
 
       if (error) {
@@ -2139,23 +2160,42 @@ export class SupabaseApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
-    if (!this.supabase) return [] as TableTypes<"lesson">[];
+    if (!this.supabase) return [];
+
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+
+    const orFilters: string[] = [];
+    orFilters.push("language_id.is.null,locale_id.is.null");
+    if (langId) {
+      orFilters.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+    if (localeId) {
+      orFilters.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+    if (langId && localeId) {
+      orFilters.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+    }
+
     const { data, error } = await this.supabase
       .from(TABLES.ChapterLesson)
       .select("lesson:lesson_id(*)")
       .eq("chapter_id", chapterId)
-      .order("sort_index", { ascending: true })
-      .eq("is_deleted", false);
+      .eq("is_deleted", false)
+      .or(orFilters.join(","))
+      .order("sort_index", { ascending: true });
+
     if (error) {
-      console.error("Error fetching chapter:", error);
-      return [] as TableTypes<"lesson">[];
+      console.error("Error fetching chapter lessons:", error);
+      return [];
     }
-    // Extract lessons from the joined result
-    const lessons = (data ?? [])
+
+    return (data ?? [])
       .map((item: any) => item.lesson as TableTypes<"lesson">)
-      .filter((lesson) => !!lesson);
-    return lessons ?? ([] as TableTypes<"lesson">[]);
+      .filter(Boolean);
   }
+
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
@@ -2451,11 +2491,12 @@ export class SupabaseApi implements ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string
+    languageDocId: string,
+    localeId?: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
 
-    const updatedFields = {
+    const updatedFields: any = {
       name,
       age,
       gender,
@@ -2465,6 +2506,12 @@ export class SupabaseApi implements ServiceApi {
       grade_id: gradeDocId,
       language_id: languageDocId,
     };
+
+    if (student.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     await this.supabase.from("user").update(updatedFields).eq("id", student.id);
     Object.assign(student, updatedFields);
@@ -2524,7 +2571,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
     const now = new Date().toISOString();
-    const updatedFields = {
+    const updatedFields: any = {
       name,
       age,
       gender,
@@ -2536,6 +2583,12 @@ export class SupabaseApi implements ServiceApi {
       student_id: student.student_id ?? null,
       updated_at: now,
     };
+
+    if (student.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     try {
       // Update user table
@@ -2606,6 +2659,12 @@ export class SupabaseApi implements ServiceApi {
       language_id: languageDocId,
       image: profilePic ?? null,
     };
+
+    if (user.language_id !== languageDocId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+    }
 
     if (options?.age !== undefined) {
       const parsedAge = parseInt(options.age, 10);
@@ -7503,8 +7562,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -9104,6 +9163,44 @@ export class SupabaseApi implements ServiceApi {
     }
     return data || [];
   }
+  async getClientCountryCode(): Promise<any> {
+    if (!this.supabase) return null;
+    const { data, error } = await this.supabase.rpc("get_client_country_code");
+    if (error) {
+      console.error("Error fetching geo data:", error);
+      return null;
+    }
+    return data;
+  }
+  async getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null> {
+    if (!this.supabase) {
+      return null;
+    }
+    let query = this.supabase
+      .from("locale")
+      .select("*")
+      .eq("is_deleted", false);
+
+    if (locale_id) {
+      query = query.eq("id", locale_id);
+    } else if (locale_code) {
+      query = query.eq("code", locale_code);
+    } else {
+      return null;
+    }
+    const { data, error } = await query.limit(1).maybeSingle();
+
+    if (error) {
+      console.error("getLocaleByIdOrCode error:", error);
+      throw error;
+    }
+
+    return data;
+  }
+
   async searchSchools(
     params: SearchSchoolsParams
   ): Promise<SearchSchoolsResult> {
@@ -10376,115 +10473,91 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
-  async getNotesBySchoolId(
-    schoolId: string,
-    limit = 10,
-    offset = 0
-  ): Promise<{ data: any[]; totalCount: number }> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return { data: [], totalCount: 0 };
-    }
-
-    try {
-      const notesRes = await this.supabase
-        .from("fc_user_forms")
-        .select(
-          "id, comment, class_id, visit_id, user_id, created_at, media_links",
-          { count: "exact" } // ✅ IMPORTANT
-        )
-        .eq("school_id", schoolId)
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: false })
-        .range(offset, offset + limit - 1); // ✅ pagination
-
-      if (notesRes.error) {
-        console.error("Error fetching notes:", notesRes.error.message);
-        return { data: [], totalCount: 0 };
-      }
-
-      const rows = notesRes.data || [];
-      const totalCount = notesRes.count ?? 0;
-
-      // ---- batch fetch users ----
-      const userIds = Array.from(
-        new Set(rows.map((r: any) => r.user_id).filter(Boolean))
-      );
-
-      let usersById: Record<string, any> = {};
-
-      if (userIds.length > 0) {
-        const usersQ = await this.supabase
-          .from("user")
-          .select("id, name")
-          .eq("is_deleted", false)
-          .in("id", userIds);
-
-        if (usersQ.data) {
-          usersQ.data.forEach((u: any) => {
-            usersById[u.id] = u;
-          });
-        }
-
-        const specialQ = await this.supabase
-          .from("special_users")
-          .select("user_id, role")
-          .in("user_id", userIds)
-          .eq("is_deleted", false);
-
-        if (specialQ.data) {
-          specialQ.data.forEach((s: any) => {
-            if (!usersById[s.user_id]) usersById[s.user_id] = {};
-            usersById[s.user_id].role = s.role;
-          });
-        }
-      }
-
-      // ---- fetch classes ----
-      const classIds = Array.from(
-        new Set(rows.map((r: any) => r.class_id).filter(Boolean))
-      );
-
-      let classById: Record<string, any> = {};
-
-      if (classIds.length > 0) {
-        const clsQ = await this.supabase
-          .from("class")
-          .select("id, name")
-          .eq("is_deleted", false)
-          .in("id", classIds);
-
-        if (clsQ.data) {
-          clsQ.data.forEach((c: any) => {
-            classById[c.id] = c;
-          });
-        }
-      }
-
-      const mapped = rows.map((r: any) => ({
-        id: r.id,
-        content: r.comment,
-        classId: r.class_id,
-        className: classById[r.class_id]?.name ?? null,
-        visitId: r.visit_id,
-        createdAt: r.created_at,
-        createdBy: {
-          userId: r.user_id,
-          name: usersById[r.user_id]?.name ?? "Unknown",
-          role: usersById[r.user_id]?.role ?? null,
-        },
-        media_links: r.media_links ?? null,
-      }));
-
-      return {
-        data: mapped,
-        totalCount,
-      };
-    } catch (e) {
-      console.error("getNotesBySchoolId error:", e);
-      return { data: [], totalCount: 0 };
-    }
+ async getNotesBySchoolId(
+  schoolId: string,
+  limit = 10,
+  offset = 0,
+  sortBy: "createdAt" | "createdBy" = "createdAt"
+): Promise<{ data: any[]; totalCount: number }> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return { data: [], totalCount: 0 };
   }
+
+  try {
+    let notesQ = this.supabase
+      .from("fc_user_forms")
+      .select(
+        `
+          id,
+          comment,
+          class_id,
+          visit_id,
+          created_at,
+          media_links,
+
+          class:class_id (
+            id,
+            name
+          ),
+
+          user:user!fc_user_forms_user_id_fkey (
+            id,
+            name,
+            special_users (
+              role
+            )
+          )
+        `,
+        { count: "exact" }
+      )
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (sortBy === "createdAt") {
+      notesQ = notesQ
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false });
+    }
+
+    if (sortBy === "createdBy") {
+      notesQ = notesQ.order("name", {
+        foreignTable: "user",
+        ascending: true,
+      });
+    }
+
+    const notesRes = await notesQ.range(offset, offset + limit - 1);
+
+    if (notesRes.error) {
+      console.error("[API] Supabase error:", notesRes.error);
+      return { data: [], totalCount: 0 };
+    }
+
+    const rows = notesRes.data ?? [];
+    const totalCount = notesRes.count ?? 0;
+
+    const mapped = rows.map((r: any) => ({
+      id: r.id,
+      content: r.comment,
+      classId: r.class_id,
+      className: r.class?.name ?? null,
+      visitId: r.visit_id,
+      createdAt: r.created_at,
+      createdBy: {
+        name: r.user?.name ?? "Unknown",
+        role: r.user?.special_users?.[0]?.role ?? null,
+      },
+      media_links: r.media_links ?? null,
+    }));
+
+    return { data: mapped, totalCount };
+  } catch (e) {
+    console.error("getNotesBySchoolId error:", e);
+    return { data: [], totalCount: 0 };
+  }
+}
+
 
   async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
