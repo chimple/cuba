@@ -2059,6 +2059,10 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
   const api = ServiceConfig.getI().apiHandler;
 
   const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+    const user_role = localStorage.getItem(USER_ROLE);
+    if(user_role === JSON.stringify([RoleType.SUPER_ADMIN])) {
+      return true;
+    }
     try {
       const authHandler = ServiceConfig.getI().authHandler;
       const currentUser = await authHandler.getCurrentUser();
@@ -2097,7 +2101,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
     }
   };
 
- 
+
   //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
   if (!!api.currentSchool) {
     const classes = Util.getCurrentClass();
@@ -2115,8 +2119,8 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
         return;
       }
 
-      // CLASS CHECK 
-      
+      // CLASS CHECK
+
       if (classId) {
         isClassConnected(schoolId, classId).then((cls) => {
           if (!cls) return;
@@ -2150,7 +2154,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
 
   const classId = localStorage.getItem(CLASS) ?? undefined;
 
-  // SCHOOL CHECK 
+  // SCHOOL CHECK
   isSchoolConnected(currentSchool.id).then((res) => {
     if (!res) {
       api.currentSchool = undefined;
