@@ -80,7 +80,6 @@ const ActivitiesPage: React.FC = () => {
           const visitIdsArray = Array.from(visitIds);
           console.log("Unique visit IDs for date", key, ":", visitIds);
           const visitDetailsList = await api.getSchoolVisitById(visitIdsArray as string[]);
-
           // 🔹 collect types
           const visitTypeSet = new Set<string>();
 
@@ -91,8 +90,11 @@ const ActivitiesPage: React.FC = () => {
             if (visit?.type) {
               visitTypeSet.add(visit.type);
             }
-            if (typeof visit?.distance_from_school === "number"){
-              minDistance = Math.min(minDistance, visit.distance_from_school);
+
+            const distance = Number(visit?.distance_from_school);
+
+            if (!isNaN(distance)) {
+              minDistance = Math.min(minDistance, distance);
             }
           }
 
