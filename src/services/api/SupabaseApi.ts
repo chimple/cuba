@@ -10667,6 +10667,11 @@ export class SupabaseApi implements ServiceApi {
     localeId?: string | null
   ): Promise<{ lido_common_audio_url: string | null } | null> {
     if (!this.supabase) return null;
+    if (!localeId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      localeId = locale?.id ?? null;
+    }
 
     try {
       // ✅ Build OR conditions safely

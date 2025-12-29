@@ -260,7 +260,6 @@ const ProfileDetails = () => {
 
       const audioConfig = await api.getLidoCommonAudioUrl(
         languageId,
-        "d8dd5840-5b35-4bb2-ad21-64fbeedd2e24"
       );
 
       if (audioConfig?.lido_common_audio_url) {
