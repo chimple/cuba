@@ -1362,4 +1362,11 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string> {
     throw new Error("Method not implemented.");
   }
+
+  getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    throw new Error("Method not implemented.");
+  }
 }

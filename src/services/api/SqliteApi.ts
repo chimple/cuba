@@ -7357,14 +7357,14 @@ order by
   }
 
   async createNoteForSchool(params: {
-  schoolId: string;
-  classId?: string | null;
-  content: string;
-  mediaLinks?: string[] | null;
-}): Promise<any> {
-  console.warn("createNoteForSchool is not supported in SQLite mode");
-  return this._serverApi.createNoteForSchool(params);
-}
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+    mediaLinks?: string[] | null;
+  }): Promise<any> {
+    console.warn("createNoteForSchool is not supported in SQLite mode");
+    return this._serverApi.createNoteForSchool(params);
+  }
 
   async getNotesBySchoolId(
     schoolId: string,
@@ -7392,5 +7392,51 @@ order by
     file: File;
   }): Promise<string> {
     return this._serverApi.uploadSchoolVisitMediaFile(params);
+  }
+
+  async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    try {
+      const data = await this.executeQuery(
+        `
+      SELECT lido_common_audio_url
+      FROM language_locale
+      WHERE is_deleted = false
+        AND (
+          (language_id = ? AND locale_id = ?)
+          OR (language_id = ? AND locale_id IS NULL)
+          OR (language_id IS NULL AND locale_id = ?)
+          OR (language_id IS NULL AND locale_id IS NULL)
+        )
+      ORDER BY
+        CASE
+          WHEN language_id = ? AND locale_id = ? THEN 1
+          WHEN language_id = ? AND locale_id IS NULL THEN 2
+          WHEN language_id IS NULL AND locale_id = ? THEN 3
+          ELSE 4
+        END
+      LIMIT 1;
+      `,
+        [
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+        ]
+      );
+
+      const rows = data?.values ?? [];
+
+      return rows[0];
+    } catch (err) {
+      console.error("[SQLite] getLidoCommonAudioUrl failed:", err);
+      return null;
+    }
   }
 }

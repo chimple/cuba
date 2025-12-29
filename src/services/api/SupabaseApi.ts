@@ -371,7 +371,10 @@ export class SupabaseApi implements ServiceApi {
       .upload(filePath, file, { upsert: true });
 
     if (uploadResponse.error) {
-      console.error("Error uploading school visit media:", uploadResponse.error);
+      console.error(
+        "Error uploading school visit media:",
+        uploadResponse.error
+      );
       throw uploadResponse.error;
     }
 
@@ -963,7 +966,6 @@ export class SupabaseApi implements ServiceApi {
         }
         return data;
       } else {
-
         const { data: openVisits, error: fetchError } = await this.supabase
           .from(TABLES.FcSchoolVisit)
           .select("*")
@@ -988,7 +990,7 @@ export class SupabaseApi implements ServiceApi {
               check_out_at: now,
               check_out_lat: lat,
               check_out_lng: lng,
-              updated_at: now, 
+              updated_at: now,
               distance_from_school:
                 distanceFromSchool ?? visitToUpdate.distance_from_school,
             })
@@ -10158,25 +10160,24 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
   async getSchoolVisitById(
-  visitIds: string[]
-): Promise<TableTypes<"fc_school_visit">[]> {
-  if (!this.supabase || visitIds.length === 0) return [];
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    if (!this.supabase || visitIds.length === 0) return [];
 
-  const { data, error } = await this.supabase
-    .from("fc_school_visit")
-    .select("*")
-    .in("id", visitIds)        // ✅ pass array directly
-    .eq("is_deleted", false)
-    .order("check_in_at", { ascending: true });
+    const { data, error } = await this.supabase
+      .from("fc_school_visit")
+      .select("*")
+      .in("id", visitIds) // ✅ pass array directly
+      .eq("is_deleted", false)
+      .order("check_in_at", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching visit:", error);
-    return [];
+    if (error) {
+      console.error("Error fetching visit:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-
-  return data ?? [];
-}
-
 
   async getActivitiesFilterOptions() {
     try {
@@ -10472,7 +10473,7 @@ export class SupabaseApi implements ServiceApi {
           name: usersById[r.user_id]?.name ?? "Unknown",
           role: usersById[r.user_id]?.role ?? null,
         },
-         media_links: r.media_links ?? null,
+        media_links: r.media_links ?? null,
       }));
 
       return {
@@ -10583,6 +10584,67 @@ export class SupabaseApi implements ServiceApi {
         students_interacted: 0,
         teachers_interacted: 0,
       };
+    }
+  }
+
+  async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // ✅ Build OR conditions safely
+      const orConditions: string[] = [];
+
+      if (languageId && localeId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.eq.${localeId})`
+        );
+      }
+
+      if (languageId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.is.null)`
+        );
+      }
+
+      if (localeId) {
+        orConditions.push(`and(language_id.is.null,locale_id.eq.${localeId})`);
+      }
+
+      // global fallback
+      orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+
+      const { data, error } = await this.supabase
+        .from("language_locale")
+        .select("lido_common_audio_url, language_id, locale_id")
+        .eq("is_deleted", false)
+        .or(orConditions.join(","));
+
+      if (error) {
+        console.error("[Supabase] getLidoCommonAudioUrl error:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) return null;
+
+      // ✅ Priority sort (exact → fallback)
+      const priority = (r: any) => {
+        if (r.language_id === languageId && r.locale_id === localeId) return 1;
+        if (r.language_id === languageId && r.locale_id === null) return 2;
+        if (r.language_id === null && r.locale_id === localeId) return 3;
+        return 4;
+      };
+
+      data.sort((a, b) => priority(a) - priority(b));
+
+      return {
+        lido_common_audio_url: data[0].lido_common_audio_url ?? null,
+      };
+    } catch (err) {
+      console.error("[Supabase] getLidoCommonAudioUrl failed:", err);
+      return null;
     }
   }
 }

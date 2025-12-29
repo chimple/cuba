@@ -40,8 +40,20 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string,schoolName:string,udise:string, role: RoleType,isEmailVerified: boolean) {
-    return this.s.createAtSchoolUser(id,schoolName,udise,role,isEmailVerified);
+  createAtSchoolUser(
+    id: string,
+    schoolName: string,
+    udise: string,
+    role: RoleType,
+    isEmailVerified: boolean
+  ) {
+    return this.s.createAtSchoolUser(
+      id,
+      schoolName,
+      udise,
+      role,
+      isEmailVerified
+    );
   }
   public static i: ApiHandler;
 
@@ -332,7 +344,7 @@ export class ApiHandler implements ServiceApi {
   public async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean|void> {
+  ): Promise<Boolean | void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -537,8 +549,7 @@ export class ApiHandler implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined,
-
+    activities_scores?: string | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -1840,14 +1851,13 @@ export class ApiHandler implements ServiceApi {
     return this.s.createNoteForSchool(params);
   }
 
- async getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number
-): Promise<PaginatedResponse<SchoolNote>> {
-  return this.s.getNotesBySchoolId(schoolId, limit, offset);
-}
-
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit?: number,
+    offset?: number
+  ): Promise<PaginatedResponse<SchoolNote>> {
+    return this.s.getNotesBySchoolId(schoolId, limit, offset);
+  }
 
   public async getRecentAssignmentCountByTeacher(
     teacherId: string,
@@ -1880,11 +1890,17 @@ export class ApiHandler implements ServiceApi {
       distanceFromSchool
     );
   }
-  
+
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;
   }): Promise<string> {
     return await this.s.uploadSchoolVisitMediaFile(params);
+  }
+  public async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    return await this.s.getLidoCommonAudioUrl(languageId, localeId);
   }
 }

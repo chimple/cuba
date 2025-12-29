@@ -13,6 +13,7 @@ import {
   PAGES,
   REWARD_LESSON,
   TableTypes,
+  LIDO_COMMON_AUDIO_DIR,
 } from "../common/constants";
 import Loading from "../components/Loading";
 import ScoreCard from "../components/parent/ScoreCard";
@@ -25,6 +26,7 @@ import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { t } from "i18next";
 import { App as CapApp } from "@capacitor/app";
 import React from "react";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -35,6 +37,7 @@ const LidoPlayer: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
+  const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
   const urlSearchParams = new URLSearchParams(window.location.search);
@@ -112,39 +115,36 @@ const LidoPlayer: FC = () => {
     const is_homework: boolean = state?.isHomework ?? false;
     const homeworkIndex: number | undefined = state?.homeworkIndex;
 
-     // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
-        let shouldGiveHomeworkBonus = false;
-    
-        if (is_homework) {
-          try {
-            const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
-    
-            if (!pathStr) {
-              console.warn(
-                "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
-              );
-            } else {
-              const path = JSON.parse(pathStr) as {
-                lessons?: any[];
-                currentIndex?: number;
-              };
-    
-              const lessonsLen = path.lessons?.length ?? 0;
-              const isLastLessonInPath =
-                lessonsLen > 0 &&
-                typeof homeworkIndex === "number" &&
-                homeworkIndex === lessonsLen - 1;
-              if (isLastLessonInPath) {
-                shouldGiveHomeworkBonus = true;
-              }
-            }
-          } catch (err) {
-            console.error(
-              "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
-              err
-            );
+    // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+    let shouldGiveHomeworkBonus = false;
+    if (is_homework) {
+      try {
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+        if (!pathStr) {
+          console.warn(
+            "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+          );
+        } else {
+          const path = JSON.parse(pathStr) as {
+            lessons?: any[];
+            currentIndex?: number;
+          };
+          const lessonsLen = path.lessons?.length ?? 0;
+          const isLastLessonInPath =
+            lessonsLen > 0 &&
+            typeof homeworkIndex === "number" &&
+            homeworkIndex === lessonsLen - 1;
+          if (isLastLessonInPath) {
+            shouldGiveHomeworkBonus = true;
           }
         }
+      } catch (err) {
+        console.error(
+          "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+          err
+        );
+      }
+    }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimeSpent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -180,37 +180,34 @@ const LidoPlayer: FC = () => {
       await Util.updateHomeworkPath(homeworkIndex);
     }
 
-     // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
-        if (shouldGiveHomeworkBonus) {
+    // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+    if (shouldGiveHomeworkBonus) {
+      try {
+        const student = Util.getCurrentStudent();
+        if (student?.id) {
+          const bonusStars = 10;
+          const newLocalStars = Util.bumpLocalStarsForStudent(
+            student.id,
+            bonusStars,
+            student.stars || 0
+          );
           try {
-            const student = Util.getCurrentStudent();
-    
-            if (student?.id) {
-              const bonusStars = 10;
-    
-              const newLocalStars = Util.bumpLocalStarsForStudent(
-                student.id,
-                bonusStars,
-                student.stars || 0
-              );
-    
-              try {
-                await api.updateStudentStars(student.id, newLocalStars);
-              } catch (err) {
-                console.warn(
-                  "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
-                  err
-                );
-              }
-              localStorage.removeItem(HOMEWORK_PATHWAY);
-            }
+            await api.updateStudentStars(student.id, newLocalStars);
           } catch (err) {
-            console.error(
-              "[Homework bonus] Failed to award homework completion bonus",
+            console.warn(
+              "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
               err
             );
           }
+          localStorage.removeItem(HOMEWORK_PATHWAY);
         }
+      } catch (err) {
+        console.error(
+          "[Homework bonus] Failed to award homework completion bonus",
+          err
+        );
+      }
+    }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,
@@ -292,7 +289,6 @@ const LidoPlayer: FC = () => {
   };
 
   useEffect(() => {
-    
     init();
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
@@ -346,6 +342,15 @@ const LidoPlayer: FC = () => {
       } else {
         return;
       }
+      try {
+        const commonAudioUri = await Filesystem.getUri({
+          directory: Directory.Data,
+          path: LIDO_COMMON_AUDIO_DIR,
+        });
+        setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
+      } catch (e) {
+        console.error("Could not get common audio path", e);
+      }
     } else {
       const path =
         "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
@@ -379,9 +384,9 @@ const LidoPlayer: FC = () => {
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
-            "base-url": basePath, 
+            "base-url": basePath,
             "code-folder-path": "/Lido-player-code-versions",
-            "common-audio-path": "/Lido-CommonAudios",
+            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
           })
         : null}
     </IonPage>
@@ -389,4 +394,4 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
-    
+// /data/data/org.chimple.bahama/files/Lido-CommonAudios/bye.mp3

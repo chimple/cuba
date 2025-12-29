@@ -68,6 +68,8 @@ import {
   RECOMMENDATION_TYPE,
   USER_SELECTION_STAGE,
   CURRENT_MODE,
+  LIDO_COMMON_AUDIO_LANG_KEY,
+  LIDO_COMMON_AUDIO_DIR,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -2055,70 +2057,113 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
-public static getCurrentSchool(): TableTypes<"school"> | undefined {
-  const api = ServiceConfig.getI().apiHandler;
+  public static getCurrentSchool(): TableTypes<"school"> | undefined {
+    const api = ServiceConfig.getI().apiHandler;
 
-  const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
-    try {
-      const authHandler = ServiceConfig.getI().authHandler;
-      const currentUser = await authHandler.getCurrentUser();
-      if (!currentUser) return false;
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
 
-      const userId = currentUser.id;
-      const schools = await api.getSchoolsForUser(userId);
+        const userId = currentUser.id;
+        const schools = await api.getSchoolsForUser(userId);
 
-      return schools.some((item) => item.school.id === schoolId);
-    } catch (error) {
-      console.error("Error checking school via user:", error);
-      return false;
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        console.error("Error checking school via user:", error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const userId = currentUser.id;
+
+        const classes = await api.getClassesForSchool(schoolId, userId);
+
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        console.error("Error checking class via user:", error);
+        return;
+      }
+    };
+
+    //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
+    if (!!api.currentSchool) {
+      const classes = Util.getCurrentClass();
+      const schoolId = api.currentSchool.id;
+      const classId = classes?.id ?? undefined;
+
+      // SCHOOL CHECK
+      isSchoolConnected(api.currentSchool.id).then((res) => {
+        if (!res) {
+          api.currentSchool = undefined;
+          // schoolUtil.setCurrMode(MODES.SCHOOL);
+          console.log("School no longer connected → removing from storage");
+          localStorage.removeItem(SCHOOL);
+          localStorage.removeItem(CLASS);
+          return;
+        }
+
+        // CLASS CHECK
+
+        if (classId) {
+          isClassConnected(schoolId, classId).then((cls) => {
+            if (!cls) return;
+
+            const { classExists, classCount } = cls;
+
+            if (!classExists) {
+              console.log("Class no longer connected → removing class");
+              localStorage.removeItem(CLASS);
+
+              // If only one class existed and that gets removed → remove school too
+              if (classCount === 1) {
+                console.log("Last class removed → removing school as well");
+                api.currentSchool = undefined;
+                localStorage.removeItem(SCHOOL);
+              }
+            }
+          });
+        }
+      });
+
+      return api.currentSchool;
     }
-  };
 
-  const isClassConnected = async (
-    schoolId: string,
-    classId: string
-  ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
-    try {
-      const authHandler = ServiceConfig.getI().authHandler;
-      const currentUser = await authHandler.getCurrentUser();
-      if (!currentUser) return;
+    //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
+    const temp = localStorage.getItem(SCHOOL);
+    if (!temp) return;
 
-      const userId = currentUser.id;
+    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+    api.currentSchool = currentSchool;
 
-      const classes = await api.getClassesForSchool(schoolId, userId);
-
-      return {
-        classExists: classes.some((cls) => cls.id === classId),
-        classCount: classes.length,
-      };
-    } catch (error) {
-      console.error("Error checking class via user:", error);
-      return;
-    }
-  };
-
- 
-  //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
-  if (!!api.currentSchool) {
-    const classes = Util.getCurrentClass();
-    const schoolId = api.currentSchool.id;
-    const classId = classes?.id ?? undefined;
+    const classId = localStorage.getItem(CLASS) ?? undefined;
 
     // SCHOOL CHECK
-    isSchoolConnected(api.currentSchool.id).then((res) => {
+    isSchoolConnected(currentSchool.id).then((res) => {
       if (!res) {
         api.currentSchool = undefined;
         // schoolUtil.setCurrMode(MODES.SCHOOL);
-        console.log("School no longer connected → removing from storage");
         localStorage.removeItem(SCHOOL);
         localStorage.removeItem(CLASS);
         return;
       }
 
-      // CLASS CHECK 
-      
+      // CLASS CHECK
       if (classId) {
-        isClassConnected(schoolId, classId).then((cls) => {
+        isClassConnected(currentSchool.id, classId).then((cls) => {
           if (!cls) return;
 
           const { classExists, classCount } = cls;
@@ -2127,7 +2172,6 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
             console.log("Class no longer connected → removing class");
             localStorage.removeItem(CLASS);
 
-            // If only one class existed and that gets removed → remove school too
             if (classCount === 1) {
               console.log("Last class removed → removing school as well");
               api.currentSchool = undefined;
@@ -2138,51 +2182,8 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
       }
     });
 
-    return api.currentSchool;
+    return currentSchool;
   }
-
-  //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
-  const temp = localStorage.getItem(SCHOOL);
-  if (!temp) return;
-
-  const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-  api.currentSchool = currentSchool;
-
-  const classId = localStorage.getItem(CLASS) ?? undefined;
-
-  // SCHOOL CHECK 
-  isSchoolConnected(currentSchool.id).then((res) => {
-    if (!res) {
-      api.currentSchool = undefined;
-      // schoolUtil.setCurrMode(MODES.SCHOOL);
-      localStorage.removeItem(SCHOOL);
-      localStorage.removeItem(CLASS);
-      return;
-    }
-
-    // CLASS CHECK
-    if (classId) {
-      isClassConnected(currentSchool.id, classId).then((cls) => {
-        if (!cls) return;
-
-        const { classExists, classCount } = cls;
-
-        if (!classExists) {
-          console.log("Class no longer connected → removing class");
-          localStorage.removeItem(CLASS);
-
-          if (classCount === 1) {
-            console.log("Last class removed → removing school as well");
-            api.currentSchool = undefined;
-            localStorage.removeItem(SCHOOL);
-          }
-        }
-      });
-    }
-  });
-
-  return currentSchool;
-}
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
@@ -2948,7 +2949,11 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
             JSON.stringify(learningPath)
           );
         }
-        if(learningPath.courses.courseList[learningPath.courses.currentCourseIndex].type === RECOMMENDATION_TYPE.CHAPTER) {
+        if (
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].type === RECOMMENDATION_TYPE.CHAPTER
+        ) {
           currentCourse.startIndex = currentCourse.currentIndex;
           currentCourse.pathEndIndex += 5;
           currentCourse.path_id = uuidv4();
@@ -2961,7 +2966,7 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
         } else {
           const palPath = await palUtil.getPalLessonPathForCourse(
             currentCourse.course_id,
-            currentStudent.id,
+            currentStudent.id
           );
           if (palPath?.length) {
             currentCourse.path_id = uuidv4();
@@ -3306,5 +3311,83 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
     }
 
     return result.slice(0, 5);
+  }
+
+  public static async downloadLidoCommonAudio(
+    audioZipUrl: string,
+    languageId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return true;
+      }
+
+      // ✅ Skip if already downloaded for same language
+      const storedLang = localStorage.getItem(LIDO_COMMON_AUDIO_LANG_KEY);
+      if (storedLang === languageId) {
+        return true;
+      }
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "/",
+        directory: Directory.Data,
+      });
+
+      // 🔽 Download ZIP
+      const download = await CapacitorHttp.get({
+        url: audioZipUrl,
+        responseType: "blob",
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+
+      if (!download || download.status !== 200 || !download.data) {
+        console.error("[LidoCommonAudio] ZIP download failed");
+        return false;
+      }
+
+      const zipDataStr =
+        typeof download.data === "string"
+          ? download.data
+          : await this.blobToString(download.data as Blob);
+
+      const buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
+
+      // 🧹 Clean old audio files (language changed)
+      try {
+        await Filesystem.rmdir({
+          path: LIDO_COMMON_AUDIO_DIR,
+          directory: Directory.Data,
+          recursive: true,
+        });
+      } catch {
+        // folder may not exist — ignore
+      }
+
+      // 📦 Unzip to /Lido-CommonAudios
+      await unzip({
+        fs,
+        extractTo: LIDO_COMMON_AUDIO_DIR,
+        filepaths: ["."],
+        data: buffer,
+        onProgress: (event) =>
+          console.log(
+            "[LidoCommonAudio] Unzipping:",
+            event.filename,
+            event.loaded,
+            event.total
+          ),
+      });
+
+      // 💾 Cache language
+      localStorage.setItem(LIDO_COMMON_AUDIO_LANG_KEY, languageId);
+
+      return true;
+    } catch (err) {
+      console.error(
+        "[LidoCommonAudio] Unexpected error while downloading audio:",
+        err
+      );
+      return false;
+    }
   }
 }
