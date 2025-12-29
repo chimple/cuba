@@ -1707,6 +1707,12 @@ export class ApiHandler implements ServiceApi {
   async getGeoData(params: GeoDataParams): Promise<string[]> {
     return await this.s.getGeoData(params);
   }
+  async getClientCountryCode(): Promise<any> {
+    return await this.s.getClientCountryCode();
+  }
+  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>{
+    return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
+  }
 
   async searchSchools(
     params: SearchSchoolsParams
