@@ -115,7 +115,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         lat: 0,
         lng: 0,
         address1: userAddress || t("Fetching User Address..."),
-        address2: t("Please set location"),
+        address2: t("Please set school location"),
         isMissing: true 
     };
   }, [schoolLocation, userAddress]);
@@ -175,9 +175,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
                  setUserLocation({ lat: userLat, lng: userLng });
 
-                 const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
-                 setDistance(dist);
-                 setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+                 if ((targetLocation as any).isMissing) {
+                      setDistance(0);
+                      setIsInsidePremises(true);
+                 } else {
+                      const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+                      setDistance(dist);
+                      setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+                 }
             };
 
             if (isWeb) {
@@ -388,7 +393,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         if (isConfirmedInSchool === true) {
             const success = await handleUpdateSchoolLocation();
             if (success) {
-              onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
+              onConfirm(userLocation?.lat, userLocation?.lng, 0);
             }
         } else {
              onConfirm(userLocation?.lat, userLocation?.lng, undefined);
