@@ -84,6 +84,7 @@ const DisplayStudents: FC<{}> = () => {
     // 3) Signal to GrowthBook context that attributes were updated
     setGbUpdated(true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
+    await Util.ensureLidoCommonAudioForStudent(student);
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
