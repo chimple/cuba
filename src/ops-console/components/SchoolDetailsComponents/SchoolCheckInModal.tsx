@@ -593,7 +593,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              </MapContainer>
           </div>
           
-           {isSchoolLocationMissing && (
+           {isSchoolLocationMissing && isCheckIn && (
                <div id="check-in-confirmation-section" className="check-in-confirmation-section">
                    <div id="check-in-confirmation-question" className="confirmation-question">{t("Are you sure you're in the school?")}</div>
                    <div id="check-in-radio-container" className="radio-options-container">
