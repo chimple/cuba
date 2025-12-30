@@ -6,6 +6,30 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -27,6 +51,30 @@
       "site": "cuba-stage",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
         {
           "source": "**",
           "destination": "/index.html"
@@ -50,6 +98,30 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -71,6 +143,30 @@
       "site": "chimple-prod-hot-update-beta",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
         {
           "source": "**",
           "destination": "/index.html"
@@ -94,6 +190,30 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -116,6 +236,30 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -137,6 +281,30 @@
       "site": "cuba-stage-dev-supabase",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "source": "**/cocos-main.js",
+          "destination": "/cocos-main.js"
+        },
+        {
+          "source": "**/cocos2d-js-min.js",
+          "destination": "/cocos2d-js-min.js"
+        },
+        {
+          "source": "**/src/settings.js",
+          "destination": "/src/settings.js"
+        },
+        {
+          "source": "**/main.js",
+          "destination": "/main.js"
+        },
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
         {
           "source": "**",
           "destination": "/index.html"
