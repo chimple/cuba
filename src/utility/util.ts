@@ -2060,7 +2060,12 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
 
   const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
     const user_role = localStorage.getItem(USER_ROLE);
-    if(user_role === JSON.stringify([RoleType.SUPER_ADMIN])) {
+    if (
+      user_role === JSON.stringify([RoleType.SUPER_ADMIN]) ||
+      user_role === JSON.stringify([RoleType.FIELD_COORDINATOR]) ||
+      user_role === JSON.stringify([RoleType.PROGRAM_MANAGER]) ||
+      user_role === JSON.stringify([RoleType.OPERATIONAL_DIRECTOR])
+    ) {
       return true;
     }
     try {
