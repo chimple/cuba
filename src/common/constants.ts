@@ -89,6 +89,8 @@ export enum TABLES {
   FcQuestion = "fc_question",
   FcSchoolVisit = "fc_school_visit",
   FcUserForms = "fc_user_forms",
+  Locale = "locale",
+  LanguageLocale = "language_locale",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -727,6 +729,8 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.ReqNewSchool,
   TABLES.Program,
   TABLES.FcSchoolVisit,
+  TABLES.LanguageLocale,
+  TABLES.Locale,
 ];
 
 export const AVATARS: string[] = [
