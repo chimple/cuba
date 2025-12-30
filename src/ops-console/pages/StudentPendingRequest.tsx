@@ -141,7 +141,7 @@ const StudentPendingRequestDetails = () => {
     setCurrentPage(newPage + 1);
 
   const handleConfirmApprove = async () => {
-    const currentRequestId = requestData?.request_id;
+    const currentRequestId = requestData?.id;
     const currentSelectedStudent = selectedStudent;
     const newStudentUserId = requestData?.requestedBy?.id;
     // RespondedBy: whoever is logged in
@@ -153,7 +153,7 @@ const StudentPendingRequestDetails = () => {
     const respondedBy = user?.id;
 
     if (!currentRequestId) {
-      console.error(t("Missing request ID for approval."));
+      console.error(t("Missing request row ID for approval."));
       return;
     }
 

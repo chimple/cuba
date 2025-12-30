@@ -3656,7 +3656,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    requestId: string,
+    requestId: string, //request row Id
     existingStudentId: string,
     newStudentId: string,
     respondedBy: string
@@ -3776,7 +3776,7 @@ export class SupabaseApi implements ServiceApi {
         updated_at: now,
         responded_by: respondedBy,
       })
-      .eq("request_id", requestId); // Identify the specific request
+      .eq("id", requestId); // Identify the specific request
 
     if (updateRequestError) {
       console.error(
@@ -8959,7 +8959,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async approveOpsRequest(
-    requestId: string,
+    requestId: string, //request row Id
     respondedBy: string,
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
@@ -8984,7 +8984,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("request_id", requestId)
+      .eq("id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
