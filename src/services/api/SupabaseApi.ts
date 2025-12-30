@@ -5206,19 +5206,27 @@ export class SupabaseApi implements ServiceApi {
 
     return allLessons;
   }
+  async searchLessons(
+  searchText: string
+): Promise<TableTypes<"lesson">[]> {
+  if (!this.supabase || !searchText) return [];
 
-  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.rpc("find_similar_lessons", {
-      search_text: searchString,
-    });
-    if (error) return [];
-    // RPC response omits metadata, so ensure the field exists to satisfy the generated type
-    return (data ?? []).map((lesson) => ({
-      metadata: null,
-      ...lesson,
-    }));
+  const { data, error } = await this.supabase
+    .from("lesson")
+    .select("*")
+    .or(
+      `name.ilike.%${searchText}%,outcome.ilike.%${searchText}%`
+    )
+    .limit(20);
+
+  if (error) {
+    console.error("searchLessons error", error);
+    return [];
   }
+
+  return data ?? [];
+}
+
   async getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
