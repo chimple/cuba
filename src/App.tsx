@@ -152,6 +152,7 @@ import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import {
   Dialog,
   DialogTitle,
@@ -190,6 +191,7 @@ const App: React.FC = () => {
     }
     return initialTime;
   });
+  const [popupData, setPopupData] = useState<any>(null);
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
@@ -204,6 +206,16 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
+
+  useEffect(() => {
+  const handler = (e: any) => {
+    console.log("POPUP EVENT:", e.detail);
+    setPopupData(e.detail);
+  };
+
+  window.addEventListener("SHOW_GENERIC_POPUP", handler);
+  return () => window.removeEventListener("SHOW_GENERIC_POPUP", handler);
+}, []);
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -742,6 +754,16 @@ const App: React.FC = () => {
           duration={3000}
         />
       </IonReactRouter>
+      {popupData && (
+  <GenericPopup
+    imageUrl={popupData.localized.imageUrl}
+    bodyText={popupData.localized.bodyText}
+    buttonText={popupData.localized.buttonText}
+    onClose={() => setPopupData(null)}
+    onAction={() => setPopupData(null)}
+  />
+)}
+
     </IonApp>
   );
 };
