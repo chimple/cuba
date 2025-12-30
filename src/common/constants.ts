@@ -870,7 +870,6 @@ export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
 export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
 
 
-export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 
 export type LeaderboardBadge = {
   id: string;
