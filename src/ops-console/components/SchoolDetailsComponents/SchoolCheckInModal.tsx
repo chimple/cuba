@@ -501,15 +501,19 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   {isPermissionDenied || locationError ? (
                     <div id="check-in-permission-denied-section" className="permission-denied-container">
                         <div id="check-in-permission-error-msg" className="permission-error-text">
-                            {isPermissionDenied ? t("Location permission denied") : t("Unable to fetch location. Please try again.")}
+                            {isPermissionDenied 
+                                ? (Capacitor.getPlatform() === 'web' ? t("Please Enable Location Permission") : t("Location permission denied")) 
+                                : t("Unable to fetch location. Please try again.")}
                         </div>
-                        <button 
-                            id="check-in-retry-permission-btn"
-                            className="retry-permission-btn" 
-                            onClick={handleRetryLocation}
-                        >
-                            {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
-                        </button>
+                        {Capacitor.getPlatform() !== 'web' && (
+                            <button 
+                                id="check-in-retry-permission-btn"
+                                className="retry-permission-btn" 
+                                onClick={handleRetryLocation}
+                            >
+                                {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
+                            </button>
+                        )}
                     </div>
                   ) : null}
               </div>
