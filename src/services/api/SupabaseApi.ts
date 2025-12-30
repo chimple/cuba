@@ -3004,11 +3004,28 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
 
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+    const orConditions: string[] = [];
+
+    orConditions.push("language_id.is.null,locale_id.is.null");
+    if (langId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+    if (localeId) {
+      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+    if (langId && localeId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+    }
+
     const { data, error } = await this.supabase
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .or("is_deleted.eq.false")
+      .eq("is_deleted", false)
+      .or(orConditions.join(","))
       .order("sort_index", { ascending: true });
 
     if (error) {
