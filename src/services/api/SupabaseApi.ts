@@ -10267,6 +10267,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("school_id", schoolId)
       .eq("is_deleted", false)
+      .not("contact_user_id", "is", null) 
       .order("created_at", { ascending: true });
 
     if (error) {
