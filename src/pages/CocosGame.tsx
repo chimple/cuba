@@ -53,6 +53,7 @@ const CocosGame: React.FC = () => {
   const prevCorrectMovesRef = useRef<number>(0);
   const prevWrongMovesRef = useRef<number>(0);
   const currentStudent = Util.getCurrentStudent();
+  const savingPromiseRef = useRef<Promise<void> | null>(null);
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
@@ -213,9 +214,9 @@ const CocosGame: React.FC = () => {
   };
 
   const handleLessonEndListner = (event: any) => {
-    saveTempData(event.detail);
-    setGameResult(event);
-  };
+  savingPromiseRef.current = saveTempData(event.detail); // Store the promise
+  setGameResult(event);
+};
 
   function handleProblemEnd(event: any) {
     const { correctMoves = 0, wrongMoves = 0 } = event?.detail || {};
@@ -527,8 +528,11 @@ const CocosGame: React.FC = () => {
                 setShowDialogBox(true);
               }}
               onContinueButtonClicked={async (e: any) => {
-                setShowDialogBox(false);
                 setIsLoading(true);
+                if (savingPromiseRef.current) {
+                  await savingPromiseRef.current;
+                }
+                setShowDialogBox(false);
                 push();
               }}
             />
