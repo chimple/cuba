@@ -6,12 +6,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -44,12 +44,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -82,12 +82,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -120,12 +120,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -158,12 +158,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -196,12 +196,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
@@ -234,12 +234,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.js"
         },
         {
-          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
-          "destination": "/$1"
+          "source": "/^(?:[\\w.-]+\\/)*[\\w.-]+\\.js$/",
+          "destination": "**/*.jsc"
         },
         {
           "source": "**/*.js",
