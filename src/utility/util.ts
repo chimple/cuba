@@ -3383,4 +3383,34 @@ export class Util {
       return false;
     }
   }
+  static async ensureLidoCommonAudioForStudent(
+  student: TableTypes<"user">
+) {
+  try {
+    if (!student?.language_id) {
+      console.warn("[LidoCommonAudio] Student has no language");
+      return;
+    }
+
+    const api = ServiceConfig.getI().apiHandler;
+
+    const audioConfig = await api.getLidoCommonAudioUrl(
+      student.language_id,
+      student.locale_id ?? null
+    );
+
+    if (!audioConfig?.lido_common_audio_url) {
+      console.warn("[LidoCommonAudio] No audio config found");
+      return;
+    }
+
+    await Util.downloadLidoCommonAudio(
+      audioConfig.lido_common_audio_url,
+      student.language_id
+    );
+  } catch (err) {
+    console.error("[LidoCommonAudio] ensure failed:", err);
+  }
+}
+
 }

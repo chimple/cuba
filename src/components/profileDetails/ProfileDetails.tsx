@@ -257,18 +257,7 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
-
-      const audioConfig = await api.getLidoCommonAudioUrl(
-        languageId,
-      );
-
-      if (audioConfig?.lido_common_audio_url) {
-        await Util.downloadLidoCommonAudio(
-          audioConfig.lido_common_audio_url,
-          languageId
-        );
-      }
-
+      await Util.ensureLidoCommonAudioForStudent(student);
       history.replace(PAGES.HOME);
       setIsCreatingProfile(false);
     } catch (err) {
