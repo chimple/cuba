@@ -1,0 +1,74 @@
+/* Background overlay when preview is open */
+.note-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 3000;
+}
+
+/* Right-side sliding panel */
+.note-preview-panel {
+  background: white;
+  width: 420px;
+  height: 100%;
+  padding: 20px;
+  box-shadow: -4px 0px 18px rgba(0,0,0,0.1);
+  animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.preview-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.preview-close-btn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.preview-meta {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.preview-meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.preview-meta-row .label {
+  font-weight: 600;
+  color: #444;
+}
+
+.preview-meta-row .value {
+  color: #222;
+}
+
+.preview-body .notes-label {
+  font-weight: 600;
+  color: #444;
+}
+
+.notes-box {
+  background: #fafafa;
+  border: 1px solid #e6e6e6;
+  margin-top: 8px;
+  padding: 14px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-size: 14px;
+}

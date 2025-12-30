@@ -257,6 +257,7 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
+      await Util.ensureLidoCommonAudioForStudent(student);
       history.replace(PAGES.HOME);
       setIsCreatingProfile(false);
     } catch (err) {

@@ -179,6 +179,7 @@ export class SupabaseAuth implements ServiceAuth {
     }
     return true;
   }
+
   async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     try {
       if (!this._auth) return { success: false, isSpl: false };
@@ -482,6 +483,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_tc_accepted: true,
           language_id: null,
           // locale_id: null,
+          locale_id: null,
           name: null,
           updated_at: new Date().toISOString(),
           email: null,
@@ -567,6 +569,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_tc_accepted: true,
           language_id: null,
           // locale_id: null,
+          locale_id: null,
           name: name,
           updated_at: new Date().toISOString(),
           email: email || null,

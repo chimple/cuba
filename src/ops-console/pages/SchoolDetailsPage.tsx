@@ -1,5 +1,7 @@
+// SchoolDetailsPage.tsx
 import React, { useEffect, useState } from "react";
 import "./SchoolDetailsPage.css";
+import { Toast } from '@capacitor/toast';
 import { Box } from "@mui/material";
 import { t } from "i18next";
 import { CircularProgress } from "@mui/material";
@@ -10,6 +12,13 @@ import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
+import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
+import { SchoolVisitAction, SchoolVisitStatus, SchoolVisitType, SchoolVisitTypeLabels } from "../../common/constants";
+import { Button, Menu, MenuItem, Divider } from "@mui/material";
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
+import { SchoolTabs } from "../../interface/modelInterfaces";
+import { NOTES_UPDATED_EVENT } from "../../common/constants";
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -29,6 +38,15 @@ export type SchoolStats = {
   active_student_percentage: number;
   active_teacher_percentage: number;
   avg_weekly_time_minutes: number;
+};
+
+export type FCSchoolStats = {
+  visits: number;
+  calls_made: number;
+  tech_issues: number;
+  parents_interacted: number;
+  students_interacted: number;
+  teachers_interacted: number;
 };
 
 export type ClassWithDetails = TableTypes<"class"> & {
@@ -57,6 +75,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     schoolStats?: SchoolStats;
     classData?: ClassWithDetails[];
     totalClassCount?: number;
+    interactionStats?: FCSchoolStats;
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
@@ -66,11 +85,189 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
   });
+  const [interactionStats, setInteractionStats] = useState<FCSchoolStats>({
+    visits: 0,
+    calls_made: 0,
+    tech_issues: 0,
+    parents_interacted: 0,
+    students_interacted: 0,
+    teachers_interacted: 0,
+  });
   const [goToClassesTab, setGoToClassesTab] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
+
+  // Handler moved INSIDE the component so it has access to id, setShowAddModal, setActiveTab
+  const handleAddNoteHeader = async (payload: {
+    text: string;
+    mediaLinks?: string[] | null;
+  }) => {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      // call the API you added; classId = null for school-level note
+      const created = await api.createNoteForSchool({
+        schoolId: id,
+        classId: null,
+        content: payload.text,
+        mediaLinks: payload.mediaLinks ?? null,
+      });
+
+      // close modal
+      setShowAddModal(false);
+
+      // dispatch event so Notes tab component can update if it listens to this
+      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
+
+      // switch to Notes tab
+      setActiveTab(SchoolTabs.Notes);
+    } catch (err) {
+      console.error("Failed to create note:", err);
+      // optional: show UI error (not added to keep changes minimal)
+    }
+  };
+
+  const [schoolLocation, setSchoolLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
+
+  useEffect(() => {
+    if (data.schoolData?.location_link) {
+        const url = data.schoolData.location_link;
+        let lat: number | null = null;
+        let lng: number | null = null;
+
+        // 1. Try "data=!3d...!4d..." format (Place specific coordinates)
+        // Example: ...!3d12.8917379!4d77.5486649...
+        const dataRegex = /!3d([+-]?\d+(\.\d+)?)!4d([+-]?\d+(\.\d+)?)/;
+        const dataMatch = url.match(dataRegex);
+        if (dataMatch) {
+            lat = parseFloat(dataMatch[1]);
+            lng = parseFloat(dataMatch[3]);
+        }
+
+        // 2. Try standard query params (q=lat,lng or ll=lat,lng)
+        if (lat === null || lng === null) {
+            const queryRegex = /(?:q|query|ll)=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+            const queryMatch = url.match(queryRegex);
+            if (queryMatch) {
+                lat = parseFloat(queryMatch[1]);
+                lng = parseFloat(queryMatch[3]);
+            }
+        }
+
+        // 3. Try "@lat,lng" format (Viewport center - Fallback)
+        // Example: .../@12.8917371,77.5311559...
+        if (lat === null || lng === null) {
+             const atRegex = /@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+             const atMatch = url.match(atRegex);
+             if (atMatch) {
+                 lat = parseFloat(atMatch[1]);
+                 lng = parseFloat(atMatch[3]);
+             }
+        }
+
+        if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+            setSchoolLocation({ lat, lng });
+        }
+    }
+  }, [data.schoolData]);
+
+  // Check-In Logic
+  const [checkInStatus, setCheckInStatus] = useState<SchoolVisitStatus>(SchoolVisitStatus.CheckedOut);
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
+  
+  // Dropdown state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(SchoolVisitType.Regular);
+  const openMenu = Boolean(anchorEl);
+
+  useEffect(() => {
+    const fetchVisitStatus = async () => {
+      const api = ServiceConfig.getI().apiHandler;
+      const lastVisit = await api.getLastSchoolVisit(id);
+      if (lastVisit && !lastVisit.check_out_at) {
+        setCheckInStatus(SchoolVisitStatus.CheckedIn);
+      } else {
+        setCheckInStatus(SchoolVisitStatus.CheckedOut);
+      }
+    };
+    fetchVisitStatus();
+  }, [id]);
+
+  const handleOpenCheckInMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+      setAnchorEl(null);
+  };
+
+  const handleSelectVisitType = (type: SchoolVisitType) => {
+      setSelectedVisitType(type);
+      handleCloseMenu();
+      handleOpenCheckInModal();
+  };
+
+  const handleOpenCheckInModal = () => {
+    const hasCheckedInBefore = localStorage.getItem(`has_checked_in_before_${id}`);
+    setIsFirstTimeCheckIn(!hasCheckedInBefore);
+    setIsCheckInModalOpen(true);
+  };
+
+  const handleConfirmCheckInAction = async (
+    lat?: number,
+    lng?: number,
+    distance?: number
+  ) => {
+    setIsCheckInModalOpen(false);
+    const api = ServiceConfig.getI().apiHandler;
+    try {
+      if (checkInStatus === SchoolVisitStatus.CheckedOut) {
+        // Perform Check In
+        if (lat && lng) {
+          const res = await api.recordSchoolVisit(
+            id,
+            lat,
+            lng,
+            SchoolVisitAction.CheckIn,
+            selectedVisitType,
+            distance
+          );
+          if (res) {
+            setCheckInStatus(SchoolVisitStatus.CheckedIn);
+            await Toast.show({ text: t("Checked in successfully!") });
+          }
+        }
+      } else {
+        // Perform Check Out
+        if (lat && lng) {
+          const res = await api.recordSchoolVisit(
+            id,
+            lat,
+            lng,
+            SchoolVisitAction.CheckOut,
+            undefined,
+            distance
+          );
+          if (res) {
+            setCheckInStatus(SchoolVisitStatus.CheckedOut);
+            await Toast.show({ text: t("Checked out successfully!") });
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to record visit", e);
+      await Toast.show({
+        text: t("Failed to record visit. Please try again."),
+        duration: "long",
+      });
+    }
+  };
 
   useEffect(() => {
     fetchAll();
   }, [id]);
+
+
   async function fetchAll() {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
@@ -100,8 +297,23 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       active_teacher_percentage: result.active_teacher_percentage ?? 0,
       avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
     };
+    const auth = ServiceConfig.getI().authHandler;
+    const currentUser = await auth.getCurrentUser();
+    const interactionStat = await api.getSchoolStatsForSchool(id);
+    const stats = Array.isArray(interactionStat)
+      ? interactionStat[0]
+      : interactionStat;
+    const interStats: FCSchoolStats = {
+      visits: stats.visits ?? 0,
+      calls_made: stats.calls_made ?? 0,
+      tech_issues: stats.tech_issues ?? stats.tech_issues_reported ?? 0,
+      parents_interacted: stats.parents_interacted ?? 0,
+      students_interacted: stats.students_interacted ?? 0,
+      teachers_interacted: stats.teachers_interacted ?? 0,
+    };
     // this must be called for all the class ids
     setSchoolStats(newSchoolStats);
+    setInteractionStats(interStats);
     const studentsData = studentsResponse.data;
     const totalStudentCount = studentsResponse.total;
     const teachersData = teachersResponse.data;
@@ -200,6 +412,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       schoolStats: newSchoolStats,
       classData: classDataWithDetails,
       totalClassCount: totalClassCount,
+      interactionStats: interStats,
     });
     setLoading(false);
   }
@@ -220,13 +433,28 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const schoolName = data.schoolData?.name;
 
   return (
-    <div className="school-detail-container">
+    <div className="schooldetailspage school-detail-container">
       {/* <div className="school-detail-gap" /> */}
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
+      <SchoolCheckInModal 
+        open={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
+        onConfirm={handleConfirmCheckInAction}
+        status={checkInStatus === SchoolVisitStatus.CheckedIn ? SchoolVisitAction.CheckOut : SchoolVisitAction.CheckIn}
+        schoolName={schoolName || t("Unknown School")}
+        isFirstTime={isFirstTimeCheckIn}
+        schoolLocation={schoolLocation}
+        schoolAddress={data.schoolData?.address}
+        schoolId={id}
+        onLocationUpdated={fetchAll}
+      />
       {!isMobile && schoolName && (
-        <div className="school-detail-secondary-header">
+        <div
+          className="school-detail-secondary-header"
+        >
+          {/* Left Side: Breadcrumb */}
           <Breadcrumb
             crumbs={[
               {
@@ -237,9 +465,88 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                 label: schoolName ?? "",
               },
             ]}
+            endActions={
+              <>
+                {activeTab == SchoolTabs.Overview && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowAddModal(true)}
+                    className="btn-add-notes"
+                  >
+                    + {t("Add Notes")}
+                  </Button>
+                )}
+                {checkInStatus === SchoolVisitStatus.CheckedOut ? (
+                  <>
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenCheckInMenu}
+                      endIcon={
+                        <ArrowDropDownIcon
+                          className={`check-in-icon ${openMenu ? "check-in-icon-rotated" : ""}`}
+                        />
+                      }
+                      className="btn-check-in"
+                    >
+                      {t("Check In")}
+                    </Button>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={openMenu}
+                      onClose={handleCloseMenu}
+                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                      transformOrigin={{ vertical: "top", horizontal: "right" }}
+                      classes={{ paper: "schooldetailspage check-in-menu-paper" }}
+                    >
+                      <MenuItem
+                        onClick={() => handleSelectVisitType(SchoolVisitType.Regular)}
+                        className="check-in-menu-item"
+                      >
+                        {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
+                      </MenuItem>
+                      <Divider className="check-in-menu-divider" />
+                      <MenuItem
+                        onClick={() =>
+                          handleSelectVisitType(SchoolVisitType.ParentsTeacherMeeting)
+                        }
+                        className="check-in-menu-item"
+                      >
+                         {t(SchoolVisitTypeLabels[SchoolVisitType.ParentsTeacherMeeting])}
+                      </MenuItem>
+                      <Divider className="check-in-menu-divider" />
+                      <MenuItem
+                        onClick={() =>
+                          handleSelectVisitType(SchoolVisitType.TeacherTraining)
+                        }
+                        className="check-in-menu-item"
+                      >
+                         {t(SchoolVisitTypeLabels[SchoolVisitType.TeacherTraining])}
+                      </MenuItem>
+                    </Menu>
+                  </>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleOpenCheckInModal}
+                    className="btn-check-out"
+                  >
+                     {t("Check Out")}
+                  </Button>
+                )}
+              </>
+            }
           />
         </div>
       )}
+      {/* Modal outside the header */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddNoteHeader}
+        source="school"
+        schoolId={id}
+      />
+
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
         <SchoolDetailsTabsComponent
@@ -251,6 +558,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
+          onTabChange={(tab) => setActiveTab(tab)} // new prop
         />
       </div>
       <div className="school-detail-columns-gap" />

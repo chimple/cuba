@@ -47,9 +47,11 @@
 
 .formcard-form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 15px;
   row-gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .formcard-form-group {
@@ -386,4 +388,18 @@
 
 .formcard-multiselect-option.selected .formcard-multiselect-checkbox::after {
   content: none;
+}
+
+.formcard-placeholder-validator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  opacity: 0;
+  border: none;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  z-index: -1;
 }

@@ -162,8 +162,6 @@ const SelectMode: FC = () => {
           history.replace(PAGES.CREATE_STUDENT);
         } else history.replace(PAGES.DISPLAY_STUDENT);
         return;
-      } else {
-        setIsLoading(false);
       }
       for (let i = 0; i < matchedSchools.length; i++) {
         const element = matchedSchools[i];

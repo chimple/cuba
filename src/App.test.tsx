@@ -1,8 +1,31 @@
-import React from 'react';
-import { render } from '@testing-library/react';
-import App from './App';
+import { render, act } from "@testing-library/react";
+import App from "./App";
 
-// test('renders without crashing', () => {
-//   const { baseElement } = render(<App />);
-//   expect(baseElement).toBeDefined();
-// });
+describe("App Component", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+    jest.useRealTimers();
+  });
+
+  it("renders without crashing", () => {
+    let unmount: () => void;
+
+    act(() => {
+      const result = render(<App />);
+      unmount = result.unmount;
+    });
+
+    // Just ensure it mounted successfully
+    expect(document.body).toBeTruthy();
+
+    act(() => {
+      unmount();
+    });
+  });
+});

@@ -196,15 +196,31 @@ const SchoolClasses: React.FC<Props> = ({
     }
   };
 
+  const isAtSchool = useMemo(() => {
+    const raw = (data?.schoolData?.model ?? "").toString();
+    const norm = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[\s-]+/g, "_");
+    return norm === "at_school";
+  }, [data?.schoolData?.model]);
+
   const addStudentFields: FieldConfig[] = useMemo(() => {
-    return [
+    const fields: FieldConfig[] = [
       {
         name: "studentName",
         label: "Student Name",
         kind: "text" as const,
         required: true,
         placeholder: "Enter Student Name",
-        column: 2 as const,
+        column: 0 as const,
+      },
+      {
+        name: "studentID",
+        label: "Student ID",
+        kind: "text" as const,
+        placeholder: "Enter Student ID",
+        column: 1 as const,
       },
       {
         name: "gender",
@@ -215,10 +231,7 @@ const SchoolClasses: React.FC<Props> = ({
         options: [
           { label: t("GIRL"), value: GENDER.GIRL },
           { label: t("BOY"), value: GENDER.BOY },
-          {
-            label: t("UNSPECIFIED"),
-            value: GENDER.OTHER,
-          },
+          { label: t("UNSPECIFIED"), value: GENDER.OTHER },
         ],
       },
       {
@@ -229,10 +242,7 @@ const SchoolClasses: React.FC<Props> = ({
         placeholder: "Select Age Group",
         column: 1 as const,
         options: [
-          {
-            value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-            label: `≤${t("4 years")}`,
-          },
+          { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t("4 years")}` },
           { value: AGE_OPTIONS.FIVE, label: t("5 years") },
           { value: AGE_OPTIONS.SIX, label: t("6 years") },
           { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
@@ -244,16 +254,19 @@ const SchoolClasses: React.FC<Props> = ({
           },
         ],
       },
-      {
+    ];
+    if (!isAtSchool) {
+      fields.push({
         name: "phone",
         label: "Phone Number",
         kind: "phone" as const,
         required: true,
         placeholder: "Enter phone number",
         column: 2 as const,
-      },
-    ];
-  }, []);
+      });
+    }
+    return fields;
+  }, [isAtSchool]);
 
   const handleCloseAddStudentModal = () => {
     setIsAddStudentModalOpen(false);
@@ -269,38 +282,60 @@ const SchoolClasses: React.FC<Props> = ({
     setIsStudentSubmitting(true);
     setStudentErrorMessage(undefined);
 
-    const normalizedPhone = normalizePhone10(
-      (formValues.phone ?? "").toString()
-    );
-
-    if (normalizedPhone.length !== 10) {
-      setStudentErrorMessage({
-        text: "Phone number must be 10 digits.",
-        type: "error",
-      });
-      setIsStudentSubmitting(false);
-      return;
+    const rawPhone = (formValues.phone ?? "").toString();
+    let digits = rawPhone.replace(/\D/g, "");
+    if (digits === "" || digits === "91") {
+      digits = "";
+    }
+    if (digits.length === 12 && digits.startsWith("91"))
+      digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("0"))
+      digits = digits.slice(1);
+    if (!isAtSchool) {
+      if (digits.length !== 10) {
+        setStudentErrorMessage({
+          text: "Phone number must be 10 digits.",
+          type: "error",
+        });
+        setIsStudentSubmitting(false);
+        return;
+      }
+    } else {
+      if (digits.length !== 0 && digits.length !== 10) {
+        setStudentErrorMessage({
+          text: "Phone number must be 10 digits when provided.",
+          type: "error",
+        });
+        setIsStudentSubmitting(false);
+        return;
+      }
     }
 
+    const normalizedPhone = digits.length === 10 ? digits : undefined;
     try {
-      const result = await api.addStudentWithParentValidation({
+      const payload: any = {
         phone: normalizedPhone,
         name: formValues.studentName || "",
         gender: formValues.gender || "",
         age: formValues.ageGroup || "",
         classId: classForStudent.id,
         schoolId: schoolId,
-      });
-
+        studentID: formValues.studentID || "",
+        atSchool: isAtSchool,
+      };
+      const result = await api.addStudentWithParentValidation(payload);
       if (result.success) {
-        setIsAddStudentModalOpen(false);
-        setStudentErrorMessage(undefined);
+        setStudentErrorMessage({
+          text: "Student added successfully.",
+          type: "success",
+        });
+        setTimeout(() => {
+          setIsAddStudentModalOpen(false);
+          setStudentErrorMessage(undefined);
+        }, 2000);
         refreshClasses?.();
       } else {
-        setStudentErrorMessage({
-          text: result.message,
-          type: "error",
-        });
+        setStudentErrorMessage({ text: result.message, type: "error" });
       }
     } catch (error) {
       console.error("Error adding student:", error);

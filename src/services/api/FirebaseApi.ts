@@ -848,7 +848,7 @@ export class FirebaseApi implements ServiceApi {
   }
 
   async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -859,7 +859,17 @@ export class FirebaseApi implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean
+    isImediateSync?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -875,7 +885,8 @@ export class FirebaseApi implements ServiceApi {
       : undefined;
 
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
-    const studentRef = doc(this._db, CollectionIds.USER, student.docId);
+    const studentDocId = (student as any).docId ?? student.id;
+    const studentRef = doc(this._db, CollectionIds.USER, studentDocId);
     const result = new Result(
       undefined,
       Timestamp.now(),
@@ -908,8 +919,8 @@ export class FirebaseApi implements ServiceApi {
       timeSpent: result.timeSpent,
     };
 
-    if (this._studentResultCache[student.docId] === undefined) {
-      const studentProfileData = await this.getStudentResult(student.docId);
+    if (this._studentResultCache[studentDocId] === undefined) {
+      const studentProfileData = await this.getStudentResult(studentDocId);
       if (studentProfileData) {
         const lastPlayedCourse: DocumentReference | undefined =
           studentProfileData.lastPlayedCourse;
@@ -922,11 +933,11 @@ export class FirebaseApi implements ServiceApi {
           studentProfileData.schools,
           studentProfileData.updatedAt,
           studentProfileData.createdAt,
-          student.docId
+          studentDocId
         );
 
         studentProfile.lessons[result.lesson.id] = playedResult;
-        this._studentResultCache[student.docId] = studentProfile;
+        this._studentResultCache[studentDocId] = studentProfile;
       } else {
         const studentProfile = new StudentProfile(
           playedResult.course,
@@ -936,15 +947,15 @@ export class FirebaseApi implements ServiceApi {
           [],
           Timestamp.fromDate(new Date()),
           Timestamp.fromDate(new Date()),
-          student.docId
+          studentDocId
         );
         studentProfile.lessons[result.lesson.id] = playedResult;
-        this._studentResultCache[student.docId] = studentProfile;
+        this._studentResultCache[studentDocId] = studentProfile;
       }
     } else {
-      this._studentResultCache[student.docId].lastPlayedCourse =
+      this._studentResultCache[studentDocId].lastPlayedCourse =
         playedResult.course;
-      this._studentResultCache[student.docId].lessons[result.lesson.id] =
+      this._studentResultCache[studentDocId].lessons[result.lesson.id] =
         playedResult;
     }
 
@@ -1042,6 +1053,71 @@ export class FirebaseApi implements ServiceApi {
       );
       return;
     }
+  }
+
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    console.warn(
+      "getDomainsBySubjectAndFramework is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    console.warn(
+      "getCompetenciesByDomainIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    console.warn(
+      "getOutcomesByCompetencyIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    console.warn(
+      "getSkillsByOutcomeIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    console.warn(
+      "getResultsBySkillIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    console.warn(
+      "getSkillRelationsByTargetIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    console.warn(
+      "getSkillLessonsBySkillIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -1342,6 +1418,14 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     try {
       const students: User[] = [];

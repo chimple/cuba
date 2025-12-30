@@ -37,7 +37,6 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
           echo $SHA_KEY | base64 -di > key.jks
-
       - name: Build
         env:
           CI: false
@@ -61,6 +60,7 @@ jobs:
           REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
           REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
           REACT_APP_ENV: ${{vars.REACT_APP_ENV_DEV}}
+          REACT_IS_HOT_UPDATE_ENABLED: ${{vars.REACT_IS_HOT_UPDATE_ENABLED}}
 
         run: npm run build
 

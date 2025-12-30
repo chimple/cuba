@@ -20,7 +20,7 @@ import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
-import { useLocation, useHistory } from "react-router";
+import { useLocation, useHistory } from "react-router"
 import { RoleType } from "../../interface/modelInterfaces";
 
 const filterConfigsForSchool = [
@@ -99,6 +99,9 @@ const SchoolList: React.FC = () => {
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
+  const [openDetails, setOpenDetails] = useState(false);
+  const [visitId, setVisitId] = useState<string | null>(null);
+
 
   const userRoles = JSON.parse(
     localStorage.getItem(USER_ROLE) || "[]"
@@ -199,8 +202,7 @@ const SchoolList: React.FC = () => {
                 fontSize={"12px"}
               >
                 {school.udise_code || school.district
-                  ? `${school.udise_code ?? ""} - ${
-                      school.district ?? ""
+                  ? `${school.udise_code ?? ""} - ${school.district ?? ""
                     }`.trim()
                   : ""}
               </Typography>
@@ -363,13 +365,12 @@ const SchoolList: React.FC = () => {
                 }}
               >
                 <Add className="school-list-upload-icon" />
-
-                {!isSmallScreen && (
-                  <span className="school-list-upload-text1">
-                    {t("Add School")}
-                  </span>
-                )}
-              </Button>
+                  {!isSmallScreen && (
+                    <span className="school-list-upload-text1">
+                      {t("Add School")}
+                    </span>
+                  )}
+                </Button>
               }
               <Button
                 variant="outlined"
@@ -457,9 +458,8 @@ const SchoolList: React.FC = () => {
           />
         </div>
         <div
-          className={`school-list-table-container ${
-            !isLoading && schools.length === 0 ? "school-list-no-schools" : ""
-          }`}
+          className={`school-list-table-container ${!isLoading && schools.length === 0 ? "school-list-no-schools" : ""
+            }`}
         >
           {!isLoading && schools.length > 0 && (
             <DataTableBody

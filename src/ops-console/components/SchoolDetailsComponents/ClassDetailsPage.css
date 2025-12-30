@@ -32,3 +32,82 @@
   table-layout: fixed;
   width: 100%;
 }
+
+/* Root container */
+.classdetailspage-root {
+  padding: 24px;
+  background-color: #f9fafb; /* grey.50 */
+  min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+  .classdetailspage-root {
+    padding: 16px;
+  }
+}
+
+/* Header row */
+.classdetailspage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* Back button */
+.classdetailspage-back-btn {
+  text-transform: none !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 5px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  padding: 4px 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* Add Notes button */
+.classdetailspage-addnote-btn {
+  text-transform: none !important;
+  border-radius: 10px !important;
+  border: 1.5px solid #2563eb !important;
+  color: #2563eb !important;
+  background: #fff !important;
+  font-weight: 600 !important;
+  padding: 6px 16px !important;
+  min-width: 140px;
+  box-shadow: none !important;
+}
+
+.classdetailspage-addnote-btn:hover {
+  background: rgba(79, 70, 229, 0.06) !important;
+  border-color: #2563eb !important;
+  box-shadow: none !important;
+}
+
+.classdetailspage-addnote-btn:focus-visible {
+  outline: 2px solid rgba(79, 70, 229, 0.14);
+  outline-offset: 2px;
+}
+
+/* Info card grid */
+.classdetailspage-info-grid {
+  display: grid;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .classdetailspage-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Students card wrapper */
+.classdetailspage-students-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 5px;
+}

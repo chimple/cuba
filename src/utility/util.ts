@@ -65,7 +65,13 @@ import {
   STARS_COUNT,
   LATEST_STARS,
   CURRENT_CLASS,
+  RECOMMENDATION_TYPE,
+  USER_SELECTION_STAGE,
+  CURRENT_MODE,
+  LIDO_COMMON_AUDIO_LANG_KEY,
+  LIDO_COMMON_AUDIO_DIR,
 } from "../common/constants";
+import { palUtil } from "./palUtil";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
@@ -1034,8 +1040,14 @@ export class Util {
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id });
+      try {
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        await Promise.resolve(
+          Util.port.shareUserId({ userId: params.user_id })
+        );
+      } catch (e) {
+        console.warn("Port.shareUserId skipped:", e);
+      }
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
@@ -2045,14 +2057,143 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
-
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
-    if (!!api.currentSchool) return api.currentSchool;
+
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const user_role = localStorage.getItem(USER_ROLE);
+      if (user_role) {
+        const roles: string[] = JSON.parse(user_role);
+        if ([
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR
+        ].some(role => roles.includes(role))) {
+          return true;
+        }
+      }
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
+
+        const userId = currentUser.id;
+        const schools = await api.getSchoolsForUser(userId);
+
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        console.error("Error checking school via user:", error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const userId = currentUser.id;
+
+        const classes = await api.getClassesForSchool(schoolId, userId);
+
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        console.error("Error checking class via user:", error);
+        return;
+      }
+    };
+
+    //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
+    if (!!api.currentSchool) {
+      const classes = Util.getCurrentClass();
+      const schoolId = api.currentSchool.id;
+      const classId = classes?.id ?? undefined;
+
+      // SCHOOL CHECK
+      isSchoolConnected(api.currentSchool.id).then((res) => {
+        if (!res) {
+          api.currentSchool = undefined;
+          // schoolUtil.setCurrMode(MODES.SCHOOL);
+          console.log("School no longer connected → removing from storage");
+          localStorage.removeItem(SCHOOL);
+          localStorage.removeItem(CLASS);
+          return;
+        }
+
+        // CLASS CHECK
+
+        if (classId) {
+          isClassConnected(schoolId, classId).then((cls) => {
+            if (!cls) return;
+
+            const { classExists, classCount } = cls;
+
+            if (!classExists) {
+              console.log("Class no longer connected → removing class");
+              localStorage.removeItem(CLASS);
+
+              // If only one class existed and that gets removed → remove school too
+              if (classCount === 1) {
+                console.log("Last class removed → removing school as well");
+                api.currentSchool = undefined;
+                localStorage.removeItem(SCHOOL);
+              }
+            }
+          });
+        }
+      });
+
+      return api.currentSchool;
+    }
+
+    //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
     const temp = localStorage.getItem(SCHOOL);
     if (!temp) return;
+
     const currentSchool = JSON.parse(temp) as TableTypes<"school">;
     api.currentSchool = currentSchool;
+
+    const classId = localStorage.getItem(CLASS) ?? undefined;
+
+    // SCHOOL CHECK
+    isSchoolConnected(currentSchool.id).then((res) => {
+      if (!res) {
+        api.currentSchool = undefined;
+        // schoolUtil.setCurrMode(MODES.SCHOOL);
+        localStorage.removeItem(SCHOOL);
+        localStorage.removeItem(CLASS);
+        return;
+      }
+
+      // CLASS CHECK
+      if (classId) {
+        isClassConnected(currentSchool.id, classId).then((cls) => {
+          if (!cls) return;
+
+          const { classExists, classCount } = cls;
+
+          if (!classExists) {
+            console.log("Class no longer connected → removing class");
+            localStorage.removeItem(CLASS);
+
+            if (classCount === 1) {
+              console.log("Last class removed → removing school as well");
+              api.currentSchool = undefined;
+              localStorage.removeItem(SCHOOL);
+            }
+          }
+        });
+      }
+    });
+
     return currentSchool;
   }
 
@@ -2820,14 +2961,32 @@ export class Util {
             JSON.stringify(learningPath)
           );
         }
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-        currentCourse.path_id = uuidv4();
-        prevData.prevPath_id = currentCourse.path_id;
+        if (
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].type === RECOMMENDATION_TYPE.CHAPTER
+        ) {
+          currentCourse.startIndex = currentCourse.currentIndex;
+          currentCourse.pathEndIndex += 5;
+          currentCourse.path_id = uuidv4();
+          prevData.prevPath_id = currentCourse.path_id;
 
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          // Ensure pathEndIndex does not exceed the path length
+          if (currentCourse.pathEndIndex > currentCourse.path.length) {
+            currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          }
+        } else {
+          const palPath = await palUtil.getPalLessonPathForCourse(
+            currentCourse.course_id,
+            currentStudent.id
+          );
+          if (palPath?.length) {
+            currentCourse.path_id = uuidv4();
+            currentCourse.path = palPath;
+            currentCourse.startIndex = 0;
+            currentCourse.currentIndex = 0;
+            currentCourse.pathEndIndex = palPath.length - 1;
+          }
         }
 
         // Move to the next course
@@ -2841,6 +3000,53 @@ export class Util {
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevData.pathId,
+          prev_course_id: prevData.courseId,
+          prev_lesson_id: prevData.lessonId,
+          prev_chapter_id: prevData.chapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      } else {
+        // Within current path: refresh the slot with latest PAL recommendation if available
+        const recommended = await palUtil.getRecommendedLessonForCourse(
+          currentStudent.id,
+          currentCourse.course_id
+        );
+        if (recommended?.lesson?.id) {
+          currentCourse.path[currentCourse.currentIndex] = {
+            ...currentCourse.path[currentCourse.currentIndex],
+            lesson_id: recommended.lesson.id,
+            chapter_id: recommended.chapterId,
+            skill_id: recommended.skillId,
+          };
         }
         eventsToLog.push(
           EVENTS.PATHWAY_COMPLETED,
@@ -3118,4 +3324,105 @@ export class Util {
 
     return result.slice(0, 5);
   }
+
+  public static async downloadLidoCommonAudio(
+    audioZipUrl: string,
+    languageId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return true;
+      }
+
+      // ✅ Skip if already downloaded for same language
+      const storedLang = localStorage.getItem(LIDO_COMMON_AUDIO_LANG_KEY);
+      if (storedLang === languageId) {
+        return true;
+      }
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "/",
+        directory: Directory.Data,
+      });
+
+      // 🔽 Download ZIP
+      const download = await CapacitorHttp.get({
+        url: audioZipUrl,
+        responseType: "blob",
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+
+      if (!download || download.status !== 200 || !download.data) {
+        console.error("[LidoCommonAudio] ZIP download failed");
+        return false;
+      }
+
+      const zipDataStr =
+        typeof download.data === "string"
+          ? download.data
+          : await this.blobToString(download.data as Blob);
+
+      const buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
+
+      // 🧹 Clean old audio files (language changed)
+      try {
+        await Filesystem.rmdir({
+          path: LIDO_COMMON_AUDIO_DIR,
+          directory: Directory.Data,
+          recursive: true,
+        });
+      } catch {
+        // folder may not exist — ignore
+      }
+
+      // 📦 Unzip to /Lido-CommonAudios
+      await unzip({
+        fs,
+        extractTo: LIDO_COMMON_AUDIO_DIR,
+        filepaths: ["."],
+        data: buffer,
+      });
+
+      // 💾 Cache language
+      localStorage.setItem(LIDO_COMMON_AUDIO_LANG_KEY, languageId);
+
+      return true;
+    } catch (err) {
+      console.error(
+        "[LidoCommonAudio] Unexpected error while downloading audio:",
+        err
+      );
+      return false;
+    }
+  }
+  static async ensureLidoCommonAudioForStudent(
+  student: TableTypes<"user">
+) {
+  try {
+    if (!student?.language_id) {
+      console.warn("[LidoCommonAudio] Student has no language");
+      return;
+    }
+
+    const api = ServiceConfig.getI().apiHandler;
+
+    const audioConfig = await api.getLidoCommonAudioUrl(
+      student.language_id,
+      student.locale_id ?? null
+    );
+
+    if (!audioConfig?.lido_common_audio_url) {
+      console.warn("[LidoCommonAudio] No audio config found");
+      return;
+    }
+
+    await Util.downloadLidoCommonAudio(
+      audioConfig.lido_common_audio_url,
+      student.language_id
+    );
+  } catch (err) {
+    console.error("[LidoCommonAudio] ensure failed:", err);
+  }
+}
+
 }
