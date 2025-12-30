@@ -10678,4 +10678,70 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+
+  async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    if (!this.supabase) return null;
+    if (!localeId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      localeId = locale?.id ?? null;
+    }
+
+    try {
+      // ✅ Build OR conditions safely
+      const orConditions: string[] = [];
+
+      if (languageId && localeId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.eq.${localeId})`
+        );
+      }
+
+      if (languageId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.is.null)`
+        );
+      }
+
+      if (localeId) {
+        orConditions.push(`and(language_id.is.null,locale_id.eq.${localeId})`);
+      }
+
+      // global fallback
+      orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+
+      const { data, error } = await this.supabase
+        .from("language_locale")
+        .select("lido_common_audio_url, language_id, locale_id")
+        .eq("is_deleted", false)
+        .or(orConditions.join(","));
+
+      if (error) {
+        console.error("[Supabase] getLidoCommonAudioUrl error:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) return null;
+
+      // ✅ Priority sort (exact → fallback)
+      const priority = (r: any) => {
+        if (r.language_id === languageId && r.locale_id === localeId) return 1;
+        if (r.language_id === languageId && r.locale_id === null) return 2;
+        if (r.language_id === null && r.locale_id === localeId) return 3;
+        return 4;
+      };
+
+      data.sort((a, b) => priority(a) - priority(b));
+
+      return {
+        lido_common_audio_url: data[0].lido_common_audio_url ?? null,
+      };
+    } catch (err) {
+      console.error("[Supabase] getLidoCommonAudioUrl failed:", err);
+      return null;
+    }
+  }
 }
