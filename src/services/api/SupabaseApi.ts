@@ -3004,11 +3004,28 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
 
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+    const orConditions: string[] = [];
+
+    orConditions.push("language_id.is.null,locale_id.is.null");
+    if (langId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+    if (localeId) {
+      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+    if (langId && localeId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+    }
+
     const { data, error } = await this.supabase
       .from("skill_lesson")
       .select("*")
       .in("skill_id", skillIds)
-      .or("is_deleted.eq.false")
+      .eq("is_deleted", false)
+      .or(orConditions.join(","))
       .order("sort_index", { ascending: true });
 
     if (error) {
@@ -3639,7 +3656,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    requestId: string,
+    requestId: string, //request row Id
     existingStudentId: string,
     newStudentId: string,
     respondedBy: string
@@ -3759,7 +3776,7 @@ export class SupabaseApi implements ServiceApi {
         updated_at: now,
         responded_by: respondedBy,
       })
-      .eq("request_id", requestId); // Identify the specific request
+      .eq("id", requestId); // Identify the specific request
 
     if (updateRequestError) {
       console.error(
@@ -5189,19 +5206,27 @@ export class SupabaseApi implements ServiceApi {
 
     return allLessons;
   }
+  async searchLessons(
+  searchText: string
+): Promise<TableTypes<"lesson">[]> {
+  if (!this.supabase || !searchText) return [];
 
-  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.rpc("find_similar_lessons", {
-      search_text: searchString,
-    });
-    if (error) return [];
-    // RPC response omits metadata, so ensure the field exists to satisfy the generated type
-    return (data ?? []).map((lesson) => ({
-      metadata: null,
-      ...lesson,
-    }));
+  const { data, error } = await this.supabase
+    .from("lesson")
+    .select("*")
+    .or(
+      `name.ilike.%${searchText}%,outcome.ilike.%${searchText}%`
+    )
+    .limit(20);
+
+  if (error) {
+    console.error("searchLessons error", error);
+    return [];
   }
+
+  return data ?? [];
+}
+
   async getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
@@ -8942,7 +8967,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async approveOpsRequest(
-    requestId: string,
+    requestId: string, //request row Id
     respondedBy: string,
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
@@ -8967,7 +8992,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("request_id", requestId)
+      .eq("id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
@@ -10250,6 +10275,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("school_id", schoolId)
       .eq("is_deleted", false)
+      .not("contact_user_id", "is", null) 
       .order("created_at", { ascending: true });
 
     if (error) {

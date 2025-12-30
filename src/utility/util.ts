@@ -2061,6 +2061,18 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
 
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const user_role = localStorage.getItem(USER_ROLE);
+      if (user_role) {
+        const roles: string[] = JSON.parse(user_role);
+        if ([
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR
+        ].some(role => roles.includes(role))) {
+          return true;
+        }
+      }
       try {
         const authHandler = ServiceConfig.getI().authHandler;
         const currentUser = await authHandler.getCurrentUser();

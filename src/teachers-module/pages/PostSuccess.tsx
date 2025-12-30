@@ -3,13 +3,15 @@ import React from "react";
 import Header from "../components/homePage/Header";
 import { t } from "i18next";
 import "./PostSuccess.css";
-import { PAGES } from "../../common/constants";
+import { PAGES, MODES } from "../../common/constants";
 import { useHistory } from "react-router";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 const PostSuccess: React.FC = () => {
   const history = useHistory();
 
   const onBackButtonClick = () => {
+    schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 

@@ -2959,9 +2959,27 @@ export class SqliteApi implements ServiceApi {
     skillIds: string[]
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!skillIds || skillIds.length === 0) return [];
+
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+
     const placeholders = skillIds.map(() => "?").join(",");
+
     const res = await this._db?.query(
-      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0) order by sort_index asc`,
+      `
+      SELECT *
+      FROM ${TABLES.SkillLesson}
+      WHERE skill_id IN (${placeholders})
+        AND is_deleted = 0
+        AND (
+          (language_id IS NULL AND locale_id IS NULL)
+          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""}
+          ${localeId ? `OR (language_id IS NULL AND locale_id = "${localeId}")` : ""}
+          ${langId && localeId ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")` : ""}
+        )
+      ORDER BY sort_index ASC
+      `,
       skillIds
     );
     return res?.values ?? [];
