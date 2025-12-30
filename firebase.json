@@ -6,6 +6,14 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
+        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -35,6 +43,14 @@
       "site": "cuba-stage",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
@@ -66,6 +82,14 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
+        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -95,6 +119,14 @@
       "site": "chimple-prod-hot-update-beta",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
@@ -126,6 +158,14 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
+        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -156,6 +196,14 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
+        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -185,6 +233,14 @@
       "site": "cuba-stage-dev-supabase",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
+        },
+        {
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
+        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
