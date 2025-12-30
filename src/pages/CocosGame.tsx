@@ -1,5 +1,5 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router";
 import {
   EVENTS,
@@ -9,6 +9,7 @@ import {
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
+  PROBLEM_END,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
   TableTypes,
@@ -28,6 +29,7 @@ import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { palUtil } from "../utility/palUtil";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -46,6 +48,10 @@ const CocosGame: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [gameResult, setGameResult] = useState<any>();
   const [isDeviceAwake, setDeviceAwake] = useState(false);
+  const [outcomes, setOutcomes] = useState<boolean[]>([]);
+  const outcomesRef = useRef<boolean[]>([]);
+  const prevCorrectMovesRef = useRef<number>(0);
+  const prevWrongMovesRef = useRef<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
@@ -211,7 +217,31 @@ const CocosGame: React.FC = () => {
     setGameResult(event);
   };
 
+  function handleProblemEnd(event: any) {
+    const { correctMoves = 0, wrongMoves = 0 } = event?.detail || {};
+
+    // Calculate delta (change since last activity)
+    const deltaCorrect = correctMoves - prevCorrectMovesRef.current;
+    const deltaWrong = wrongMoves - prevWrongMovesRef.current;
+
+    // This activity is correct if more correct moves than wrong moves were added
+    const newOutcome = deltaCorrect > deltaWrong;
+
+    // Update previous values for next activity
+    prevCorrectMovesRef.current = correctMoves;
+    prevWrongMovesRef.current = wrongMoves;
+
+    setOutcomes((prev) => [...prev, newOutcome]);
+    outcomesRef.current = [...outcomesRef.current, newOutcome];
+  }
+
   async function init() {
+    // Reset outcomes and move counters for new lesson
+    setOutcomes([]);
+    outcomesRef.current = [];
+    prevCorrectMovesRef.current = 0;
+    prevWrongMovesRef.current = 0;
+
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
     const lessonId: string = state.lessonId;
@@ -230,6 +260,7 @@ const CocosGame: React.FC = () => {
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
     });
+    document.body.addEventListener(PROBLEM_END, handleProblemEnd);
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
   }
@@ -332,6 +363,34 @@ const CocosGame: React.FC = () => {
       }
     }
 
+    let abilityUpdates: {
+      skill_id?: string;
+      skill_ability?: number;
+      outcome_id?: string;
+      outcome_ability?: number;
+      competency_id?: string;
+      competency_ability?: number;
+      domain_id?: string;
+      domain_ability?: number;
+      subject_id?: string;
+      subject_ability?: number;
+    } = {};
+
+    if (state?.skillId) {
+      const courseIdForAbility = courseDetail?.id ?? courseDocId ?? "";
+      abilityUpdates = await palUtil.updateAndGetAbilities({
+        studentId: currentStudent.id,
+        courseId: courseIdForAbility,
+        skillId: state.skillId,
+        outcomes: outcomesRef.current,
+      });
+    }
+
+    // Calculate activities_scores from outcomes (1 for true/correct, 0 for false/incorrect)
+    const activities_scores = outcomesRef.current.length > 0
+      ? outcomesRef.current.map(outcome => outcome ? "1" : "0").join(",")
+      : null;
+
     // Avatar / time spent updates
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
@@ -355,7 +414,18 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId,
       shouldGiveHomeworkBonus,
-      is_homework
+      is_homework,
+      abilityUpdates.skill_id,
+      abilityUpdates.skill_ability,
+      abilityUpdates.outcome_id,
+      abilityUpdates.outcome_ability,
+      abilityUpdates.competency_id,
+      abilityUpdates.competency_ability,
+      abilityUpdates.domain_id,
+      abilityUpdates.domain_ability,
+      abilityUpdates.subject_id,
+      abilityUpdates.subject_ability,
+      activities_scores ?? undefined
     );
 
     // Update the learning path / homework path

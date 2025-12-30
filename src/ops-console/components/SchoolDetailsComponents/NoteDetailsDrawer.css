@@ -1,0 +1,126 @@
+/* ===============================
+   Drawer base
+================================ */
+.note-details-drawer-paper {
+  width: 520px;
+  height: 100%;
+  padding: 24px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ===============================
+   Header
+================================ */
+.note-details-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-details-drawer-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.note-details-drawer-divider {
+  margin: 16px 0;
+}
+
+/* ===============================
+   INFO CARD
+================================ */
+.note-details-drawer-paper > .MuiPaper-root {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  background: #ffffff;
+}
+
+/* Grid layout inside info card */
+.note-details-drawer-paper > .MuiPaper-root > .MuiBox-root {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: 24px;
+}
+
+/* Left column */
+.note-details-drawer-paper > .MuiPaper-root > .MuiBox-root > .MuiBox-root:first-child {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Info row */
+.note-details-drawer-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Labels */
+.note-details-drawer-info-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  width: 90px;
+  flex-shrink: 0;
+  text-align: left;
+}
+
+/* Values */
+.note-details-drawer-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Right column (Date) */
+.note-details-drawer-paper > .MuiPaper-root > .MuiBox-root > .MuiBox-root:last-child {
+  text-align: right;
+}
+
+.note-details-drawer-paper
+  > .MuiPaper-root
+  > .MuiBox-root
+  > .MuiBox-root:last-child
+  .note-details-drawer-info-label {
+  width: auto;
+  margin-bottom: 4px;
+}
+
+/* ===============================
+   NOTES SECTION
+================================ */
+.note-details-drawer-notes-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Notes title */
+.note-details-drawer-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+/* Notes box */
+.note-details-drawer-section-paper {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 16px;
+  font-size: 14px;
+  color: #111827;
+  line-height: 1.5;
+  white-space: pre-line;
+  min-height: 160px;
+  flex-grow: 1;
+  overflow-y: auto;
+}

@@ -4,6 +4,8 @@ import { Constants, Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
+export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf"; //this is the default locale id for india
+
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
   SIERRA_LEONE_MATHS = "sl-maths",
@@ -78,6 +80,15 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Domain = "domain",
+  Competency = "competency",
+  Outcome = "outcome",
+  Skill = "skill",
+  SkillRelation = "skill_relation",
+  SkillLesson = "skill_lesson",
+  FcQuestion = "fc_question",
+  FcSchoolVisit = "fc_school_visit",
+  FcUserForms = "fc_user_forms",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -715,6 +726,7 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.Assignment_cart,
   TABLES.ReqNewSchool,
   TABLES.Program,
+  TABLES.FcSchoolVisit,
 ];
 
 export const AVATARS: string[] = [
@@ -853,6 +865,10 @@ export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
 
 export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
+export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
+export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
+export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
+
 
 export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 
@@ -1012,7 +1028,7 @@ export interface StudentInfo {
   parent: TableTypes<"user"> | null;
   classWithidname?: {
     id: string;
-    name: string;
+    class_name: string;
   };
 }
 export interface StudentAPIResponse {
@@ -1022,6 +1038,10 @@ export interface StudentAPIResponse {
 export interface TeacherInfo {
   user: TableTypes<"user">;
   grade: number;
+  classWithidname: {
+    id: string;
+    name: string;
+  };
   classSection: string;
 }
 export interface TeacherAPIResponse {
@@ -1104,6 +1124,17 @@ export const OPS_ROLES = [
 ];
 export const CAN_HOT_UPDATE = "can-Hot-Update";
 export const VERSION_KEY = "last_native_version";
+export enum SupportLevelMap {
+  "Doing Good" = "doing_good",
+  "Still Learning" = "still_learning",
+  "Need Help" = "need_help",
+  "Not Tracked" = "not_tracked",
+}
+
+export enum RECOMMENDATION_TYPE {
+  FRAMEWORK = "framework",
+  CHAPTER = "chapter",
+}
 
 export enum PerformanceLevel {
   ALL = "all",
@@ -1111,10 +1142,10 @@ export enum PerformanceLevel {
   DOING_GOOD = "doing_good",
   STILL_LEARNING = "still_learning",
   NOT_TRACKED = "not_tracked",
-  NOT_ASSIGNING_PER_MONTH = "not_assigning_per_month",
-  ONCE_A_MONTH = "once_a_month",
-  ONCE_A_WEEK = "once_a_week",
-  TWO_PLUS_PER_WEEK = "two_plus_per_week",
+  NOT_ASSIGNING = "not_assigning",
+  ONE_TO_TWO_ASSIGNED = "once_to_two",
+  THREE_TO_FOUR_ASSIGNED = "three_to_four",
+  FOUR_PLUS_ASSIGNED = "four_plus",
 }
 export enum ContactTarget {
   STUDENT = "student",
@@ -1123,6 +1154,27 @@ export enum ContactTarget {
   PARENT = "parent",
   SCHOOL = "school",
   CLASS = "class",
+}
+export enum SchoolVisitAction {
+  CheckIn = "check_in",
+  CheckOut = "check_out",
+}
+
+export enum SchoolVisitType {
+  Regular = "regular_visit",
+  ParentsTeacherMeeting = "parents_teacher_meeting",
+  TeacherTraining = "teacher_training_meeting",
+}
+
+export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
+  [SchoolVisitType.Regular]: "Regular Visit",
+  [SchoolVisitType.ParentsTeacherMeeting]: "Parents Teacher Meeting",
+  [SchoolVisitType.TeacherTraining]: "Teacher Training Meeting",
+};
+
+export enum SchoolVisitStatus {
+  CheckedIn = "checked_in",
+  CheckedOut = "checked_out",
 }
 export const PERFORMANCE_UI: Record<
   PerformanceLevel,
@@ -1148,23 +1200,23 @@ export const PERFORMANCE_UI: Record<
     bgColor: "#F3F4F6",
     textColor: "#364153",
   },
-  [PerformanceLevel.NOT_ASSIGNING_PER_MONTH]: {
+  [PerformanceLevel.NOT_ASSIGNING]: {
     label: "Not Assigning",
-    bgColor: "#F3F4F6",
-    textColor: "#364153",
-  },
-  [PerformanceLevel.ONCE_A_MONTH]: {
-    label: "Once/Month",
-    bgColor: "#FFEDD4",
+    bgColor: "#FFE2E2",
     textColor: "#CA3500",
   },
-  [PerformanceLevel.ONCE_A_WEEK]: {
-    label: "Once a Week",
+  [PerformanceLevel.ONE_TO_TWO_ASSIGNED]: {
+    label: "1 - 2 Assigned",
+    bgColor: "#FFEDD4",
+    textColor: "#E4916A",
+  },
+  [PerformanceLevel.THREE_TO_FOUR_ASSIGNED]: {
+    label: "3 - 4 Assigned",
     bgColor: "#DCFCE7",
     textColor: "#008236",
   },
-  [PerformanceLevel.TWO_PLUS_PER_WEEK]: {
-    label: "2+/Week",
+  [PerformanceLevel.FOUR_PLUS_ASSIGNED]: {
+    label: "4+ Assigned",
     bgColor: "#DCFCE7",
     textColor: "#008236",
   },
@@ -1174,3 +1226,5 @@ export const PERFORMANCE_UI: Record<
     textColor: "#6ec5e7ff",
   },
 };
+export const COURSE_CHANGED = "courseChanged";
+export const NOTES_UPDATED_EVENT = "notes:updated";

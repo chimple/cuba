@@ -78,6 +78,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   // used to avoid re-evaluating for same student repeatedly
   const lastEvaluatedStudentId = useRef<string | null>(null);
+  const [assignmentSyncDone, setAssignmentSyncDone] = useState(false);
 
   const updateLessonChapterAndCourseMaps = useCallback(
     async (assignments: TableTypes<"assignment">[]) => {
@@ -204,10 +205,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }, [init]);
 
   useEffect(() => {
-    if (!loading && !isHomeworkPathwayOnLocal) {
+    if (assignmentSyncDone && !loading) {
       setShowHomeworkCompleteModal(assignments.length === 0);
     }
-  }, [loading, assignments.length, isHomeworkPathwayOnLocal]);
+  }, [assignmentSyncDone, loading, assignments.length]);
 
   // --- Listener setup ---
   useEffect(() => {
@@ -256,6 +257,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     api
       .syncDB([TABLES.Assignment])
       .then(() => {
+        setAssignmentSyncDone(true);
         init(false, false);
       })
       .catch((error) => {
@@ -396,61 +398,63 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         <div className={bodyClass}>
-          {!isHomeworkPathwayOnLocal && !showHomeworkCompleteModal && (
-            <div className="assignment-header">
-              <div className="right-button"></div>
+          {!isHomeworkPathwayOnLocal &&
+            !showHomeworkCompleteModal &&
+            assignments.length > 0 && (
+              <div className="assignment-header">
+                <div className="right-button"></div>
 
-              <div className="dowload-homework-button-container">
-                <div className="school-class-header">
-                  <div className="classname-header">{schoolName}</div>
-                  <div className="classname-header">
-                    {currentClass?.name ? currentClass?.name : ""}
+                <div className="dowload-homework-button-container">
+                  <div className="school-class-header">
+                    <div className="classname-header">{schoolName}</div>
+                    <div className="classname-header">
+                      {currentClass?.name ? currentClass?.name : ""}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {isLinked &&
-              !showDownloadHomeworkButton &&
-              lessons.length > 0 &&
-              Capacitor.isNativePlatform() ? (
-                <IonButton
-                  size="small"
-                  color="white"
-                  shape="round"
-                  disabled={downloadButtonLoading}
-                  className="dowload-homework-button"
-                  onClick={() => {
-                    if (!online) {
-                      presentToast({
-                        message: t(`Device is offline.`),
-                        color: "danger",
-                        duration: 3000,
-                        position: "bottom",
-                        buttons: [{ text: "Dismiss", role: "cancel" }],
-                      });
-                      setLoading(false);
-                      return;
-                    }
-                    downloadAllHomeWork(lessons);
-                  }}
-                >
-                  <div className="download-homework-label">
-                    {downloadButtonLoading
-                      ? t("Downloading...")
-                      : t("Download all")}
-                  </div>
-
-                  {!downloadButtonLoading && (
-                    <div className="dowload-homework-icon-container">
-                      <TfiDownload className="dowload-homework-icon" />
+                {isLinked &&
+                !showDownloadHomeworkButton &&
+                lessons.length > 0 &&
+                Capacitor.isNativePlatform() ? (
+                  <IonButton
+                    size="small"
+                    color="white"
+                    shape="round"
+                    disabled={downloadButtonLoading}
+                    className="dowload-homework-button"
+                    onClick={() => {
+                      if (!online) {
+                        presentToast({
+                          message: t(`Device is offline.`),
+                          color: "danger",
+                          duration: 3000,
+                          position: "bottom",
+                          buttons: [{ text: "Dismiss", role: "cancel" }],
+                        });
+                        setLoading(false);
+                        return;
+                      }
+                      downloadAllHomeWork(lessons);
+                    }}
+                  >
+                    <div className="download-homework-label">
+                      {downloadButtonLoading
+                        ? t("Downloading...")
+                        : t("Download all")}
                     </div>
-                  )}
-                </IonButton>
-              ) : (
-                <div className="right-button"></div>
-              )}
-            </div>
-          )}
+
+                    {!downloadButtonLoading && (
+                      <div className="dowload-homework-icon-container">
+                        <TfiDownload className="dowload-homework-icon" />
+                      </div>
+                    )}
+                  </IonButton>
+                ) : (
+                  <div className="right-button"></div>
+                )}
+              </div>
+            )}
 
           {!loading && (
             <div>
@@ -500,9 +504,29 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         )}
                       </div>
                     )
-                  ) : (
-                    // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+                  ) : // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+
+                  // <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  assignments.length > 0 ? (
                     <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  ) : (
+                    <div className="pending-assignment">
+                      {showHomeworkCompleteModal && (
+                        <HomeworkCompleteModal
+                          text={t(
+                            "Yay!! You have completed all the Homework!!"
+                          )}
+                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                          onClose={() => setShowHomeworkCompleteModal(false)}
+                          onPlayMore={() => {
+                            setShowHomeworkCompleteModal(false);
+                            if (onPlayMoreHomework) {
+                              onPlayMoreHomework();
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
                   )}
 
                   {/* retained older commented logic in case you want to revert */}

@@ -32,6 +32,14 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
 
+  async updateSchoolLocation(
+    schoolId: string,
+    lat: number,
+    lng: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
@@ -314,6 +322,44 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    throw new Error("Method not implemented.");
+  }
+
   deleteProfile(studentId: string) {
     throw new Error("Method not implemented.");
   }
@@ -392,8 +438,22 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isImediateSync?:boolean,
-    isHomework?: boolean 
+    assignmentId: string | undefined,
+    chapterId: string,
+    classId: string | undefined,
+    schoolId: string | undefined,
+    isImediateSync?: boolean,
+    isHomework?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
@@ -1300,6 +1360,13 @@ export class OneRosterApi implements ServiceApi {
   async getActiveStudentsCountByClass(
     classId: string
   ): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+
+  getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
     throw new Error("Method not implemented.");
   }
 }

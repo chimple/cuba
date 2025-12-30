@@ -58,6 +58,82 @@
   height: calc(100vh - 165px);
 }
 
+/* === MODAL OVERLAY === */
+.note-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.35); /* dim background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* === MODAL BOX === */
+.note-modal {
+  background: #ffffff;
+  width: 520px;                 /* FIX: correct modal width */
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 16px rgba(0,0,0,0.12);
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+/* === HEADER === */
+.note-modal .modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 22px;
+  color: #555;
+}
+
+/* === TEXTAREA === */
+.note-textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 14px;
+  border: 1px solid #d6d6d6;
+  background: #ffffff !important;   /* FIX */
+  color: #000 !important;   
+  border-radius: 8px;
+  font-size: 14px;
+  resize: none;
+}
+
+/* === ACTION BUTTONS === */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  gap: 12px;
+}
+
+.btn-outline {
+  border: 1px solid #2563eb;
+  background: white;
+  color: #2563eb;
+  padding: 8px 16px;
+  border-radius: 6px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+}
+
+
 @media (max-width: 600px) {
   .school-detail-tertiary-header {
     border-radius: 4px;

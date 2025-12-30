@@ -4,6 +4,20 @@
   margin-bottom: 0px; /* mb={3} */
   text-align: left;
   flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.breadcrumb-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .breadcrumb-link {

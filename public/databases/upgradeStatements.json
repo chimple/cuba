@@ -128,5 +128,34 @@
       "CREATE INDEX IF NOT EXISTS idx_class_invite_code_class_id ON class_invite_code(class_id);",
       "CREATE INDEX IF NOT EXISTS idx_rive_reward_type ON rive_reward(type);"
     ]
+  },
+  "8": {
+    "toVersion": 8,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS framework ( id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, image TEXT, description TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
+      "CREATE TABLE IF NOT EXISTS domain ( id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, description TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, framework_id TEXT NOT NULL, subject_id TEXT NOT NULL );",
+      "CREATE TABLE IF NOT EXISTS competency ( id TEXT NOT NULL PRIMARY KEY, domain_id TEXT NOT NULL, name TEXT NOT NULL, description TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, code TEXT NOT NULL, sort_index INTEGER );",
+      "CREATE TABLE IF NOT EXISTS outcome ( id TEXT NOT NULL PRIMARY KEY, competency_id TEXT NOT NULL, name TEXT NOT NULL, description TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, code TEXT NOT NULL, sort_index INTEGER, grade_id TEXT NOT NULL );",
+      "CREATE TABLE IF NOT EXISTS skill ( id TEXT NOT NULL PRIMARY KEY, outcome_id TEXT NOT NULL, name TEXT NOT NULL, description TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, difficulty REAL NOT NULL, code TEXT NOT NULL );",
+      "CREATE TABLE IF NOT EXISTS skill_relation ( id TEXT NOT NULL PRIMARY KEY, source_skill_id TEXT NOT NULL, target_skill_id TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
+      "CREATE TABLE IF NOT EXISTS skill_lesson ( id TEXT NOT NULL PRIMARY KEY, skill_id TEXT NOT NULL, lesson_id TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, sort_index INTEGER, language_id TEXT, locale_id TEXT );",
+      "CREATE TABLE IF NOT EXISTS subject_lesson ( id TEXT NOT NULL PRIMARY KEY, lesson_id TEXT NOT NULL, subject_id TEXT NOT NULL, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, set_number INTEGER, framework_id TEXT, language_id TEXT, locale_id TEXT );",
+      "ALTER TABLE course ADD COLUMN framework_id TEXT;",
+      "ALTER TABLE result ADD COLUMN skill_id TEXT;",
+      "ALTER TABLE result ADD COLUMN outcome_id TEXT;",
+      "ALTER TABLE result ADD COLUMN competency_id TEXT;",
+      "ALTER TABLE result ADD COLUMN domain_id TEXT;",
+      "ALTER TABLE result ADD COLUMN skill_ability REAL;",
+      "ALTER TABLE result ADD COLUMN outcome_ability REAL;",
+      "ALTER TABLE result ADD COLUMN competency_ability REAL;",
+      "ALTER TABLE result ADD COLUMN domain_ability REAL;",
+      "ALTER TABLE result ADD COLUMN activities_scores TEXT;",
+      "ALTER TABLE result ADD COLUMN subject_id TEXT;",
+      "ALTER TABLE result ADD COLUMN subject_ability REAL;",
+      "ALTER TABLE user ADD COLUMN locale_id TEXT;",
+      "CREATE TABLE IF NOT EXISTS chapter_lesson ( id TEXT NOT NULL PRIMARY KEY, chapter_id TEXT NOT NULL, lesson_id TEXT NOT NULL, language_id TEXT, locale_id TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
+      "CREATE TABLE IF NOT EXISTS language_locale ( id TEXT NOT NULL PRIMARY KEY, language_id TEXT NOT NULL, locale_id TEXT NOT NULL, lido_common_audio_url TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
+      "CREATE TABLE IF NOT EXISTS locale ( id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, description TEXT, image TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, code TEXT );"
+    ]
   }
 }
