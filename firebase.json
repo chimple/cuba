@@ -6,20 +6,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -52,20 +44,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -98,20 +82,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -144,20 +120,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -190,20 +158,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -236,20 +196,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
@@ -282,20 +234,12 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/cocos-main.js",
-          "destination": "/cocos-main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.js)$",
+          "destination": "/$1"
         },
         {
-          "source": "**/cocos2d-js-min.js",
-          "destination": "/cocos2d-js-min.js"
-        },
-        {
-          "source": "**/src/settings.js",
-          "destination": "/src/settings.js"
-        },
-        {
-          "source": "**/main.js",
-          "destination": "/main.js"
+          "regex": "^(?:[\\w.-]+/)*([\\w.-]+\\.jsc)$",
+          "destination": "/$1"
         },
         {
           "source": "**/*.js",
