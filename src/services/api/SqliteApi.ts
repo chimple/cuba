@@ -1327,8 +1327,10 @@ export class SqliteApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
     const countryCode = await this.getClientCountryCode();
-    let locale: TableTypes<"locale"> | null =
-      await this.getLocaleByIdOrCode(undefined, countryCode);
+    let locale: TableTypes<"locale"> | null = await this.getLocaleByIdOrCode(
+      undefined,
+      countryCode
+    );
 
     const userId = uuidv4();
     const newStudent: TableTypes<"user"> = {
@@ -1379,7 +1381,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.created_at,
         newStudent.updated_at,
         newStudent.student_id,
-        newStudent.locale_id
+        newStudent.locale_id,
       ]
     );
     await this.updatePushChanges(
@@ -2124,9 +2126,21 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${langId ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)` : ""}
-      ${localeId ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")` : ""}
-      ${langId && localeId ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")` : ""}
+      ${
+        langId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+          : ""
+      }
+      ${
+        localeId
+          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+          : ""
+      }
+      ${
+        langId && localeId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+          : ""
+      }
     )
     ORDER BY cl.sort_index ASC;
   `;
@@ -2945,9 +2959,27 @@ export class SqliteApi implements ServiceApi {
     skillIds: string[]
   ): Promise<TableTypes<"skill_lesson">[]> {
     if (!skillIds || skillIds.length === 0) return [];
+
+    const student = this.currentStudent;
+    const langId = student?.language_id;
+    const localeId = student?.locale_id;
+
     const placeholders = skillIds.map(() => "?").join(",");
+
     const res = await this._db?.query(
-      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0) order by sort_index asc`,
+      `
+      SELECT *
+      FROM ${TABLES.SkillLesson}
+      WHERE skill_id IN (${placeholders})
+        AND is_deleted = 0
+        AND (
+          (language_id IS NULL AND locale_id IS NULL)
+          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""}
+          ${localeId ? `OR (language_id IS NULL AND locale_id = "${localeId}")` : ""}
+          ${langId && localeId ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")` : ""}
+        )
+      ORDER BY sort_index ASC
+      `,
       skillIds
     );
     return res?.values ?? [];
@@ -4290,10 +4322,11 @@ export class SqliteApi implements ServiceApi {
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
-
     const countryCode = await this.getClientCountryCode();
-    let locale: TableTypes<"locale"> | null =
-    await this.getLocaleByIdOrCode(undefined, countryCode);
+    let locale: TableTypes<"locale"> | null = await this.getLocaleByIdOrCode(
+      undefined,
+      countryCode
+    );
     const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
 
     await this.executeQuery(
@@ -4310,7 +4343,7 @@ export class SqliteApi implements ServiceApi {
         user.image,
         user.curriculum_id,
         user.language_id,
-        user.locale_id = localeId
+        (user.locale_id = localeId),
       ]
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -7074,7 +7107,6 @@ order by
     return null;
   }
 
-
   async searchSchools(
     params: SearchSchoolsParams
   ): Promise<SearchSchoolsResult> {
@@ -7446,30 +7478,25 @@ order by
   }
 
   async createNoteForSchool(params: {
-  schoolId: string;
-  classId?: string | null;
-  content: string;
-  mediaLinks?: string[] | null;
-}): Promise<any> {
-  console.warn("createNoteForSchool is not supported in SQLite mode");
-  return this._serverApi.createNoteForSchool(params);
-}
+    schoolId: string;
+    classId?: string | null;
+    content: string;
+    mediaLinks?: string[] | null;
+  }): Promise<any> {
+    console.warn("createNoteForSchool is not supported in SQLite mode");
+    return this._serverApi.createNoteForSchool(params);
+  }
 
   async getNotesBySchoolId(
-  schoolId: string,
-  limit?: number,
-  offset?: number,
-  sortBy?: "createdAt" | "createdBy"
-): Promise<PaginatedResponse<SchoolNote>> {
-  console.warn("getNotesBySchoolId is not supported in SQLite mode");
+    schoolId: string,
+    limit?: number,
+    offset?: number,
+    sortBy?: "createdAt" | "createdBy"
+  ): Promise<PaginatedResponse<SchoolNote>> {
+    console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
-  return this._serverApi.getNotesBySchoolId(
-    schoolId,
-    limit,
-    offset,
-    sortBy
-  );
-}
+    return this._serverApi.getNotesBySchoolId(schoolId, limit, offset, sortBy);
+  }
 
   async getRecentAssignmentCountByTeacher(
     teacherId: string,
@@ -7487,5 +7514,57 @@ order by
     file: File;
   }): Promise<string> {
     return this._serverApi.uploadSchoolVisitMediaFile(params);
+  }
+
+  async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    try {
+      if (!localeId) {
+        const countryCode = await this.getClientCountryCode();
+        const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+        localeId = locale?.id ?? null;
+      }
+
+      const data = await this.executeQuery(
+        `
+      SELECT lido_common_audio_url
+      FROM language_locale
+      WHERE is_deleted = false
+        AND (
+          (language_id = ? AND locale_id = ?)
+          OR (language_id = ? AND locale_id IS NULL)
+          OR (language_id IS NULL AND locale_id = ?)
+          OR (language_id IS NULL AND locale_id IS NULL)
+        )
+      ORDER BY
+        CASE
+          WHEN language_id = ? AND locale_id = ? THEN 1
+          WHEN language_id = ? AND locale_id IS NULL THEN 2
+          WHEN language_id IS NULL AND locale_id = ? THEN 3
+          ELSE 4
+        END
+      LIMIT 1;
+      `,
+        [
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+          languageId,
+          localeId ?? null,
+        ]
+      );
+
+      const rows = data?.values ?? [];
+
+      return rows[0];
+    } catch (err) {
+      console.error("[SQLite] getLidoCommonAudioUrl failed:", err);
+      return null;
+    }
   }
 }

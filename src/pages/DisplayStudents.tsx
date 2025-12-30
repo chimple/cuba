@@ -73,6 +73,7 @@ const DisplayStudents: FC<{}> = () => {
     setIsLoading(false);
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
+    schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     // 2) Update GrowthBook attributes immediately for the newly selected student
     updateLocalAttributes({
@@ -84,6 +85,7 @@ const DisplayStudents: FC<{}> = () => {
     // 3) Signal to GrowthBook context that attributes were updated
     setGbUpdated(true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
+    await Util.ensureLidoCommonAudioForStudent(student);
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);

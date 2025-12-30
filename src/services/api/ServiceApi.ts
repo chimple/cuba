@@ -2549,4 +2549,6 @@ export interface ServiceApi {
    * Get interactions metrics for a school.
    */
   getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
+
+  getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
 }

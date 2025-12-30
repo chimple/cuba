@@ -472,7 +472,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                  <IoLocationOutline />
               </div>
               <div id="check-in-location-content" className="check-in-card-content">
-                  <div id="check-in-school-name" className="location-name">{schoolName || "XYZ School"}</div>
+                  <div id="check-in-school-name" className="location-name">{t("Current Location")}</div>
                   
                   <div id="check-in-address-1" className="location-detail-text">
                       {userAddress || targetLocation.address1}
@@ -501,15 +501,19 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   {isPermissionDenied || locationError ? (
                     <div id="check-in-permission-denied-section" className="permission-denied-container">
                         <div id="check-in-permission-error-msg" className="permission-error-text">
-                            {isPermissionDenied ? t("Location permission denied") : t("Unable to fetch location. Please try again.")}
+                            {isPermissionDenied 
+                                ? (Capacitor.getPlatform() === 'web' ? t("Please Enable Location Permission") : t("Location permission denied")) 
+                                : t("Unable to fetch location. Please try again.")}
                         </div>
-                        <button 
-                            id="check-in-retry-permission-btn"
-                            className="retry-permission-btn" 
-                            onClick={handleRetryLocation}
-                        >
-                            {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
-                        </button>
+                        {Capacitor.getPlatform() !== 'web' && (
+                            <button 
+                                id="check-in-retry-permission-btn"
+                                className="retry-permission-btn" 
+                                onClick={handleRetryLocation}
+                            >
+                                {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
+                            </button>
+                        )}
                     </div>
                   ) : null}
               </div>
@@ -593,7 +597,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              </MapContainer>
           </div>
           
-           {isSchoolLocationMissing && (
+           {isSchoolLocationMissing && isCheckIn && (
                <div id="check-in-confirmation-section" className="check-in-confirmation-section">
                    <div id="check-in-confirmation-question" className="confirmation-question">{t("Are you sure you're in the school?")}</div>
                    <div id="check-in-radio-container" className="radio-options-container">
