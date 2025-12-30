@@ -13,7 +13,10 @@ import { useHistory, useLocation } from "react-router";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import Breadcrumb from "../components/Breadcrumb";
 import { t } from "i18next";
-import { PAGES } from "../../common/constants";
+import { PAGES,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from "../../common/constants";
 import "./ActivitiesPage.css";
 import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
@@ -120,9 +123,14 @@ const ActivitiesPage: React.FC = () => {
           grouped[key].checkOut = checkOutValue ?? "--";
 
           grouped[key].visitType =
-            visitTypeSet.size > 0
-              ? Array.from(visitTypeSet).join(", ")
-              : "--";
+          visitTypeSet.size > 0
+            ? Array.from(visitTypeSet)
+                .map(
+                  (type) =>
+                    SchoolVisitTypeLabels[type as SchoolVisitType] ?? type
+                )
+                .join(", ")
+            : "--";
 
           grouped[key].distance =
             minDistance !== Infinity
