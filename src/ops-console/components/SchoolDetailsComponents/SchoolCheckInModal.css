@@ -67,6 +67,10 @@
   padding: 4px;
   border-radius: 50%;
   transition: background-color 0.2s;
+  z-index: 10;
+  position: relative;
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .schoolcheckinmodal .check-in-modal-close:hover {
