@@ -394,4 +394,3 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
-// /data/data/org.chimple.bahama/files/Lido-CommonAudios/bye.mp3
