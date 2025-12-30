@@ -6,14 +6,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
-        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -35,14 +27,6 @@
       "site": "cuba-stage",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
         {
           "source": "**",
           "destination": "/index.html"
@@ -66,14 +50,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
-        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -95,14 +71,6 @@
       "site": "chimple-prod-hot-update-beta",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
         {
           "source": "**",
           "destination": "/index.html"
@@ -126,14 +94,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
-        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -156,14 +116,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
-        {
           "source": "**",
           "destination": "/index.html"
         }
@@ -185,14 +137,6 @@
       "site": "cuba-stage-dev-supabase",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/*.js",
-          "destination": "**/*.js"
-        },
-        {
-          "source": "**/*.jsc",
-          "destination": "**/*.jsc"
-        },
         {
           "source": "**",
           "destination": "/index.html"
