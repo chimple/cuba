@@ -23,18 +23,18 @@ const callOutcomeOptions: {
   value: EnumType<"fc_call_result">;
   label: string;
 }[] = [
-  { value: "call_picked", label: "Call Attended" },
-  { value: "call_later", label: "Call Later" },
-  { value: "call_not_reachable", label: "No Response" },
-];
+    { value: "call_picked", label: "Call Attended" },
+    { value: "call_later", label: "Call Later" },
+    { value: "call_not_reachable", label: "No Response" },
+  ];
 
 const engagementTargetOptions: {
   value: EnumType<"fc_engagement_target">;
   label: string;
 }[] = [
-  { value: "student", label: "Student" },
-  { value: "parent", label: "Parent" },
-];
+    { value: "student", label: "Student" },
+    { value: "parent", label: "Parent" },
+  ];
 
 type FcInteractPopUpProps = {
   schoolId: string;
@@ -160,30 +160,21 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         if (!responses[q.id] || responses[q.id].trim() === "") return false;
       }
     }
-    for (const q of otherQuestions) {
-      if (!responses[q.id] || responses[q.id].trim() === "") return false;
-    }
-    if (otherComments.trim() === "") return false;
     if (techIssueMarked === null) return false;
-    if (techIssueMarked === true && techIssueDetails.trim() === "")
-      return false;
 
     return true;
   }, [
     mode,
     callOutcome,
     mandatoryQuestions,
-    otherQuestions,
     responses,
     spokeWith,
-    otherComments,
     isQuestionsLoading,
     techIssueMarked,
-    techIssueDetails,
     showMandatory,
     initialUserType,
-    ContactTarget,
   ]);
+
 
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
@@ -292,8 +283,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     id="fc-phone-line"
                     onClick={() =>
-                      (window.location.href = `tel:${
-                        userData?.phone ?? parentData?.phone
+                    (window.location.href = `tel:${userData?.phone ?? parentData?.phone
                       }`)
                     }
                   >
@@ -310,8 +300,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     id="fc-email-line"
                     onClick={() =>
-                      (window.location.href = `mailto:${
-                        userData?.email ?? parentData?.email
+                    (window.location.href = `mailto:${userData?.email ?? parentData?.email
                       }`)
                     }
                   >
@@ -594,6 +583,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       id="fc-tech-label"
                     >
                       {t("Any tech issues reported")}?
+                      <span
+                        className="fc-interact-popup-required"
+                        id="fc-tech-required"
+                      >
+                        *
+                      </span>
                     </div>
                   </div>
 
@@ -749,11 +744,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   <button
                     type="button"
                     id="fc-camera-shutter"
-                    className={`fc-interact-popup-camera-shutter ${
-                      media.isRecording
-                        ? "fc-interact-popup-camera-shutter-recording"
-                        : ""
-                    }`}
+                    className={`fc-interact-popup-camera-shutter ${media.isRecording
+                      ? "fc-interact-popup-camera-shutter-recording"
+                      : ""
+                      }`}
                     aria-label={t("Shutter") || "Shutter"}
                     onPointerDown={(e) => {
                       e.preventDefault();
@@ -805,13 +799,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
           </button>
 
           <button
-            className={`fc-interact-popup-save-btn ${
-              !isFormValid ||
+            className={`fc-interact-popup-save-btn ${!isFormValid ||
               isSaving ||
               (media.mediaUploads.length > 0 && hasProcessingMedia)
-                ? "fc-interact-popup-save-disabled"
-                : ""
-            }`}
+              ? "fc-interact-popup-save-disabled"
+              : ""
+              }`}
             id="fc-save-btn"
             onClick={handleSave}
             disabled={

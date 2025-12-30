@@ -380,7 +380,10 @@ export class SupabaseApi implements ServiceApi {
       .upload(filePath, file, { upsert: true });
 
     if (uploadResponse.error) {
-      console.error("Error uploading school visit media:", uploadResponse.error);
+      console.error(
+        "Error uploading school visit media:",
+        uploadResponse.error
+      );
       throw uploadResponse.error;
     }
 
@@ -972,7 +975,6 @@ export class SupabaseApi implements ServiceApi {
         }
         return data;
       } else {
-
         const { data: openVisits, error: fetchError } = await this.supabase
           .from(TABLES.FcSchoolVisit)
           .select("*")
@@ -997,7 +999,7 @@ export class SupabaseApi implements ServiceApi {
               check_out_at: now,
               check_out_lat: lat,
               check_out_lng: lng,
-              updated_at: now, 
+              updated_at: now,
               distance_from_school:
                 distanceFromSchool ?? visitToUpdate.distance_from_school,
             })
@@ -1896,7 +1898,10 @@ export class SupabaseApi implements ServiceApi {
       }
       const { error } = await this.supabase
         .from("user")
-        .update({ language_id: value, locale_id: locale?.id ?? DEFAULT_LOCALE_ID })
+        .update({
+          language_id: value,
+          locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
+        })
         .eq("id", userId);
 
       if (error) {
@@ -3651,7 +3656,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    requestId: string,
+    requestId: string, //request row Id
     existingStudentId: string,
     newStudentId: string,
     respondedBy: string
@@ -3771,7 +3776,7 @@ export class SupabaseApi implements ServiceApi {
         updated_at: now,
         responded_by: respondedBy,
       })
-      .eq("request_id", requestId); // Identify the specific request
+      .eq("id", requestId); // Identify the specific request
 
     if (updateRequestError) {
       console.error(
@@ -5201,19 +5206,27 @@ export class SupabaseApi implements ServiceApi {
 
     return allLessons;
   }
+  async searchLessons(
+  searchText: string
+): Promise<TableTypes<"lesson">[]> {
+  if (!this.supabase || !searchText) return [];
 
-  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.rpc("find_similar_lessons", {
-      search_text: searchString,
-    });
-    if (error) return [];
-    // RPC response omits metadata, so ensure the field exists to satisfy the generated type
-    return (data ?? []).map((lesson) => ({
-      metadata: null,
-      ...lesson,
-    }));
+  const { data, error } = await this.supabase
+    .from("lesson")
+    .select("*")
+    .or(
+      `name.ilike.%${searchText}%,outcome.ilike.%${searchText}%`
+    )
+    .limit(20);
+
+  if (error) {
+    console.error("searchLessons error", error);
+    return [];
   }
+
+  return data ?? [];
+}
+
   async getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
@@ -7577,8 +7590,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -8954,7 +8967,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async approveOpsRequest(
-    requestId: string,
+    requestId: string, //request row Id
     respondedBy: string,
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
@@ -10262,6 +10275,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("school_id", schoolId)
       .eq("is_deleted", false)
+      .not("contact_user_id", "is", null) 
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -10272,25 +10286,24 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
   async getSchoolVisitById(
-  visitIds: string[]
-): Promise<TableTypes<"fc_school_visit">[]> {
-  if (!this.supabase || visitIds.length === 0) return [];
+    visitIds: string[]
+  ): Promise<TableTypes<"fc_school_visit">[]> {
+    if (!this.supabase || visitIds.length === 0) return [];
 
-  const { data, error } = await this.supabase
-    .from("fc_school_visit")
-    .select("*")
-    .in("id", visitIds)        // ✅ pass array directly
-    .eq("is_deleted", false)
-    .order("check_in_at", { ascending: true });
+    const { data, error } = await this.supabase
+      .from("fc_school_visit")
+      .select("*")
+      .in("id", visitIds) // ✅ pass array directly
+      .eq("is_deleted", false)
+      .order("check_in_at", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching visit:", error);
-    return [];
+    if (error) {
+      console.error("Error fetching visit:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-
-  return data ?? [];
-}
-
 
   async getActivitiesFilterOptions() {
     try {
@@ -10489,22 +10502,22 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
- async getNotesBySchoolId(
-  schoolId: string,
-  limit = 10,
-  offset = 0,
-  sortBy: "createdAt" | "createdBy" = "createdAt"
-): Promise<{ data: any[]; totalCount: number }> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return { data: [], totalCount: 0 };
-  }
+  async getNotesBySchoolId(
+    schoolId: string,
+    limit = 10,
+    offset = 0,
+    sortBy: "createdAt" | "createdBy" = "createdAt"
+  ): Promise<{ data: any[]; totalCount: number }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return { data: [], totalCount: 0 };
+    }
 
-  try {
-    let notesQ = this.supabase
-      .from("fc_user_forms")
-      .select(
-        `
+    try {
+      let notesQ = this.supabase
+        .from("fc_user_forms")
+        .select(
+          `
           id,
           comment,
           class_id,
@@ -10525,55 +10538,54 @@ export class SupabaseApi implements ServiceApi {
             )
           )
         `,
-        { count: "exact" }
-      )
-      .eq("school_id", schoolId)
-      .eq("is_deleted", false);
+          { count: "exact" }
+        )
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
 
-    if (sortBy === "createdAt") {
-      notesQ = notesQ
-        .order("created_at", { ascending: false })
-        .order("id", { ascending: false });
-    }
+      if (sortBy === "createdAt") {
+        notesQ = notesQ
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false });
+      }
 
-    if (sortBy === "createdBy") {
-      notesQ = notesQ.order("name", {
-        foreignTable: "user",
-        ascending: true,
-      });
-    }
+      if (sortBy === "createdBy") {
+        notesQ = notesQ.order("name", {
+          foreignTable: "user",
+          ascending: true,
+        });
+      }
 
-    const notesRes = await notesQ.range(offset, offset + limit - 1);
+      const notesRes = await notesQ.range(offset, offset + limit - 1);
 
-    if (notesRes.error) {
-      console.error("[API] Supabase error:", notesRes.error);
+      if (notesRes.error) {
+        console.error("[API] Supabase error:", notesRes.error);
+        return { data: [], totalCount: 0 };
+      }
+
+      const rows = notesRes.data ?? [];
+      const totalCount = notesRes.count ?? 0;
+
+      const mapped = rows.map((r: any) => ({
+        id: r.id,
+        content: r.comment,
+        classId: r.class_id,
+        className: r.class?.name ?? null,
+        visitId: r.visit_id,
+        createdAt: r.created_at,
+        createdBy: {
+          name: r.user?.name ?? "Unknown",
+          role: r.user?.special_users?.[0]?.role ?? null,
+        },
+        media_links: r.media_links ?? null,
+      }));
+
+      return { data: mapped, totalCount };
+    } catch (e) {
+      console.error("getNotesBySchoolId error:", e);
       return { data: [], totalCount: 0 };
     }
-
-    const rows = notesRes.data ?? [];
-    const totalCount = notesRes.count ?? 0;
-
-    const mapped = rows.map((r: any) => ({
-      id: r.id,
-      content: r.comment,
-      classId: r.class_id,
-      className: r.class?.name ?? null,
-      visitId: r.visit_id,
-      createdAt: r.created_at,
-      createdBy: {
-        name: r.user?.name ?? "Unknown",
-        role: r.user?.special_users?.[0]?.role ?? null,
-      },
-      media_links: r.media_links ?? null,
-    }));
-
-    return { data: mapped, totalCount };
-  } catch (e) {
-    console.error("getNotesBySchoolId error:", e);
-    return { data: [], totalCount: 0 };
   }
-}
-
 
   async getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats> {
     if (!this.supabase) {
@@ -10673,6 +10685,72 @@ export class SupabaseApi implements ServiceApi {
         students_interacted: 0,
         teachers_interacted: 0,
       };
+    }
+  }
+
+  async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    if (!this.supabase) return null;
+    if (!localeId) {
+      const countryCode = await this.getClientCountryCode();
+      const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
+      localeId = locale?.id ?? null;
+    }
+
+    try {
+      // ✅ Build OR conditions safely
+      const orConditions: string[] = [];
+
+      if (languageId && localeId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.eq.${localeId})`
+        );
+      }
+
+      if (languageId) {
+        orConditions.push(
+          `and(language_id.eq.${languageId},locale_id.is.null)`
+        );
+      }
+
+      if (localeId) {
+        orConditions.push(`and(language_id.is.null,locale_id.eq.${localeId})`);
+      }
+
+      // global fallback
+      orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+
+      const { data, error } = await this.supabase
+        .from("language_locale")
+        .select("lido_common_audio_url, language_id, locale_id")
+        .eq("is_deleted", false)
+        .or(orConditions.join(","));
+
+      if (error) {
+        console.error("[Supabase] getLidoCommonAudioUrl error:", error);
+        return null;
+      }
+
+      if (!data || data.length === 0) return null;
+
+      // ✅ Priority sort (exact → fallback)
+      const priority = (r: any) => {
+        if (r.language_id === languageId && r.locale_id === localeId) return 1;
+        if (r.language_id === languageId && r.locale_id === null) return 2;
+        if (r.language_id === null && r.locale_id === localeId) return 3;
+        return 4;
+      };
+
+      data.sort((a, b) => priority(a) - priority(b));
+
+      return {
+        lido_common_audio_url: data[0].lido_common_audio_url ?? null,
+      };
+    } catch (err) {
+      console.error("[Supabase] getLidoCommonAudioUrl failed:", err);
+      return null;
     }
   }
 }

@@ -13,7 +13,10 @@ import { useHistory, useLocation } from "react-router";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import Breadcrumb from "../components/Breadcrumb";
 import { t } from "i18next";
-import { PAGES } from "../../common/constants";
+import { PAGES,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from "../../common/constants";
 import "./ActivitiesPage.css";
 import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
@@ -80,7 +83,6 @@ const ActivitiesPage: React.FC = () => {
           const visitIdsArray = Array.from(visitIds);
           console.log("Unique visit IDs for date", key, ":", visitIds);
           const visitDetailsList = await api.getSchoolVisitById(visitIdsArray as string[]);
-
           // 🔹 collect types
           const visitTypeSet = new Set<string>();
 
@@ -91,8 +93,11 @@ const ActivitiesPage: React.FC = () => {
             if (visit?.type) {
               visitTypeSet.add(visit.type);
             }
-            if (typeof visit?.distance_from_school === "number"){
-              minDistance = Math.min(minDistance, visit.distance_from_school);
+
+            const distance = Number(visit?.distance_from_school);
+
+            if (!isNaN(distance)) {
+              minDistance = Math.min(minDistance, distance);
             }
           }
 
@@ -118,13 +123,18 @@ const ActivitiesPage: React.FC = () => {
           grouped[key].checkOut = checkOutValue ?? "--";
 
           grouped[key].visitType =
-            visitTypeSet.size > 0
-              ? Array.from(visitTypeSet).join(", ")
-              : "--";
+          visitTypeSet.size > 0
+            ? Array.from(visitTypeSet)
+                .map(
+                  (type) =>
+                    SchoolVisitTypeLabels[type as SchoolVisitType] ?? type
+                )
+                .join(", ")
+            : "--";
 
           grouped[key].distance =
             minDistance !== Infinity
-              ? `${minDistance/1000} km`
+              ? `${Number((minDistance / 1000).toFixed(2))} km`
               : "--";
         }
 

@@ -866,6 +866,9 @@ export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
 
 export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
+export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
+export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
+
 
 export type LeaderboardBadge = {
   id: string;

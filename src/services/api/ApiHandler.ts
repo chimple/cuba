@@ -537,8 +537,7 @@ export class ApiHandler implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined,
-
+    activities_scores?: string | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -1891,11 +1890,17 @@ export class ApiHandler implements ServiceApi {
       distanceFromSchool
     );
   }
-  
+
   public async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;
   }): Promise<string> {
     return await this.s.uploadSchoolVisitMediaFile(params);
+  }
+  public async getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null> {
+    return await this.s.getLidoCommonAudioUrl(languageId, localeId);
   }
 }

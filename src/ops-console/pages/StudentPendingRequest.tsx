@@ -72,7 +72,7 @@ const StudentPendingRequestDetails = () => {
         const state = location.state as { request?: any } | undefined;
         const authHandler = ServiceConfig.getI().authHandler;
         const respondedBy = await authHandler.getCurrentUser();
-        
+
         if (state?.request && state.request.request_id === id) {
           state.request.responded_by = respondedBy?.id;
           state.request.respondedBy = respondedBy;
@@ -126,10 +126,7 @@ const StudentPendingRequestDetails = () => {
     }
   }, [requestData, currentPage, pageSize, fetchStudents]);
 
-    const handleRadioChange = (
-    studentId: string,
-    checked: boolean
-  ) => {
+  const handleRadioChange = (studentId: string, checked: boolean) => {
     if (checked) {
       setSelectedStudent(studentId);
     } else {
@@ -141,7 +138,7 @@ const StudentPendingRequestDetails = () => {
     setCurrentPage(newPage + 1);
 
   const handleConfirmApprove = async () => {
-    const currentRequestId = requestData?.request_id;
+    const currentRequestId = requestData?.id;
     const currentSelectedStudent = selectedStudent;
     const newStudentUserId = requestData?.requestedBy?.id;
     // RespondedBy: whoever is logged in
@@ -153,7 +150,7 @@ const StudentPendingRequestDetails = () => {
     const respondedBy = user?.id;
 
     if (!currentRequestId) {
-      console.error(t("Missing request ID for approval."));
+      console.error(t("Missing request row ID for approval."));
       return;
     }
 
@@ -228,215 +225,227 @@ const StudentPendingRequestDetails = () => {
     <>
       <div className="student-pending-request-details-layout">
         <Typography
-        variant="h4"
-        className="student-pending-request-details-page-title"
-      >
-        {t(`Request ID - ${id}`)}
-      </Typography>
-      {navBreadcrumbs}
+          variant="h4"
+          className="student-pending-request-details-page-title"
+        >
+          {t(`Request ID - ${id}`)}
+        </Typography>
+        {navBreadcrumbs}
 
-      <Grid
-        container
-        spacing={3}
-        className="student-pending-request-details-main-content-row"
-        alignItems="flex-start"
-      >
-        {/* Left Side Cards */}
-        <Grid size={{ xs: 12, md: 5, lg: 4.5 }}>
-          <Paper className="student-pending-request-details-card" elevation={0}>
-            <Typography
-              variant="subtitle1"
-              className="student-pending-request-details-section-title"
+        <Grid
+          container
+          spacing={3}
+          className="student-pending-request-details-main-content-row"
+          alignItems="flex-start"
+        >
+          {/* Left Side Cards */}
+          <Grid size={{ xs: 12, md: 5, lg: 4.5 }}>
+            <Paper
+              className="student-pending-request-details-card"
+              elevation={0}
             >
-              {t("Request From")}
-            </Typography>
-            <Divider />
-            <div className="student-pending-request-details-row">
-              <span>{t("Name")}</span>{" "}
-              <span>{requestedBy.name || t("N/A")}</span>
-            </div>
-            <div className="student-pending-request-details-row">
-              <span>{t("Phone Number")}</span>{" "}
-              <span>{studentDetails?.parents?.[0]?.phone || t("N/A")}</span>
-            </div>
-            <div className="student-pending-request-details-row">
-              <span>{t("Email ID")}</span>{" "}
-              <span>{studentDetails?.parents?.[0]?.email || t("N/A")}</span>
-            </div>
-          </Paper>
+              <Typography
+                variant="subtitle1"
+                className="student-pending-request-details-section-title"
+              >
+                {t("Request From")}
+              </Typography>
+              <Divider />
+              <div className="student-pending-request-details-row">
+                <span>{t("Name")}</span>{" "}
+                <span>{requestedBy.name || t("N/A")}</span>
+              </div>
+              <div className="student-pending-request-details-row">
+                <span>{t("Phone Number")}</span>{" "}
+                <span>{studentDetails?.parents?.[0]?.phone || t("N/A")}</span>
+              </div>
+              <div className="student-pending-request-details-row">
+                <span>{t("Email ID")}</span>{" "}
+                <span>{studentDetails?.parents?.[0]?.email || t("N/A")}</span>
+              </div>
+            </Paper>
 
-          <Paper className="student-pending-request-details-card" elevation={0}>
-            <Typography
-              variant="subtitle1"
-              className="student-pending-request-details-section-title"
+            <Paper
+              className="student-pending-request-details-card"
+              elevation={0}
             >
-              {t("Request Details")}
-            </Typography>
-            <Divider />
-            <div className="student-pending-request-details-row">
-              <span>{t("Role")}</span> <span>{request_type || t("N/A")}</span>
-            </div>
-            <div className="student-pending-request-details-row">
-              <span>{t("Grade")}</span>{" "}
-              <span>{parsedGrade > 0 ? parsedGrade : t("N/A")}</span>
-            </div>
-            <div className="student-pending-request-details-row">
-              <span>{t("Class Section")}</span>{" "}
-              <span>{parsedSection || t("N/A")}</span>
-            </div>
-          </Paper>
+              <Typography
+                variant="subtitle1"
+                className="student-pending-request-details-section-title"
+              >
+                {t("Request Details")}
+              </Typography>
+              <Divider />
+              <div className="student-pending-request-details-row">
+                <span>{t("Role")}</span> <span>{request_type || t("N/A")}</span>
+              </div>
+              <div className="student-pending-request-details-row">
+                <span>{t("Grade")}</span>{" "}
+                <span>{parsedGrade > 0 ? parsedGrade : t("N/A")}</span>
+              </div>
+              <div className="student-pending-request-details-row">
+                <span>{t("Class Section")}</span>{" "}
+                <span>{parsedSection || t("N/A")}</span>
+              </div>
+            </Paper>
 
-          <Paper className="student-pending-request-details-card" elevation={0}>
-            <Typography
-              variant="subtitle1"
-              className="student-pending-request-details-section-title"
+            <Paper
+              className="student-pending-request-details-card"
+              elevation={0}
             >
-              {t("School Details")}
-            </Typography>
-            <Divider className="student-pending-request-details-divider-margin" />
-            <div className="student-pending-request-details-row">
-              <span>{t("School Name")}</span>{" "}
-              <span>{school.name || t("N/A")}</span>
-            </div>
-            <div className="student-pending-request-details-row">
-              <span>{t("School ID (UDISE)")}</span>{" "}
-              <span>{school.udise || t("N/A")}</span>
-            </div>
-            <Divider className="student-pending-request-details-divider-margin" />
-            <div className="student-pending-request-details-field-row">
-              <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin">
-                <div className="student-pending-request-details-label">
-                  {t("Block")}
+              <Typography
+                variant="subtitle1"
+                className="student-pending-request-details-section-title"
+              >
+                {t("School Details")}
+              </Typography>
+              <Divider className="student-pending-request-details-divider-margin" />
+              <div className="student-pending-request-details-row">
+                <span>{t("School Name")}</span>{" "}
+                <span>{school.name || t("N/A")}</span>
+              </div>
+              <div className="student-pending-request-details-row">
+                <span>{t("School ID (UDISE)")}</span>{" "}
+                <span>{school.udise || t("N/A")}</span>
+              </div>
+              <Divider className="student-pending-request-details-divider-margin" />
+              <div className="student-pending-request-details-field-row">
+                <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin">
+                  <div className="student-pending-request-details-label">
+                    {t("Block")}
+                  </div>
+                  <div>{school.group3 || t("N/A")}</div>
                 </div>
-                <div>{school.group3 || t("N/A")}</div>
+                <div className="student-pending-request-details-field-stack">
+                  <div className="student-pending-request-details-label">
+                    {t("State")}
+                  </div>
+                  <div>{school.group1 || t("N/A")}</div>
+                </div>
               </div>
               <div className="student-pending-request-details-field-stack">
                 <div className="student-pending-request-details-label">
-                  {t("State")}
+                  {t("District")}
                 </div>
-                <div>{school.group1 || t("N/A")}</div>
+                <div>{school.group2 || t("N/A")}</div>
               </div>
+            </Paper>
+            <div className="student-pending-request-details-action-buttons-row">
+              <Button
+                variant="contained"
+                color="error"
+                size="large"
+                className="student-pending-request-details-remove-button"
+                onClick={handleRemoveClick}
+              >
+                {t("Remove")}
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                size="large"
+                className="student-pending-request-details-approve-button"
+                onClick={handleConfirmApprove}
+                disabled={loading || !requestData?.id}
+              >
+                {selectedStudent ? t("Merge & Approve") : t("Approve")}
+              </Button>
             </div>
-            <div className="student-pending-request-details-field-stack">
-              <div className="student-pending-request-details-label">
-                {t("District")}
-              </div>
-              <div>{school.group2 || t("N/A")}</div>
-            </div>
-          </Paper>
-          <div className="student-pending-request-details-action-buttons-row">
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              className="student-pending-request-details-remove-button"
-              onClick={handleRemoveClick}
-            >
-              {t("Remove")}
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              size="large"
-              className="student-pending-request-details-approve-button"
-              onClick={handleConfirmApprove}
-              disabled={loading || !requestData?.request_id}
-            >
-              {selectedStudent ? t("Merge & Approve") : t("Approve")}
-            </Button>
-          </div>
-        </Grid>
+          </Grid>
 
-        {/* Right Side Table */}
-        <Grid size={{ xs: 12, md: 7, lg: 7.5 }}>
-          <Paper
-            className="student-pending-request-details-table-card"
-            elevation={0}
-          >
-            <Typography
-              variant="subtitle1"
-              className="student-pending-request-details-section-title"
+          {/* Right Side Table */}
+          <Grid size={{ xs: 12, md: 7, lg: 7.5 }}>
+            <Paper
+              className="student-pending-request-details-table-card"
+              elevation={0}
             >
-              {t(
-                `Students in Grade ${parsedGrade > 0 ? parsedGrade : "N/A"} - ${
-                  parsedSection || "N/A"
-                }`
-              )}
-            </Typography>
-            <Typography className="student-pending-request-details-total-students-count">
-              {t(`Total: ${filteredTotalStudents} students`)}
-            </Typography>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell className="student-pending-request-details-table-header-cell">
-                      {t("Student ID")}
-                    </TableCell>
-                    <TableCell className="student-pending-request-details-table-header-cell">
-                      {t("Student Name")}
-                    </TableCell>
-                    <TableCell className="student-pending-request-details-table-header-cell">
-                      {t("Gender")}
-                    </TableCell>
-                    <TableCell className="student-pending-request-details-table-header-cell">
-                      {t("Grade")}
-                    </TableCell>
-                    <TableCell className="student-pending-request-details-table-header-cell">
-                      {t("Phone Number")}
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredStudents.map((stu) => {
-                    const fullStudentClassName = `${stu.grade || ""}${
-                      stu.classSection || ""
-                    }`;
-                    const {
-                      grade: studentParsedGrade,
-                      section: studentParsedSection,
-                    } = OpsUtil.parseClassName(fullStudentClassName);
+              <Typography
+                variant="subtitle1"
+                className="student-pending-request-details-section-title"
+              >
+                {t(
+                  `Students in Grade ${
+                    parsedGrade > 0 ? parsedGrade : "N/A"
+                  } - ${parsedSection || "N/A"}`
+                )}
+              </Typography>
+              <Typography className="student-pending-request-details-total-students-count">
+                {t(`Total: ${filteredTotalStudents} students`)}
+              </Typography>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="student-pending-request-details-table-header-cell">
+                        {t("Student ID")}
+                      </TableCell>
+                      <TableCell className="student-pending-request-details-table-header-cell">
+                        {t("Student Name")}
+                      </TableCell>
+                      <TableCell className="student-pending-request-details-table-header-cell">
+                        {t("Gender")}
+                      </TableCell>
+                      <TableCell className="student-pending-request-details-table-header-cell">
+                        {t("Grade")}
+                      </TableCell>
+                      <TableCell className="student-pending-request-details-table-header-cell">
+                        {t("Phone Number")}
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredStudents.map((stu) => {
+                      const fullStudentClassName = `${stu.grade || ""}${
+                        stu.classSection || ""
+                      }`;
+                      const {
+                        grade: studentParsedGrade,
+                        section: studentParsedSection,
+                      } = OpsUtil.parseClassName(fullStudentClassName);
 
-                    return (
-                      <TableRow key={stu.user.id}>
-                        <TableCell>
-                          <IonCheckbox className="radio-like-checkbox"
-                            checked={selectedStudent === stu.user.id}
-                            onIonChange={(e) => handleRadioChange(stu.user.id,e.detail.checked)}
-                            value={stu.user.id}
-                            color="primary"
-                          />
-                          {stu.user.student_id || t("N/A")}
-                        </TableCell>
-                        <TableCell>{stu.user.name || t("N/A")}</TableCell>
-                        <TableCell>{stu.user.gender || t("N/A")}</TableCell>
-                        <TableCell>
-                          {t(
-                            `${
-                              studentParsedGrade > 0
-                                ? studentParsedGrade
-                                : "N/A"
-                            } - ${studentParsedSection || "N/A"}`
-                          )}
-                        </TableCell>
-                        <TableCell>{stu.parent?.phone || t("N/A")}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              component="div"
-              count={filteredTotalStudents}
-              page={currentPage - 1}
-              onPageChange={handlePageChange}
-              rowsPerPage={pageSize}
-              className="student-pending-request-details-table-pagination"
-            />
-          </Paper>
+                      return (
+                        <TableRow key={stu.user.id}>
+                          <TableCell>
+                            <IonCheckbox
+                              className="radio-like-checkbox"
+                              checked={selectedStudent === stu.user.id}
+                              onIonChange={(e) =>
+                                handleRadioChange(stu.user.id, e.detail.checked)
+                              }
+                              value={stu.user.id}
+                              color="primary"
+                            />
+                            {stu.user.student_id || t("N/A")}
+                          </TableCell>
+                          <TableCell>{stu.user.name || t("N/A")}</TableCell>
+                          <TableCell>{stu.user.gender || t("N/A")}</TableCell>
+                          <TableCell>
+                            {t(
+                              `${
+                                studentParsedGrade > 0
+                                  ? studentParsedGrade
+                                  : "N/A"
+                              } - ${studentParsedSection || "N/A"}`
+                            )}
+                          </TableCell>
+                          <TableCell>{stu.parent?.phone || t("N/A")}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                component="div"
+                count={filteredTotalStudents}
+                page={currentPage - 1}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                className="student-pending-request-details-table-pagination"
+              />
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
       </div>
       {showRejectPopup && (
         <RejectRequestPopup
@@ -449,6 +458,6 @@ const StudentPendingRequestDetails = () => {
       )}
     </>
   );
-}
+};
 
 export default StudentPendingRequestDetails;

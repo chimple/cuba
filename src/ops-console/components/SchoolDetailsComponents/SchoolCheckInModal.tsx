@@ -45,7 +45,10 @@ const MapBoundsFitter = ({ schoolLoc, userLoc }: { schoolLoc: { lat: number; lng
           [userLoc.lat, userLoc.lng]
         ]);
         try {
-            map.fitBounds(bounds, { padding: [50, 50] });
+            map.fitBounds(bounds, { 
+                paddingTopLeft: [50, 130],
+                paddingBottomRight: [50, 20]
+            });
         } catch(e) { console.warn("Map fitBounds failed", e); }
       } else {
         map.setView([schoolLoc.lat, schoolLoc.lng], 15);
@@ -76,6 +79,29 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [isPermissionDenied, setIsPermissionDenied] = useState<boolean>(false);
   const [retryTrigger, setRetryTrigger] = useState<number>(0);
 
+
+
+  const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+        if (userLocation) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}`);
+                const data = await response.json();
+                if (data && data.display_name) {
+                    setUserAddress(data.display_name);
+                }
+            } catch (error) {
+                console.error("Failed to fetch address", error);
+            }
+        }
+    };
+    fetchAddress();
+  }, [userLocation]);
+
   const targetLocation = useMemo(() => {
     if (schoolLocation && (schoolLocation.lat || schoolLocation.lat === 0) && (schoolLocation.lng || schoolLocation.lng === 0)) {
         return {
@@ -88,11 +114,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     return {
         lat: 0,
         lng: 0,
-        address1: t("Location not set"),
-        address2: t("Please set location"),
+        address1: userAddress || t("Fetching User Address..."),
+        address2: t("Please set school location"),
         isMissing: true 
     };
-  }, [schoolLocation]);
+  }, [schoolLocation, userAddress]);
 
   useEffect(() => {
       if ((targetLocation as any).isMissing) {
@@ -102,8 +128,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       }
   }, [targetLocation]);
 
-  const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<boolean | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+
 
   useEffect(() => {
     if (open) {
@@ -150,9 +175,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
                  setUserLocation({ lat: userLat, lng: userLng });
 
-                 const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
-                 setDistance(dist);
-                 setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+                 if ((targetLocation as any).isMissing) {
+                      setDistance(0);
+                      setIsInsidePremises(true);
+                 } else {
+                      const dist = calculateDistance(userLat, userLng, targetLocation.lat, targetLocation.lng);
+                      setDistance(dist);
+                      setIsInsidePremises(dist <= MAX_DISTANCE_METERS);
+                 }
             };
 
             if (isWeb) {
@@ -363,7 +393,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         if (isConfirmedInSchool === true) {
             const success = await handleUpdateSchoolLocation();
             if (success) {
-              onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
+              onConfirm(userLocation?.lat, userLocation?.lng, 0);
             }
         } else {
              onConfirm(userLocation?.lat, userLocation?.lng, undefined);
@@ -442,26 +472,25 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                  <IoLocationOutline />
               </div>
               <div id="check-in-location-content" className="check-in-card-content">
-                  <div id="check-in-school-name" className="location-name">{schoolName || "XYZ School"}</div>
+                  <div id="check-in-school-name" className="location-name">{t("Current Location")}</div>
                   
-                  <div id="check-in-address-1" className="location-detail-text">{targetLocation.address1}</div>
+                  <div id="check-in-address-1" className="location-detail-text">
+                      {userAddress || targetLocation.address1}
+                  </div>
                    <div id="check-in-address-2" className="location-detail-text">{targetLocation.address2}</div>
                   
-                  {!isSchoolLocationMissing && !isPermissionDenied && (
-                    <>
-                        {userLocation && (
-                             <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
-                                <span className="location-coords-label">{t("User Coordinates")}: </span>
-                                {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
-                            </div>
-                        )}
+                  {userLocation && (
+                       <div id="check-in-user-coords" className="location-detail-text location-coords-wrapper">
+                          <span className="location-coords-label">{t("User Coordinates")}: </span>
+                          {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
+                      </div>
+                  )}
                         {distance !== null && !isLoadingLocation && (
                             <div id="check-in-distance" className={`location-detail-text distance-text ${isInsidePremises ? 'inside' : 'outside'}`}>
                                 {t("Distance")}: {Math.round(distance)} {t("meters away")}
                             </div>
                         )}
-                    </>
-                  )}
+
                   
                   {isLoadingLocation && (
                       <div id="check-in-loading-location" className="location-detail-text fetching-location-text">
@@ -472,15 +501,19 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   {isPermissionDenied || locationError ? (
                     <div id="check-in-permission-denied-section" className="permission-denied-container">
                         <div id="check-in-permission-error-msg" className="permission-error-text">
-                            {isPermissionDenied ? t("Location permission denied") : t("Unable to fetch location. Please try again.")}
+                            {isPermissionDenied 
+                                ? (Capacitor.getPlatform() === 'web' ? t("Please Enable Location Permission") : t("Location permission denied")) 
+                                : t("Unable to fetch location. Please try again.")}
                         </div>
-                        <button 
-                            id="check-in-retry-permission-btn"
-                            className="retry-permission-btn" 
-                            onClick={handleRetryLocation}
-                        >
-                            {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
-                        </button>
+                        {Capacitor.getPlatform() !== 'web' && (
+                            <button 
+                                id="check-in-retry-permission-btn"
+                                className="retry-permission-btn" 
+                                onClick={handleRetryLocation}
+                            >
+                                {isPermissionDenied ? t("Enable Location") : t("Retry Location")}
+                            </button>
+                        )}
                     </div>
                   ) : null}
               </div>
@@ -549,14 +582,14 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                                 shadowSize: [41, 41]
                             })}
                         >
-                            <Popup>{t("School Location")}</Popup>
+                            <Popup autoPan={false}>{t("School Location")}</Popup>
                         </Marker>
                     </>
                 )}
 
                 {userLocation && (
                     <Marker position={[userLocation.lat, userLocation.lng]}>
-                         <Popup>
+                         <Popup autoPan={false}>
                             {t("Your Location")}
                         </Popup>
                     </Marker>
@@ -564,7 +597,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
              </MapContainer>
           </div>
           
-           {isSchoolLocationMissing && (
+           {isSchoolLocationMissing && isCheckIn && (
                <div id="check-in-confirmation-section" className="check-in-confirmation-section">
                    <div id="check-in-confirmation-question" className="confirmation-question">{t("Are you sure you're in the school?")}</div>
                    <div id="check-in-radio-container" className="radio-options-container">

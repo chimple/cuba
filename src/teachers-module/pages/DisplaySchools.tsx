@@ -85,8 +85,8 @@ const DisplaySchools: FC = () => {
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "portrait" });
-       setTimeout(() => {
-        Util.killCocosGame()
+      setTimeout(() => {
+        Util.killCocosGame();
       }, 1000);
     }
   };
@@ -100,8 +100,8 @@ const DisplaySchools: FC = () => {
       page_size: PAGE_SIZE,
     });
     if (pageNo === 1 && result.length === 0) {
-      history.replace(PAGES.SEARCH_SCHOOL);
-      return;
+      // Logic handled in initData for first load
+      return result;
     }
     if (result.length < PAGE_SIZE) setHasMore(false);
     setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
@@ -127,7 +127,7 @@ const DisplaySchools: FC = () => {
     }
     setPage(1);
     setHasMore(true);
-    await fetchSchools(1, currentUser.id);
+
     // If user already has both school & class chosen and app is in Teacher mode, go Home
     const mode = await schoolUtil.getCurrMode();
     const done = JSON.parse(
@@ -136,7 +136,8 @@ const DisplaySchools: FC = () => {
     const preSelectedSchool = Util.getCurrentSchool();
     if (
       mode === MODES.TEACHER &&
-      done && preSelectedSchool &&
+      done &&
+      preSelectedSchool &&
       location.pathname !== PAGES.HOME_PAGE
     ) {
       history.replace(PAGES.HOME_PAGE);
@@ -144,7 +145,7 @@ const DisplaySchools: FC = () => {
       return;
     }
     // Previously selected school? Respect it
-  
+
     if (preSelectedSchool) {
       const role = await api.getUserRoleForSchool(
         currentUser.id,
@@ -155,6 +156,7 @@ const DisplaySchools: FC = () => {
         return;
       }
     }
+
     // Fresh fetch and decide
     const firstPage = await fetchSchools(1, currentUser.id);
     if (!firstPage || firstPage.length === 0) {
@@ -164,12 +166,14 @@ const DisplaySchools: FC = () => {
       const existingRequest = await api.getExistingSchoolRequest(
         _currentUser?.id as string
       );
+
       if (existingRequest?.request_status === STATUS.REQUESTED) {
         history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {
         history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.APPROVED) {
-        history.replace(PAGES.DISPLAY_SCHOOLS, { tabValue: 0 });
+        // If approved but school not in list, go to Search School to avoid flicker/loop
+        history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
       } else {
         history.replace(PAGES.SEARCH_SCHOOL, {
           origin: PAGES.DISPLAY_SCHOOLS,
@@ -178,6 +182,7 @@ const DisplaySchools: FC = () => {
       setLoading(false);
       return;
     }
+
     if (firstPage.length === 1) {
       await selectSchool(firstPage[0]); // auto-select the only school → Home
       return;
