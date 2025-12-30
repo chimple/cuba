@@ -472,7 +472,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                  <IoLocationOutline />
               </div>
               <div id="check-in-location-content" className="check-in-card-content">
-                  <div id="check-in-school-name" className="location-name">{schoolName || "XYZ School"}</div>
+                  <div id="check-in-school-name" className="location-name">{t("Current Location")}</div>
                   
                   <div id="check-in-address-1" className="location-detail-text">
                       {userAddress || targetLocation.address1}
