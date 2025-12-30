@@ -73,6 +73,7 @@ const DisplayStudents: FC<{}> = () => {
     setIsLoading(false);
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
+    schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     // 2) Update GrowthBook attributes immediately for the newly selected student
     updateLocalAttributes({
