@@ -346,7 +346,7 @@ const StudentPendingRequestDetails = () => {
                 size="large"
                 className="student-pending-request-details-approve-button"
                 onClick={handleConfirmApprove}
-                disabled={loading || !requestData?.request_id}
+                disabled={loading || !requestData?.id}
               >
                 {selectedStudent ? t("Merge & Approve") : t("Approve")}
               </Button>
