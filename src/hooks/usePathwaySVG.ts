@@ -249,11 +249,17 @@ export function usePathwaySVG({
           const flowerX = point.x - 40;
           const flowerY = point.y - 40;
 
-          const isValidUrl = (url: string) =>
-            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-          const lessonImageUrl = isValidUrl(lesson.image)
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
+          const isPlayed = startIndex + idx < currentIndex;
+          const isActive = startIndex + idx === currentIndex;
+
+          const isValidUrl =
+            typeof lesson.image === "string" &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+
+          const lessonImageUrl =
+            (isPlayed || isActive) && isValidUrl
+              ? lesson.image
+              : "assets/icons/NextNodeIcon.svg";
 
           const positionMappings = {
             playedLesson: {
@@ -301,7 +307,8 @@ export function usePathwaySVG({
             );
             activeGroup.setAttribute(
               "transform",
-              `translate(${positionMappings.activeGroup.x[idx] ?? flowerX - 20
+              `translate(${
+                positionMappings.activeGroup.x[idx] ?? flowerX - 20
               }, ${positionMappings.activeGroup.y[idx] ?? flowerY - 20})`
             );
 
