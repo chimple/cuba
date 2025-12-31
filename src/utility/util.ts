@@ -2368,7 +2368,7 @@ export class Util {
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
       this.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
-      history.replace(PAGES.SEARCH_SCHOOL, {
+      history.replace(PAGES.SUBJECTS_PAGE, {
         schoolId: schoolId,
         origin: originPage,
         isSelect: true,
