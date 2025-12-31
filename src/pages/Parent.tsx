@@ -324,8 +324,15 @@ const Parent: React.FC = () => {
                 if (!currentUser?.name || currentUser.name.trim() === "") {
                   history.replace(PAGES.ADD_TEACHER_NAME);
                 }else {
-                schoolUtil.setCurrMode(MODES.TEACHER);
-                history.replace(PAGES.DISPLAY_SCHOOLS);
+                  const res = await api.getSchoolsForUser(currentUser.id);
+                  if(res == undefined || res.length == 0) {
+                    schoolUtil.setCurrMode(MODES.SCHOOL);
+                    history.replace(PAGES.DISPLAY_STUDENT);
+                    return;
+                  } else {
+                    schoolUtil.setCurrMode(MODES.TEACHER);
+                    history.replace(PAGES.DISPLAY_SCHOOLS);
+                  }
                 }
               }}
             />
