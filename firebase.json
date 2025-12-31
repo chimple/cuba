@@ -6,30 +6,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
-        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -59,30 +35,6 @@
       "site": "cuba-stage",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
@@ -114,30 +66,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
-        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -167,30 +95,6 @@
       "site": "chimple-prod-hot-update-beta",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
@@ -222,30 +126,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
-        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -276,30 +156,6 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
         {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
-        {
           "source": "**/*.js",
           "destination": "**/*.js"
         },
@@ -329,30 +185,6 @@
       "site": "cuba-stage-dev-supabase",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "rewrites": [
-        {
-          "source": "**/**/*.js",
-          "destination": "**/**/*.js"
-        },
-        {
-          "source": "**/**/**/*.js",
-          "destination": "**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/*.js",
-          "destination": "**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/*.js"
-        },
-        {
-          "source": "**/**/**/**/**/**/**/*.js",
-          "destination": "**/**/**/**/**/**/**/*.js"
-        },
         {
           "source": "**/*.js",
           "destination": "**/*.js"
