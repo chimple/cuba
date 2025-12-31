@@ -10541,6 +10541,7 @@ export class SupabaseApi implements ServiceApi {
           { count: "exact" }
         )
         .eq("school_id", schoolId)
+        .is("contact_user_id", null) 
         .eq("is_deleted", false);
 
       if (sortBy === "createdAt") {
