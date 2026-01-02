@@ -557,11 +557,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const lessonIdx = pathIndex - startIndexOffset;
           const { lesson } = lessonsToRender[lessonIdx];
 
-          const isValidUrl = (url: string) =>
-            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-          const lesson_image = isValidUrl(lesson.image)
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
+          const isPlayed = lessonIdx < currentIndex;
+          const isActive = lessonIdx === currentIndex;
+
+          const isValidUrl =
+            typeof lesson.image === "string" &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+
+          const lesson_image =
+            (isPlayed || isActive) && isValidUrl
+              ? lesson.image
+              : "assets/icons/NextNodeIcon.svg";
 
           if (lessonIdx < currentIndex) {
             const playedLesson = document.createElementNS(
