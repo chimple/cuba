@@ -839,9 +839,9 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = "live_update_applied",
   LIVE_UPDATE_STARTED = "live_update_started",
   LIVE_UPDATE_ERROR = "live_update_error",
-ASSESSMENT_ABORTED = "assessment_aborted",
-ASSESSMENT_COMPLETED = "assessment_completed",
-RESULTS_SAVED = "results_saved",
+  ASSESSMENT_ABORTED = "assessment_aborted",
+  ASSESSMENT_COMPLETED = "assessment_completed",
+  RESULTS_SAVED = "results_saved",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -957,7 +957,6 @@ export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
 export const LOCAL_LESSON_BUNDLES_PATH = "/assets/lessonBundles/";
-export const LidoNextContainer = "lidoNextContainer";
 
 
 export const ALL_SUBJECT = {

@@ -170,7 +170,6 @@ const LearningPathway: React.FC = () => {
     studentId: string
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
-
     // Check if lengths and course IDs/order match
     const isSameLengthAndOrder =
       oldCourseList.length === userCourses.length &&
@@ -184,34 +183,28 @@ const LearningPathway: React.FC = () => {
     if (isSameLengthAndOrder && !isPathIdMissing && !isPathCompleted) {
       return false;
     }
-
     // If path_id is missing or courses mismatch, rebuild everything
     const newLearningPath = await buildInitialLearningPath(
       userCourses,
       studentId
     );
     learningPath.courses.courseList = newLearningPath.courses.courseList;
-
     // Dispatch event to notify that course has changed
     const event = new CustomEvent(COURSE_CHANGED);
     window.dispatchEvent(event);
-
     return true;
   };
 
   const buildLessonPath = async (course: any, studentId: string) => {
     // -------------------------------
-    // 1️⃣ Get & normalize student results
+    // 1️⃣ checking re student results
     // -------------------------------
-    const rawResults = await api.getResultsByCourseId(studentId, course.id);
-    const studentResults = Array.isArray(rawResults)
-      ? rawResults
-      : rawResults?.values ?? [];
+    const rawResults = await api.doesStudentHaveResultForCourse(studentId, course.id);
     // -------------------------------
     // 2️⃣ CASE 1: Student HAS results → PAL
     // -------------------------------
-    if (studentResults.length > 0) {
-      console.log("Fetching PAL path for course:", studentResults);
+    if (rawResults) {
+      console.log("Fetching PAL path for course:", rawResults);
       const palPath = await palUtil.getPalLessonPathForCourse(
         course.id,
         studentId
@@ -226,22 +219,15 @@ const LearningPathway: React.FC = () => {
     // -------------------------------
     // 3️⃣ CASE 2: Student has NO results → Subject lessons
     // -------------------------------
-    if (studentResults.length === 0) {
-      const subject = await api.getSubjectByCourseId(course.id);
-      if (subject) {
-        const subjectLessons = await api.getSubjectLessonsBySubjectId(
-        subject.id
-        );
-        if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
-          return subjectLessons
-            .map((lesson: any) => ({
-              lesson_id: lesson.lesson_id,
-              is_assessment: true,
-            }))
-            .slice(0, 5);
-        }
-
-        console.warn("Subject lessons empty → falling back");
+    if (!rawResults) {
+      const subjectLessons = await api.getSubjectLessonsBySubjectId(course.subject_id);
+      if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
+        return subjectLessons
+          .map((lesson: any) => ({
+            lesson_id: lesson.lesson_id,
+            is_assessment: true,
+          }))
+          .slice(0, 5);
       }
     }
     // -------------------------------

@@ -1905,23 +1905,17 @@ export class ApiHandler implements ServiceApi {
   }
 
 
-  public async getResultsByCourseId(
+  public async doesStudentHaveResultForCourse(
     studentId: string,
     courseId: string
-  ): Promise<any> {   
-    return await this.s.getResultsByCourseId(studentId, courseId);
+  ): Promise<boolean> {   
+    return await this.s.doesStudentHaveResultForCourse(studentId, courseId);
   }
 public  async getSubjectLessonsBySubjectId(
       subjectId: string
     ): Promise<TableTypes<"subject_lesson">[] | null> {
       return await this.s.getSubjectLessonsBySubjectId(subjectId);
     }
-
-  public   async getSubjectByCourseId(
-    courseId: string
-  ): Promise<TableTypes<"subject"> | undefined>{
-    return await this.s.getSubjectByCourseId(courseId)
-  }
 public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
   return await this.s.getSkillById(skillId);
 }}

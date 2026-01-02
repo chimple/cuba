@@ -2928,12 +2928,6 @@ public static async updateLearningPath(
   abortCourseId?: string,
   isAssessmentLesson: boolean=false
 ) {
-  console.log("Updating learning path...", {
-    currentStudentId: currentStudent.id,
-    isRewardLesson,
-    isAborted,
-    abortCourseId,
-  });
   if (!currentStudent) return;
 
   const learningPath = currentStudent.learning_path
@@ -2941,7 +2935,6 @@ public static async updateLearningPath(
     : null;
 
   if (!learningPath) return;
-console.log("Current learning path:", isAborted,abortCourseId);
   // 🔴 ABORT CASE: refresh current lesson with PAL recommendation only
   if (isAborted && abortCourseId) {
     const courseIndex = learningPath.courses.courseList.findIndex(

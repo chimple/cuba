@@ -292,7 +292,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -361,7 +361,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch {}
+        } catch { }
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -567,7 +567,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) {}
+              } catch (beginErr) { }
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -585,7 +585,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) {}
+                } catch (rbErr) { }
               }
               throw chunkErr;
             }
@@ -695,18 +695,18 @@ export class SqliteApi implements ServiceApi {
     const diffMs = now.getTime() - lastUserUpdated.getTime();
     const diffMinutes = diffMs / (1000 * 60);
     if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
-    await this.pullChanges(tableNames, isFirstSync);
-    const res = await this.pushChanges(Object.values(TABLES));
-    const tables = "'" + tableNames.join("', '") + "'";
-    // console.log("logs to check synced tables1", JSON.stringify(tables));
-    const currentTimestamp = new Date();
-    const reducedTimestamp = new Date(currentTimestamp); // clone it
-    reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-    const formattedTimestamp = reducedTimestamp.toISOString();
-    this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
-    );
-    return res;
+      await this.pullChanges(tableNames, isFirstSync);
+      const res = await this.pushChanges(Object.values(TABLES));
+      const tables = "'" + tableNames.join("', '") + "'";
+      // console.log("logs to check synced tables1", JSON.stringify(tables));
+      const currentTimestamp = new Date();
+      const reducedTimestamp = new Date(currentTimestamp); // clone it
+      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+      const formattedTimestamp = reducedTimestamp.toISOString();
+      this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
+      );
+      return res;
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
   }
@@ -2125,20 +2125,17 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ""
+      ${langId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
-      ${
-        localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ""
+      ${localeId
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
-      ${
-        langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ""
+      ${langId && localeId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2426,7 +2423,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -6322,34 +6319,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null,
-            avatar: null,
-            created_at: new Date().toISOString(),
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -6435,34 +6432,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null, // Assuming these fields are nullable or have default values in your User table type
-            avatar: null,
-            created_at: new Date().toISOString(), // Example, adjust if you fetch this
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null, // Assuming these fields are nullable or have default values in your User table type
+          avatar: null,
+          created_at: new Date().toISOString(), // Example, adjust if you fetch this
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -7569,28 +7566,25 @@ order by
     subjectId: string
   ): Promise<TableTypes<"subject_lesson">[] | null> {
     try {
-      // 1️⃣ Get latest (highest) set_number
+      // 1️⃣ Fetch ALL available set_numbers
       const setQuery = `
-      SELECT set_number
+      SELECT DISTINCT set_number
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
-        AND set_number IS NOT NULL
-      ORDER BY set_number DESC
-      LIMIT 1;
+        AND set_number IS NOT NULL;
     `;
-
       const setRes = await this.executeQuery(setQuery, [subjectId]);
-console.log("SSSSSSSSSSSSS",setRes)
       const setRows = (setRes as any)?.values ?? [];
-
-      if (!setRows.length || setRows[0].set_number == null) {
+      if (!setRows.length) {
         return [];
       }
 
-      const setNumber = setRows[0].set_number;
+      // 2️⃣ Pick ANY ONE set randomly in JS
+      const randomIndex = Math.floor(Math.random() * setRows.length);
+      const setNumber = setRows[randomIndex].set_number;
 
-      // 2️⃣ Fetch all lessons for that set_number
+      // 3️⃣ Fetch lessons for selected set_number
       const lessonQuery = `
       SELECT *
       FROM subject_lesson
@@ -7604,11 +7598,7 @@ console.log("SSSSSSSSSSSSS",setRes)
         subjectId,
         setNumber,
       ]);
-      console.log(
-        `Fetched lessons for subjectId=${subjectId} and setNumber=${setNumber}`
-      );
       const lessons = (lessonRes as any)?.values ?? [];
-
       return lessons;
     } catch (error) {
       console.error(
@@ -7619,50 +7609,43 @@ console.log("SSSSSSSSSSSSS",setRes)
     }
   }
 
-  async getResultsByCourseId(
+  async doesStudentHaveResultForCourse(
     studentId: string,
     courseId: string
-  ): Promise<any> {
+  ): Promise<boolean> {
     try {
-      // Logic: Query result table for the current student and selected course
       const query = `
-        SELECT id FROM result 
-        WHERE student_id = ? AND course_id = ? AND is_deleted = 0 
-        LIMIT 1;
-      `;
-      console.log("Executing query to check course history:", {
-        studentId,
-        courseId,
-      });
-      const results = await this.executeQuery(query, [studentId, courseId]);
-      console.log("Course history results:", results);
-
-      // If records exist, standard PAL logic follows.
-      // If NO records exist, Initial Assessment triggers.
-      return results || [];
+      SELECT 1
+      FROM result
+      WHERE student_id = ?
+        AND course_id = ?
+        AND is_deleted = 0
+      LIMIT 1;
+    `;
+      const res = await this.executeQuery(query, [studentId, courseId]);
+      const rows = (res as any)?.values ?? [];
+      // ✅ true = result exists, false = no result
+      return rows.length > 0;
     } catch (error) {
       console.error("❌ Error checking course history:", error);
-      return [];
+      return false;
     }
-  }
-  async getSubjectByCourseId(
-    courseId: string
-  ): Promise<TableTypes<"subject"> | undefined> {
-    const courseRes = await this._db?.query(
-      `SELECT subject_id FROM ${TABLES.Course} WHERE id = "${courseId}"`
-    );
-
-    if (!courseRes?.values?.length) return;
-
-    return this.getSubject(courseRes.values[0].subject_id);
   }
   async getSkillById(
     skillId: string
   ): Promise<TableTypes<"skill"> | undefined> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Skill} where id = ?`,
+      `
+      SELECT *
+      FROM ${TABLES.Skill}
+      WHERE id = ?
+        AND is_deleted = 0
+    `,
       [skillId]
     );
-    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
+
+    return res?.values && res.values.length > 0
+      ? res.values[0]
+      : undefined;
   }
 }

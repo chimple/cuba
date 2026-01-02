@@ -2552,18 +2552,14 @@ export interface ServiceApi {
 
   getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
 
-  getResultsByCourseId(
+  doesStudentHaveResultForCourse(
     studentId: string,
     courseId: string
-  ): Promise<any>;
+  ): Promise<boolean>;
 
   getSubjectLessonsBySubjectId(
     subjectId: string
   ): Promise<TableTypes<"subject_lesson">[] | null>;
-
-  getSubjectByCourseId(
-    courseId: string
-  ): Promise<TableTypes<"subject"> | undefined>
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
 }

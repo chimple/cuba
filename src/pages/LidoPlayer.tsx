@@ -65,7 +65,6 @@ const LidoPlayer: FC = () => {
     ? JSON.parse(state.lesson)
     : undefined;
 
-
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent()!;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
@@ -105,9 +104,7 @@ const LidoPlayer: FC = () => {
     // 2. Fetch Metadata
     let dbMetaData: any = {};
     try {
-      const lessonRow = await api.getLesson(
-        lesson.id
-      );
+      const lessonRow = await api.getLesson(lesson.id);
       dbMetaData = lessonRow?.metadata
         ? typeof lessonRow.metadata === "string"
           ? JSON.parse(lessonRow.metadata)
@@ -136,8 +133,7 @@ const LidoPlayer: FC = () => {
         typeof record === "object" ? record.result : rawScore >= 10 ? 1 : 0;
 
       const activityKey = index;
-      const skillId =
-        dbMetaData?.activity?.[activityKey]?.skill_id || "unknown";
+      const skillId = dbMetaData?.activity?.[activityKey]?.skill_id || "";
 
       if (skillId) {
         if (!skillAggregator.has(skillId)) {
@@ -158,21 +154,17 @@ const LidoPlayer: FC = () => {
     for (const [skillId, group] of skillAggregator.entries()) {
       const averageScore = group.totalScore / group.count;
       const activitiesScoresStr = group.resultsList.join(",");
-
       let abilityUpdates: any = {};
       try {
         const skillData = await api.getSkillById(skillId);
         const currentOutcomeId = skillData?.outcome_id;
-
         const booleanOutcomes = group.resultsList.map((r) => r === 1);
-
         abilityUpdates = await palUtil.updateAndGetAbilities({
           studentId: currentStudent.id,
           courseId: courseDetail?.id ?? courseDocId ?? "",
           skillId: skillId,
           outcomes: booleanOutcomes,
         });
-
         if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
         if (!abilityUpdates.outcome_id)
           abilityUpdates.outcome_id = currentOutcomeId;
@@ -240,9 +232,7 @@ const LidoPlayer: FC = () => {
   };
   const exitLidoGame = async (isAborted: boolean = false) => {
     Util.logEvent(
-      isAborted
-        ? EVENTS.ASSESSMENT_ABORTED
-        : EVENTS.ASSESSMENT_COMPLETED,
+      isAborted ? EVENTS.ASSESSMENT_ABORTED : EVENTS.ASSESSMENT_COMPLETED,
       {
         user_id: currentStudent.id,
         lesson_id: lesson.id,
@@ -266,12 +256,9 @@ const LidoPlayer: FC = () => {
       score: score, // e.g. 100
       result: binaryScore, // e.g. 1
     };
-
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresMap));
-
     // 3. Save to Ref (Strictly for Assessment Rules A/B logic)
     resultsRef.current[index] = binaryScore as 0 | 1;
-
     // 4. Check Rules
     const checkContinuousFails = (currIdx: number, count: number) => {
       for (let i = 0; i < count; i++) {
@@ -300,11 +287,10 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     const lessonData = e.detail;
-    if(isAssessmentLesson){
+    if (isAssessmentLesson) {
       exitLidoGame();
       return;
     }
-
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
@@ -619,10 +605,8 @@ const LidoPlayer: FC = () => {
         console.error("Could not get common audio path", e);
       }
     } else {
-      const path =`/assets/lessonBundles/${lessonId}/`
-      //   "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      // setXmlPath(path);
-      setBasePath(path);
+      const path = "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      setXmlPath(path);
     }
     setIsLoading(false);
   }
