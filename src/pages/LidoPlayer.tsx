@@ -28,6 +28,9 @@ import { t } from "i18next";
 import React from "react";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { palUtil } from "../utility/palUtil";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
+
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -46,6 +49,7 @@ const LidoPlayer: FC = () => {
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
+  const growthbook = useGrowthBook();
 
   // Data Objects
   // Ensure we handle String vs string here if needed, but usually these are safe if parsed from JSON
@@ -77,7 +81,17 @@ const LidoPlayer: FC = () => {
   });
 
   const onNextContainer = (e: any) => console.log("Next", e);
-  const gameCompleted = (e: any) => setShowDialogBox(true);
+  const gameCompleted = (e: any) => {
+    setShowDialogBox(true);
+    const popupConfig = growthbook?.getFeatureValue(
+    "generic-pop-up",
+    null
+  );
+
+  if (popupConfig) {
+    PopupManager.onGameComplete(popupConfig);
+  }
+  };
 
   const push = () => {
     localStorage.removeItem(LIDO_SCORES_KEY);
