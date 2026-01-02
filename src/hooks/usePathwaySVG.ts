@@ -148,6 +148,9 @@ export function usePathwaySVG({
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
+      const pathItem = course.path[currentCourseIndex];
+      const isAssessment = pathItem?.is_assessment
+
       if (!course) return;
 
       const { startIndex, currentIndex, pathEndIndex } = course;
@@ -346,7 +349,7 @@ export function usePathwaySVG({
             activeGroup.style.cursor = "pointer";
             activeGroup.addEventListener("click", () => {
               const pathEntry = course.path[startIndex + idx];
-              handleLessonClick(lesson, course, pathEntry?.skill_id);
+              handleLessonClick(lesson, course, pathEntry?.skill_id,isAssessment);
             });
 
             fragment.appendChild(activeGroup);
@@ -754,7 +757,7 @@ export function usePathwaySVG({
     });
   }
 
-  function handleLessonClick(lesson: any, course: any, skillId?: string) {
+  function handleLessonClick(lesson: any, course: any, skillId?: string ,is_assessment?:boolean) {
     if (!history) return;
 
     const currentCourse = (window as any).__currentCourseForPathway__;
@@ -772,6 +775,7 @@ export function usePathwaySVG({
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
         skillId: skillId,
+        is_assessment: is_assessment,
       });
     } else if (lesson.plugin_type === LIVE_QUIZ) {
       history.replace(
@@ -782,6 +786,7 @@ export function usePathwaySVG({
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           skillId: skillId,
+          is_assessment: is_assessment,
         }
       );
     } else if (lesson.plugin_type === LIDO) {
@@ -795,6 +800,7 @@ export function usePathwaySVG({
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
         skillId: skillId,
+        is_assessment: is_assessment,
       });
     }
   }

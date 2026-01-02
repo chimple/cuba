@@ -6,7 +6,7 @@ import { COURSE_CHANGED } from "../../common/constants";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
-  chapterName?: string; 
+  chapterName?: string;
   lessonName?: string;
 }
 
@@ -19,7 +19,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
 
   useEffect(() => {
-      // SCENARIO 1: Props are provided (Homework Page)
+    // SCENARIO 1: Props are provided (Homework Page)
     if (chapterName && lessonName) {
       setCurrentChapterName(`${chapterName} : ${lessonName}`);
       return; // Stop here, don't do the API fetch
@@ -33,19 +33,26 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;
 
-      const chapter = await api.getChapterById(
-        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
-          .chapter_id
-      );
-      const lesson = await api.getLesson(
-        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
-          .lesson_id
-      );
-      let chapterName = chapter?.name + " : " + lesson?.name;
+      const pathItem =
+        learningPath.courses.courseList[currentCourseIndex].path[currentIndex];
 
-      setCurrentChapterName(chapterName || "Default Chapter");
+      // 1️⃣ Fetch lesson (always required)
+      const lesson = pathItem.lesson_id
+        ? await api.getLesson(pathItem.lesson_id)
+        : null;
+
+      // 2️⃣ Fetch chapter ONLY if chapter_id exists
+      const chapter = pathItem.chapter_id
+        ? await api.getChapterById(pathItem.chapter_id)
+        : null;
+
+      // 3️⃣ Build chapter name safely
+      const chapterName = chapter?.name
+        ? `${chapter.name} : ${lesson?.name ?? ""}`
+        : lesson?.name ?? "Default Chapter";
+
+      setCurrentChapterName(chapterName);
     };
-
 
     // Fetch the initial chapter on component mount
     (async () => {
