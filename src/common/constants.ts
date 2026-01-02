@@ -254,7 +254,7 @@ export const CONTINUE = "continue";
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
     displayName: "User",
-    iconSrc: "assets/icons/favicon.png",
+    iconSrc: "/assets/icons/favicon.png",
     headerList: PARENTHEADERLIST.PROFILE,
   },
   {
@@ -655,9 +655,16 @@ export enum IconType {
   CLASS = "class",
 }
 
+const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? "";
+const normalizedWebBaseName = rawWebBaseName
+  .replace(/\/$/, "")
+  .replace(/^\.$/, "")
+  .replace(/^\.\//, "");
 export const BASE_NAME =
-  !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
-    ? process.env.REACT_APP_GITHUB_BASE
+  !Capacitor.isNativePlatform() && normalizedWebBaseName
+    ? normalizedWebBaseName.startsWith("/")
+      ? normalizedWebBaseName
+      : `/${normalizedWebBaseName}`
     : "";
 export const MIN_PASS = 70;
 export const IS_CUBA = "is_cuba";
