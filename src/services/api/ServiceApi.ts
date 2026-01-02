@@ -526,7 +526,7 @@ export interface ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
-    chapterId: string,
+    chapterId: string | null,
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
@@ -2304,7 +2304,7 @@ export interface ServiceApi {
    * Provide either `locale_id` or `locale_code`.
    * @returns Locale record or null if not found.
    */
-  getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>;
+  getLocaleByIdOrCode(locale_id?: string, locale_code?: string): Promise<TableTypes<"locale"> | null>;
 
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).
@@ -2551,4 +2551,19 @@ export interface ServiceApi {
   getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
 
   getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
+
+  getResultsByCourseId(
+    studentId: string,
+    courseId: string
+  ): Promise<any>;
+
+  getSubjectLessonsBySubjectId(
+    subjectId: string
+  ): Promise<TableTypes<"subject_lesson">[] | null>;
+
+  getSubjectByCourseId(
+    courseId: string
+  ): Promise<TableTypes<"subject"> | undefined>
+
+  getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
 }

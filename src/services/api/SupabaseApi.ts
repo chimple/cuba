@@ -1235,7 +1235,7 @@ export class SupabaseApi implements ServiceApi {
   async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean | void> {
+  ): Promise<boolean | void> {
     if (!this.supabase) return false;
     const rpcRes = await this.supabase.rpc("delete_user_from_class", {
       p_user_id: userId,
@@ -10754,4 +10754,128 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+// Inside class SupabaseApi
+
+  /**
+   * 1. Trigger Logic: Checks if the student has any data for this course.
+   * If this returns empty, the Cold Start assessment starts.
+   */
+async getSubjectLessonsBySubjectId(
+  subjectId: string
+): Promise<TableTypes<"subject_lesson">[] | null> {
+  if (!this.supabase) return null;
+
+  // 1️⃣ Get one random set_number
+  const { data: setData, error: setError } = await this.supabase
+    .from("subject_lesson")
+    .select("set_number")
+    .eq("subject_id", subjectId)
+    .eq("is_deleted", false)
+    .not("set_number", "is", null)
+    .order("set_number", { ascending: false })
+    .limit(1);
+
+  if (setError || !setData?.length || setData[0].set_number === null) {
+    return null;
+  }
+
+  const setNumber = setData[0].set_number;
+
+  // 2️⃣ Fetch ALL lessons for that set
+  const { data, error } = await this.supabase
+    .from("subject_lesson")
+    .select("*")
+    .eq("subject_id", subjectId)
+    .eq("set_number", setNumber)
+    .eq("is_deleted", false)
+    .order("sort_index", { ascending: true });
+
+  if (error || !data?.length) {
+    return null;
+  }
+
+  return data;
+}
+
+ 
+async getSubjectByCourseId(
+  courseId: string
+): Promise<TableTypes<"subject"> | undefined> {
+  if (!this.supabase) return;
+
+  const { data, error } = await this.supabase
+    .from("course")
+    .select(`
+      subject:subject_id (
+        *
+      )
+    `)
+    .eq("id", courseId)
+    .eq("is_deleted", false)
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching subject by courseId:", error);
+    return undefined;
+  }
+
+  return data?.subject ?? undefined;
+}
+async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("skill") // ⚠️ Check if your table is named "skill" or "skills" in Supabase
+      .select("*")
+      .eq("id", skillId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching skill by skillId:", error);
+      return undefined;
+    }
+
+    return data ?? undefined;
+  }
+
+  async getResultsByCourseId(
+  studentId: string,
+  courseId: string
+): Promise<any[]> {
+  try {
+    if (!this.supabase) return [];
+
+    console.log("Executing Supabase query to check course history:", {
+      studentId,
+      courseId,
+    });
+
+    const { data, error } = await this.supabase
+      .from("result") // or TABLES.Result if you use constants
+      .select("id")
+      .eq("student_id", studentId)
+      .eq("course_id", courseId)
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (error) {
+      console.error("❌ Error checking course history:", error);
+      return [];
+    }
+
+    console.log("Course history results:", data);
+
+    // If data exists → PAL logic
+    // If empty → Initial Assessment
+    return data ?? [];
+  } catch (error) {
+    console.error("❌ Error checking course history:", error);
+    return [];
+  }
+}
 }

@@ -522,7 +522,7 @@ export class ApiHandler implements ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
-    chapterId: string,
+    chapterId: string | null,
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
@@ -1903,4 +1903,25 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ lido_common_audio_url: string | null } | null> {
     return await this.s.getLidoCommonAudioUrl(languageId, localeId);
   }
-}
+
+
+  public async getResultsByCourseId(
+    studentId: string,
+    courseId: string
+  ): Promise<any> {   
+    return await this.s.getResultsByCourseId(studentId, courseId);
+  }
+public  async getSubjectLessonsBySubjectId(
+      subjectId: string
+    ): Promise<TableTypes<"subject_lesson">[] | null> {
+      return await this.s.getSubjectLessonsBySubjectId(subjectId);
+    }
+
+  public   async getSubjectByCourseId(
+    courseId: string
+  ): Promise<TableTypes<"subject"> | undefined>{
+    return await this.s.getSubjectByCourseId(courseId)
+  }
+public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
+  return await this.s.getSkillById(skillId);
+}}

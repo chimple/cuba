@@ -255,6 +255,8 @@ export const usePathwayData = () => {
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;
+      const pathItem = course.path[currentIndex];
+      const isAssessment = pathItem?.is_assessment
 
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
       if (!lesson) return;
@@ -273,6 +275,7 @@ export const usePathwayData = () => {
           learning_path: true,
           reward: true,
           skillId: course.path[currentIndex]?.skill_id,
+          is_assessment: isAssessment
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.replace(
@@ -284,6 +287,7 @@ export const usePathwayData = () => {
             learning_path: true,
             reward: true,
             skillId: course.path[currentIndex]?.skill_id,
+            is_assessment: isAssessment
           }
         );
       } else if (lesson.plugin_type === LIDO) {
@@ -298,6 +302,7 @@ export const usePathwayData = () => {
           learning_path: true,
           reward: true,
           skillId: course.path[currentIndex]?.skill_id,
+          is_assessment: isAssessment
         });
       }
     } catch (error) {

@@ -40,7 +40,7 @@ import {
   DOWNLOADING_CHAPTER_ID,
   TABLES,
   REFRESH_TOKEN,
-  SCHOOL,
+  SCHOOL, 
   USER_ROLE,
   CLASS,
   CURRENT_COURSE,
@@ -109,6 +109,7 @@ import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
+
 declare global {
   interface Window {
     cc: any;
@@ -2920,180 +2921,227 @@ export class Util {
       console.error("Failed to update homework path:", error);
     }
   }
+public static async updateLearningPath(
+  currentStudent: TableTypes<"user">,
+  isRewardLesson: boolean,
+  isAborted: boolean = false,
+  abortCourseId?: string,
+  isAssessmentLesson: boolean=false
+) {
+  console.log("Updating learning path...", {
+    currentStudentId: currentStudent.id,
+    isRewardLesson,
+    isAborted,
+    abortCourseId,
+  });
+  if (!currentStudent) return;
 
-  public static async updateLearningPath(
-    currentStudent: TableTypes<"user">,
-    isRewardLesson: boolean
-  ) {
-    if (!currentStudent) return;
-    const learningPath = currentStudent.learning_path
-      ? JSON.parse(currentStudent.learning_path)
-      : null;
+  const learningPath = currentStudent.learning_path
+    ? JSON.parse(currentStudent.learning_path)
+    : null;
 
-    if (!learningPath) return;
+  if (!learningPath) return;
+console.log("Current learning path:", isAborted,abortCourseId);
+  // 🔴 ABORT CASE: refresh current lesson with PAL recommendation only
+  if (isAborted && abortCourseId) {
+    const courseIndex = learningPath.courses.courseList.findIndex(
+      (c: any) => c.course_id === abortCourseId
+    );
 
-    try {
-      const { courses } = learningPath;
-      const currentCourse = courses.courseList[courses.currentCourseIndex];
+    if (courseIndex === -1) return;
 
-      let activeCourse = courses.courseList[courses.currentCourseIndex];
-      let activePathItem = activeCourse.path[activeCourse.currentIndex];
-
-      const prevData = {
-        pathId: activeCourse.path_id,
-        courseId: activeCourse.course_id,
-        lessonId: activePathItem.lesson_id,
-        chapterId: activePathItem.chapter_id,
-        prevPath_id: activeCourse.path_id,
+    const abortCourse = learningPath.courses.courseList[courseIndex];
+    const abortPathItem = abortCourse.path[abortCourse.currentIndex];
+    const recommended = await palUtil.getRecommendedLessonForCourse(
+      currentStudent.id,
+      abortCourseId
+    );
+    if (recommended?.lesson?.id) {
+      abortCourse.path[abortCourse.currentIndex] = {
+        ...abortPathItem,
+        lesson_id: recommended.lesson.id,
+        chapter_id: recommended.chapterId,
+        skill_id: recommended.skillId,
       };
+    }
 
-      // Determine which events to log
-      const eventsToLog: string[] = [];
-      // Update currentIndex
-      currentCourse.currentIndex += 1;
-      const is_immediate_sync =
-        currentCourse.currentIndex >= currentCourse.pathEndIndex;
-      // Check if currentIndex exceeds pathEndIndex
-      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-        if (isRewardLesson) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath)
-          );
+    await Promise.all([
+      ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath),
+        false
+      ),
+    ]);
+
+    const updatedStudent =
+      await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+    if (updatedStudent) {
+      Util.setCurrentStudent(updatedStudent);
+    }
+
+    return; // ⛔ EXIT — do not continue normal flow
+  }
+
+  try {
+    const { courses } = learningPath;
+    const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+    let activeCourse = courses.courseList[courses.currentCourseIndex];
+    let activePathItem = activeCourse.path[activeCourse.currentIndex];
+
+    const prevData = {
+      pathId: activeCourse.path_id,
+      courseId: activeCourse.course_id,
+      lessonId: activePathItem.lesson_id,
+      chapterId: activePathItem.chapter_id,
+      prevPath_id: activeCourse.path_id,
+    };
+
+    const eventsToLog: string[] = [];
+
+    currentCourse.currentIndex += 1;
+    const is_immediate_sync =
+      currentCourse.currentIndex >= currentCourse.pathEndIndex;
+    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+      if (isRewardLesson) {
+        sessionStorage.setItem(
+          REWARD_LEARNING_PATH,
+          JSON.stringify(learningPath)
+        );
+      }
+
+      if (
+        learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+        ].type === RECOMMENDATION_TYPE.CHAPTER
+      ) {
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
+        currentCourse.path_id = uuidv4();
+        prevData.prevPath_id = currentCourse.path_id;
+
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
         }
-        if (
+      } else {
+        const palPath = await palUtil.getPalLessonPathForCourse(
+          currentCourse.course_id,
+          currentStudent.id
+        );
+        if (palPath?.length) {
+          currentCourse.path_id = uuidv4();
+          currentCourse.path = palPath;
+          currentCourse.startIndex = 0;
+          currentCourse.currentIndex = 0;
+          currentCourse.pathEndIndex = palPath.length - 1;
+        }
+      }
+
+      courses.currentCourseIndex += 1;
+
+      await ServiceConfig.getI().apiHandler.setStarsForStudents(
+        currentStudent.id,
+        10,
+        false
+      );
+
+      if (courses.currentCourseIndex >= courses.courseList.length) {
+        courses.currentCourseIndex = 0;
+      }
+
+      const pathwayEndData = {
+        user_id: currentStudent.id,
+        current_path_id:
           learningPath.courses.courseList[
             learningPath.courses.currentCourseIndex
-          ].type === RECOMMENDATION_TYPE.CHAPTER
-        ) {
-          currentCourse.startIndex = currentCourse.currentIndex;
-          currentCourse.pathEndIndex += 5;
-          currentCourse.path_id = uuidv4();
-          prevData.prevPath_id = currentCourse.path_id;
-
-          // Ensure pathEndIndex does not exceed the path length
-          if (currentCourse.pathEndIndex > currentCourse.path.length) {
-            currentCourse.pathEndIndex = currentCourse.path.length - 1;
-          }
-        } else {
-          const palPath = await palUtil.getPalLessonPathForCourse(
-            currentCourse.course_id,
-            currentStudent.id
-          );
-          if (palPath?.length) {
-            currentCourse.path_id = uuidv4();
-            currentCourse.path = palPath;
-            currentCourse.startIndex = 0;
-            currentCourse.currentIndex = 0;
-            currentCourse.pathEndIndex = palPath.length - 1;
-          }
-        }
-
-        // Move to the next course
-        courses.currentCourseIndex += 1;
-
-        await ServiceConfig.getI().apiHandler.setStarsForStudents(
-          currentStudent.id,
-          10,
-          false
-        );
-        // Loop back to the first course if at the last course
-        if (courses.currentCourseIndex >= courses.courseList.length) {
-          courses.currentCourseIndex = 0;
-        }
-        const pathwayEndData = {
-          user_id: currentStudent.id,
-          current_path_id:
+          ].path_id,
+        current_course_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].course_id,
+        current_lesson_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path[
             learningPath.courses.courseList[
               learningPath.courses.currentCourseIndex
-            ].path_id,
-          current_course_id:
+            ].currentIndex
+          ].lesson_id,
+        current_chapter_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path[
             learningPath.courses.courseList[
               learningPath.courses.currentCourseIndex
-            ].course_id,
-          current_lesson_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].lesson_id,
-          current_chapter_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].chapter_id,
-          prev_path_id: prevData.pathId,
-          prev_course_id: prevData.courseId,
-          prev_lesson_id: prevData.lessonId,
-          prev_chapter_id: prevData.chapterId,
-        };
-        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else {
-        // Within current path: refresh the slot with latest PAL recommendation if available
-        const recommended = await palUtil.getRecommendedLessonForCourse(
-          currentStudent.id,
-          currentCourse.course_id
-        );
-        if (recommended?.lesson?.id) {
-          currentCourse.path[currentCourse.currentIndex] = {
-            ...currentCourse.path[currentCourse.currentIndex],
-            lesson_id: recommended.lesson.id,
-            chapter_id: recommended.chapterId,
-            skill_id: recommended.skillId,
-          };
-        }
-        eventsToLog.push(
-          EVENTS.PATHWAY_COMPLETED,
-          EVENTS.PATHWAY_COURSE_CHANGED
-        );
-      }
-      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
-
-      const newCourse = courses.courseList[courses.currentCourseIndex];
-      const newPathItem =
-        newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
-      const eventPayload = {
-        user_id: currentStudent.id,
-
-        current_path_id: newCourse.path_id,
-        current_course_id: newCourse.course_id,
-        current_lesson_id: newPathItem.lesson_id,
-        current_chapter_id: newPathItem.chapter_id,
-
-        path_id: prevData.pathId,
-        prev_path_id: prevData.prevPath_id,
+            ].currentIndex
+          ].chapter_id,
+        prev_path_id: prevData.pathId,
         prev_course_id: prevData.courseId,
-        lesson_id: prevData.lessonId,
+        prev_lesson_id: prevData.lessonId,
         prev_chapter_id: prevData.chapterId,
-        timestamp: new Date().toISOString(),
       };
-      // Update the learning path in the database
-      await Promise.all([
-        ServiceConfig.getI().apiHandler.updateLearningPath(
-          currentStudent,
-          JSON.stringify(learningPath),
-          is_immediate_sync
-        ),
-        ...eventsToLog.map((eventName) =>
-          Util.logEvent(eventName as EVENTS, eventPayload)
-        ),
-      ]);
-      // Update the current student object
-      const updatedStudent =
-        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
-      if (updatedStudent) {
-        Util.setCurrentStudent(updatedStudent);
+
+      await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+      await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+    } else if (!isAssessmentLesson) {
+      const recommended = await palUtil.getRecommendedLessonForCourse(
+        currentStudent.id,
+        currentCourse.course_id
+      );
+      if (recommended?.lesson?.id) {
+        currentCourse.path[currentCourse.currentIndex] = {
+          ...currentCourse.path[currentCourse.currentIndex],
+          lesson_id: recommended.lesson.id,
+          chapter_id: recommended.chapterId,
+          skill_id: recommended.skillId,
+        };
       }
-    } catch (error) {
-      console.error("Error updating learning path:", error);
+      eventsToLog.push(
+        EVENTS.PATHWAY_COMPLETED,
+        EVENTS.PATHWAY_COURSE_CHANGED
+      );
     }
+
+    eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+
+    const newCourse = courses.courseList[courses.currentCourseIndex];
+    const newPathItem =
+      newCourse.path[newCourse.currentIndex] || newCourse.path[0];
+
+    const eventPayload = {
+      user_id: currentStudent.id,
+      current_path_id: newCourse.path_id,
+      current_course_id: newCourse.course_id,
+      current_lesson_id: newPathItem.lesson_id,
+      current_chapter_id: newPathItem.chapter_id,
+      path_id: prevData.pathId,
+      prev_path_id: prevData.prevPath_id,
+      prev_course_id: prevData.courseId,
+      lesson_id: prevData.lessonId,
+      prev_chapter_id: prevData.chapterId,
+      timestamp: new Date().toISOString(),
+    };
+
+    await Promise.all([
+      ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath),
+        is_immediate_sync
+      ),
+      ...eventsToLog.map((eventName) =>
+        Util.logEvent(eventName as EVENTS, eventPayload)
+      ),
+    ]);
+      // Update the current student object
+    const updatedStudent =
+      await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+    if (updatedStudent) {
+      Util.setCurrentStudent(updatedStudent);
+    }
+  } catch (error) {
+    console.error("Error updating learning path:", error);
   }
+}
 
   // In Util.ts or your utility file
   public static getLocalStarsForStudent(

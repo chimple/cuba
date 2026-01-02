@@ -695,18 +695,18 @@ export class SqliteApi implements ServiceApi {
     const diffMs = now.getTime() - lastUserUpdated.getTime();
     const diffMinutes = diffMs / (1000 * 60);
     if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
-      await this.pullChanges(tableNames, isFirstSync);
-      const res = await this.pushChanges(Object.values(TABLES));
-      const tables = "'" + tableNames.join("', '") + "'";
-      // console.log("logs to check synced tables1", JSON.stringify(tables));
-      const currentTimestamp = new Date();
-      const reducedTimestamp = new Date(currentTimestamp); // clone it
-      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-      const formattedTimestamp = reducedTimestamp.toISOString();
-      this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
-      );
-      return res;
+    await this.pullChanges(tableNames, isFirstSync);
+    const res = await this.pushChanges(Object.values(TABLES));
+    const tables = "'" + tableNames.join("', '") + "'";
+    // console.log("logs to check synced tables1", JSON.stringify(tables));
+    const currentTimestamp = new Date();
+    const reducedTimestamp = new Date(currentTimestamp); // clone it
+    reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+    const formattedTimestamp = reducedTimestamp.toISOString();
+    this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
+    );
+    return res;
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
   }
@@ -2102,7 +2102,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`
@@ -3353,14 +3352,13 @@ export class SqliteApi implements ServiceApi {
   async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean | void> {
+  ): Promise<boolean | void> {
     if (!userId || !class_id) {
       throw new Error("User ID and Class ID are required");
     }
 
     // 1️⃣ Call server (RPC)
     const res = await this._serverApi.deleteUserFromClass(userId, class_id);
-
     if (res === false) {
       throw new Error("Failed to delete user from class");
     }
@@ -7566,5 +7564,105 @@ order by
       console.error("[SQLite] getLidoCommonAudioUrl failed:", err);
       return null;
     }
+  }
+  async getSubjectLessonsBySubjectId(
+    subjectId: string
+  ): Promise<TableTypes<"subject_lesson">[] | null> {
+    try {
+      // 1️⃣ Get latest (highest) set_number
+      const setQuery = `
+      SELECT set_number
+      FROM subject_lesson
+      WHERE subject_id = ?
+        AND is_deleted = 0
+        AND set_number IS NOT NULL
+      ORDER BY set_number DESC
+      LIMIT 1;
+    `;
+
+      const setRes = await this.executeQuery(setQuery, [subjectId]);
+console.log("SSSSSSSSSSSSS",setRes)
+      const setRows = (setRes as any)?.values ?? [];
+
+      if (!setRows.length || setRows[0].set_number == null) {
+        return [];
+      }
+
+      const setNumber = setRows[0].set_number;
+
+      // 2️⃣ Fetch all lessons for that set_number
+      const lessonQuery = `
+      SELECT *
+      FROM subject_lesson
+      WHERE subject_id = ?
+        AND set_number = ?
+        AND is_deleted = 0
+      ORDER BY sort_index ASC;
+    `;
+
+      const lessonRes = await this.executeQuery(lessonQuery, [
+        subjectId,
+        setNumber,
+      ]);
+      console.log(
+        `Fetched lessons for subjectId=${subjectId} and setNumber=${setNumber}`
+      );
+      const lessons = (lessonRes as any)?.values ?? [];
+
+      return lessons;
+    } catch (error) {
+      console.error(
+        "❌ Error fetching subject lessons by subject (SQL):",
+        error
+      );
+      return [];
+    }
+  }
+
+  async getResultsByCourseId(
+    studentId: string,
+    courseId: string
+  ): Promise<any> {
+    try {
+      // Logic: Query result table for the current student and selected course
+      const query = `
+        SELECT id FROM result 
+        WHERE student_id = ? AND course_id = ? AND is_deleted = 0 
+        LIMIT 1;
+      `;
+      console.log("Executing query to check course history:", {
+        studentId,
+        courseId,
+      });
+      const results = await this.executeQuery(query, [studentId, courseId]);
+      console.log("Course history results:", results);
+
+      // If records exist, standard PAL logic follows.
+      // If NO records exist, Initial Assessment triggers.
+      return results || [];
+    } catch (error) {
+      console.error("❌ Error checking course history:", error);
+      return [];
+    }
+  }
+  async getSubjectByCourseId(
+    courseId: string
+  ): Promise<TableTypes<"subject"> | undefined> {
+    const courseRes = await this._db?.query(
+      `SELECT subject_id FROM ${TABLES.Course} WHERE id = "${courseId}"`
+    );
+
+    if (!courseRes?.values?.length) return;
+
+    return this.getSubject(courseRes.values[0].subject_id);
+  }
+  async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Skill} where id = ?`,
+      [skillId]
+    );
+    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
   }
 }
