@@ -27,7 +27,11 @@ const ScoreCard: React.FC<{
     <div>
       <Dialog
         open={showDialogBox}
-        onClose={handleClose}
+       onClose={(event, reason) => {
+       if (reason === "backdropClick") return; 
+       if (reason === "escapeKeyDown") return;
+    handleClose(event as any);
+  }}
         slotProps={{
           paper: {
             sx: {
