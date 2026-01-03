@@ -5269,7 +5269,8 @@ order by
   }
 
   async getSchoolsWithRoleAutouser(
-    schoolIds: string[]
+    schoolIds: string[],
+    userId:string
   ): Promise<TableTypes<"school">[] | undefined> {
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
@@ -5278,6 +5279,7 @@ order by
       FROM ${TABLES.SchoolUser} AS su
       JOIN ${TABLES.School} AS school ON su.school_id = school.id
       WHERE su.school_id IN (${placeholders})
+        AND su.user_id = '${userId}'
         AND su.role = '${RoleType.AUTOUSER}'
         AND su.is_deleted = false;
     `;
