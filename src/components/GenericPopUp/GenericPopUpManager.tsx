@@ -16,11 +16,13 @@ class PopupManager {
 
   onAppOpen(config: PopupConfig) {
     if (config.triggers.type === "APP_OPEN") {
+      console.log("onAppOpen Triggered for Popup:", config.id);
       this.tryShowPopup(config);
     }
   }
 
   onGameComplete(config: PopupConfig) {
+    console.log("onGameComplete Triggered for Popup:", config.id);
     if (config.triggers.type !== "GAME_COMPLETE") return;
 
     this.sessionGamesPlayed++;
@@ -30,6 +32,7 @@ class PopupManager {
   }
 
   onTimeElapsed(config: PopupConfig) {
+    console.log("onTimeElapsed Triggered for Popup:", config.id);
     if (config.triggers.type !== "TIME_ELAPSED") return;
     if (this.isPopupActive) return; 
     setTimeout(() => {
@@ -122,18 +125,31 @@ class PopupManager {
   }
 
   onAction(config: PopupConfig) {
-    (window as any).analytics?.track("popup_action", {
-      popup_id: config.id,
-      action_type: "CLICK_BUTTON",
-      target: config.action?.target,
-    });
+  (window as any).analytics?.track("popup_action", {
+    popup_id: config.id,
+    action_type: "CLICK_BUTTON",
+    target: config.action?.target,
+  });
 
-    if (config.action?.type === "DEEP_LINK") {
-      window.location.href = config.action.target;
+  if (config.action?.type === "DEEP_LINK") {
+    const target = config.action.target;
+
+    // ✅ Internal app route
+    if (target.startsWith("/")) {
+      window.dispatchEvent(
+        new CustomEvent("POPUP_INTERNAL_NAVIGATION", {
+          detail: { path: target },
+        })
+      );
+    } else {
+      // 🌍 External / scheme / https / chimple://
+      window.location.href = target;
     }
-
-    this.isPopupActive = false;
   }
+
+  this.isPopupActive = false;
+}
+
 }
 
 export default PopupManager.getInstance();

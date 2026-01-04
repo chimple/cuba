@@ -153,6 +153,7 @@ import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
+import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import {
   Dialog,
   DialogTitle,
@@ -216,6 +217,28 @@ const App: React.FC = () => {
   window.addEventListener("SHOW_GENERIC_POPUP", handler);
   return () => window.removeEventListener("SHOW_GENERIC_POPUP", handler);
 }, []);
+
+useEffect(() => {
+  const handler = (e: Event) => {
+    const custom = e as CustomEvent<{ path: string }>;
+    const path = custom.detail.path;
+
+    if (!path) return;
+
+    console.log("Navigating to:", path);
+
+    // React-router friendly navigation
+    window.history.pushState({}, "", path);
+
+    // Let Ionic / React Router re-render
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  window.addEventListener("POPUP_INTERNAL_NAVIGATION", handler);
+  return () =>
+    window.removeEventListener("POPUP_INTERNAL_NAVIGATION", handler);
+}, []);
+
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -759,10 +782,17 @@ const App: React.FC = () => {
     imageUrl={popupData.localized.imageUrl}
     bodyText={popupData.localized.bodyText}
     buttonText={popupData.localized.buttonText}
-    onClose={() => setPopupData(null)}
-    onAction={() => setPopupData(null)}
+    onClose={() => {
+      PopupManager.onDismiss(popupData.config);
+      setPopupData(null);
+    }}
+    onAction={() => {
+      PopupManager.onAction(popupData.config);
+      setPopupData(null);
+    }}
   />
 )}
+
 
     </IonApp>
   );
