@@ -1,5 +1,5 @@
 /* Backdrop */
-.popup-overlay {
+.generic-popup-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
@@ -10,7 +10,7 @@
 }
 
 /* Popup Card */
-.popup-card {
+.generic-popup-card {
   background: #ffffff;
   width: 90%;
   max-width: 360px;
@@ -22,7 +22,7 @@
 }
 
 /* Close Button */
-.popup-close {
+.generic-popup-close {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -34,7 +34,7 @@
 }
 
 /* Image */
-.popup-image {
+.generic-popup-image {
   width: 100%;
   max-height: 180px;
   object-fit: contain;
@@ -43,7 +43,7 @@
 }
 
 /* Body Text */
-.popup-text {
+.generic-popup-text {
   font-size: 15px;
   line-height: 1.5;
   color: #333;
@@ -52,7 +52,7 @@
 }
 
 /* CTA Button */
-.popup-cta {
+.generic-popup-cta {
   width: 100%;
   padding: 12px;
   background: #4f46e5;
@@ -65,7 +65,7 @@
 }
 
 /* CTA Hover */
-.popup-cta:hover {
+.generic-popup-cta:hover {
   background: #4338ca;
 }
 

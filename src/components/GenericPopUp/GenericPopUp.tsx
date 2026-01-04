@@ -17,15 +17,15 @@ const GenericPopup: React.FC<Props> = ({
   onAction,
 }) => {
   return (
-    <div className="popup-overlay">
-      <div className="popup-card">
-        <button className="popup-close" onClick={onClose}>✕</button>
+    <div className="generic-popup-overlay">
+      <div className="generic-popup-card">
+        <button className="generic-popup-close" onClick={onClose}>✕</button>
 
-        <img src={imageUrl} className="popup-image" alt="" />
+        <img src={imageUrl} className="generic-popup-image" alt="" />
 
-        <p className="popup-text">{bodyText}</p>
+        <p className="generic-popup-text">{bodyText}</p>
 
-        <button className="popup-cta" onClick={onAction}>
+        <button className="generic-popup-cta" onClick={onAction}>
           {buttonText}
         </button>
       </div>
