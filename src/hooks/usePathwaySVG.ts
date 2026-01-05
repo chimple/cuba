@@ -149,7 +149,7 @@ export function usePathwaySVG({
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
       const pathItem = course.path[currentCourseIndex];
-      const isAssessment = pathItem?.is_assessment
+      const isAssessment = pathItem?.is_assessment;
 
       if (!course) return;
 
@@ -260,8 +260,10 @@ export function usePathwaySVG({
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lessonImageUrl =
-            (isPlayed || isActive) && isValidUrl
-              ? lesson.image
+            isPlayed || isActive
+              ? isValidUrl
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png"
               : "assets/icons/NextNodeIcon.svg";
 
           const positionMappings = {
@@ -349,7 +351,12 @@ export function usePathwaySVG({
             activeGroup.style.cursor = "pointer";
             activeGroup.addEventListener("click", () => {
               const pathEntry = course.path[startIndex + idx];
-              handleLessonClick(lesson, course, pathEntry?.skill_id,isAssessment);
+              handleLessonClick(
+                lesson,
+                course,
+                pathEntry?.skill_id,
+                isAssessment
+              );
             });
 
             fragment.appendChild(activeGroup);
@@ -757,7 +764,12 @@ export function usePathwaySVG({
     });
   }
 
-  function handleLessonClick(lesson: any, course: any, skillId?: string ,is_assessment?:boolean) {
+  function handleLessonClick(
+    lesson: any,
+    course: any,
+    skillId?: string,
+    is_assessment?: boolean
+  ) {
     if (!history) return;
 
     const currentCourse = (window as any).__currentCourseForPathway__;
