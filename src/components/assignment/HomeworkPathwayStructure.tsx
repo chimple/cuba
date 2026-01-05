@@ -565,8 +565,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lesson_image =
-            (isPlayed || isActive) && isValidUrl
-              ? lesson.image
+            isPlayed || isActive
+              ? isValidUrl
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png"
               : "assets/icons/NextNodeIcon.svg";
 
           if (lessonIdx < currentIndex) {
