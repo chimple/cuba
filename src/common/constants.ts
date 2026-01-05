@@ -650,6 +650,8 @@ export const STARS_COUNT = "starsCount";
 export const LATEST_STARS = "latestStar";
 export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
+export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
+export const POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",

@@ -74,6 +74,8 @@ import {
   PortPlugin,
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
+  SHOW_GENERIC_POPUP,
+  POPUP_INTERNAL_NAVIGATION,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -214,8 +216,8 @@ const App: React.FC = () => {
     setPopupData(e.detail);
   };
 
-  window.addEventListener("SHOW_GENERIC_POPUP", handler);
-  return () => window.removeEventListener("SHOW_GENERIC_POPUP", handler);
+  window.addEventListener(SHOW_GENERIC_POPUP, handler);
+  return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
 }, []);
 
 useEffect(() => {
@@ -234,9 +236,9 @@ useEffect(() => {
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
-  window.addEventListener("POPUP_INTERNAL_NAVIGATION", handler);
+  window.addEventListener(POPUP_INTERNAL_NAVIGATION, handler);
   return () =>
-    window.removeEventListener("POPUP_INTERNAL_NAVIGATION", handler);
+    window.removeEventListener(POPUP_INTERNAL_NAVIGATION, handler);
 }, []);
 
 
