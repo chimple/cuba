@@ -6055,7 +6055,8 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolsWithRoleAutouser(
-    schoolIds: string[]
+    schoolIds: string[],
+    userId:string
   ): Promise<TableTypes<"school">[] | undefined> {
     if (!this.supabase || !schoolIds.length) return;
 
@@ -6065,6 +6066,7 @@ export class SupabaseApi implements ServiceApi {
         .select("school(*)")
         .in("school_id", schoolIds)
         .eq("role", RoleType.AUTOUSER)
+        .eq("user_id",userId)
         .eq("is_deleted", false);
 
       if (error) {
