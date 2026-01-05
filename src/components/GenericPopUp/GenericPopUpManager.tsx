@@ -1,5 +1,5 @@
 import { PopupConfig } from "./GenericPopUpType";
-import { LANGUAGE } from "../../common/constants"; 
+import { LANGUAGE , APP_OPEN , GAME_COMPLETE ,TIME_ELAPSED } from "../../common/constants"; 
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
@@ -15,7 +15,7 @@ class PopupManager {
   /** -------- Trigger Entry Points -------- */
 
   onAppOpen(config: PopupConfig) {
-    if (config.triggers.type === "APP_OPEN") {
+    if (config.triggers.type === APP_OPEN) {
       console.log("onAppOpen Triggered for Popup:", config.id);
       this.tryShowPopup(config);
     }
@@ -23,7 +23,7 @@ class PopupManager {
 
   onGameComplete(config: PopupConfig) {
     console.log("onGameComplete Triggered for Popup:", config.id);
-    if (config.triggers.type !== "GAME_COMPLETE") return;
+    if (config.triggers.type !== GAME_COMPLETE) return;
 
     this.sessionGamesPlayed++;
     if (this.sessionGamesPlayed === config.triggers.value) {
@@ -33,7 +33,7 @@ class PopupManager {
 
   onTimeElapsed(config: PopupConfig) {
     console.log("onTimeElapsed Triggered for Popup:", config.id);
-    if (config.triggers.type !== "TIME_ELAPSED") return;
+    if (config.triggers.type !== TIME_ELAPSED) return;
     if (this.isPopupActive) return; 
     setTimeout(() => {
       this.tryShowPopup(config);
@@ -96,7 +96,6 @@ class PopupManager {
     localStorage.getItem(LANGUAGE) ||
     navigator.language?.split("-")[0] ||
     "en";
-    console.log("Languageeeeeeeeeeeeeeeeeeeeeeeee",lang);
     const localized =
       config.content[lang] ||
       config.content["en"] ||

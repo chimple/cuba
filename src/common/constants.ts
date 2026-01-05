@@ -652,6 +652,9 @@ export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
 export const POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
+export const APP_OPEN = "APP_OPEN";
+export const GAME_COMPLETE = "GAME_COMPLETE";
+export const TIME_ELAPSED = "TIME_ELAPSED";
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",
