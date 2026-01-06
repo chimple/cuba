@@ -149,6 +149,11 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
   const isDataPresent = displayPrincipals.length > 0;
+
+  const hasAnyPrincipals = (totalCount ?? 0) > 0;
+  const isNoPrincipalsState = !isLoading && !hasAnyPrincipals;
+  const hideHeaderActions = isNoPrincipalsState;
+
   const handleAddNewPrincipal = useCallback(() => {
     setErrorMessage(undefined);
     setIsAddPrincipalModalOpen(true);
@@ -323,14 +328,16 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           </Typography>
         </Box>
         <Box className="school-principals-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewPrincipal}
-            className="school-principals-newTeacherButton-outlined"
-          >
-            <AddIcon className="school-principals-newTeacherButton-outlined-icon" />
-            {!isMobile && t("New Principal")}
-          </MuiButton>
+          {!hideHeaderActions && (
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewPrincipal}
+              className="school-principals-newTeacherButton-outlined"
+            >
+              <AddIcon className="school-principals-newTeacherButton-outlined-icon" />
+              {!isMobile && t("New Principal")}
+            </MuiButton>
+          )}
         </Box>
       </Box>
       {isLoading ? (
