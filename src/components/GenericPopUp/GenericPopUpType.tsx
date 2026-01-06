@@ -5,6 +5,8 @@ export interface PopupConfig {
   isActive: boolean;
   priority: number;
 
+  screen_name?: string;
+
   triggers: {
     type: TriggerType;
     value: number;

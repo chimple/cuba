@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Route, Switch, useHistory } from "react-router-dom";
+import { Route, Switch, useHistory, useLocation } from "react-router-dom";
 import {
   IonAlert,
   IonApp,
@@ -156,6 +156,7 @@ import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import {
   Dialog,
   DialogTitle,
@@ -184,6 +185,7 @@ const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
+  const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [startTime, setStartTime] = useState<number>(() => {
@@ -209,6 +211,26 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
+useEffect(() => {
+  if (!growthbook) return;
+
+  const popupConfig = growthbook.getFeatureValue(
+    "generic-pop-up",
+    null
+  )as any;
+  if (!popupConfig) return;
+
+  const currentRoute =
+    window.location.pathname ||
+    window.location.hash.replace("#", "");
+
+  console.log("Current route:", currentRoute);
+
+  if (currentRoute === popupConfig.screen_name) {
+    PopupManager.onAppOpen(popupConfig);
+    PopupManager.onTimeElapsed(popupConfig);
+  }
+}, [growthbook, window.location.pathname]);
 
   useEffect(() => {
   const handler = (e: any) => {

@@ -1,5 +1,7 @@
 import { PopupConfig } from "./GenericPopUpType";
-import { LANGUAGE , APP_OPEN , GAME_COMPLETE ,TIME_ELAPSED } from "../../common/constants"; 
+import { LANGUAGE ,TRIGGER_CONDITION } from "../../common/constants"; 
+import { Browser } from "@capacitor/browser";
+import { Capacitor } from "@capacitor/core";
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
@@ -15,7 +17,9 @@ class PopupManager {
   /** -------- Trigger Entry Points -------- */
 
   onAppOpen(config: PopupConfig) {
-    if (config.triggers.type === APP_OPEN) {
+      console.log("onAppOpen Triggered for Popup1:", config.id);
+
+    if (config.triggers.type === TRIGGER_CONDITION.APP_OPEN) {
       console.log("onAppOpen Triggered for Popup:", config.id);
       this.tryShowPopup(config);
     }
@@ -23,7 +27,7 @@ class PopupManager {
 
   onGameComplete(config: PopupConfig) {
     console.log("onGameComplete Triggered for Popup:", config.id);
-    if (config.triggers.type !== GAME_COMPLETE) return;
+    if (config.triggers.type !== TRIGGER_CONDITION.GAME_COMPLETE) return;
 
     this.sessionGamesPlayed++;
     if (this.sessionGamesPlayed === config.triggers.value) {
@@ -33,7 +37,7 @@ class PopupManager {
 
   onTimeElapsed(config: PopupConfig) {
     console.log("onTimeElapsed Triggered for Popup:", config.id);
-    if (config.triggers.type !== TIME_ELAPSED) return;
+    if (config.triggers.type !== TRIGGER_CONDITION.TIME_ELAPSED) return;
     if (this.isPopupActive) return; 
     setTimeout(() => {
       this.tryShowPopup(config);
@@ -43,6 +47,7 @@ class PopupManager {
   /** -------- Validation Logic -------- */
 
   private tryShowPopup(config: PopupConfig) {
+    console.log("tryShowPopup called for Popup:", config);
     if (!config.isActive) return;
 
     if (this.isPopupActive || (window as any).isAnyPopupOpen?.()) {
@@ -141,8 +146,17 @@ class PopupManager {
         })
       );
     } else {
-      // 🌍 External / scheme / https / chimple://
-      window.location.href = target;
+      // 🌍 External link / scheme / https / deep-link
+      if (Capacitor.isNativePlatform()) {
+        // ✅ Opens in system browser (new tab outside app)
+        Browser.open({
+          url: target,
+          presentationStyle: "popover", // iOS safe
+        });
+      } else {
+        // ✅ Web fallback (new tab)
+        window.open(target, "_blank", "noopener,noreferrer");
+      }
     }
   }
 

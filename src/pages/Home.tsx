@@ -48,7 +48,7 @@ import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import CampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
-import { useGrowthBook } from "@growthbook/growthbook-react";
+
 const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
@@ -101,7 +101,7 @@ const Home: FC = () => {
     Util.onAppStateChange({ isActive });
   };
 
-  const growthbook = useGrowthBook();
+  
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const logDeviceInfo = async () => {
@@ -157,19 +157,7 @@ const Home: FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-  if (!growthbook) return;
 
-  const popupConfig = growthbook.getFeatureValue(
-    "generic-pop-up",
-    null
-  );
-  console.log("GENERIC POPUP CONFIG:", popupConfig);
-  if (!popupConfig) return;
-
-  PopupManager.onAppOpen(popupConfig);
-  PopupManager.onTimeElapsed(popupConfig);
-}, [growthbook]);
 
   useEffect(() => {
     setCurrentHeader(
