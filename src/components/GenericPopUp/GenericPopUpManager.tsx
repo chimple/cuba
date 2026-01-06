@@ -1,5 +1,5 @@
 import { PopupConfig } from "./GenericPopUpType";
-import { LANGUAGE ,TRIGGER_CONDITION } from "../../common/constants"; 
+import { LANGUAGE ,TRIGGER_CONDITION, GENERIC_POPUP_INTERNAL_NAVIGATION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 class PopupManager {
@@ -107,7 +107,7 @@ class PopupManager {
       Object.values(config.content)[0];
 
     window.dispatchEvent(
-      new CustomEvent("SHOW_GENERIC_POPUP", {
+      new CustomEvent(SHOW_GENERIC_POPUP, {
         detail: { config, localized },
       })
     );
@@ -116,7 +116,7 @@ class PopupManager {
     (window as any).analytics?.track("popup_shown", {
       popup_id: config.id,
       trigger_type: config.triggers.type,
-      screen_name: "HomeScene",
+      screen_name: config.screen_name || "unknown",
     });
   }
 
@@ -141,7 +141,7 @@ class PopupManager {
     // ✅ Internal app route
     if (target.startsWith("/")) {
       window.dispatchEvent(
-        new CustomEvent("POPUP_INTERNAL_NAVIGATION", {
+        new CustomEvent(GENERIC_POPUP_INTERNAL_NAVIGATION, {
           detail: { path: target },
         })
       );

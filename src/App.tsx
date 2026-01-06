@@ -75,7 +75,7 @@ import {
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
-  POPUP_INTERNAL_NAVIGATION,
+  GENERIC_POPUP_INTERNAL_NAVIGATION,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -258,9 +258,9 @@ useEffect(() => {
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
-  window.addEventListener(POPUP_INTERNAL_NAVIGATION, handler);
+  window.addEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
   return () =>
-    window.removeEventListener(POPUP_INTERNAL_NAVIGATION, handler);
+    window.removeEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
 }, []);
 
 
