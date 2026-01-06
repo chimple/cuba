@@ -292,7 +292,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -361,7 +361,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch {}
+        } catch { }
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -567,7 +567,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) {}
+              } catch (beginErr) { }
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -585,7 +585,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) {}
+                } catch (rbErr) { }
               }
               throw chunkErr;
             }
@@ -2102,7 +2102,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`
@@ -2126,20 +2125,17 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ""
+      ${langId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
-      ${
-        localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ""
+      ${localeId
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
-      ${
-        langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ""
+      ${langId && localeId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2427,7 +2423,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3353,14 +3349,13 @@ export class SqliteApi implements ServiceApi {
   async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean | void> {
+  ): Promise<boolean | void> {
     if (!userId || !class_id) {
       throw new Error("User ID and Class ID are required");
     }
 
     // 1️⃣ Call server (RPC)
     const res = await this._serverApi.deleteUserFromClass(userId, class_id);
-
     if (res === false) {
       throw new Error("Failed to delete user from class");
     }
@@ -6326,34 +6321,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null,
-            avatar: null,
-            created_at: new Date().toISOString(),
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -6439,34 +6434,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null, // Assuming these fields are nullable or have default values in your User table type
-            avatar: null,
-            created_at: new Date().toISOString(), // Example, adjust if you fetch this
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null, // Assuming these fields are nullable or have default values in your User table type
+          avatar: null,
+          created_at: new Date().toISOString(), // Example, adjust if you fetch this
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -7568,5 +7563,91 @@ order by
       console.error("[SQLite] getLidoCommonAudioUrl failed:", err);
       return null;
     }
+  }
+  async getSubjectLessonsBySubjectId(
+    subjectId: string
+  ): Promise<TableTypes<"subject_lesson">[] | null> {
+    try {
+      // 1️⃣ Fetch ALL available set_numbers
+      const setQuery = `
+      SELECT DISTINCT set_number
+      FROM subject_lesson
+      WHERE subject_id = ?
+        AND is_deleted = 0
+        AND set_number IS NOT NULL;
+    `;
+      const setRes = await this.executeQuery(setQuery, [subjectId]);
+      const setRows = (setRes as any)?.values ?? [];
+      if (!setRows.length) {
+        return [];
+      }
+
+      // 2️⃣ Pick ANY ONE set randomly in JS
+      const randomIndex = Math.floor(Math.random() * setRows.length);
+      const setNumber = setRows[randomIndex].set_number;
+
+      // 3️⃣ Fetch lessons for selected set_number
+      const lessonQuery = `
+      SELECT *
+      FROM subject_lesson
+      WHERE subject_id = ?
+        AND set_number = ?
+        AND is_deleted = 0
+      ORDER BY sort_index ASC;
+    `;
+
+      const lessonRes = await this.executeQuery(lessonQuery, [
+        subjectId,
+        setNumber,
+      ]);
+      const lessons = (lessonRes as any)?.values ?? [];
+      return lessons;
+    } catch (error) {
+      console.error(
+        "❌ Error fetching subject lessons by subject (SQL):",
+        error
+      );
+      return [];
+    }
+  }
+
+  async doesStudentHaveResultForCourse(
+    studentId: string,
+    courseId: string
+  ): Promise<boolean> {
+    try {
+      const query = `
+      SELECT 1
+      FROM result
+      WHERE student_id = ?
+        AND course_id = ?
+        AND is_deleted = 0
+      LIMIT 1;
+    `;
+      const res = await this.executeQuery(query, [studentId, courseId]);
+      const rows = (res as any)?.values ?? [];
+      // ✅ true = result exists, false = no result
+      return rows.length > 0;
+    } catch (error) {
+      console.error("❌ Error checking course history:", error);
+      return false;
+    }
+  }
+  async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    const res = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.Skill}
+      WHERE id = ?
+        AND is_deleted = 0
+    `,
+      [skillId]
+    );
+
+    return res?.values && res.values.length > 0
+      ? res.values[0]
+      : undefined;
   }
 }
