@@ -6056,7 +6056,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
     if (!this.supabase || !schoolIds.length) return;
 
@@ -6066,7 +6066,7 @@ export class SupabaseApi implements ServiceApi {
         .select("school(*)")
         .in("school_id", schoolIds)
         .eq("role", RoleType.AUTOUSER)
-        .eq("user_id",userId)
+        .eq("user_id", userId)
         .eq("is_deleted", false);
 
       if (error) {
@@ -10860,4 +10860,25 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
+
+  async updateSchoolProgram(
+  schoolId: string,
+  programId: string
+): Promise<boolean> {
+
+  if (!this.supabase) return false;            // <-- guard
+
+  const { error } = await this.supabase        // <-- await
+    .from("school")
+    .update({ program_id: programId })
+    .eq("id", schoolId);
+
+  if (error) {
+    console.error("Error updating school program:", error);
+    return false;
+  }
+
+  return true;
+}
+
 }

@@ -185,6 +185,9 @@ const SchoolFormPage: React.FC = () => {
         Object.values(c).some((v) => v !== null && v !== "")
       );
 
+      // 🔹 Update school with program_id
+      await api.updateSchoolProgram(school.id, program.id);
+
       await Promise.all([
         api.updateSchoolStatus(
           requestData.school.id,

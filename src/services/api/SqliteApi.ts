@@ -5265,7 +5265,7 @@ order by
 
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
@@ -7649,5 +7649,10 @@ order by
     return res?.values && res.values.length > 0
       ? res.values[0]
       : undefined;
+  }
+
+  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+    // Not supported in SQLite mode
+    return false;
   }
 }

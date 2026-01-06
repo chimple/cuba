@@ -2563,4 +2563,6 @@ export interface ServiceApi {
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
+
+  updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
 }
