@@ -1437,7 +1437,8 @@ export interface ServiceApi {
    * * @return an array of autouser schools.
    */
   getSchoolsWithRoleAutouser(
-    schoolIds: string[]
+    schoolIds: string[],
+    userId:string
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the teachers for the school.

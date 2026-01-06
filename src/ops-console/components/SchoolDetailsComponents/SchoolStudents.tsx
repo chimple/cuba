@@ -513,6 +513,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
+  const hasAnyStudents = (totalCount ?? 0) > 0;
+  const isNoStudentsState = !isLoading && !hasAnyStudents;
+  const hideHeaderActions = isNoStudentsState;
+  const hideFilterUI = isNoStudentsState;
+
   const columns: Column<DisplayStudent>[] = useMemo(() => {
     const commonColumns: Column<DisplayStudent>[] = [
       {
@@ -992,27 +997,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           )}
         </Box>
-        <Box className="schoolStudents-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewStudent}
-            className="schoolStudents-newStudentButton-outlined"
-          >
-            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-            {!isSmallScreen && t("New Student")}
-          </MuiButton>
-          <SearchAndFilter
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterClick={handleFilterIconClick}
-            onClearFilters={handleClearFilters}
-            isFilter={issFilter}
-          />
-        </Box>
+
+        {/* Hide New Student + Search/Filter when there are NO students overall */}
+        {!hideHeaderActions && (
+          <Box className="schoolStudents-actionsGroup">
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-newStudentButton-outlined"
+            >
+              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+              {!isSmallScreen && t("New Student")}
+            </MuiButton>
+
+            <SearchAndFilter
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFilterClick={handleFilterIconClick}
+              onClearFilters={handleClearFilters}
+              isFilter={issFilter}
+            />
+          </Box>
+        )}
       </Box>
 
-      {!issTotal && (
+      {/* Keep as-is, but hide when no students overall */}
+      {!issTotal && !isNoStudentsState && (
         <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
@@ -1055,24 +1066,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       )}
 
-      {Object.values(filters).some((arr) => arr.length > 0) && (
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteAppliedFilter}
+      {/* Hide filters UI when no students overall */}
+      {!hideFilterUI &&
+        Object.values(filters).some((arr) => arr.length > 0) && (
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={handleDeleteAppliedFilter}
+          />
+        )}
+
+      {!hideFilterUI && (
+        <FilterSlider
+          isOpen={isFilterSliderOpen}
+          onClose={() => setIsFilterSliderOpen(false)}
+          filters={tempFilters}
+          filterOptions={{
+            grade: getGradeOptions(baseStudents),
+          }}
+          onFilterChange={handleSliderFilterChange}
+          onApply={handleApplyFilters}
+          onCancel={handleCancelFilters}
+          filterConfigs={filterConfigsForSchool}
         />
       )}
-      <FilterSlider
-        isOpen={isFilterSliderOpen}
-        onClose={() => setIsFilterSliderOpen(false)}
-        filters={tempFilters}
-        filterOptions={{
-          grade: getGradeOptions(baseStudents),
-        }}
-        onFilterChange={handleSliderFilterChange}
-        onApply={handleApplyFilters}
-        onCancel={handleCancelFilters}
-        filterConfigs={filterConfigsForSchool}
-      />
 
       {isLoading || isPerformanceLoading ? (
         <Box
