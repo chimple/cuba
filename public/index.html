@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Chimple</title>
 
-    <!-- <base href="/" /> -->
+    <base href="/" />
 
     <meta name="color-scheme" content="light dark" />
     <!-- <meta name="color-scheme" content="light " /> -->
@@ -16,12 +16,12 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
 
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <link rel="manifest" href="/manifest.json" />
 
     <link
       rel="shortcut icon"
       type="image/png"
-      href="%PUBLIC_URL%/assets/icons/favicon.png"
+      href="/assets/icons/favicon.png"
     />
 
     <!-- add to homescreen for ios -->
@@ -63,13 +63,19 @@
           document.body.appendChild(domScript);
         }
 
-        loadScript(debug ? "cocos2d-js.js" : "cocos2d-js-min.js", function () {
-          if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
-            loadScript(debug ? "physics.js" : "physics-min.js", window.boot);
-          } else {
-            if (window.boot) window.boot();
+        loadScript(
+          debug ? "/cocos2d-js.js" : "/cocos2d-js-min.js",
+          function () {
+            if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
+              loadScript(
+                debug ? "/physics.js" : "/physics-min.js",
+                window.boot
+              );
+            } else {
+              if (window.boot) window.boot();
+            }
           }
-        });
+        );
       })();
     </script>
   </body>
