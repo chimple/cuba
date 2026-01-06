@@ -1,5 +1,5 @@
 import { PopupConfig } from "./GenericPopUpType";
-import { LANGUAGE ,TRIGGER_CONDITION, GENERIC_POPUP_INTERNAL_NAVIGATION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
+import { LANGUAGE ,GENERIC_POPUP_TRIGGER_CONDITION, GENERIC_POPUP_INTERNAL_NAVIGATION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 class PopupManager {
@@ -19,7 +19,7 @@ class PopupManager {
   onAppOpen(config: PopupConfig) {
       console.log("onAppOpen Triggered for Popup1:", config.id);
 
-    if (config.triggers.type === TRIGGER_CONDITION.APP_OPEN) {
+    if (config.triggers.type === GENERIC_POPUP_TRIGGER_CONDITION.APP_OPEN) {
       console.log("onAppOpen Triggered for Popup:", config.id);
       this.tryShowPopup(config);
     }
@@ -27,7 +27,7 @@ class PopupManager {
 
   onGameComplete(config: PopupConfig) {
     console.log("onGameComplete Triggered for Popup:", config.id);
-    if (config.triggers.type !== TRIGGER_CONDITION.GAME_COMPLETE) return;
+    if (config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.GAME_COMPLETE) return;
 
     this.sessionGamesPlayed++;
     if (this.sessionGamesPlayed === config.triggers.value) {
@@ -37,7 +37,7 @@ class PopupManager {
 
   onTimeElapsed(config: PopupConfig) {
     console.log("onTimeElapsed Triggered for Popup:", config.id);
-    if (config.triggers.type !== TRIGGER_CONDITION.TIME_ELAPSED) return;
+    if (config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.TIME_ELAPSED) return;
     if (this.isPopupActive) return; 
     setTimeout(() => {
       this.tryShowPopup(config);
