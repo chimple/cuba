@@ -47,6 +47,7 @@ import i18n from "../i18n";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import CampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -100,6 +101,7 @@ const Home: FC = () => {
     Util.onAppStateChange({ isActive });
   };
 
+  
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const logDeviceInfo = async () => {
@@ -154,6 +156,8 @@ const Home: FC = () => {
       window.removeEventListener("PathwayCreated", handlePathwayCreated);
     };
   }, []);
+
+
 
   useEffect(() => {
     setCurrentHeader(
