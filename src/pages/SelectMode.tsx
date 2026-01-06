@@ -139,7 +139,7 @@ const SelectMode: FC = () => {
     const allSchool = await api.getSchoolsForUser(currUser.id);
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
-    const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds);
+    const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds,currUser.id);
     const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
     // Filter allSchool to include only schools that are in filteredSchools
     const matchedSchools = allSchool.filter((entry) =>
