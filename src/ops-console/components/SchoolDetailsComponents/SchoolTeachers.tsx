@@ -377,6 +377,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
 
+  const hasAnyTeachers = (totalCount ?? 0) > 0;
+  const isNoTeachersState = !isLoading && !hasAnyTeachers;
+  const isFilteredEmptyState =
+    !isLoading && hasAnyTeachers && !isDataPresent && isFilteringOrSearching;
+  const hideHeaderActions = isNoTeachersState || isFilteredEmptyState;
+
   const handleAddNewTeacher = useCallback(() => {
     setErrorMessage(undefined);
     setIsAddTeacherModalOpen(true);
@@ -652,21 +658,26 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-newTeacherButton-outlined"
-          >
-            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-            {!isSmallScreen && t("New Teacher")}
-          </MuiButton>
-          <SearchAndFilter
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterClick={handleFilterIconClick}
-            onClearFilters={handleClearFilters}
-          />
+          {!hideHeaderActions && (
+            <>
+              <MuiButton
+                variant="outlined"
+                onClick={handleAddNewTeacher}
+                className="schoolTeachers-newTeacherButton-outlined"
+              >
+                <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+                {!isSmallScreen && t("New Teacher")}
+              </MuiButton>
+
+              <SearchAndFilter
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFilterClick={handleFilterIconClick}
+                onClearFilters={handleClearFilters}
+              />
+            </>
+          )}
         </Box>
       </Box>
 
