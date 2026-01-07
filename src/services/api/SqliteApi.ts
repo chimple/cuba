@@ -617,8 +617,6 @@ export class SqliteApi implements ServiceApi {
             return;
           }
 
-          if (!localSchoolRaw) return;
-
           const localSchoolId = localSchool?.id;
 
           if (!localSchoolId || !Array.isArray(school_user_data)) return;
