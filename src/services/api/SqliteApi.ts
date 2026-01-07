@@ -5265,7 +5265,7 @@ order by
 
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
@@ -7611,7 +7611,7 @@ order by
     }
   }
 
-  async doesStudentHaveResultForCourse(
+  async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
   ): Promise<boolean> {
@@ -7621,12 +7621,30 @@ order by
       FROM result
       WHERE student_id = ?
         AND course_id = ?
-        AND is_deleted = 0
+        AND is_deleted = false
+
+        -- 🔒 STRICT: all required columns must be present
+        AND skill_id IS NOT NULL
+        AND outcome_id IS NOT NULL
+        AND competency_id IS NOT NULL
+        AND domain_id IS NOT NULL
+        AND subject_id IS NOT NULL
+
+        AND skill_ability IS NOT NULL
+        AND outcome_ability IS NOT NULL
+        AND competency_ability IS NOT NULL
+        AND domain_ability IS NOT NULL
+        AND subject_ability IS NOT NULL
+
+        AND activities_scores IS NOT NULL
+        AND activities_scores <> ''
       LIMIT 1;
     `;
+
       const res = await this.executeQuery(query, [studentId, courseId]);
       const rows = (res as any)?.values ?? [];
-      // ✅ true = result exists, false = no result
+
+      // ✅ true ONLY if a fully-filled result exists
       return rows.length > 0;
     } catch (error) {
       console.error("❌ Error checking course history:", error);
