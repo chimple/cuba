@@ -7518,9 +7518,9 @@ export class SupabaseApi implements ServiceApi {
         { id: "country", label: "Country", value: program.country ?? "" },
         { id: "state", label: "State", value: program.state ?? "" },
         { id: "district", label: "District", value: program.district ?? "" },
-        { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
-        { id: "block", label: "Block", value: program.block ?? "" },
-        { id: "village", label: "Village", value: program.village ?? "" },
+        // { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+        // { id: "block", label: "Block", value: program.block ?? "" },
+        // { id: "village", label: "Village", value: program.village ?? "" },
       ];
 
       const partnerDetails = [
