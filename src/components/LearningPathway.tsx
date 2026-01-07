@@ -100,9 +100,8 @@ const LearningPathway: React.FC = () => {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses,
-          student
+          student.id
         );
-        await buildLearningPathForUnplayedCourses(student?.learning_path, userCourses, student);
         let total_learning_path_completed = 0;
         let learning_path_completed: { [key: string]: number } = {};
         learningPath.courses.courseList.forEach((course) => {
@@ -120,6 +119,7 @@ const LearningPathway: React.FC = () => {
         setGbUpdated(true);
 
         if (updated) await saveLearningPath(student, learningPath);
+        await buildLearningPathForUnplayedCourses(learningPath, userCourses, student);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -128,38 +128,58 @@ const LearningPathway: React.FC = () => {
     }
   };
 
- async function buildLearningPathForUnplayedCourses(
-  learningPath: any,
-  userCourses: any[],
-  student: TableTypes<"user">
-) {
-  if (!Array.isArray(userCourses) || userCourses.length === 0) {
-    return null;
-  }
-  const unplayedCourses: any[] = [];
-  // 1️⃣ Check played status
-  for (const course of userCourses) {
-    const hasPlayed = await api.isStudentPlayedPalLesson(
-      student.id,
-      course.id
-    );
-    if (!hasPlayed) {
-      unplayedCourses.push(course);
+  async function buildLearningPathForUnplayedCourses(
+    learningPath: any,
+    userCourses: any[],
+    student: TableTypes<"user">
+  ) {
+    if (!learningPath?.courses?.courseList) return null;
+    if (!Array.isArray(userCourses) || userCourses.length === 0) return null;
+
+    // 1️⃣ Find unplayed courses
+    const unplayedCourses: any[] = [];
+
+    for (const course of userCourses) {
+      const hasPlayed = await api.isStudentPlayedPalLesson(
+        student.id,
+        course.id
+      );
+      if (!hasPlayed) {
+        unplayedCourses.push(course);
+      }
     }
+
+    if (unplayedCourses.length === 0) return null;
+
+    // 2️⃣ Build path ONCE for all unplayed
+    const newLearningPath = await buildInitialLearningPath(
+      unplayedCourses,
+      student.id
+    );
+
+    const newCourseList = newLearningPath?.courses?.courseList || [];
+    const existingList = [...learningPath.courses.courseList];
+
+    // 3️⃣ Replace matching courses
+    for (const newCourse of newCourseList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse.course_id
+      );
+
+      if (index !== -1) {
+        existingList[index] = newCourse;
+      } else {
+        existingList.push(newCourse);
+      }
+    }
+
+    // 4️⃣ Save
+    learningPath.courses.courseList = existingList;
+    await saveLearningPath(student, learningPath);
+
+    return true;
   }
-  // 2️⃣ Nothing to update
-  if (unplayedCourses.length === 0) {
-    return null;
-  }
-  // 3️⃣ Build path ONCE with array
-  const newLearningPath = await buildInitialLearningPath(
-    unplayedCourses,
-    student.id
-  );
-  // 4️⃣ Update & save once
-  learningPath.courses.courseList = newLearningPath.courses.courseList;
-  await saveLearningPath(student, learningPath);
-}
+
 
   const buildInitialLearningPath = async (
     courses: any[],
