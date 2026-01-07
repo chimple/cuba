@@ -183,7 +183,7 @@ const ClassForm: React.FC<{
       <div className="class-form-container">
         <div className="class-form-title">
           {mode === "edit"
-            ? `Class: ${formValues.grade} ${formValues.section}`
+            ? `Class : ${formValues.grade} ${formValues.section}`
             : t("Create Class")}
         </div>
 
