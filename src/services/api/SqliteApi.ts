@@ -53,6 +53,8 @@ import {
   REWARD_LESSON,
   CURRENT_USER,
   DEFAULT_LOCALE_ID,
+  SCHOOL,
+  CLASS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -601,6 +603,35 @@ export class SqliteApi implements ServiceApi {
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
+        const school_user_data = data.get(TABLES.SchoolUser);
+        const localSchoolRaw = localStorage.getItem(SCHOOL);
+
+        if (localSchoolRaw) {
+          let localSchool: TableTypes<"school">;
+
+          try {
+            localSchool = JSON.parse(localSchoolRaw);
+          } catch (e) {
+            localStorage.removeItem(SCHOOL);
+            console.warn("invalid local school data removed");
+            return;
+          }
+
+          const localSchoolId = localSchool?.id;
+
+          if (!localSchoolId || !Array.isArray(school_user_data)) return;
+
+          const deletedSchoolUser = school_user_data.find(
+          (entry: TableTypes<"school_user">) =>
+            entry.school_id === localSchoolId && entry.is_deleted === true
+          );
+
+          if (deletedSchoolUser) {
+            localStorage.removeItem(SCHOOL);
+            localStorage.removeItem(CLASS);
+            console.log("local school removed because school_user is_deleted");
+          }
+        }
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -2121,7 +2152,7 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}" 
+    WHERE cl.chapter_id = "${chapterId}"
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
