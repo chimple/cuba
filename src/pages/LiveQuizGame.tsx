@@ -13,6 +13,8 @@ import ScoreCard from "../components/parent/ScoreCard";
 import { Util } from "../utility/util";
 import { t } from "i18next";
 import { Capacitor } from "@capacitor/core";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -37,6 +39,7 @@ const LiveQuizGame: FC = () => {
   // Check if the game was played from `learning_pathway`
   const learning_path: boolean = state?.learning_path ?? false;
   const isReward: boolean = state?.reward ?? false;
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -98,6 +101,15 @@ const LiveQuizGame: FC = () => {
   const handleQuizEnd = () => {
     setShowScoreCard(true);
     setShowDialogBox(true);
+
+    const popupConfig = growthbook?.getFeatureValue(
+    "generic-pop-up",
+    null
+  );
+
+  if (popupConfig) {
+    PopupManager.onGameComplete(popupConfig);
+  }
   };
 
   const push = () => {

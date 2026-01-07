@@ -53,6 +53,8 @@ import {
   REWARD_LESSON,
   CURRENT_USER,
   DEFAULT_LOCALE_ID,
+  SCHOOL,
+  CLASS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -601,6 +603,35 @@ export class SqliteApi implements ServiceApi {
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
+        const school_user_data = data.get(TABLES.SchoolUser);
+        const localSchoolRaw = localStorage.getItem(SCHOOL);
+
+        if (localSchoolRaw) {
+          let localSchool: TableTypes<"school">;
+
+          try {
+            localSchool = JSON.parse(localSchoolRaw);
+          } catch (e) {
+            localStorage.removeItem(SCHOOL);
+            console.warn("invalid local school data removed");
+            return;
+          }
+
+          const localSchoolId = localSchool?.id;
+
+          if (!localSchoolId || !Array.isArray(school_user_data)) return;
+
+          const deletedSchoolUser = school_user_data.find(
+          (entry: TableTypes<"school_user">) =>
+            entry.school_id === localSchoolId && entry.is_deleted === true
+          );
+
+          if (deletedSchoolUser) {
+            localStorage.removeItem(SCHOOL);
+            localStorage.removeItem(CLASS);
+            console.log("local school removed because school_user is_deleted");
+          }
+        }
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -2121,7 +2152,7 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}" 
+    WHERE cl.chapter_id = "${chapterId}"
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
@@ -7611,7 +7642,7 @@ order by
     }
   }
 
-  async doesStudentHaveResultForCourse(
+  async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
   ): Promise<boolean> {
@@ -7621,12 +7652,30 @@ order by
       FROM result
       WHERE student_id = ?
         AND course_id = ?
-        AND is_deleted = 0
+        AND is_deleted = false
+
+        -- 🔒 STRICT: all required columns must be present
+        AND skill_id IS NOT NULL
+        AND outcome_id IS NOT NULL
+        AND competency_id IS NOT NULL
+        AND domain_id IS NOT NULL
+        AND subject_id IS NOT NULL
+
+        AND skill_ability IS NOT NULL
+        AND outcome_ability IS NOT NULL
+        AND competency_ability IS NOT NULL
+        AND domain_ability IS NOT NULL
+        AND subject_ability IS NOT NULL
+
+        AND activities_scores IS NOT NULL
+        AND activities_scores <> ''
       LIMIT 1;
     `;
+
       const res = await this.executeQuery(query, [studentId, courseId]);
       const rows = (res as any)?.values ?? [];
-      // ✅ true = result exists, false = no result
+
+      // ✅ true ONLY if a fully-filled result exists
       return rows.length > 0;
     } catch (error) {
       console.error("❌ Error checking course history:", error);

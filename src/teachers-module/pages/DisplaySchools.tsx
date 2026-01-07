@@ -70,7 +70,8 @@ const DisplaySchools: FC = () => {
       if (
         mode === MODES.TEACHER &&
         done &&
-        location.pathname !== PAGES.HOME_PAGE
+        location.pathname !== PAGES.HOME_PAGE &&
+        Util.getCurrentSchool()
       ) {
         history.replace(PAGES.HOME_PAGE);
       }

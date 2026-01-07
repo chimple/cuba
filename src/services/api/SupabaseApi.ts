@@ -10828,14 +10828,14 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
-  async doesStudentHaveResultForCourse(
+  async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
   ): Promise<boolean> {
     try {
       if (!this.supabase) return false;
 
-      console.log("Executing Supabase query to check course history:", {
+      console.log("Executing Supabase query to check played PLA lesson:", {
         studentId,
         courseId,
       });
@@ -10846,21 +10846,35 @@ export class SupabaseApi implements ServiceApi {
         .eq("student_id", studentId)
         .eq("course_id", courseId)
         .eq("is_deleted", false)
+        .not("skill_id", "is", null)
+        .not("outcome_id", "is", null)
+        .not("competency_id", "is", null)
+        .not("domain_id", "is", null)
+        .not("subject_id", "is", null)
+
+        .not("skill_ability", "is", null)
+        .not("outcome_ability", "is", null)
+        .not("competency_ability", "is", null)
+        .not("domain_ability", "is", null)
+        .not("subject_ability", "is", null)
+
+        .not("activities_scores", "is", null)
+        .neq("activities_scores", "")
+
         .limit(1);
 
       if (error) {
-        console.error("❌ Error checking course history:", error);
+        console.error("❌ Error checking played PLA lesson:", error);
         return false;
       }
 
-      // ✅ true = result exists, false = no result
+      // ✅ true ONLY if a fully-filled result exists
       return Array.isArray(data) && data.length > 0;
     } catch (error) {
-      console.error("❌ Error checking course history:", error);
+      console.error("❌ Error checking played PLA lesson:", error);
       return false;
     }
   }
-
   async updateSchoolProgram(
   schoolId: string,
   programId: string
@@ -10880,5 +10894,4 @@ export class SupabaseApi implements ServiceApi {
 
   return true;
 }
-
 }
