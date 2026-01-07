@@ -1677,7 +1677,7 @@ export class ApiHandler implements ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any

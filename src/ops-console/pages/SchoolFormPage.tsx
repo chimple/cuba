@@ -40,8 +40,8 @@ const SchoolFormPage: React.FC = () => {
 
   const [address, setAddress] = useState({
     state: "",
-    city: "",
     district: "",
+    block: "",
     address: "",
   });
 
@@ -135,8 +135,8 @@ const SchoolFormPage: React.FC = () => {
     if (school) {
       setAddress({
         state: school.group1 || "",
-        city: school.group2 || "",
-        district: school.group3 || "",
+        district: school.group2 || "",
+        block: school.group3 || "",
         address: school.address || "",
       });
     }
@@ -162,8 +162,8 @@ const SchoolFormPage: React.FC = () => {
   const isSaveDisabled = () => {
     return (
       !address.state?.trim() ||
-      !address.city?.trim() ||
       !address.district?.trim() ||
+      !address.block?.trim() ||
       !program ||
       !fieldCoordinator
     );
@@ -194,8 +194,8 @@ const SchoolFormPage: React.FC = () => {
           STATUS.ACTIVE,
           {
             state: address.state,
-            city: address.city,
             district: address.district,
+            block: address.block,
             address: address.address,
           },
           keyContacts
@@ -295,17 +295,17 @@ const SchoolFormPage: React.FC = () => {
                 onChange: handleAddressChange,
               },
               {
-                label: t("City"),
-                name: "city",
-                value: address.city,
+                label: t("District"),
+                name: "district",
+                value: address.district,
                 required: true,
                 editable: false,
                 onChange: handleAddressChange,
               },
               {
-                label: t("District"),
-                name: "district",
-                value: address.district,
+                label: t("Block"),
+                name: "block",
+                value: address.block,
                 required: true,
                 editable: false,
                 onChange: handleAddressChange,
