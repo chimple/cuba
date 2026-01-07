@@ -1906,11 +1906,11 @@ export class ApiHandler implements ServiceApi {
   }
 
 
-  public async doesStudentHaveResultForCourse(
+  public async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
   ): Promise<boolean> {   
-    return await this.s.doesStudentHaveResultForCourse(studentId, courseId);
+    return await this.s.isStudentPlayedPalLesson(studentId, courseId);
   }
 public  async getSubjectLessonsBySubjectId(
       subjectId: string

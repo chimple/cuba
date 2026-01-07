@@ -82,12 +82,12 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
-
       const hasFrameworkCourse = userCourses.some(
         (course) => course?.framework_id
       );
       const isFrameworkPath =
         learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
+      await buildLearningPathForUnplayedCourses(userCourses, student)
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
@@ -128,6 +128,48 @@ const LearningPathway: React.FC = () => {
       setLoading(false);
     }
   };
+
+  async function buildLearningPathForUnplayedCourses(
+    userCourses: any[],
+    student:TableTypes<"user">
+  ) {
+    if (!Array.isArray(userCourses) || userCourses.length === 0) {
+      return null;
+    }
+
+    // 1️⃣ Check played status for all courses
+    const courseChecks = await Promise.all(
+      userCourses.map(async (course) => {
+        const hasPlayed = await api.isStudentPlayedPalLesson(
+          student.id,
+          course.id
+        );
+
+        return {
+          course,
+          hasPlayed,
+        };
+      })
+    );
+
+    // 2️⃣ Keep ONLY courses NOT played
+    const unplayedCourses = courseChecks
+      .filter((c) => !c.hasPlayed)
+      .map((c) => c.course);
+
+    // 3️⃣ If all courses are already played → no learning path
+    if (unplayedCourses.length === 0) {
+      console.log("✅ Student has played all courses. No learning path needed.");
+      return null;
+    }
+
+    // 4️⃣ Build learning path ONLY for unplayed courses
+    const newLearningPath = await buildInitialLearningPath(
+      unplayedCourses,
+      student.id
+    );
+    await saveLearningPath(student, newLearningPath);
+  }
 
   const buildInitialLearningPath = async (
     courses: any[],
@@ -199,7 +241,7 @@ const LearningPathway: React.FC = () => {
     // -------------------------------
     // 1️⃣ checking re student results
     // -------------------------------
-    const rawResults = await api.doesStudentHaveResultForCourse(studentId, course.id);
+    const rawResults = await api.isStudentPlayedPalLesson(studentId, course.id);
     // -------------------------------
     // 2️⃣ CASE 1: Student HAS results → PAL
     // -------------------------------
