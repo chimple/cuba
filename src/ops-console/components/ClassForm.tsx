@@ -115,7 +115,6 @@ const ClassForm: React.FC<{
 
   const isFormValid =
     formValues.grade.trim() !== "" &&
-    formValues.section.trim() !== "" &&
     selectedCourse.length > 0 &&
     !(
       mode === "edit" &&
@@ -184,13 +183,16 @@ const ClassForm: React.FC<{
       <div className="class-form-container">
         <div className="class-form-title">
           {mode === "edit"
-            ? `Class ${formValues.grade} - ${formValues.section}`
+            ? `Class: ${formValues.grade} ${formValues.section}`
             : t("Create Class")}
         </div>
 
         <div className="class-form-row">
           <div className="class-form-group">
-            <label>{t("Grade")} *</label>
+            <label>
+              {t("Grade")}
+              <span style={{ color: "#ff0000" }}> *</span>
+            </label>
             <input
               name="grade"
               type="number"
@@ -203,7 +205,7 @@ const ClassForm: React.FC<{
           </div>
 
           <div className="class-form-group">
-            <label>{t("Class Section")} *</label>
+            <label>{t("Class Section")}</label>
             <input
               name="section"
               type="text"
@@ -218,7 +220,10 @@ const ClassForm: React.FC<{
           className="class-form-group class-form-full-width"
           ref={dropdownRef}
         >
-          <label>{t("Courses")} *</label>
+          <label>
+            {t("Courses")}
+            <span style={{ color: "#ff0000" }}> *</span>
+          </label>
 
           <div
             className="multi-select-input"
