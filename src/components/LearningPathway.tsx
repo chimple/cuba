@@ -87,7 +87,6 @@ const LearningPathway: React.FC = () => {
       );
       const isFrameworkPath =
         learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
-      await buildLearningPathForUnplayedCourses(userCourses, student)
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
@@ -101,9 +100,9 @@ const LearningPathway: React.FC = () => {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses,
-          student.id
+          student
         );
-
+        await buildLearningPathForUnplayedCourses(student?.learning_path, userCourses, student);
         let total_learning_path_completed = 0;
         let learning_path_completed: { [key: string]: number } = {};
         learningPath.courses.courseList.forEach((course) => {
@@ -129,47 +128,38 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  async function buildLearningPathForUnplayedCourses(
-    userCourses: any[],
-    student:TableTypes<"user">
-  ) {
-    if (!Array.isArray(userCourses) || userCourses.length === 0) {
-      return null;
-    }
-
-    // 1️⃣ Check played status for all courses
-    const courseChecks = await Promise.all(
-      userCourses.map(async (course) => {
-        const hasPlayed = await api.isStudentPlayedPalLesson(
-          student.id,
-          course.id
-        );
-
-        return {
-          course,
-          hasPlayed,
-        };
-      })
-    );
-
-    // 2️⃣ Keep ONLY courses NOT played
-    const unplayedCourses = courseChecks
-      .filter((c) => !c.hasPlayed)
-      .map((c) => c.course);
-
-    // 3️⃣ If all courses are already played → no learning path
-    if (unplayedCourses.length === 0) {
-      console.log("✅ Student has played all courses. No learning path needed.");
-      return null;
-    }
-
-    // 4️⃣ Build learning path ONLY for unplayed courses
-    const newLearningPath = await buildInitialLearningPath(
-      unplayedCourses,
-      student.id
-    );
-    await saveLearningPath(student, newLearningPath);
+ async function buildLearningPathForUnplayedCourses(
+  learningPath: any,
+  userCourses: any[],
+  student: TableTypes<"user">
+) {
+  if (!Array.isArray(userCourses) || userCourses.length === 0) {
+    return null;
   }
+  const unplayedCourses: any[] = [];
+  // 1️⃣ Check played status
+  for (const course of userCourses) {
+    const hasPlayed = await api.isStudentPlayedPalLesson(
+      student.id,
+      course.id
+    );
+    if (!hasPlayed) {
+      unplayedCourses.push(course);
+    }
+  }
+  // 2️⃣ Nothing to update
+  if (unplayedCourses.length === 0) {
+    return null;
+  }
+  // 3️⃣ Build path ONCE with array
+  const newLearningPath = await buildInitialLearningPath(
+    unplayedCourses,
+    student.id
+  );
+  // 4️⃣ Update & save once
+  learningPath.courses.courseList = newLearningPath.courses.courseList;
+  await saveLearningPath(student, learningPath);
+}
 
   const buildInitialLearningPath = async (
     courses: any[],
