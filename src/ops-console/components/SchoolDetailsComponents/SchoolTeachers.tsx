@@ -42,6 +42,7 @@ interface DisplayTeacher {
   classSection: string;
   phoneNumber: string;
   emailDisplay: string;
+  phoneEmailDisplay: string;
   class: string;
   classId: string;
   interactData: string;
@@ -283,6 +284,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       classSection: apiTeacher.classSection,
       phoneNumber: apiTeacher.user.phone || "—",
       emailDisplay: apiTeacher.user.email || "—",
+      phoneEmailDisplay: `${apiTeacher.user.phone || "—"} / ${apiTeacher.user.email || "—"}`,
       class: `${apiTeacher.grade}${apiTeacher.classSection}`,
       classId: apiTeacher.classWithidname?.id ?? "",
       interactData: "",
@@ -317,6 +319,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               classSection: apiTeacher.classSection,
               phoneNumber: apiTeacher.user?.phone || "—",
               emailDisplay: apiTeacher.user?.email || "—",
+              phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || "—"} / ${apiTeacher.user?.email?.trim() || "—"}`,
               class: `${apiTeacher.grade}${apiTeacher.classSection}`,
               classId: "",
               interactData: "",
@@ -341,6 +344,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             classSection: apiTeacher.classSection,
             phoneNumber: apiTeacher.user?.phone || "—",
             emailDisplay: apiTeacher.user?.email || "—",
+            phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || "—"} / ${apiTeacher.user?.email?.trim() || "—"}`,
             class: `${apiTeacher.grade}${apiTeacher.classSection}`,
             classId,
             interactData: "",
@@ -437,7 +441,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           });
           return;
         }
-        const email = rawEmail.toLowerCase();
+        const email = (values.email ?? "").toString().trim().toLowerCase();
         const normalizedPhone = normalizePhone10(rawPhone);
         const hasEmail = !!email;
         const hasPhone = !!normalizedPhone;
@@ -473,7 +477,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         await api.getOrcreateschooluser({
           name,
           phoneNumber: finalPhone || undefined,
-          email: finalEmail || undefined,
+          email: finalEmail.trim() === "" ? undefined : finalEmail,
           role: RoleType.TEACHER,
           classId: classIds,
           schoolId: schoolId,
@@ -627,14 +631,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     },
     // { key: "phoneNumber", label: t("Phone Number") },
     {
-      key: "emailDisplay",
-      label: t("Email"),
-      renderCell: (t) => (
-        <Typography variant="body2" className="truncate-text">
-          {t.emailDisplay}
-        </Typography>
-      ),
-    },
+          key: "phoneEmailDisplay",   // 🔹 use merged column
+          label: t("Phone no. / Email"),
+          renderCell: (row) => (
+            <Typography variant="body2" className="truncate-text">
+              {row.phoneEmailDisplay}
+            </Typography>
+          ),
+        }
   ];
 
   const handleClearFilters = useCallback(() => {

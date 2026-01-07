@@ -19,6 +19,7 @@ interface DisplayPrincipal {
   gender: string;
   phoneNumber: string;
   emailDisplay: string;
+  phoneEmailDisplay: string;
   interact: "";
   interactPayload: PrincipalInfo;
 }
@@ -142,6 +143,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       gender: p.gender || "N/A",
       phoneNumber: p.phone || "-",
       emailDisplay: p.email || "—",
+      phoneEmailDisplay: `${p.phone?.trim() || "-"} / ${p.email?.trim() || "-"}`,
       interact: "",
       interactPayload: p,
     }));
@@ -304,16 +306,18 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Box>
       ),
     },
-    // { key: "phoneNumber", label: t("Phone Number") },
+
     {
-      key: "emailDisplay",
-      label: t("Email"),
-      renderCell: (p) => (
+      key: "phoneEmailDisplay",   // 🔹 use merged column
+      label: t("Phone no. / Email"),
+      renderCell: (row) => (
         <Typography variant="body2" className="truncate-text">
-          {p.emailDisplay}
+          {row.phoneEmailDisplay}
         </Typography>
       ),
-    },
+    }
+
+
   ];
 
   return (
@@ -366,7 +370,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
-              onRowClick={() => {}}
+              onRowClick={() => { }}
             />
           </div>
           {pageCount > 1 && (
