@@ -191,7 +191,7 @@ const ClassForm: React.FC<{
           <div className="class-form-group">
             <label>
               {t("Grade")}
-              <span style={{ color: "#ff0000" }}> *</span>
+              <span className="class-form-group-required-star"> *</span>
             </label>
             <input
               name="grade"
@@ -222,7 +222,7 @@ const ClassForm: React.FC<{
         >
           <label>
             {t("Courses")}
-            <span style={{ color: "#ff0000" }}> *</span>
+            <span className="class-form-group-required-star"> *</span>
           </label>
 
           <div
