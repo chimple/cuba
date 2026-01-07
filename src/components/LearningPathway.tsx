@@ -87,7 +87,7 @@ const LearningPathway: React.FC = () => {
       );
       const isFrameworkPath =
         learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
-      await buildLearningPathForUnplayedCourses(userCourses, student.id)
+      await buildLearningPathForUnplayedCourses(userCourses, student)
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
@@ -131,7 +131,7 @@ const LearningPathway: React.FC = () => {
 
   async function buildLearningPathForUnplayedCourses(
     userCourses: any[],
-    studentId: string
+    student:TableTypes<"user">
   ) {
     if (!Array.isArray(userCourses) || userCourses.length === 0) {
       return null;
@@ -141,7 +141,7 @@ const LearningPathway: React.FC = () => {
     const courseChecks = await Promise.all(
       userCourses.map(async (course) => {
         const hasPlayed = await api.isStudentPlayedPalLesson(
-          studentId,
+          student.id,
           course.id
         );
 
@@ -166,9 +166,9 @@ const LearningPathway: React.FC = () => {
     // 4️⃣ Build learning path ONLY for unplayed courses
     const newLearningPath = await buildInitialLearningPath(
       unplayedCourses,
-      studentId
+      student.id
     );
-    await saveLearningPath(studentId, newLearningPath);
+    await saveLearningPath(student, newLearningPath);
   }
 
   const buildInitialLearningPath = async (
