@@ -2553,7 +2553,7 @@ export interface ServiceApi {
 
   getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
 
-  doesStudentHaveResultForCourse(
+  isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
   ): Promise<boolean>;
