@@ -254,7 +254,7 @@ export const CONTINUE = "continue";
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
     displayName: "User",
-    iconSrc: "assets/icons/favicon.png",
+    iconSrc: "/assets/icons/favicon.png",
     headerList: PARENTHEADERLIST.PROFILE,
   },
   {
@@ -650,14 +650,28 @@ export const STARS_COUNT = "starsCount";
 export const LATEST_STARS = "latestStar";
 export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
+export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
+export const GENERIC_POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
+export enum GENERIC_POPUP_TRIGGER_CONDITION {
+  APP_OPEN = "APP_OPEN",
+  GAME_COMPLETE = "GAME_COMPLETE",
+  TIME_ELAPSED = "TIME_ELAPSED",
+}
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",
 }
 
+const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? "";
+const normalizedWebBaseName = rawWebBaseName
+  .replace(/\/$/, "")
+  .replace(/^\.$/, "")
+  .replace(/^\.\//, "");
 export const BASE_NAME =
-  !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
-    ? process.env.REACT_APP_GITHUB_BASE
+  !Capacitor.isNativePlatform() && normalizedWebBaseName
+    ? normalizedWebBaseName.startsWith("/")
+      ? normalizedWebBaseName
+      : `/${normalizedWebBaseName}`
     : "";
 export const MIN_PASS = 70;
 export const IS_CUBA = "is_cuba";
@@ -839,6 +853,9 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = "live_update_applied",
   LIVE_UPDATE_STARTED = "live_update_started",
   LIVE_UPDATE_ERROR = "live_update_error",
+  ASSESSMENT_ABORTED = "assessment_aborted",
+  ASSESSMENT_COMPLETED = "assessment_completed",
+  RESULTS_SAVED = "results_saved",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -942,7 +959,6 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
-
 export const LidoActivityEndKey = "lidoActivityEnd";
 export const LidoLessonEndKey = "lidoLessonEnd";
 export const LidoNextContainerKey = "lidoNextContainer";
@@ -955,6 +971,7 @@ export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
 export const LOCAL_LESSON_BUNDLES_PATH = "/assets/lessonBundles/";
+
 
 export const ALL_SUBJECT = {
   id: "all",
@@ -1230,3 +1247,11 @@ export const PERFORMANCE_UI: Record<
 };
 export const COURSE_CHANGED = "courseChanged";
 export const NOTES_UPDATED_EVENT = "notes:updated";
+export const ASSESSMENT_FAIL_KEY = "assessment_failed_once";
+export const LIDO_SCORES_KEY = "lido_scores";
+// 🔔 Custom Lido lifecycle events
+export const LIDO_ASSESSMENT_ABORTED = "LIDO_ASSESSMENT_ABORTED";
+export const LIDO_ASSESSMENT_COMPLETED = "LIDO_ASSESSMENT_COMPLETED";
+export const LIDO_LESSON_COMPLETED = "LIDO_LESSON_COMPLETED";
+export const LIDO_RESULTS_SAVED = "LIDO_RESULTS_SAVED";
+

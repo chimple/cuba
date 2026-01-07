@@ -1,6 +1,8 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import {
   EVENTS,
   GAME_END,
@@ -37,7 +39,7 @@ const CocosGame: React.FC = () => {
     from?: string;
     assignment?: any;
   };
-
+  const growthbook = useGrowthBook();
   // const playedFrom = location?.from?.split('/')[1].split('?')[0]
   const playedFrom = localStorage.getItem("currentHeader");
   const assignmentType = location?.assignment?.type || "self-played";
@@ -216,6 +218,14 @@ const CocosGame: React.FC = () => {
   const handleLessonEndListner = (event: any) => {
   savingPromiseRef.current = saveTempData(event.detail); // Store the promise
   setGameResult(event);
+  const popupConfig = growthbook?.getFeatureValue(
+    "generic-pop-up",
+    null
+  );
+
+  if (popupConfig) {
+    PopupManager.onGameComplete(popupConfig);
+  }
 };
 
   function handleProblemEnd(event: any) {
