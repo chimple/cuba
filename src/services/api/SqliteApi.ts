@@ -607,7 +607,7 @@ export class SqliteApi implements ServiceApi {
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
-          let localSchool;
+          let localSchool: TableTypes<"school">;
 
           try {
             localSchool = JSON.parse(localSchoolRaw);
@@ -624,7 +624,7 @@ export class SqliteApi implements ServiceApi {
           if (!localSchoolId || !Array.isArray(school_user_data)) return;
 
           const deletedSchoolUser = school_user_data.find(
-          (entry: any) =>
+          (entry: TableTypes<"school_user">) =>
             entry.school_id === localSchoolId && entry.is_deleted === true
           );
 
