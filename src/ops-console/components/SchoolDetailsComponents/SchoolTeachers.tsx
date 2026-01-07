@@ -109,7 +109,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
     DisplayTeacher[]
   >([]);
-
+const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
     return (currentPage: number, search: string, silent = false) => {
@@ -407,91 +407,91 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     setErrorMessage(undefined);
   };
 
-  const handleTeacherSubmit = useCallback(
-    async (values: Record<string, string>) => {
-      try {
-        const name = (values.name ?? "").toString().trim();
-        const classIdsString = (values.class ?? "").toString().trim();
-        const rawEmail = (values.email ?? "").toString().trim();
-        const rawPhone = (values.phoneNumber ?? "").toString();
-        if (!name) {
-          setErrorMessage({ text: "Teacher name is required.", type: "error" });
-          return;
-        }
-        if (!classIdsString) {
-          setErrorMessage({
-            text: "At least one class is required.",
-            type: "error",
-          });
-          return;
-        }
-        const classIds = classIdsString
-          .split(",")
-          .map((id) => id.trim())
-          .filter(Boolean);
+const handleTeacherSubmit = useCallback(
+  async (values: Record<string, string>) => {
+    try {
+      const name = (values.name ?? "").toString().trim();
+      const classIdsString = (values.class ?? "").toString().trim();
+      const rawEmail = (values.email ?? "").toString().trim();
+      const rawPhone = (values.phoneNumber ?? "").toString();
 
-        if (classIds.length === 0) {
-          setErrorMessage({
-            text: "At least one class is required.",
-            type: "error",
-          });
-          return;
-        }
-        const email = rawEmail.toLowerCase();
-        const normalizedPhone = normalizePhone10(rawPhone);
-        const hasEmail = !!email;
-        const hasPhone = !!normalizedPhone;
-        if (!hasEmail && !hasPhone) {
-          setErrorMessage({
-            text: "Please provide either an email or a phone number.",
-            type: "error",
-          });
-          return;
-        }
-        let finalEmail = "";
-        let finalPhone = "";
-        if (hasEmail) {
-          if (!emailRegex.test(email)) {
-            setErrorMessage({
-              text: "Please enter a valid email address.",
-              type: "error",
-            });
-            return;
-          }
-          finalEmail = email;
-        }
-        if (hasPhone) {
-          if (normalizedPhone.length !== 10) {
-            setErrorMessage({
-              text: "Phone number must be 10 digits.",
-              type: "error",
-            });
-            return;
-          }
-          finalPhone = normalizedPhone;
-        }
-        await api.getOrcreateschooluser({
-          name,
-          phoneNumber: finalPhone || undefined,
-          email: finalEmail || undefined,
-          role: RoleType.TEACHER,
-          classId: classIds,
-          schoolId: schoolId,
-        });
-        setIsAddTeacherModalOpen(false);
-        setPage(1);
-        fetchTeachers(1, "");
-      } catch (e: any) {
-        const message = e instanceof Error ? e.message : String(e);
-        setErrorMessage({
-          text: message,
-          type: "error",
-        });
-        console.error("Failed to add teacher:", e);
+      if (!name) {
+        setErrorMessage({ text: "Teacher name is required.", type: "error" });
+        return;
       }
-    },
-    [schoolId, fetchTeachers, api]
-  );
+      if (!classIdsString) {
+        setErrorMessage({ text: "At least one class is required.", type: "error" });
+        return;
+      }
+
+      const classIds = classIdsString
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (classIds.length === 0) {
+        setErrorMessage({ text: "At least one class is required.", type: "error" });
+        return;
+      }
+
+      const email = rawEmail.toLowerCase();
+      const normalizedPhone = normalizePhone10(rawPhone);
+      const hasEmail = !!email;
+      const hasPhone = !!normalizedPhone;
+
+      if (!hasEmail && !hasPhone) {
+        setErrorMessage({ text: "Please provide either an email or a phone number.", type: "error" });
+        return;
+      }
+
+      let finalEmail = "";
+      let finalPhone = "";
+
+      if (hasEmail) {
+        if (!emailRegex.test(email)) {
+          setErrorMessage({ text: "Please enter a valid email address.", type: "error" });
+          return;
+        }
+        finalEmail = email;
+      }
+
+      if (hasPhone) {
+        if (normalizedPhone.length !== 10) {
+          setErrorMessage({ text: "Phone number must be 10 digits.", type: "error" });
+          return;
+        }
+        finalPhone = normalizedPhone;
+      }
+
+      setIsSubmitting(true); // start loading
+      setErrorMessage(undefined);
+
+      await api.getOrcreateschooluser({
+        name,
+        phoneNumber: finalPhone || undefined,
+        email: finalEmail || undefined,
+        role: RoleType.TEACHER,
+        classId: classIds,
+        schoolId: schoolId,
+      });
+
+      // Show success message for 2 seconds
+      setErrorMessage({ text: "Teacher added successfully" ,type:"success"});
+      setTimeout(() => {
+        setIsAddTeacherModalOpen(false); // close modal
+        setPage(1);
+        fetchTeachers(1, ""); // refresh teacher list
+      }, 2000);
+    } catch (e: any) {
+      const message = e instanceof Error ? e.message : String(e);
+      setErrorMessage({ text: message, type: "error" });
+      console.error("Failed to add teacher:", e);
+    } finally {
+      setIsSubmitting(false); // stop loading
+    }
+  },
+  [schoolId, fetchTeachers, api]
+);
 
   const classOptions = useMemo(() => {
     if (!data.classData || data.classData.length === 0) return [];
@@ -765,15 +765,16 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Box>
       )}
 
-      <FormCard
-        open={isAddTeacherModalOpen}
-        title={t("Add New Teacher")}
-        submitLabel={t("Add Teacher")}
-        fields={teacherFormFields}
-        onClose={handleCloseAddTeacherModal}
-        onSubmit={handleTeacherSubmit}
-        message={errorMessage}
-      />
+     <FormCard
+  open={isAddTeacherModalOpen}
+  title={t("Add New Teacher")}
+  submitLabel={isSubmitting ? t("Adding...") : t("Add Teacher")}
+  fields={teacherFormFields}
+  onClose={handleCloseAddTeacherModal}
+  onSubmit={handleTeacherSubmit}
+  message={errorMessage}
+/>
+
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { FC, useState, useEffect } from "react";
 import Course from "../../models/course";
-import "./SelectCourse.css";
 import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
@@ -11,8 +10,7 @@ import {
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import Loading from "../Loading";
-import "../LessonSlider.css";
-import "../../pages/DisplayChapters.css";
+import "./AddCourse.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
 const AddCourse: FC<{
@@ -99,12 +97,12 @@ const AddCourse: FC<{
 
   const renderSubjectCard = (curr, currt) => {
     return (
-      <div className="Subject-slider-content">
+      <div className="add-course-subject-slider-content">
         <Splide
           hasTrack={true}
           options={{
             arrows: false,
-            wheel: true,
+            wheel: false,
             lazyLoad: true,
             direction: "ltr",
             pagination: false,
@@ -116,7 +114,10 @@ const AddCourse: FC<{
               const gradeTitle = grade ? grade.name : "";
 
               return (
-                <SplideSlide className="slide" key={course.course.id}>
+                <SplideSlide
+                  className="add-course-slide"
+                  key={course.course.id}
+                >
                   <div
                     onClick={async () => {
                       const newCourses = allCourses.map((c) => {
@@ -127,26 +128,26 @@ const AddCourse: FC<{
                       setAllCourses(newCourses);
                       handleClick(course.course!);
                     }}
-                    className="subject-button"
+                    className="add-course-subject-button"
                   >
                     {course.selected ? (
-                      <div id="subject-card-select-icon">
+                      <div id="add-course-subject-card-select-icon">
                         <div>
                           <BsFillCheckCircleFill
                             color={"white"}
-                            className="gender-check-box"
+                            className="add-course-gender-check-box"
                             size="4vh"
                           />
                         </div>
                       </div>
                     ) : null}
 
-                    <div id="subject-card-subject-name">
+                    <div id="add-course-subject-card-subject-name">
                       <p>{gradeTitle}</p>
                     </div>
 
                     <div
-                      className="course-icon"
+                      className="add-course-course-icon"
                       style={{
                         backgroundColor:
                           course.course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
@@ -169,8 +170,8 @@ const AddCourse: FC<{
                     </div>
 
                     {currt ? (
-                      <div id="ignore">
-                        <p id="ignore">{currt} Curriculum</p>
+                      <div id="add-course-ignore">
+                        <p id="add-course-ignore">{currt} Curriculum</p>
                       </div>
                     ) : null}
                   </div>
@@ -197,7 +198,7 @@ const AddCourse: FC<{
             if (coursesForCurriculum.length > 0) {
               return (
                 <div key={curriculum.id}>
-                  <div className="subject-header">
+                  <div className="add-course-subject-header">
                     {t(curriculum.name) + " " + t("Curriculum")}
                   </div>
                   {renderSubjectCard(curriculum.id, curriculum.name)}

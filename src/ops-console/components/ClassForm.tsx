@@ -190,7 +190,9 @@ const ClassForm: React.FC<{
 
         <div className="class-form-row">
           <div className="class-form-group">
-            <label>{t("Grade")} *</label>
+            <label>
+              {t("Grade")} <span className="class-form-required">*</span>
+            </label>
             <input
               name="grade"
               type="number"
@@ -203,7 +205,10 @@ const ClassForm: React.FC<{
           </div>
 
           <div className="class-form-group">
-            <label>{t("Class Section")} *</label>
+            <label>
+              {t("Class Section")}{" "}
+              <span className="class-form-required">*</span>
+            </label>
             <input
               name="section"
               type="text"
@@ -218,7 +223,9 @@ const ClassForm: React.FC<{
           className="class-form-group class-form-full-width"
           ref={dropdownRef}
         >
-          <label>{t("Courses")} *</label>
+          <label>
+            {t("Courses")} <span className="class-form-required">*</span>
+          </label>
 
           <div
             className="multi-select-input"
