@@ -593,6 +593,12 @@ const LidoPlayer: FC = () => {
   async function init() {
     setIsLoading(true);
     setShowDialogBox(false);
+    // --- CRITICAL FIX: Clear the global variable pollution ---
+    // This ensures that when the new player starts, it doesn't see the 
+    // path from the PREVIOUS student's language.
+    if (typeof window !== "undefined") {
+     (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
+    }
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
@@ -610,11 +616,19 @@ const LidoPlayer: FC = () => {
         return;
       }
       try {
-        const commonAudioUri = await Filesystem.getUri({
-          directory: Directory.Data,
-          path: LIDO_COMMON_AUDIO_DIR,
-        });
-        setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
+        const student = Util.getCurrentStudent();
+        if (student && student.language_id) {
+          const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
+          const commonAudioUri = await Filesystem.getUri({
+            directory: Directory.Data,
+            path: audioPath,
+          });
+          setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
+        } else {
+          console.warn(
+            "[LidoPlayer] Could not determine student language for common audio path."
+          );
+        }
       } catch (e) {
         console.error("Could not get common audio path", e);
       }
@@ -643,7 +657,7 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {xmlPath || basePath
+      {xmlPath || basePath 
         ? React.createElement("lido-standalone", {
           "xml-path": xmlPath,
           "base-url": basePath,
