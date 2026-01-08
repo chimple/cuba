@@ -20,6 +20,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
   schoolId,
 }) => {
   const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
@@ -33,7 +34,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
         /*Fetch school → courses */
         const schoolCourses = (await api.getCoursesBySchoolId(schoolId)) ?? [];
         const courseArrays = await Promise.all(
-          schoolCourses.map((ln: any) => api.getCourse(ln.course_id))
+          schoolCourses.map((ln) => api.getCourse(ln.course_id))
         );
 
         const courses = courseArrays
