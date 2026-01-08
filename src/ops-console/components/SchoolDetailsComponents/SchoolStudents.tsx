@@ -939,20 +939,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [history]);
 
   const handleEditSubmit = async (values) => {
-  if (!editStudentData) return; // null safety
+  if (!editStudentData) return; // ✅ null safety
 
   const user = editStudentData.user;
- 
-    await api.updateStudent(
+  const classId = editStudentData.classWithidname?.id;
+
+  if (!classId) {
+    console.error("Class ID missing for student");
+    return;
+  }
+    await api.updateStudentFromSchoolMode(
       user,
       values.studentName,
       Number(values.ageGroup),
       values.gender,
-      user.avatar!,
-      user.image!,
-      user.curriculum_id!,
-      user.grade_id!,
-      user.language_id!,
+      user.avatar || "",
+      user.image || "",
+      user.curriculum_id || user.curriculum_id!,
+      user.grade_id || user.grade_id!,
+      user.language_id || user.language_id!,
+      user.student_id || user.student_id!,
+      classId
     );
 
     setIsEditStudentModalOpen(false);
