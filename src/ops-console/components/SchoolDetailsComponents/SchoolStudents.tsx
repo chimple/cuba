@@ -27,6 +27,7 @@ import {
   EnumType,
   SupportLevelMap,
   ContactTarget,
+  AVATARS
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -932,6 +933,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   },
 ];
 
+const getRandomAvatar = () => {
+  if (AVATARS.length === 0) return "";
+  const randomIndex = Math.floor(Math.random() * AVATARS.length);
+  return AVATARS[randomIndex];
+};
+
 
   const handleAddNewStudent = useCallback(() => {
     setIsAddStudentModalOpen(true);
@@ -943,6 +950,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const user = editStudentData.user;
   const classId = editStudentData.classWithidname?.id;
+  const avatarToSend =
+  user.avatar && user.avatar.trim() !== ""
+    ? user.avatar
+    : getRandomAvatar();
 
   if (!classId) {
     console.error("Class ID missing for student");
@@ -953,7 +964,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       values.studentName,
       Number(values.ageGroup),
       values.gender,
-      user.avatar || "",
+      avatarToSend,
       user.image || "",
       user.curriculum_id || user.curriculum_id!,
       user.grade_id || user.grade_id!,
