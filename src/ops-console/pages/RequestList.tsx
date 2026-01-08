@@ -656,8 +656,18 @@ const RequestList: React.FC = () => {
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
-                  setSelectedTab(val);
                   setPage(1);
+                  const newTab = val as REQUEST_TABS;
+                  setSelectedTab(newTab);
+                  setPage(1);
+                  // Update order based on the new tab
+                  if (newTab === REQUEST_TABS.APPROVED)
+                    setOrderBy("approved_date");
+                  else if (newTab === REQUEST_TABS.REJECTED)
+                    setOrderBy("rejected_date");
+                  else if (newTab === REQUEST_TABS.FLAGGED)
+                    setOrderBy("flagged_date");
+                  else setOrderBy("requested_date");
                 }}
                 indicatorColor="primary"
                 variant="scrollable"
