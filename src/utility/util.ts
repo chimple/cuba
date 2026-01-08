@@ -40,7 +40,7 @@ import {
   DOWNLOADING_CHAPTER_ID,
   TABLES,
   REFRESH_TOKEN,
-  SCHOOL, 
+  SCHOOL,
   USER_ROLE,
   CLASS,
   CURRENT_COURSE,
@@ -2365,6 +2365,7 @@ export class Util {
     history: any,
     originPage: PAGES
   ) {
+    if(schoolId == undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
