@@ -260,6 +260,7 @@ const SelectMode: FC = () => {
     return;
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
+    await Util.ensureLidoCommonAudioForStudent(student);
     await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };

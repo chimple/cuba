@@ -68,7 +68,6 @@ import {
   RECOMMENDATION_TYPE,
   USER_SELECTION_STAGE,
   CURRENT_MODE,
-  LIDO_COMMON_AUDIO_LANG_KEY,
   LIDO_COMMON_AUDIO_DIR,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
@@ -3375,10 +3374,18 @@ public static async updateLearningPath(
         return true;
       }
 
-      // ✅ Skip if already downloaded for same language
-      const storedLang = localStorage.getItem(LIDO_COMMON_AUDIO_LANG_KEY);
-      if (storedLang === languageId) {
+      const langSpecificDir = `${LIDO_COMMON_AUDIO_DIR}/${languageId}`;
+
+      try {
+        // Check if directory exists
+        await Filesystem.stat({
+          path: langSpecificDir,
+          directory: Directory.Data,
+        });
+        // If stat doesn't throw, directory exists.
         return true;
+      } catch (e) {
+        // Directory does not exist, proceed to download.
       }
       const fs = createFilesystem(Filesystem, {
         rootDir: "/",
@@ -3405,27 +3412,13 @@ public static async updateLearningPath(
 
       const buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
 
-      // 🧹 Clean old audio files (language changed)
-      try {
-        await Filesystem.rmdir({
-          path: LIDO_COMMON_AUDIO_DIR,
-          directory: Directory.Data,
-          recursive: true,
-        });
-      } catch {
-        // folder may not exist — ignore
-      }
-
-      // 📦 Unzip to /Lido-CommonAudios
+      // 📦 Unzip to /Lido-CommonAudios/{languageId}
       await unzip({
         fs,
-        extractTo: LIDO_COMMON_AUDIO_DIR,
+        extractTo: langSpecificDir,
         filepaths: ["."],
         data: buffer,
       });
-
-      // 💾 Cache language
-      localStorage.setItem(LIDO_COMMON_AUDIO_LANG_KEY, languageId);
 
       return true;
     } catch (err) {
