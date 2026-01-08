@@ -122,16 +122,8 @@ const RequestList: React.FC = () => {
   const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<
     Map<string, string>
   >(new Map());
-  const [orderBy, setOrderBy] = useState(() => {
-    const v = qs.get("tab") as REQUEST_TABS | null;
-    const tab =
-      v && Object.values(REQUEST_TABS).includes(v) ? v : REQUEST_TABS.PENDING;
-    if (tab === REQUEST_TABS.APPROVED) return "approved_date";
-    if (tab === REQUEST_TABS.REJECTED) return "rejected_date";
-    if (tab === REQUEST_TABS.FLAGGED) return "flagged_date";
-    return "requested_date";
-  });
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">("desc");
+  const [orderBy, setOrderBy] = useState("requested_date");
+  const [orderDir, setOrderDir] = useState<"desc" | "asc">("desc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
@@ -664,19 +656,8 @@ const RequestList: React.FC = () => {
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
-                  const newTab = val as REQUEST_TABS;
-                  setSelectedTab(newTab);
+                  setSelectedTab(val);
                   setPage(1);
-
-                  // Update order based on the new tab
-                  if (newTab === REQUEST_TABS.APPROVED)
-                    setOrderBy("approved_date");
-                  else if (newTab === REQUEST_TABS.REJECTED)
-                    setOrderBy("rejected_date");
-                  else if (newTab === REQUEST_TABS.FLAGGED)
-                    setOrderBy("flagged_date");
-                  else setOrderBy("requested_date");
-                  setOrderDir("desc");
                 }}
                 indicatorColor="primary"
                 variant="scrollable"
