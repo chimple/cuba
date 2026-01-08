@@ -22,8 +22,6 @@ interface SchoolOverviewProps {
 }
 
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
-
-  console.log("✅✅✅",data);
   // school details
   const formatingSchoolModel = (raw: any) => {
     if (!raw) return "";
