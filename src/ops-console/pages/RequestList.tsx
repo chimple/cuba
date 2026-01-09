@@ -546,7 +546,7 @@ const RequestList: React.FC = () => {
       setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setOrderBy(colKey);
-      setOrderDir("desc");
+      setOrderDir(colKey === "school_name" ? "asc" : "desc");
     }
     setPage(1);
   };
@@ -668,6 +668,7 @@ const RequestList: React.FC = () => {
                   else if (newTab === REQUEST_TABS.FLAGGED)
                     setOrderBy("flagged_date");
                   else setOrderBy("requested_date");
+                  setOrderDir("desc");
                 }}
                 indicatorColor="primary"
                 variant="scrollable"
