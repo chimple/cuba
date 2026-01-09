@@ -9151,7 +9151,7 @@ export class SupabaseApi implements ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -9166,7 +9166,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.state !== undefined) updatePayload.group1 = address.state;
     if (address?.district !== undefined)
       updatePayload.group2 = address.district;
-    if (address?.city !== undefined) updatePayload.group3 = address.city;
+    if (address?.block !== undefined) updatePayload.group3 = address.block;
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
@@ -10875,5 +10875,23 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
+  async updateSchoolProgram(
+  schoolId: string,
+  programId: string
+): Promise<boolean> {
 
+  if (!this.supabase) return false;            // <-- guard
+
+  const { error } = await this.supabase        // <-- await
+    .from("school")
+    .update({ program_id: programId })
+    .eq("id", schoolId);
+
+  if (error) {
+    console.error("Error updating school program:", error);
+    return false;
+  }
+
+  return true;
+}
 }
