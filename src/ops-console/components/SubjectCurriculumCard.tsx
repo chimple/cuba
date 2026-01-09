@@ -19,7 +19,6 @@ interface Row {
 const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
   schoolId,
 }) => {
-  const [loading, setLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
 
