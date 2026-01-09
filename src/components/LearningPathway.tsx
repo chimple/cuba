@@ -87,7 +87,6 @@ const LearningPathway: React.FC = () => {
       );
       const isFrameworkPath =
         learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
-      await buildLearningPathForUnplayedCourses(userCourses, student.id)
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
@@ -103,7 +102,6 @@ const LearningPathway: React.FC = () => {
           userCourses,
           student.id
         );
-
         let total_learning_path_completed = 0;
         let learning_path_completed: { [key: string]: number } = {};
         learningPath.courses.courseList.forEach((course) => {
@@ -121,6 +119,7 @@ const LearningPathway: React.FC = () => {
         setGbUpdated(true);
 
         if (updated) await saveLearningPath(student, learningPath);
+        await buildLearningPathForUnplayedCourses(learningPath, userCourses, student);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -130,46 +129,57 @@ const LearningPathway: React.FC = () => {
   };
 
   async function buildLearningPathForUnplayedCourses(
+    learningPath: any,
     userCourses: any[],
-    studentId: string
+    student: TableTypes<"user">
   ) {
-    if (!Array.isArray(userCourses) || userCourses.length === 0) {
-      return null;
+    if (!learningPath?.courses?.courseList) return null;
+    if (!Array.isArray(userCourses) || userCourses.length === 0) return null;
+
+    // 1️⃣ Find unplayed courses
+    const unplayedCourses: any[] = [];
+
+    for (const course of userCourses) {
+      const hasPlayed = await api.isStudentPlayedPalLesson(
+        student.id,
+        course.id
+      );
+      if (!hasPlayed) {
+        unplayedCourses.push(course);
+      }
     }
 
-    // 1️⃣ Check played status for all courses
-    const courseChecks = await Promise.all(
-      userCourses.map(async (course) => {
-        const hasPlayed = await api.isStudentPlayedPalLesson(
-          studentId,
-          course.id
-        );
+    if (unplayedCourses.length === 0) return null;
 
-        return {
-          course,
-          hasPlayed,
-        };
-      })
-    );
-
-    // 2️⃣ Keep ONLY courses NOT played
-    const unplayedCourses = courseChecks
-      .filter((c) => !c.hasPlayed)
-      .map((c) => c.course);
-
-    // 3️⃣ If all courses are already played → no learning path
-    if (unplayedCourses.length === 0) {
-      console.log("✅ Student has played all courses. No learning path needed.");
-      return null;
-    }
-
-    // 4️⃣ Build learning path ONLY for unplayed courses
+    // 2️⃣ Build path ONCE for all unplayed
     const newLearningPath = await buildInitialLearningPath(
       unplayedCourses,
-      studentId
+      student.id
     );
-    await saveLearningPath(studentId, newLearningPath);
+
+    const newCourseList = newLearningPath?.courses?.courseList || [];
+    const existingList = [...learningPath.courses.courseList];
+
+    // 3️⃣ Replace matching courses
+    for (const newCourse of newCourseList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse.course_id
+      );
+
+      if (index !== -1) {
+        existingList[index] = newCourse;
+      } else {
+        existingList.push(newCourse);
+      }
+    }
+
+    // 4️⃣ Save
+    learningPath.courses.courseList = existingList;
+    await saveLearningPath(student, learningPath);
+
+    return true;
   }
+
 
   const buildInitialLearningPath = async (
     courses: any[],

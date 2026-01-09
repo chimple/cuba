@@ -17,6 +17,7 @@ export interface FieldConfig {
   options?: { value: string; label: string }[];
   column?: FieldColumn;
   multi?: boolean;
+  disabled?: boolean;
 }
 
 export type MessageType = "error" | "warning" | "info" | "success";
@@ -34,6 +35,8 @@ interface EntityModalProps {
   onClose: () => void;
   onSubmit: (values: Record<string, string>) => void;
   message?: MessageConfig | string;
+  initialValues?: Record<string, string>;
+  disabled?: boolean; 
 }
 
 const FormCard: React.FC<EntityModalProps> = ({
@@ -44,19 +47,24 @@ const FormCard: React.FC<EntityModalProps> = ({
   onClose,
   onSubmit,
   message,
+  initialValues,
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) return;
-    const init: Record<string, string> = {};
-    fields.forEach((f) => {
-      init[f.name] = "";
-    });
-    setValues(init);
-    setOpenSelect(null);
-  }, [open, fields]);
+  if (!open) return;
+
+  const init: Record<string, string> = {};
+
+  fields.forEach((f) => {
+    init[f.name] = initialValues?.[f.name] ?? "";
+  });
+
+  setValues(init);
+  setOpenSelect(null);
+}, [open, fields, initialValues]);
+
 
   if (!open) return null;
 
@@ -265,6 +273,7 @@ const FormCard: React.FC<EntityModalProps> = ({
           >
             <select
               {...commonInputProps}
+              disabled={field.disabled}
               onMouseDown={() => {
                 setOpenSelect(isThisSelectOpen ? null : field.name);
               }}
@@ -300,6 +309,7 @@ const FormCard: React.FC<EntityModalProps> = ({
             defaultCountry="in"
             value={values[field.name] ?? ""}
             onChange={(value) => handleChange(field.name, value)}
+            disabled={field.disabled}
             disableCountryGuess
             className="formcard-phone-input"
             inputClassName="formcard-phone-input-inner"
@@ -339,6 +349,7 @@ const FormCard: React.FC<EntityModalProps> = ({
           <input
             type="text"
             {...commonInputProps}
+            disabled={field.disabled}
             onChange={(e) => handleChange(field.name, e.target.value)}
           />
         );
