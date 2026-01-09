@@ -214,19 +214,25 @@ const LessonCard: React.FC<{
               lesson.plugin_type === LIVE_QUIZ
             ) {
               if (!online) {
-                presentToast({
-                  message: t(`Device is offline`),
-                  color: "danger",
-                  duration: 3000,
-                  position: "bottom",
-                  buttons: [
-                    {
-                      text: "Dismiss",
-                      role: "cancel",
-                    },
-                  ],
-                });
-                return;
+                const downloadedLessons = Util.getStoredLessonIds();
+                const isDownloaded =
+                  lesson.cocos_lesson_id &&
+                  downloadedLessons.includes(lesson.cocos_lesson_id);
+                if (!isDownloaded) {
+                  presentToast({
+                    message: t(`Device is offline`),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
               }
               if (assignment) {
                 history.replace(
