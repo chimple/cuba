@@ -171,7 +171,7 @@ const AddCourse: FC<{
 
                     {currt ? (
                       <div id="add-course-ignore">
-                        <p id="add-course-ignore">{currt} Curriculum</p>
+                        <p>{currt} Curriculum</p>
                       </div>
                     ) : null}
                   </div>

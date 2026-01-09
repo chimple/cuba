@@ -58,7 +58,7 @@
 #add-course-subject-card-subject-name {
   background: rgba(255, 255, 255, 0.5);
   color: var(--text-color);
-  font-size: clamp(10px, 2vh, 8px);
+  font-size: clamp(8px, 2vh, 10px);
   border-radius: 25px;
   position: absolute;
   top: 13%;
