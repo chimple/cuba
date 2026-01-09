@@ -2064,12 +2064,14 @@ export class Util {
       const user_role = localStorage.getItem(USER_ROLE);
       if (user_role) {
         const roles: string[] = JSON.parse(user_role);
-        if ([
-          RoleType.SUPER_ADMIN,
-          RoleType.FIELD_COORDINATOR,
-          RoleType.PROGRAM_MANAGER,
-          RoleType.OPERATIONAL_DIRECTOR
-        ].some(role => roles.includes(role))) {
+        if (
+          [
+            RoleType.SUPER_ADMIN,
+            RoleType.FIELD_COORDINATOR,
+            RoleType.PROGRAM_MANAGER,
+            RoleType.OPERATIONAL_DIRECTOR,
+          ].some((role) => roles.includes(role))
+        ) {
           return true;
         }
       }
@@ -2921,220 +2923,220 @@ export class Util {
       console.error("Failed to update homework path:", error);
     }
   }
-public static async updateLearningPath(
-  currentStudent: TableTypes<"user">,
-  isRewardLesson: boolean,
-  isAborted: boolean = false,
-  abortCourseId?: string,
-  isAssessmentLesson: boolean=false
-) {
-  if (!currentStudent) return;
+  public static async updateLearningPath(
+    currentStudent: TableTypes<"user">,
+    isRewardLesson: boolean,
+    isAborted: boolean = false,
+    abortCourseId?: string,
+    isAssessmentLesson: boolean = false
+  ) {
+    if (!currentStudent) return;
 
-  const learningPath = currentStudent.learning_path
-    ? JSON.parse(currentStudent.learning_path)
-    : null;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
 
-  if (!learningPath) return;
-  // 🔴 ABORT CASE: refresh current lesson with PAL recommendation only
-  if (isAborted && abortCourseId) {
-    const courseIndex = learningPath.courses.courseList.findIndex(
-      (c: any) => c.course_id === abortCourseId
-    );
-
-    if (courseIndex === -1) return;
-
-    const abortCourse = learningPath.courses.courseList[courseIndex];
-    const abortPathItem = abortCourse.path[abortCourse.currentIndex];
-    const recommended = await palUtil.getRecommendedLessonForCourse(
-      currentStudent.id,
-      abortCourseId
-    );
-    if (recommended?.lesson?.id) {
-      abortCourse.path[abortCourse.currentIndex] = {
-        ...abortPathItem,
-        lesson_id: recommended.lesson.id,
-        chapter_id: recommended.chapterId,
-        skill_id: recommended.skillId,
-      };
-    }
-
-    await Promise.all([
-      ServiceConfig.getI().apiHandler.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath),
-        false
-      ),
-    ]);
-
-    const updatedStudent =
-      await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
-    if (updatedStudent) {
-      Util.setCurrentStudent(updatedStudent);
-    }
-
-    return; // ⛔ EXIT — do not continue normal flow
-  }
-
-  try {
-    const { courses } = learningPath;
-    const currentCourse = courses.courseList[courses.currentCourseIndex];
-
-    let activeCourse = courses.courseList[courses.currentCourseIndex];
-    let activePathItem = activeCourse.path[activeCourse.currentIndex];
-
-    const prevData = {
-      pathId: activeCourse.path_id,
-      courseId: activeCourse.course_id,
-      lessonId: activePathItem.lesson_id,
-      chapterId: activePathItem.chapter_id,
-      prevPath_id: activeCourse.path_id,
-    };
-
-    const eventsToLog: string[] = [];
-
-    currentCourse.currentIndex += 1;
-    const is_immediate_sync =
-      currentCourse.currentIndex >= currentCourse.pathEndIndex;
-    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-      if (isRewardLesson) {
-        sessionStorage.setItem(
-          REWARD_LEARNING_PATH,
-          JSON.stringify(learningPath)
-        );
-      }
-
-      if (
-        learningPath.courses.courseList[
-          learningPath.courses.currentCourseIndex
-        ].type === RECOMMENDATION_TYPE.CHAPTER
-      ) {
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-        currentCourse.path_id = uuidv4();
-        prevData.prevPath_id = currentCourse.path_id;
-
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
-        }
-      } else {
-        const palPath = await palUtil.getPalLessonPathForCourse(
-          currentCourse.course_id,
-          currentStudent.id
-        );
-        if (palPath?.length) {
-          currentCourse.path_id = uuidv4();
-          currentCourse.path = palPath;
-          currentCourse.startIndex = 0;
-          currentCourse.currentIndex = 0;
-          currentCourse.pathEndIndex = palPath.length - 1;
-        }
-      }
-
-      courses.currentCourseIndex += 1;
-
-      await ServiceConfig.getI().apiHandler.setStarsForStudents(
-        currentStudent.id,
-        10,
-        false
+    if (!learningPath) return;
+    // 🔴 ABORT CASE: refresh current lesson with PAL recommendation only
+    if (isAborted && abortCourseId) {
+      const courseIndex = learningPath.courses.courseList.findIndex(
+        (c: any) => c.course_id === abortCourseId
       );
 
-      if (courses.currentCourseIndex >= courses.courseList.length) {
-        courses.currentCourseIndex = 0;
-      }
+      if (courseIndex === -1) return;
 
-      const pathwayEndData = {
-        user_id: currentStudent.id,
-        current_path_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].path_id,
-        current_course_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].course_id,
-        current_lesson_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].path[
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].currentIndex
-          ].lesson_id,
-        current_chapter_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].path[
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].currentIndex
-          ].chapter_id,
-        prev_path_id: prevData.pathId,
-        prev_course_id: prevData.courseId,
-        prev_lesson_id: prevData.lessonId,
-        prev_chapter_id: prevData.chapterId,
-      };
-
-      await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-      await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-    } else if (!isAssessmentLesson) {
+      const abortCourse = learningPath.courses.courseList[courseIndex];
+      const abortPathItem = abortCourse.path[abortCourse.currentIndex];
       const recommended = await palUtil.getRecommendedLessonForCourse(
         currentStudent.id,
-        currentCourse.course_id
+        abortCourseId
       );
       if (recommended?.lesson?.id) {
-        currentCourse.path[currentCourse.currentIndex] = {
-          ...currentCourse.path[currentCourse.currentIndex],
+        abortCourse.path[abortCourse.currentIndex] = {
+          ...abortPathItem,
           lesson_id: recommended.lesson.id,
           chapter_id: recommended.chapterId,
           skill_id: recommended.skillId,
         };
       }
-      eventsToLog.push(
-        EVENTS.PATHWAY_COMPLETED,
-        EVENTS.PATHWAY_COURSE_CHANGED
-      );
+
+      await Promise.all([
+        ServiceConfig.getI().apiHandler.updateLearningPath(
+          currentStudent,
+          JSON.stringify(learningPath),
+          false
+        ),
+      ]);
+
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+
+      return; // ⛔ EXIT — do not continue normal flow
     }
 
-    eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
 
-    const newCourse = courses.courseList[courses.currentCourseIndex];
-    const newPathItem =
-      newCourse.path[newCourse.currentIndex] || newCourse.path[0];
+      let activeCourse = courses.courseList[courses.currentCourseIndex];
+      let activePathItem = activeCourse.path[activeCourse.currentIndex];
 
-    const eventPayload = {
-      user_id: currentStudent.id,
-      current_path_id: newCourse.path_id,
-      current_course_id: newCourse.course_id,
-      current_lesson_id: newPathItem.lesson_id,
-      current_chapter_id: newPathItem.chapter_id,
-      path_id: prevData.pathId,
-      prev_path_id: prevData.prevPath_id,
-      prev_course_id: prevData.courseId,
-      lesson_id: prevData.lessonId,
-      prev_chapter_id: prevData.chapterId,
-      timestamp: new Date().toISOString(),
-    };
+      const prevData = {
+        pathId: activeCourse.path_id,
+        courseId: activeCourse.course_id,
+        lessonId: activePathItem.lesson_id,
+        chapterId: activePathItem.chapter_id,
+        prevPath_id: activeCourse.path_id,
+      };
 
-    await Promise.all([
-      ServiceConfig.getI().apiHandler.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath),
-        is_immediate_sync
-      ),
-      ...eventsToLog.map((eventName) =>
-        Util.logEvent(eventName as EVENTS, eventPayload)
-      ),
-    ]);
+      const eventsToLog: string[] = [];
+
+      currentCourse.currentIndex += 1;
+      const is_immediate_sync =
+        currentCourse.currentIndex >= currentCourse.pathEndIndex;
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        if (isRewardLesson) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            JSON.stringify(learningPath)
+          );
+        }
+
+        if (
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].type === RECOMMENDATION_TYPE.CHAPTER
+        ) {
+          currentCourse.startIndex = currentCourse.currentIndex;
+          currentCourse.pathEndIndex += 5;
+          currentCourse.path_id = uuidv4();
+          prevData.prevPath_id = currentCourse.path_id;
+
+          if (currentCourse.pathEndIndex > currentCourse.path.length) {
+            currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          }
+        } else {
+          const palPath = await palUtil.getPalLessonPathForCourse(
+            currentCourse.course_id,
+            currentStudent.id
+          );
+          if (palPath?.length) {
+            currentCourse.path_id = uuidv4();
+            currentCourse.path = palPath;
+            currentCourse.startIndex = 0;
+            currentCourse.currentIndex = 0;
+            currentCourse.pathEndIndex = palPath.length - 1;
+          }
+        }
+
+        courses.currentCourseIndex += 1;
+
+        await ServiceConfig.getI().apiHandler.setStarsForStudents(
+          currentStudent.id,
+          10,
+          false
+        );
+
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
+
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevData.pathId,
+          prev_course_id: prevData.courseId,
+          prev_lesson_id: prevData.lessonId,
+          prev_chapter_id: prevData.chapterId,
+        };
+
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      } else if (!isAssessmentLesson) {
+        const recommended = await palUtil.getRecommendedLessonForCourse(
+          currentStudent.id,
+          currentCourse.course_id
+        );
+        if (recommended?.lesson?.id) {
+          currentCourse.path[currentCourse.currentIndex] = {
+            ...currentCourse.path[currentCourse.currentIndex],
+            lesson_id: recommended.lesson.id,
+            chapter_id: recommended.chapterId,
+            skill_id: recommended.skillId,
+          };
+        }
+        eventsToLog.push(
+          EVENTS.PATHWAY_COMPLETED,
+          EVENTS.PATHWAY_COURSE_CHANGED
+        );
+      }
+
+      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+
+      const newCourse = courses.courseList[courses.currentCourseIndex];
+      const newPathItem =
+        newCourse.path[newCourse.currentIndex] || newCourse.path[0];
+
+      const eventPayload = {
+        user_id: currentStudent.id,
+        current_path_id: newCourse.path_id,
+        current_course_id: newCourse.course_id,
+        current_lesson_id: newPathItem.lesson_id,
+        current_chapter_id: newPathItem.chapter_id,
+        path_id: prevData.pathId,
+        prev_path_id: prevData.prevPath_id,
+        prev_course_id: prevData.courseId,
+        lesson_id: prevData.lessonId,
+        prev_chapter_id: prevData.chapterId,
+        timestamp: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        ServiceConfig.getI().apiHandler.updateLearningPath(
+          currentStudent,
+          JSON.stringify(learningPath),
+          is_immediate_sync
+        ),
+        ...eventsToLog.map((eventName) =>
+          Util.logEvent(eventName as EVENTS, eventPayload)
+        ),
+      ]);
       // Update the current student object
-    const updatedStudent =
-      await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
-    if (updatedStudent) {
-      Util.setCurrentStudent(updatedStudent);
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      console.error("Error updating learning path:", error);
     }
-  } catch (error) {
-    console.error("Error updating learning path:", error);
   }
-}
 
   // In Util.ts or your utility file
   public static getLocalStarsForStudent(
@@ -3258,6 +3260,125 @@ public static async updateLearningPath(
 
     return true;
   }
+  public static async refreshHomeworkPathWithLatestAfterIndex(
+    completedIndex: number
+  ) {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) return;
+
+      const path = JSON.parse(storedPath) as {
+        path_id?: string;
+        lessons?: any[];
+        currentIndex?: number;
+      };
+
+      const lessons = path.lessons ?? [];
+      if (completedIndex >= lessons.length) return;
+
+      const student = Util.getCurrentStudent();
+      const currClass = Util.getCurrentClass();
+      if (!student?.id || !currClass?.id) return;
+
+      // Fetch ALL pending assignments (reuse your existing logic)
+      const all = await api.getPendingAssignments(currClass.id, student.id);
+      const pendingAssignments = all.filter(
+        (a: any) =>
+          (a.type !== "LIVEQUIZ" &&
+            a.subject_id === lessons[0]?.lesson?.subjectid) ||
+          lessons[0]?.raw_assignment?.subject_id
+      );
+
+      // Find existing assignment IDs in current path
+      const existingAssignmentIds = new Set(
+        lessons
+          .map((l: any) => l.assignment_id ?? l.assignmentid ?? null)
+          .filter(Boolean)
+      );
+
+      // NEW assignments only (not in current path)
+      const newAssignments = pendingAssignments.filter(
+        (a: any) => !existingAssignmentIds.has(a.id)
+      );
+      if (!newAssignments.length) return;
+
+      // Sort new ones: LIFO batches, FIFO inside batch (using your getTs helper)
+      const getTs = (a: any) => {
+        const v =
+          a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+        const t = v ? new Date(v).getTime() : 0;
+        return isNaN(t) ? 0 : t;
+      };
+
+      // Group by batch_id (LIFO batches)
+      const byBatch: { [key: string]: any[] } = {};
+      for (const a of newAssignments) {
+        const batchKey = String(a.batch_id ?? getTs(a)); // fallback to ts if no batch_id
+        if (!byBatch[batchKey]) byBatch[batchKey] = [];
+        byBatch[batchKey].push(a);
+      }
+
+      // Sort batches latest-first, items FIFO inside
+      const orderedNew: any[] = [];
+      Object.values(byBatch)
+        .sort((listA: any[], listB: any[]) => {
+          const maxA = Math.max(...listA.map(getTs));
+          const maxB = Math.max(...listB.map(getTs));
+          return maxB - maxA; // LIFO batches
+        })
+        .forEach((list: any[]) => {
+          list.sort((a: any, b: any) => getTs(a) - getTs(b)); // FIFO inside
+          orderedNew.push(...list);
+        });
+
+      // Normalize new assignments to lesson shape (reuse your existing normalizeAssignment if available)
+      // For now, simple mapping - adjust fields to match your lesson shape
+      // Fetch FULL lesson details for new assignments (like initial path)
+      const newLessonsPromises = orderedNew.map(async (assignment: any) => {
+        try {
+          const fullLesson = await api.getLesson(assignment.lesson_id);
+          return {
+            ...assignment,
+            lesson: fullLesson, // ✅ Full lesson with image, cocos_lesson_id!
+            lesson_id: assignment.lesson_id,
+            assignment_id: assignment.id,
+            chapter_id: assignment.chapter_id,
+            course_id: assignment.course_id,
+          };
+        } catch (e) {
+          console.warn("Failed to fetch lesson details:", e);
+          // Fallback minimal shape
+          return {
+            ...assignment,
+            lesson: {
+              id: assignment.lesson_id,
+              image: "assets/icons/DefaultIcon.png",
+            },
+            lesson_id: assignment.lesson_id,
+            assignment_id: assignment.id,
+          };
+        }
+      });
+
+      const newLessons = await Promise.all(newLessonsPromises);
+      // Insert after completedIndex, truncate to capacity 5
+      const before = lessons.slice(0, completedIndex + 1);
+      const after = lessons.slice(completedIndex + 1);
+      const updatedLessons = [...before, ...newLessons, ...after].slice(0, 5);
+
+      // Update path
+      const newPath = {
+        ...path,
+        lessons: updatedLessons,
+        currentIndex: Math.min(completedIndex + 1, updatedLessons.length - 1),
+      };
+
+      localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newPath));
+    } catch (error) {
+      console.error("Failed to refresh homework path with latest:", error);
+    }
+  }
 
   public static pickFiveHomeworkLessons(
     assignments: any[],
@@ -3276,7 +3397,7 @@ public static async updateLearningPath(
     if (!pending.length) return [];
 
     // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
-    const pendingSorted = [...pending].sort((a, b) => getTs(a) - getTs(b));
+    const pendingSorted = [...pending].sort((a, b) => getTs(b) - getTs(a));
 
     // 3) Group by subject, maintaining FIFO order inside manual & other buckets
     const bySubject: {
@@ -3430,34 +3551,31 @@ public static async updateLearningPath(
       return false;
     }
   }
-  static async ensureLidoCommonAudioForStudent(
-  student: TableTypes<"user">
-) {
-  try {
-    if (!student?.language_id) {
-      console.warn("[LidoCommonAudio] Student has no language");
-      return;
+  static async ensureLidoCommonAudioForStudent(student: TableTypes<"user">) {
+    try {
+      if (!student?.language_id) {
+        console.warn("[LidoCommonAudio] Student has no language");
+        return;
+      }
+
+      const api = ServiceConfig.getI().apiHandler;
+
+      const audioConfig = await api.getLidoCommonAudioUrl(
+        student.language_id,
+        student.locale_id ?? null
+      );
+
+      if (!audioConfig?.lido_common_audio_url) {
+        console.warn("[LidoCommonAudio] No audio config found");
+        return;
+      }
+
+      await Util.downloadLidoCommonAudio(
+        audioConfig.lido_common_audio_url,
+        student.language_id
+      );
+    } catch (err) {
+      console.error("[LidoCommonAudio] ensure failed:", err);
     }
-
-    const api = ServiceConfig.getI().apiHandler;
-
-    const audioConfig = await api.getLidoCommonAudioUrl(
-      student.language_id,
-      student.locale_id ?? null
-    );
-
-    if (!audioConfig?.lido_common_audio_url) {
-      console.warn("[LidoCommonAudio] No audio config found");
-      return;
-    }
-
-    await Util.downloadLidoCommonAudio(
-      audioConfig.lido_common_audio_url,
-      student.language_id
-    );
-  } catch (err) {
-    console.error("[LidoCommonAudio] ensure failed:", err);
   }
-}
-
 }

@@ -48,6 +48,7 @@ const LidoPlayer: FC = () => {
   const [xmlPath, setXmlPath] = useState<string>();
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [isReady, setIsReady] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
   const growthbook = useGrowthBook();
 
@@ -592,6 +593,7 @@ const LidoPlayer: FC = () => {
 
   async function init() {
     setIsLoading(true);
+    setIsReady(false); 
     setShowDialogBox(false);
     // --- CRITICAL FIX: Clear the global variable pollution ---
     // This ensures that when the new player starts, it doesn't see the 
@@ -637,6 +639,8 @@ const LidoPlayer: FC = () => {
       setXmlPath(path);
     }
     setIsLoading(false);
+    setIsReady(true); // ONLY NOW allow the Web Component to mount
+
   }
 
   return (
@@ -657,7 +661,7 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {xmlPath || basePath 
+      {isReady &&(xmlPath || basePath) 
         ? React.createElement("lido-standalone", {
           "xml-path": xmlPath,
           "base-url": basePath,

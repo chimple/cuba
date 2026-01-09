@@ -2,7 +2,7 @@
   --background: #ffffff;
 }
 .search-school-page ion-header ion-toolbar {
-  --background: #7c5db0; 
+  --background: #7c5db0;
   --color: white;
   --padding-start: 0;
   --padding-end: 0;
@@ -18,7 +18,7 @@
   top: 0;
   z-index: 10;
   background: var(--ion-background-color, white);
-  padding: 1rem 1.5rem 0.5rem 1.5rem; 
+  padding: 1rem 1.5rem 0.5rem 1.5rem;
   background-color: #ffffff;
 }
 
@@ -44,8 +44,8 @@
 .search-school-results-list-cards {
   --ion-list-padding: 0px;
   /* padding-top: 8px; Small space between header and list */
-  padding-left: 1.5rem; 
-  padding-right: 1.5rem; 
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
   background-color: white;
 }
 .search-school-asterisk {
@@ -92,20 +92,20 @@
   border-radius: 8px;
 }
 
- .search-school-select {
+.search-school-select {
   width: 100%;
-  padding-right: 2rem; 
+  padding-right: 2rem;
   display: block;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .search-school-select::part(text) {
-  max-width: 5ch;        
-  display: inline-block;
+  max-width: 30ch;
+  width: 25ch;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  vertical-align: middle;
 }
 
 .search-school-input-container {
