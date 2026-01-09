@@ -442,7 +442,8 @@ const CocosGame: React.FC = () => {
     // Update the learning path / homework path
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
-    } else if (is_homework) {
+    } else if (is_homework && homeworkIndex !== undefined) {
+      await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);  // NEW
       await Util.updateHomeworkPath(homeworkIndex);
     }
 
