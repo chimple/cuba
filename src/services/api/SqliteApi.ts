@@ -7060,7 +7060,7 @@ order by
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -7698,5 +7698,9 @@ order by
     return res?.values && res.values.length > 0
       ? res.values[0]
       : undefined;
+  }
+
+  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+    return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
 }

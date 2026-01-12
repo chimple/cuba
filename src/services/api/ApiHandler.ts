@@ -1677,7 +1677,7 @@ export class ApiHandler implements ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -1919,4 +1919,10 @@ public  async getSubjectLessonsBySubjectId(
     }
 public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
   return await this.s.getSkillById(skillId);
-}}
+}
+
+async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+    // Delegate to the actual API implementation (e.g., SupabaseApi)
+    return this.s.updateSchoolProgram(schoolId, programId);
+  }
+}
