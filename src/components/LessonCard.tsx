@@ -13,6 +13,7 @@ import {
   TYPE,
   TableTypes,
 } from "../common/constants";
+import { Capacitor } from "@capacitor/core";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -213,27 +214,28 @@ const LessonCard: React.FC<{
               // !!assignment?.id &&
               lesson.plugin_type === LIVE_QUIZ
             ) {
-              if (!online) {
-                const downloadedLessons = Util.getStoredLessonIds();
-                const isDownloaded =
-                  lesson.cocos_lesson_id &&
-                  downloadedLessons.includes(lesson.cocos_lesson_id);
+              const lessonId = lesson.cocos_lesson_id;
+              if (lessonId && Capacitor.isNativePlatform()) {
+                const isDownloaded = await Util.downloadZipBundle([lessonId]);
                 if (!isDownloaded) {
-                  presentToast({
-                    message: t(`Device is offline`),
-                    color: "danger",
-                    duration: 3000,
-                    position: "bottom",
-                    buttons: [
-                      {
-                        text: "Dismiss",
-                        role: "cancel",
-                      },
-                    ],
-                  });
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+                  }
                   return;
                 }
               }
+
               if (assignment) {
                 history.replace(
                   PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
