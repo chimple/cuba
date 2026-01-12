@@ -10894,6 +10894,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   return true;
+}
   async getLatestAssessmentGroup(
   classId: string,
   studentId: string
