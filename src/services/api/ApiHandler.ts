@@ -1925,4 +1925,10 @@ async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
+public async getLatestAssessmentGroup(
+  classId: string,
+  studentId: string
+): Promise<TableTypes<"assignment">[]> {
+  return this.s.getLatestAssessmentGroup(classId, studentId);
+}
 }

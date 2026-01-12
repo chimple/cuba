@@ -2565,4 +2565,8 @@ export interface ServiceApi {
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+ getLatestAssessmentGroup(
+  classId: string,
+  studentId: string
+): Promise<TableTypes<"assignment">[]>
 }
