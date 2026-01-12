@@ -40,7 +40,7 @@ const GenericPopup: React.FC<Props> = ({
           <img
             id="generic-popup-close-icon"
             className="generic-popup-close-icon"
-            src="/assets/icons/Closebutton.svg"
+            src="/assets/icons/CrossIcon.svg"
             alt="close"
           />
         </button>
