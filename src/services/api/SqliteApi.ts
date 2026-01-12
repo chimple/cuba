@@ -7701,7 +7701,6 @@ order by
   }
 
   async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
-    // Not supported in SQLite mode
-    return false;
+    return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
 }
