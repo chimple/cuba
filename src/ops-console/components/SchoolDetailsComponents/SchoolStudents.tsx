@@ -878,38 +878,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
   const editStudentFields: FieldConfig[] = [
-  {
+   {
     name: "studentName",
     label: "Student Name",
     kind: "text",
     required: true,
     column: 2,
   },
-  {
-    name: "gender",
-    label: "Gender",
-    kind: "select",
-    required: true,
-    column: 0,
-    options: [
-      { label: t("FEMALE"), value: GENDER.GIRL },
-      { label: t("MALE"), value: GENDER.BOY },
-      { label: t("UNSPECIFIED"), value: GENDER.OTHER },
-    ],
-  },
-  {
-      name: "ageGroup",
-      label: "Age",
-      kind: "select",
-      required: true,
-      column: 1,
-      options: Object.values(AGE_OPTIONS).map((v) => ({
-        value: v,
-        label: v,
-      })),
-    },
 
-  // Read-only fields
+  // 2️⃣ Student ID – left
   {
     name: "studentID",
     label: "Student ID",
@@ -917,14 +894,42 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     column: 0,
     disabled: true,
   },
-  {
-  name: "classAndSection",
-  label: "Class And Section",
-  kind: "text",
-  column: 1,
-  disabled: true,
-},
 
+    {
+    name: "gender",
+    label: "Gender",
+    kind: "select",
+    required: true,
+    column: 1,
+    options: [
+      { label: t("FEMALE"), value: GENDER.GIRL },
+      { label: t("MALE"), value: GENDER.BOY },
+      { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+    ],
+  },
+  // 3️⃣ Class & Section – right
+  {
+    name: "classAndSection",
+    label: "Class And Section",
+    kind: "text",
+    column: 0,
+    disabled: true,
+  },
+
+  // 5️⃣ Age – right
+  {
+    name: "ageGroup",
+    label: "Age",
+    kind: "select",
+    required: true,
+    column: 1,
+    options: Object.values(AGE_OPTIONS).map((v) => ({
+      value: v,
+      label: v,
+    })),
+  },
+
+  // 6️⃣ Phone – full width
   {
     name: "phone",
     label: "Phone Number",
