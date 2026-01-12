@@ -303,239 +303,231 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
-    try {
-      const lessonData = e.detail;
-      if (isAssessmentLesson) {
-        localStorage.removeItem(ASSESSMENT_FAIL_KEY)
-        await exitLidoGame();
-        return;
-      }
-      const api = ServiceConfig.getI().apiHandler;
-      const courseDocId: string | undefined = state.courseDocId;
-      const lesson: Lesson = JSON.parse(state.lesson);
-      const assignment = state.assignment;
-      const skillId: string | undefined = state.skillId;
-      // const currentStudent = api.currentStudent;
-      const currentStudent = Util.getCurrentStudent()!;
-      const data = lessonData;
-      let assignmentId = assignment ? assignment.id : null;
-      const storedData = localStorage.getItem(LIDO_SCORES_KEY);
-
-      let booleanOutcomes: boolean[] = [];
-      let activitiesScoresStr = "";
-
-      if (storedData) {
-        const values = Object.values(JSON.parse(storedData));
-
-        booleanOutcomes = values.map((item: any) => item?.result === 1);
-        activitiesScoresStr = values
-          .map((item: any) => item?.result ?? 0)
-          .join(",");
-      }
-
-      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
-      let classId;
-      let schoolId;
-      let chapter_id;
-      if (isStudentLinked) {
-        const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
-        );
-        if (!!studentResult && studentResult.classes.length > 0) {
-          classId = studentResult.classes[0].id;
-          schoolId = studentResult.schools[0].id;
-        }
-        if (!assignmentId) {
-          const result = await api.getPendingAssignmentForLesson(
-            lesson.id,
-            classId,
-            currentStudent.id
-          );
-          if (result) {
-            assignmentId = result?.id;
-          }
-        }
-        chapter_id = await api.getChapterByLesson(lesson.id, classId);
-      } else {
-        chapter_id = await api.getChapterByLesson(
-          lesson.id,
-          undefined,
-          currentStudent.id
-        );
-      }
-
-      // Check if the game was played from `learning_pathway`
-      const learning_path: boolean = state?.learning_path ?? false;
-      const is_homework: boolean = state?.isHomework ?? false;
-      const homeworkIndex: number | undefined = state?.homeworkIndex;
-      // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
-      let shouldGiveHomeworkBonus = false;
-      if (is_homework) {
-        try {
-          const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
-          if (!pathStr) {
-            console.warn(
-              "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
-            );
-          } else {
-            const path = JSON.parse(pathStr) as {
-              lessons?: any[];
-              currentIndex?: number;
-            };
-            const lessonsLen = path.lessons?.length ?? 0;
-            const isLastLessonInPath =
-              lessonsLen > 0 &&
-              typeof homeworkIndex === "number" &&
-              homeworkIndex === lessonsLen - 1;
-            if (isLastLessonInPath) {
-              shouldGiveHomeworkBonus = true;
-            }
-          }
-        } catch (err) {
-          console.error(
-            "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
-            err
-          );
-        }
-      }
-      let avatarObj = AvatarObj.getInstance();
-      let finalProgressTimeSpent =
-        avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
-      finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpent;
-      let computeMinutes = Math.floor(finalProgressTimeSpent / 60);
-      let computeSec = finalProgressTimeSpent % 60;
-      avatarObj.weeklyTimeSpent["min"] = computeMinutes;
-      avatarObj.weeklyTimeSpent["sec"] = computeSec;
-      avatarObj.weeklyPlayedLesson++;
-      setGameResult(data);
-      const isReward: boolean = state?.reward ?? false;
-      if (isReward === true) {
-        sessionStorage.setItem(REWARD_LESSON, "true");
-      }
-
-      const abilityUpdates = await palUtil.updateAndGetAbilities({
-        studentId: currentStudent.id,
-        courseId: courseDetail?.id ?? courseDocId ?? "",
-        skillId: skillId ?? "",
-        outcomes: booleanOutcomes,
-      });
-
-      const result = await api.updateResult(
-        currentStudent,
-        courseDocId,
-        lesson.id,
-        Math.round(data.score ?? 0),
-        data.correctMoves ?? 0,
-        data.wrongMoves ?? 0,
-        data.timeSpent ?? 0,
-        assignmentId,
-        chapterDetail?.id ?? chapter_id?.toString() ?? "",
-        classId,
-        schoolId,
-        false, // isImediateSync
-        false, // isHomework
-        skillId,
-        abilityUpdates.skill_ability,
-        abilityUpdates.outcome_id,
-        abilityUpdates.outcome_ability,
-        abilityUpdates.competency_id,
-        abilityUpdates.competency_ability,
-        abilityUpdates.domain_id,
-        abilityUpdates.domain_ability,
-        abilityUpdates.subject_id,
-        abilityUpdates.subject_ability,
-        activitiesScoresStr
-      );
-
-      // Update the learning path
-      if (learning_path) {
-        await Util.updateLearningPath(currentStudent, isReward);
-      } else if (is_homework) {
-        // This handles our temporary homework path
-        await Util.updateHomeworkPath(homeworkIndex);
-      }
-
-      // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
-      if (shouldGiveHomeworkBonus) {
-        try {
-          const student = Util.getCurrentStudent();
-          if (student?.id) {
-            const bonusStars = 10;
-            const newLocalStars = Util.bumpLocalStarsForStudent(
-              student.id,
-              bonusStars,
-              student.stars || 0
-            );
-            try {
-              await api.updateStudentStars(student.id, newLocalStars);
-            } catch (err) {
-              console.warn(
-                "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
-                err
-              );
-            }
-            localStorage.removeItem(HOMEWORK_PATHWAY);
-          }
-        } catch (err) {
-          console.error(
-            "[Homework bonus] Failed to award homework completion bonus",
-            err
-          );
-        }
-      }
-      Util.logEvent(EVENTS.LESSON_END, {
-        user_id: currentStudent.id,
-        // assignment_id: lesson.assignment?.id,
-        chapter_id: data.chapterId,
-        // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-        lesson_id: data.lessonId,
-        // lesson_name: lesson.name,
-        lesson_type: data.lessonType,
-        lesson_session_id: data.lessonSessionId,
-        ml_partner_id: data.mlPartnerId,
-        ml_class_id: data.mlClassId,
-        ml_student_id: data.mlStudentId,
-        course_id: data.courseId,
-        course_name: courseDetail.name,
-        time_spent: data.timeSpent,
-        total_moves: data.totalMoves,
-        total_games: data.totalGames,
-        correct_moves: data.correctMoves,
-        wrong_moves: data.wrongMoves,
-        game_score: data.gameScore,
-        quiz_score: data.quizScore,
-        game_completed: data.gameCompleted,
-        quiz_completed: data.quizCompleted,
-        game_time_spent: data.gameTimeSpent,
-        quiz_time_spent: data.quizTimeSpent,
-        score: data.score,
-        played_from: playedFrom,
-        assignment_type: assignmentType,
-      });
-      let tempAssignmentCompletedIds = localStorage.getItem(
-        ASSIGNMENT_COMPLETED_IDS
-      );
-      let assignmentCompletedIds;
-      if (!tempAssignmentCompletedIds) {
-        assignmentCompletedIds = {};
-      } else {
-        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
-      }
-      if (!assignmentCompletedIds[api.currentStudent?.id!]) {
-        assignmentCompletedIds[api.currentStudent?.id!] = [];
-      }
-      localStorage.setItem(
-        ASSIGNMENT_COMPLETED_IDS,
-        JSON.stringify(assignmentCompletedIds)
-      );
-      setShowDialogBox(true);
-    } catch (error) {
-      console.error("❌ Failed to process lesson end", error);
-      presentToast();
-      push();
-    } finally {
-      setIsLoading(false);
+    const lessonData = e.detail;
+    if (isAssessmentLesson) {
+      localStorage.removeItem(ASSESSMENT_FAIL_KEY)
+      exitLidoGame();
+      return;
     }
+    const api = ServiceConfig.getI().apiHandler;
+    const courseDocId: string | undefined = state.courseDocId;
+    const lesson: Lesson = JSON.parse(state.lesson);
+    const assignment = state.assignment;
+    const skillId: string | undefined = state.skillId;
+    // const currentStudent = api.currentStudent;
+    const currentStudent = Util.getCurrentStudent()!;
+    const data = lessonData;
+    let assignmentId = assignment ? assignment.id : null;
+    const storedData = localStorage.getItem(LIDO_SCORES_KEY);
+
+    let booleanOutcomes: boolean[] = [];
+    let activitiesScoresStr = "";
+
+    if (storedData) {
+      const values = Object.values(JSON.parse(storedData));
+
+      booleanOutcomes = values.map((item: any) => item?.result === 1);
+      activitiesScoresStr = values
+        .map((item: any) => item?.result ?? 0)
+        .join(",");
+    }
+
+    const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+    let classId;
+    let schoolId;
+    let chapter_id;
+    if (isStudentLinked) {
+      const studentResult = await api.getStudentClassesAndSchools(
+        currentStudent.id
+      );
+      if (!!studentResult && studentResult.classes.length > 0) {
+        classId = studentResult.classes[0].id;
+        schoolId = studentResult.schools[0].id;
+      }
+      if (!assignmentId) {
+        const result = await api.getPendingAssignmentForLesson(
+          lesson.id,
+          classId,
+          currentStudent.id
+        );
+        if (result) {
+          assignmentId = result?.id;
+        }
+      }
+      chapter_id = await api.getChapterByLesson(lesson.id, classId);
+    } else {
+      chapter_id = await api.getChapterByLesson(
+        lesson.id,
+        undefined,
+        currentStudent.id
+      );
+    }
+
+    // Check if the game was played from `learning_pathway`
+    const learning_path: boolean = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false;
+    const homeworkIndex: number | undefined = state?.homeworkIndex;
+    // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+    let shouldGiveHomeworkBonus = false;
+    if (is_homework) {
+      try {
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+        if (!pathStr) {
+          console.warn(
+            "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage"
+          );
+        } else {
+          const path = JSON.parse(pathStr) as {
+            lessons?: any[];
+            currentIndex?: number;
+          };
+          const lessonsLen = path.lessons?.length ?? 0;
+          const isLastLessonInPath =
+            lessonsLen > 0 &&
+            typeof homeworkIndex === "number" &&
+            homeworkIndex === lessonsLen - 1;
+          if (isLastLessonInPath) {
+            shouldGiveHomeworkBonus = true;
+          }
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
+          err
+        );
+      }
+    }
+    let avatarObj = AvatarObj.getInstance();
+    let finalProgressTimeSpent =
+      avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
+    finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpent;
+    let computeMinutes = Math.floor(finalProgressTimeSpent / 60);
+    let computeSec = finalProgressTimeSpent % 60;
+    avatarObj.weeklyTimeSpent["min"] = computeMinutes;
+    avatarObj.weeklyTimeSpent["sec"] = computeSec;
+    avatarObj.weeklyPlayedLesson++;
+    setGameResult(data);
+    const isReward: boolean = state?.reward ?? false;
+    if (isReward === true) {
+      sessionStorage.setItem(REWARD_LESSON, "true");
+    }
+
+    const abilityUpdates = await palUtil.updateAndGetAbilities({
+      studentId: currentStudent.id,
+      courseId: courseDetail?.id ?? courseDocId ?? "",
+      skillId: skillId ?? "",
+      outcomes: booleanOutcomes,
+    });
+
+    const result = await api.updateResult(
+      currentStudent,
+      courseDocId,
+      lesson.id,
+      Math.round(data.score ?? 0),
+      data.correctMoves ?? 0,
+      data.wrongMoves ?? 0,
+      data.timeSpent ?? 0,
+      assignmentId,
+      chapterDetail?.id ?? chapter_id?.toString() ?? "",
+      classId,
+      schoolId,
+      false, // isImediateSync
+      false, // isHomework
+      skillId,
+      abilityUpdates.skill_ability,
+      abilityUpdates.outcome_id,
+      abilityUpdates.outcome_ability,
+      abilityUpdates.competency_id,
+      abilityUpdates.competency_ability,
+      abilityUpdates.domain_id,
+      abilityUpdates.domain_ability,
+      abilityUpdates.subject_id,
+      abilityUpdates.subject_ability,
+      activitiesScoresStr
+    );
+
+    // Update the learning path
+    if (learning_path) {
+      await Util.updateLearningPath(currentStudent, isReward);
+    } else if (is_homework) {
+      // This handles our temporary homework path
+      await Util.updateHomeworkPath(homeworkIndex);
+    }
+
+    // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
+    if (shouldGiveHomeworkBonus) {
+      try {
+        const student = Util.getCurrentStudent();
+        if (student?.id) {
+          const bonusStars = 10;
+          const newLocalStars = Util.bumpLocalStarsForStudent(
+            student.id,
+            bonusStars,
+            student.stars || 0
+          );
+          try {
+            await api.updateStudentStars(student.id, newLocalStars);
+          } catch (err) {
+            console.warn(
+              "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
+              err
+            );
+          }
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        }
+      } catch (err) {
+        console.error(
+          "[Homework bonus] Failed to award homework completion bonus",
+          err
+        );
+      }
+    }
+    Util.logEvent(EVENTS.LESSON_END, {
+      user_id: currentStudent.id,
+      // assignment_id: lesson.assignment?.id,
+      chapter_id: data.chapterId,
+      // chapter_name: ChapterDetail ? ChapterDetail.name : "",
+      lesson_id: data.lessonId,
+      // lesson_name: lesson.name,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: courseDetail.name,
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+      score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
+    });
+    let tempAssignmentCompletedIds = localStorage.getItem(
+      ASSIGNMENT_COMPLETED_IDS
+    );
+    let assignmentCompletedIds;
+    if (!tempAssignmentCompletedIds) {
+      assignmentCompletedIds = {};
+    } else {
+      assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
+    }
+    if (!assignmentCompletedIds[api.currentStudent?.id!]) {
+      assignmentCompletedIds[api.currentStudent?.id!] = [];
+    }
+    localStorage.setItem(
+      ASSIGNMENT_COMPLETED_IDS,
+      JSON.stringify(assignmentCompletedIds)
+    );
+    setShowDialogBox(true);
   };
   const onGameExit = (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
