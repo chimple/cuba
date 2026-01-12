@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS, RequestTypes } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS, RequestTypes, TableTypes } from "../../common/constants";
 import "./OpsApprovedRequestDetails.css";
 
 const OpsApprovedRequestDetails = () => {
@@ -40,7 +40,7 @@ const OpsApprovedRequestDetails = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [parent, setParent] = useState<any>(null);
+  const [parent, setParent] = useState<TableTypes<"user"> | null>(null);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
