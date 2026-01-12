@@ -539,11 +539,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                 items={[
                   {
                     name: t("Send Message"),
-                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" sx={{color:"#2563eb"}}/>,
                   },
                   {
                     name: t("Edit Details"),
-                    icon: <BorderColorIcon fontSize="small" />,
+                    icon: <BorderColorIcon fontSize="small" sx={{color:"#2563eb"}}/>,
                     onClick: () => {
                         const fullStudent = getStudentInfoById(s.id);
                         console.log("fullStudent", fullStudent);
@@ -911,23 +911,24 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   // Read-only fields
   {
-    name: "grade",
-    label: "Grade",
+    name: "studentID",
+    label: "Student ID",
     kind: "text",
     column: 0,
     disabled: true,
   },
   {
-    name: "classSection",
-    label: "Class Section",
-    kind: "text",
-    column: 1,
-    disabled: true,
-  },
+  name: "classAndSection",
+  label: "Class And Section",
+  kind: "text",
+  column: 1,
+  disabled: true,
+},
+
   {
     name: "phone",
     label: "Phone Number",
-    kind: "phone",
+    kind: "text",
     column: 2,
     disabled: true,
   },
@@ -1096,8 +1097,8 @@ const getRandomAvatar = () => {
     studentName: editStudentData?.user?.name ?? "",
     gender: editStudentData?.user?.gender ?? "",
     ageGroup: String(editStudentData?.user?.age ?? ""),
-    grade: String(editStudentData?.grade ?? ""),
-    classSection: editStudentData?.classSection ?? "",
+    studentID: editStudentData?.user?.student_id ?? "",
+    classAndSection: `${editStudentData?.grade ?? ""}${editStudentData?.classSection ?? ""}`,
     phone: editStudentData?.parent?.phone ?? "",
   }}
   onClose={() => {
