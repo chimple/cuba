@@ -2708,7 +2708,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-          currentReward?.reward_id
+        currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2946,6 +2946,9 @@ export class Util {
       if (courseIndex === -1) return;
 
       const abortCourse = learningPath.courses.courseList[courseIndex];
+      abortCourse.startIndex = 0;
+      abortCourse.currentIndex = 0;
+      abortCourse.pathEndIndex = abortCourse.path.length - 1;
       const abortPathItem = abortCourse.path[abortCourse.currentIndex];
       const recommended = await palUtil.getRecommendedLessonForCourse(
         currentStudent.id,

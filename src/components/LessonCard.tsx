@@ -256,7 +256,7 @@ const LessonCard: React.FC<{
               history.replace(PAGES.LIDO_PLAYER + parmas, {
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId: course?.id ?? currentCourse?.id,
-                course: JSON.stringify(currentCourse!),
+                course: JSON.stringify(course??currentCourse),
                 lesson: JSON.stringify(lesson),
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),

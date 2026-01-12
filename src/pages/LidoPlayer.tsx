@@ -84,7 +84,7 @@ const LidoPlayer: FC = () => {
 
   const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
-    setShowDialogBox(true);
+    // setShowDialogBox(true);
     const popupConfig = growthbook?.getFeatureValue(
       "generic-pop-up",
       null
@@ -302,8 +302,10 @@ const LidoPlayer: FC = () => {
   };
 
   const onLessonEnd = async (e: any) => {
+    setIsLoading(true);
     const lessonData = e.detail;
     if (isAssessmentLesson) {
+      localStorage.removeItem(ASSESSMENT_FAIL_KEY)
       exitLidoGame();
       return;
     }
@@ -365,7 +367,6 @@ const LidoPlayer: FC = () => {
     const learning_path: boolean = state?.learning_path ?? false;
     const is_homework: boolean = state?.isHomework ?? false;
     const homeworkIndex: number | undefined = state?.homeworkIndex;
-
     // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
     let shouldGiveHomeworkBonus = false;
     if (is_homework) {
@@ -526,6 +527,7 @@ const LidoPlayer: FC = () => {
       ASSIGNMENT_COMPLETED_IDS,
       JSON.stringify(assignmentCompletedIds)
     );
+    setShowDialogBox(true);
   };
   const onGameExit = (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
@@ -594,7 +596,7 @@ const LidoPlayer: FC = () => {
 
   async function init() {
     setIsLoading(true);
-    setIsReady(false); 
+    setIsReady(false);
     setShowDialogBox(false);
     // --- CRITICAL FIX: Clear the global variable pollution ---
     // This ensures that when the new player starts, it doesn't see the 
@@ -636,8 +638,8 @@ const LidoPlayer: FC = () => {
         console.error("Could not get common audio path", e);
       }
     } else {
-      const path = "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      setXmlPath(path);
+      const path = `/assets/lessonBundles/${lessonId}/`;
+      setBasePath(path);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
@@ -662,7 +664,7 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {isReady &&(xmlPath || basePath) 
+      {isReady && (xmlPath || basePath)
         ? React.createElement("lido-standalone", {
           "xml-path": xmlPath,
           "base-url": basePath,
