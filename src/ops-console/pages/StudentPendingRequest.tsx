@@ -23,6 +23,7 @@ import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
+import SearchAndFilter from "../components/SearchAndFilter";
 
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +40,7 @@ const StudentPendingRequestDetails = () => {
   const [pageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [studentDetails, setStudentDetails] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchStudents = useCallback(
     async (classId: string, page: number, size: number) => {
@@ -184,6 +186,12 @@ const StudentPendingRequestDetails = () => {
     setShowRejectPopup(true);
   };
 
+  const formatFirstLetterUpper = (value?: string) => {
+    const trimmed = (value ?? "").toString().trim();
+    if (!trimmed) return t("N/A");
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  };
+
   if (loading || !requestData)
     return (
       <div className="student-pending-request-details-centered">
@@ -192,6 +200,7 @@ const StudentPendingRequestDetails = () => {
     );
 
   const { school = {}, requestedBy = {}, request_type } = requestData;
+  console.log("Request Data:", requestData);
   const fullRequestClassName =
     requestData.classInfo?.name || `${requestData.classInfo?.standard || ""}`;
 
@@ -220,6 +229,18 @@ const StudentPendingRequestDetails = () => {
   // Also update the total students count for display
   const filteredTotalStudents =
     totalStudents - (students.length - filteredStudents.length);
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const displayedStudents = filteredStudents.filter((stu) => {
+    if (!normalizedSearchTerm) return true;
+    const studentName = (stu.user?.name ?? "").toString().toLowerCase();
+    const studentId = (stu.user?.student_id ?? "").toString().toLowerCase();
+    const phoneNumber = (stu.parent?.phone ?? "").toString().toLowerCase();
+    return (
+      studentName.includes(normalizedSearchTerm) ||
+      studentId.includes(normalizedSearchTerm) ||
+      phoneNumber.includes(normalizedSearchTerm)
+    );
+  });
 
   return (
     <>
@@ -256,6 +277,10 @@ const StudentPendingRequestDetails = () => {
                 <span>{requestedBy.name || t("N/A")}</span>
               </div>
               <div className="student-pending-request-details-row">
+                <span>{t("Gender")}</span>{" "}
+                <span>{formatFirstLetterUpper(requestedBy.gender)}</span>
+              </div>
+              <div className="student-pending-request-details-row">
                 <span>{t("Phone Number")}</span>{" "}
                 <span>{studentDetails?.parents?.[0]?.phone || t("N/A")}</span>
               </div>
@@ -277,7 +302,8 @@ const StudentPendingRequestDetails = () => {
               </Typography>
               <Divider />
               <div className="student-pending-request-details-row">
-                <span>{t("Role")}</span> <span>{request_type || t("N/A")}</span>
+                <span>{t("Role")}</span>{" "}
+                <span>{formatFirstLetterUpper(request_type)}</span>
               </div>
               <div className="student-pending-request-details-row">
                 <span>{t("Grade")}</span>{" "}
@@ -308,15 +334,18 @@ const StudentPendingRequestDetails = () => {
                 <span>{t("School ID (UDISE)")}</span>{" "}
                 <span>{school.udise || t("N/A")}</span>
               </div>
-              <Divider className="student-pending-request-details-divider-margin" />
+              <Divider className="student-pending-request-details-divider-margin" style={{ marginTop: "15px" }} />
               <div className="student-pending-request-details-field-row">
-                <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin">
+                <div
+                  className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin"
+                  style={{ marginTop: "15px" }}
+                >
                   <div className="student-pending-request-details-label">
                     {t("Block")}
                   </div>
                   <div>{school.group3 || t("N/A")}</div>
                 </div>
-                <div className="student-pending-request-details-field-stack">
+                <div className="student-pending-request-details-field-stack" style={{ marginTop: "15px" }}>
                   <div className="student-pending-request-details-label">
                     {t("State")}
                   </div>
@@ -359,16 +388,27 @@ const StudentPendingRequestDetails = () => {
               className="student-pending-request-details-table-card"
               elevation={0}
             >
-              <Typography
-                variant="subtitle1"
-                className="student-pending-request-details-section-title"
-              >
-                {t(
-                  `Students in Grade ${
-                    parsedGrade > 0 ? parsedGrade : "N/A"
-                  } - ${parsedSection || "N/A"}`
-                )}
-              </Typography>
+              <div className="student-pending-request-details-table-header-row">
+                <Typography
+                  variant="subtitle1"
+                  className="student-pending-request-details-section-title"
+                >
+                  {t(
+                    `Students in Grade ${
+                      parsedGrade > 0 ? parsedGrade : "N/A"
+                    } - ${parsedSection || "N/A"}`
+                  )}
+                </Typography>
+                <div className="student-pending-request-details-table-search">
+                  <SearchAndFilter
+                    searchTerm={searchTerm}
+                    onSearchChange={(e) => setSearchTerm(e.target.value)}
+                    filters={{}}
+                    onFilterClick={() => undefined}
+                    isFilter={false}
+                  />
+                </div>
+              </div>
               <Typography className="student-pending-request-details-total-students-count">
                 {t(`Total: ${filteredTotalStudents} students`)}
               </Typography>
@@ -385,16 +425,16 @@ const StudentPendingRequestDetails = () => {
                       <TableCell className="student-pending-request-details-table-header-cell">
                         {t("Gender")}
                       </TableCell>
-                      <TableCell className="student-pending-request-details-table-header-cell">
+                      {/* <TableCell className="student-pending-request-details-table-header-cell">
                         {t("Grade")}
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="student-pending-request-details-table-header-cell">
                         {t("Phone Number")}
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {filteredStudents.map((stu) => {
+                    {displayedStudents.map((stu) => {
                       const fullStudentClassName = `${stu.grade || ""}${
                         stu.classSection || ""
                       }`;
@@ -418,8 +458,10 @@ const StudentPendingRequestDetails = () => {
                             {stu.user.student_id || t("N/A")}
                           </TableCell>
                           <TableCell>{stu.user.name || t("N/A")}</TableCell>
-                          <TableCell>{stu.user.gender || t("N/A")}</TableCell>
                           <TableCell>
+                            {formatFirstLetterUpper(stu.user.gender)  || t("N/A")}
+                          </TableCell>
+                          {/* <TableCell>
                             {t(
                               `${
                                 studentParsedGrade > 0
@@ -427,7 +469,7 @@ const StudentPendingRequestDetails = () => {
                                   : "N/A"
                               } - ${studentParsedSection || "N/A"}`
                             )}
-                          </TableCell>
+                          </TableCell> */}
                           <TableCell>{stu.parent?.phone || t("N/A")}</TableCell>
                         </TableRow>
                       );

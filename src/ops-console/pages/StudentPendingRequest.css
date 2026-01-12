@@ -9,6 +9,27 @@ html {
   background: #fcfcff;
   padding: 1rem 2rem 0 2rem;
 }
+.student-pending-request-details-table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.student-pending-request-details-table-header-row
+  .student-pending-request-details-section-title {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+.student-pending-request-details-table-search {
+  display: flex;
+  justify-content: flex-end;
+}
+.student-pending-request-details-table-search
+  .search-filter-container-SearchAndFilter {
+  justify-content: flex-end;
+}
 .student-pending-request-details-page-title {
   font-weight: 700;
   margin-bottom: 0.8rem;
@@ -125,6 +146,9 @@ html {
 .student-pending-request-details-table-card th,
 .student-pending-request-details-table-card .MuiTableCell-head {
   transform: none !important;
+  padding: 0.35rem 0.5rem !important;
+  height: 3rem;
+  background: #F0F4FA !important;
 }
 
 .student-pending-request-details-table-card {
@@ -146,8 +170,10 @@ html {
   font-weight: 600 !important;
   color: #373737 !important;
   background: #fafafa !important;
-  font-size: 1.03rem !important;
-  padding: 0.75rem 1rem !important;
+  font-size: 0.95rem !important;
+  padding: 0.35rem 0.5rem !important;
+  line-height: 1.2 !important;
+  vertical-align: middle !important;
 }
 
 .MuiTableRow-root.MuiTableRow-hover:hover {
@@ -229,6 +255,19 @@ html {
   }
 }
 @media (max-width: 900px) {
+  .student-pending-request-details-table-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .student-pending-request-details-table-search {
+    justify-content: flex-start;
+    width: 100%;
+  }
+  .student-pending-request-details-table-search
+    .search-filter-container-SearchAndFilter {
+    width: 100%;
+    justify-content: flex-start;
+  }
   .student-pending-request-details-main-content-row {
     flex-direction: column !important;
   }
