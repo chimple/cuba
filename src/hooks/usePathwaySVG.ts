@@ -12,6 +12,7 @@ import {
   CONTINUE,
   RewardBoxState,
   IS_REWARD_FEATURE_ON,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { Util } from "../utility/util";
 
@@ -150,7 +151,7 @@ export function usePathwaySVG({
       const course = learningPath.courses.courseList[currentCourseIndex];
       const pathItem = course.path[currentCourseIndex];
       const isAssessment = pathItem?.is_assessment;
-
+      const assessmentId = pathItem?.assignment_id;
       if (!course) return;
 
       const { startIndex, currentIndex, pathEndIndex } = course;
@@ -355,7 +356,8 @@ export function usePathwaySVG({
                 lesson,
                 course,
                 pathEntry?.skill_id,
-                isAssessment
+                isAssessment,
+                assessmentId
               );
             });
 
@@ -768,7 +770,8 @@ export function usePathwaySVG({
     lesson: any,
     course: any,
     skillId?: string,
-    is_assessment?: boolean
+    is_assessment?: boolean,
+    assessmentId?: string
   ) {
     if (!history) return;
 
@@ -801,7 +804,10 @@ export function usePathwaySVG({
           is_assessment: is_assessment,
         }
       );
-    } else if (lesson.plugin_type === LIDO) {
+    } else if (
+      lesson.plugin_type === LIDO ||
+      lesson.plugin_type === LIDO_ASSESSMENT
+    ) {
       const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.replace(PAGES.LIDO_PLAYER + p, {
         lessonId: lesson.cocos_lesson_id,
@@ -813,6 +819,7 @@ export function usePathwaySVG({
         learning_path: true,
         skillId: skillId,
         is_assessment: is_assessment,
+        assessmentId: assessmentId,
       });
     }
   }

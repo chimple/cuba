@@ -636,6 +636,7 @@ export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const LIDO = "lido";
+export const LIDO_ASSESSMENT="lido_assessment"
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
