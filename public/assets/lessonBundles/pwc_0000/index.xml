@@ -1,0 +1,343 @@
+<main>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container>
+    <lido-container id="lido-container" value="maincontainer" objective="option_1" aria-label="This is a multiple-option question. Select one option from the list." height="100vh" width="100vw" x="0" y="0" z="0" bg-color="transparent" bg-image="template-assets/bg-images/file-kiyyu1es.png" visible="true" onCorrect="lido-avatar.avatarAnimate='Success'; this.sleep='2000';" onInCorrect="lido-avatar.avatarAnimate='Fail'; this.sleep='2000';" show-check="false" is-continue-on-correct="true" onEntry="" exit-button-url="template-assets/buttons/file-9sc7qkc3.svg" prev-button-url="template-assets/buttons/file-slmag1iv.svg" next-button-url="template-assets/buttons/file-qflfquac.svg" speaker-button-url="template-assets/buttons/file-0h6axjrq.svg">
+
+    
+    <lido-cell layout="pos" id="pos1" disable-edit="true" value="pos1" height="300px" width="300px" x="landscape.-20px, portrait.-20px" y="landscape.100px, portrait.400px" aria-hidden="true" z="2" bg-color="transparent" visible="true">
+
+      <lido-avatar id="lido-avatar" disable-edit="true" visible="true" height="100%" width="100%" src="template-assets/images/file-uzda8nf6.riv" alt-text="" bg-color="transparent">
+      </lido-avatar>
+
+      <lido-image id="shadow1" disable-edit="true" value="image1" visible="true" src="template-assets/images/file-deabrl95.png" bg-color="transparent" width="186px" height="40px" x="55px" y="248px" alt-text="">
+      </lido-image>
+    </lido-cell>
+
+    <lido-cell visible="true" layout="col" width="100%" height="100%" bg-color="transparent">
+      <lido-text visible="true" width="80%" height="10%" bg-color="transparent" />
+
+      <lido-text tab-index="1" audio="game-assets/audio/file-jbcvf0f9.wav" visible="true" id="lido-question" width="landscape.65%, portrait.80%" height="10%" bg-color="#FFF5BB" string="Why did Asha and Mina start arguing?" border-radius="16px" onEntry="this.border='1px solid black'; this.fontWeight='500'; this.padding='50px';" font-size="36px">
+      </lido-text>
+
+      <lido-cell visible="true" width="100%" height="landscape.68%, portrait.100%" bg-color="transparent" layout="landscape.row, portrait.col" margin="landscape.0, portrait.-108px 0 0 0">
+
+        
+
+        <lido-cell visible="true" layout="wrap" width="landscape.70%, portrait.80%" height="landscape.97%, portrait.auto" bg-color="transparent" gap="40px" onEntry="this.gridTemplateColumns='1fr 1fr';" margin="landscape.0, portrait.-195px 0 0 0">
+
+          
+          
+          <lido-cell tab-index="2" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-32s0i4gc.wav" value="option_1" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They wanted to draw different things" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="3" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-lhlv2r65.wav" value="option_4" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They didn’t want to work together" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="4" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-qbbv9sv3.wav" value="option_2" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They lost their pencils" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+					
+          
+          <lido-cell tab-index="5" visible="true" layout="col" width="100%" type="click" audio="game-assets/audio/file-05lt69jl.wav" value="option_3" height="landscape.250px, portrait.270px" onEntry="this.borderRadius='25px'; this.padding='0';" onCorrect="this.cellBorderAnimate='#65BC46';" onInCorrect="this.vibrate='horizontal-shake';" onTouch="">
+                
+            <lido-text visible="true" font-size="36px" font-color="black" string="They were hungry" width="fit-content" bg-color="transparent" onEntry="this.fontWeight='500'; this.padding='0 20px';">
+            </lido-text>
+          </lido-cell>
+
+        </lido-cell>
+      </lido-cell>
+    </lido-cell>
+  </lido-container></main>
