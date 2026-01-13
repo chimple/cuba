@@ -4,7 +4,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import Header from "../components/homePage/Header";
 import { IonSearchbar } from "@ionic/react";
 import { useHistory } from "react-router";
-import { PAGES, TableTypes, AssignmentSource } from "../../common/constants"; 
+import { PAGES, TableTypes, AssignmentSource, SEARCH_LESSON_HISTORY } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import LessonComponent from "../components/library/LessonComponent";
 import AssigmentCount from "../components/library/AssignmentCount";
@@ -14,6 +14,9 @@ import { t } from "i18next";
 const SearchLesson: React.FC = ({}) => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const currentSchool = Util.getCurrentSchool();
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const dataToContinue: any = {};
   const history = useHistory();
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,26 +44,56 @@ const SearchLesson: React.FC = ({}) => {
   }, []);
 
   useEffect(() => {
+    const stored = JSON.parse(
+      localStorage.getItem(SEARCH_LESSON_HISTORY) || "[]"
+    );
+    setSearchHistory(stored);
+
+    return () => {
+      localStorage.removeItem(SEARCH_LESSON_HISTORY);
+    };
+  }, []);
+
+  useEffect(() => {
     if (inputEl.current) {
       inputEl.current.setFocus();
     }
     init();
   }, []);
 
+  const saveSearchTerm = (term: string) => {
+    if (!term.trim()) return;
+
+    const updated = [
+      term,
+      ...searchHistory.filter(t => t !== term),
+    ];
+
+    setSearchHistory(updated);
+    localStorage.setItem(
+      SEARCH_LESSON_HISTORY,
+      JSON.stringify(updated)
+    );
+  };
+
   const onSearch = async (term: string) => {
     if (dataToContinue.search === term) return;
+
     if (!term) {
-      dataToContinue.lessons = [];
-      dataToContinue.search = term;
       setLessons([]);
-      setSearchTerm(term);
+      setSearchTerm("");
+      setShowHistory(true);
       return;
     }
+
     const results = await api.searchLessons(term);
+
     dataToContinue.lessons = results;
     dataToContinue.search = term;
-    localStorage.setItem("searchTerm", dataToContinue.search);
+
+    saveSearchTerm(term);
     setLessons(results);
+    setShowHistory(false);
   };
   const init = async () => {
     const current_user = await auth.getCurrentUser();
@@ -113,35 +146,72 @@ const SearchLesson: React.FC = ({}) => {
         schoolName={currentSchool?.name}
       />
       <main className="container-body">
-        <IonSearchbar
-          className="search-bar"
-          ref={inputEl}
-          showClearButton="focus"
-          color={"light"}
-          inputMode="search"
-          showCancelButton="focus"
-          enterkeyhint="search"
-          placeholder={t("Search")??""}
-          onIonClear={() => {
-            onSearch("");
-          }}
-          onInput={(ev) => {
-            setSearchTerm(ev.currentTarget.value ?? "");
-          }}
-          onKeyDown={(ev) => {
-            if (ev.key === "Enter") {
-              onSearch(ev.currentTarget.value ?? "");
-              //@ts-ignore
-              ev.target?.blur();
-            }
-          }}
-          // debounce={}
-          onIonChange={(evOnChange) => {
-            onSearch(evOnChange.detail.value ?? "");
-          }}
-          value={searchTerm}
-          animated={true}
-        />
+    <div className="search-wrapper">
+      <IonSearchbar
+      ref={inputEl}
+      className="search-bar"
+      showClearButton="focus"
+      showCancelButton="focus"
+      placeholder={t("Search") ?? ""}
+      value={searchTerm}
+
+      onIonFocus={() => {
+        setIsFocused(true);
+        setShowHistory(true);
+      }}
+
+      onIonBlur={() => {
+        setTimeout(() => {
+          setIsFocused(false);
+          setShowHistory(false);
+        }, 150);
+      }}
+
+      onIonInput={(e) => {
+        const value = e.detail.value ?? "";
+        setSearchTerm(value);
+        setShowHistory(true);
+      }}
+
+      onIonChange={(e) => {
+        const value = e.detail.value ?? "";
+        onSearch(value);
+      }}
+
+      onKeyDown={(ev) => {
+        if (ev.key === "Enter") {
+          onSearch(ev.currentTarget.value ?? "");
+          //@ts-ignore
+          ev.target?.blur();
+          setIsFocused(false);
+        }
+      }}
+
+      onIonClear={() => {
+        setSearchTerm("");
+        setLessons([]);
+        setShowHistory(true);
+      }}
+    />
+
+    {isFocused && searchHistory.length > 0 && (
+        <div className="search-history-list">
+          {searchHistory.map((term, index) => (
+            <div
+              key={index}
+              className="search-history-item"
+              onClick={() => {
+                setSearchTerm(term);
+                onSearch(term);
+                setShowHistory(false);
+              }}
+            >
+              {term}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
         <div className="grid-container">
           {lessons.map((lesson) => (
             <div key={lesson.id} className="grid-item">
