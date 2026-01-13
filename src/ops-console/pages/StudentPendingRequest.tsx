@@ -333,18 +333,15 @@ const StudentPendingRequestDetails = () => {
                 <span>{t("School ID (UDISE)")}</span>{" "}
                 <span>{school.udise || t("N/A")}</span>
               </div>
-              <Divider className="student-pending-request-details-divider-margin" style={{ marginTop: "15px" }} />
+              <Divider className="student-pending-request-details-divider-margin student-pending-request-details-divider-spacing" />
               <div className="student-pending-request-details-field-row">
-                <div
-                  className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin"
-                  style={{ marginTop: "15px" }}
-                >
+                <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin student-pending-request-details-divider-spacing">
                   <div className="student-pending-request-details-label">
                     {t("Block")}
                   </div>
                   <div>{school.group3 || t("N/A")}</div>
                 </div>
-                <div className="student-pending-request-details-field-stack" style={{ marginTop: "15px" }}>
+                <div className="student-pending-request-details-field-stack student-pending-request-details-divider-spacing">
                   <div className="student-pending-request-details-label">
                     {t("State")}
                   </div>
@@ -458,7 +455,8 @@ const StudentPendingRequestDetails = () => {
                           </TableCell>
                           <TableCell>{stu.user.name || t("N/A")}</TableCell>
                           <TableCell>
-                            {formatFirstLetterUpper(stu.user.gender)  || t("N/A")}
+                            {formatFirstLetterUpper(stu.user.gender) ||
+                              t("N/A")}
                           </TableCell>
                           {/* <TableCell>
                             {t(

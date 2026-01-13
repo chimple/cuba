@@ -298,3 +298,7 @@ html {
     font-size: 0.98rem;
   }
 }
+
+.student-pending-request-details-divider-spacing {
+  margin-top: 15px !important;
+}
