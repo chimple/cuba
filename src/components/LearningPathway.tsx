@@ -120,7 +120,7 @@ const LearningPathway: React.FC = () => {
 
         if (updated) await saveLearningPath(student, learningPath);
         await buildLearningPathForUnplayedCourses(learningPath, userCourses, student);
-        await updateLearningPathWithLatestAssessment(currClass,student);
+        await updateLearningPathWithLatestAssessment(currClass, student);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -364,7 +364,7 @@ const LearningPathway: React.FC = () => {
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
 
- async function formatLatestAssessmentGroupPerCourse(
+  async function formatLatestAssessmentGroupPerCourse(
     assignments: TableTypes<"assignment">[]
   ): Promise<any[]> {
     if (!assignments.length) return [];
@@ -401,55 +401,55 @@ const LearningPathway: React.FC = () => {
   }
 
   const updatePathwayWithLatestAssessment = async (
-  assessmentCheckData: any[]
-) => {
-  if (!Array.isArray(assessmentCheckData)) return null;
+    assessmentCheckData: any[]
+  ) => {
+    if (!Array.isArray(assessmentCheckData)) return null;
 
-  const api = ServiceConfig.getI().apiHandler;
-  const courseList: any[] = [];
+    const api = ServiceConfig.getI().apiHandler;
+    const courseList: any[] = [];
 
-  for (const item of assessmentCheckData) {
-    // Skip if path is already valid or nothing missing
-    if (item.isPathValid || !item.missing?.length) continue;
+    for (const item of assessmentCheckData) {
+      // Skip if path is already valid or nothing missing
+      if (item.isPathValid || !item.missing?.length) continue;
 
-    const course = await api.getCourse(item.course_id);
-    if (!course) continue;
+      const course = await api.getCourse(item.course_id);
+      if (!course) continue;
 
-    courseList.push({
-      path_id: uuidv4(),
-      course_id: item.course_id,
-      subject_id: item.subject_id ?? course.subject_id,
-      path: item.missing.map((l: any) => ({
-        lesson_id: l.lesson_id,
-        assignment_id: l.assignment_id,
-        is_assessment: true,
-      })),
-      startIndex: 0,
-      currentIndex: 0,
-      pathEndIndex: item.missing.length,
-      type: course.framework_id
+      courseList.push({
+        path_id: uuidv4(),
+        course_id: item.course_id,
+        subject_id: item.subject_id ?? course.subject_id,
+        path: item.missing.map((l: any) => ({
+          lesson_id: l.lesson_id,
+          assignment_id: l.assignment_id,
+          is_assessment: true,
+        })),
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: item.missing.length - 1,
+        type: course.framework_id
+          ? RECOMMENDATION_TYPE.FRAMEWORK
+          : RECOMMENDATION_TYPE.CHAPTER,
+      });
+    }
+
+    if (courseList.length === 0) return null;
+
+    const hasFrameworkCourse = courseList.some(
+      (c) => c.type === RECOMMENDATION_TYPE.FRAMEWORK
+    );
+
+    return {
+      courses: {
+        courseList,
+        currentCourseIndex: 0,
+      },
+      type: hasFrameworkCourse
         ? RECOMMENDATION_TYPE.FRAMEWORK
         : RECOMMENDATION_TYPE.CHAPTER,
-    });
-  }
-
-  if (courseList.length === 0) return null;
-
-  const hasFrameworkCourse = courseList.some(
-    (c) => c.type === RECOMMENDATION_TYPE.FRAMEWORK
-  );
-
-  return {
-    courses: {
-      courseList,
-      currentCourseIndex: 0,
-    },
-    type: hasFrameworkCourse
-      ? RECOMMENDATION_TYPE.FRAMEWORK
-      : RECOMMENDATION_TYPE.CHAPTER,
+    };
   };
-};
- async function checkAssessmentLessonsInPathway(
+  async function checkAssessmentLessonsInPathway(
     formattedAssessments: any[],
     learningPath: any
   ): Promise<any> {
@@ -487,14 +487,14 @@ const LearningPathway: React.FC = () => {
       };
     });
   }
- async function updateLearningPathWithLatestAssessment(
+  async function updateLearningPathWithLatestAssessment(
     Class: any,
     Student: any,
   ) {
     const api = ServiceConfig.getI().apiHandler;
     const assignments = await api.getLatestAssessmentGroup(
       Class.id,
-      Student.id
+      Student
     );
     let learningPath = Student.learning_path
       ? JSON.parse(Student.learning_path)
@@ -532,7 +532,7 @@ const LearningPathway: React.FC = () => {
     learningPath.courses.courseList = existingList;
     await saveLearningPath(Student, learningPath);
   }
-  
+
   if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (

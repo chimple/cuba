@@ -10878,91 +10878,146 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async updateSchoolProgram(
-  schoolId: string,
-  programId: string
-): Promise<boolean> {
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
 
-  if (!this.supabase) return false;            // <-- guard
+    if (!this.supabase) return false;            // <-- guard
 
-  const { error } = await this.supabase        // <-- await
-    .from("school")
-    .update({ program_id: programId })
-    .eq("id", schoolId);
+    const { error } = await this.supabase        // <-- await
+      .from("school")
+      .update({ program_id: programId })
+      .eq("id", schoolId);
 
-  if (error) {
-    console.error("Error updating school program:", error);
-    return false;
+    if (error) {
+      console.error("Error updating school program:", error);
+      return false;
+    }
+
+    return true;
   }
-
-  return true;
-}
-  async getLatestAssessmentGroup(
+async getLatestAssessmentGroup(
   classId: string,
-  studentId: string
+  student: TableTypes<"user">
 ): Promise<TableTypes<"assignment">[]> {
   if (!this.supabase) return [];
 
   const nowIso = new Date().toISOString();
+  const langId = student.language_id;
+  const localeId = student.locale_id;
 
   /* ===============================
-   * STEP 1️⃣ : Get latest assessment batch_id
+   * STEP 1️⃣ : Fetch base assessments
    * =============================== */
-  const { data: latestBatch, error: batchError } = await this.supabase
+  const { data: assignments, error } = await this.supabase
     .from(TABLES.Assignment)
-    .select("batch_id")
+    .select(`
+      *,
+      course!inner(
+        id,
+        is_deleted
+      )
+    `)
     .eq("class_id", classId)
     .eq("type", "assessment")
     .eq("is_deleted", false)
-    .not("batch_id", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .eq("course.is_deleted", false)
+    .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+    .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
 
-  if (batchError || !latestBatch?.batch_id) return [];
-
-  const batchId = latestBatch.batch_id;
+  if (error || !assignments?.length) return [];
 
   /* ===============================
-   * STEP 2️⃣ : Fetch assignments in that batch
+   * STEP 2️⃣ : Keep latest batch PER COURSE
    * =============================== */
-  const { data: assignments, error: assignmentError } =
-    await this.supabase
-      .from(TABLES.Assignment)
-      .select(`
-        *,
-        course!inner(
-          id,
-          subject_id,
-          is_deleted
-        )
-      `)
-      .eq("batch_id", batchId)
-      .eq("type", "assessment")
-      .eq("is_deleted", false)
-      .eq("course.is_deleted", false)
-      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+  const latestBatchByCourse = new Map<string, string>();
 
-  if (assignmentError || !assignments?.length) return [];
+  for (const a of assignments) {
+    if (!a.course_id || !a.batch_id) continue; // null-safe
 
-  /* ===============================
-   * STEP 3️⃣ : Check pending results
-   * =============================== */
-  const assignmentIds = assignments.map((a) => a.id);
-
-  const { count: pendingCount, error: pendingError } =
-    await this.supabase
-      .from(TABLES.Result)
-      .select("id", { count: "exact", head: true })
-      .in("assignment_id", assignmentIds)
-      .eq("student_id", studentId)
-      .eq("is_deleted", false);
-
-  // If student completed all → nothing pending
-  if (pendingError || pendingCount === assignmentIds.length) {
-    return [];
+    if (!latestBatchByCourse.has(a.course_id)) {
+      latestBatchByCourse.set(a.course_id, a.batch_id);
+    }
   }
 
-  return assignments as TableTypes<"assignment">[];
+  const batchFiltered = assignments.filter(
+    a =>
+      a.course_id &&
+      a.batch_id &&
+      latestBatchByCourse.get(a.course_id) === a.batch_id
+  );
+
+  if (!batchFiltered.length) return [];
+
+  /* ===============================
+   * STEP 3️⃣ : Pending result check
+   * =============================== */
+  const assignmentIds = batchFiltered.map(a => a.id);
+
+  const { count: completedCount } = await this.supabase
+    .from(TABLES.Result)
+    .select("id", { count: "exact", head: true })
+    .in("assignment_id", assignmentIds)
+    .eq("student_id", student.id)
+    .eq("is_deleted", false);
+
+  if (completedCount === assignmentIds.length) return [];
+
+  /* ===============================
+   * STEP 4️⃣ : subject_lesson validation
+   * (lesson_id + language/locale fallback)
+   * =============================== */
+  const lessonIds = [
+    ...new Set(batchFiltered.map(a => a.lesson_id))
+  ];
+
+  let subjectLessonQuery = this.supabase
+    .from(TABLES.SubjectLesson)
+    .select("lesson_id")
+    .in("lesson_id", lessonIds)
+    .eq("is_deleted", false);
+
+  // Loose / fallback language + locale matcher
+  const orConditions: string[] = [
+    "language_id.is.null,locale_id.is.null",
+  ];
+
+  if (langId) {
+    orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+  }
+
+  if (localeId) {
+    orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+  }
+
+  if (langId && localeId) {
+    orConditions.push(
+      `language_id.eq.${langId},locale_id.eq.${localeId}`
+    );
+  }
+
+  subjectLessonQuery = subjectLessonQuery.or(
+    orConditions.join("|")
+  );
+
+  const { data: subjectLessons } = await subjectLessonQuery;
+
+  if (!subjectLessons?.length) return [];
+
+  /* ===============================
+   * STEP 5️⃣ : Final filter
+   * =============================== */
+  const validLessonIds = new Set(
+    subjectLessons
+      .filter(sl => sl.lesson_id)
+      .map(sl => sl.lesson_id)
+  );
+
+  const finalAssignments = batchFiltered.filter(a =>
+    validLessonIds.has(a.lesson_id)
+  );
+
+  return finalAssignments as TableTypes<"assignment">[];
 }
+
 }
