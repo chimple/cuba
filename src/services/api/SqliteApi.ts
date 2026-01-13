@@ -7705,83 +7705,87 @@ order by
   }
   async getLatestAssessmentGroup(
     classId: string,
-    studentId: string
+    student: TableTypes<"user">
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
-
+    const langId = student.language_id;
+    const localeId = student.locale_id;
     /* ===============================
-     * QUERY 1️⃣ : Get latest assessment batch assignments
+     * QUERY 1️⃣ : Fetch valid assessments (ALL rules applied)
      * =============================== */
     const fetchQuery = `
   SELECT a.*
   FROM assignment a
-
   JOIN course c
     ON c.id = a.course_id
    AND c.is_deleted = false
-
-  JOIN (
-    SELECT
-      lesson_id,
-      subject_id,
-      set_number,
-      MIN(sort_index) AS sort_index
-    FROM subject_lesson
-    WHERE is_deleted = false
-    GROUP BY lesson_id, subject_id, set_number
-  ) sl
-    ON sl.lesson_id = a.lesson_id
-   AND sl.subject_id = c.subject_id
-   AND sl.set_number = a.set_number
-
-  WHERE
-    a.is_deleted = false
+  WHERE a.class_id = '${classId}'
     AND a.type = 'assessment'
+    AND a.is_deleted = false
 
-    -- ✅ START / END TIME CHECK (added)
+    -- time window
     AND (
       a.starts_at IS NULL
-      OR TRIM(a.starts_at) = ''
+      OR a.starts_at = ''
       OR datetime(a.starts_at) <= datetime('${nowIso}')
     )
     AND (
       a.ends_at IS NULL
-      OR TRIM(a.ends_at) = ''
+      OR a.ends_at = ''
       OR datetime(a.ends_at) > datetime('${nowIso}')
     )
 
+    -- latest batch per course
     AND a.batch_id = (
       SELECT a2.batch_id
       FROM assignment a2
-      WHERE
-        a2.class_id = "${classId}"
+      WHERE a2.class_id = a.class_id
+        AND a2.course_id = a.course_id
         AND a2.type = 'assessment'
         AND a2.is_deleted = false
         AND a2.batch_id IS NOT NULL
-      GROUP BY a2.batch_id
-      ORDER BY MAX(a2.created_at) DESC
+      ORDER BY a2.created_at DESC
       LIMIT 1
     )
+    -- subject_lesson validation (SAFE)
+  AND EXISTS (
+  SELECT 1
+  FROM subject_lesson sl
+  WHERE sl.lesson_id = a.lesson_id
+    AND sl.set_number = a.set_number
+    AND sl.is_deleted = false
+    AND (
+      -- both NULL
+      (sl.language_id IS NULL AND sl.locale_id IS NULL)
 
-  ORDER BY sl.sort_index ASC;
+      -- language only
+      OR (sl.language_id = "${langId}" AND sl.locale_id IS NULL)
+
+      -- locale only
+      OR (sl.language_id IS NULL AND sl.locale_id = "${localeId}")
+
+      -- both exist AND both match
+      OR (sl.language_id = "${langId}" AND sl.locale_id = "${localeId}")
+    )
+)
+  ORDER BY a.course_id, a.created_at DESC;
 `;
-
     const fetchRes = await this._db?.query(fetchQuery);
     const assignments =
       (fetchRes?.values ?? []) as TableTypes<"assignment">[];
     if (!assignments.length) return [];
 
     /* ===============================
-     * QUERY 2️⃣ : Check completion in result table
+     * QUERY 2️⃣ : Pending result check
      * =============================== */
-    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
+    const assignmentIds = assignments.map(a => `'${a.id}'`).join(",");
 
     const completionQuery = `
     SELECT COUNT(*) AS pending_count
     FROM assignment a
     LEFT JOIN result r
       ON r.assignment_id = a.id
-     AND r.student_id = "${studentId}"
+     AND r.student_id = "${student.id}"
      AND r.is_deleted = false
     WHERE
       a.id IN (${assignmentIds})
@@ -7791,9 +7795,8 @@ order by
     const completionRes = await this._db?.query(completionQuery);
     const pendingCount =
       completionRes?.values?.[0]?.pending_count ?? 0;
-    if (pendingCount === 0) {
-      return [];
-    }
+    if (pendingCount === 0) return [];
     return assignments;
   }
+
 }
