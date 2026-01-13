@@ -3188,6 +3188,7 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq("class_id", classId)
       .eq("is_deleted", false)
+      .neq("type", "assessment")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -9151,7 +9152,7 @@ export class SupabaseApi implements ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -9166,7 +9167,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.state !== undefined) updatePayload.group1 = address.state;
     if (address?.district !== undefined)
       updatePayload.group2 = address.district;
-    if (address?.city !== undefined) updatePayload.group3 = address.city;
+    if (address?.block !== undefined) updatePayload.group3 = address.block;
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
@@ -10875,5 +10876,92 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
+  async updateSchoolProgram(
+  schoolId: string,
+  programId: string
+): Promise<boolean> {
 
+  if (!this.supabase) return false;            // <-- guard
+
+  const { error } = await this.supabase        // <-- await
+    .from("school")
+    .update({ program_id: programId })
+    .eq("id", schoolId);
+
+  if (error) {
+    console.error("Error updating school program:", error);
+    return false;
+  }
+
+  return true;
+}
+  async getLatestAssessmentGroup(
+  classId: string,
+  studentId: string
+): Promise<TableTypes<"assignment">[]> {
+  if (!this.supabase) return [];
+
+  const nowIso = new Date().toISOString();
+
+  /* ===============================
+   * STEP 1️⃣ : Get latest assessment batch_id
+   * =============================== */
+  const { data: latestBatch, error: batchError } = await this.supabase
+    .from(TABLES.Assignment)
+    .select("batch_id")
+    .eq("class_id", classId)
+    .eq("type", "assessment")
+    .eq("is_deleted", false)
+    .not("batch_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (batchError || !latestBatch?.batch_id) return [];
+
+  const batchId = latestBatch.batch_id;
+
+  /* ===============================
+   * STEP 2️⃣ : Fetch assignments in that batch
+   * =============================== */
+  const { data: assignments, error: assignmentError } =
+    await this.supabase
+      .from(TABLES.Assignment)
+      .select(`
+        *,
+        course!inner(
+          id,
+          subject_id,
+          is_deleted
+        )
+      `)
+      .eq("batch_id", batchId)
+      .eq("type", "assessment")
+      .eq("is_deleted", false)
+      .eq("course.is_deleted", false)
+      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+  if (assignmentError || !assignments?.length) return [];
+
+  /* ===============================
+   * STEP 3️⃣ : Check pending results
+   * =============================== */
+  const assignmentIds = assignments.map((a) => a.id);
+
+  const { count: pendingCount, error: pendingError } =
+    await this.supabase
+      .from(TABLES.Result)
+      .select("id", { count: "exact", head: true })
+      .in("assignment_id", assignmentIds)
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
+
+  // If student completed all → nothing pending
+  if (pendingError || pendingCount === assignmentIds.length) {
+    return [];
+  }
+
+  return assignments as TableTypes<"assignment">[];
+}
 }

@@ -95,6 +95,14 @@
   outline: none;
 }
 
+.formcard-form-group input:disabled,
+.formcard-form-group select:disabled {
+  background-color: #f3f4f6;   /* disabled bg */
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+
 .formcard-form-group input::placeholder,
 .formcard-form-group select::placeholder {
   color: #9aa0a6;

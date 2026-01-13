@@ -120,6 +120,7 @@ const LearningPathway: React.FC = () => {
 
         if (updated) await saveLearningPath(student, learningPath);
         await buildLearningPathForUnplayedCourses(learningPath, userCourses, student);
+        await updateLearningPathWithLatestAssessment(currClass,student);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -362,6 +363,176 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
+
+ async function formatLatestAssessmentGroupPerCourse(
+    assignments: TableTypes<"assignment">[]
+  ): Promise<any[]> {
+    if (!assignments.length) return [];
+    const api = ServiceConfig.getI().apiHandler;
+    // 1️⃣ Group assignments by course_id
+    const courseMap = new Map<string, TableTypes<"assignment">[]>();
+
+    for (const a of assignments) {
+      if (!a.course_id) continue;
+
+      if (!courseMap.has(a.course_id)) {
+        courseMap.set(a.course_id, []);
+      }
+      courseMap.get(a.course_id)!.push(a);
+    }
+
+    const result: any[] = [];
+
+    // 2️⃣ For each course → fetch subject_id → format
+    for (const [courseId, courseAssignments] of courseMap.entries()) {
+      const course = await api.getCourse(courseId);
+      if (!course?.subject_id) continue;
+
+      result.push({
+        course_id: courseId,
+        subject_id: course.subject_id,
+        lessons: courseAssignments.map((a) => ({
+          lesson_id: a.lesson_id,
+          assignment_id: a.id,
+        })),
+      });
+    }
+    return result;
+  }
+
+  const updatePathwayWithLatestAssessment = async (
+  assessmentCheckData: any[]
+) => {
+  if (!Array.isArray(assessmentCheckData)) return null;
+
+  const api = ServiceConfig.getI().apiHandler;
+  const courseList: any[] = [];
+
+  for (const item of assessmentCheckData) {
+    // Skip if path is already valid or nothing missing
+    if (item.isPathValid || !item.missing?.length) continue;
+
+    const course = await api.getCourse(item.course_id);
+    if (!course) continue;
+
+    courseList.push({
+      path_id: uuidv4(),
+      course_id: item.course_id,
+      subject_id: item.subject_id ?? course.subject_id,
+      path: item.missing.map((l: any) => ({
+        lesson_id: l.lesson_id,
+        assignment_id: l.assignment_id,
+        is_assessment: true,
+      })),
+      startIndex: 0,
+      currentIndex: 0,
+      pathEndIndex: item.missing.length,
+      type: course.framework_id
+        ? RECOMMENDATION_TYPE.FRAMEWORK
+        : RECOMMENDATION_TYPE.CHAPTER,
+    });
+  }
+
+  if (courseList.length === 0) return null;
+
+  const hasFrameworkCourse = courseList.some(
+    (c) => c.type === RECOMMENDATION_TYPE.FRAMEWORK
+  );
+
+  return {
+    courses: {
+      courseList,
+      currentCourseIndex: 0,
+    },
+    type: hasFrameworkCourse
+      ? RECOMMENDATION_TYPE.FRAMEWORK
+      : RECOMMENDATION_TYPE.CHAPTER,
+  };
+};
+ async function checkAssessmentLessonsInPathway(
+    formattedAssessments: any[],
+    learningPath: any
+  ): Promise<any> {
+    const coursePaths = learningPath?.courses?.courseList ?? [];
+
+    return formattedAssessments.map((assessment: any) => {
+      const coursePath = coursePaths.find(
+        (c: any) => c.course_id === assessment.course_id
+      );
+
+      // ❌ No pathway at all
+      if (!coursePath || !Array.isArray(coursePath.path)) {
+        return {
+          course_id: assessment.course_id,
+          isPathValid: false,
+          missing: assessment.lessons,
+        };
+      }
+
+      const pathKeySet = new Set(
+        coursePath.path.map(
+          (p: any) => `${p.lesson_id}|${p.assignment_id ?? ""}`
+        )
+      );
+
+      const missing = assessment.lessons.filter(
+        (l: any) =>
+          !pathKeySet.has(`${l.lesson_id}|${l.assignment_id}`)
+      );
+
+      return {
+        course_id: assessment.course_id,
+        isPathValid: missing.length === 0,
+        ...(missing.length > 0 ? { missing } : {}),
+      };
+    });
+  }
+ async function updateLearningPathWithLatestAssessment(
+    Class: any,
+    Student: any,
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+    const assignments = await api.getLatestAssessmentGroup(
+      Class.id,
+      Student.id
+    );
+    let learningPath = Student.learning_path
+      ? JSON.parse(Student.learning_path)
+      : null;
+    if (!assignments || assignments.length === 0) {
+      return;
+    }
+
+    // 2️⃣ Format assessment per course
+    const formattedPerCourse =
+      await formatLatestAssessmentGroupPerCourse(assignments);
+    // 3️⃣ Check assessment lessons against existing learning path
+    const validatedAssessments = await checkAssessmentLessonsInPathway(
+      formattedPerCourse,
+      learningPath
+    );
+    const updatedPath =
+      await updatePathwayWithLatestAssessment(validatedAssessments);
+    // 🟢 MERGE like buildLearningPathForUnplayedCourses
+    const newCourseList =
+      updatedPath?.courses?.courseList || [];
+    const existingList =
+      [...learningPath.courses.courseList];
+    for (const newCourse of newCourseList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse?.course_id
+      );
+
+      if (index !== -1) {
+        existingList[index] = newCourse;
+      } else {
+        existingList.push(newCourse);
+      }
+    }
+    learningPath.courses.courseList = existingList;
+    await saveLearningPath(Student, learningPath);
+  }
+  
   if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (

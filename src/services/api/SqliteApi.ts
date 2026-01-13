@@ -622,8 +622,8 @@ export class SqliteApi implements ServiceApi {
           if (!localSchoolId || !Array.isArray(school_user_data)) return;
 
           const deletedSchoolUser = school_user_data.find(
-          (entry: TableTypes<"school_user">) =>
-            entry.school_id === localSchoolId && entry.is_deleted === true
+            (entry: TableTypes<"school_user">) =>
+              entry.school_id === localSchoolId && entry.is_deleted === true
           );
 
           if (deletedSchoolUser) {
@@ -3109,6 +3109,7 @@ export class SqliteApi implements ServiceApi {
   WHERE a.class_id = '${classId}'
     AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
     AND r.assignment_id IS NULL
+    AND a.type <> 'assessment'
     AND (
       a.ends_at IS NULL OR
       TRIM(a.ends_at) = '' OR
@@ -7060,7 +7061,7 @@ order by
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -7612,11 +7613,9 @@ order by
       if (!setRows.length) {
         return [];
       }
-
       // 2️⃣ Pick ANY ONE set randomly in JS
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
-
       // 3️⃣ Fetch lessons for selected set_number
       const lessonQuery = `
       SELECT *
@@ -7682,6 +7681,7 @@ order by
       return false;
     }
   }
+
   async getSkillById(
     skillId: string
   ): Promise<TableTypes<"skill"> | undefined> {
@@ -7698,5 +7698,102 @@ order by
     return res?.values && res.values.length > 0
       ? res.values[0]
       : undefined;
+  }
+
+  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+    return this._serverApi.updateSchoolProgram(schoolId, programId);
+  }
+  async getLatestAssessmentGroup(
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment">[]> {
+    const nowIso = new Date().toISOString();
+
+    /* ===============================
+     * QUERY 1️⃣ : Get latest assessment batch assignments
+     * =============================== */
+    const fetchQuery = `
+  SELECT a.*
+  FROM assignment a
+
+  JOIN course c
+    ON c.id = a.course_id
+   AND c.is_deleted = false
+
+  JOIN (
+    SELECT
+      lesson_id,
+      subject_id,
+      set_number,
+      MIN(sort_index) AS sort_index
+    FROM subject_lesson
+    WHERE is_deleted = false
+    GROUP BY lesson_id, subject_id, set_number
+  ) sl
+    ON sl.lesson_id = a.lesson_id
+   AND sl.subject_id = c.subject_id
+   AND sl.set_number = a.set_number
+
+  WHERE
+    a.is_deleted = false
+    AND a.type = 'assessment'
+
+    -- ✅ START / END TIME CHECK (added)
+    AND (
+      a.starts_at IS NULL
+      OR TRIM(a.starts_at) = ''
+      OR datetime(a.starts_at) <= datetime('${nowIso}')
+    )
+    AND (
+      a.ends_at IS NULL
+      OR TRIM(a.ends_at) = ''
+      OR datetime(a.ends_at) > datetime('${nowIso}')
+    )
+
+    AND a.batch_id = (
+      SELECT a2.batch_id
+      FROM assignment a2
+      WHERE
+        a2.class_id = "${classId}"
+        AND a2.type = 'assessment'
+        AND a2.is_deleted = false
+        AND a2.batch_id IS NOT NULL
+      GROUP BY a2.batch_id
+      ORDER BY MAX(a2.created_at) DESC
+      LIMIT 1
+    )
+
+  ORDER BY sl.sort_index ASC;
+`;
+
+    const fetchRes = await this._db?.query(fetchQuery);
+    const assignments =
+      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    if (!assignments.length) return [];
+
+    /* ===============================
+     * QUERY 2️⃣ : Check completion in result table
+     * =============================== */
+    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
+
+    const completionQuery = `
+    SELECT COUNT(*) AS pending_count
+    FROM assignment a
+    LEFT JOIN result r
+      ON r.assignment_id = a.id
+     AND r.student_id = "${studentId}"
+     AND r.is_deleted = false
+    WHERE
+      a.id IN (${assignmentIds})
+      AND r.assignment_id IS NULL;
+  `;
+
+    const completionRes = await this._db?.query(completionQuery);
+    const pendingCount =
+      completionRes?.values?.[0]?.pending_count ?? 0;
+    if (pendingCount === 0) {
+      return [];
+    }
+    return assignments;
   }
 }

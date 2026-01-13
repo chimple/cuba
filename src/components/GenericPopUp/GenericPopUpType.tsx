@@ -19,14 +19,20 @@ export interface PopupConfig {
     endDate: string;
   };
 
-  content: Record<
-    string,
-    {
-      imageUrl: string;
-      bodyText: string;
-      buttonText: string;
-    }
-  >;
+content: Record<
+  string,
+  {
+    thumbnailImageUrl: string;
+    backgroundImageUrl?: string;
+
+    heading: string;
+    subHeading?: string;
+    details?: string[];
+
+    buttonText: string;
+  }
+>;
+
 
   action?: {
     type: "DEEP_LINK";

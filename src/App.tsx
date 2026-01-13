@@ -803,8 +803,11 @@ useEffect(() => {
       </IonReactRouter>
       {popupData && (
   <GenericPopup
-    imageUrl={popupData.localized.imageUrl}
-    bodyText={popupData.localized.bodyText}
+    thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
+    backgroundImageUrl={popupData.localized.backgroundImageUrl}
+    heading={popupData.localized.heading}
+    subHeading={popupData.localized.subHeading}
+    details={popupData.localized.details}
     buttonText={popupData.localized.buttonText}
     onClose={() => {
       PopupManager.onDismiss(popupData.config);
