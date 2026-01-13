@@ -3592,6 +3592,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("role", "student")
       .eq("is_deleted", false)
       .eq("class_id", classId) // Filter by classId
+      .order("user(name)", { ascending: true })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -8639,7 +8640,7 @@ export class SupabaseApi implements ServiceApi {
         userIds.length
           ? this.supabase
             .from(TABLES.User)
-            .select("id, name, email, phone")
+            .select("id, name, email, phone, gender")
             .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
