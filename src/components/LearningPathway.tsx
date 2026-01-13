@@ -273,7 +273,7 @@ const LearningPathway: React.FC = () => {
     // 3️⃣ CASE 2: Student has NO results → Subject lessons
     // -------------------------------
     if (!rawResults) {
-      const subjectLessons = await api.getSubjectLessonsBySubjectId(course.subject_id);
+      const subjectLessons = await api.getSubjectLessonsBySubjectId(course.subject_id,currentStudent);
       if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
         return subjectLessons
           .map((lesson: any) => ({
