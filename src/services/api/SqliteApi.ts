@@ -7722,7 +7722,6 @@ order by
   WHERE a.class_id = '${classId}'
     AND a.type = 'assessment'
     AND a.is_deleted = false
-
     -- time window
     AND (
       a.starts_at IS NULL
@@ -7774,7 +7773,6 @@ order by
     const assignments =
       (fetchRes?.values ?? []) as TableTypes<"assignment">[];
     if (!assignments.length) return [];
-
     /* ===============================
      * QUERY 2️⃣ : Pending result check
      * =============================== */
@@ -7796,7 +7794,33 @@ order by
     const pendingCount =
       completionRes?.values?.[0]?.pending_count ?? 0;
     if (pendingCount === 0) return [];
+    if (assignments.length > 5) {
+      assignments.sort((a, b) => {
+        const getPriority = (x: any): number => {
+          const l = x.language_id ?? null;
+          const lo = x.locale_id ?? null;
+          if (l === langId && lo === localeId) return 1;
+          if (l === langId && lo === null) return 2;
+          if (l === null && lo === localeId) return 3;
+          if (l === null && lo === null) return 4;
+          return 5;
+        };
+
+        const pA = getPriority(a);
+        const pB = getPriority(b);
+
+        // 1️⃣ priority first
+        if (pA !== pB) return pA - pB;
+
+        // 2️⃣ same priority → latest first
+        return (
+          new Date(b.created_at).getTime() -
+          new Date(a.created_at).getTime()
+        );
+      });
+    }
     return assignments;
+
   }
 
 }

@@ -494,7 +494,7 @@ const LearningPathway: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const assignments = await api.getLatestAssessmentGroup(
       Class.id,
-      Student.id
+      Student
     );
     let learningPath = Student.learning_path
       ? JSON.parse(Student.learning_path)
