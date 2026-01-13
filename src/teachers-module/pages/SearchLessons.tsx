@@ -49,9 +49,7 @@ const SearchLesson: React.FC = ({}) => {
     );
     setSearchHistory(stored);
 
-    return () => {
-      localStorage.removeItem(SEARCH_LESSON_HISTORY);
-    };
+    return () => {};
   }, []);
 
   useEffect(() => {
@@ -171,11 +169,6 @@ const SearchLesson: React.FC = ({}) => {
         const value = e.detail.value ?? "";
         setSearchTerm(value);
         setShowHistory(true);
-      }}
-
-      onIonChange={(e) => {
-        const value = e.detail.value ?? "";
-        onSearch(value);
       }}
 
       onKeyDown={(ev) => {
