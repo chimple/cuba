@@ -221,6 +221,13 @@
   border-right-color: #dadce0;
 }
 
+.formcard-btn-primary:disabled {
+  background: #c7d2fe;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+
 .formcard-modal-footer {
   display: flex;
   justify-content: flex-end;

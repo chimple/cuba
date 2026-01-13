@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "./FormCard.css";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
@@ -51,6 +51,18 @@ const FormCard: React.FC<EntityModalProps> = ({
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
+  const [initialSnapshot, setInitialSnapshot] =
+  useState<Record<string, string>>({});
+
+const isEditMode = Boolean(initialValues);
+
+const isDirty = useMemo(() => {
+  if (!isEditMode) return true; // Add form → always enabled
+
+  return Object.keys(initialSnapshot).some(
+    (key) => initialSnapshot[key] !== values[key]
+  );
+}, [isEditMode, initialSnapshot, values]);
 
   useEffect(() => {
   if (!open) return;
@@ -62,6 +74,11 @@ const FormCard: React.FC<EntityModalProps> = ({
   });
 
   setValues(init);
+  if (isEditMode) {
+    setInitialSnapshot(init);
+  } else {
+    setInitialSnapshot({});
+  }
   setOpenSelect(null);
 }, [open, fields, initialValues]);
 
@@ -414,7 +431,7 @@ const FormCard: React.FC<EntityModalProps> = ({
             >
               {t("Cancel")}
             </button>
-            <button type="submit" className="formcard-btn formcard-btn-primary">
+            <button type="submit" className="formcard-btn formcard-btn-primary" disabled={isEditMode && !isDirty}>
               {submitLabel}
             </button>
           </div>
