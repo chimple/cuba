@@ -200,7 +200,6 @@ const StudentPendingRequestDetails = () => {
     );
 
   const { school = {}, requestedBy = {}, request_type } = requestData;
-  console.log("Request Data:", requestData);
   const fullRequestClassName =
     requestData.classInfo?.name || `${requestData.classInfo?.standard || ""}`;
 
