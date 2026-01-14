@@ -444,7 +444,7 @@ const handleTeacherSubmit = useCallback(
       const hasPhone = !!normalizedPhone;
 
       if (!hasPhone) {
-        setErrorMessage({ text: "Please provide phone number", type: "error" });
+        setErrorMessage({ text: "Please provide a phone number", type: "error" });
         return;
       }
 
