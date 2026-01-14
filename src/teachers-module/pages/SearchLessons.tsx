@@ -144,7 +144,7 @@ const SearchLesson: React.FC = ({}) => {
         schoolName={currentSchool?.name}
       />
       <main className="container-body">
-    <div className="search-wrapper">
+    <div className="search-lesson-searchbar-wrapper">
       <IonSearchbar
       ref={inputEl}
       className="search-bar"
@@ -188,11 +188,11 @@ const SearchLesson: React.FC = ({}) => {
     />
 
     {isFocused && searchHistory.length > 0 && (
-        <div className="search-history-list">
+        <div className="search-lesson-search-history-list">
           {searchHistory.map((term, index) => (
             <div
               key={index}
-              className="search-history-item"
+              className="search-lesson-search-history-item"
               onClick={() => {
                 setSearchTerm(term);
                 onSearch(term);
