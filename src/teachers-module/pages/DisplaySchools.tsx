@@ -168,7 +168,7 @@ const DisplaySchools: FC = () => {
         _currentUser?.id as string
       );
 
-      if (existingRequest?.request_status === STATUS.REQUESTED) {
+      if (existingRequest?.request_status === STATUS.REQUESTED || existingRequest?.request_status === STATUS.FLAGGED) {
         history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {
         history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });

@@ -1927,8 +1927,8 @@ async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>
   }
 public async getLatestAssessmentGroup(
   classId: string,
-  studentId: string
+  student: TableTypes<"user">,
 ): Promise<TableTypes<"assignment">[]> {
-  return this.s.getLatestAssessmentGroup(classId, studentId);
+  return this.s.getLatestAssessmentGroup(classId, student);
 }
 }
