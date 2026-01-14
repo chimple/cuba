@@ -1438,7 +1438,7 @@ export interface ServiceApi {
    */
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the teachers for the school.
@@ -2559,14 +2559,15 @@ export interface ServiceApi {
   ): Promise<boolean>;
 
   getSubjectLessonsBySubjectId(
-    subjectId: string
+    subjectId: string,
+    student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
- getLatestAssessmentGroup(
-  classId: string,
-  student: TableTypes<"user">,
-): Promise<TableTypes<"assignment">[]>
+  getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">,
+  ): Promise<TableTypes<"assignment">[]>
 }

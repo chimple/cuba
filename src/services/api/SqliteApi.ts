@@ -7597,8 +7597,12 @@ order by
     }
   }
   async getSubjectLessonsBySubjectId(
-    subjectId: string
-  ): Promise<TableTypes<"subject_lesson">[] | null> {
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[]> {
+    const langId = student?.language_id ?? null;
+    const localeId = student?.locale_id ?? null;
+
     try {
       // 1️⃣ Fetch ALL available set_numbers
       const setQuery = `
@@ -7616,21 +7620,56 @@ order by
       // 2️⃣ Pick ANY ONE set randomly in JS
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
-      // 3️⃣ Fetch lessons for selected set_number
       const lessonQuery = `
-      SELECT *
-      FROM subject_lesson
-      WHERE subject_id = ?
-        AND set_number = ?
-        AND is_deleted = 0
-      ORDER BY sort_index ASC;
+      SELECT sl.*
+      FROM subject_lesson sl
+      WHERE sl.subject_id = ?
+        AND sl.set_number = ?
+        AND sl.is_deleted = 0
+        AND (
+          (sl.language_id IS NULL AND sl.locale_id IS NULL)
+          OR (sl.language_id = ? AND sl.locale_id IS NULL)
+          OR (sl.language_id IS NULL AND sl.locale_id = ?)
+          OR (sl.language_id = ? AND sl.locale_id = ?)
+        );
     `;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
         subjectId,
         setNumber,
+        langId,
+        localeId,
+        langId,
+        localeId,
       ]);
+
       const lessons = (lessonRes as any)?.values ?? [];
+      if (!lessons.length) return [];
+
+      /* =====================================================
+       * 3️⃣ JS SORTING (ONLY IF > 5) — SAME AS ASSIGNMENTS
+       * ===================================================== */
+      if (lessons.length > 5) {
+        lessons.sort((a: any, b: any) => {
+          const getPriority = (x: any): number => {
+            const l = x.language_id ?? null;
+            const lo = x.locale_id ?? null;
+
+            if (l === langId && lo === localeId) return 1;
+            if (l === langId && lo === null) return 2;
+            if (l === null && lo === localeId) return 3;
+            if (l === null && lo === null) return 4;
+            return 5;
+          };
+
+          const pA = getPriority(a);
+          const pB = getPriority(b);
+
+          if (pA !== pB) return pA - pB;
+          return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+        });
+      }
+
       return lessons;
     } catch (error) {
       console.error(
