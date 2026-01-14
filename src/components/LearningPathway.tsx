@@ -317,8 +317,17 @@ const LearningPathway: React.FC = () => {
 
     // 1️⃣ Find unplayed courses
     const unplayedCourses: any[] = [];
+    const existingList = [...learningPath.courses.courseList];
 
     for (const course of userCourses) {
+      const existingCourse = existingList.find(
+        (c: any) => c.course_id === course.id
+      );
+      const hasProgress =
+        (existingCourse?.currentIndex ?? 0) > 0 ||
+        (existingCourse?.startIndex ?? 0) > 0;
+      if (hasProgress) continue;
+
       const hasPlayed = await api.isStudentPlayedPalLesson(
         student.id,
         course.id
@@ -338,7 +347,6 @@ const LearningPathway: React.FC = () => {
     );
 
     const newCourseList = newLearningPath?.courses?.courseList || [];
-    const existingList = [...learningPath.courses.courseList];
 
     // 3️⃣ Replace matching courses
     for (const newCourse of newCourseList) {
@@ -346,6 +354,13 @@ const LearningPathway: React.FC = () => {
         (c: any) => c.course_id === newCourse.course_id
       );
 
+      const existingCourse = index !== -1 ? existingList[index] : null;
+      const hasProgress =
+        (existingCourse?.currentIndex ?? 0) > 0 ||
+        (existingCourse?.startIndex ?? 0) > 0;
+      if (hasProgress) {
+        continue;
+      }
       if (index !== -1) {
         existingList[index] = newCourse;
       } else {
