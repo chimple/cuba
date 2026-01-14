@@ -158,11 +158,12 @@ export const buildInitialLearningPath = async (
       : RECOMMENDATION_TYPE.CHAPTER,
   };
 };
-const shouldUseAssessment = (mode) =>
+const shouldUseAssessment = (mode: string) =>
   mode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
   mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
 
-const shouldUsePAL = (mode) => mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+const shouldUsePAL = (mode: string) =>
+  mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(false);
@@ -192,7 +193,7 @@ const LearningPathway: React.FC = () => {
       LEARNING_PATHWAY_MODE.DISABLED
     );
     setMode(result as LearningPathwayMode);
-    localStorage.setItem(CURRENT_PATHWAY_MODE,result)
+    localStorage.setItem(CURRENT_PATHWAY_MODE, result);
     setIsModeResolved(true);
   }, [gb?.ready, currentStudent?.id]);
   useEffect(() => {

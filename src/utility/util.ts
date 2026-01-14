@@ -2958,7 +2958,7 @@ export class Util {
       }));
 
       const rebuiltPath = await buildInitialLearningPath(
-        storedPathwayMode!,
+        storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         courses,
         currentStudent
       );
