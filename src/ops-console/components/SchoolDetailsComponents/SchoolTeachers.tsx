@@ -443,15 +443,10 @@ const handleTeacherSubmit = useCallback(
       const hasEmail = !!email;
       const hasPhone = !!normalizedPhone;
 
-      if (!hasEmail || !hasPhone) {
-          setErrorMessage({
-            text: !hasEmail
-              ? t("Please provide an email.")
-              : t("Please provide a phone number."),
-            type: "error",
-          });
-          return;
-        }
+      if (!hasPhone) {
+        setErrorMessage({ text: "Please provide phone number", type: "error" });
+        return;
+      }
 
       let finalEmail = "";
       let finalPhone = "";
