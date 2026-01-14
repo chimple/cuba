@@ -2004,6 +2004,13 @@ export interface ServiceApi {
   getStudentAndParentByStudentId(
     studentId: string
   ): Promise<{ user: any; parents: any[] }>;
+  
+  /**
+   * Fetch  parent information even if the student is deleted.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an array of parents.
+   */
+  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> ;
 
   /**
    * Merge a new student into an existing student record in SQLite.

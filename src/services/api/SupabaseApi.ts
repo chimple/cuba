@@ -3654,6 +3654,33 @@ export class SupabaseApi implements ServiceApi {
       parents,
     };
   }
+  async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("parent_user")
+      .select(
+        `
+          parent:parent_id (
+            *
+          )
+        `
+      )
+      .eq("student_id", studentId);
+    // no is_deleted filter
+
+    if (error || !data) {
+      console.error("Error fetching parents by student ID:", error);
+      return [];
+    }
+
+    return data.map((row: any) => row.parent).filter(Boolean);
+  }
 
   async mergeStudentRequest(
     requestId: string, //request row Id
