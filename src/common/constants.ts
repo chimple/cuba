@@ -91,6 +91,7 @@ export enum TABLES {
   FcUserForms = "fc_user_forms",
   Locale = "locale",
   LanguageLocale = "language_locale",
+  SubjectLesson="subject_lesson"
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -620,6 +621,7 @@ export const PREVIOUS_SELECTED_COURSE = () =>
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 // export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
+export const SEARCH_LESSON_HISTORY = "search_lesson_history"
 export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
@@ -636,6 +638,7 @@ export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const LIDO = "lido";
+export const LIDO_ASSESSMENT="lido_assessment"
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";

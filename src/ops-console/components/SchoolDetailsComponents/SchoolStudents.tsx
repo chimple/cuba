@@ -539,11 +539,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                 items={[
                   {
                     name: t("Send Message"),
-                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" sx={{color:"#2563eb"}}/>,
                   },
                   {
                     name: t("Edit Details"),
-                    icon: <BorderColorIcon fontSize="small" />,
+                    icon: <BorderColorIcon fontSize="small" sx={{color:"#2563eb"}}/>,
                     onClick: () => {
                         const fullStudent = getStudentInfoById(s.id);
                         console.log("fullStudent", fullStudent);
@@ -878,56 +878,62 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
   const editStudentFields: FieldConfig[] = [
-  {
+   {
     name: "studentName",
     label: "Student Name",
     kind: "text",
     required: true,
     column: 2,
   },
+
+  // 2️⃣ Student ID – left
   {
+    name: "studentID",
+    label: "Student ID",
+    kind: "text",
+    column: 0,
+    disabled: true,
+  },
+
+    {
     name: "gender",
     label: "Gender",
     kind: "select",
     required: true,
-    column: 0,
+    column: 1,
     options: [
       { label: t("FEMALE"), value: GENDER.GIRL },
       { label: t("MALE"), value: GENDER.BOY },
       { label: t("UNSPECIFIED"), value: GENDER.OTHER },
     ],
   },
+  // 3️⃣ Class & Section – right
   {
-      name: "ageGroup",
-      label: "Age",
-      kind: "select",
-      required: true,
-      column: 1,
-      options: Object.values(AGE_OPTIONS).map((v) => ({
-        value: v,
-        label: v,
-      })),
-    },
-
-  // Read-only fields
-  {
-    name: "grade",
-    label: "Grade",
+    name: "classAndSection",
+    label: "Class And Section",
     kind: "text",
     column: 0,
     disabled: true,
   },
+
+  // 5️⃣ Age – right
   {
-    name: "classSection",
-    label: "Class Section",
-    kind: "text",
+    name: "ageGroup",
+    label: "Age",
+    kind: "select",
+    required: true,
     column: 1,
-    disabled: true,
+    options: Object.values(AGE_OPTIONS).map((v) => ({
+      value: v,
+      label: v,
+    })),
   },
+
+  // 6️⃣ Phone – full width
   {
     name: "phone",
     label: "Phone Number",
-    kind: "phone",
+    kind: "text",
     column: 2,
     disabled: true,
   },
@@ -1096,8 +1102,8 @@ const getRandomAvatar = () => {
     studentName: editStudentData?.user?.name ?? "",
     gender: editStudentData?.user?.gender ?? "",
     ageGroup: String(editStudentData?.user?.age ?? ""),
-    grade: String(editStudentData?.grade ?? ""),
-    classSection: editStudentData?.classSection ?? "",
+    studentID: editStudentData?.user?.student_id ?? "",
+    classAndSection: `${editStudentData?.grade ?? ""}${editStudentData?.classSection ?? ""}`,
     phone: editStudentData?.parent?.phone ?? "",
   }}
   onClose={() => {

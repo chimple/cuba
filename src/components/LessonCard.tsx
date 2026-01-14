@@ -13,6 +13,7 @@ import {
   TYPE,
   TableTypes,
 } from "../common/constants";
+import { Capacitor } from "@capacitor/core";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -213,21 +214,28 @@ const LessonCard: React.FC<{
               // !!assignment?.id &&
               lesson.plugin_type === LIVE_QUIZ
             ) {
-              if (!online) {
-                presentToast({
-                  message: t(`Device is offline`),
-                  color: "danger",
-                  duration: 3000,
-                  position: "bottom",
-                  buttons: [
-                    {
-                      text: "Dismiss",
-                      role: "cancel",
-                    },
-                  ],
-                });
-                return;
+              const lessonId = lesson.cocos_lesson_id;
+              if (lessonId && Capacitor.isNativePlatform()) {
+                const isDownloaded = await Util.downloadZipBundle([lessonId]);
+                if (!isDownloaded) {
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+                  }
+                  return;
+                }
               }
+
               if (assignment) {
                 history.replace(
                   PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
@@ -248,7 +256,7 @@ const LessonCard: React.FC<{
               history.replace(PAGES.LIDO_PLAYER + parmas, {
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId: course?.id ?? currentCourse?.id,
-                course: JSON.stringify(currentCourse!),
+                course: JSON.stringify(course??currentCourse),
                 lesson: JSON.stringify(lesson),
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),

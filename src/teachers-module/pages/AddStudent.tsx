@@ -212,55 +212,61 @@ const AddStudent: React.FC = () => {
 
   return (
     <div className="main-page">
-      <Header
-        isBackButton={true}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
-        schoolName={currentSchool?.name}
-        onBackButtonClick={handleBack}
-      />
-      <div className="profile-details-centered">
-        <span className="add-student-text">{t("Add Student")}</span>
-        <ProfileDetails
-          imgSrc={profilePic || ""}
-          imgAlt="Profile Pic"
-          onImageChange={handleProfilePicChange}
-          isEditMode={true}
+      <div className="add-student-header">
+        <Header
+          isBackButton={true}
+          showSchool={true}
+          showClass={true}
+          className={currentClass?.name}
+          schoolName={currentSchool?.name}
+          onBackButtonClick={handleBack}
         />
       </div>
-      <AddStudentSection
-        languageOptions={languages}
-        fullName={fullName}
-        age={age}
-        gender={gender}
-        studentId={studentId}
-        language={language}
-        onFullNameChange={(value) => {
-          setFullName(value);
-        }}
-        onAgeChange={(value) => {
-          setAge(value);
-        }}
-        onGenderChange={(value) => {
-          setGender(value);
-        }}
-        onStudentIdChange={(value) => {
-          setStudentId(value);
-        }}
-        onLanguageChange={(selectedLanguageId) => {
-          setLanguage(selectedLanguageId);
-        }}
-      />
-      <div className="form-actions">
-        <button
-          className={`add-button ${!isFormValid ? "disabled" : ""}`}
-          type="button"
-          onClick={handleSave}
-          disabled={!isFormValid}
-        >
-          {t("Add")}
-        </button>
+      <div className="add-student-camera-header">
+        <div className="profile-details-centered">
+          <div className="add-student-title-text">{t("Add Student")}</div>
+          <div>
+            <ProfileDetails
+              imgSrc={profilePic || ""}
+              imgAlt="Profile Pic"
+              onImageChange={handleProfilePicChange}
+              isEditMode={true}
+            />
+          </div>
+        </div>
+        <AddStudentSection
+          languageOptions={languages}
+          fullName={fullName}
+          age={age}
+          gender={gender}
+          studentId={studentId}
+          language={language}
+          onFullNameChange={(value) => {
+            setFullName(value);
+          }}
+          onAgeChange={(value) => {
+            setAge(value);
+          }}
+          onGenderChange={(value) => {
+            setGender(value);
+          }}
+          onStudentIdChange={(value) => {
+            setStudentId(value);
+          }}
+          onLanguageChange={(selectedLanguageId) => {
+            setLanguage(selectedLanguageId);
+          }}
+        />
+        <div className="form-actions">
+          <button
+            className={`add-button ${!isFormValid ? "disabled" : ""}`}
+            type="button"
+            onClick={handleSave}
+            disabled={!isFormValid}
+          >
+            {t("Add")}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ interface DisplayPrincipal {
   gender: string;
   phoneNumber: string;
   emailDisplay: string;
+  phoneEmailDisplay: string;
   interact: "";
   interactPayload: PrincipalInfo;
 }
@@ -53,6 +54,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const [openPopup, setOpenPopup] = useState(false);
   const [currentPrincipal, setCurrentPrincipal] = useState<PrincipalInfo>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
@@ -142,6 +144,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       gender: p.gender || "N/A",
       phoneNumber: p.phone || "-",
       emailDisplay: p.email || "—",
+      phoneEmailDisplay: `${p.phone?.trim() || "-"} / ${p.email?.trim() || "-"}`,
       interact: "",
       interactPayload: p,
     }));
@@ -164,73 +167,75 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     setErrorMessage(undefined);
   };
 
-  const handlePrincipalSubmit = useCallback(
-    async (values: Record<string, string>) => {
-      try {
-        const name = (values.name ?? "").toString().trim();
-        const rawEmail = (values.email ?? "").toString().trim();
-        const rawPhone = (values.phoneNumber ?? "").toString();
-        if (!name) {
-          setErrorMessage({
-            text: "Principal name is required.",
-            type: "error",
-          });
-          return;
-        }
-        const email = rawEmail.toLowerCase();
-        const normalizedPhone = normalizePhone10(rawPhone);
-        const hasEmail = !!email;
-        const hasPhone = !!normalizedPhone;
-        if (!hasEmail && !hasPhone) {
-          setErrorMessage({
-            text: "Please provide either an email or a phone number.",
-            type: "error",
-          });
-          return;
-        }
-        let finalEmail = "";
-        let finalPhone = "";
-        if (hasEmail) {
-          if (!emailRegex.test(email)) {
-            setErrorMessage({
-              text: "Please enter a valid email address.",
-              type: "error",
-            });
-            return;
-          }
-          finalEmail = email;
-        }
-        if (hasPhone) {
-          if (normalizedPhone.length !== 10) {
-            setErrorMessage({
-              text: "Phone number must be 10 digits.",
-              type: "error",
-            });
-            return;
-          }
-          finalPhone = normalizedPhone;
-        }
-        await api.getOrcreateschooluser({
-          name,
-          phoneNumber: finalPhone || undefined,
-          email: finalEmail || undefined,
-          schoolId,
-          role: RoleType.PRINCIPAL,
-        });
-        setIsAddPrincipalModalOpen(false);
-        setPage(1);
-        await fetchPrincipals(1);
-      } catch (e: any) {
-        const message = e instanceof Error ? e.message : String(e);
-        setErrorMessage({
-          text: message,
-          type: "error",
-        });
-        console.error("Failed to add principal:", e);
+const handlePrincipalSubmit = useCallback(
+  async (values: Record<string, string>) => {
+    try {
+      const name = (values.name ?? "").toString().trim();
+      const rawEmail = (values.email ?? "").toString().trim();
+      const rawPhone = (values.phoneNumber ?? "").toString();
+
+      if (!name) {
+        setErrorMessage({ text: "Principal name is required.", type: "error" });
+        return;
       }
-    },
-    [schoolId, fetchPrincipals]
-  );
+
+      const email = rawEmail.toLowerCase();
+      const normalizedPhone = normalizePhone10(rawPhone);
+      const hasEmail = !!email;
+      const hasPhone = !!normalizedPhone;
+
+      if (!hasEmail && !hasPhone) {
+        setErrorMessage({ text: "Please provide either an email or a phone number.", type: "error" });
+        return;
+      }
+
+      let finalEmail = "";
+      let finalPhone = "";
+
+      if (hasEmail) {
+        if (!emailRegex.test(email)) {
+          setErrorMessage({ text: "Please enter a valid email address.", type: "error" });
+          return;
+        }
+        finalEmail = email;
+      }
+
+      if (hasPhone) {
+        if (normalizedPhone.length !== 10) {
+          setErrorMessage({ text: "Phone number must be 10 digits.", type: "error" });
+          return;
+        }
+        finalPhone = normalizedPhone;
+      }
+
+      setIsSubmitting(true);
+      setErrorMessage(undefined);
+
+      await api.getOrcreateschooluser({
+        name,
+        phoneNumber: finalPhone || undefined,
+        email: finalEmail || undefined,
+        schoolId,
+        role: RoleType.PRINCIPAL,
+      });
+
+      // Show success message for 2 seconds
+      setErrorMessage({ text: "Principal added successfully", type: "success" });
+      setTimeout(() => {
+        setIsAddPrincipalModalOpen(false); // close modal
+        setPage(1);
+        fetchPrincipals(1); // refresh principal list
+      }, 2000);
+    } catch (e: any) {
+      const message = e instanceof Error ? e.message : String(e);
+      setErrorMessage({ text: message, type: "error" });
+      console.error("Failed to add principal:", e);
+    } finally {
+      setIsSubmitting(false);
+    }
+  },
+  [schoolId, fetchPrincipals, api]
+);
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -304,16 +309,18 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Box>
       ),
     },
-    // { key: "phoneNumber", label: t("Phone Number") },
+
     {
-      key: "emailDisplay",
-      label: t("Email"),
-      renderCell: (p) => (
+      key: "phoneEmailDisplay",   // 🔹 use merged column
+      label: t("Phone no. / Email"),
+      renderCell: (row) => (
         <Typography variant="body2" className="truncate-text">
-          {p.emailDisplay}
+          {row.phoneEmailDisplay}
         </Typography>
       ),
-    },
+    }
+
+
   ];
 
   return (
@@ -366,7 +373,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
-              onRowClick={() => {}}
+              onRowClick={() => { }}
             />
           </div>
           {pageCount > 1 && (
@@ -406,7 +413,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       <FormCard
         open={isAddPrincipalModalOpen}
         title={t("Add New Principal")}
-        submitLabel={t("Add Principal")}
+  submitLabel={isSubmitting ? t("Adding...") : t("Add Principal")}
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handlePrincipalSubmit}

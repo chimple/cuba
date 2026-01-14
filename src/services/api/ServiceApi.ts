@@ -2287,7 +2287,7 @@ export interface ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -2570,4 +2570,10 @@ export interface ServiceApi {
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
+
+  updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+ getLatestAssessmentGroup(
+  classId: string,
+  student: TableTypes<"user">,
+): Promise<TableTypes<"assignment">[]>
 }

@@ -2,10 +2,12 @@ import { PopupConfig } from "./GenericPopUpType";
 import { LANGUAGE ,GENERIC_POPUP_TRIGGER_CONDITION, GENERIC_POPUP_INTERNAL_NAVIGATION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
+import { Util } from "../../utility/util";
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
   private sessionGamesPlayed = 0;
+
 
   static getInstance() {
     if (!PopupManager.instance) {
@@ -75,16 +77,25 @@ class PopupManager {
   }
 
   private canShowToday(config: PopupConfig): boolean {
+    
+    const currentStudent = Util.getCurrentStudent();
+    const studentId = currentStudent?.id;
+    if (!studentId) return false;
     const today = new Date().toISOString().split("T")[0];
-    const key = `GB_POPUP_${config.id}_${today}`;
+    const key = `GB_POPUP_${studentId}_${config.id}_${today}`;
 
     const count = Number(localStorage.getItem(key) || 0);
     return count < config.schedule.maxViewsPerDay;
   }
 
+  
+
   private incrementCount(config: PopupConfig) {
+     const currentStudent = Util.getCurrentStudent();
+    const studentId = currentStudent?.id;
+    if (!studentId) return false;
     const today = new Date().toISOString().split("T")[0];
-    const key = `GB_POPUP_${config.id}_${today}`;
+    const key = `GB_POPUP_${studentId}_${config.id}_${today}`;
 
     const count = Number(localStorage.getItem(key) || 0);
     localStorage.setItem(key, String(count + 1));
