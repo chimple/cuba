@@ -193,7 +193,7 @@ const LearningPathway: React.FC = () => {
       LEARNING_PATHWAY_MODE.DISABLED
     );
     setMode(result as LearningPathwayMode);
-    localStorage.setItem(CURRENT_PATHWAY_MODE, String(result));
+    localStorage.setItem(CURRENT_PATHWAY_MODE, result);
     setIsModeResolved(true);
   }, [gb?.ready, currentStudent?.id]);
   useEffect(() => {
