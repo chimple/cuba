@@ -2567,6 +2567,6 @@ export interface ServiceApi {
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
  getLatestAssessmentGroup(
   classId: string,
-  studentId: string
+  student: TableTypes<"user">,
 ): Promise<TableTypes<"assignment">[]>
 }

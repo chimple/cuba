@@ -91,6 +91,7 @@ export enum TABLES {
   FcUserForms = "fc_user_forms",
   Locale = "locale",
   LanguageLocale = "language_locale",
+  SubjectLesson="subject_lesson"
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
