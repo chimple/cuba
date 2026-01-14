@@ -7604,59 +7604,22 @@ order by
     const localeId = student?.locale_id ?? null;
 
     try {
-      /* =====================================================
-       * 1️⃣ SET SELECTION (LANG OR LOCALE → FALLBACK NULL,NULL)
-       * ===================================================== */
-      let setRows: any[] = [];
-
-      // STEP 1: language OR locale (guarded)
-      const setRes1 = await this.executeQuery(
-        `
+      // 1️⃣ Fetch ALL available set_numbers
+      const setQuery = `
       SELECT DISTINCT set_number
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
-        AND set_number IS NOT NULL
-        AND (
-          (? IS NOT NULL AND language_id = ?)
-          OR (? IS NOT NULL AND locale_id = ?)
-        );
-      `,
-        [
-          subjectId,
-          langId, langId,
-          localeId, localeId,
-        ]
-      );
-
-      setRows = (setRes1 as any)?.values ?? [];
-
-      // STEP 2: fallback → NULL / NULL
+        AND set_number IS NOT NULL;
+    `;
+      const setRes = await this.executeQuery(setQuery, [subjectId]);
+      const setRows = (setRes as any)?.values ?? [];
       if (!setRows.length) {
-        const setRes2 = await this.executeQuery(
-          `
-        SELECT DISTINCT set_number
-        FROM subject_lesson
-        WHERE subject_id = ?
-          AND is_deleted = 0
-          AND set_number IS NOT NULL
-          AND language_id IS NULL
-          AND locale_id IS NULL;
-        `,
-          [subjectId]
-        );
-
-        setRows = (setRes2 as any)?.values ?? [];
+        return [];
       }
-
-      if (!setRows.length) return [];
-
-      // 🎲 Random set selection
+      // 2️⃣ Pick ANY ONE set randomly in JS
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
-      /* =====================================================
-       * 2️⃣ LESSON QUERY (OR-based, SAME AS ASSIGNMENTS)
-       * ===================================================== */
       const lessonQuery = `
       SELECT sl.*
       FROM subject_lesson sl
