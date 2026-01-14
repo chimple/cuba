@@ -69,6 +69,8 @@ import {
   USER_SELECTION_STAGE,
   CURRENT_MODE,
   LIDO_COMMON_AUDIO_DIR,
+  LEARNING_PATHWAY_MODE,
+  CURRENT_PATHWAY_MODE,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -108,6 +110,7 @@ import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
+import { buildInitialLearningPath } from "../components/LearningPathway";
 
 declare global {
   interface Window {
@@ -2366,7 +2369,7 @@ export class Util {
     history: any,
     originPage: PAGES
   ) {
-    if(schoolId == undefined) return;
+    if (schoolId == undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
@@ -2708,7 +2711,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-        currentReward?.reward_id
+          currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2931,53 +2934,49 @@ export class Util {
     isAssessmentLesson: boolean = false
   ) {
     if (!currentStudent) return;
-
+    const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
     const learningPath = currentStudent.learning_path
       ? JSON.parse(currentStudent.learning_path)
       : null;
 
     if (!learningPath) return;
-    // 🔴 ABORT CASE: refresh current lesson with PAL recommendation only
-    if (isAborted && abortCourseId) {
+    // ABORT CASE: refresh current lesson with PAL recommendation only
+    // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
+    if (isAborted && abortCourseId && isAssessmentLesson) {
       const courseIndex = learningPath.courses.courseList.findIndex(
         (c: any) => c.course_id === abortCourseId
       );
 
       if (courseIndex === -1) return;
 
-      const abortCourse = learningPath.courses.courseList[courseIndex];
-      abortCourse.startIndex = 0;
-      abortCourse.currentIndex = 0;
-      abortCourse.pathEndIndex = abortCourse.path.length - 1;
-      const abortPathItem = abortCourse.path[abortCourse.currentIndex];
-      const recommended = await palUtil.getRecommendedLessonForCourse(
-        currentStudent.id,
-        abortCourseId
-      );
-      if (recommended?.lesson?.id) {
-        abortCourse.path[abortCourse.currentIndex] = {
-          ...abortPathItem,
-          lesson_id: recommended.lesson.id,
-          chapter_id: recommended.chapterId,
-          skill_id: recommended.skillId,
-        };
-      }
+      // Rebuild learning path for ALL courses
+      const courses = learningPath.courses.courseList.map((c: any) => ({
+        id: c.course_id,
+        subject_id: c.subject_id,
+        framework_id:
+          c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+      }));
 
-      await Promise.all([
-        ServiceConfig.getI().apiHandler.updateLearningPath(
-          currentStudent,
-          JSON.stringify(learningPath),
-          false
-        ),
-      ]);
+      const rebuiltPath = await buildInitialLearningPath(
+        storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        courses,
+        currentStudent
+      );
+
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(rebuiltPath),
+        false
+      );
 
       const updatedStudent =
         await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+
       if (updatedStudent) {
         Util.setCurrentStudent(updatedStudent);
       }
 
-      return; // ⛔ EXIT — do not continue normal flow
+      return; // EXIT — do not continue normal flow
     }
 
     try {
@@ -3022,6 +3021,43 @@ export class Util {
             currentCourse.pathEndIndex = currentCourse.path.length - 1;
           }
         } else {
+          // ASSESSMENT COMPLETED CASE → rebuild initial learning path
+          if (
+            isAssessmentLesson &&
+            !isAborted &&
+            storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
+          ) {
+            const courses = learningPath.courses.courseList.map((c: any) => ({
+              id: c.course_id,
+              subject_id: c.subject_id,
+              framework_id:
+                c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+            }));
+
+            const rebuiltPath = await buildInitialLearningPath(
+              storedPathwayMode,
+              courses,
+              currentStudent
+            );
+
+            await ServiceConfig.getI().apiHandler.updateLearningPath(
+              currentStudent,
+              JSON.stringify(rebuiltPath),
+              false
+            );
+
+            const updatedStudent =
+              await ServiceConfig.getI().apiHandler.getUserByDocId(
+                currentStudent.id
+              );
+
+            if (updatedStudent) {
+              Util.setCurrentStudent(updatedStudent);
+            }
+
+            return; // STOP further PAL / normal flow
+          }
+
           const palPath = await palUtil.getPalLessonPathForCourse(
             currentCourse.course_id,
             currentStudent.id

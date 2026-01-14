@@ -3,6 +3,7 @@ import "./ProfileMenu.css";
 import {
   AVATARS,
   CURRENT_MODE,
+  CURRENT_PATHWAY_MODE,
   HOMEHEADERLIST,
   HOMEWORK_PATHWAY,
   LEADERBOARDHEADERLIST,
@@ -67,6 +68,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
     schoolUtil.setCurrentClass(undefined);
+    localStorage.removeItem(CURRENT_PATHWAY_MODE)
     localStorage.removeItem(HOMEWORK_PATHWAY);
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
