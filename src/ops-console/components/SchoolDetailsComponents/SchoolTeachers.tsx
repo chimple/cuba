@@ -420,11 +420,11 @@ const handleTeacherSubmit = useCallback(
       const rawPhone = (values.phoneNumber ?? "").toString();
 
       if (!name) {
-        setErrorMessage({ text: "Teacher name is required.", type: "error" });
+        setErrorMessage({ text: t("Teacher name is required."), type: "error" });
         return;
       }
       if (!classIdsString) {
-        setErrorMessage({ text: "At least one class is required.", type: "error" });
+        setErrorMessage({ text: t("At least one class is required."), type: "error" });
         return;
       }
 
@@ -434,7 +434,7 @@ const handleTeacherSubmit = useCallback(
         .filter(Boolean);
 
       if (classIds.length === 0) {
-        setErrorMessage({ text: "At least one class is required.", type: "error" });
+        setErrorMessage({ text: t("At least one class is required."), type: "error" });
         return;
       }
 
@@ -444,7 +444,7 @@ const handleTeacherSubmit = useCallback(
       const hasPhone = !!normalizedPhone;
 
       if (!hasPhone) {
-        setErrorMessage({ text: "Please provide a phone number", type: "error" });
+        setErrorMessage({ text: t("Please provide a phone number"), type: "error" });
         return;
       }
 
@@ -453,7 +453,7 @@ const handleTeacherSubmit = useCallback(
 
       if (hasEmail) {
         if (!emailRegex.test(email)) {
-          setErrorMessage({ text: "Please enter a valid email address.", type: "error" });
+          setErrorMessage({ text: t("Please enter a valid email address."), type: "error" });
           return;
         }
         finalEmail = email;
@@ -461,7 +461,7 @@ const handleTeacherSubmit = useCallback(
 
       if (hasPhone) {
         if (normalizedPhone.length !== 10) {
-          setErrorMessage({ text: "Phone number must be 10 digits.", type: "error" });
+          setErrorMessage({ text: t("Phone number must be 10 digits."), type: "error" });
           return;
         }
         finalPhone = normalizedPhone;
@@ -480,7 +480,7 @@ const handleTeacherSubmit = useCallback(
       });
 
       // Show success message for 2 seconds
-      setErrorMessage({ text: "Teacher added successfully" ,type:"success"});
+      setErrorMessage({ text: t("Teacher added successfully") ,type:"success"});
       setTimeout(() => {
         setIsAddTeacherModalOpen(false); // close modal
         setPage(1);
