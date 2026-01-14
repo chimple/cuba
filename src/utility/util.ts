@@ -2995,6 +2995,24 @@ export class Util {
       };
 
       const eventsToLog: string[] = [];
+      const advancePathSlice = () => {
+        const pathLen = currentCourse.path?.length ?? 0;
+        if (!pathLen) return;
+        const nextStartIndex = Math.max(
+          0,
+          Math.min(currentCourse.currentIndex, pathLen - 1)
+        );
+        const nextEndIndex = Math.max(
+          nextStartIndex,
+          Math.min(currentCourse.pathEndIndex + 5, pathLen - 1)
+        );
+
+        currentCourse.startIndex = nextStartIndex;
+        currentCourse.currentIndex = nextStartIndex;
+        currentCourse.pathEndIndex = nextEndIndex;
+        currentCourse.path_id = uuidv4();
+        prevData.prevPath_id = currentCourse.path_id;
+      };
 
       currentCourse.currentIndex += 1;
       const is_immediate_sync =
@@ -3012,14 +3030,7 @@ export class Util {
             learningPath.courses.currentCourseIndex
           ].type === RECOMMENDATION_TYPE.CHAPTER
         ) {
-          currentCourse.startIndex = currentCourse.currentIndex;
-          currentCourse.pathEndIndex += 5;
-          currentCourse.path_id = uuidv4();
-          prevData.prevPath_id = currentCourse.path_id;
-
-          if (currentCourse.pathEndIndex > currentCourse.path.length) {
-            currentCourse.pathEndIndex = currentCourse.path.length - 1;
-          }
+          advancePathSlice();
         } else {
           // ASSESSMENT COMPLETED CASE → rebuild initial learning path
           if (
@@ -3058,16 +3069,24 @@ export class Util {
             return; // STOP further PAL / normal flow
           }
 
-          const palPath = await palUtil.getPalLessonPathForCourse(
-            currentCourse.course_id,
-            currentStudent.id
-          );
-          if (palPath?.length) {
-            currentCourse.path_id = uuidv4();
-            currentCourse.path = palPath;
-            currentCourse.startIndex = 0;
-            currentCourse.currentIndex = 0;
-            currentCourse.pathEndIndex = palPath.length - 1;
+          const isPalMode =
+            storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+          if (!isPalMode) {
+            advancePathSlice();
+          } else {
+            const palPath = await palUtil.getPalLessonPathForCourse(
+              currentCourse.course_id,
+              currentStudent.id
+            );
+            if (palPath?.length) {
+              currentCourse.path_id = uuidv4();
+              currentCourse.path = palPath;
+              currentCourse.startIndex = 0;
+              currentCourse.currentIndex = 0;
+              currentCourse.pathEndIndex = palPath.length - 1;
+            } else {
+              advancePathSlice();
+            }
           }
         }
 

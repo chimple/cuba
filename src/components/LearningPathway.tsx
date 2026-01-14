@@ -91,12 +91,10 @@ const buildLessonPath = async (
     );
 
     if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
-      return subjectLessons
-        .map((lesson: any) => ({
-          lesson_id: lesson.lesson_id,
-          is_assessment: true,
-        }))
-        .slice(0, 5);
+      return subjectLessons.map((lesson: any) => ({
+        lesson_id: lesson.lesson_id,
+        is_assessment: true,
+      }));
     }
   }
 
