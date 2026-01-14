@@ -6553,6 +6553,36 @@ order by
       return { user: null, parents: [] };
     }
   }
+  async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
+    if (!this._db) {
+      console.warn("Database not initialized.");
+      return [];
+    }
+
+    try {
+      const parentRes = await this._db.query(
+        `
+          SELECT p.*
+          FROM parent_user pu
+          JOIN user p ON pu.parent_id = p.id
+          WHERE pu.student_id = ?
+        `,
+        // no is_deleted filter
+        [studentId]
+      );
+
+      const parentRows = parentRes?.values ?? [];
+      return parentRows;
+    } catch (error) {
+      console.error(
+        "Error fetching parents by student ID",
+        error
+      );
+      return [];
+    }
+  }
 
   async mergeStudentRequest(
     requestId: string,

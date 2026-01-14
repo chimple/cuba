@@ -1487,6 +1487,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ user: any; parents: any[] }> {
     return await this.s.getStudentAndParentByStudentId(studentId);
   }
+  public async getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> {
+    return await this.s.getParentsByStudentId(studentId);
+  }
   public async mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
