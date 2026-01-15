@@ -1,4 +1,4 @@
-import { IonPage, IonHeader } from "@ionic/react";
+import { IonPage, IonHeader, useIonRouter } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   HOMEHEADERLIST,
@@ -17,6 +17,7 @@ import {
   LANGUAGE,
   LANG,
   IS_REWARD_FEATURE_ON,
+  GENERIC_POPUP_INTERNAL_NAVIGATION,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -48,7 +49,7 @@ import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import CampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
-
+import { useGrowthBook } from "@growthbook/growthbook-react";
 const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
@@ -120,6 +121,36 @@ const Home: FC = () => {
   };
 
   useEffect(() => {
+  if (currentHeader) {
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("tab", currentHeader);
+    window.history.replaceState({}, "", newUrl.toString());
+  }
+}, [currentHeader]);
+
+  const growthbook = useGrowthBook();
+useEffect(() => {
+  if (!growthbook) return;
+
+  const popupConfig = growthbook.getFeatureValue(
+    "generic-pop-up",
+    null
+  ) as any;
+
+  if (!popupConfig) return;
+
+  if (
+    currentHeader &&
+    popupConfig.screen_name &&
+    currentHeader.toLowerCase() === popupConfig.screen_name.toLowerCase()
+  ) {
+    console.log("🔥 POPUP TRIGGERED VIA NAVIGATION");
+    PopupManager.onAppOpen(popupConfig);
+    PopupManager.onTimeElapsed(popupConfig);
+  }
+}, [growthbook, currentHeader]);
+
+  useEffect(() => {
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
@@ -156,7 +187,6 @@ const Home: FC = () => {
       window.removeEventListener("PathwayCreated", handlePathwayCreated);
     };
   }, []);
-
 
 
   useEffect(() => {
@@ -430,6 +460,7 @@ const Home: FC = () => {
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       headerIconList.push(element);
     });
+    console.log("Header Icon Clicked🛖🛖:", selectedHeader);
     setCurrentHeader(selectedHeader);
     localStorage.setItem("currentHeader", selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
