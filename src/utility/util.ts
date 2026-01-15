@@ -3081,7 +3081,6 @@ export class Util {
             currentStudent.id
           );
           if (palPath?.length) {
-            console.log("PAL path obtained:", palPath);
             currentCourse.path_id = uuidv4();
             currentCourse.path = palPath;
             currentCourse.startIndex = 0;
