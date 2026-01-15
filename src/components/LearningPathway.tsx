@@ -298,7 +298,9 @@ const LearningPathway: React.FC = () => {
           userCourses,
           student
         );
-        await updateLearningPathWithLatestAssessment(currClass, student);
+        if (currClass) {
+          await updateLearningPathWithLatestAssessment(currClass, student);
+        }
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
