@@ -3030,7 +3030,14 @@ export class Util {
             learningPath.courses.currentCourseIndex
           ].type === RECOMMENDATION_TYPE.CHAPTER
         ) {
-          advancePathSlice();
+          currentCourse.startIndex = currentCourse.currentIndex;
+          currentCourse.pathEndIndex += 5;
+          currentCourse.path_id = uuidv4();
+          prevData.prevPath_id = currentCourse.path_id;
+
+          if (currentCourse.pathEndIndex > currentCourse.path.length) {
+            currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          }
         } else {
           // ASSESSMENT COMPLETED CASE → rebuild initial learning path
           if (
@@ -3069,24 +3076,19 @@ export class Util {
             return; // STOP further PAL / normal flow
           }
 
-          const isPalMode =
-            storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
-          if (!isPalMode) {
-            advancePathSlice();
+          const palPath = await palUtil.getPalLessonPathForCourse(
+            currentCourse.course_id,
+            currentStudent.id
+          );
+          if (palPath?.length) {
+            console.log("PAL path obtained:", palPath);
+            currentCourse.path_id = uuidv4();
+            currentCourse.path = palPath;
+            currentCourse.startIndex = 0;
+            currentCourse.currentIndex = 0;
+            currentCourse.pathEndIndex = palPath.length - 1;
           } else {
-            const palPath = await palUtil.getPalLessonPathForCourse(
-              currentCourse.course_id,
-              currentStudent.id
-            );
-            if (palPath?.length) {
-              currentCourse.path_id = uuidv4();
-              currentCourse.path = palPath;
-              currentCourse.startIndex = 0;
-              currentCourse.currentIndex = 0;
-              currentCourse.pathEndIndex = palPath.length - 1;
-            } else {
-              advancePathSlice();
-            }
+            advancePathSlice();
           }
         }
 
