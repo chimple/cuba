@@ -263,7 +263,30 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           if (hasLessons && notFinished) {
             // ✅ Use only if path is unfinished
-            setHomeworkLessons(lessons);
+            // setHomeworkLessons(lessons);
+            // return;
+            const normalizeLessonShape = (item: any) => {
+              if (item.lesson && item.lesson.id) return item; // already good
+
+              // Full lesson shape for SVG rendering
+              return {
+                ...item,
+                lesson: {
+                  id: item.lesson_id,
+                  cocoslessonid: item.lesson_id,
+                  image: "assets/icons/DefaultIcon.png", // 👈 CRITICAL for SVG
+                  subjectid: item.subject_id || lessons[0]?.lesson?.subjectid,
+                  plugin: { type: "COCOS" },
+                },
+                assignment_id: item.assignment_id ?? item.id,
+                chapter_id: item.chapter_id,
+                course_id: item.course_id,
+                raw_assignment: item,
+              };
+            };
+
+            const normalizedLessons = lessons.map(normalizeLessonShape);
+            setHomeworkLessons(normalizedLessons);
             return;
           }
 
@@ -565,8 +588,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lesson_image =
-            (isPlayed || isActive) && isValidUrl
-              ? lesson.image
+            isPlayed || isActive
+              ? isValidUrl
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png"
               : "assets/icons/NextNodeIcon.svg";
 
           if (lessonIdx < currentIndex) {

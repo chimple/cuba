@@ -27,6 +27,7 @@ import {
   EnumType,
   SupportLevelMap,
   ContactTarget,
+  AVATARS
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -148,6 +149,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentData, setStudentData] = useState<StudentInfo>();
   const [studentStatus, setStudentStatus] =
     useState<EnumType<"fc_support_level">>();
+  const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(null);
 
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
@@ -513,7 +516,64 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
+  const hasAnyStudents = (totalCount ?? 0) > 0;
+  const isNoStudentsState = !isLoading && !hasAnyStudents;
+  const hideHeaderActions = isNoStudentsState;
+  const hideFilterUI = isNoStudentsState;
+
   const columns: Column<DisplayStudent>[] = useMemo(() => {
+    const actionColumn: Column<DisplayStudent>[] =[
+       {
+          key: "schstudents_actions",
+          label: "",
+          sortable: false,
+          render: (s) => (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActionMenu
+                items={[
+                  {
+                    name: t("Send Message"),
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" sx={{color:"#2563eb"}}/>,
+                  },
+                  {
+                    name: t("Edit Details"),
+                    icon: <BorderColorIcon fontSize="small" sx={{color:"#2563eb"}}/>,
+                    onClick: () => {
+                        const fullStudent = getStudentInfoById(s.id);
+                        console.log("fullStudent", fullStudent);
+                        if (!fullStudent) return;
+
+                        setEditStudentData(fullStudent);
+                        setIsEditStudentModalOpen(true);
+                      },
+                  },
+                ]}
+                renderTrigger={(open) => (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      open(e);
+                    }}
+                    sx={{
+                      color: "#6B7280",
+                      "&:hover": { bgcolor: "#F3F4F6" },
+                    }}
+                  >
+                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                  </IconButton>
+                )}
+              />
+            </Box>
+          ),
+        },
+    ]
     const commonColumns: Column<DisplayStudent>[] = [
       {
         key: "studentIdDisplay",
@@ -604,48 +664,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             />
           ),
         },
-        {
-          key: "schstudents_actions",
-          label: "",
-          sortable: false,
-          render: (s) => (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ActionMenu
-                items={[
-                  {
-                    name: t("Send Message"),
-                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
-                  },
-                  {
-                    name: t("Edit Details"),
-                    icon: <BorderColorIcon fontSize="small" />,
-                  },
-                ]}
-                renderTrigger={(open) => (
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      open(e);
-                    }}
-                    sx={{
-                      color: "#6B7280",
-                      "&:hover": { bgcolor: "#F3F4F6" },
-                    }}
-                  >
-                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
-                  </IconButton>
-                )}
-              />
-            </Box>
-          ),
-        },
+        ...actionColumn
       ];
     } else {
       return [
@@ -664,6 +683,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         },
         { key: "phoneNumber", label: t("Phone Number / Email") },
         { key: "class", label: t("Class") },
+        ...actionColumn
       ];
     }
   }, [issTotal]);
@@ -857,10 +877,112 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
+  const editStudentFields: FieldConfig[] = [
+   {
+    name: "studentName",
+    label: "Student Name",
+    kind: "text",
+    required: true,
+    column: 2,
+  },
+
+  // 2️⃣ Student ID – left
+  {
+    name: "studentID",
+    label: "Student ID",
+    kind: "text",
+    column: 0,
+    disabled: true,
+  },
+
+    {
+    name: "gender",
+    label: "Gender",
+    kind: "select",
+    required: true,
+    column: 1,
+    options: [
+      { label: t("FEMALE"), value: GENDER.GIRL },
+      { label: t("MALE"), value: GENDER.BOY },
+      { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+    ],
+  },
+  // 3️⃣ Class & Section – right
+  {
+    name: "classAndSection",
+    label: "Class And Section",
+    kind: "text",
+    column: 0,
+    disabled: true,
+  },
+
+  // 5️⃣ Age – right
+  {
+    name: "ageGroup",
+    label: "Age",
+    kind: "select",
+    required: true,
+    column: 1,
+    options: Object.values(AGE_OPTIONS).map((v) => ({
+      value: v,
+      label: v,
+    })),
+  },
+
+  // 6️⃣ Phone – full width
+  {
+    name: "phone",
+    label: "Phone Number",
+    kind: "text",
+    column: 2,
+    disabled: true,
+  },
+];
+
+const getRandomAvatar = () => {
+  if (AVATARS.length === 0) return "";
+  const randomIndex = Math.floor(Math.random() * AVATARS.length);
+  return AVATARS[randomIndex];
+};
+
+
   const handleAddNewStudent = useCallback(() => {
     setIsAddStudentModalOpen(true);
     setErrorMessage(undefined);
   }, [history]);
+
+  const handleEditSubmit = async (values) => {
+  if (!editStudentData) return; // ✅ null safety
+
+  const user = editStudentData.user;
+  const classId = editStudentData.classWithidname?.id;
+  const avatarToSend =
+  user.avatar && user.avatar.trim() !== ""
+    ? user.avatar
+    : getRandomAvatar();
+
+  if (!classId) {
+    console.error("Class ID missing for student");
+    return;
+  }
+    await api.updateStudentFromSchoolMode(
+      user,
+      values.studentName,
+      Number(values.ageGroup),
+      values.gender,
+      avatarToSend,
+      user.image || "",
+      user.curriculum_id || user.curriculum_id!,
+      user.grade_id || user.grade_id!,
+      user.language_id || user.language_id!,
+      user.student_id || user.student_id!,
+      classId
+    );
+
+    setIsEditStudentModalOpen(false);
+    fetchStudents(page, debouncedSearchTerm);
+  };
+
 
   const handleCloseAddStudentModal = useCallback(() => {
     setIsAddStudentModalOpen(false);
@@ -971,6 +1093,26 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onSubmit={handleSubmitAddStudentModal}
         message={errorMessage}
       />
+      <FormCard
+  open={isEditStudentModalOpen}
+  title={t("Edit Student Details")}
+  submitLabel={t("Save Changes")}
+  fields={editStudentFields}
+  initialValues={{
+    studentName: editStudentData?.user?.name ?? "",
+    gender: editStudentData?.user?.gender ?? "",
+    ageGroup: String(editStudentData?.user?.age ?? ""),
+    studentID: editStudentData?.user?.student_id ?? "",
+    classAndSection: `${editStudentData?.grade ?? ""}${editStudentData?.classSection ?? ""}`,
+    phone: editStudentData?.parent?.phone ?? "",
+  }}
+  onClose={() => {
+    setIsEditStudentModalOpen(false);
+    setEditStudentData(null);
+  }}
+  onSubmit={handleEditSubmit}
+/>
+
       {openPopup && studentData && (
         <FcInteractPopUp
           studentData={studentData}
@@ -992,27 +1134,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           )}
         </Box>
-        <Box className="schoolStudents-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewStudent}
-            className="schoolStudents-newStudentButton-outlined"
-          >
-            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-            {!isSmallScreen && t("New Student")}
-          </MuiButton>
-          <SearchAndFilter
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterClick={handleFilterIconClick}
-            onClearFilters={handleClearFilters}
-            isFilter={issFilter}
-          />
-        </Box>
+
+        {/* Hide New Student + Search/Filter when there are NO students overall */}
+        {!hideHeaderActions && (
+          <Box className="schoolStudents-actionsGroup">
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-newStudentButton-outlined"
+            >
+              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+              {!isSmallScreen && t("New Student")}
+            </MuiButton>
+
+            <SearchAndFilter
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFilterClick={handleFilterIconClick}
+              onClearFilters={handleClearFilters}
+              isFilter={issFilter}
+            />
+          </Box>
+        )}
       </Box>
 
-      {!issTotal && (
+      {/* Keep as-is, but hide when no students overall */}
+      {!issTotal && !isNoStudentsState && (
         <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
@@ -1055,24 +1203,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       )}
 
-      {Object.values(filters).some((arr) => arr.length > 0) && (
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteAppliedFilter}
+      {/* Hide filters UI when no students overall */}
+      {!hideFilterUI &&
+        Object.values(filters).some((arr) => arr.length > 0) && (
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={handleDeleteAppliedFilter}
+          />
+        )}
+
+      {!hideFilterUI && (
+        <FilterSlider
+          isOpen={isFilterSliderOpen}
+          onClose={() => setIsFilterSliderOpen(false)}
+          filters={tempFilters}
+          filterOptions={{
+            grade: getGradeOptions(baseStudents),
+          }}
+          onFilterChange={handleSliderFilterChange}
+          onApply={handleApplyFilters}
+          onCancel={handleCancelFilters}
+          filterConfigs={filterConfigsForSchool}
         />
       )}
-      <FilterSlider
-        isOpen={isFilterSliderOpen}
-        onClose={() => setIsFilterSliderOpen(false)}
-        filters={tempFilters}
-        filterOptions={{
-          grade: getGradeOptions(baseStudents),
-        }}
-        onFilterChange={handleSliderFilterChange}
-        onApply={handleApplyFilters}
-        onCancel={handleCancelFilters}
-        filterConfigs={filterConfigsForSchool}
-      />
 
       {isLoading || isPerformanceLoading ? (
         <Box

@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS, RequestTypes, TableTypes } from "../../common/constants";
 import "./OpsApprovedRequestDetails.css";
 
 const OpsApprovedRequestDetails = () => {
@@ -23,7 +23,12 @@ const OpsApprovedRequestDetails = () => {
       group3?: string;
     };
     respondedBy?: { name?: string };
-    requestedBy?: { name?: string; phone?: string; email?: string };
+    requestedBy?: {
+      id?: string;
+      name?: string;
+      phone?: string;
+      email?: string;
+    };
     request_id?: string;
     request_type?: string;
     created_at?: string;
@@ -35,6 +40,7 @@ const OpsApprovedRequestDetails = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [parent, setParent] = useState<TableTypes<"user"> | null>(null);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -42,7 +48,10 @@ const OpsApprovedRequestDetails = () => {
       setError(null);
       try {
         const state = location.state as { request?: any } | undefined;
+
+        let req: RequestDetails | null = null;
         if (state?.request && state.request.request_id === id) {
+          req = state.request;
           setRequestDetails(state.request);
         } else {
           const approvedRequest = await api.getOpsRequests(
@@ -50,9 +59,16 @@ const OpsApprovedRequestDetails = () => {
             1,
             DEFAULT_PAGE_SIZE
           );
-          const req = approvedRequest?.find((r) => r.request_id === id);
+          req = approvedRequest?.find((r) => r.request_id === id);
           if (req) setRequestDetails(req);
           else setError(t("requestNotFound"));
+        }
+
+        if (req?.request_type === RequestTypes.STUDENT && req?.requestedBy?.id) {
+          const data = await api.getParentsByStudentId(
+            req.requestedBy.id
+          );
+          setParent(data?.[0]);
         }
       } catch {
         setError(t("failedToLoadRequest"));
@@ -93,6 +109,15 @@ const OpsApprovedRequestDetails = () => {
   const school = requestDetails.school || {};
   const approvedBy = requestDetails.respondedBy || {};
   const requestedBy = requestDetails.requestedBy || {};
+  const phone =
+    requestDetails?.request_type === RequestTypes.STUDENT
+      ? parent?.phone
+      : requestedBy?.phone;
+
+  const email =
+    requestDetails?.request_type === RequestTypes.STUDENT
+      ? parent?.email
+      : requestedBy?.email;
 
   return (
     <div className="ops-approved-request-details-layout">
@@ -240,13 +265,13 @@ const OpsApprovedRequestDetails = () => {
               <div className="ops-approved-request-details-label">
                 {t("Phone Number")}
               </div>
-              <div>{requestedBy.phone || "N/A"}</div>
+              <div>{phone || "N/A"}</div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
                 {t("Email Id")}
               </div>
-              <div>{requestedBy.email || "N/A"}</div>
+              <div>{email || "N/A"}</div>
             </div>
           </Paper>
         </Grid>

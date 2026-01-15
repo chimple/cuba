@@ -161,6 +161,19 @@ const readLocalConfig = async (
 };
  const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
+    const lessonKey = lessonId || cocosLessonId;
+    if (lessonKey) {
+      const cachedConfig = localStorage.getItem(
+        `live_quiz_config_${lessonKey}`
+      );
+      if (cachedConfig) {
+        const config = JSON.parse(cachedConfig) as LiveQuiz;
+        setLiveQuizConfig(config);
+        if (onConfigLoaded) onConfigLoaded(config);
+        preLoadAudiosWithLiveQuizConfig(config);
+        return config;
+      }
+    }
     if (!Capacitor.isNativePlatform()) {
       //TODO remove FOR testing
       const config = {

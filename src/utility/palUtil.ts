@@ -10,12 +10,7 @@ import {
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 
-type AbilityKeys =
-  | "skill"
-  | "outcome"
-  | "competency"
-  | "domain"
-  | "subject";
+type AbilityKeys = "skill" | "outcome" | "competency" | "domain" | "subject";
 
 type ResultAbilityMap = {
   [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
@@ -30,7 +25,10 @@ export class palUtil {
   public static async getAbilityStateAndGraph(
     studentId: string,
     courseId: string
-  ): Promise<{ abilityState: AbilityState; graph: DependencyGraph | undefined }> {
+  ): Promise<{
+    abilityState: AbilityState;
+    graph: DependencyGraph | undefined;
+  }> {
     const cacheKey = `${studentId}:${courseId}`;
     const cached = this.abilityGraphCache.get(cacheKey);
     if (cached) return cached;
@@ -230,8 +228,12 @@ export class palUtil {
 
     const skillList = skills.map((skill) => {
       const outcome = outcomeMap.get(skill.outcome_id);
-      const competency = outcome ? competencyMap.get(outcome.competencyId) : undefined;
-      const domain = competency ? domainMap.get(competency.domainId) : undefined;
+      const competency = outcome
+        ? competencyMap.get(outcome.competencyId)
+        : undefined;
+      const domain = competency
+        ? domainMap.get(competency.domainId)
+        : undefined;
       return {
         id: skill.id,
         label: skill.name,
@@ -294,18 +296,20 @@ export class palUtil {
       .filter((id): id is string => !!id);
 
     if (!lessonIds.length) {
-      return { lesson: undefined, skillId, chapterId: undefined, recommendation };
+      return {
+        lesson: undefined,
+        skillId,
+        chapterId: undefined,
+        recommendation,
+      };
     }
 
     const lessonResultsMap = await api.getStudentResultInMap(studentId);
     const lessonsData =
-      (await api.getLessonsBylessonIds(lessonIds))?.reduce(
-        (acc, lesson) => {
-          if (lesson?.id) acc[lesson.id] = lesson;
-          return acc;
-        },
-        {} as Record<string, TableTypes<"lesson">>
-      ) ?? {};
+      (await api.getLessonsBylessonIds(lessonIds))?.reduce((acc, lesson) => {
+        if (lesson?.id) acc[lesson.id] = lesson;
+        return acc;
+      }, {} as Record<string, TableTypes<"lesson">>) ?? {};
 
     let nextLessonId: string | undefined;
     for (const sl of sortedSkillLessons) {
@@ -344,7 +348,10 @@ export class palUtil {
     };
   }
 
-  public static async getPalLessonPathForCourse(courseId: string, studentId: string): Promise<
+  public static async getPalLessonPathForCourse(
+    courseId: string,
+    studentId: string
+  ): Promise<
     { lesson_id: string; skill_id?: string; chapter_id?: string }[] | undefined
   > {
     const recommended = await this.getRecommendedLessonForCourse(
@@ -476,13 +483,46 @@ export class palUtil {
         ? newAbilityState.competency?.[competencyId]
         : undefined,
       domain_id: domainId,
-      domain_ability: domainId
-        ? newAbilityState.domain?.[domainId]
-        : undefined,
+      domain_ability: domainId ? newAbilityState.domain?.[domainId] : undefined,
       subject_id: subjectId,
       subject_ability: subjectId
         ? newAbilityState.subject?.[subjectId]
         : undefined,
     };
   }
+/**
+   * Section 1: Assessment Selection Logic (Cold Start)
+   * Triggered when a user has no history for a course.
+   */
+  public static async getInitialAssessmentLessons(subjectId: string): Promise<any[]> {
+    const api = ServiceConfig.getI().apiHandler;
+    
+    // 1. Query subject_lesson for the subject_id
+    const allSubjectLessons = await api.getSubjectLessonsBySubjectId(subjectId);
+    
+    // Safety check
+    if (!allSubjectLessons || !Array.isArray(allSubjectLessons) || allSubjectLessons.length === 0) {
+      return [];
+    }
+
+    // 2. Identify all distinct set_number values
+    const distinctSets = [...new Set(allSubjectLessons
+      .map((l: any) => l.set_number)
+      .filter((n: any) => n !== null))  
+    ];
+
+    if (distinctSets.length === 0) return [];
+
+    // 3. Randomly select one set_number
+    const selectedSet = distinctSets[Math.floor(Math.random() * distinctSets.length)];
+
+    // 4. Fetch and return lessons matching that set_number (approx 5 lessons)
+    return allSubjectLessons
+      .filter((l: any) => l.set_number === selectedSet)
+      .sort((a: any, b: any) => (a.sort_index ?? 0) - (b.sort_index ?? 0))
+      .map((l: any) => ({
+        lesson_id: l.lesson_id,
+      }));
+  }  
+
 }

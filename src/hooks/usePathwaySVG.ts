@@ -12,6 +12,7 @@ import {
   CONTINUE,
   RewardBoxState,
   IS_REWARD_FEATURE_ON,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { Util } from "../utility/util";
 
@@ -148,6 +149,9 @@ export function usePathwaySVG({
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
+      const pathItem = course.path[currentCourseIndex];
+      const isAssessment = pathItem?.is_assessment;
+      const assessmentId = pathItem?.assignment_id;
       if (!course) return;
 
       const { startIndex, currentIndex, pathEndIndex } = course;
@@ -257,8 +261,10 @@ export function usePathwaySVG({
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lessonImageUrl =
-            (isPlayed || isActive) && isValidUrl
-              ? lesson.image
+            isPlayed || isActive
+              ? isValidUrl
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png"
               : "assets/icons/NextNodeIcon.svg";
 
           const positionMappings = {
@@ -346,7 +352,13 @@ export function usePathwaySVG({
             activeGroup.style.cursor = "pointer";
             activeGroup.addEventListener("click", () => {
               const pathEntry = course.path[startIndex + idx];
-              handleLessonClick(lesson, course, pathEntry?.skill_id);
+              handleLessonClick(
+                lesson,
+                course,
+                pathEntry?.skill_id,
+                isAssessment,
+                assessmentId
+              );
             });
 
             fragment.appendChild(activeGroup);
@@ -754,7 +766,13 @@ export function usePathwaySVG({
     });
   }
 
-  function handleLessonClick(lesson: any, course: any, skillId?: string) {
+  function handleLessonClick(
+    lesson: any,
+    course: any,
+    skillId?: string,
+    is_assessment?: boolean,
+    assessmentId?: string
+  ) {
     if (!history) return;
 
     const currentCourse = (window as any).__currentCourseForPathway__;
@@ -772,6 +790,7 @@ export function usePathwaySVG({
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
         skillId: skillId,
+        is_assessment: is_assessment,
       });
     } else if (lesson.plugin_type === LIVE_QUIZ) {
       history.replace(
@@ -782,9 +801,13 @@ export function usePathwaySVG({
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           skillId: skillId,
+          is_assessment: is_assessment,
         }
       );
-    } else if (lesson.plugin_type === LIDO) {
+    } else if (
+      lesson.plugin_type === LIDO ||
+      lesson.plugin_type === LIDO_ASSESSMENT
+    ) {
       const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.replace(PAGES.LIDO_PLAYER + p, {
         lessonId: lesson.cocos_lesson_id,
@@ -795,6 +818,8 @@ export function usePathwaySVG({
         from: history.location.pathname + `?${CONTINUE}=true`,
         learning_path: true,
         skillId: skillId,
+        is_assessment: is_assessment,
+        assessmentId: assessmentId,
       });
     }
   }

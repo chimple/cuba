@@ -1,13 +1,11 @@
 .homeworkpathway-structure-div {
   position: absolute;
-  top: 76%;
-  left: 21%;
-  height: 51vh;
+  top: 35%;
+  left: 20%;
+  height: 40vh;
   width: 100vw;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2;
+  justify-content: flex-end;
 }
 
 .homeworkpathway-mascot-wrapper {
@@ -29,7 +27,6 @@
 
 @media (orientation: landscape) and (max-height: 450px) {
   .homeworkpathway-structure-div {
-    top: 41%;
     z-index: 1;
   }
 }

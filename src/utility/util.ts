@@ -68,8 +68,9 @@ import {
   RECOMMENDATION_TYPE,
   USER_SELECTION_STAGE,
   CURRENT_MODE,
-  LIDO_COMMON_AUDIO_LANG_KEY,
   LIDO_COMMON_AUDIO_DIR,
+  LEARNING_PATHWAY_MODE,
+  CURRENT_PATHWAY_MODE,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -109,6 +110,8 @@ import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
+import { buildInitialLearningPath } from "../components/LearningPathway";
+
 declare global {
   interface Window {
     cc: any;
@@ -2064,12 +2067,14 @@ export class Util {
       const user_role = localStorage.getItem(USER_ROLE);
       if (user_role) {
         const roles: string[] = JSON.parse(user_role);
-        if ([
-          RoleType.SUPER_ADMIN,
-          RoleType.FIELD_COORDINATOR,
-          RoleType.PROGRAM_MANAGER,
-          RoleType.OPERATIONAL_DIRECTOR
-        ].some(role => roles.includes(role))) {
+        if (
+          [
+            RoleType.SUPER_ADMIN,
+            RoleType.FIELD_COORDINATOR,
+            RoleType.PROGRAM_MANAGER,
+            RoleType.OPERATIONAL_DIRECTOR,
+          ].some((role) => roles.includes(role))
+        ) {
           return true;
         }
       }
@@ -2364,6 +2369,7 @@ export class Util {
     history: any,
     originPage: PAGES
   ) {
+    if (schoolId == undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
@@ -2920,17 +2926,58 @@ export class Util {
       console.error("Failed to update homework path:", error);
     }
   }
-
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
-    isRewardLesson: boolean
+    isRewardLesson: boolean,
+    isAborted: boolean = false,
+    abortCourseId?: string,
+    isAssessmentLesson: boolean = false
   ) {
     if (!currentStudent) return;
+    const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
     const learningPath = currentStudent.learning_path
       ? JSON.parse(currentStudent.learning_path)
       : null;
 
     if (!learningPath) return;
+    // ABORT CASE: refresh current lesson with PAL recommendation only
+    // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
+    if (isAborted && abortCourseId && isAssessmentLesson) {
+      const courseIndex = learningPath.courses.courseList.findIndex(
+        (c: any) => c.course_id === abortCourseId
+      );
+
+      if (courseIndex === -1) return;
+
+      // Rebuild learning path for ALL courses
+      const courses = learningPath.courses.courseList.map((c: any) => ({
+        id: c.course_id,
+        subject_id: c.subject_id,
+        framework_id:
+          c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+      }));
+
+      const rebuiltPath = await buildInitialLearningPath(
+        storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        courses,
+        currentStudent
+      );
+
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(rebuiltPath),
+        false
+      );
+
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+
+      return; // EXIT — do not continue normal flow
+    }
 
     try {
       const { courses } = learningPath;
@@ -2947,13 +2994,11 @@ export class Util {
         prevPath_id: activeCourse.path_id,
       };
 
-      // Determine which events to log
       const eventsToLog: string[] = [];
-      // Update currentIndex
+
       currentCourse.currentIndex += 1;
       const is_immediate_sync =
         currentCourse.currentIndex >= currentCourse.pathEndIndex;
-      // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         if (isRewardLesson) {
           sessionStorage.setItem(
@@ -2961,6 +3006,7 @@ export class Util {
             JSON.stringify(learningPath)
           );
         }
+
         if (
           learningPath.courses.courseList[
             learningPath.courses.currentCourseIndex
@@ -2971,11 +3017,47 @@ export class Util {
           currentCourse.path_id = uuidv4();
           prevData.prevPath_id = currentCourse.path_id;
 
-          // Ensure pathEndIndex does not exceed the path length
           if (currentCourse.pathEndIndex > currentCourse.path.length) {
             currentCourse.pathEndIndex = currentCourse.path.length - 1;
           }
         } else {
+          // ASSESSMENT COMPLETED CASE → rebuild initial learning path
+          if (
+            isAssessmentLesson &&
+            !isAborted &&
+            storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
+          ) {
+            const courses = learningPath.courses.courseList.map((c: any) => ({
+              id: c.course_id,
+              subject_id: c.subject_id,
+              framework_id:
+                c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+            }));
+
+            const rebuiltPath = await buildInitialLearningPath(
+              storedPathwayMode,
+              courses,
+              currentStudent
+            );
+
+            await ServiceConfig.getI().apiHandler.updateLearningPath(
+              currentStudent,
+              JSON.stringify(rebuiltPath),
+              false
+            );
+
+            const updatedStudent =
+              await ServiceConfig.getI().apiHandler.getUserByDocId(
+                currentStudent.id
+              );
+
+            if (updatedStudent) {
+              Util.setCurrentStudent(updatedStudent);
+            }
+
+            return; // STOP further PAL / normal flow
+          }
+
           const palPath = await palUtil.getPalLessonPathForCourse(
             currentCourse.course_id,
             currentStudent.id
@@ -2989,7 +3071,6 @@ export class Util {
           }
         }
 
-        // Move to the next course
         courses.currentCourseIndex += 1;
 
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
@@ -2997,10 +3078,11 @@ export class Util {
           10,
           false
         );
-        // Loop back to the first course if at the last course
+
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
+
         const pathwayEndData = {
           user_id: currentStudent.id,
           current_path_id:
@@ -3032,10 +3114,10 @@ export class Util {
           prev_lesson_id: prevData.lessonId,
           prev_chapter_id: prevData.chapterId,
         };
+
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else {
-        // Within current path: refresh the slot with latest PAL recommendation if available
+      } else if (!isAssessmentLesson) {
         const recommended = await palUtil.getRecommendedLessonForCourse(
           currentStudent.id,
           currentCourse.course_id
@@ -3053,19 +3135,19 @@ export class Util {
           EVENTS.PATHWAY_COURSE_CHANGED
         );
       }
+
       eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
 
       const newCourse = courses.courseList[courses.currentCourseIndex];
       const newPathItem =
-        newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
+        newCourse.path[newCourse.currentIndex] || newCourse.path[0];
+
       const eventPayload = {
         user_id: currentStudent.id,
-
         current_path_id: newCourse.path_id,
         current_course_id: newCourse.course_id,
         current_lesson_id: newPathItem.lesson_id,
         current_chapter_id: newPathItem.chapter_id,
-
         path_id: prevData.pathId,
         prev_path_id: prevData.prevPath_id,
         prev_course_id: prevData.courseId,
@@ -3073,7 +3155,7 @@ export class Util {
         prev_chapter_id: prevData.chapterId,
         timestamp: new Date().toISOString(),
       };
-      // Update the learning path in the database
+
       await Promise.all([
         ServiceConfig.getI().apiHandler.updateLearningPath(
           currentStudent,
@@ -3217,6 +3299,125 @@ export class Util {
 
     return true;
   }
+  public static async refreshHomeworkPathWithLatestAfterIndex(
+    completedIndex: number
+  ) {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) return;
+
+      const path = JSON.parse(storedPath) as {
+        path_id?: string;
+        lessons?: any[];
+        currentIndex?: number;
+      };
+
+      const lessons = path.lessons ?? [];
+      if (completedIndex >= lessons.length) return;
+
+      const student = Util.getCurrentStudent();
+      const currClass = Util.getCurrentClass();
+      if (!student?.id || !currClass?.id) return;
+
+      // Fetch ALL pending assignments (reuse your existing logic)
+      const all = await api.getPendingAssignments(currClass.id, student.id);
+      const pendingAssignments = all.filter(
+        (a: any) =>
+          (a.type !== "LIVEQUIZ" &&
+            a.subject_id === lessons[0]?.lesson?.subjectid) ||
+          lessons[0]?.raw_assignment?.subject_id
+      );
+
+      // Find existing assignment IDs in current path
+      const existingAssignmentIds = new Set(
+        lessons
+          .map((l: any) => l.assignment_id ?? l.assignmentid ?? null)
+          .filter(Boolean)
+      );
+
+      // NEW assignments only (not in current path)
+      const newAssignments = pendingAssignments.filter(
+        (a: any) => !existingAssignmentIds.has(a.id)
+      );
+      if (!newAssignments.length) return;
+
+      // Sort new ones: LIFO batches, FIFO inside batch (using your getTs helper)
+      const getTs = (a: any) => {
+        const v =
+          a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+        const t = v ? new Date(v).getTime() : 0;
+        return isNaN(t) ? 0 : t;
+      };
+
+      // Group by batch_id (LIFO batches)
+      const byBatch: { [key: string]: any[] } = {};
+      for (const a of newAssignments) {
+        const batchKey = String(a.batch_id ?? getTs(a)); // fallback to ts if no batch_id
+        if (!byBatch[batchKey]) byBatch[batchKey] = [];
+        byBatch[batchKey].push(a);
+      }
+
+      // Sort batches latest-first, items FIFO inside
+      const orderedNew: any[] = [];
+      Object.values(byBatch)
+        .sort((listA: any[], listB: any[]) => {
+          const maxA = Math.max(...listA.map(getTs));
+          const maxB = Math.max(...listB.map(getTs));
+          return maxB - maxA; // LIFO batches
+        })
+        .forEach((list: any[]) => {
+          list.sort((a: any, b: any) => getTs(a) - getTs(b)); // FIFO inside
+          orderedNew.push(...list);
+        });
+
+      // Normalize new assignments to lesson shape (reuse your existing normalizeAssignment if available)
+      // For now, simple mapping - adjust fields to match your lesson shape
+      // Fetch FULL lesson details for new assignments (like initial path)
+      const newLessonsPromises = orderedNew.map(async (assignment: any) => {
+        try {
+          const fullLesson = await api.getLesson(assignment.lesson_id);
+          return {
+            ...assignment,
+            lesson: fullLesson, // ✅ Full lesson with image, cocos_lesson_id!
+            lesson_id: assignment.lesson_id,
+            assignment_id: assignment.id,
+            chapter_id: assignment.chapter_id,
+            course_id: assignment.course_id,
+          };
+        } catch (e) {
+          console.warn("Failed to fetch lesson details:", e);
+          // Fallback minimal shape
+          return {
+            ...assignment,
+            lesson: {
+              id: assignment.lesson_id,
+              image: "assets/icons/DefaultIcon.png",
+            },
+            lesson_id: assignment.lesson_id,
+            assignment_id: assignment.id,
+          };
+        }
+      });
+
+      const newLessons = await Promise.all(newLessonsPromises);
+      // Insert after completedIndex, truncate to capacity 5
+      const before = lessons.slice(0, completedIndex + 1);
+      const after = lessons.slice(completedIndex + 1);
+      const updatedLessons = [...before, ...newLessons, ...after].slice(0, 5);
+
+      // Update path
+      const newPath = {
+        ...path,
+        lessons: updatedLessons,
+        currentIndex: Math.min(completedIndex + 1, updatedLessons.length - 1),
+      };
+
+      localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newPath));
+    } catch (error) {
+      console.error("Failed to refresh homework path with latest:", error);
+    }
+  }
 
   public static pickFiveHomeworkLessons(
     assignments: any[],
@@ -3235,7 +3436,7 @@ export class Util {
     if (!pending.length) return [];
 
     // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
-    const pendingSorted = [...pending].sort((a, b) => getTs(a) - getTs(b));
+    const pendingSorted = [...pending].sort((a, b) => getTs(b) - getTs(a));
 
     // 3) Group by subject, maintaining FIFO order inside manual & other buckets
     const bySubject: {
@@ -3334,10 +3535,18 @@ export class Util {
         return true;
       }
 
-      // ✅ Skip if already downloaded for same language
-      const storedLang = localStorage.getItem(LIDO_COMMON_AUDIO_LANG_KEY);
-      if (storedLang === languageId) {
+      const langSpecificDir = `${LIDO_COMMON_AUDIO_DIR}/${languageId}`;
+
+      try {
+        // Check if directory exists
+        await Filesystem.stat({
+          path: langSpecificDir,
+          directory: Directory.Data,
+        });
+        // If stat doesn't throw, directory exists.
         return true;
+      } catch (e) {
+        // Directory does not exist, proceed to download.
       }
       const fs = createFilesystem(Filesystem, {
         rootDir: "/",
@@ -3364,27 +3573,13 @@ export class Util {
 
       const buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
 
-      // 🧹 Clean old audio files (language changed)
-      try {
-        await Filesystem.rmdir({
-          path: LIDO_COMMON_AUDIO_DIR,
-          directory: Directory.Data,
-          recursive: true,
-        });
-      } catch {
-        // folder may not exist — ignore
-      }
-
-      // 📦 Unzip to /Lido-CommonAudios
+      // 📦 Unzip to /Lido-CommonAudios/{languageId}
       await unzip({
         fs,
-        extractTo: LIDO_COMMON_AUDIO_DIR,
+        extractTo: langSpecificDir,
         filepaths: ["."],
         data: buffer,
       });
-
-      // 💾 Cache language
-      localStorage.setItem(LIDO_COMMON_AUDIO_LANG_KEY, languageId);
 
       return true;
     } catch (err) {
@@ -3395,34 +3590,31 @@ export class Util {
       return false;
     }
   }
-  static async ensureLidoCommonAudioForStudent(
-  student: TableTypes<"user">
-) {
-  try {
-    if (!student?.language_id) {
-      console.warn("[LidoCommonAudio] Student has no language");
-      return;
+  static async ensureLidoCommonAudioForStudent(student: TableTypes<"user">) {
+    try {
+      if (!student?.language_id) {
+        console.warn("[LidoCommonAudio] Student has no language");
+        return;
+      }
+
+      const api = ServiceConfig.getI().apiHandler;
+
+      const audioConfig = await api.getLidoCommonAudioUrl(
+        student.language_id,
+        student.locale_id ?? null
+      );
+
+      if (!audioConfig?.lido_common_audio_url) {
+        console.warn("[LidoCommonAudio] No audio config found");
+        return;
+      }
+
+      await Util.downloadLidoCommonAudio(
+        audioConfig.lido_common_audio_url,
+        student.language_id
+      );
+    } catch (err) {
+      console.error("[LidoCommonAudio] ensure failed:", err);
     }
-
-    const api = ServiceConfig.getI().apiHandler;
-
-    const audioConfig = await api.getLidoCommonAudioUrl(
-      student.language_id,
-      student.locale_id ?? null
-    );
-
-    if (!audioConfig?.lido_common_audio_url) {
-      console.warn("[LidoCommonAudio] No audio config found");
-      return;
-    }
-
-    await Util.downloadLidoCommonAudio(
-      audioConfig.lido_common_audio_url,
-      student.language_id
-    );
-  } catch (err) {
-    console.error("[LidoCommonAudio] ensure failed:", err);
   }
-}
-
 }
