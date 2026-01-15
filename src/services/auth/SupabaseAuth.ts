@@ -535,7 +535,7 @@ export class SupabaseAuth implements ServiceAuth {
   private async initializeUserRecord(session: Session): Promise<{ user: TableTypes<"user">; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
-      const api = ServiceConfig.getI().apiHandler;
+      let api = ServiceConfig.getI().apiHandler;
       const user = session.user;
       const email = user.email;
       const id = user.id;
@@ -605,9 +605,12 @@ export class SupabaseAuth implements ServiceAuth {
         );
       }
 
+      api = ServiceConfig.getI().apiHandler;
       if (isUserExists){
         createdUser = await api.getUserByDocId(id);
       }
+      console.log("isUserExists", isUserExists);
+      console.log("createdUser", createdUser);
       if (!createdUser) {
         console.error("Failed to initialize user record: User could not be created or retrieved.");
         return null;
