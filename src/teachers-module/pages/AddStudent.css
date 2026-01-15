@@ -118,7 +118,7 @@
 }
 
 .add-button.disabled {
-  background-color: #7C5DB0;
+  background-color: #7c5db0;
   cursor: pointer;
   height: 50px;
   width: 250px;
@@ -127,7 +127,7 @@
 .gender-options {
   display: flex;
   justify-content: space-around;
-  padding-bottom : 10px;
+  padding-bottom: 10px;
 }
 
 .gender-options label {
@@ -161,6 +161,16 @@
   height: 100vh;
   margin: 0;
   background-color: white;
+}
+.main-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.add-student-camera-header {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .gender-options {
@@ -242,27 +252,36 @@ form {
 }
 
 .profile-details-centered {
-  position: relative;
   display: flex;
-  justify-content: center;
-  margin: 20px auto;
-  gap: 16px;
+  flex-direction: column;
+  align-items: center;
 }
 
-.add-student-text {
-  position: absolute;
-  right: 100%;
-  margin-right: 16px;
-  margin-top: 20px;
-  transform: translateY(-50%);
+@media (min-width: 768px) {
+  .profile-details-centered {
+    margin-top: 20vh;
+  }
+}
+
+.add-student-title-text {
   font-size: 18px;
   font-weight: bold;
   color: #707070;
   white-space: nowrap;
   font-size: 16px;
-  display: inline-block;
-  max-width: 113px;
-  white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
+}
+.add-student-camera-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.add-student-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  background-color: #fffbec;
 }

@@ -2,7 +2,7 @@
 .searchable-dropdown-container {
   position: relative;
   width: 90%;
-  left: 10%;
+  left: 3%;
 }
 
 /* Wrapper for the input field and icons */
@@ -14,16 +14,18 @@
 /* The main text input field */
 .searchable-input {
   width: 100%;
-  padding: 10px 0px 10px 0px; /* Right padding for icons */
+  padding: 10px 0px 10px 0px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  font-size: 16px;
   outline: none;
   transition: border-color 0.2s;
   background-color: white;
-  white-space: nowrap; 
-  color: black;
   border: none;
+  font-size: clamp(20px, 2.5vw, 23px);
+  color: #707070;
+  width: clamp(200px, 5vw, 400px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .searchable-input:focus {
@@ -154,7 +156,7 @@
 
 .dropdown-toggle-button {
   position: absolute;
-  right: 15px;
+  right: -20px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;

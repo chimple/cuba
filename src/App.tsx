@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Route, Switch, useHistory } from "react-router-dom";
+import { Route, Switch, useHistory, useLocation } from "react-router-dom";
 import {
   IonAlert,
   IonApp,
@@ -74,6 +74,8 @@ import {
   PortPlugin,
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
+  SHOW_GENERIC_POPUP,
+  GENERIC_POPUP_INTERNAL_NAVIGATION,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -152,6 +154,9 @@ import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import GenericPopup from "./components/GenericPopUp/GenericPopUp";
+import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import {
   Dialog,
   DialogTitle,
@@ -180,6 +185,7 @@ const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
+  const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [startTime, setStartTime] = useState<number>(() => {
@@ -190,6 +196,7 @@ const App: React.FC = () => {
     }
     return initialTime;
   });
+  const [popupData, setPopupData] = useState<any>(null);
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
@@ -204,6 +211,58 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
+useEffect(() => {
+  if (!growthbook) return;
+
+  const popupConfig = growthbook.getFeatureValue(
+    "generic-pop-up",
+    null
+  )as any;
+  if (!popupConfig) return;
+
+  const currentRoute =
+    window.location.pathname ||
+    window.location.hash.replace("#", "");
+
+  console.log("Current route:", currentRoute);
+
+  if (currentRoute === popupConfig.screen_name) {
+    PopupManager.onAppOpen(popupConfig);
+    PopupManager.onTimeElapsed(popupConfig);
+  }
+}, [growthbook, window.location.pathname]);
+
+  useEffect(() => {
+  const handler = (e: any) => {
+    console.log("POPUP EVENT:", e.detail);
+    setPopupData(e.detail);
+  };
+
+  window.addEventListener(SHOW_GENERIC_POPUP, handler);
+  return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+}, []);
+
+useEffect(() => {
+  const handler = (e: Event) => {
+    const custom = e as CustomEvent<{ path: string }>;
+    const path = custom.detail.path;
+
+    if (!path) return;
+
+    console.log("Navigating to:", path);
+
+    // React-router friendly navigation
+    window.history.pushState({}, "", path);
+
+    // Let Ionic / React Router re-render
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  window.addEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
+  return () =>
+    window.removeEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
+}, []);
+
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -742,6 +801,26 @@ const App: React.FC = () => {
           duration={3000}
         />
       </IonReactRouter>
+      {popupData && (
+  <GenericPopup
+    thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
+    backgroundImageUrl={popupData.localized.backgroundImageUrl}
+    heading={popupData.localized.heading}
+    subHeading={popupData.localized.subHeading}
+    details={popupData.localized.details}
+    buttonText={popupData.localized.buttonText}
+    onClose={() => {
+      PopupManager.onDismiss(popupData.config);
+      setPopupData(null);
+    }}
+    onAction={() => {
+      PopupManager.onAction(popupData.config);
+      setPopupData(null);
+    }}
+  />
+)}
+
+
     </IonApp>
   );
 };

@@ -344,7 +344,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -452,38 +452,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-            .channel(`upload-fallback-${uploadingUser}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "upload_queue",
-                filter: `uploading_user=eq.${uploadingUser}`,
-              },
-              async (payload) => {
-                const status = payload.new?.status;
-                const id = payload.new?.id;
+          .channel(`upload-fallback-${uploadingUser}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `uploading_user=eq.${uploadingUser}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              const id = payload.new?.id;
+              console.log(
+                "🔄 [Fallback] Realtime update:",
+                status,
+                "ID:",
+                id
+              );
+              if (
+                (status === "success" || status === "failed") &&
+                !resolved
+              ) {
+                resolved = true;
+                await fallbackChannel?.unsubscribe();
                 console.log(
-                  "🔄 [Fallback] Realtime update:",
-                  status,
-                  "ID:",
-                  id
+                  `✅ / ❌ Fallback resolved with status: ${status}`
                 );
-                if (
-                  (status === "success" || status === "failed") &&
-                  !resolved
-                ) {
-                  resolved = true;
-                  await fallbackChannel?.unsubscribe();
-                  console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`
-                  );
-                  resolve(status === "success");
-                }
+                resolve(status === "success");
               }
-            )
-            .subscribe()
+            }
+          )
+          .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -1235,7 +1235,7 @@ export class SupabaseApi implements ServiceApi {
   async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean | void> {
+  ): Promise<boolean | void> {
     if (!this.supabase) return false;
     const rpcRes = await this.supabase.rpc("delete_user_from_class", {
       p_user_id: userId,
@@ -2429,7 +2429,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3188,6 +3188,7 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq("class_id", classId)
       .eq("is_deleted", false)
+      .neq("type", "assessment")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -3591,6 +3592,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("role", "student")
       .eq("is_deleted", false)
       .eq("class_id", classId) // Filter by classId
+      .order("user(name)", { ascending: true })
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -3653,6 +3655,33 @@ export class SupabaseApi implements ServiceApi {
       user: data,
       parents,
     };
+  }
+  async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("parent_user")
+      .select(
+        `
+          parent:parent_id (
+            *
+          )
+        `
+      )
+      .eq("student_id", studentId);
+    // no is_deleted filter
+
+    if (error || !data) {
+      console.error("Error fetching parents by student ID:", error);
+      return [];
+    }
+
+    return data.map((row: any) => row.parent).filter(Boolean);
   }
 
   async mergeStudentRequest(
@@ -5207,25 +5236,25 @@ export class SupabaseApi implements ServiceApi {
     return allLessons;
   }
   async searchLessons(
-  searchText: string
-): Promise<TableTypes<"lesson">[]> {
-  if (!this.supabase || !searchText) return [];
+    searchText: string
+  ): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase || !searchText) return [];
 
-  const { data, error } = await this.supabase
-    .from("lesson")
-    .select("*")
-    .or(
-      `name.ilike.%${searchText}%,outcome.ilike.%${searchText}%`
-    )
-    .limit(20);
+    const { data, error } = await this.supabase
+      .from("lesson")
+      .select("*")
+      .or(
+        `name.ilike.%${searchText}%,outcome.ilike.%${searchText}%`
+      )
+      .limit(20);
 
-  if (error) {
-    console.error("searchLessons error", error);
-    return [];
+    if (error) {
+      console.error("searchLessons error", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-
-  return data ?? [];
-}
 
   async getUserAssignmentCart(
     userId: string
@@ -6056,7 +6085,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
     if (!this.supabase || !schoolIds.length) return;
 
@@ -6066,7 +6095,7 @@ export class SupabaseApi implements ServiceApi {
         .select("school(*)")
         .in("school_id", schoolIds)
         .eq("role", RoleType.AUTOUSER)
-        .eq("user_id",userId)
+        .eq("user_id", userId)
         .eq("is_deleted", false);
 
       if (error) {
@@ -7518,9 +7547,9 @@ export class SupabaseApi implements ServiceApi {
         { id: "country", label: "Country", value: program.country ?? "" },
         { id: "state", label: "State", value: program.state ?? "" },
         { id: "district", label: "District", value: program.district ?? "" },
-        { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
-        { id: "block", label: "Block", value: program.block ?? "" },
-        { id: "village", label: "Village", value: program.village ?? "" },
+        // { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+        // { id: "block", label: "Block", value: program.block ?? "" },
+        // { id: "village", label: "Village", value: program.village ?? "" },
       ];
 
       const partnerDetails = [
@@ -7592,8 +7621,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -7641,8 +7670,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -8631,21 +8660,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-              .from(TABLES.School)
-              .select("id, name, udise, group1,group2, group3, country")
-              .in("id", schoolIds)
+            .from(TABLES.School)
+            .select("id, name, udise, group1,group2, group3, country")
+            .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-              .from(TABLES.User)
-              .select("id, name, email, phone")
-              .in("id", userIds)
+            .from(TABLES.User)
+            .select("id, name, email, phone, gender")
+            .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-              .from(TABLES.Class)
-              .select("id, name, school_id")
-              .in("id", classIds)
+            .from(TABLES.Class)
+            .select("id, name, school_id")
+            .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -9151,7 +9180,7 @@ export class SupabaseApi implements ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -9166,7 +9195,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.state !== undefined) updatePayload.group1 = address.state;
     if (address?.district !== undefined)
       updatePayload.group2 = address.district;
-    if (address?.city !== undefined) updatePayload.group3 = address.city;
+    if (address?.block !== undefined) updatePayload.group3 = address.block;
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
@@ -9509,7 +9538,7 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string; [key: string]: any };
+      user: { id: string;[key: string]: any };
     };
     const isNewUser = message === "success-created";
     const dedupeAndPickLatest = async (
@@ -10277,7 +10306,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("school_id", schoolId)
       .eq("is_deleted", false)
-      .not("contact_user_id", "is", null) 
+      .not("contact_user_id", "is", null)
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -10756,4 +10785,330 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+  // Inside class SupabaseApi
+
+  /**
+   * 1. Trigger Logic: Checks if the student has any data for this course.
+   * If this returns empty, the Cold Start assessment starts.
+   */
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[]> {
+    const langId = student?.language_id ?? null;
+    const localeId = student?.locale_id ?? null;
+    if (!this.supabase) return [];
+    try {
+      /* =====================================================
+       * 1️⃣ Fetch ALL available set_numbers
+       * ===================================================== */
+      const { data: setRows, error: setError } = await this.supabase
+        .from("subject_lesson")
+        .select("set_number")
+        .eq("subject_id", subjectId)
+        .eq("is_deleted", false)
+        .not("set_number", "is", null);
+
+      if (setError) throw setError;
+      if (!setRows?.length) return [];
+
+      // ✅ ensure number[] (NO nulls)
+      const uniqueSets: number[] = Array.from(
+        new Set(
+          setRows
+            .map((r) => r.set_number)
+            .filter((n): n is number => n !== null)
+        )
+      );
+
+      if (!uniqueSets.length) return [];
+
+      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
+      const setNumber = uniqueSets[randomIndex]; // ✅ number
+
+      /* =====================================================
+       * 2️⃣ Build OR conditions safely
+       * ===================================================== */
+      const orConditions: string[] = [
+        "and(language_id.is.null,locale_id.is.null)",
+      ];
+
+      if (langId !== null) {
+        orConditions.push(
+          `and(language_id.eq.${langId},locale_id.is.null)`
+        );
+      }
+
+      if (localeId !== null) {
+        orConditions.push(
+          `and(language_id.is.null,locale_id.eq.${localeId})`
+        );
+      }
+
+      if (langId !== null && localeId !== null) {
+        orConditions.push(
+          `and(language_id.eq.${langId},locale_id.eq.${localeId})`
+        );
+      }
+
+      /* =====================================================
+       * 3️⃣ Fetch lessons
+       * ===================================================== */
+      const { data: lessons, error: lessonError } = await this.supabase
+        .from("subject_lesson")
+        .select("*")
+        .eq("subject_id", subjectId)
+        .eq("set_number", setNumber) // ✅ FIXED
+        .eq("is_deleted", false)
+        .or(orConditions.join(","));
+
+      if (lessonError) throw lessonError;
+      if (!lessons?.length) return [];
+
+      /* =====================================================
+       * 4️⃣ JS SORTING
+       * ===================================================== */
+      if (lessons.length > 5) {
+        lessons.sort((a: any, b: any) => {
+          const getPriority = (x: any): number => {
+            const l = x.language_id ?? null;
+            const lo = x.locale_id ?? null;
+
+            if (l === langId && lo === localeId) return 1;
+            if (l === langId && lo === null) return 2;
+            if (l === null && lo === localeId) return 3;
+            if (l === null && lo === null) return 4;
+            return 5;
+          };
+
+          const pA = getPriority(a);
+          const pB = getPriority(b);
+
+          if (pA !== pB) return pA - pB;
+          return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+        });
+      }
+
+      return lessons;
+    } catch (error) {
+      console.error(
+        "❌ Error fetching subject lessons by subject (Supabase):",
+        error
+      );
+      return [];
+    }
+  }
+
+
+  async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("skill") // ⚠️ Check if your table is named "skill" or "skills" in Supabase
+      .select("*")
+      .eq("id", skillId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching skill by skillId:", error);
+      return undefined;
+    }
+
+    return data ?? undefined;
+  }
+
+  async isStudentPlayedPalLesson(
+    studentId: string,
+    courseId: string
+  ): Promise<boolean> {
+    try {
+      if (!this.supabase) return false;
+
+      console.log("Executing Supabase query to check played PLA lesson:", {
+        studentId,
+        courseId,
+      });
+
+      const { data, error } = await this.supabase
+        .from("result")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("course_id", courseId)
+        .eq("is_deleted", false)
+        .not("skill_id", "is", null)
+        .not("outcome_id", "is", null)
+        .not("competency_id", "is", null)
+        .not("domain_id", "is", null)
+        .not("subject_id", "is", null)
+
+        .not("skill_ability", "is", null)
+        .not("outcome_ability", "is", null)
+        .not("competency_ability", "is", null)
+        .not("domain_ability", "is", null)
+        .not("subject_ability", "is", null)
+
+        .not("activities_scores", "is", null)
+        .neq("activities_scores", "")
+
+        .limit(1);
+
+      if (error) {
+        console.error("❌ Error checking played PLA lesson:", error);
+        return false;
+      }
+
+      // ✅ true ONLY if a fully-filled result exists
+      return Array.isArray(data) && data.length > 0;
+    } catch (error) {
+      console.error("❌ Error checking played PLA lesson:", error);
+      return false;
+    }
+  }
+  async updateSchoolProgram(
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
+
+    if (!this.supabase) return false;            // <-- guard
+
+    const { error } = await this.supabase        // <-- await
+      .from("school")
+      .update({ program_id: programId })
+      .eq("id", schoolId);
+
+    if (error) {
+      console.error("Error updating school program:", error);
+      return false;
+    }
+
+    return true;
+  }
+  async getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]> {
+    if (!this.supabase) return [];
+
+    const nowIso = new Date().toISOString();
+    const langId = student.language_id;
+    const localeId = student.locale_id;
+
+    /* ===============================
+     * STEP 1️⃣ : Fetch base assessments
+     * =============================== */
+    const { data: assignments, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(`
+      *,
+      course!inner(
+        id,
+        is_deleted
+      )
+    `)
+      .eq("class_id", classId)
+      .eq("type", "assessment")
+      .eq("is_deleted", false)
+      .eq("course.is_deleted", false)
+      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (error || !assignments?.length) return [];
+
+    /* ===============================
+     * STEP 2️⃣ : Keep latest batch PER COURSE
+     * =============================== */
+    const latestBatchByCourse = new Map<string, string>();
+
+    for (const a of assignments) {
+      if (!a.course_id || !a.batch_id) continue; // null-safe
+
+      if (!latestBatchByCourse.has(a.course_id)) {
+        latestBatchByCourse.set(a.course_id, a.batch_id);
+      }
+    }
+
+    const batchFiltered = assignments.filter(
+      a =>
+        a.course_id &&
+        a.batch_id &&
+        latestBatchByCourse.get(a.course_id) === a.batch_id
+    );
+
+    if (!batchFiltered.length) return [];
+
+    /* ===============================
+     * STEP 3️⃣ : Pending result check
+     * =============================== */
+    const assignmentIds = batchFiltered.map(a => a.id);
+
+    const { count: completedCount } = await this.supabase
+      .from(TABLES.Result)
+      .select("id", { count: "exact", head: true })
+      .in("assignment_id", assignmentIds)
+      .eq("student_id", student.id)
+      .eq("is_deleted", false);
+
+    if (completedCount === assignmentIds.length) return [];
+
+    /* ===============================
+     * STEP 4️⃣ : subject_lesson validation
+     * (lesson_id + language/locale fallback)
+     * =============================== */
+    const lessonIds = [
+      ...new Set(batchFiltered.map(a => a.lesson_id))
+    ];
+
+    let subjectLessonQuery = this.supabase
+      .from(TABLES.SubjectLesson)
+      .select("lesson_id")
+      .in("lesson_id", lessonIds)
+      .eq("is_deleted", false);
+
+    // Loose / fallback language + locale matcher
+    const orConditions: string[] = [
+      "language_id.is.null,locale_id.is.null",
+    ];
+
+    if (langId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+
+    if (localeId) {
+      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+
+    if (langId && localeId) {
+      orConditions.push(
+        `language_id.eq.${langId},locale_id.eq.${localeId}`
+      );
+    }
+
+    subjectLessonQuery = subjectLessonQuery.or(
+      orConditions.join("|")
+    );
+
+    const { data: subjectLessons } = await subjectLessonQuery;
+
+    if (!subjectLessons?.length) return [];
+
+    /* ===============================
+     * STEP 5️⃣ : Final filter
+     * =============================== */
+    const validLessonIds = new Set(
+      subjectLessons
+        .filter(sl => sl.lesson_id)
+        .map(sl => sl.lesson_id)
+    );
+
+    const finalAssignments = batchFiltered.filter(a =>
+      validLessonIds.has(a.lesson_id)
+    );
+
+    return finalAssignments as TableTypes<"assignment">[];
+  }
+
 }

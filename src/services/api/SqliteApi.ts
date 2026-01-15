@@ -53,6 +53,8 @@ import {
   REWARD_LESSON,
   CURRENT_USER,
   DEFAULT_LOCALE_ID,
+  SCHOOL,
+  CLASS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -292,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -361,7 +363,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch {}
+        } catch { }
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -567,7 +569,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) {}
+              } catch (beginErr) { }
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -585,7 +587,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) {}
+                } catch (rbErr) { }
               }
               throw chunkErr;
             }
@@ -601,6 +603,35 @@ export class SqliteApi implements ServiceApi {
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
+        const school_user_data = data.get(TABLES.SchoolUser);
+        const localSchoolRaw = localStorage.getItem(SCHOOL);
+
+        if (localSchoolRaw) {
+          let localSchool: TableTypes<"school">;
+
+          try {
+            localSchool = JSON.parse(localSchoolRaw);
+          } catch (e) {
+            localStorage.removeItem(SCHOOL);
+            console.warn("invalid local school data removed");
+            return;
+          }
+
+          const localSchoolId = localSchool?.id;
+
+          if (!localSchoolId || !Array.isArray(school_user_data)) return;
+
+          const deletedSchoolUser = school_user_data.find(
+            (entry: TableTypes<"school_user">) =>
+              entry.school_id === localSchoolId && entry.is_deleted === true
+          );
+
+          if (deletedSchoolUser) {
+            localStorage.removeItem(SCHOOL);
+            localStorage.removeItem(CLASS);
+            console.log("local school removed because school_user is_deleted");
+          }
+        }
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -2102,7 +2133,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`
@@ -2122,24 +2152,21 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}" 
+    WHERE cl.chapter_id = "${chapterId}"
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ""
+      ${langId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
-      ${
-        localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ""
+      ${localeId
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
-      ${
-        langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ""
+      ${langId && localeId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2427,7 +2454,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3082,6 +3109,7 @@ export class SqliteApi implements ServiceApi {
   WHERE a.class_id = '${classId}'
     AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
     AND r.assignment_id IS NULL
+    AND a.type <> 'assessment'
     AND (
       a.ends_at IS NULL OR
       TRIM(a.ends_at) = '' OR
@@ -3353,14 +3381,13 @@ export class SqliteApi implements ServiceApi {
   async deleteUserFromClass(
     userId: string,
     class_id: string
-  ): Promise<Boolean | void> {
+  ): Promise<boolean | void> {
     if (!userId || !class_id) {
       throw new Error("User ID and Class ID are required");
     }
 
     // 1️⃣ Call server (RPC)
     const res = await this._serverApi.deleteUserFromClass(userId, class_id);
-
     if (res === false) {
       throw new Error("Failed to delete user from class");
     }
@@ -5270,7 +5297,7 @@ order by
 
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
@@ -6326,34 +6353,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null,
-            avatar: null,
-            created_at: new Date().toISOString(),
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -6439,34 +6466,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null, // Assuming these fields are nullable or have default values in your User table type
-            avatar: null,
-            created_at: new Date().toISOString(), // Example, adjust if you fetch this
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null, // Assuming these fields are nullable or have default values in your User table type
+          avatar: null,
+          created_at: new Date().toISOString(), // Example, adjust if you fetch this
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -6524,6 +6551,36 @@ order by
         error
       );
       return { user: null, parents: [] };
+    }
+  }
+  async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
+    if (!this._db) {
+      console.warn("Database not initialized.");
+      return [];
+    }
+
+    try {
+      const parentRes = await this._db.query(
+        `
+          SELECT p.*
+          FROM parent_user pu
+          JOIN user p ON pu.parent_id = p.id
+          WHERE pu.student_id = ?
+        `,
+        // no is_deleted filter
+        [studentId]
+      );
+
+      const parentRows = parentRes?.values ?? [];
+      return parentRows;
+    } catch (error) {
+      console.error(
+        "Error fetching parents by student ID",
+        error
+      );
+      return [];
     }
   }
 
@@ -7034,7 +7091,7 @@ order by
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -7569,4 +7626,270 @@ order by
       return null;
     }
   }
+  async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[]> {
+    const langId = student?.language_id ?? null;
+    const localeId = student?.locale_id ?? null;
+
+    try {
+      // 1️⃣ Fetch ALL available set_numbers
+      const setQuery = `
+      SELECT DISTINCT set_number
+      FROM subject_lesson
+      WHERE subject_id = ?
+        AND is_deleted = 0
+        AND set_number IS NOT NULL;
+    `;
+      const setRes = await this.executeQuery(setQuery, [subjectId]);
+      const setRows = (setRes as any)?.values ?? [];
+      if (!setRows.length) {
+        return [];
+      }
+      // 2️⃣ Pick ANY ONE set randomly in JS
+      const randomIndex = Math.floor(Math.random() * setRows.length);
+      const setNumber = setRows[randomIndex].set_number;
+      const lessonQuery = `
+      SELECT sl.*
+      FROM subject_lesson sl
+      WHERE sl.subject_id = ?
+        AND sl.set_number = ?
+        AND sl.is_deleted = 0
+        AND (
+          (sl.language_id IS NULL AND sl.locale_id IS NULL)
+          OR (sl.language_id = ? AND sl.locale_id IS NULL)
+          OR (sl.language_id IS NULL AND sl.locale_id = ?)
+          OR (sl.language_id = ? AND sl.locale_id = ?)
+        );
+    `;
+
+      const lessonRes = await this.executeQuery(lessonQuery, [
+        subjectId,
+        setNumber,
+        langId,
+        localeId,
+        langId,
+        localeId,
+      ]);
+
+      const lessons = (lessonRes as any)?.values ?? [];
+      if (!lessons.length) return [];
+
+      /* =====================================================
+       * 3️⃣ JS SORTING (ONLY IF > 5) — SAME AS ASSIGNMENTS
+       * ===================================================== */
+      if (lessons.length > 5) {
+        lessons.sort((a: any, b: any) => {
+          const getPriority = (x: any): number => {
+            const l = x.language_id ?? null;
+            const lo = x.locale_id ?? null;
+
+            if (l === langId && lo === localeId) return 1;
+            if (l === langId && lo === null) return 2;
+            if (l === null && lo === localeId) return 3;
+            if (l === null && lo === null) return 4;
+            return 5;
+          };
+
+          const pA = getPriority(a);
+          const pB = getPriority(b);
+
+          if (pA !== pB) return pA - pB;
+          return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+        });
+      }
+
+      return lessons;
+    } catch (error) {
+      console.error(
+        "❌ Error fetching subject lessons by subject (SQL):",
+        error
+      );
+      return [];
+    }
+  }
+
+  async isStudentPlayedPalLesson(
+    studentId: string,
+    courseId: string
+  ): Promise<boolean> {
+    try {
+      const query = `
+      SELECT 1
+      FROM result
+      WHERE student_id = ?
+        AND course_id = ?
+        AND is_deleted = false
+
+        -- 🔒 STRICT: all required columns must be present
+        AND skill_id IS NOT NULL
+        AND outcome_id IS NOT NULL
+        AND competency_id IS NOT NULL
+        AND domain_id IS NOT NULL
+        AND subject_id IS NOT NULL
+
+        AND skill_ability IS NOT NULL
+        AND outcome_ability IS NOT NULL
+        AND competency_ability IS NOT NULL
+        AND domain_ability IS NOT NULL
+        AND subject_ability IS NOT NULL
+
+        AND activities_scores IS NOT NULL
+        AND activities_scores <> ''
+      LIMIT 1;
+    `;
+
+      const res = await this.executeQuery(query, [studentId, courseId]);
+      const rows = (res as any)?.values ?? [];
+
+      // ✅ true ONLY if a fully-filled result exists
+      return rows.length > 0;
+    } catch (error) {
+      console.error("❌ Error checking course history:", error);
+      return false;
+    }
+  }
+
+  async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    const res = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.Skill}
+      WHERE id = ?
+        AND is_deleted = 0
+    `,
+      [skillId]
+    );
+
+    return res?.values && res.values.length > 0
+      ? res.values[0]
+      : undefined;
+  }
+
+  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+    return this._serverApi.updateSchoolProgram(schoolId, programId);
+  }
+  async getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]> {
+    const nowIso = new Date().toISOString();
+    const langId = student.language_id;
+    const localeId = student.locale_id;
+    /* ===============================
+     * QUERY 1️⃣ : Fetch valid assessments (ALL rules applied)
+     * =============================== */
+    const fetchQuery = `
+  SELECT a.*
+  FROM assignment a
+  JOIN course c
+    ON c.id = a.course_id
+   AND c.is_deleted = false
+  WHERE a.class_id = '${classId}'
+    AND a.type = 'assessment'
+    AND a.is_deleted = false
+    -- time window
+    AND (
+      a.starts_at IS NULL
+      OR a.starts_at = ''
+      OR datetime(a.starts_at) <= datetime('${nowIso}')
+    )
+    AND (
+      a.ends_at IS NULL
+      OR a.ends_at = ''
+      OR datetime(a.ends_at) > datetime('${nowIso}')
+    )
+
+    -- latest batch per course
+    AND a.batch_id = (
+      SELECT a2.batch_id
+      FROM assignment a2
+      WHERE a2.class_id = a.class_id
+        AND a2.course_id = a.course_id
+        AND a2.type = 'assessment'
+        AND a2.is_deleted = false
+        AND a2.batch_id IS NOT NULL
+      ORDER BY a2.created_at DESC
+      LIMIT 1
+    )
+    -- subject_lesson validation (SAFE)
+  AND EXISTS (
+  SELECT 1
+  FROM subject_lesson sl
+  WHERE sl.lesson_id = a.lesson_id
+    AND sl.set_number = a.set_number
+    AND sl.is_deleted = false
+    AND (
+      -- both NULL
+      (sl.language_id IS NULL AND sl.locale_id IS NULL)
+
+      -- language only
+      OR (sl.language_id = "${langId}" AND sl.locale_id IS NULL)
+
+      -- locale only
+      OR (sl.language_id IS NULL AND sl.locale_id = "${localeId}")
+
+      -- both exist AND both match
+      OR (sl.language_id = "${langId}" AND sl.locale_id = "${localeId}")
+    )
+)
+  ORDER BY a.course_id, a.created_at DESC;
+`;
+    const fetchRes = await this._db?.query(fetchQuery);
+    const assignments =
+      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    if (!assignments.length) return [];
+    /* ===============================
+     * QUERY 2️⃣ : Pending result check
+     * =============================== */
+    const assignmentIds = assignments.map(a => `'${a.id}'`).join(",");
+
+    const completionQuery = `
+    SELECT COUNT(*) AS pending_count
+    FROM assignment a
+    LEFT JOIN result r
+      ON r.assignment_id = a.id
+     AND r.student_id = "${student.id}"
+     AND r.is_deleted = false
+    WHERE
+      a.id IN (${assignmentIds})
+      AND r.assignment_id IS NULL;
+  `;
+
+    const completionRes = await this._db?.query(completionQuery);
+    const pendingCount =
+      completionRes?.values?.[0]?.pending_count ?? 0;
+    if (pendingCount === 0) return [];
+    if (assignments.length > 5) {
+      assignments.sort((a, b) => {
+        const getPriority = (x: any): number => {
+          const l = x.language_id ?? null;
+          const lo = x.locale_id ?? null;
+          if (l === langId && lo === localeId) return 1;
+          if (l === langId && lo === null) return 2;
+          if (l === null && lo === localeId) return 3;
+          if (l === null && lo === null) return 4;
+          return 5;
+        };
+
+        const pA = getPriority(a);
+        const pB = getPriority(b);
+
+        // 1️⃣ priority first
+        if (pA !== pB) return pA - pB;
+
+        // 2️⃣ same priority → latest first
+        return (
+          new Date(b.created_at).getTime() -
+          new Date(a.created_at).getTime()
+        );
+      });
+    }
+    return assignments;
+
+  }
+
 }

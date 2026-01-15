@@ -526,7 +526,7 @@ export interface ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
-    chapterId: string,
+    chapterId: string | null,
     classId: string | undefined,
     schoolId: string | undefined,
     isImediateSync?: boolean,
@@ -1438,7 +1438,7 @@ export interface ServiceApi {
    */
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the teachers for the school.
@@ -2004,6 +2004,13 @@ export interface ServiceApi {
   getStudentAndParentByStudentId(
     studentId: string
   ): Promise<{ user: any; parents: any[] }>;
+  
+  /**
+   * Fetch  parent information even if the student is deleted.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an array of parents.
+   */
+  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> ;
 
   /**
    * Merge a new student into an existing student record in SQLite.
@@ -2280,7 +2287,7 @@ export interface ServiceApi {
     address?: {
       state?: string;
       district?: string;
-      city?: string;
+      block?: string;
       address?: string;
     },
     keyContacts?: any
@@ -2305,7 +2312,7 @@ export interface ServiceApi {
    * Provide either `locale_id` or `locale_code`.
    * @returns Locale record or null if not found.
    */
-  getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>;
+  getLocaleByIdOrCode(locale_id?: string, locale_code?: string): Promise<TableTypes<"locale"> | null>;
 
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).
@@ -2552,4 +2559,22 @@ export interface ServiceApi {
   getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
 
   getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
+
+  isStudentPlayedPalLesson(
+    studentId: string,
+    courseId: string
+  ): Promise<boolean>;
+
+  getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[] | null>;
+
+  getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
+
+  updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+  getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">,
+  ): Promise<TableTypes<"assignment">[]>
 }

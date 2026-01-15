@@ -1,0 +1,175 @@
+
+/* ================= OVERLAY ================= */
+.generic-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* ================= CARD ================= */
+.generic-popup-card {
+  position: relative;
+
+  /* Ratio-based responsive size */
+  width: min(62.5vw, 500px);
+  aspect-ratio: 500 / 285;
+  max-height: 80vh;
+
+  background: #f2f2f2;
+  border-radius: 1.2rem;
+
+  box-shadow: 0 0.35rem 0.9rem rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+
+  display: flex;
+  align-items: stretch; /* ✅ critical fix */
+}
+
+/* ================= CLOSE ================= */
+.generic-popup-close {
+  position: absolute;
+  top: 0.3rem;
+  right: -26.7rem;
+
+  width: 3.8rem;
+  height: 4.8rem;
+
+  background: transparent;
+  
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* ================= BACKGROUND IMAGE ================= */
+.generic-popup-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.generic-popup-card > *:not(.generic-popup-bg-image) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ================= CONTENT ================= */
+.generic-popup-content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  width: 100%;
+  margin-right: 77px;
+}
+
+/* ================= THUMB ================= */
+.generic-popup-thumb-wrapper {
+  width: clamp(3.5rem, 10vw, 4.8rem);
+  aspect-ratio: 1;
+
+  border-radius: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  flex-shrink: 0;
+}
+
+.generic-popup-thumb {
+  width: 100%;
+  height: 200%;
+  margin-bottom: 57px;
+}
+
+/* ================= TEXT ================= */
+.generic-popup-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-right: 8%;
+  margin-top: 10px;
+}
+
+/* ================= HEADING ================= */
+.generic-popup-heading {
+  color: #182A4F;
+text-align: center;
+font-size: 18px;
+font-style: normal;
+font-weight: 600;
+line-height: normal;
+}
+
+/* ================= SUB HEADING ================= */
+.generic-popup-subheading {
+  margin-top: -10px;
+  color: #182A4F;
+text-align: center;
+font-size: 18px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+}
+
+/* ================= DETAILS ================= */
+.generic-popup-details {
+list-style-type: none;
+list-style-position: inside;
+color: #182A4F;
+text-align: center;
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+}
+
+.generic-popup-details li {
+  margin-bottom: 0.25rem;
+}
+
+/* ================= CTA (TEXT-DRIVEN SIZE) ================= */
+.generic-popup-cta {
+  min-width: 226px;   /* default size */
+  height: 56px;       /* keep fixed height */
+  width: auto;        /* grow based on text */
+  margin: clamp(0.8rem, 2vh, 1.2rem) auto 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.6em 1.6em;
+
+  background: #F34D08;
+  color: #ffffff;
+
+  border: none;
+  border-radius: 0.6rem;
+  border-bottom: 0.28rem solid #8A2901;
+
+  font-size: clamp(0.95rem, 3vw, 1.6rem);
+  font-weight: 500;
+  line-height: 1.2;
+
+  cursor: pointer;
+  transition: transform 0.1s ease, border-bottom 0.1s ease;
+  margin-top: 20px;
+}
+
+.generic-popup-cta:active {
+  border-bottom-width: 0.12rem;
+  transform: translateY(0.15rem);
+}

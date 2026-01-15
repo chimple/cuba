@@ -15,11 +15,155 @@ import {
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
-  RECOMMENDATION_TYPE
+  RECOMMENDATION_TYPE,
+  LEARNING_PATHWAY_MODE,
+  CURRENT_PATHWAY_MODE,
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { palUtil } from "../utility/palUtil";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 
+const buildLessonPath = async (
+  mode: string,
+  course: any,
+  student: TableTypes<"user">
+) => {
+  const api = ServiceConfig.getI().apiHandler;
+
+  const rawResults = await api.isStudentPlayedPalLesson(student.id, course.id);
+
+  /**
+   * ================================
+   * MODE: DISABLED
+   * ================================
+   * Skip assessment + PAL completely
+   */
+  if (mode === LEARNING_PATHWAY_MODE.DISABLED) {
+    const chapters = await api.getChaptersForCourse(course.id);
+    if (!Array.isArray(chapters) || chapters.length === 0) return [];
+
+    const lessons = await Promise.all(
+      chapters.map(async (chapter: any) => {
+        const chapterLessons = await api.getLessonsForChapter(chapter.id);
+        return (Array.isArray(chapterLessons) ? chapterLessons : []).map(
+          (lesson: any) => ({
+            lesson_id: lesson.id,
+            chapter_id: chapter.id,
+            is_assessment: false,
+          })
+        );
+      })
+    );
+
+    return lessons.flat();
+  }
+
+  /**
+   * ================================
+   * MODE: FULL_ADAPTIVE
+   * ================================
+   * Assessment → PAL
+   */
+  if (shouldUsePAL(mode) && rawResults) {
+    const palPath = await palUtil.getPalLessonPathForCourse(
+      course.id,
+      student.id
+    );
+
+    if (Array.isArray(palPath) && palPath.length > 0) {
+      return palPath.map((item: any) => ({
+        ...item,
+        is_assessment: false,
+      }));
+    }
+  }
+
+  /**
+   * ================================
+   * MODE: ASSESSMENT_ONLY or FULL_ADAPTIVE
+   * ================================
+   * Trigger assessment if no history
+   */
+  if (shouldUseAssessment(mode) && !rawResults) {
+    const subjectLessons = await api.getSubjectLessonsBySubjectId(
+      course.subject_id,
+      student
+    );
+
+    if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
+      return subjectLessons
+        .map((lesson: any) => ({
+          lesson_id: lesson.lesson_id,
+          is_assessment: true,
+        }))
+        .slice(0, 5);
+    }
+  }
+
+  /**
+   * ================================
+   * FALLBACK → Legacy Chapters
+   * ================================
+   */
+  const chapters = await api.getChaptersForCourse(course.id);
+  if (!Array.isArray(chapters) || chapters.length === 0) return [];
+
+  const lessons = await Promise.all(
+    chapters.map(async (chapter: any) => {
+      const chapterLessons = await api.getLessonsForChapter(chapter.id);
+      return (Array.isArray(chapterLessons) ? chapterLessons : []).map(
+        (lesson: any) => ({
+          lesson_id: lesson.id,
+          chapter_id: chapter.id,
+          is_assessment: false,
+        })
+      );
+    })
+  );
+
+  return lessons.flat();
+};
+export const buildInitialLearningPath = async (
+  mode: string,
+  courses: any[],
+  student: TableTypes<"user">
+) => {
+  const courseList = await Promise.all(
+    courses.map(async (course) => {
+      const path = await buildLessonPath(mode, course, student);
+      return {
+        path_id: uuidv4(),
+        course_id: course.id,
+        subject_id: course.subject_id,
+        path,
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: 4,
+        type: course?.framework_id
+          ? RECOMMENDATION_TYPE.FRAMEWORK
+          : RECOMMENDATION_TYPE.CHAPTER,
+      };
+    })
+  );
+
+  const hasFrameworkCourse = courses.some((course) => course?.framework_id);
+
+  return {
+    courses: {
+      courseList,
+      currentCourseIndex: 0,
+    },
+    type: hasFrameworkCourse
+      ? RECOMMENDATION_TYPE.FRAMEWORK
+      : RECOMMENDATION_TYPE.CHAPTER,
+  };
+};
+const shouldUseAssessment = (mode: string) =>
+  mode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+  mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+
+const shouldUsePAL = (mode: string) =>
+  mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(false);
@@ -27,12 +171,38 @@ const LearningPathway: React.FC = () => {
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const { setGbUpdated } = useGbContext();
+  const gb = useGrowthBook();
+  const [isModeResolved, setIsModeResolved] = useState(false);
+
+  type LearningPathwayMode =
+    (typeof LEARNING_PATHWAY_MODE)[keyof typeof LEARNING_PATHWAY_MODE];
+
+  const [mode, setMode] = useState<LearningPathwayMode>(
+    LEARNING_PATHWAY_MODE.DISABLED
+  );
 
   useEffect(() => {
-    if (!currentStudent?.id) return;
+    if (!gb?.ready || !currentStudent?.id) return;
+    const currentClass = schoolUtil.getCurrentClass();
+    gb.setAttributes({
+      ...gb.getAttributes(),
+      school_ids: [currentClass?.school_id],
+    });
+    const result = gb.getFeatureValue(
+      "learning-pathway-mode",
+      LEARNING_PATHWAY_MODE.DISABLED
+    );
+    setMode(result as LearningPathwayMode);
+    localStorage.setItem(CURRENT_PATHWAY_MODE, result);
+    setIsModeResolved(true);
+  }, [gb?.ready, currentStudent?.id]);
+  useEffect(() => {
+    if (!currentStudent?.id || !isModeResolved) return;
+
     updateStarCount(currentStudent);
     fetchLearningPathway(currentStudent);
-  }, []);
+  }, [isModeResolved]);
+
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
@@ -79,45 +249,56 @@ const LearningPathway: React.FC = () => {
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
         : await api.getCoursesForPathway(student.id);
-
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
-
       const hasFrameworkCourse = userCourses.some(
         (course) => course?.framework_id
       );
-      const isFrameworkPath = learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
-
+      const isFrameworkPath =
+        learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
         (hasFrameworkCourse && !isFrameworkPath)
       ) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses, student.id);
+        learningPath = await buildInitialLearningPath(
+          mode,
+          userCourses,
+          student
+        );
         await saveLearningPath(student, learningPath);
         setLoading(false);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses,
-          student.id
+          student
         );
-
         let total_learning_path_completed = 0;
         let learning_path_completed: { [key: string]: number } = {};
         learningPath.courses.courseList.forEach((course) => {
           const { subject_id, currentIndex } = course;
           if (subject_id && currentIndex !== undefined) {
-            learning_path_completed[`${subject_id}_path_completed`] = currentIndex;
+            learning_path_completed[`${subject_id}_path_completed`] =
+              currentIndex;
             total_learning_path_completed += currentIndex;
           }
         });
-        updateLocalAttributes({ learning_path_completed, total_learning_path_completed });
+        updateLocalAttributes({
+          learning_path_completed,
+          total_learning_path_completed,
+        });
         setGbUpdated(true);
 
         if (updated) await saveLearningPath(student, learningPath);
+        await buildLearningPathForUnplayedCourses(
+          learningPath,
+          userCourses,
+          student
+        );
+        await updateLearningPathWithLatestAssessment(currClass, student);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -126,92 +307,104 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (
-    courses: any[],
-    studentId: string
-  ) => {
-    const courseList = await Promise.all(
-      courses.map(async (course) => {
-        const path = await buildLessonPath(course, studentId);
-        return {
-          path_id: uuidv4(),
-          course_id: course.id,
-          subject_id: course.subject_id,
-          path,
-          startIndex: 0,
-          currentIndex: 0,
-          pathEndIndex: 4,
-          type: course?.framework_id ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
-        };
-      })
+  async function buildLearningPathForUnplayedCourses(
+    learningPath: any,
+    userCourses: any[],
+    student: TableTypes<"user">
+  ) {
+    if (!learningPath?.courses?.courseList) return null;
+    if (!Array.isArray(userCourses) || userCourses.length === 0) return null;
+
+    // 1️⃣ Find unplayed courses
+    const unplayedCourses: any[] = [];
+    const existingList = [...learningPath.courses.courseList];
+
+    for (const course of userCourses) {
+      const existingCourse = existingList.find(
+        (c: any) => c.course_id === course.id
+      );
+      const hasProgress =
+        (existingCourse?.currentIndex ?? 0) > 0 ||
+        (existingCourse?.startIndex ?? 0) > 0;
+      if (hasProgress) continue;
+
+      const hasPlayed = await api.isStudentPlayedPalLesson(
+        student.id,
+        course.id
+      );
+      if (!hasPlayed) {
+        unplayedCourses.push(course);
+      }
+    }
+
+    if (unplayedCourses.length === 0) return null;
+
+    // 2️⃣ Build path ONCE for all unplayed
+    const newLearningPath = await buildInitialLearningPath(
+      mode,
+      unplayedCourses,
+      student
     );
 
-    const hasFrameworkCourse = courses.some(
-      (course) => course?.framework_id
-    );
+    const newCourseList = newLearningPath?.courses?.courseList || [];
 
-    return {
-      courses: {
-        courseList,
-        currentCourseIndex: 0,
-      },
-      type: hasFrameworkCourse ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
-    };
-  };
+    // 3️⃣ Replace matching courses
+    for (const newCourse of newCourseList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse.course_id
+      );
+
+      const existingCourse = index !== -1 ? existingList[index] : null;
+      const hasProgress =
+        (existingCourse?.currentIndex ?? 0) > 0 ||
+        (existingCourse?.startIndex ?? 0) > 0;
+      if (hasProgress) {
+        continue;
+      }
+      if (index !== -1) {
+        existingList[index] = newCourse;
+      } else {
+        existingList.push(newCourse);
+      }
+    }
+
+    // 4️⃣ Save
+    learningPath.courses.courseList = existingList;
+    await saveLearningPath(student, learningPath);
+
+    return true;
+  }
 
   const updateLearningPathIfNeeded = async (
     learningPath: any,
     userCourses: any[],
-    studentId: string
+    student: TableTypes<"user">
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
-
     // Check if lengths and course IDs/order match
     const isSameLengthAndOrder =
       oldCourseList.length === userCourses.length &&
       userCourses.every(
         (course, index) => course.id === oldCourseList[index]?.course_id
       );
-
-    // Check if any course is missing path_id
     const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
-
-    if (isSameLengthAndOrder && !isPathIdMissing) {
-      return false; // No need to rebuild
+    const isPathCompleted = oldCourseList.some(
+      (course) => course.currentIndex > course.pathEndIndex
+    );
+    if (isSameLengthAndOrder && !isPathIdMissing && !isPathCompleted) {
+      return false;
     }
-
     // If path_id is missing or courses mismatch, rebuild everything
     const newLearningPath = await buildInitialLearningPath(
+      mode,
       userCourses,
-      studentId
+      student
     );
     learningPath.courses.courseList = newLearningPath.courses.courseList;
-
     // Dispatch event to notify that course has changed
     const event = new CustomEvent(COURSE_CHANGED);
     window.dispatchEvent(event);
-
     return true;
-  };
-
-  const buildLessonPath = async (course: any, studentId: string) => {
-    const palPath = await palUtil.getPalLessonPathForCourse(
-      course.id,
-      studentId
-    );
-    if (palPath) return palPath;
-
-    const chapters = await api.getChaptersForCourse(course.id);
-    const lessons = await Promise.all(
-      chapters.map(async (chapter) => {
-        const lessons = await api.getLessonsForChapter(chapter.id);
-        return lessons.map((lesson: any) => ({
-          lesson_id: lesson.id,
-          chapter_id: chapter.id,
-        }));
-      })
-    );
-    return lessons.flat();
   };
 
   const saveLearningPath = async (student: any, path: any) => {
@@ -249,13 +442,7 @@ const LearningPathway: React.FC = () => {
       pathLessonThree,
       pathLessonFour,
       pathLessonFive,
-    ] = [
-      LessonIds[0],
-      LessonIds[1],
-      LessonIds[2],
-      LessonIds[3],
-      LessonIds[4],
-    ];
+    ] = [LessonIds[0], LessonIds[1], LessonIds[2], LessonIds[3], LessonIds[4]];
 
     const eventData = {
       user_id: student.id,
@@ -278,6 +465,172 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
+
+  async function formatLatestAssessmentGroupPerCourse(
+    assignments: TableTypes<"assignment">[]
+  ): Promise<any[]> {
+    if (!assignments.length) return [];
+    const api = ServiceConfig.getI().apiHandler;
+    // 1️⃣ Group assignments by course_id
+    const courseMap = new Map<string, TableTypes<"assignment">[]>();
+
+    for (const a of assignments) {
+      if (!a.course_id) continue;
+
+      if (!courseMap.has(a.course_id)) {
+        courseMap.set(a.course_id, []);
+      }
+      courseMap.get(a.course_id)!.push(a);
+    }
+
+    const result: any[] = [];
+
+    // 2️⃣ For each course → fetch subject_id → format
+    for (const [courseId, courseAssignments] of courseMap.entries()) {
+      const course = await api.getCourse(courseId);
+      if (!course?.subject_id) continue;
+
+      result.push({
+        course_id: courseId,
+        subject_id: course.subject_id,
+        lessons: courseAssignments.map((a) => ({
+          lesson_id: a.lesson_id,
+          assignment_id: a.id,
+        })),
+      });
+    }
+    return result;
+  }
+
+  const updatePathwayWithLatestAssessment = async (
+    assessmentCheckData: any[]
+  ) => {
+    if (!Array.isArray(assessmentCheckData)) return null;
+
+    const api = ServiceConfig.getI().apiHandler;
+    const courseList: any[] = [];
+
+    for (const item of assessmentCheckData) {
+      // Skip if path is already valid or nothing missing
+      if (item.isPathValid || !item.missing?.length) continue;
+
+      const course = await api.getCourse(item.course_id);
+      if (!course) continue;
+
+      courseList.push({
+        path_id: uuidv4(),
+        course_id: item.course_id,
+        subject_id: item.subject_id ?? course.subject_id,
+        path: item.missing.map((l: any) => ({
+          lesson_id: l.lesson_id,
+          assignment_id: l.assignment_id,
+          is_assessment: true,
+        })),
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: item.missing.length - 1,
+        type: course.framework_id
+          ? RECOMMENDATION_TYPE.FRAMEWORK
+          : RECOMMENDATION_TYPE.CHAPTER,
+      });
+    }
+
+    if (courseList.length === 0) return null;
+
+    const hasFrameworkCourse = courseList.some(
+      (c) => c.type === RECOMMENDATION_TYPE.FRAMEWORK
+    );
+
+    return {
+      courses: {
+        courseList,
+        currentCourseIndex: 0,
+      },
+      type: hasFrameworkCourse
+        ? RECOMMENDATION_TYPE.FRAMEWORK
+        : RECOMMENDATION_TYPE.CHAPTER,
+    };
+  };
+  async function checkAssessmentLessonsInPathway(
+    formattedAssessments: any[],
+    learningPath: any
+  ): Promise<any> {
+    const coursePaths = learningPath?.courses?.courseList ?? [];
+
+    return formattedAssessments.map((assessment: any) => {
+      const coursePath = coursePaths.find(
+        (c: any) => c.course_id === assessment.course_id
+      );
+
+      // ❌ No pathway at all
+      if (!coursePath || !Array.isArray(coursePath.path)) {
+        return {
+          course_id: assessment.course_id,
+          isPathValid: false,
+          missing: assessment.lessons,
+        };
+      }
+
+      const pathKeySet = new Set(
+        coursePath.path.map(
+          (p: any) => `${p.lesson_id}|${p.assignment_id ?? ""}`
+        )
+      );
+
+      const missing = assessment.lessons.filter(
+        (l: any) => !pathKeySet.has(`${l.lesson_id}|${l.assignment_id}`)
+      );
+
+      return {
+        course_id: assessment.course_id,
+        isPathValid: missing.length === 0,
+        ...(missing.length > 0 ? { missing } : {}),
+      };
+    });
+  }
+  async function updateLearningPathWithLatestAssessment(
+    Class: any,
+    Student: any
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+    const assignments = await api.getLatestAssessmentGroup(Class.id, Student);
+    let learningPath = Student.learning_path
+      ? JSON.parse(Student.learning_path)
+      : null;
+    if (!assignments || assignments.length === 0) {
+      return;
+    }
+
+    // 2️⃣ Format assessment per course
+    const formattedPerCourse = await formatLatestAssessmentGroupPerCourse(
+      assignments
+    );
+    // 3️⃣ Check assessment lessons against existing learning path
+    const validatedAssessments = await checkAssessmentLessonsInPathway(
+      formattedPerCourse,
+      learningPath
+    );
+    const updatedPath = await updatePathwayWithLatestAssessment(
+      validatedAssessments
+    );
+    // 🟢 MERGE like buildLearningPathForUnplayedCourses
+    const newCourseList = updatedPath?.courses?.courseList || [];
+    const existingList = [...learningPath.courses.courseList];
+    for (const newCourse of newCourseList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse?.course_id
+      );
+
+      if (index !== -1) {
+        existingList[index] = newCourse;
+      } else {
+        existingList.push(newCourse);
+      }
+    }
+    learningPath.courses.courseList = existingList;
+    await saveLearningPath(Student, learningPath);
+  }
+
   if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (
