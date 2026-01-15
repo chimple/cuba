@@ -596,6 +596,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (isSplQuery) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+        localStorage.setItem("IS_OPS_USER", "true");
       } else {
         let isFirstSync = true;
         await api.syncDB(

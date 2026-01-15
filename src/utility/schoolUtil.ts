@@ -7,6 +7,7 @@ import {
   PAGES,
   SCHOOL_LOGIN,
   TableTypes,
+  IS_OPS_USER
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "./util";
@@ -135,6 +136,10 @@ export class schoolUtil {
 
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
+    if(IS_OPS_USER){
+      this.setCurrMode(MODES.OPS_CONSOLE);
+      return MODES.OPS_CONSOLE;
+    }
     if (!currMode) {
       const currUser = await auth.getCurrentUser();
       if (!currUser) return undefined;
