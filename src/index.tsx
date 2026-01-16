@@ -51,6 +51,8 @@ import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
 import { Preferences } from "@capacitor/preferences";
+import { Browser } from "@capacitor/browser";
+import { BrowserRouter } from "react-router-dom";
 
 Sentry.init(
   {
@@ -319,11 +321,14 @@ async function checkForUpdate() {
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
   root.render(
-    <GrowthBookProvider growthbook={gb}>
-      <GbProvider>
-        <App />
-      </GbProvider>
-    </GrowthBookProvider>
+    <BrowserRouter>
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
+    </BrowserRouter>
+
   );
   SplashScreen.hide();
   setTimeout(() => {
@@ -336,11 +341,13 @@ if (isOpsUser) {
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
     root.render(
-      <GrowthBookProvider growthbook={gb}>
-        <GbProvider>
-          <App />
-        </GbProvider>
-      </GrowthBookProvider>
+      <BrowserRouter>
+        <GrowthBookProvider growthbook={gb}>
+          <GbProvider>
+            <App />
+          </GbProvider>
+        </GrowthBookProvider>
+      </BrowserRouter>
     );
     SplashScreen.hide();
     setTimeout(() => {
