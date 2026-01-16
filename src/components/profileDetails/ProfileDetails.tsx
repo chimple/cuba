@@ -247,8 +247,9 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
-        const langIndex = languages?.findIndex(
-          (lang) => lang.id === languages[0].id
+        const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
+        const langIndex = languages.findIndex(
+          (lang) => lang.id === resolvedLanguageId
         );
         await Util.setCurrentStudent(
           student,
