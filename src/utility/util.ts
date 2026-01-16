@@ -2995,6 +2995,24 @@ export class Util {
       };
 
       const eventsToLog: string[] = [];
+      const advancePathSlice = () => {
+        const pathLen = currentCourse.path?.length ?? 0;
+        if (!pathLen) return;
+        const nextStartIndex = Math.max(
+          0,
+          Math.min(currentCourse.currentIndex, pathLen - 1)
+        );
+        const nextEndIndex = Math.max(
+          nextStartIndex,
+          Math.min(currentCourse.pathEndIndex + 5, pathLen - 1)
+        );
+
+        currentCourse.startIndex = nextStartIndex;
+        currentCourse.currentIndex = nextStartIndex;
+        currentCourse.pathEndIndex = nextEndIndex;
+        currentCourse.path_id = uuidv4();
+        prevData.prevPath_id = currentCourse.path_id;
+      };
 
       currentCourse.currentIndex += 1;
       const is_immediate_sync =
@@ -3068,6 +3086,8 @@ export class Util {
             currentCourse.startIndex = 0;
             currentCourse.currentIndex = 0;
             currentCourse.pathEndIndex = palPath.length - 1;
+          } else {
+            advancePathSlice();
           }
         }
 
