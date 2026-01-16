@@ -91,7 +91,7 @@ export enum TABLES {
   FcUserForms = "fc_user_forms",
   Locale = "locale",
   LanguageLocale = "language_locale",
-  SubjectLesson="subject_lesson"
+  SubjectLesson = "subject_lesson",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -621,7 +621,7 @@ export const PREVIOUS_SELECTED_COURSE = () =>
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 // export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
-export const SEARCH_LESSON_HISTORY = "search_lesson_history"
+export const SEARCH_LESSON_HISTORY = "search_lesson_history";
 export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
@@ -638,7 +638,7 @@ export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const LIDO = "lido";
-export const LIDO_ASSESSMENT="lido_assessment"
+export const LIDO_ASSESSMENT = "lido_assessment";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -655,6 +655,7 @@ export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
+export const GENERIC_POP_UP = "generic-pop-up";
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = "APP_OPEN",
   GAME_COMPLETE = "GAME_COMPLETE",
@@ -893,7 +894,6 @@ export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
 export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
 
-
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;
@@ -974,7 +974,6 @@ export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
 export const LOCAL_LESSON_BUNDLES_PATH = "/assets/lessonBundles/";
-
 
 export const ALL_SUBJECT = {
   id: "all",
@@ -1258,3 +1257,9 @@ export const LIDO_ASSESSMENT_COMPLETED = "LIDO_ASSESSMENT_COMPLETED";
 export const LIDO_LESSON_COMPLETED = "LIDO_LESSON_COMPLETED";
 export const LIDO_RESULTS_SAVED = "LIDO_RESULTS_SAVED";
 
+export const LEARNING_PATHWAY_MODE = {
+  DISABLED: "DISABLED",
+  ASSESSMENT_ONLY: "ASSESSMENT_ONLY",
+  FULL_ADAPTIVE: "FULL_ADAPTIVE",
+};
+export const CURRENT_PATHWAY_MODE="currentPathwayMode";

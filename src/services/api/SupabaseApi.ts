@@ -10795,50 +10795,114 @@ export class SupabaseApi implements ServiceApi {
    * If this returns empty, the Cold Start assessment starts.
    */
   async getSubjectLessonsBySubjectId(
-    subjectId: string
-  ): Promise<TableTypes<"subject_lesson">[] | null> {
-    if (!this.supabase) return null;
-
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[]> {
+    const langId = student?.language_id ?? null;
+    const localeId = student?.locale_id ?? null;
+    if (!this.supabase) return [];
     try {
-      // 1️⃣ Fetch ALL available set_numbers
-      const { data: setData, error: setError } = await this.supabase
+      /* =====================================================
+       * 1️⃣ Fetch ALL available set_numbers
+       * ===================================================== */
+      const { data: setRows, error: setError } = await this.supabase
         .from("subject_lesson")
         .select("set_number")
         .eq("subject_id", subjectId)
         .eq("is_deleted", false)
         .not("set_number", "is", null);
 
-      if (setError || !setData?.length) {
-        console.error("❌ Error fetching set_numbers:", setError);
-        return null;
+      if (setError) throw setError;
+      if (!setRows?.length) return [];
+
+      // ✅ ensure number[] (NO nulls)
+      const uniqueSets: number[] = Array.from(
+        new Set(
+          setRows
+            .map((r) => r.set_number)
+            .filter((n): n is number => n !== null)
+        )
+      );
+
+      if (!uniqueSets.length) return [];
+
+      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
+      const setNumber = uniqueSets[randomIndex]; // ✅ number
+
+      /* =====================================================
+       * 2️⃣ Build OR conditions safely
+       * ===================================================== */
+      const orConditions: string[] = [
+        "and(language_id.is.null,locale_id.is.null)",
+      ];
+
+      if (langId !== null) {
+        orConditions.push(
+          `and(language_id.eq.${langId},locale_id.is.null)`
+        );
       }
 
-      // 2️⃣ Pick ANY ONE set randomly in JS
-      const randomIndex = Math.floor(Math.random() * setData.length);
-      const setNumber = setData[randomIndex].set_number;
+      if (localeId !== null) {
+        orConditions.push(
+          `and(language_id.is.null,locale_id.eq.${localeId})`
+        );
+      }
 
-      if (setNumber == null) return null;
+      if (langId !== null && localeId !== null) {
+        orConditions.push(
+          `and(language_id.eq.${langId},locale_id.eq.${localeId})`
+        );
+      }
 
-      // 3️⃣ Fetch ALL lessons for that set
-      const { data, error } = await this.supabase
+      /* =====================================================
+       * 3️⃣ Fetch lessons
+       * ===================================================== */
+      const { data: lessons, error: lessonError } = await this.supabase
         .from("subject_lesson")
         .select("*")
         .eq("subject_id", subjectId)
-        .eq("set_number", setNumber)
+        .eq("set_number", setNumber) // ✅ FIXED
         .eq("is_deleted", false)
-        .order("sort_index", { ascending: true });
+        .or(orConditions.join(","));
 
-      if (error || !data?.length) {
-        console.error("❌ Error fetching lessons:", error);
-        return null;
+      if (lessonError) throw lessonError;
+      if (!lessons?.length) return [];
+
+      /* =====================================================
+       * 4️⃣ JS SORTING
+       * ===================================================== */
+      if (lessons.length > 5) {
+        lessons.sort((a: any, b: any) => {
+          const getPriority = (x: any): number => {
+            const l = x.language_id ?? null;
+            const lo = x.locale_id ?? null;
+
+            if (l === langId && lo === localeId) return 1;
+            if (l === langId && lo === null) return 2;
+            if (l === null && lo === localeId) return 3;
+            if (l === null && lo === null) return 4;
+            return 5;
+          };
+
+          const pA = getPriority(a);
+          const pB = getPriority(b);
+
+          if (pA !== pB) return pA - pB;
+          return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+        });
       }
 
-      return data;
-    } catch (err) {
-      console.error("❌ Error fetching subject lessons:", err);
-      return null;
+      return lessons;
+    } catch (error) {
+      console.error(
+        "❌ Error fetching subject lessons by subject (Supabase):",
+        error
+      );
+      return [];
     }
   }
+
+
   async getSkillById(
     skillId: string
   ): Promise<TableTypes<"skill"> | undefined> {
@@ -10926,126 +10990,126 @@ export class SupabaseApi implements ServiceApi {
 
     return true;
   }
-async getLatestAssessmentGroup(
-  classId: string,
-  student: TableTypes<"user">
-): Promise<TableTypes<"assignment">[]> {
-  if (!this.supabase) return [];
+  async getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]> {
+    if (!this.supabase) return [];
 
-  const nowIso = new Date().toISOString();
-  const langId = student.language_id;
-  const localeId = student.locale_id;
+    const nowIso = new Date().toISOString();
+    const langId = student.language_id;
+    const localeId = student.locale_id;
 
-  /* ===============================
-   * STEP 1️⃣ : Fetch base assessments
-   * =============================== */
-  const { data: assignments, error } = await this.supabase
-    .from(TABLES.Assignment)
-    .select(`
+    /* ===============================
+     * STEP 1️⃣ : Fetch base assessments
+     * =============================== */
+    const { data: assignments, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(`
       *,
       course!inner(
         id,
         is_deleted
       )
     `)
-    .eq("class_id", classId)
-    .eq("type", "assessment")
-    .eq("is_deleted", false)
-    .eq("course.is_deleted", false)
-    .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-    .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+      .eq("class_id", classId)
+      .eq("type", "assessment")
+      .eq("is_deleted", false)
+      .eq("course.is_deleted", false)
+      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
 
-  if (error || !assignments?.length) return [];
+    if (error || !assignments?.length) return [];
 
-  /* ===============================
-   * STEP 2️⃣ : Keep latest batch PER COURSE
-   * =============================== */
-  const latestBatchByCourse = new Map<string, string>();
+    /* ===============================
+     * STEP 2️⃣ : Keep latest batch PER COURSE
+     * =============================== */
+    const latestBatchByCourse = new Map<string, string>();
 
-  for (const a of assignments) {
-    if (!a.course_id || !a.batch_id) continue; // null-safe
+    for (const a of assignments) {
+      if (!a.course_id || !a.batch_id) continue; // null-safe
 
-    if (!latestBatchByCourse.has(a.course_id)) {
-      latestBatchByCourse.set(a.course_id, a.batch_id);
+      if (!latestBatchByCourse.has(a.course_id)) {
+        latestBatchByCourse.set(a.course_id, a.batch_id);
+      }
     }
-  }
 
-  const batchFiltered = assignments.filter(
-    a =>
-      a.course_id &&
-      a.batch_id &&
-      latestBatchByCourse.get(a.course_id) === a.batch_id
-  );
-
-  if (!batchFiltered.length) return [];
-
-  /* ===============================
-   * STEP 3️⃣ : Pending result check
-   * =============================== */
-  const assignmentIds = batchFiltered.map(a => a.id);
-
-  const { count: completedCount } = await this.supabase
-    .from(TABLES.Result)
-    .select("id", { count: "exact", head: true })
-    .in("assignment_id", assignmentIds)
-    .eq("student_id", student.id)
-    .eq("is_deleted", false);
-
-  if (completedCount === assignmentIds.length) return [];
-
-  /* ===============================
-   * STEP 4️⃣ : subject_lesson validation
-   * (lesson_id + language/locale fallback)
-   * =============================== */
-  const lessonIds = [
-    ...new Set(batchFiltered.map(a => a.lesson_id))
-  ];
-
-  let subjectLessonQuery = this.supabase
-    .from(TABLES.SubjectLesson)
-    .select("lesson_id")
-    .in("lesson_id", lessonIds)
-    .eq("is_deleted", false);
-
-  // Loose / fallback language + locale matcher
-  const orConditions: string[] = [
-    "language_id.is.null,locale_id.is.null",
-  ];
-
-  if (langId) {
-    orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
-  }
-
-  if (localeId) {
-    orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
-  }
-
-  if (langId && localeId) {
-    orConditions.push(
-      `language_id.eq.${langId},locale_id.eq.${localeId}`
+    const batchFiltered = assignments.filter(
+      a =>
+        a.course_id &&
+        a.batch_id &&
+        latestBatchByCourse.get(a.course_id) === a.batch_id
     );
-  }
 
-  subjectLessonQuery = subjectLessonQuery.or(
-    orConditions.join("|")
-  );
+    if (!batchFiltered.length) return [];
 
-  const { data: subjectLessons } = await subjectLessonQuery;
+    /* ===============================
+     * STEP 3️⃣ : Pending result check
+     * =============================== */
+    const assignmentIds = batchFiltered.map(a => a.id);
 
-  if (!subjectLessons?.length) return [];
+    const { count: completedCount } = await this.supabase
+      .from(TABLES.Result)
+      .select("id", { count: "exact", head: true })
+      .in("assignment_id", assignmentIds)
+      .eq("student_id", student.id)
+      .eq("is_deleted", false);
 
-  /* ===============================
-   * STEP 5️⃣ : Final filter
-   * =============================== */
-  const validLessonIds = new Set(
-    subjectLessons
-      .filter(sl => sl.lesson_id)
-      .map(sl => sl.lesson_id)
-  );
+    if (completedCount === assignmentIds.length) return [];
 
-  const finalAssignments = batchFiltered.filter(a =>
-    validLessonIds.has(a.lesson_id)
-  );
+    /* ===============================
+     * STEP 4️⃣ : subject_lesson validation
+     * (lesson_id + language/locale fallback)
+     * =============================== */
+    const lessonIds = [
+      ...new Set(batchFiltered.map(a => a.lesson_id))
+    ];
+
+    let subjectLessonQuery = this.supabase
+      .from(TABLES.SubjectLesson)
+      .select("lesson_id")
+      .in("lesson_id", lessonIds)
+      .eq("is_deleted", false);
+
+    // Loose / fallback language + locale matcher
+    const orConditions: string[] = [
+      "language_id.is.null,locale_id.is.null",
+    ];
+
+    if (langId) {
+      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+    }
+
+    if (localeId) {
+      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+    }
+
+    if (langId && localeId) {
+      orConditions.push(
+        `language_id.eq.${langId},locale_id.eq.${localeId}`
+      );
+    }
+
+    subjectLessonQuery = subjectLessonQuery.or(
+      orConditions.join("|")
+    );
+
+    const { data: subjectLessons } = await subjectLessonQuery;
+
+    if (!subjectLessons?.length) return [];
+
+    /* ===============================
+     * STEP 5️⃣ : Final filter
+     * =============================== */
+    const validLessonIds = new Set(
+      subjectLessons
+        .filter(sl => sl.lesson_id)
+        .map(sl => sl.lesson_id)
+    );
+
+    const finalAssignments = batchFiltered.filter(a =>
+      validLessonIds.has(a.lesson_id)
+    );
 
   return finalAssignments as TableTypes<"assignment">[];
 }

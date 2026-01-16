@@ -2572,7 +2572,8 @@ export interface ServiceApi {
   ): Promise<boolean>;
 
   getSubjectLessonsBySubjectId(
-    subjectId: string
+    subjectId: string,
+    student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;

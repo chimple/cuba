@@ -1,5 +1,5 @@
 import { PopupConfig } from "./GenericPopUpType";
-import { LANGUAGE ,GENERIC_POPUP_TRIGGER_CONDITION, GENERIC_POPUP_INTERNAL_NAVIGATION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
+import { LANGUAGE ,GENERIC_POPUP_TRIGGER_CONDITION, SHOW_GENERIC_POPUP} from "../../common/constants"; 
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
@@ -146,30 +146,38 @@ class PopupManager {
     target: config.action?.target,
   });
 
-  if (config.action?.type === "DEEP_LINK") {
-    const target = config.action.target;
 
-    // ✅ Internal app route
-    if (target.startsWith("/")) {
-      window.dispatchEvent(
-        new CustomEvent(GENERIC_POPUP_INTERNAL_NAVIGATION, {
-          detail: { path: target },
-        })
-      );
-    } else {
-      // 🌍 External link / scheme / https / deep-link
-      if (Capacitor.isNativePlatform()) {
-        // ✅ Opens in system browser (new tab outside app)
-        Browser.open({
-          url: target,
-          presentationStyle: "popover", // iOS safe
-        });
-      } else {
-        // ✅ Web fallback (new tab)
-        window.open(target, "_blank", "noopener,noreferrer");
-      }
-    }
+if (config.action?.type === "DEEP_LINK") {
+  const rawTarget = config.action.target;          // e.g. "SUBJECTS", "LEADERBOARD"
+  const normalizedTarget = rawTarget.toLowerCase();
+
+  // 🔹 HOME / LEADERBOARD TAB NAVIGATION
+  if (/^[a-z0-9_-]+$/i.test(rawTarget)) {
+    // 1️⃣ Decide base route
+    const baseRoute =
+      normalizedTarget === "rewards"
+        ? "/leaderboard"
+        : "/home";
+
+
+    console.log("✅ Navigating to:", baseRoute, rawTarget);
+    window.location.replace(`${baseRoute}?tab=${normalizedTarget}`);
+    return;
   }
+
+  if (rawTarget.startsWith("/")) {
+
+    window.location.replace(rawTarget);
+    return;
+  }
+
+  // 🌍 External
+  if (Capacitor.isNativePlatform()) {
+    Browser.open({ url: rawTarget });
+  } else {
+    window.open(rawTarget, "_blank", "noopener,noreferrer");
+  }
+}
 
   this.isPopupActive = false;
 }

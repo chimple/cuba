@@ -1157,9 +1157,9 @@ export class ApiHandler implements ServiceApi {
   }
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
-    return this.s.getSchoolsWithRoleAutouser(schoolIds,userId);
+    return this.s.getSchoolsWithRoleAutouser(schoolIds, userId);
   }
   getPrincipalsForSchool(
     schoolId: string
@@ -1713,7 +1713,7 @@ export class ApiHandler implements ServiceApi {
   async getClientCountryCode(): Promise<any> {
     return await this.s.getClientCountryCode();
   }
-  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>{
+  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string): Promise<TableTypes<"locale"> | null> {
     return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
   }
 
@@ -1912,19 +1912,20 @@ export class ApiHandler implements ServiceApi {
   public async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
-  ): Promise<boolean> {   
+  ): Promise<boolean> {
     return await this.s.isStudentPlayedPalLesson(studentId, courseId);
   }
-public  async getSubjectLessonsBySubjectId(
-      subjectId: string
-    ): Promise<TableTypes<"subject_lesson">[] | null> {
-      return await this.s.getSubjectLessonsBySubjectId(subjectId);
-    }
-public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
-  return await this.s.getSkillById(skillId);
-}
+  public async getSubjectLessonsBySubjectId(
+    subjectId: string,
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">[] | null> {
+    return await this.s.getSubjectLessonsBySubjectId( subjectId,student);
+  }
+  public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
+    return await this.s.getSkillById(skillId);
+  }
 
-async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
