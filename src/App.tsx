@@ -212,8 +212,6 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
-  const location = useLocation();
-  const history = useHistory();
 
 useEffect(() => {
   if (!growthbook) return;
@@ -242,21 +240,6 @@ useEffect(() => {
     PopupManager.onTimeElapsed(popupConfig);
   }
 }, [growthbook, window.location.search]);
-
-useLayoutEffect(() => {
-  const handler = (e: any) => {
-    console.log("POPUP EVENT RECEIVED:", e.detail);
-    setPopupData(e.detail);
-  };
-
-  window.addEventListener(SHOW_GENERIC_POPUP, handler);
-
-  return () => {
-    window.removeEventListener(SHOW_GENERIC_POPUP, handler);
-  };
-}, []);
-
-
 
 
   useEffect(() => {
