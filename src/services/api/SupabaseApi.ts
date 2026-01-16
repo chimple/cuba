@@ -1912,12 +1912,9 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async updateFcmToken(userId: string) {
-    console.log("supabase fcm token1");
     if (!this.supabase) return;
-    console.log("supabase fcm token2");
     try {
       const token = await Util.getToken();
-      console.log("supabase fcm token3");
       const { error } = await this.supabase
         .from("user")
         .update({ fcm_token: token })

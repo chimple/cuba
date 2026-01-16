@@ -610,8 +610,6 @@ export class SupabaseAuth implements ServiceAuth {
       if (isUserExists){
         createdUser = await api.getUserByDocId(id);
       }
-      console.log("isUserExists", isUserExists);
-      console.log("createdUser", createdUser);
       if (!createdUser) {
         console.error("Failed to initialize user record: User could not be created or retrieved.");
         return null;
