@@ -17,7 +17,7 @@ import {
   LANGUAGE,
   LANG,
   IS_REWARD_FEATURE_ON,
-  GENERIC_POPUP_INTERNAL_NAVIGATION,
+  GENERIC_POP_UP,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -133,7 +133,7 @@ useEffect(() => {
   if (!growthbook) return;
 
   const popupConfig = growthbook.getFeatureValue(
-    "generic-pop-up",
+    GENERIC_POP_UP,
     null
   ) as any;
 

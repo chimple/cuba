@@ -75,7 +75,7 @@ import {
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
-  GENERIC_POPUP_INTERNAL_NAVIGATION,
+ GENERIC_POP_UP,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -216,7 +216,7 @@ useEffect(() => {
   if (!growthbook) return;
 
   const popupConfig = growthbook.getFeatureValue(
-    "generic-pop-up",
+    GENERIC_POP_UP,
     null
   ) as any;
 
