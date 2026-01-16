@@ -655,6 +655,7 @@ export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
+export const GENERIC_POP_UP = "generic-pop-up";
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = "APP_OPEN",
   GAME_COMPLETE = "GAME_COMPLETE",

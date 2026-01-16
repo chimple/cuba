@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2015 Chimple
  *
@@ -42,13 +43,12 @@ import "@ionic/react/css/text-alignment.css";
 import "@ionic/react/css/text-transformation.css";
 import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
-
 /* Theme variables */
 import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -75,7 +75,7 @@ import {
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
-  GENERIC_POPUP_INTERNAL_NAVIGATION,
+ GENERIC_POP_UP,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -211,26 +211,46 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
+
 useEffect(() => {
   if (!growthbook) return;
 
   const popupConfig = growthbook.getFeatureValue(
-    "generic-pop-up",
+    GENERIC_POP_UP,
     null
-  )as any;
+  ) as any;
+
   if (!popupConfig) return;
 
-  const currentRoute =
-    window.location.pathname ||
-    window.location.hash.replace("#", "");
+  const params = new URLSearchParams(window.location.search);
+  const currentTab = params.get("tab");
 
-  console.log("Current route:", currentRoute);
+  // console.log("POPUP CHECK");
+  // console.log("tab from URL:", currentTab);
+  // console.log("screen_name from GB:", popupConfig.screen_name);
 
-  if (currentRoute === popupConfig.screen_name) {
+  if (
+    currentTab &&
+    popupConfig.screen_name &&
+    currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
+  ) {
     PopupManager.onAppOpen(popupConfig);
     PopupManager.onTimeElapsed(popupConfig);
   }
-}, [growthbook, window.location.pathname]);
+}, [growthbook, window.location.search]);
+
+useLayoutEffect(() => {
+  const handler = (e: any) => {
+    console.log("POPUP EVENT RECEIVED:", e.detail);
+    setPopupData(e.detail);
+  };
+
+  window.addEventListener(SHOW_GENERIC_POPUP, handler);
+
+  return () => {
+    window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+  };
+}, []);
 
   useEffect(() => {
   const handler = (e: any) => {
@@ -240,27 +260,6 @@ useEffect(() => {
 
   window.addEventListener(SHOW_GENERIC_POPUP, handler);
   return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
-}, []);
-
-useEffect(() => {
-  const handler = (e: Event) => {
-    const custom = e as CustomEvent<{ path: string }>;
-    const path = custom.detail.path;
-
-    if (!path) return;
-
-    console.log("Navigating to:", path);
-
-    // React-router friendly navigation
-    window.history.pushState({}, "", path);
-
-    // Let Ionic / React Router re-render
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  };
-
-  window.addEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
-  return () =>
-    window.removeEventListener(GENERIC_POPUP_INTERNAL_NAVIGATION, handler);
 }, []);
 
 
