@@ -65,10 +65,10 @@ const OpsApprovedRequestDetails = () => {
         }
 
         if (req?.request_type === RequestTypes.STUDENT && req?.requestedBy?.id) {
-          const data = await api.getStudentAndParentByStudentId(
+          const data = await api.getParentsByStudentId(
             req.requestedBy.id
           );
-          setParent(data?.parents?.[0]);
+          setParent(data?.[0]);
         }
       } catch {
         setError(t("failedToLoadRequest"));

@@ -1438,7 +1438,7 @@ export interface ServiceApi {
    */
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the teachers for the school.
@@ -2004,6 +2004,13 @@ export interface ServiceApi {
   getStudentAndParentByStudentId(
     studentId: string
   ): Promise<{ user: any; parents: any[] }>;
+  
+  /**
+   * Fetch  parent information even if the student is deleted.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an array of parents.
+   */
+  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> ;
 
   /**
    * Merge a new student into an existing student record in SQLite.
@@ -2559,14 +2566,15 @@ export interface ServiceApi {
   ): Promise<boolean>;
 
   getSubjectLessonsBySubjectId(
-    subjectId: string
+    subjectId: string,
+    student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
- getLatestAssessmentGroup(
-  classId: string,
-  student: TableTypes<"user">,
-): Promise<TableTypes<"assignment">[]>
+  getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">,
+  ): Promise<TableTypes<"assignment">[]>
 }
