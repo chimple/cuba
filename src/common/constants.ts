@@ -5,6 +5,7 @@ import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf"; //this is the default locale id for india
+export const DEFAULT_LANGUAGE_ID_EN = "7eaf3509-e44e-460f-80a1-7f6a13a8a883"; //this is the default language id for english
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
