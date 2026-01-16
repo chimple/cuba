@@ -1935,7 +1935,7 @@ public async getLatestAssessmentGroup(
 ): Promise<TableTypes<"assignment">[]> {
   return this.s.getLatestAssessmentGroup(classId, student);
 }
-  public async getWhatsappGroup(groupId: string, bot: string) {
-    return this.s.getWhatsappGroup(groupId, bot);
+  public async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this.s.getWhatsappGroupDetails(groupId, bot);
   }
 }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Card from "@mui/material/Card";
 import { Box, CardContent, Typography } from "@mui/material";
 import "./WhatsAppInfoCard.css";
@@ -24,15 +24,14 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     const groupId = classData?.group_id;
     const bot = schoolData?.whatsapp_bot_number;
 
-    if (!groupId || !bot){
+    if (!groupId || !bot) {
       console.error("Class not connected to WhatsApp group");
       return;
-    };
-      
+    }
 
     const getGroup = async () => {
       try {
-        const group = await api.getWhatsappGroup(groupId, bot);
+        const group = await api.getWhatsappGroupDetails(groupId, bot);
         setGroupName(group.name);
         setMembers(group.members.length);
         setInviteLink(group.inviteLink);
@@ -42,7 +41,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     };
 
     getGroup();
-  }, [classData, schoolData]);
+  }, [classData?.group_id, schoolData?.whatsapp_bot_number]);
 
   return (
     <Card variant="outlined" className="wa-info-card">

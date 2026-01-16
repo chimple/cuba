@@ -11110,10 +11110,10 @@ export class SupabaseApi implements ServiceApi {
 
   return finalAssignments as TableTypes<"assignment">[];
 }
-  async getWhatsappGroup(groupId: string, bot: string) {
+  async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
-      "get-whatsapp-group",
+      "get-whatsapp-group-details",
       {
         body: { groupId, bot },
       }

@@ -2591,5 +2591,5 @@ export interface ServiceApi {
  * @returns Promise resolving to the WhatsApp group details including
  *          group name, members list, and invite link.
  */
-  getWhatsappGroup(groupId: string, bot: string);
+  getWhatsappGroupDetails(groupId: string, bot: string);
 }
