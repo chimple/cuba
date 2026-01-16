@@ -144,7 +144,6 @@ useEffect(() => {
     popupConfig.screen_name &&
     currentHeader.toLowerCase() === popupConfig.screen_name.toLowerCase()
   ) {
-    console.log("🔥 POPUP TRIGGERED VIA NAVIGATION");
     PopupManager.onAppOpen(popupConfig);
     PopupManager.onTimeElapsed(popupConfig);
   }
@@ -460,7 +459,6 @@ useEffect(() => {
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       headerIconList.push(element);
     });
-    console.log("Header Icon Clicked🛖🛖:", selectedHeader);
     setCurrentHeader(selectedHeader);
     localStorage.setItem("currentHeader", selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);

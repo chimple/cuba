@@ -185,7 +185,6 @@ const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
-  console.log("🌟 APP COMPONENT RENDERED");
   const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -223,13 +222,12 @@ useEffect(() => {
 
   if (!popupConfig) return;
 
-  console.log("Growthbook POPUP CONFIG:😁😁😁", popupConfig);
   const params = new URLSearchParams(window.location.search);
   const currentTab = params.get("tab");
 
-  console.log("🧩 POPUP CHECK");
-  console.log("tab from URL:", currentTab);
-  console.log("screen_name from GB:", popupConfig.screen_name);
+  // console.log("POPUP CHECK");
+  // console.log("tab from URL:", currentTab);
+  // console.log("screen_name from GB:", popupConfig.screen_name);
 
   if (
     currentTab &&
