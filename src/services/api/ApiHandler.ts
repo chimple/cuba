@@ -40,8 +40,20 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType, isEmailVerified: boolean) {
-    return this.s.createAtSchoolUser(id, schoolName, udise, role, isEmailVerified);
+  createAtSchoolUser(
+    id: string,
+    schoolName: string,
+    udise: string,
+    role: RoleType,
+    isEmailVerified: boolean
+  ) {
+    return this.s.createAtSchoolUser(
+      id,
+      schoolName,
+      udise,
+      role,
+      isEmailVerified
+    );
   }
   public static i: ApiHandler;
 
@@ -1157,9 +1169,9 @@ export class ApiHandler implements ServiceApi {
   }
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId:string
+    userId: string
   ): Promise<TableTypes<"school">[] | undefined> {
-    return this.s.getSchoolsWithRoleAutouser(schoolIds,userId);
+    return this.s.getSchoolsWithRoleAutouser(schoolIds, userId);
   }
   getPrincipalsForSchool(
     schoolId: string
@@ -1487,7 +1499,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ user: any; parents: any[] }> {
     return await this.s.getStudentAndParentByStudentId(studentId);
   }
-  public async getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> {
+  public async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
     return await this.s.getParentsByStudentId(studentId);
   }
   public async mergeStudentRequest(
@@ -1713,7 +1727,10 @@ export class ApiHandler implements ServiceApi {
   async getClientCountryCode(): Promise<any> {
     return await this.s.getClientCountryCode();
   }
-  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string ): Promise<TableTypes<"locale"> | null>{
+  async getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null> {
     return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
   }
 
@@ -1853,14 +1870,9 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: "createdAt" | "createdBy",
+    sortBy?: "createdAt" | "createdBy"
   ): Promise<PaginatedResponse<SchoolNote>> {
-    return this.s.getNotesBySchoolId(
-      schoolId,
-      limit,
-      offset,
-      sortBy,
-    );
+    return this.s.getNotesBySchoolId(schoolId, limit, offset, sortBy);
   }
 
   public async getRecentAssignmentCountByTeacher(
@@ -1908,30 +1920,37 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLidoCommonAudioUrl(languageId, localeId);
   }
 
-
   public async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
-  ): Promise<boolean> {   
+  ): Promise<boolean> {
     return await this.s.isStudentPlayedPalLesson(studentId, courseId);
   }
-public  async getSubjectLessonsBySubjectId(
-      subjectId: string
-    ): Promise<TableTypes<"subject_lesson">[] | null> {
-      return await this.s.getSubjectLessonsBySubjectId(subjectId);
-    }
-public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
-  return await this.s.getSkillById(skillId);
-}
+  public async getSubjectLessonsBySubjectId(
+    subjectId: string
+  ): Promise<TableTypes<"subject_lesson">[] | null> {
+    return await this.s.getSubjectLessonsBySubjectId(subjectId);
+  }
+  public async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
+    return await this.s.getSkillById(skillId);
+  }
 
-async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+  async updateSchoolProgram(
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
-public async getLatestAssessmentGroup(
-  classId: string,
-  student: TableTypes<"user">,
-): Promise<TableTypes<"assignment">[]> {
-  return this.s.getLatestAssessmentGroup(classId, student);
-}
+  public async getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]> {
+    return this.s.getLatestAssessmentGroup(classId, student);
+  }
+  public async getWhatsappGroup(groupId: string, bot: string) {
+    return this.s.getWhatsappGroup(groupId, bot);
+  }
 }
