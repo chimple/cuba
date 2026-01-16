@@ -291,17 +291,20 @@ const LidoPlayer: FC = () => {
     };
     if (isAssessmentLesson) {
       const previousLessonSkipped =
-        localStorage.getItem(ASSESSMENT_FAIL_KEY) === "true";
+        localStorage.getItem(`${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`) === "true";
       // Rule B: Abort
       if (previousLessonSkipped && checkContinuousFails(index, 2)) {
-        localStorage.removeItem(ASSESSMENT_FAIL_KEY);
+        localStorage.removeItem(`${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`);
         const isAborted = true;
         await exitLidoGame(isAborted);
         return;
       }
       // Rule A: Skip
       if (checkContinuousFails(index, 4)) {
-        localStorage.setItem(ASSESSMENT_FAIL_KEY, "true");
+        localStorage.setItem(
+          `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`,
+          "true"
+        );
         await exitLidoGame();
         return;
       }
@@ -310,10 +313,13 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
+    const currentStudent = Util.getCurrentStudent()!;
     try {
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-        localStorage.removeItem(ASSESSMENT_FAIL_KEY)
+        localStorage.removeItem(
+          `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`
+        );
         await exitLidoGame();
         return;
       }
@@ -323,7 +329,6 @@ const LidoPlayer: FC = () => {
       const assignment = state.assignment;
       const skillId: string | undefined = state.skillId;
       // const currentStudent = api.currentStudent;
-      const currentStudent = Util.getCurrentStudent()!;
       const data = lessonData;
       let assignmentId = assignment ? assignment.id : null;
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
@@ -538,6 +543,7 @@ const LidoPlayer: FC = () => {
       setShowDialogBox(true);
     } catch (error) {
       console.error("❌ Failed to process lesson end", error);
+      localStorage.removeItem(LIDO_SCORES_KEY);
       push();
     }
   };
