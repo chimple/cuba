@@ -285,7 +285,11 @@ const LidoPlayer: FC = () => {
     // 4. Check Rules
     const checkContinuousFails = (currIdx: number, count: number) => {
       for (let i = 0; i < count; i++) {
-        if (resultsRef.current[currIdx - i] !== 0) return false;
+        const checkIndex = currIdx - i;
+        const res = resultsRef.current[checkIndex];
+        if (res !== 0) {
+          return false;
+        }
       }
       return true;
     };
@@ -613,6 +617,7 @@ const LidoPlayer: FC = () => {
   };
 
   async function init() {
+    resultsRef.current = {};
     setIsLoading(true);
     setIsReady(false);
     setShowDialogBox(false);
