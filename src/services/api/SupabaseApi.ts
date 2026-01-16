@@ -4930,14 +4930,11 @@ export class SupabaseApi implements ServiceApi {
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {
     try {
-      console.log("studentId✅✅", studentId);
-      if (!this.supabase) {console.log("supabase not initialize😶‍🌫️😶‍🌫️")};
       const res = await this.supabase
         ?.from("user")
         .select("*")
         .eq("id", studentId)
         .eq("is_deleted", false);
-      console.log("data✅✅", res);
       return res?.data?.[0];
     } catch (error) {
       throw error;

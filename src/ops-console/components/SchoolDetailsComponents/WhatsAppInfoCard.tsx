@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import Card from "@mui/material/Card";
 import { Box, CardContent, Typography } from "@mui/material";
 import "./WhatsAppInfoCard.css";
@@ -15,8 +15,8 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   classData,
   schoolData,
 }) => {
-  const [groupName, setGroupName] = useState<any>(null);
-  const [members, setMembers] = useState<any>(null);
+  const [groupName, setGroupName] = useState<string | null>(null);
+  const [members, setMembers] = useState<number | null>(null);
   const [inviteLink, setInviteLink] = useState<any>(null);
   const api = ServiceConfig.getI().apiHandler;
 
@@ -103,7 +103,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
           </Typography>
 
           <Typography variant="body1" className="wa-value" fontWeight={700}>
-            {members-1} {t("Members")}
+            {members ? members - 1 : 0} {t("Members")}
           </Typography>
         </Box>
 
