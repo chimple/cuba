@@ -3,7 +3,6 @@ import "./DropdownMenu.css";
 import {
   COURSE_CHANGED,
   EVENTS,
-  HOMEWORK_PATHWAY,
   LIVE_QUIZ,
   TableTypes,
 } from "../../common/constants";
@@ -229,7 +228,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
-      const currentStudent = await Util.getCurrentStudent();
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
@@ -249,6 +248,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         { ...currentStudent, learning_path: JSON.stringify(learningPath) },
         undefined
       )
+      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
       window.dispatchEvent(
         new CustomEvent(COURSE_CHANGED)
       );
@@ -269,8 +269,6 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       };
 
       Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
-
-      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
 
       if (onSubjectChange) {
         onSubjectChange(subject.course.id);
