@@ -136,7 +136,8 @@ export class schoolUtil {
 
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
-    if(IS_OPS_USER){
+    const isOpsUser = localStorage.getItem(IS_OPS_USER);
+    if(isOpsUser){
       this.setCurrMode(MODES.OPS_CONSOLE);
       return MODES.OPS_CONSOLE;
     }

@@ -14,6 +14,7 @@ import {
   SCHOOL_LOGIN,
   PAGES,
   USER_ROLE,
+  IS_OPS_USER
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes, Session } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
@@ -596,8 +597,9 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (isSplQuery) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-        localStorage.setItem("IS_OPS_USER", "true");
+        localStorage.setItem(IS_OPS_USER, "true");
       } else {
+        localStorage.setItem(IS_OPS_USER, "false");
         let isFirstSync = true;
         await api.syncDB(
           Object.values(TABLES),
