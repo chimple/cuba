@@ -104,149 +104,155 @@ const LidoPlayer: FC = () => {
 
   const processStoredResults = async (isAborted: boolean = false) => {
     // 1. Get Data
-    const storedData = localStorage.getItem(LIDO_SCORES_KEY);
-    if (!storedData) {
-      console.warn("⚠️ No stored data found.");
-      return;
-    }
-
-    const scoresMap: Record<string, any> = JSON.parse(storedData);
-    const indices = Object.keys(scoresMap)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    if (indices.length === 0) return;
-
-    // 2. Fetch Metadata
-    let dbMetaData: any = {};
     try {
-      const lessonRow = await api.getLesson(lesson.id);
-      dbMetaData = lessonRow?.metadata
-        ? typeof lessonRow.metadata === "string"
-          ? JSON.parse(lessonRow.metadata)
-          : lessonRow.metadata
-        : typeof lesson.metadata === "string"
-          ? JSON.parse(lesson.metadata || "{}")
-          : lesson.metadata || {};
-    } catch (e) {
-      console.error("Meta error", e);
-    }
-    // 4. Group Data (Average Score logic)
-    const skillAggregator = new Map<
-      string,
-      {
-        totalScore: number;
-        count: number;
-        resultsList: number[];
+      const storedData = localStorage.getItem(LIDO_SCORES_KEY);
+      if (!storedData) {
+        console.warn("⚠️ No stored data found.");
+        return;
       }
-    >();
 
-    indices.forEach((index) => {
-      const record = scoresMap[index];
-      // Handle legacy number vs new object format
-      const rawScore = typeof record === "object" ? record.score : record;
-      const resultBin =
-        typeof record === "object" ? record.result : rawScore >= 10 ? 1 : 0;
+      const scoresMap: Record<string, any> = JSON.parse(storedData);
+      const indices = Object.keys(scoresMap)
+        .map(Number)
+        .sort((a, b) => a - b);
 
-      const activityKey = index;
-      const skillId = dbMetaData?.activity?.[activityKey]?.skill_id || "";
+      if (indices.length === 0) return;
 
-      if (skillId) {
-        if (!skillAggregator.has(skillId)) {
-          skillAggregator.set(skillId, {
-            totalScore: 0,
-            count: 0,
-            resultsList: [],
-          });
-        }
-        const group = skillAggregator.get(skillId)!;
-        group.totalScore += rawScore || 0;
-        group.count += 1;
-        group.resultsList.push(resultBin);
-      }
-    });
-
-    // 5. Execute API Calls
-    for (const [skillId, group] of skillAggregator.entries()) {
-      const averageScore = group.totalScore / group.count;
-      const activitiesScoresStr = group.resultsList.join(",");
-      let abilityUpdates: any = {};
+      // 2. Fetch Metadata
+      let dbMetaData: any = {};
       try {
-        const skillData = await api.getSkillById(skillId);
-        const currentOutcomeId = skillData?.outcome_id;
-        const booleanOutcomes = group.resultsList.map((r) => r === 1);
-        abilityUpdates = await palUtil.updateAndGetAbilities({
-          studentId: currentStudent.id,
-          courseId: courseDetail?.id ?? courseDocId ?? "",
-          skillId: skillId,
-          outcomes: booleanOutcomes,
-        });
-        if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
-        if (!abilityUpdates.outcome_id)
-          abilityUpdates.outcome_id = currentOutcomeId;
+        const lessonRow = await api.getLesson(lesson.id);
+        dbMetaData = lessonRow?.metadata
+          ? typeof lessonRow.metadata === "string"
+            ? JSON.parse(lessonRow.metadata)
+            : lessonRow.metadata
+          : typeof lesson.metadata === "string"
+            ? JSON.parse(lesson.metadata || "{}")
+            : lesson.metadata || {};
       } catch (e) {
-        console.error("PAL Error", e);
+        console.error("Meta error", e);
       }
-      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
-      let classId;
-      let schoolId;
-      if (isStudentLinked) {
-        const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
-        );
-        if (!!studentResult && studentResult.classes.length > 0) {
-          classId = studentResult.classes[0].id;
-          schoolId = studentResult.schools[0].id;
+      // 4. Group Data (Average Score logic)
+      const skillAggregator = new Map<
+        string,
+        {
+          totalScore: number;
+          count: number;
+          resultsList: number[];
         }
-      }
-      await api.updateResult(
-        currentStudent,
-        courseDocId,
-        lesson.id,
-        Math.round(averageScore),
-        0,
-        0,
-        0, // Moves/Time placeholders
-        assignment ?? null,
-        null,
-        classId,
-        schoolId,
-        false, // isImediateSync
-        false, // isHomework
-        abilityUpdates.skill_id,
-        abilityUpdates.skill_ability,
-        abilityUpdates.outcome_id,
-        abilityUpdates.outcome_ability,
-        abilityUpdates.competency_id,
-        abilityUpdates.competency_ability,
-        abilityUpdates.domain_id,
-        abilityUpdates.domain_ability,
-        abilityUpdates.subject_id,
-        abilityUpdates.subject_ability,
-        activitiesScoresStr
-      );
-    }
-    Util.logEvent(EVENTS.RESULTS_SAVED, {
-      user_id: currentStudent.id,
-      lesson_id: lesson.id,
-      course_id: courseDocId,
-      is_assessment: isAssessmentLesson,
-      is_aborted: isAborted,
-    });
+      >();
 
-    const learning_path: boolean = state?.learning_path ?? false;
-    const isReward: boolean = state?.reward ?? false;
-    if (learning_path)
-      await Util.updateLearningPath(
-        currentStudent,
-        isReward,
-        isAborted,
-        courseDocId,
-        isAssessmentLesson
-      );
-    localStorage.removeItem(LIDO_SCORES_KEY);
+      indices.forEach((index) => {
+        const record = scoresMap[index];
+        // Handle legacy number vs new object format
+        const rawScore = typeof record === "object" ? record.score : record;
+        const resultBin =
+          typeof record === "object" ? record.result : rawScore >= 10 ? 1 : 0;
+
+        const activityKey = index;
+        const skillId = dbMetaData?.activity?.[activityKey]?.skill_id || "";
+
+        if (skillId) {
+          if (!skillAggregator.has(skillId)) {
+            skillAggregator.set(skillId, {
+              totalScore: 0,
+              count: 0,
+              resultsList: [],
+            });
+          }
+          const group = skillAggregator.get(skillId)!;
+          group.totalScore += rawScore || 0;
+          group.count += 1;
+          group.resultsList.push(resultBin);
+        }
+      });
+
+      // 5. Execute API Calls
+      for (const [skillId, group] of skillAggregator.entries()) {
+        const averageScore = group.totalScore / group.count;
+        const activitiesScoresStr = group.resultsList.join(",");
+        let abilityUpdates: any = {};
+        try {
+          const skillData = await api.getSkillById(skillId);
+          const currentOutcomeId = skillData?.outcome_id;
+          const booleanOutcomes = group.resultsList.map((r) => r === 1);
+          abilityUpdates = await palUtil.updateAndGetAbilities({
+            studentId: currentStudent.id,
+            courseId: courseDetail?.id ?? courseDocId ?? "",
+            skillId: skillId,
+            outcomes: booleanOutcomes,
+          });
+          if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
+          if (!abilityUpdates.outcome_id)
+            abilityUpdates.outcome_id = currentOutcomeId;
+        } catch (e) {
+          console.error("PAL Error", e);
+        }
+        const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+        let classId;
+        let schoolId;
+        if (isStudentLinked) {
+          const studentResult = await api.getStudentClassesAndSchools(
+            currentStudent.id
+          );
+          if (!!studentResult && studentResult.classes.length > 0) {
+            classId = studentResult.classes[0].id;
+            schoolId = studentResult.schools[0].id;
+          }
+        }
+        await api.updateResult(
+          currentStudent,
+          courseDocId,
+          lesson.id,
+          Math.round(averageScore),
+          0,
+          0,
+          0, // Moves/Time placeholders
+          assignment ?? null,
+          null,
+          classId,
+          schoolId,
+          false, // isImediateSync
+          false, // isHomework
+          abilityUpdates.skill_id,
+          abilityUpdates.skill_ability,
+          abilityUpdates.outcome_id,
+          abilityUpdates.outcome_ability,
+          abilityUpdates.competency_id,
+          abilityUpdates.competency_ability,
+          abilityUpdates.domain_id,
+          abilityUpdates.domain_ability,
+          abilityUpdates.subject_id,
+          abilityUpdates.subject_ability,
+          activitiesScoresStr
+        );
+      }
+      Util.logEvent(EVENTS.RESULTS_SAVED, {
+        user_id: currentStudent.id,
+        lesson_id: lesson.id,
+        course_id: courseDocId,
+        is_assessment: isAssessmentLesson,
+        is_aborted: isAborted,
+      });
+
+      const learning_path: boolean = state?.learning_path ?? false;
+      const isReward: boolean = state?.reward ?? false;
+      if (learning_path)
+        await Util.updateLearningPath(
+          currentStudent,
+          isReward,
+          isAborted,
+          courseDocId,
+          isAssessmentLesson
+        );
+      localStorage.removeItem(LIDO_SCORES_KEY);
+    } catch (error) {
+      console.error("❌ Failed to process lesson end", error);
+      push();
+    }
   };
   const exitLidoGame = async (isAborted: boolean = false) => {
+    setIsLoading(true);
     Util.logEvent(
       isAborted ? EVENTS.ASSESSMENT_ABORTED : EVENTS.ASSESSMENT_COMPLETED,
       {
@@ -259,9 +265,10 @@ const LidoPlayer: FC = () => {
     );
     await processStoredResults(isAborted);
     setShowDialogBox(true);
+    setIsLoading(false);
   };
 
-  const onActivityEnd = (e: any) => {
+  const onActivityEnd = async (e: any) => {
     const { index, score } = e.detail;
     const isFail = score < 70;
     const binaryScore = isFail ? 0 : 1;
@@ -289,13 +296,13 @@ const LidoPlayer: FC = () => {
       if (previousLessonSkipped && checkContinuousFails(index, 2)) {
         localStorage.removeItem(ASSESSMENT_FAIL_KEY);
         const isAborted = true;
-        exitLidoGame(isAborted);
+        await exitLidoGame(isAborted);
         return;
       }
       // Rule A: Skip
       if (checkContinuousFails(index, 4)) {
         localStorage.setItem(ASSESSMENT_FAIL_KEY, "true");
-        exitLidoGame();
+        await exitLidoGame();
         return;
       }
     }
@@ -307,7 +314,7 @@ const LidoPlayer: FC = () => {
       const lessonData = e.detail;
       if (isAssessmentLesson) {
         localStorage.removeItem(ASSESSMENT_FAIL_KEY)
-        exitLidoGame();
+        await exitLidoGame();
         return;
       }
       const api = ServiceConfig.getI().apiHandler;
@@ -531,10 +538,7 @@ const LidoPlayer: FC = () => {
       setShowDialogBox(true);
     } catch (error) {
       console.error("❌ Failed to process lesson end", error);
-      presentToast();
       push();
-    } finally {
-      setIsLoading(false);
     }
   };
   const onGameExit = (e: any) => {
