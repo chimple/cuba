@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Util } from "../utility/util";
 import ChapterLessonBox from "./learningPathway/chapterLessonBox";
 import PathwayStructure from "./learningPathway/PathwayStructure";
@@ -178,6 +178,17 @@ const LearningPathway: React.FC = () => {
   const [mode, setMode] = useState<LearningPathwayMode>(
     LEARNING_PATHWAY_MODE.DISABLED
   );
+  useEffect(() => {
+    const fetchStudent = async () => {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return;
+      const student = await api.getUserByDocId(currentStudent.id);
+      if (student) {
+        Util.setCurrentStudent(student);
+      }
+    };
+    fetchStudent();
+  }, []);
 
   useEffect(() => {
     if (!gb?.ready || !currentStudent?.id) return;
@@ -196,7 +207,6 @@ const LearningPathway: React.FC = () => {
   }, [gb?.ready, currentStudent?.id]);
   useEffect(() => {
     if (!currentStudent?.id || !isModeResolved) return;
-
     updateStarCount(currentStudent);
     fetchLearningPathway(currentStudent);
   }, [isModeResolved]);
