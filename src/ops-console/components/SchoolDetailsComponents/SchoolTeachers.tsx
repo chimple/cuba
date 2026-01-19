@@ -361,6 +361,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             student_id: user.student_id ?? undefined,
             phone: user.phone ?? undefined,
             gender: user.gender ?? "N/A",
+            is_wa_contact: user.is_wa_contact ?? undefined,
           },
           grade: t.grade ?? t.grade ?? 0,
           classSection: t.classSection ?? "N/A",
