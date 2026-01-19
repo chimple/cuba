@@ -25,6 +25,7 @@ import {
   PerformanceLevel,
   StudentInfo,
   TeacherInfo,
+  WHATSAPP_GROUP_STATUS_KEYS,
   WHATSAPP_GROUP_STATUS,
   WHATSAPP_GROUP_TICK_ICON,
 } from "../../../common/constants";
@@ -76,36 +77,36 @@ const ROWS_PER_PAGE = 20;
 // Map logical WhatsApp statuses to CSS chip classes.
 const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
-    case "IN_GROUP":
-      return "whatsapp-chip-in-group";
-    case "NOT_IN_GROUP":
-      return "whatsapp-chip-not-in-group";
-    case "NOT_ON_WHATSAPP":
-      return "whatsapp-chip-not-on-whatsapp";
-    case "NOT_CHECKED":
+    case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
+      return "schoolteachers-whatsapp-chip-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
+      return "schoolteachers-whatsapp-chip-not-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
+      return "schoolteachers-whatsapp-chip-not-on-whatsapp";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
     default:
-      return "whatsapp-chip-not-checked";
+      return "schoolteachers-whatsapp-chip-not-checked";
   }
 };
 
 // Shared renderer for WhatsApp group pills to keep UI consistent.
 const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
-  const key = statusKey ?? "NOT_CHECKED";
+  const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
   return (
     <Chip
       icon={
-        key === "IN_GROUP" ? (
+        key === WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP ? (
           <img
             src={WHATSAPP_GROUP_TICK_ICON}
             alt=""
             aria-hidden="true"
-            className="whatsapp-chip-icon"
+            className="schoolteachers-whatsapp-chip-icon"
           />
         ) : undefined
       }
       label={t(WHATSAPP_GROUP_STATUS[key])}
       size="small"
-      className={`whatsapp-chip ${getWhatsappChipClass(key)}`}
+      className={`schoolteachers-whatsapp-chip ${getWhatsappChipClass(key)}`}
       sx={{
         fontWeight: 500,
         fontSize: "0.75rem",
@@ -455,25 +456,29 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   const getWhatsappGroupStatus = useCallback(
     (teacher: TeacherInfo): WhatsappGroupStatusKey => {
       const classId = teacher.classWithidname?.id;
-      if (!classId) return "NOT_CHECKED";
+      if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
       const groupId = getGroupIdForClass(classId);
-      if (!groupId) return "NOT_ON_WHATSAPP";
+      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
 
       const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ""));
       if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
-        return isTeacherInWhatsappGroup(teacher) ? "IN_GROUP" : "NOT_IN_GROUP";
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
       const waContactRaw =
         (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
         null;
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === "yes") {
-        return isTeacherInWhatsappGroup(teacher) ? "IN_GROUP" : "NOT_IN_GROUP";
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
       if (waContact === "no") {
-        return "NOT_ON_WHATSAPP";
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
       }
-      return "NOT_CHECKED";
+      return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
     },
     [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet]
   );

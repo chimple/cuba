@@ -585,6 +585,13 @@ export enum STATUS {
 }
 
 // Labels for WhatsApp group status chips in Ops Console tables.
+export const WHATSAPP_GROUP_STATUS_KEYS = {
+  IN_GROUP: "IN_GROUP",
+  NOT_IN_GROUP: "NOT_IN_GROUP",
+  NOT_ON_WHATSAPP: "NOT_ON_WHATSAPP",
+  NOT_CHECKED: "NOT_CHECKED",
+} as const;
+
 export const WHATSAPP_GROUP_STATUS = {
   IN_GROUP: "In Group",
   NOT_IN_GROUP: "Not in Group",
