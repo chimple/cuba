@@ -153,7 +153,7 @@
       "ALTER TABLE result ADD COLUMN subject_id TEXT;",
       "ALTER TABLE result ADD COLUMN subject_ability REAL;",
       "ALTER TABLE user ADD COLUMN locale_id TEXT;",
-      "CREATE TABLE IF NOT EXISTS chapter_lesson ( id TEXT NOT NULL PRIMARY KEY, chapter_id TEXT NOT NULL, lesson_id TEXT NOT NULL, language_id TEXT, locale_id TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
+      "ALTER TABLE chapter_lesson ADD COLUMN locale_id TEXT;",
       "CREATE TABLE IF NOT EXISTS language_locale ( id TEXT NOT NULL PRIMARY KEY, language_id TEXT NOT NULL, locale_id TEXT NOT NULL, lido_common_audio_url TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0 );",
       "CREATE TABLE IF NOT EXISTS locale ( id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, description TEXT, image TEXT, sort_index INTEGER, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, is_deleted INTEGER DEFAULT 0, code TEXT );",
       "ALTER TABLE lesson ADD COLUMN metadata TEXT;",
