@@ -584,6 +584,17 @@ export enum STATUS {
   FLAGGED = "flagged",
 }
 
+// Labels for WhatsApp group status chips in Ops Console tables.
+export const WHATSAPP_GROUP_STATUS = {
+  IN_GROUP: "In Group",
+  NOT_IN_GROUP: "Not in Group",
+  NOT_ON_WHATSAPP: "Not on Whatsapp",
+  NOT_CHECKED: "Not Checked",
+};
+
+// Tick icon for the "In Group" pill.
+export const WHATSAPP_GROUP_TICK_ICON = "/assets/icons/SignCircleIcon.svg";
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
