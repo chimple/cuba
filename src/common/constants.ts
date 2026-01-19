@@ -81,6 +81,7 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Framework = "framework",
   Domain = "domain",
   Competency = "competency",
   Outcome = "outcome",
