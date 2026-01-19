@@ -1,0 +1,123 @@
+.wa-info-card {
+  border-radius: 5px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.wa-info-card-content {
+  padding: 24px !important;
+}
+
+.wa-info-card-title {
+  text-align: left;
+  margin-bottom: 16px !important;
+}
+
+.wa-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+
+.wa-sign-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.wa-status-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.wa-section {
+  margin-bottom: 16px;
+}
+
+.wa-label {
+  font-size: 12px;
+  line-height: 1;
+  margin-bottom: 10px !important;
+  text-align: left;
+}
+
+.wa-input-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px !important;
+}
+
+.wa-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.wa-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 36px 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111827;
+  background: #ffffff;
+  margin: 10px 0 !important;
+  
+}
+
+.wa-input-edit-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.wa-change-btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  border: 1px solid #2563eb;
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.wa-value {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  margin-top: 10px !important;
+}
+
+.wa-open-btn {
+  width: 100%;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+
+}
+
+.wa-external {
+  font-size: 14px;
+}
