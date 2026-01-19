@@ -59,7 +59,6 @@ const LidoPlayer: FC = () => {
     ? JSON.parse(state.lesson)
     : ({} as Lesson);
   const isAssessmentLesson = state?.is_assessment;
-  const assignment = state?.assessmentId;
 
   const courseDetail: TableTypes<"course"> = state?.course
     ? JSON.parse(state.course)
@@ -86,19 +85,19 @@ const LidoPlayer: FC = () => {
   const gameCompleted = (e: any) => {
     setShowDialogBox(true);
     const popupConfig = growthbook?.getFeatureValue(
-      "generic-pop-up",
-      null
-    );
+    "generic-pop-up",
+    null
+  );
 
-    if (popupConfig) {
-      PopupManager.onGameComplete(popupConfig);
-    }
+  if (popupConfig) {
+    PopupManager.onGameComplete(popupConfig);
+  }
   };
 
   const push = () => {
     localStorage.removeItem(LIDO_SCORES_KEY);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    history.replace(fromPath);
+    history.replace(fromPath, state);
     setIsLoading(false);
   };
 
@@ -207,7 +206,7 @@ const LidoPlayer: FC = () => {
         0,
         0,
         0, // Moves/Time placeholders
-        assignment ?? null,
+        undefined,
         null,
         classId,
         schoolId,
@@ -600,7 +599,7 @@ const LidoPlayer: FC = () => {
     // This ensures that when the new player starts, it doesn't see the 
     // path from the PREVIOUS student's language.
     if (typeof window !== "undefined") {
-      (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
+     (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
