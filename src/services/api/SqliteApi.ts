@@ -7891,5 +7891,8 @@ order by
     return assignments;
 
   }
+  async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this._serverApi.getWhatsappGroupDetails(groupId, bot);
+  }
 
 }
