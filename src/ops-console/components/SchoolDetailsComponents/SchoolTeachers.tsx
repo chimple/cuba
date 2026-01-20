@@ -456,11 +456,6 @@ const handleTeacherSubmit = useCallback(
       const hasEmail = !!email;
       const hasPhone = !!normalizedPhone;
 
-      if (!hasPhone) {
-        setErrorMessage({ text: t("Please provide a phone number"), type: "error" });
-        return;
-      }
-
       let finalEmail = "";
       let finalPhone = "";
 
