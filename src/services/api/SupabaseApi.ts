@@ -3515,7 +3515,8 @@ export class SupabaseApi implements ServiceApi {
             id,
             parent_name:name,
             phone,
-            email
+            email,
+            is_wa_contact
           )
         )
       )
