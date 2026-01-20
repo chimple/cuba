@@ -450,8 +450,9 @@ const LidoPlayer: FC = () => {
       // Update the learning path
       if (learning_path) {
         await Util.updateLearningPath(currentStudent, isReward);
-      } else if (is_homework) {
+      } else if (is_homework && homeworkIndex !== undefined) {
         // This handles our temporary homework path
+        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); 
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
