@@ -59,6 +59,7 @@ const LidoPlayer: FC = () => {
     ? JSON.parse(state.lesson)
     : ({} as Lesson);
   const isAssessmentLesson = state?.is_assessment;
+  const assignment = state?.assessmentId;
 
   const courseDetail: TableTypes<"course"> = state?.course
     ? JSON.parse(state.course)
@@ -206,7 +207,7 @@ const LidoPlayer: FC = () => {
         0,
         0,
         0, // Moves/Time placeholders
-        undefined,
+        assignment ?? null,
         null,
         classId,
         schoolId,
