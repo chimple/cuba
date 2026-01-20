@@ -8,6 +8,7 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
+  Chip,
   IconButton,
 } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
@@ -22,7 +23,11 @@ import {
   EnumType,
   PERFORMANCE_UI,
   PerformanceLevel,
+  StudentInfo,
   TeacherInfo,
+  WHATSAPP_GROUP_STATUS_KEYS,
+  WHATSAPP_GROUP_STATUS,
+  WHATSAPP_GROUP_TICK_ICON,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -32,7 +37,11 @@ import {
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
+import { ClassRow, SchoolData } from "./SchoolClass";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+
+// Keys used to select the WhatsApp status label + chip styling.
+type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayTeacher {
   id: string;
@@ -48,19 +57,75 @@ interface DisplayTeacher {
   interactData: string;
   performance: EnumType<"fc_support_level">;
   interactPayload: TeacherInfo;
+  whatsappGroupStatus?: WhatsappGroupStatusKey;
 }
 
 interface SchoolTeachersProps {
   data: {
+    schoolData?: SchoolData;
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
-    classData?: { id: string; name: string }[];
+    classData?: ClassRow[];
+    students?: StudentInfo[];
   };
   isMobile: boolean;
   schoolId: string;
 }
 
 const ROWS_PER_PAGE = 20;
+
+// Map logical WhatsApp statuses to CSS chip classes.
+const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
+  switch (status) {
+    case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
+      return "schoolteachers-whatsapp-chip-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
+      return "schoolteachers-whatsapp-chip-not-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
+      return "schoolteachers-whatsapp-chip-not-on-whatsapp";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
+    default:
+      return "schoolteachers-whatsapp-chip-not-checked";
+  }
+};
+
+// Shared renderer for WhatsApp group pills to keep UI consistent.
+const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
+  const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+  return (
+    <Chip
+      icon={
+        key === WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP ? (
+          <img
+            src={WHATSAPP_GROUP_TICK_ICON}
+            alt=""
+            aria-hidden="true"
+            className="schoolteachers-whatsapp-chip-icon"
+          />
+        ) : undefined
+      }
+      label={t(WHATSAPP_GROUP_STATUS[key])}
+      size="small"
+      className={`schoolteachers-whatsapp-chip ${getWhatsappChipClass(key)}`}
+      sx={{
+        fontWeight: 500,
+        fontSize: "0.75rem",
+        height: 24,
+        borderRadius: "9999px",
+      }}
+    />
+  );
+};
+
+// Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
+const normalizeWhatsappContactFlag = (value: unknown): "yes" | "no" | null => {
+  if (value == null) return null;
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "yes" || normalized === "true") return "yes";
+  if (normalized === "no" || normalized === "false") return "no";
+  return null;
+};
 
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   data,
@@ -110,6 +175,10 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
     DisplayTeacher[]
   >([]);
+  // Cache: classId -> normalized WhatsApp member phone numbers.
+  const [whatsappMembersByClass, setWhatsappMembersByClass] = useState<
+    Map<string, Set<string>>
+  >(new Map());
 const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
@@ -172,6 +241,89 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     filters,
   ]);
 
+  // Fold classId + group_id into one key so the fetch effect reruns on link changes.
+  const classGroupKey = useMemo(() => {
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    return classes
+      .map((row) => `${row?.id ?? ""}:${row?.group_id ?? ""}`)
+      .join("|");
+  }, [data.classData]);
+
+  const classGroupIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    classes.forEach((row) => {
+      if (row?.id) map.set(row.id, String(row?.group_id ?? "").trim());
+    });
+    return map;
+  }, [data.classData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const bot = data?.schoolData?.whatsapp_bot_number;
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    const groupTargets = classes.filter(
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== ""
+    );
+
+    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
+      setWhatsappMembersByClass(new Map());
+      return;
+    }
+
+    (async () => {
+      try {
+        // Fetch group members for each class in parallel, keep classId -> group map.
+        const results = await Promise.all(
+          groupTargets.map(async (row) => {
+            try {
+              const group = await api.getWhatsappGroupDetails(
+                row.group_id as string,
+                bot
+              );
+              return [row.id as string, group] as const;
+            } catch (error) {
+              console.error("Failed to fetch WhatsApp group members:", error);
+              return [row.id as string, null] as const;
+            }
+          })
+        );
+
+        if (cancelled) return;
+        const next = new Map<string, Set<string>>();
+        results.forEach(([classId, group]) => {
+          const members = Array.isArray(group?.members) ? group.members : [];
+          // Normalize to 10-digit numbers so comparisons are consistent.
+          const normalizedMembers = new Set<string>(
+            members
+              .map((member: unknown) => normalizePhone10(String(member)))
+              .filter((member): member is string => Boolean(member))
+          );
+          next.set(classId, normalizedMembers);
+        });
+        setWhatsappMembersByClass(next);
+      } catch (error) {
+        console.error("Failed to fetch WhatsApp group members:", error);
+        if (!cancelled) {
+          setWhatsappMembersByClass(new Map());
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api, classGroupKey, data?.schoolData?.whatsapp_bot_number]);
+
+  const getGroupIdForClass = useCallback(
+    (classId?: string) => {
+      if (!classId) return "";
+      return String(classGroupIdMap.get(classId) ?? "").trim();
+    },
+    [classGroupIdMap]
+  );
+
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = (key: string) => {
     const isAsc = orderBy === key && order === "asc";
@@ -209,6 +361,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             student_id: user.student_id ?? undefined,
             phone: user.phone ?? undefined,
             gender: user.gender ?? "N/A",
+            is_wa_contact: user.is_wa_contact ?? undefined,
           },
           grade: t.grade ?? t.grade ?? 0,
           classSection: t.classSection ?? "N/A",
@@ -221,6 +374,18 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       }),
     [teachers]
   );
+
+  const studentPhoneSet = useMemo(() => {
+    const set = new Set<string>();
+    const students = Array.isArray(data.students) ? data.students : [];
+    students.forEach((student) => {
+      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ""));
+      const userPhone = normalizePhone10(String(student.user?.phone ?? ""));
+      if (parentPhone) set.add(parentPhone);
+      if (userPhone) set.add(userPhone);
+    });
+    return set;
+  }, [data.students]);
 
   const filteredTeachers = useMemo(
     () =>
@@ -274,6 +439,50 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       }
     });
   }, [filteredTeachers, orderBy, order]);
+
+  // Compare the teacher's phone to the WhatsApp members set for the class.
+  const isTeacherInWhatsappGroup = useCallback(
+    (teacher: TeacherInfo) => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return false;
+      const members = whatsappMembersByClass.get(classId);
+      if (!members || members.size === 0) return false;
+      const phone = normalizePhone10(String(teacher.user?.phone ?? ""));
+      return !!phone && members.has(phone);
+    },
+    [whatsappMembersByClass]
+  );
+
+  // Gate group membership by the teacher is_wa_contact flag.
+  const getWhatsappGroupStatus = useCallback(
+    (teacher: TeacherInfo): WhatsappGroupStatusKey => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const groupId = getGroupIdForClass(classId);
+      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+
+      const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ""));
+      if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      const waContactRaw =
+        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
+      const waContact = normalizeWhatsappContactFlag(waContactRaw);
+      if (waContact === "yes") {
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      if (waContact === "no") {
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      }
+      return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+    },
+    [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet]
+  );
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return sortedTeachers.map((apiTeacher) => ({
@@ -360,6 +569,16 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     loadPerformance();
   }, [sortedTeachers]);
 
+  // Add WhatsApp status to the rows used by the table.
+  const teachersWithWhatsappStatus = useMemo(
+    () =>
+      teachersWithPerformance.map((row) => ({
+        ...row,
+        whatsappGroupStatus: getWhatsappGroupStatus(row.interactPayload),
+      })),
+    [teachersWithPerformance, getWhatsappGroupStatus]
+  );
+
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
     if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
     if (count >= 1 && count <= 2) return PerformanceLevel.ONE_TO_TWO_ASSIGNED;
@@ -376,7 +595,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     return Math.ceil(totalCount / ROWS_PER_PAGE);
   }, [totalCount, filters, searchTerm, filteredTeachers.length]);
 
-  const isDataPresent = teachersWithPerformance.length > 0;
+  const isDataPresent = teachersWithWhatsappStatus.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
@@ -629,6 +848,12 @@ const handleTeacherSubmit = useCallback(
         );
       },
     },
+    {
+      key: "whatsappGroupStatus",
+      label: t("WhatsApp Group"),
+      sortable: false,
+      render: (row) => renderWhatsappGroupChip(row.whatsappGroupStatus),
+    },
     // { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "phoneEmailDisplay",   // 🔹 use merged column
@@ -718,7 +943,7 @@ const handleTeacherSubmit = useCallback(
           <div className="schoolTeachers-table-container">
             <DataTableBody
               columns={columns}
-              rows={teachersWithPerformance}
+              rows={teachersWithWhatsappStatus}
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
