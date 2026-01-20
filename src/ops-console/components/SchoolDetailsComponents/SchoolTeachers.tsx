@@ -150,6 +150,19 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   }, [schoolId]);
 
   useEffect(() => {
+    if (isAddTeacherModalOpen) {
+      setErrorMessage({
+        text: t(
+          "Provide at least one contact method (phone number or email address) for the teacher."
+        ),
+        type: "error",
+      });
+    } else {
+      setErrorMessage(undefined);
+    }
+  }, [isAddTeacherModalOpen]);
+
+  useEffect(() => {
     const isInitial =
       page === 1 &&
       !searchTerm &&
@@ -770,14 +783,14 @@ const handleTeacherSubmit = useCallback(
       )}
 
      <FormCard
-  open={isAddTeacherModalOpen}
-  title={t("Add New Teacher")}
-  submitLabel={isSubmitting ? t("Adding...") : t("Add Teacher")}
-  fields={teacherFormFields}
-  onClose={handleCloseAddTeacherModal}
-  onSubmit={handleTeacherSubmit}
-  message={errorMessage}
-/>
+        open={isAddTeacherModalOpen}
+        title={t("Add New Teacher")}
+        submitLabel={isSubmitting ? t("Adding...") : t("Add Teacher")}
+        fields={teacherFormFields}
+        onClose={handleCloseAddTeacherModal}
+        onSubmit={handleTeacherSubmit}
+        message={errorMessage}
+      />
 
     </div>
   );
