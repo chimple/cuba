@@ -1929,10 +1929,13 @@ export class ApiHandler implements ServiceApi {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
-  public async getLatestAssessmentGroup(
-    classId: string,
-    student: TableTypes<"user">,
-  ): Promise<TableTypes<"assignment">[]> {
-    return this.s.getLatestAssessmentGroup(classId, student);
+public async getLatestAssessmentGroup(
+  classId: string,
+  student: TableTypes<"user">,
+): Promise<TableTypes<"assignment">[]> {
+  return this.s.getLatestAssessmentGroup(classId, student);
+}
+  public async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this.s.getWhatsappGroupDetails(groupId, bot);
   }
 }

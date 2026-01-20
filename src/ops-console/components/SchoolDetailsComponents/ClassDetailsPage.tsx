@@ -11,6 +11,7 @@ import { StudentInfo, TableTypes } from "../../../common/constants";
 import { ClassRow, SchoolDetailsData } from "./SchoolClass";
 import AddNoteModal from "../SchoolDetailsComponents/AddNoteModal"; // <<-- imported
 import { NOTES_UPDATED_EVENT } from "../../../common/constants";
+import WhatsAppInfoCard from "./WhatsAppInfoCard";
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -204,6 +205,8 @@ const ClassDetailsPage: React.FC<Props> = ({
         activeStudents={finalActiveStudentsSt}
         classCode={finalClassCode}
       />
+      {classRow && (  <WhatsAppInfoCard  classData = {classRow} schoolData = {data?.schoolData} />
+      )}
     </Box>
 
     <Box className="classdetailspage-students-sticky classdetailspage-students-card">
