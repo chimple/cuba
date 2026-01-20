@@ -20,22 +20,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const state = history.location.state as any;
-  let course: TableTypes<"course"> = state?.["course"];
-  if (typeof course === "string") {
-    try {
-      course = JSON.parse(course);
-    } catch (error) {
-      console.error("Error parsing course", error);
-    }
-  }
-  let lesson: TableTypes<"lesson"> = state?.["lesson"];
-  if (typeof lesson === "string") {
-    try {
-      lesson = JSON.parse(lesson);
-    } catch (error) {
-      console.error("Error parsing lesson", error);
-    }
-  }
+  const course: TableTypes<"course"> = history.location.state?.[
+    "course"
+  ] as TableTypes<"course">;
+  const lesson: TableTypes<"lesson"> = history.location.state?.[
+    "lesson"
+  ] as TableTypes<"lesson">;
   const fromCocos: boolean = state?.["fromCocos"] as boolean;
   const [chapterId, setChapterId] = useState(state?.["chapterId"] as string);
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
@@ -44,11 +34,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const current_class = Util.getCurrentClass();
   const selectedLesson = state?.["selectedLesson"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
-  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(() => {
-    if (selectedLesson instanceof Map) return selectedLesson;
-    if (selectedLesson && typeof selectedLesson === "object") return new Map(Object.entries(selectedLesson));
-    return new Map();
-  });
+  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
   let isGrade1: string | boolean = false;
 
