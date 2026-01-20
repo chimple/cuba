@@ -1915,7 +1915,6 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
     try {
       const token = await Util.getToken();
-
       const { error } = await this.supabase
         .from("user")
         .update({ fcm_token: token })

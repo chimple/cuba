@@ -116,16 +116,16 @@ const LiveQuizGame: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
     if (Capacitor.isNativePlatform()) {
-      history.replace(fromPath + "&isReload=false");
+      history.replace(fromPath + "&isReload=false", state);
     } else {
       if (!!urlParams.get("isReload")) {
         if (fromPath.includes("?")) {
-          history.replace(fromPath + "&isReload=true");
+          history.replace(fromPath + "&isReload=true", state);
         } else {
-          history.replace(fromPath + "?isReload=true");
+          history.replace(fromPath + "?isReload=true", state);
         }
       } else {
-        history.replace(fromPath);
+        history.replace(fromPath, state);
       }
     }
   };

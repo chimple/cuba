@@ -154,6 +154,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           courseCode:course.code,
           lessons: [],
           sort_index: course.sort_index, // Added sort_index here
+          isCollapsed: false,
         };
       }
       const lastAssignment = lastAssignmentsCourseWise?.find(
@@ -170,24 +171,36 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         : courseChapters[0]?.id ?? "";
       if (chapterId) {
         const lessonList = await api.getLessonsForChapter(chapterId);
-        const lessonIndex = lessonList?.findIndex(
+
+        if (lessonList && lessonList.length > 0) {
+          const lessonIndex = lessonList.findIndex(
           (lesson) => lesson.id === lastAssignment?.lesson_id
-        );
-        if (
-          lessonList.length > 0 &&
-          lessonList.length >= lessonIndex + 1 &&
-          lessonList[lessonIndex + 1]
-        ) {
-          recommendedAssignments[course.id].lessons.push(
-            lessonList[lessonIndex + 1]
           );
-        } else {
+
+          if (lessonIndex >= 0 && lessonList[lessonIndex + 1]) {
+          // next lesson in same chapter
+            recommendedAssignments[course.id].lessons.push(
+            lessonList[lessonIndex + 1]
+            );
+          } else {
+          // fallback to first lesson in chapter
+              recommendedAssignments[course.id].lessons.push(lessonList[0]);
+          }
+        } 
+        else {
           const allChapters = await api.getChaptersForCourse(course.id);
-          const i = allChapters.findIndex((chapter) => chapter.id === chapterId);
+          const i = allChapters.findIndex((c) => c.id === chapterId);
           const nextChapter = allChapters[i + 1];
 
-          const lessonList = await api.getLessonsForChapter(nextChapter.id);
-          recommendedAssignments[course.id].lessons.push(lessonList[0]);
+          if (!nextChapter) {
+            console.warn("No next chapter found for course", course.id);
+            continue;
+          }
+
+          const nextLessonList = await api.getLessonsForChapter(nextChapter.id);
+          if (nextLessonList.length > 0) {
+            recommendedAssignments[course.id].lessons.push(nextLessonList[0]);
+          }
         }
       }
     }
@@ -221,6 +234,13 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         TeacherAssignmentPageType.RECOMMENDED,
         updatedRecommendedAssignments
       );
+    }
+    if (
+      Object.values(recommendedAssignments).some(
+        (s: any) => s.lessons.length > 0
+      )
+    ) {
+      setRecommendedCollapsed(false);
     }
   };
 
