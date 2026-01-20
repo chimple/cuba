@@ -7631,7 +7631,6 @@ order by
     student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[]> {
     const langId = student?.language_id ?? null;
-    const localeId = student?.locale_id ?? null;
 
     try {
       // 1️⃣ Fetch ALL available set_numbers
@@ -7644,12 +7643,16 @@ order by
     `;
       const setRes = await this.executeQuery(setQuery, [subjectId]);
       const setRows = (setRes as any)?.values ?? [];
+
       if (!setRows.length) {
         return [];
       }
-      // 2️⃣ Pick ANY ONE set randomly in JS
+
+      // 2️⃣ Pick ANY ONE set randomly
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
+
+      // 3️⃣ Fetch lessons (LANGUAGE ONLY)
       const lessonQuery = `
       SELECT sl.*
       FROM subject_lesson sl
@@ -7657,10 +7660,8 @@ order by
         AND sl.set_number = ?
         AND sl.is_deleted = 0
         AND (
-          (sl.language_id IS NULL AND sl.locale_id IS NULL)
-          OR (sl.language_id = ? AND sl.locale_id IS NULL)
-          OR (sl.language_id IS NULL AND sl.locale_id = ?)
-          OR (sl.language_id = ? AND sl.locale_id = ?)
+          sl.language_id IS NULL
+          OR sl.language_id = ?
         );
     `;
 
@@ -7668,28 +7669,20 @@ order by
         subjectId,
         setNumber,
         langId,
-        localeId,
-        langId,
-        localeId,
       ]);
 
       const lessons = (lessonRes as any)?.values ?? [];
       if (!lessons.length) return [];
 
       /* =====================================================
-       * 3️⃣ JS SORTING (ONLY IF > 5) — SAME AS ASSIGNMENTS
+       * 4️⃣ JS SORTING (ONLY IF > 5) — LANGUAGE ONLY
        * ===================================================== */
       if (lessons.length > 5) {
         lessons.sort((a: any, b: any) => {
           const getPriority = (x: any): number => {
-            const l = x.language_id ?? null;
-            const lo = x.locale_id ?? null;
-
-            if (l === langId && lo === localeId) return 1;
-            if (l === langId && lo === null) return 2;
-            if (l === null && lo === localeId) return 3;
-            if (l === null && lo === null) return 4;
-            return 5;
+            if (x.language_id === langId) return 1;
+            if (x.language_id === null) return 2;
+            return 3;
           };
 
           const pA = getPriority(a);
@@ -7778,70 +7771,66 @@ order by
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const langId = student.language_id;
-    const localeId = student.locale_id;
+
     /* ===============================
-     * QUERY 1️⃣ : Fetch valid assessments (ALL rules applied)
+     * QUERY 1️⃣ : Fetch valid assessments
      * =============================== */
     const fetchQuery = `
-  SELECT a.*
-  FROM assignment a
-  JOIN course c
-    ON c.id = a.course_id
-   AND c.is_deleted = false
-  WHERE a.class_id = '${classId}'
-    AND a.type = 'assessment'
-    AND a.is_deleted = false
-    -- time window
-    AND (
-      a.starts_at IS NULL
-      OR a.starts_at = ''
-      OR datetime(a.starts_at) <= datetime('${nowIso}')
-    )
-    AND (
-      a.ends_at IS NULL
-      OR a.ends_at = ''
-      OR datetime(a.ends_at) > datetime('${nowIso}')
-    )
+    SELECT a.*
+    FROM assignment a
+    JOIN course c
+      ON c.id = a.course_id
+     AND c.is_deleted = false
+    WHERE a.class_id = '${classId}'
+      AND a.type = 'assessment'
+      AND a.is_deleted = false
 
-    -- latest batch per course
-    AND a.batch_id = (
-      SELECT a2.batch_id
-      FROM assignment a2
-      WHERE a2.class_id = a.class_id
-        AND a2.course_id = a.course_id
-        AND a2.type = 'assessment'
-        AND a2.is_deleted = false
-        AND a2.batch_id IS NOT NULL
-      ORDER BY a2.created_at DESC
-      LIMIT 1
-    )
-    -- subject_lesson validation (SAFE)
-  AND EXISTS (
-  SELECT 1
-  FROM subject_lesson sl
-  WHERE sl.lesson_id = a.lesson_id
-    AND sl.set_number = a.set_number
-    AND sl.is_deleted = false
-    AND (
-      -- both NULL
-      (sl.language_id IS NULL AND sl.locale_id IS NULL)
+      -- time window
+      AND (
+        a.starts_at IS NULL
+        OR a.starts_at = ''
+        OR datetime(a.starts_at) <= datetime('${nowIso}')
+      )
+      AND (
+        a.ends_at IS NULL
+        OR a.ends_at = ''
+        OR datetime(a.ends_at) > datetime('${nowIso}')
+      )
 
-      -- language only
-      OR (sl.language_id = "${langId}" AND sl.locale_id IS NULL)
+      -- latest batch per course
+      AND a.batch_id = (
+        SELECT a2.batch_id
+        FROM assignment a2
+        WHERE a2.class_id = a.class_id
+          AND a2.course_id = a.course_id
+          AND a2.type = 'assessment'
+          AND a2.is_deleted = false
+          AND a2.batch_id IS NOT NULL
+        ORDER BY a2.created_at DESC
+        LIMIT 1
+      )
 
-      -- locale only
-      OR (sl.language_id IS NULL AND sl.locale_id = "${localeId}")
+      -- subject_lesson validation (LANGUAGE ONLY)
+      AND EXISTS (
+        SELECT 1
+        FROM subject_lesson sl
+        WHERE sl.lesson_id = a.lesson_id
+          AND sl.set_number = a.set_number
+          AND sl.is_deleted = false
+          AND (
+            sl.language_id IS NULL
+            OR sl.language_id = "${langId}"
+          )
+      )
+    ORDER BY a.course_id, a.created_at DESC;
+  `;
 
-      -- both exist AND both match
-      OR (sl.language_id = "${langId}" AND sl.locale_id = "${localeId}")
-    )
-)
-  ORDER BY a.course_id, a.created_at DESC;
-`;
     const fetchRes = await this._db?.query(fetchQuery);
     const assignments =
       (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+
     if (!assignments.length) return [];
+
     /* ===============================
      * QUERY 2️⃣ : Pending result check
      * =============================== */
@@ -7862,34 +7851,36 @@ order by
     const completionRes = await this._db?.query(completionQuery);
     const pendingCount =
       completionRes?.values?.[0]?.pending_count ?? 0;
+
     if (pendingCount === 0) return [];
+
+    /* ===============================
+     * JS SORTING (ONLY IF > 5)
+     * LANGUAGE ONLY
+     * =============================== */
     if (assignments.length > 5) {
       assignments.sort((a, b) => {
         const getPriority = (x: any): number => {
-          const l = x.language_id ?? null;
-          const lo = x.locale_id ?? null;
-          if (l === langId && lo === localeId) return 1;
-          if (l === langId && lo === null) return 2;
-          if (l === null && lo === localeId) return 3;
-          if (l === null && lo === null) return 4;
-          return 5;
+          if (x.language_id === langId) return 1;
+          if (x.language_id === null) return 2;
+          return 3;
         };
 
         const pA = getPriority(a);
         const pB = getPriority(b);
 
-        // 1️⃣ priority first
+        // priority first
         if (pA !== pB) return pA - pB;
 
-        // 2️⃣ same priority → latest first
+        // same priority → latest first
         return (
           new Date(b.created_at).getTime() -
           new Date(a.created_at).getTime()
         );
       });
     }
-    return assignments;
 
+    return assignments;
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);

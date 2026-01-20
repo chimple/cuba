@@ -54,15 +54,13 @@ const LiveQuizQuestion: FC<{
   isLearningPathway,
   isReward = false,
 }) => {
+ const quizPathBase =
+  localStorage.getItem("gameUrl") ??
+  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
 
-  const quizPathBase =
-    localStorage.getItem("gameUrl") ??
-    "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
-
-  const quizPath =
-    lessonId || cocosLessonId
-      ? quizPathBase + (lessonId || cocosLessonId)
-      : quizPathBase;
+const quizPath = lessonId || cocosLessonId
+  ? quizPathBase + (lessonId || cocosLessonId)
+  : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -146,22 +144,22 @@ const LiveQuizQuestion: FC<{
     const dow = await Util.downloadZipBundle([lessonId]);
   };
 
-  const readLocalConfig = async (
-    path: string
-  ): Promise<LiveQuiz | undefined> => {
-    try {
-      const file = await Filesystem.readFile({
-        path,
-        directory: Directory.External,
-        encoding: Encoding.UTF8,
-      });
+const readLocalConfig = async (
+  path: string
+): Promise<LiveQuiz | undefined> => {
+  try {
+    const file = await Filesystem.readFile({
+      path,
+      directory: Directory.External,
+      encoding: Encoding.UTF8, // 🔑 Hindi safe
+    });
 
-      return JSON.parse(file.data as string) as LiveQuiz;
-    } catch (err) {
-      return undefined;
-    }
-  };
-  const getConfigJson = async () => {
+    return JSON.parse(file.data as string) as LiveQuiz;
+  } catch (err) {
+    return undefined;
+  }
+};
+ const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     const lessonKey = lessonId || cocosLessonId;
     if (lessonKey) {
@@ -327,63 +325,68 @@ const LiveQuizQuestion: FC<{
 
         type: "multiOptions",
       } as LiveQuiz;
-      preLoadAudiosWithLiveQuizConfig(config);
-      setLiveQuizConfig(config);
-      if (onConfigLoaded) onConfigLoaded(config);
-      if (currentQuestionIndex == undefined && showQuiz)
-        changeQuestion(config, true);
-      return config;
-    }
+ preLoadAudiosWithLiveQuizConfig(config);
+    setLiveQuizConfig(config);
+    if (onConfigLoaded) onConfigLoaded(config);
+    if (currentQuestionIndex == undefined && showQuiz)
+      changeQuestion(config, true);
 
-    let configFile: LiveQuiz | undefined;
-    const configPath = (lessonId || cocosLessonId) + "/config.json";
-    configFile = await readLocalConfig(configPath);
+    return config;
+  }
 
-    if (!configFile) {
-      const remoteUrls = [
-        "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
-        "https://cuba-stage-zip-bundle.web.app/",
-      ];
+  let configFile: LiveQuiz | undefined;
 
-      for (const baseUrl of remoteUrls) {
-        try {
-          const response = await fetch(
-            baseUrl + (lessonId || cocosLessonId) + "/config.json"
-          );
-          if (response.ok) {
-            configFile = (await response.json()) as LiveQuiz;
-            break;
-          }
-        } catch {
-          console.warn("Failed to fetch from remote:", baseUrl);
-        }
+  /* =====================
+     REMOTE FETCH (UNCHANGED)
+     ===================== */
+  const remoteUrls = [
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+    "https://cuba-stage-zip-bundle.web.app/",
+  ];
+
+  for (const baseUrl of remoteUrls) {
+    try {
+      const response = await fetch(
+        baseUrl + (lessonId || cocosLessonId) + "/config.json"
+      );
+      if (response.ok) {
+        configFile = (await response.json()) as LiveQuiz;
+        break;
       }
+    } catch {
+      console.warn("Failed to fetch from remote:", baseUrl);
     }
+  }
+
+  /* =====================
+     🔥 EXACT HELPER BLOCK 
+     ===================== */
+  if (!configFile) {
+    const configPath = (lessonId || cocosLessonId) + "/config.json";
+
+    configFile = await readLocalConfig(configPath);
 
     if (!configFile && lessonId) {
       console.warn("[LiveQuiz] Config not found locally, downloading...");
       await downloadQuiz(lessonId);
+
+      // Retry reading after download
       configFile = await readLocalConfig(configPath);
     }
+  }
 
-    if (!configFile) {
-      throw new Error("Failed to load live quiz config.");
-    }
+  /* =====================
+     SAFETY (NO ! CRASH)
+     ===================== */
+  if (!configFile) {
+    throw new Error("Failed to load live quiz config.");
+  }
 
-    setLiveQuizConfig(configFile);
-    if (onConfigLoaded) onConfigLoaded(configFile);
-    if (configFile) {
-      preLoadAudiosWithLiveQuizConfig(configFile);
-      const lessonKey = lessonId || cocosLessonId;
-      if (lessonKey) {
-        localStorage.setItem(
-          `live_quiz_config_${lessonKey}`,
-          JSON.stringify(configFile)
-        );
-      }
-    }
+  setLiveQuizConfig(configFile);
+  if (onConfigLoaded) onConfigLoaded(configFile);
 
-    return configFile;
+  return configFile;
+
   };
 
   const handleRoomChange = () => {
