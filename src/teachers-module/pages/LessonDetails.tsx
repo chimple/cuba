@@ -19,23 +19,20 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const state = history.location.state as any;
   const course: TableTypes<"course"> = history.location.state?.[
     "course"
   ] as TableTypes<"course">;
   const lesson: TableTypes<"lesson"> = history.location.state?.[
     "lesson"
   ] as TableTypes<"lesson">;
-  const fromCocos: boolean = history.location.state?.[
-    "fromCocos"
-  ] as boolean;
-  const [chapterId, setChapterId] = useState(
-    history.location.state?.["chapterId"] as string
-  );
+  const fromCocos: boolean = state?.["fromCocos"] as boolean;
+  const [chapterId, setChapterId] = useState(state?.["chapterId"] as string);
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
-  const selectedLesson = history.location.state?.["selectedLesson"];
+  const selectedLesson = state?.["selectedLesson"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
