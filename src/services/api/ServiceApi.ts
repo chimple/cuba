@@ -1202,7 +1202,8 @@ export interface ServiceApi {
   createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">>;
   /**
    * Updates a class name for given classId
@@ -1210,7 +1211,7 @@ export interface ServiceApi {
    * @param className
    * @param groupId
    */
-  updateClass(classId: string, className: string, groupId?: string);
+  updateClass(classId: string, className: string, groupId?: string, whatsapp_invite_link?: string);
   /**
    * Deletes a class
    * @param classId
@@ -2592,4 +2593,19 @@ export interface ServiceApi {
  *          group name, members list, and invite link.
  */
   getWhatsappGroupDetails(groupId: string, bot: string);
+
+   /**
+ * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.
+ * @param {string} inviteLink - The WhatsApp invite link.
+ * @param {string} bot - The WhatsApp bot phone number used to access the group.
+ * @returns Promise resolving to the WhatsApp group id
+ */
+  getGroupIdByInvite(invite_link:string,bot:string);
+
+ /**
+ * Fetch phone/botNum details using bot num.
+ * @param {string} bot - The WhatsApp bot phone number.
+ * @returns Promise resolving to the phoneNum details
+ */
+  getPhoneDetailsByBotNum(bot:string);  
 }

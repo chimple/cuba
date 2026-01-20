@@ -4009,7 +4009,8 @@ export class SupabaseApi implements ServiceApi {
   async createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
     if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
@@ -4036,6 +4037,7 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       standard: null,
       status: null,
+      whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     const { error } = await this.supabase.from("class").insert(newClass);
@@ -4127,7 +4129,7 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string, groupId?: string) {
+  async updateClass(classId: string, className: string, groupId?: string, whatsapp_invite_link?: string) {
     if (!this.supabase) return;
 
     const _currentUser =
@@ -4139,6 +4141,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
     if (groupId !== undefined) updateData.group_id = groupId;
+    if (whatsapp_invite_link !== undefined) updateData.whatsapp_invite_link = whatsapp_invite_link;
 
     const { error } = await this.supabase
       .from("class")
@@ -11125,4 +11128,34 @@ export class SupabaseApi implements ServiceApi {
 
     return data.data;
   }
+  async getGroupIdByInvite(invite_link: string,bot:string){
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.functions.invoke(
+      "get-groupId-by-invite",
+      {
+        body: {invite_link,bot},
+      }
+    );
+
+    if(error){
+      throw error;
+    }
+    return data;
+  }
+
+  async getPhoneDetailsByBotNum(bot: string) {
+     if (!this.supabase) return [];
+    const { data, error } = await this.supabase.functions.invoke(
+      "get-phoneDetails-by-botNum",
+      {
+        body: {bot},
+      }
+    );
+
+    if(error){
+      throw error;
+    }
+    return data;
+  }
+
 }

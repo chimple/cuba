@@ -952,12 +952,13 @@ export class ApiHandler implements ServiceApi {
   createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
-    return this.s.createClass(schoolId, className, groupId);
+    return this.s.createClass(schoolId, className, groupId, whatsapp_invite_link);
   }
-  updateClass(classId: string, className: string, groupId?: string) {
-    return this.s.updateClass(classId, className, groupId);
+  updateClass(classId: string, className: string, groupId?: string, whatsapp_invite_link?: string) {
+    return this.s.updateClass(classId, className, groupId, whatsapp_invite_link);
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
@@ -1937,5 +1938,13 @@ public async getLatestAssessmentGroup(
 }
   public async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this.s.getWhatsappGroupDetails(groupId, bot);
+  }
+
+  public async getGroupIdByInvite(invite_link: string, bot: string) {
+    return await this.s.getGroupIdByInvite(invite_link, bot);
+  }
+
+  public async getPhoneDetailsByBotNum(bot: string){
+    return await this.s.getPhoneDetailsByBotNum(bot);
   }
 }
