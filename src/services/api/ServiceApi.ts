@@ -1211,7 +1211,12 @@ export interface ServiceApi {
    * @param className
    * @param groupId
    */
-  updateClass(classId: string, className: string, groupId?: string, whatsapp_invite_link?: string);
+  updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  );
   /**
    * Deletes a class
    * @param classId
@@ -2586,26 +2591,67 @@ export interface ServiceApi {
   ): Promise<TableTypes<"assignment">[]>;
 
   /**
- * Fetch WhatsApp group details from Periskope for a given group and bot number.
- * @param {string} groupId - The WhatsApp group ID (e.g. 1203630xxxx@g.us).
- * @param {string} bot - The WhatsApp bot phone number used to access the group.
- * @returns Promise resolving to the WhatsApp group details including
- *          group name, members list, and invite link.
- */
+   * Fetch WhatsApp group details from Periskope for a given group and bot number.
+   * @param {string} groupId - The WhatsApp group ID (e.g. 1203630xxxx@g.us).
+   * @param {string} bot - The WhatsApp bot phone number used to access the group.
+   * @returns Promise resolving to the WhatsApp group details including
+   *          group name, members list, and invite link.
+   */
   getWhatsappGroupDetails(groupId: string, bot: string);
 
-   /**
- * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.
- * @param {string} inviteLink - The WhatsApp invite link.
- * @param {string} bot - The WhatsApp bot phone number used to access the group.
- * @returns Promise resolving to the WhatsApp group id
- */
-  getGroupIdByInvite(invite_link:string,bot:string);
+  /**
+   * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.
+   * @param {string} inviteLink - The WhatsApp invite link.
+   * @param {string} bot - The WhatsApp bot phone number used to access the group.
+   * @returns Promise resolving to the WhatsApp group id
+   */
+  getGroupIdByInvite(invite_link: string, bot: string);
 
- /**
- * Fetch phone/botNum details using bot num.
- * @param {string} bot - The WhatsApp bot phone number.
- * @returns Promise resolving to the phoneNum details
- */
-  getPhoneDetailsByBotNum(bot:string);  
+  /**
+   * Fetch phone/botNum details using bot num.
+   * @param {string} bot - The WhatsApp bot phone number.
+   * @returns Promise resolving to the phoneNum details
+   */
+  getPhoneDetailsByBotNum(bot: string);
+  /**
+   * Updates WhatsApp group settings such as name, admin-only permissions, etc.
+   *
+   * @param chatId - Unique WhatsApp group chat ID
+   * @param phone - Phone number of the user/bot performing the update
+   * @param name - New name for the WhatsApp group
+   * @param messagesAdminsOnly - (Optional) If true, only admins can send messages
+   * @param infoAdminsOnly - (Optional) If true, only admins can edit group info
+   * @param addMembersAdminsOnly - (Optional) If true, only admins can add members
+   *
+   * @returns Promise<boolean> - Returns true if update succeeds, false otherwise
+   */
+  updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean>;
+
+  /**
+   * Fetches WhatsApp group details using an invite link.
+   * Also associates the group with a specific class.
+   *
+   * @param inviteLink - WhatsApp group invite link
+   * @param bot - Bot identifier used to fetch group details
+   * @param classId - Class ID to which this WhatsApp group belongs
+   *
+   * @returns Promise<{ group_id, group_name, members } | null>
+   *          - Group details if found, otherwise null
+   */
+  getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null>;
 }

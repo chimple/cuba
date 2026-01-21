@@ -48,7 +48,14 @@
   gap: 15px;
   margin-bottom: 10px !important;
 }
-
+.wa-info-invite-link-div {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
+  margin-bottom: 10px !important;
+  width: 100%;
+}
 .wa-input-wrapper {
   position: relative;
   flex: 1;
@@ -66,7 +73,6 @@
   color: #111827;
   background: #ffffff;
   margin: 10px 0 !important;
-  
 }
 
 .wa-input-edit-icon {
@@ -115,9 +121,68 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-
 }
 
 .wa-external {
   font-size: 14px;
+}
+.wa-input-row-editing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
+  margin-bottom: 10px !important;
+  width: 100%;
+}
+.wa-info-cancel-btn,
+.wa-info-save-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.wa-info-save-btn {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+.wa-info-save-btn:hover {
+  background-color: #0056cc;
+}
+.wa-info-save-btn:disabled {
+  background-color: #ccc;
+  border: none;
+  cursor: not-allowed;
+}
+.wa-info-cancel-btn {
+  background-color: #fff;
+  color: #007bff;
+  border-color: #007bff;
+}
+.wa-info-cancel-btn:hover {
+  background-color: #e6f0ff;
+}
+.wa-popup {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 340px;
+  height: 160px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+  padding: 20px;
+  border: none;
+}
+.wa-info-not-connected {
+  color: red;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
