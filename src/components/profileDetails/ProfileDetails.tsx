@@ -241,7 +241,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || undefined
+          languageId || languages[1].id
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
@@ -255,7 +255,7 @@ const ProfileDetails = () => {
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
         const langIndex = languages?.findIndex(
-          (lang) => lang.id === languages[0].id
+          (lang) => lang.id === languages[1].id
         );
         await Util.setCurrentStudent(
           student,
