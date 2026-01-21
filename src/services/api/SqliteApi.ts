@@ -7883,6 +7883,7 @@ order by
     const fetchRes = await this._db?.query(fetchQuery);
     const assignments =
       (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+
     if (!assignments.length) return [];
 
     /* ===============================
@@ -7903,7 +7904,9 @@ order by
   `;
 
     const completionRes = await this._db?.query(completionQuery);
-    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
+    const pendingCount =
+      completionRes?.values?.[0]?.pending_count ?? 0;
+
     if (pendingCount === 0) return [];
 
     /* ===============================

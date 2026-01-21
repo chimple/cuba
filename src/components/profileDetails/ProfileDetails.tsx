@@ -242,7 +242,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || undefined
+          languageId || DEFAULT_LANGUAGE_ID_EN
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
