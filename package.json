@@ -75,7 +75,7 @@
     "jeep-sqlite": "^2.8.0",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.12.18",
-    "lido-standalone": "^0.0.0-alpha-62",
+    "lido-standalone": "^0.0.0-alpha-66",
     "qrcode.react": "^4.2.0",
     "query-string": "^9.3.1",
     "react": "^19.1.1",
