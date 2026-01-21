@@ -32,12 +32,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const [loading, setLoading] = useState(false);
   const [classDoc, setClassDoc] = useState<TableTypes<"class">>();
   const [isChangingGroup, setIsChangingGroup] = useState(false);
-
   useEffect(() => {
     if (!groupId || !bot) {
       resetPopup();
-
       setIsChangingGroup(true);
+      return;
     }
     const getGroup = async () => {
       try {
@@ -57,7 +56,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     };
 
     getGroup();
-  }, [groupId, bot, api]);
+  }, [groupId, bot, api, classData?.id]);
 
   const handleEdit = () => {
     setEditedGroupName(groupName ?? "");
@@ -99,8 +98,6 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   };
 
   const resetPopup = () => {
-    console.log("llllllllllll", groupId);
-
     setOpenChangePopup(false);
     setStep("confirm");
     setInviteInput("");
