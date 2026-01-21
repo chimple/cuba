@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+                new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -2634,10 +2634,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         updated_at = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     const now = new Date().toISOString();
-    await this.executeQuery(updateUserQuery, [
+    const params = [
       name,
       age,
       gender,
@@ -2648,8 +2649,13 @@ export class SqliteApi implements ServiceApi {
       languageDocId,
       localeId,
       now,
-      student.id,
-    ]);
+    ];
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      params.push(null);
+    }
+    params.push(student.id);
+    await this.executeQuery(updateUserQuery, params);
 
     let courses;
     if (gradeDocId && boardDocId) {
@@ -2666,6 +2672,10 @@ export class SqliteApi implements ServiceApi {
     student.language_id = languageDocId;
     student.locale_id = localeId;
     student.updated_at = now;
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      student.learning_path = null;
+    }
 
     if (courses && courses.length > 0) {
       const now = new Date().toISOString();
@@ -2709,7 +2719,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    const pushChangesData: any = {
       name: name,
       age: age,
       gender: gender,
@@ -2721,7 +2731,12 @@ export class SqliteApi implements ServiceApi {
       locale_id: localeId,
       updated_at: now,
       id: student.id,
-    });
+    };
+    // Include learning_path in push changes when language changes
+    if (languageChanged) {
+      pushChangesData.learning_path = null;
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
     return student;
   }
 
@@ -2775,10 +2790,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         student_id = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     try {
-      await this.executeQuery(updateUserQuery, [
+      const params = [
         name,
         age,
         gender,
@@ -2789,8 +2805,13 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-        student.id,
-      ]);
+      ];
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        params.push(null);
+      }
+      params.push(student.id);
+      await this.executeQuery(updateUserQuery, params);
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2801,7 +2822,11 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        student.learning_path = null;
+      }
+      const pushChangesData: any = {
         name,
         age,
         gender,
@@ -2813,7 +2838,12 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         locale_id: localeId,
         id: student.id,
-      });
+      };
+      // Include learning_path in push changes when language changes
+      if (languageChanged) {
+        pushChangesData.learning_path = null;
+      }
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
       // Check if the class has changed
       const currentClassIdQuery = `
         SELECT class_id FROM class_user
@@ -7905,7 +7935,6 @@ order by
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
   }
-
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);
   }
@@ -7934,3 +7963,4 @@ order by
     throw new Error("Method not implemented.");
   }
 }
+

@@ -2513,6 +2513,8 @@ export class SupabaseApi implements ServiceApi {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      updatedFields.learning_path = null;
     }
 
     await this.supabase.from("user").update(updatedFields).eq("id", student.id);
@@ -2590,6 +2592,8 @@ export class SupabaseApi implements ServiceApi {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      updatedFields.learning_path = null;
     }
 
     try {
