@@ -18,6 +18,7 @@ import {
   RECOMMENDATION_TYPE,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
+  LANGUAGE,
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { palUtil } from "../utility/palUtil";
@@ -248,6 +249,23 @@ const LearningPathway: React.FC = () => {
   };
 
   const sortCoursesByStudentLanguage = async (courses: any[], student: any) => {
+    // 1. Try Local Storage first
+    const localLanguageCode = localStorage.getItem(LANGUAGE)?.toLowerCase();
+    if (localLanguageCode) {
+      const targetIndex = courses.findIndex(
+        (c) => c.code?.toLowerCase() === localLanguageCode,
+      );
+
+      if (targetIndex > -1) {
+        const targetCourse = courses[targetIndex];
+        const otherCourses = courses.filter(
+          (_, index) => index !== targetIndex,
+        );
+        return [targetCourse, ...otherCourses];
+      }
+    }
+
+    // 2. Fallback: API Call
     if (!student?.language_id) return courses;
 
     try {
