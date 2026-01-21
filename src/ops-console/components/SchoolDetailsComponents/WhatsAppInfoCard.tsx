@@ -5,6 +5,7 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import { TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import { ErrorOutlineOutlined } from "@mui/icons-material";
+import WhatsAppInviteLinkInput from "./WhatsAppInviteLinkInput";
 
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<"class">;
@@ -34,10 +35,10 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
   useEffect(() => {
     if (!groupId || !bot) {
-                    resetPopup();
+      resetPopup();
 
-      setIsChangingGroup(true)
-    };
+      setIsChangingGroup(true);
+    }
     const getGroup = async () => {
       try {
         const updatedClass = await api.getClassById(classData?.id!);
@@ -98,8 +99,8 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   };
 
   const resetPopup = () => {
-    console.log("llllllllllll",groupId);
-    
+    console.log("llllllllllll", groupId);
+
     setOpenChangePopup(false);
     setStep("confirm");
     setInviteInput("");
@@ -155,9 +156,14 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
           <Box className="wa-status">
             {isChangingGroup ? (
-              <div className="wa-info-not-connected">
+              <div
+                className="wa-info-not-connected"
+                id="wa-info-not-connected-id"
+              >
                 <ErrorOutlineOutlined></ErrorOutlineOutlined>
-                <div>{t("WhatsApp Group Not Connected")}</div>
+                <div id="wa-info-not-connected-text">
+                  {t("WhatsApp Group Not Connected")}
+                </div>
               </div>
             ) : (
               <>
@@ -175,47 +181,25 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
             <Box className="wa-input-row">
               {isChangingGroup && (
-                <div className="wa-info-invite-link-div">
-                  <input
-                    className="wa-input"
-                    autoFocus
-                    value={inviteInput}
-                    onChange={(e) => setInviteInput(e.target.value)}
-                    placeholder="https://chat.whatsapp.com/..."
-                  />
-
-                  {error && (
-                    <Typography color="error" variant="caption">
-                      {error}
-                    </Typography>
-                  )}
-
-                  <Box display="flex" gap={2} mt={1}>
-                    <button
-                      className="wa-info-save-btn"
-                      onClick={handleInviteSubmit}
-                      disabled={loading || !inviteInput.trim()}
-                    >
-                      {loading ? t("Checking...") : t("Submit")}
-                    </button>
-
-                    <button
-                      className="wa-info-cancel-btn"
-                      onClick={() => {
-                        setIsChangingGroup(false);
-                        setInviteInput("");
-                        setError(null);
-                      }}
-                      disabled={loading}
-                    >
-                      {t("Cancel")}
-                    </button>
-                  </Box>
-                </div>
+                <WhatsAppInviteLinkInput
+                  inviteInput={inviteInput}
+                  setInviteInput={setInviteInput}
+                  error={error}
+                  loading={loading}
+                  onSubmit={handleInviteSubmit}
+                  onCancel={() => {
+                    setIsChangingGroup(false);
+                    setInviteInput("");
+                    setError(null);
+                  }}
+                />
               )}
 
               {!isChangingGroup && isEditing && (
-                <div className="wa-input-row-editing">
+                <div
+                  className="wa-input-row-editing"
+                  id="wa-input-row-editing-id"
+                >
                   <Box className="wa-input-wrapper">
                     <input
                       className="wa-input"
@@ -351,13 +335,15 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                 >
                   {loading ? t("Checking...") : t("Submit")}
                 </button>
-               {!groupId && <button
-                  className="wa-info-cancel-btn"
-                  onClick={resetPopup}
-                  disabled={!groupId || loading}
-                >
-                  {t("Cancel")}
-                </button>}
+                {!groupId && (
+                  <button
+                    className="wa-info-cancel-btn"
+                    onClick={resetPopup}
+                    disabled={!groupId || loading}
+                  >
+                    {t("Cancel")}
+                  </button>
+                )}
               </Box>
             </>
           )}
