@@ -37,7 +37,6 @@ const LidoPlayer: FC = () => {
   const [present] = useIonToast();
 
   // State
-  console.log("Lido player....................")
   const state = history.location.state as any;
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state?.lessonId;
