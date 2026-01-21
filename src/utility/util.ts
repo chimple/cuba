@@ -2710,7 +2710,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-          currentReward?.reward_id
+        currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -3136,7 +3136,7 @@ export class Util {
 
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else if (!isAssessmentLesson) {
+      } else if (!isAssessmentLesson && storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
         const recommended = await palUtil.getRecommendedLessonForCourse(
           currentStudent.id,
           currentCourse.course_id,
