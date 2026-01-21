@@ -37,6 +37,7 @@ const LidoPlayer: FC = () => {
   const [present] = useIonToast();
 
   // State
+  console.log("Lido player....................")
   const state = history.location.state as any;
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state?.lessonId;
@@ -675,8 +676,12 @@ const LidoPlayer: FC = () => {
       <Loading isLoading={isLoading} />
       {showDialogBox && (
         <ScoreCard
-          score={Math.round(gameResult?.score ?? 0)}
-          message={t("You Completed the Lesson:")}
+         score={
+            lessonDetail?.plugin_type === "lido_assessment"
+              ? 100
+              : Math.round(gameResult?.score ?? 0)
+          }
+          message={ lessonDetail?.plugin_type === "lido_assessment"? t("Well Done!"): t("You Completed the Lesson:")}
           showDialogBox={showDialogBox}
           lessonName={lessonDetail?.name ?? ""}
           noText={t("Continue Playing")}
