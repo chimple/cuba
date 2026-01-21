@@ -295,7 +295,8 @@ const CocosGame: React.FC = () => {
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
     const assignment = state.assignment;
-    const currentStudent = api.currentStudent!;
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return;
     const data = lessonData;
     let assignmentId = assignment ? assignment.id : null;
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -540,8 +541,12 @@ const CocosGame: React.FC = () => {
               }}
               onContinueButtonClicked={async (e: any) => {
                 setIsLoading(true);
-                if (savingPromiseRef.current) {
-                  await savingPromiseRef.current;
+                try {
+                  if (savingPromiseRef.current) {
+                    await savingPromiseRef.current;
+                  }
+                } catch (error) {
+                  console.error("Error saving data", error);
                 }
                 setShowDialogBox(false);
                 push();

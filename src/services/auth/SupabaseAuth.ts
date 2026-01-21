@@ -14,6 +14,7 @@ import {
   SCHOOL_LOGIN,
   PAGES,
   USER_ROLE,
+  IS_OPS_USER
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes, Session } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
@@ -482,6 +483,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_deleted: false,
           is_tc_accepted: true,
           language_id: null,
+          // locale_id: null,
           locale_id: null,
           name: null,
           updated_at: new Date().toISOString(),
@@ -535,7 +537,7 @@ export class SupabaseAuth implements ServiceAuth {
   private async initializeUserRecord(session: Session): Promise<{ user: TableTypes<"user">; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
-      const api = ServiceConfig.getI().apiHandler;
+      let api = ServiceConfig.getI().apiHandler;
       const user = session.user;
       const email = user.email;
       const id = user.id;
@@ -567,6 +569,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_deleted: false,
           is_tc_accepted: true,
           language_id: null,
+          // locale_id: null,
           locale_id: null,
           name: name,
           updated_at: new Date().toISOString(),
@@ -596,7 +599,9 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (isSplQuery) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+        localStorage.setItem(IS_OPS_USER, "true");
       } else {
+        localStorage.setItem(IS_OPS_USER, "false");
         let isFirstSync = true;
         await api.syncDB(
           Object.values(TABLES),
@@ -605,6 +610,7 @@ export class SupabaseAuth implements ServiceAuth {
         );
       }
 
+      api = ServiceConfig.getI().apiHandler;
       if (isUserExists){
         createdUser = await api.getUserByDocId(id);
       }

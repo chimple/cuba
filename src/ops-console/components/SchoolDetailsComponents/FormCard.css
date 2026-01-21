@@ -293,10 +293,27 @@
   line-height: 1.4;
 }
 
+.formcard-message-wrapper {
+  text-align: center;
+}
+
 .formcard-message-error {
   background-color: #fce8e6;
   color: #c5221f;
   border: 1px solid #f6aea9;
+
+  padding: 8px 12px;
+  border-radius: 6px;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  margin: 8px auto 12px;
 }
 
 .formcard-message-warning {

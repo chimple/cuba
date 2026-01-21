@@ -270,6 +270,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
 
+
       if (onSubjectChange) {
         onSubjectChange(subject.course.id);
       }

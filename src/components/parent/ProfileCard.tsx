@@ -11,6 +11,7 @@ import {
   PAGES,
   MODES,
   TableTypes,
+  ASSESSMENT_FAIL_KEY,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
@@ -200,6 +201,9 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             setIsLoading(true);
             setReloadProfiles(false);
+             localStorage.removeItem(
+                `${ASSESSMENT_FAIL_KEY}_${user.id}`
+              );
             await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
             setReloadProfiles(true);
             const eventParams = {

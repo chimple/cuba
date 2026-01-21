@@ -494,7 +494,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         "foreignObject"
       );
       chimple.setAttribute("width", "40%");
-      chimple.setAttribute("height", "300%");
+      chimple.setAttribute("height", "260%");
 
       requestAnimationFrame(async () => {
         if (!containerRef.current) return;
@@ -1003,6 +1003,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           riveWrapper.style.width = "100%";
           riveWrapper.style.height = "100%";
 
+          riveWrapper.style.transform = "scale(1.01)";
+          riveWrapper.style.transformOrigin = "bottom center";
           const riveDiv = document.createElement("div");
           riveDiv.style.width = "100%";
           riveDiv.style.height = "100%";

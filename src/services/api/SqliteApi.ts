@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+                new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -363,7 +363,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch { }
+        } catch {}
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -569,7 +569,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) { }
+              } catch (beginErr) {}
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -587,7 +587,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) { }
+                } catch (rbErr) {}
               }
               throw chunkErr;
             }
@@ -2156,17 +2156,20 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${langId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-        : ""
+      ${
+        langId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+          : ""
       }
-      ${localeId
-        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        localeId
+          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+          : ""
       }
-      ${langId && localeId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        langId && localeId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+          : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2454,7 +2457,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -2631,10 +2634,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         updated_at = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     const now = new Date().toISOString();
-    await this.executeQuery(updateUserQuery, [
+    const params = [
       name,
       age,
       gender,
@@ -2645,8 +2649,13 @@ export class SqliteApi implements ServiceApi {
       languageDocId,
       localeId,
       now,
-      student.id,
-    ]);
+    ];
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      params.push(null);
+    }
+    params.push(student.id);
+    await this.executeQuery(updateUserQuery, params);
 
     let courses;
     if (gradeDocId && boardDocId) {
@@ -2663,6 +2672,10 @@ export class SqliteApi implements ServiceApi {
     student.language_id = languageDocId;
     student.locale_id = localeId;
     student.updated_at = now;
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      student.learning_path = null;
+    }
 
     if (courses && courses.length > 0) {
       const now = new Date().toISOString();
@@ -2706,7 +2719,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    const pushChangesData: any = {
       name: name,
       age: age,
       gender: gender,
@@ -2718,7 +2731,12 @@ export class SqliteApi implements ServiceApi {
       locale_id: localeId,
       updated_at: now,
       id: student.id,
-    });
+    };
+    // Include learning_path in push changes when language changes
+    if (languageChanged) {
+      pushChangesData.learning_path = null;
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
     return student;
   }
 
@@ -2772,10 +2790,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         student_id = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     try {
-      await this.executeQuery(updateUserQuery, [
+      const params = [
         name,
         age,
         gender,
@@ -2786,8 +2805,13 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-        student.id,
-      ]);
+      ];
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        params.push(null);
+      }
+      params.push(student.id);
+      await this.executeQuery(updateUserQuery, params);
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2798,7 +2822,11 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        student.learning_path = null;
+      }
+      const pushChangesData: any = {
         name,
         age,
         gender,
@@ -2810,7 +2838,12 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         locale_id: localeId,
         id: student.id,
-      });
+      };
+      // Include learning_path in push changes when language changes
+      if (languageChanged) {
+        pushChangesData.learning_path = null;
+      }
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
       // Check if the class has changed
       const currentClassIdQuery = `
         SELECT class_id FROM class_user
@@ -3001,9 +3034,19 @@ export class SqliteApi implements ServiceApi {
         AND is_deleted = 0
         AND (
           (language_id IS NULL AND locale_id IS NULL)
-          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""}
-          ${localeId ? `OR (language_id IS NULL AND locale_id = "${localeId}")` : ""}
-          ${langId && localeId ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")` : ""}
+          ${
+            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
+          }
+          ${
+            localeId
+              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+              : ""
+          }
+          ${
+            langId && localeId
+              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+              : ""
+          }
         )
       ORDER BY sort_index ASC
       `,
@@ -3417,7 +3460,8 @@ export class SqliteApi implements ServiceApi {
   async createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3441,12 +3485,13 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       standard: null,
       status: null,
+      whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
@@ -3457,6 +3502,7 @@ export class SqliteApi implements ServiceApi {
         newClass.updated_at,
         newClass.is_deleted,
         newClass.group_id,
+        newClass.whatsapp_invite_link,
       ]
     );
 
@@ -3540,7 +3586,12 @@ export class SqliteApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string, groupId?: string) {
+  async updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  ) {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -3548,6 +3599,9 @@ export class SqliteApi implements ServiceApi {
     let updatedClassQuery = `UPDATE class SET name = "${className}"`;
     if (groupId !== undefined) {
       updatedClassQuery += `, group_id = "${groupId}"`;
+    }
+    if (whatsapp_invite_link !== undefined) {
+      updatedClassQuery += `, whatsapp_invite_link = "${whatsapp_invite_link}"`;
     }
     updatedClassQuery += `, updated_at = "${new Date().toISOString()}"`;
     updatedClassQuery += ` WHERE id = "${classId}";`;
@@ -6353,34 +6407,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6466,34 +6520,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null, // Assuming these fields are nullable or have default values in your User table type
-          avatar: null,
-          created_at: new Date().toISOString(), // Example, adjust if you fetch this
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6576,10 +6630,7 @@ order by
       const parentRows = parentRes?.values ?? [];
       return parentRows;
     } catch (error) {
-      console.error(
-        "Error fetching parents by student ID",
-        error
-      );
+      console.error("Error fetching parents by student ID", error);
       return [];
     }
   }
@@ -7631,7 +7682,6 @@ order by
     student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[]> {
     const langId = student?.language_id ?? null;
-    const localeId = student?.locale_id ?? null;
 
     try {
       // 1️⃣ Fetch ALL available set_numbers
@@ -7644,12 +7694,16 @@ order by
     `;
       const setRes = await this.executeQuery(setQuery, [subjectId]);
       const setRows = (setRes as any)?.values ?? [];
+
       if (!setRows.length) {
         return [];
       }
-      // 2️⃣ Pick ANY ONE set randomly in JS
+
+      // 2️⃣ Pick ANY ONE set randomly
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
+
+      // 3️⃣ Fetch lessons (LANGUAGE ONLY)
       const lessonQuery = `
       SELECT sl.*
       FROM subject_lesson sl
@@ -7657,10 +7711,8 @@ order by
         AND sl.set_number = ?
         AND sl.is_deleted = 0
         AND (
-          (sl.language_id IS NULL AND sl.locale_id IS NULL)
-          OR (sl.language_id = ? AND sl.locale_id IS NULL)
-          OR (sl.language_id IS NULL AND sl.locale_id = ?)
-          OR (sl.language_id = ? AND sl.locale_id = ?)
+          sl.language_id IS NULL
+          OR sl.language_id = ?
         );
     `;
 
@@ -7668,28 +7720,20 @@ order by
         subjectId,
         setNumber,
         langId,
-        localeId,
-        langId,
-        localeId,
       ]);
 
       const lessons = (lessonRes as any)?.values ?? [];
       if (!lessons.length) return [];
 
       /* =====================================================
-       * 3️⃣ JS SORTING (ONLY IF > 5) — SAME AS ASSIGNMENTS
+       * 4️⃣ JS SORTING (ONLY IF > 5) — LANGUAGE ONLY
        * ===================================================== */
       if (lessons.length > 5) {
         lessons.sort((a: any, b: any) => {
           const getPriority = (x: any): number => {
-            const l = x.language_id ?? null;
-            const lo = x.locale_id ?? null;
-
-            if (l === langId && lo === localeId) return 1;
-            if (l === langId && lo === null) return 2;
-            if (l === null && lo === localeId) return 3;
-            if (l === null && lo === null) return 4;
-            return 5;
+            if (x.language_id === langId) return 1;
+            if (x.language_id === null) return 2;
+            return 3;
           };
 
           const pA = getPriority(a);
@@ -7764,12 +7808,13 @@ order by
       [skillId]
     );
 
-    return res?.values && res.values.length > 0
-      ? res.values[0]
-      : undefined;
+    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
   }
 
-  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+  async updateSchoolProgram(
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
   async getLatestAssessmentGroup(
@@ -7778,74 +7823,70 @@ order by
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const langId = student.language_id;
-    const localeId = student.locale_id;
+
     /* ===============================
-     * QUERY 1️⃣ : Fetch valid assessments (ALL rules applied)
+     * QUERY 1️⃣ : Fetch valid assessments
      * =============================== */
     const fetchQuery = `
-  SELECT a.*
-  FROM assignment a
-  JOIN course c
-    ON c.id = a.course_id
-   AND c.is_deleted = false
-  WHERE a.class_id = '${classId}'
-    AND a.type = 'assessment'
-    AND a.is_deleted = false
-    -- time window
-    AND (
-      a.starts_at IS NULL
-      OR a.starts_at = ''
-      OR datetime(a.starts_at) <= datetime('${nowIso}')
-    )
-    AND (
-      a.ends_at IS NULL
-      OR a.ends_at = ''
-      OR datetime(a.ends_at) > datetime('${nowIso}')
-    )
+    SELECT a.*
+    FROM assignment a
+    JOIN course c
+      ON c.id = a.course_id
+     AND c.is_deleted = false
+    WHERE a.class_id = '${classId}'
+      AND a.type = 'assessment'
+      AND a.is_deleted = false
 
-    -- latest batch per course
-    AND a.batch_id = (
-      SELECT a2.batch_id
-      FROM assignment a2
-      WHERE a2.class_id = a.class_id
-        AND a2.course_id = a.course_id
-        AND a2.type = 'assessment'
-        AND a2.is_deleted = false
-        AND a2.batch_id IS NOT NULL
-      ORDER BY a2.created_at DESC
-      LIMIT 1
-    )
-    -- subject_lesson validation (SAFE)
-  AND EXISTS (
-  SELECT 1
-  FROM subject_lesson sl
-  WHERE sl.lesson_id = a.lesson_id
-    AND sl.set_number = a.set_number
-    AND sl.is_deleted = false
-    AND (
-      -- both NULL
-      (sl.language_id IS NULL AND sl.locale_id IS NULL)
+      -- time window
+      AND (
+        a.starts_at IS NULL
+        OR a.starts_at = ''
+        OR datetime(a.starts_at) <= datetime('${nowIso}')
+      )
+      AND (
+        a.ends_at IS NULL
+        OR a.ends_at = ''
+        OR datetime(a.ends_at) > datetime('${nowIso}')
+      )
 
-      -- language only
-      OR (sl.language_id = "${langId}" AND sl.locale_id IS NULL)
+      -- latest batch per course
+      AND a.batch_id = (
+        SELECT a2.batch_id
+        FROM assignment a2
+        WHERE a2.class_id = a.class_id
+          AND a2.course_id = a.course_id
+          AND a2.type = 'assessment'
+          AND a2.is_deleted = false
+          AND a2.batch_id IS NOT NULL
+        ORDER BY a2.created_at DESC
+        LIMIT 1
+      )
 
-      -- locale only
-      OR (sl.language_id IS NULL AND sl.locale_id = "${localeId}")
+      -- subject_lesson validation (LANGUAGE ONLY)
+      AND EXISTS (
+        SELECT 1
+        FROM subject_lesson sl
+        WHERE sl.lesson_id = a.lesson_id
+          AND sl.set_number = a.set_number
+          AND sl.is_deleted = false
+          AND (
+            sl.language_id IS NULL
+            OR sl.language_id = "${langId}"
+          )
+      )
+    ORDER BY a.course_id, a.created_at DESC;
+  `;
 
-      -- both exist AND both match
-      OR (sl.language_id = "${langId}" AND sl.locale_id = "${localeId}")
-    )
-)
-  ORDER BY a.course_id, a.created_at DESC;
-`;
     const fetchRes = await this._db?.query(fetchQuery);
     const assignments =
       (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+
     if (!assignments.length) return [];
+
     /* ===============================
      * QUERY 2️⃣ : Pending result check
      * =============================== */
-    const assignmentIds = assignments.map(a => `'${a.id}'`).join(",");
+    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
 
     const completionQuery = `
     SELECT COUNT(*) AS pending_count
@@ -7862,34 +7903,64 @@ order by
     const completionRes = await this._db?.query(completionQuery);
     const pendingCount =
       completionRes?.values?.[0]?.pending_count ?? 0;
+
     if (pendingCount === 0) return [];
+
+    /* ===============================
+     * JS SORTING (ONLY IF > 5)
+     * LANGUAGE ONLY
+     * =============================== */
     if (assignments.length > 5) {
       assignments.sort((a, b) => {
         const getPriority = (x: any): number => {
-          const l = x.language_id ?? null;
-          const lo = x.locale_id ?? null;
-          if (l === langId && lo === localeId) return 1;
-          if (l === langId && lo === null) return 2;
-          if (l === null && lo === localeId) return 3;
-          if (l === null && lo === null) return 4;
-          return 5;
+          if (x.language_id === langId) return 1;
+          if (x.language_id === null) return 2;
+          return 3;
         };
 
         const pA = getPriority(a);
         const pB = getPriority(b);
 
-        // 1️⃣ priority first
+        // priority first
         if (pA !== pB) return pA - pB;
 
-        // 2️⃣ same priority → latest first
+        // same priority → latest first
         return (
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       });
     }
     return assignments;
-
   }
-
+  async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this._serverApi.getWhatsappGroupDetails(groupId, bot);
+  }
+  async getGroupIdByInvite(invite_link: string, bot: string) {
+    return await this._serverApi.getGroupIdByInvite(invite_link, bot);
+  }
+  async getPhoneDetailsByBotNum(bot: string) {
+    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  }
+  async updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  async getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null> {
+    throw new Error("Method not implemented.");
+  }
 }
+

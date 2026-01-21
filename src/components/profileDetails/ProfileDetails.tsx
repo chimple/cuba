@@ -12,6 +12,7 @@ import {
   AGE_OPTIONS,
   AVATARS,
   CURRENT_STUDENT,
+  DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   EVENTS,
   FORM_MODES,
@@ -29,6 +30,7 @@ import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
 import { logProfileClick } from "../../analytics/profileClickUtil";
 import i18n from "../../i18n";
+import { language } from "ionicons/icons";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -135,13 +137,20 @@ const ProfileDetails = () => {
   }, [labelRef.current?.offsetWidth]);
 
   useEffect(() => {
-    if (isEdit) {
-      const langCode = localStorage.getItem("language");
-      if (langCode && i18n.language !== langCode) {
-        i18n.changeLanguage(langCode);
+    if (isEdit && currentStudent?.language_id && languages.length > 0) {
+      const studentLang = languages.find(
+        (lang) => lang.id === currentStudent.language_id
+      );
+      if (
+        studentLang &&
+        studentLang.code &&
+        i18n.language !== studentLang.code
+      ) {
+        i18n.changeLanguage(studentLang.code);
+        localStorage.setItem(LANGUAGE, studentLang.code);
       }
     }
-  }, [isEdit]);
+  }, [isEdit, currentStudent, languages]);
 
   useEffect(() => {
     initializeFireBase();
@@ -233,7 +242,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || languages[0].id
+          languageId || DEFAULT_LANGUAGE_ID_EN
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
@@ -246,8 +255,9 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
-        const langIndex = languages?.findIndex(
-          (lang) => lang.id === languages[0].id
+        const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
+        const langIndex = languages.findIndex(
+          (lang) => lang.id === resolvedLanguageId
         );
         await Util.setCurrentStudent(
           student,
