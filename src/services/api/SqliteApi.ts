@@ -7812,11 +7812,8 @@ order by
   }
 
   async updateSchoolProgram(
-    
     schoolId: string,
-   
     programId: string
-  
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
