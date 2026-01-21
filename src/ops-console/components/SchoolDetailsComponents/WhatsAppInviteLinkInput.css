@@ -1,0 +1,51 @@
+.wa-info-invite-link-div {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
+  margin-bottom: 10px !important;
+  width: 100%;
+}
+.wa-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 36px 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111827;
+  background: #ffffff;
+  margin: 10px 0 !important;
+}
+.wa-info-invite-link-cancel-btn,
+.wa-info-invite-link-save-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.wa-info-invite-link-save-btn {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+.wa-info-invite-link-save-btn:hover {
+  background-color: #0056cc;
+}
+.wa-info-invite-link-save-btn:disabled {
+  background-color: #ccc;
+  border: none;
+  cursor: not-allowed;
+}
+.wa-info-invite-link-cancel-btn {
+  background-color: #fff;
+  color: #007bff;
+  border-color: #007bff;
+}
+.wa-info-invite-link-cancel-btn:hover {
+  background-color: #e6f0ff;
+}

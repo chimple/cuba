@@ -4013,7 +4013,8 @@ export class SupabaseApi implements ServiceApi {
   async createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
     if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
@@ -4040,6 +4041,7 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       standard: null,
       status: null,
+      whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     const { error } = await this.supabase.from("class").insert(newClass);
@@ -4131,7 +4133,12 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string, groupId?: string) {
+  async updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  ) {
     if (!this.supabase) return;
 
     const _currentUser =
@@ -4143,6 +4150,8 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
     if (groupId !== undefined) updateData.group_id = groupId;
+    if (whatsapp_invite_link !== undefined)
+      updateData.whatsapp_invite_link = whatsapp_invite_link;
 
     const { error } = await this.supabase
       .from("class")
@@ -11110,5 +11119,105 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data.data;
+  }
+  async getGroupIdByInvite(invite_link: string, bot: string) {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.functions.invoke(
+      "get-groupId-by-invite",
+      {
+        body: { invite_link, bot },
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+    return data;
+  }
+
+  async getPhoneDetailsByBotNum(bot: string) {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.functions.invoke(
+      "get-phoneDetails-by-botNum",
+      {
+        body: { bot },
+      }
+    );
+
+    if (error) {
+      throw error;
+    }
+    return data;
+  }
+
+  async updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { data, error } = await this.supabase.functions.invoke(
+      "edit-whatsapp-group-details",
+      {
+        body: {
+          chatId,
+          phone,
+          name,
+          messagesAdminsOnly,
+          infoAdminsOnly,
+          addMembersAdminsOnly,
+        },
+      }
+    );
+
+    return Boolean(data?.success && !error);
+  }
+  async getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase.functions.invoke(
+      "get-groupId-by-invite",
+      {
+        body: {
+          invite_link: inviteLink,
+          bot,
+        },
+      }
+    );
+
+    if (error || !data?.success) {
+      console.error("Invite lookup failed", error || data);
+      return null;
+    }
+
+    const groupId = data.group_id;
+
+    // Update class table with group_id and updated_at
+    const { error: updateError } = await this.supabase
+      .from(TABLES.Class)
+      .update({
+        group_id: groupId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", classId);
+
+    if (updateError) {
+      console.error("Failed to update class with group_id", updateError);
+      return null;
+    }
+
+    return data;
   }
 }

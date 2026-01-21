@@ -8,14 +8,16 @@ const ClassForm: React.FC<{
   mode: "create" | "edit";
   classData?: any;
   schoolId?: string;
+  whatspAppBotNumber?: string;
   onSaved?: () => void;
-}> = ({ onClose, mode, classData, schoolId, onSaved }) => {
+}> = ({ onClose, mode, classData, schoolId,whatspAppBotNumber, onSaved }) => {
   const [formValues, setFormValues] = useState<any>({
     grade: "",
     section: "",
-    groupId: "",
+    whatsapp_invite_link: "",
   });
 
+  const [resolvedGroupId, setResolvedGroupId] = useState<string>("");
   const [AllCourses, setAllCourses] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -34,9 +36,9 @@ const ClassForm: React.FC<{
       setFormValues({
         grade: grade || "",
         section: section || "",
-        groupId: classData.group_id ?? "",
+        whatsapp_invite_link: classData.whatsapp_invite_link ?? "",
       });
-
+      setResolvedGroupId(classData.group_id ?? "");
       setSelectedCourse(classData.courses.map((c: any) => c.id));
     }
   }, [mode, classData]);
@@ -119,15 +121,36 @@ const ClassForm: React.FC<{
     !(
       mode === "edit" &&
       classData?.name === formValues.grade + formValues.section &&
-      (formValues.groupId ?? "") === (classData?.group_id ?? "") &&
+      formValues.whatsapp_invite_link.trim() === classData?.whatsapp_invite_link?.trim()&&
       JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
         JSON.stringify(selectedCourse)
     );
+
 
   const placeholder =
     selectedCourse.length > 0
       ? `${selectedCourse.length} Subjects Selected`
       : t("Select Courses");
+
+  const normalizeWhatsAppInviteLink = (raw: string): string => {
+        if (!raw) return "";
+
+        const trimmed = raw.trim();
+
+        // take everything after the last "/"
+        const parts = trimmed.split("/");
+        const code = parts[parts.length - 1];
+
+        if (!code) return "";
+
+        return `https://chat.whatsapp.com/invite/${code}`;
+  };
+
+  const didInviteLinkChange =
+  mode === "edit" &&
+  normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
+    (classData?.invite_link ?? "");
+
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
@@ -147,16 +170,84 @@ const ClassForm: React.FC<{
       }
 
       if (mode === "edit") {
-        await api.updateClass(classId, name, formValues.groupId);
-      } else {
-        const newClass = await api.createClass(
-          schoolId,
-          name,
-          formValues.groupId
-        );
-        classId = newClass.id;
-      }
+          const normalizedInviteLink = normalizeWhatsAppInviteLink(
+            formValues.whatsapp_invite_link
+          );
 
+          if (!normalizedInviteLink) {
+            setErrorMessage("Invalid WhatsApp Invite Link.");
+            setSaving(false);
+            return;
+          }
+
+          let groupIdToStore = resolvedGroupId; // 👈 default = reuse old
+
+          // 🔁 Only re-resolve if link actually changed
+          if (didInviteLinkChange) {
+            try {
+              const gId = await api.getGroupIdByInvite(
+                normalizedInviteLink,
+                whatspAppBotNumber || ""
+              );
+
+              if (!gId?.group_id) {
+                setErrorMessage("Invalid WhatsApp Invite Link.");
+                setSaving(false);
+                return;
+              }
+
+              groupIdToStore = gId.group_id;
+              setResolvedGroupId(gId.group_id);
+
+            } catch (e) {
+              console.error("getGroupIdByInvite failed", e);
+              setErrorMessage("Failed to resolve WhatsApp group.");
+              setSaving(false);
+              return;
+            }
+          }
+
+          // 🔄 Update class with BOTH values
+          await api.updateClass(
+            classId,
+            name,
+            groupIdToStore,        // 👈 group_id (new or reused)
+            normalizedInviteLink  // 👈 invite_link (always canonical)
+          );
+        } else {
+              const normalizedInviteLink = normalizeWhatsAppInviteLink( formValues.whatsapp_invite_link);
+              let groupIdToStore = "";
+              try {
+                const gId = await api.getGroupIdByInvite(
+                  normalizedInviteLink,
+                  whatspAppBotNumber || ""
+                );
+
+                if (!gId?.group_id) {
+                  setErrorMessage("Invalid WhatsApp Invite Link.");
+                  setSaving(false);
+                  return;
+                }
+
+                groupIdToStore = gId.group_id;
+                setResolvedGroupId(gId.group_id);
+
+              } catch (e) {
+                console.error("getGroupIdByInvite failed", e);
+                setErrorMessage("Failed to resolve WhatsApp group.");
+                setSaving(false);
+                return;
+              }
+
+              const newClass = await api.createClass(
+                schoolId,
+                name,
+                groupIdToStore,                  // ✅ now correct
+                normalizedInviteLink // ✅
+              );
+
+              classId = newClass.id;
+            }
       await api.updateClassCourses(classId, selectedCourse);
     } catch (e) {
       console.error("Error:", e);
@@ -268,12 +359,12 @@ const ClassForm: React.FC<{
         {errorMessage && <div className="class-form-error">{errorMessage}</div>}
 
         <div className="class-form-group class-form-full-width">
-          <label>WhatsApp Group ID</label>
+          <label>WhatsApp Invite Link</label>
           <input
-            name="groupId"
-            value={formValues.groupId}
+            name="whatsapp_invite_link"
+            value={formValues.whatsapp_invite_link}
             onChange={handleChange}
-            placeholder={t("Enter WhatsApp Group ID") ?? ""}
+            placeholder={t("Enter WhatsApp Invite Link") ?? ""}
           />
         </div>
 

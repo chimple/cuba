@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+                new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -3460,7 +3460,8 @@ export class SqliteApi implements ServiceApi {
   async createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3484,12 +3485,13 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       standard: null,
       status: null,
+      whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
@@ -3500,6 +3502,7 @@ export class SqliteApi implements ServiceApi {
         newClass.updated_at,
         newClass.is_deleted,
         newClass.group_id,
+        newClass.whatsapp_invite_link,
       ]
     );
 
@@ -3583,7 +3586,12 @@ export class SqliteApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string, groupId?: string) {
+  async updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  ) {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -3591,6 +3599,9 @@ export class SqliteApi implements ServiceApi {
     let updatedClassQuery = `UPDATE class SET name = "${className}"`;
     if (groupId !== undefined) {
       updatedClassQuery += `, group_id = "${groupId}"`;
+    }
+    if (whatsapp_invite_link !== undefined) {
+      updatedClassQuery += `, whatsapp_invite_link = "${whatsapp_invite_link}"`;
     }
     updatedClassQuery += `, updated_at = "${new Date().toISOString()}"`;
     updatedClassQuery += ` WHERE id = "${classId}";`;
@@ -7801,8 +7812,11 @@ order by
   }
 
   async updateSchoolProgram(
+    
     schoolId: string,
+   
     programId: string
+  
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
@@ -7867,8 +7881,8 @@ order by
   `;
 
     const fetchRes = await this._db?.query(fetchQuery);
-    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
-
+    const assignments =
+      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
     if (!assignments.length) return [];
 
     /* ===============================
@@ -7890,7 +7904,6 @@ order by
 
     const completionRes = await this._db?.query(completionQuery);
     const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
-
     if (pendingCount === 0) return [];
 
     /* ===============================
@@ -7917,10 +7930,37 @@ order by
         );
       });
     }
-
     return assignments;
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
   }
+  async getGroupIdByInvite(invite_link: string, bot: string) {
+    return await this._serverApi.getGroupIdByInvite(invite_link, bot);
+  }
+  async getPhoneDetailsByBotNum(bot: string) {
+    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  }
+  async updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  async getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null> {
+    throw new Error("Method not implemented.");
+  }
 }
+

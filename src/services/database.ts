@@ -704,6 +704,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }
         Insert: {
           academic_year?: string | null
@@ -721,6 +722,7 @@ export type Database = {
           standard?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp_invite_link?: string | null
         }
         Update: {
           academic_year?: string | null
@@ -738,6 +740,7 @@ export type Database = {
           standard?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp_invite_link?: string | null
         }
         Relationships: [
           {
@@ -4913,6 +4916,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -5656,6 +5660,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }[]
         SetofOptions: {
           from: "*"
