@@ -5,6 +5,7 @@ import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf"; //this is the default locale id for india
+export const DEFAULT_LANGUAGE_ID_EN = "7eaf3509-e44e-460f-80a1-7f6a13a8a883"; //this is the default language id for english
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -80,6 +81,7 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Framework = "framework",
   Domain = "domain",
   Competency = "competency",
   Outcome = "outcome",
@@ -911,6 +913,8 @@ export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
 export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
+
+
 
 export type LeaderboardBadge = {
   id: string;

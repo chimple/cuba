@@ -12,6 +12,7 @@ import {
   AGE_OPTIONS,
   AVATARS,
   CURRENT_STUDENT,
+  DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   EVENTS,
   FORM_MODES,
@@ -241,7 +242,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || languages.find((lang) => lang.code === "en")?.id
+          languageId || DEFAULT_LANGUAGE_ID_EN
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
@@ -254,8 +255,10 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
-        
-        const langIndex = languages?.findIndex((lang) => lang.id === languageId);
+        const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
+        const langIndex = languages.findIndex(
+          (lang) => lang.id === resolvedLanguageId
+        );
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code

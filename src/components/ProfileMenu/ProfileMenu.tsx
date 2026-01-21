@@ -70,6 +70,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     schoolUtil.setCurrentClass(undefined);
     localStorage.removeItem(CURRENT_PATHWAY_MODE)
     localStorage.removeItem(HOMEWORK_PATHWAY);
+    // Also tell GrowthBook attributes are now cleared (or set to parent-level)
+    updateLocalAttributes({
+      student_id: null,
+    });
+
+    setGbUpdated(true); // cause consumers to re-evaluate
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
 
