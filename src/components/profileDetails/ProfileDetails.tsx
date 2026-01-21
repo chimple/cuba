@@ -241,7 +241,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || languages[1].id
+          languageId || languages.find((lang) => lang.code === "en")?.id
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
