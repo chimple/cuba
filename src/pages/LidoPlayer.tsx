@@ -202,7 +202,7 @@ const LidoPlayer: FC = () => {
         }
         await api.updateResult(
           currentStudent,
-          courseDocId,
+          courseDetail?.id ?? courseDocId ?? "",
           lesson.id,
           Math.round(averageScore),
           0,
@@ -230,7 +230,7 @@ const LidoPlayer: FC = () => {
       Util.logEvent(EVENTS.RESULTS_SAVED, {
         user_id: currentStudent.id,
         lesson_id: lesson.id,
-        course_id: courseDocId,
+        course_id: courseDetail?.id ?? courseDocId ?? "",
         is_assessment: isAssessmentLesson,
         is_aborted: isAborted,
       });
@@ -242,7 +242,7 @@ const LidoPlayer: FC = () => {
           currentStudent,
           isReward,
           isAborted,
-          courseDocId,
+          courseDetail?.id ?? courseDocId ?? "",
           isAssessmentLesson
         );
       localStorage.removeItem(LIDO_SCORES_KEY);
@@ -294,21 +294,29 @@ const LidoPlayer: FC = () => {
       return true;
     };
     if (isAssessmentLesson) {
-      const previousLessonSkipped =
-        localStorage.getItem(`${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`) === "true";
+      const key = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;
+
+      const failMap: Record<string, boolean> =
+        JSON.parse(localStorage.getItem(key) || "{}");
+
+      const previousLessonSkipped = !!failMap[ courseDetail?.id ?? courseDocId ?? ""];
       // Rule B: Abort
       if (previousLessonSkipped && checkContinuousFails(index, 2)) {
-        localStorage.removeItem(`${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`);
+        delete failMap[ courseDetail?.id ?? courseDocId ?? ""];
+
+        Object.keys(failMap).length === 0
+          ? localStorage.removeItem(key)
+          : localStorage.setItem(key, JSON.stringify(failMap));
+
         const isAborted = true;
         await exitLidoGame(isAborted);
         return;
       }
       // Rule A: Skip
       if (checkContinuousFails(index, 4)) {
-        localStorage.setItem(
-          `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`,
-          "true"
-        );
+        failMap[ courseDetail?.id ?? courseDocId ?? ""] = true;
+        localStorage.setItem(key, JSON.stringify(failMap));
+
         await exitLidoGame();
         return;
       }
@@ -674,8 +682,12 @@ const LidoPlayer: FC = () => {
       <Loading isLoading={isLoading} />
       {showDialogBox && (
         <ScoreCard
-          score={Math.round(gameResult?.score ?? 0)}
-          message={t("You Completed the Lesson:")}
+          score={
+            lessonDetail?.plugin_type === "lido_assessment"
+              ? 100
+              : Math.round(gameResult?.score ?? 0)
+          }
+          message={lessonDetail?.plugin_type === "lido_assessment" ? t("Well Done!") : t("You Completed the Lesson:")}
           showDialogBox={showDialogBox}
           lessonName={lessonDetail?.name ?? ""}
           noText={t("Continue Playing")}
