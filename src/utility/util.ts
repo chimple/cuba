@@ -2711,7 +2711,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-        currentReward?.reward_id
+          currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -3091,16 +3091,21 @@ export class Util {
             return; // STOP further PAL / normal flow
           }
 
-          const palPath = await palUtil.getPalLessonPathForCourse(
-            currentCourse.course_id,
-            currentStudent.id
-          );
-          if (palPath?.length) {
-            currentCourse.path_id = uuidv4();
-            currentCourse.path = palPath;
-            currentCourse.startIndex = 0;
-            currentCourse.currentIndex = 0;
-            currentCourse.pathEndIndex = palPath.length - 1;
+          if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+            const palPath = await palUtil.getPalLessonPathForCourse(
+              currentCourse.course_id,
+              currentStudent.id
+            );
+
+            if (palPath?.length) {
+              currentCourse.path_id = uuidv4();
+              currentCourse.path = palPath;
+              currentCourse.startIndex = 0;
+              currentCourse.currentIndex = 0;
+              currentCourse.pathEndIndex = palPath.length - 1;
+            } else {
+              advancePathSlice();
+            }
           } else {
             advancePathSlice();
           }
@@ -3152,7 +3157,10 @@ export class Util {
 
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else if (!isAssessmentLesson && storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+      } else if (
+        !isAssessmentLesson &&
+        storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+      ) {
         const recommended = await palUtil.getRecommendedLessonForCourse(
           currentStudent.id,
           currentCourse.course_id
