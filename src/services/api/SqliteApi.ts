@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -2158,18 +2158,18 @@ export class SqliteApi implements ServiceApi {
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
       ${
         langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ""
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
       ${
         localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ""
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
       ${
         langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ""
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2457,7 +2457,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3036,17 +3036,17 @@ export class SqliteApi implements ServiceApi {
           (language_id IS NULL AND locale_id IS NULL)
           ${
             langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
-          }
+      }
           ${
             localeId
-              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
-              : ""
-          }
+        ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+        : ""
+      }
           ${
             langId && localeId
-              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
-              : ""
-          }
+        ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+        : ""
+      }
         )
       ORDER BY sort_index ASC
       `,
@@ -6396,34 +6396,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null,
-            avatar: null,
-            created_at: new Date().toISOString(),
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -6509,34 +6509,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null, // Assuming these fields are nullable or have default values in your User table type
-            avatar: null,
-            created_at: new Date().toISOString(), // Example, adjust if you fetch this
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null, // Assuming these fields are nullable or have default values in your User table type
+          avatar: null,
+          created_at: new Date().toISOString(), // Example, adjust if you fetch this
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
@@ -7694,16 +7694,22 @@ order by
 
       // 3️⃣ Fetch lessons (LANGUAGE ONLY)
       const lessonQuery = `
-      SELECT sl.*
-      FROM subject_lesson sl
-      WHERE sl.subject_id = ?
-        AND sl.set_number = ?
-        AND sl.is_deleted = 0
-        AND (
-          sl.language_id IS NULL
-          OR sl.language_id = ?
-        );
-    `;
+  SELECT sl.*
+  FROM subject_lesson sl
+  WHERE sl.subject_id = ?
+    AND sl.set_number = ?
+    AND sl.is_deleted = 0
+    AND (
+      sl.language_id = ?
+      OR sl.language_id IS NULL
+    )
+  ORDER BY
+    CASE
+      WHEN sl.language_id = ? THEN 0
+      WHEN sl.language_id IS NULL THEN 1
+    END,
+    sl.sort_index ASC;
+`;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
         subjectId,
