@@ -11096,19 +11096,4 @@ export class SupabaseApi implements ServiceApi {
 
     return finalAssignments as TableTypes<"assignment">[];
   }
-  async getWhatsappGroupDetails(groupId: string, bot: string) {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      "get-whatsapp-group-details",
-      {
-        body: { groupId, bot },
-      }
-    );
-
-    if (error) {
-      throw error;
-    }
-
-    return data.data;
-  }
 }
