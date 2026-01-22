@@ -2247,7 +2247,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2260,7 +2260,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2950,22 +2950,37 @@ export class Util {
       if (courseIndex === -1) return;
 
       // Rebuild learning path for ALL courses
-      const courses = learningPath.courses.courseList.map((c: any) => ({
-        id: c.course_id,
-        subject_id: c.subject_id,
-        framework_id:
-          c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-      }));
+      const courses = learningPath.courses.courseList
+        .filter((c: any) => c.course_id === abortCourseId)
+        .map((c: any) => ({
+          id: c.course_id,
+          subject_id: c.subject_id,
+          framework_id:
+            c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+        }));
+
 
       const rebuiltPath = await buildInitialLearningPath(
         storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         courses,
         currentStudent
       );
+      // 1️⃣ Get rebuilt course
+      const rebuiltCourse = rebuiltPath.courses.courseList[0];
+      if (!rebuiltCourse) return;
+      // 3️⃣ Replace ONLY that course
+      learningPath.courses.courseList[courseIndex] = {
+        ...learningPath.courses.courseList[courseIndex],
+        ...rebuiltCourse,
+      };
 
+      // 4️⃣ Keep pointer correct
+      learningPath.courses.currentCourseIndex = courseIndex;
+
+      // 5️⃣ Save FULL learning path
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
-        JSON.stringify(rebuiltPath),
+        JSON.stringify(learningPath),
         false
       );
 
