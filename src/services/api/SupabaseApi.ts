@@ -5437,38 +5437,47 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getResultByAssignmentIdsForCurrentClassMembers(
-    assignmentIds: string[],
-    classId: string
+   assignmentIds: string[],
+   classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    if (!this.supabase || assignmentIds.length === 0) return;
+   if (!this.supabase || !assignmentIds || assignmentIds.length === 0) return [];
 
-    const { data, error } = await this.supabase
-      .from("result")
-      .select(
-        `
-        *,
-        class_user!inner(
-          class_id,
-          is_deleted,
-          role
-        )
-      `
-      )
-      .in("assignment_id", assignmentIds)
-      .eq("is_deleted", false)
-      .eq("class_user.class_id", classId)
-      .eq("class_user.is_deleted", false)
-      .eq("class_user.role", "student");
+   /** 
+     * STEP 1: Get the list of Student IDs currently in this class.
+     */
+   const { data: members, error: memberError } = await this.supabase
+    .from("class_user")
+    .select("user_id")
+    .eq("class_id", classId)
+    .eq("role", "student")
+    .eq("is_deleted", false);
 
-    if (error) {
-      console.error(
-        "Error fetching results for current class members:",
-        error.message
-      );
-      return;
-    }
+   if (memberError) {
+    console.error("Error fetching class members:", memberError.message);
+    return [];
+   }
 
-    return data ?? [];
+   // Extract the IDs into an array
+   const studentIds = members?.map((m) => m.user_id) || [];
+
+   // If there are no students in the class, there are no results to fetch
+   if (studentIds.length === 0) return [];
+
+   /**
+    * STEP 2: Fetch results only for those students and assignments.
+    */
+   const { data, error } = await this.supabase
+    .from("result")
+    .select("*")
+    .in("assignment_id", assignmentIds)
+    .in("student_id", studentIds)
+    .eq("is_deleted", false);
+
+   if (error) {
+    console.error("Error fetching results:", error.message);
+    return [];
+   }
+   return data ?? [];
   }
   async getLastAssignmentsForRecommendations(
     classId: string
