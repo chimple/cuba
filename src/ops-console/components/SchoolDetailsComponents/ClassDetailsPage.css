@@ -111,3 +111,15 @@
   border: 1px solid #e5e7eb;
   border-radius: 5px;
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

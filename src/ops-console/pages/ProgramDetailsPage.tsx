@@ -142,7 +142,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   }
 
   return (
-    <div className="program-detail-page">
+    <div className="program-detail-page copy-text">
       <div className="program-detail-page-header">
         <div className="program-detail-page-header-title">
           {data.programDetails.find((d) => d.label === "Program Name")?.value}
@@ -254,7 +254,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                     </Typography>
                   </Box>
 
-                  <Button variant="contained" fullWidth>
+                  <Button variant="contained" className="no-copy" fullWidth>
                     {t("View Detailed Analytics")}
                   </Button>
                 </Box>
@@ -290,6 +290,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                   <Button
                     variant="contained"
                     fullWidth
+                    className="no-copy"
                     onClick={() =>
                       history.push(
                         `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/${id}`

@@ -812,6 +812,7 @@ const handleTeacherSubmit = useCallback(
               src="/assets/icons/Interact.svg"
               alt="Interact"
               style={{ width: 30, height: 30 }}
+              className="no-copy"
             />
           </IconButton>
         </Box>
@@ -884,7 +885,7 @@ const handleTeacherSubmit = useCallback(
 
   return (
     // The JSX remains the same
-    <div className="schoolTeachers-pageContainer">
+    <div className="schoolTeachers-pageContainer copy-text">
       <Box className="schoolTeachers-headerActionsRow">
         <Box className="schoolTeachers-titleArea">
           <Typography variant="h5" className="schoolTeachers-titleHeading">
@@ -900,13 +901,14 @@ const handleTeacherSubmit = useCallback(
               <MuiButton
                 variant="outlined"
                 onClick={handleAddNewTeacher}
-                className="schoolTeachers-newTeacherButton-outlined"
+                className="schoolTeachers-newTeacherButton-outlined no-copy"
               >
-                <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+                <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon no-copy" />
                 {!isSmallScreen && t("New Teacher")}
               </MuiButton>
 
               <SearchAndFilter
+                
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
                 filters={filters}

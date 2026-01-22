@@ -130,14 +130,14 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   const InteractionMetricsSection = () => (
     <InfoCard
       title={t("Interaction Metrics")}
-      className="interaction-card"
+      className="interaction-card copy-text"
       hideDivider={true}
       headerAction={
         !isMobile ? (
           <Button
             size="small"
             variant="outlined"
-            className="schooloverview-view-all-interactions-btn"
+            className="schooloverview-view-all-interactions-btn no-copy"
             sx={{ textTransform: "none" }}
             onClick={() =>
               history.replace(
@@ -154,7 +154,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       <Grid container spacing={2} mt={0.5}>
         {interactionItems.map((item, idx) => (
           <Grid key={idx} size={{ xs: 6, sm: 6, md: 4 }}>
-            <Box className="schooloverview-interaction-item">
+            <Box className="schooloverview-interaction-item copy-text">
               <Typography
                 variant="body2"
                 color="text.secondary"
@@ -221,15 +221,15 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   );
 
   return (
-    <div className="school">
+    <div className="school copy-text">
       {isMobile ? (
-        <Box className="column-container">
+        <Box className="column-container copy-text">
           <InteractionMetricsSection />
           <InfoCard
             title={t("School Performance")}
             className="performance-card"
           >
-            <Box className="info-card-items">
+            <Box className="info-card-items copy-text">
               {schoolPerformanceItems.map((item, idx) => (
                 <Box
                   key={idx}
@@ -246,7 +246,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             <Button
               fullWidth
               size="small"
-              className="full-width-button"
+              className="full-width-button no-copy"
               variant="outlined"
               sx={{ mt: 2, textTransform: "none" }}
             >
@@ -292,7 +292,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           />
           <InfoCard
             title={t("School Details")}
-            className="school-detail-infocard school-card"
+            className="school-detail-infocard school-card no-copy"
             items={schoolDetailsItems}
             showEditIcon={haveAccess}
             onEditClick={() =>
@@ -362,7 +362,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               <Button
                 fullWidth
                 size="small"
-                className="full-width-button"
+                className="full-width-button no-copy"
                 variant="outlined"
                 sx={{ mt: 2, textTransform: "none" }}
               >
@@ -391,7 +391,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 }
               />
               <Box mb={5}>
-                <SubjectCurriculumCard schoolId={data.schoolData?.id} />
+                <SubjectCurriculumCard
+                 schoolId={data.schoolData?.id} />
               </Box>
             </Box>
           </Grid>

@@ -600,7 +600,7 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
       onBack={() => setSelectedClassId(null)}
     />
   ) : (
-    <div className="schoolclass-pageContainer">
+    <div className="schoolclass-pageContainer copy-text">
       <Box className="schoolclass-headerActionsRow">
         <Box className="schoolclass-titleArea">
           <Typography variant="h5" className="schoolclass-titleHeading">

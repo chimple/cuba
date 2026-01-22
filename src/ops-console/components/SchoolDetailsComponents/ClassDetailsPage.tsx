@@ -164,7 +164,7 @@ const ClassDetailsPage: React.FC<Props> = ({
   };
 
   return (
-  <Box className="classdetailspage-root">
+  <Box className="classdetailspage-root copy-text">
     {/* Header row: Back button (left) and Add Notes (right) */}
     <Box className="classdetailspage-header">
       <Button

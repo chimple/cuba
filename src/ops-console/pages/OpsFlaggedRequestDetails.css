@@ -253,3 +253,15 @@
   visibility: visible;
   opacity: 1;
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

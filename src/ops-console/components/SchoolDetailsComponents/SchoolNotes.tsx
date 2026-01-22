@@ -176,7 +176,7 @@ const SchoolNotes: React.FC = () => {
   return (
     <div
       id="school-notes-panel"
-      className="school-notes-panel"
+      className="school-notes-panel copy-text"
     >
       {error && (
         <div

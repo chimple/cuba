@@ -131,7 +131,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       setIsChangingGroup(false);
     } catch (err) {
       console.error(err);
-      setError(t("Something went wrong. Please try again."));
+      setError(t("Something went wrong. Please try again."))
     } finally {
       setLoading(false);
     }
@@ -146,7 +146,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   return (
     <>
       <Card variant="outlined" className="wa-info-card">
-        <CardContent className="wa-info-card-content">
+        <CardContent className="wa-info-card-content copy-text">
           <Typography variant="h6" fontWeight={700} gutterBottom>
             {t("WhatsApp Information")}
           </Typography>
@@ -164,7 +164,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
               </div>
             ) : (
               <>
-                <img src="/assets/icons/SignCircleIcon.svg" alt="Connected" />
+                <img src="/assets/icons/SignCircleIcon.svg" className="no-copy" alt="Connected" />
                 <Typography variant="body2" color="green">
                   {t("WhatsApp Group Connected")}
                 </Typography>
@@ -176,7 +176,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
               {isChangingGroup ? t("Add an Invite Link") : t("Group Name")}
             </Typography>
 
-            <Box className="wa-input-row">
+            <Box className="wa-input-row no-copy">
               {isChangingGroup && (
                 <WhatsAppInviteLinkInput
                   inviteInput={inviteInput}
@@ -244,7 +244,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   </Box>
 
                   <button
-                    className="wa-change-btn"
+                    className="wa-change-btn no-copy"
                     onClick={openChangeGroupPopup}
                   >
                     {t("Change")}

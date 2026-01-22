@@ -65,7 +65,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
     <Stack
       direction="row"
       spacing={isPortraitMobile ? 1 : 2}
-      className="search-filter-container-SearchAndFilter"
+      className="search-filter-container-SearchAndFilter no-copy"
       alignItems="center"
     >
       {isPortraitMobile ? (

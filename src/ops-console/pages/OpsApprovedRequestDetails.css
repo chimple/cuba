@@ -163,3 +163,15 @@
     font-size: 0.98rem;
   }
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

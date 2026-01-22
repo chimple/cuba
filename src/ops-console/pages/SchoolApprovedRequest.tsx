@@ -9,6 +9,7 @@ import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/Sch
 import Breadcrumb from "../components/Breadcrumb";
 import ApprovedDetails from "../components/SchoolRequestComponents/ApprovedDetails";
 
+
 const SchoolApprovedRequest: React.FC = () => {
   const history = useHistory();
   const location = useLocation();

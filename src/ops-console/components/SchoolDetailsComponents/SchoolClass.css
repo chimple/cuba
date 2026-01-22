@@ -243,3 +243,16 @@
   align-items: center;
   justify-content: center;
 }
+
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

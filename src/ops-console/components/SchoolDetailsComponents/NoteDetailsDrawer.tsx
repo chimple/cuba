@@ -114,7 +114,7 @@ if (note.media_links) {
         BackdropProps: { style: { backgroundColor: "rgba(0,0,0,0.45)" } },
       }}
       PaperProps={{
-        className: "note-details-drawer-paper",
+        className: "note-details-drawer-paper copy-text",
       }}
     >
       {/* Header */}
@@ -152,7 +152,7 @@ if (note.media_links) {
       </div>
 
       {/* Media Section */}
-      <div className="note-details-drawer-media-container" id="note-details-drawer-media-container">
+      <div className="note-details-drawer-media-container no-copy" id="note-details-drawer-media-container">
         <MediaDisplay
           id="note-details-drawer-media-section"
           label={t("Attached Media")}

@@ -1312,7 +1312,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   ];
 
   return (
-    <div className="schoolStudents-pageContainer">
+    <div className="schoolStudents-pageContainer copy-text">
       <FormCard
         open={isAddStudentModalOpen}
         title={

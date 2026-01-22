@@ -100,7 +100,7 @@ const StudentRejectedRequestDetails = () => {
   const requestedBy = requestDetails.requestedBy || {};
 
   return (
-    <div className="ops-rejected-request-details-layout">
+    <div className="ops-rejected-request-details-layout copy-text">
       <Typography
         variant="h4"
         className="ops-rejected-request-details-page-title"

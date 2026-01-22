@@ -302,3 +302,15 @@ html {
 .student-pending-request-details-divider-spacing {
   margin-top: 15px !important;
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

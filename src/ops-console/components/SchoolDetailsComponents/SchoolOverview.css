@@ -55,3 +55,15 @@
   border: 1px solid #1976d2;
   text-transform: none;
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

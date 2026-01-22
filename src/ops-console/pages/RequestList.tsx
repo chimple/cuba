@@ -640,7 +640,7 @@ const RequestList: React.FC = () => {
   };
 
   return (
-    <div className="request-list-ion-page">
+    <div className="request-list-ion-page copy-text">
       <div className="request-list-main-container">
         <div className="request-list-page-header">
           <span className="request-list-page-header-title">

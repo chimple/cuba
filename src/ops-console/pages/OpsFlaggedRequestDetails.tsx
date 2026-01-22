@@ -432,7 +432,7 @@ const OpsFlaggedRequestDetails = () => {
   const flaggedBy = (requestDetails as any).respondedBy || {};
 
   return (
-    <div className="ops-flagged-request-details-layout">
+    <div className="ops-flagged-request-details-layout copy-text">
       <Typography
         variant="h4"
         className="ops-flagged-request-details-page-title"
@@ -802,7 +802,7 @@ const OpsFlaggedRequestDetails = () => {
             <Button
               variant="outlined"
               color="error"
-              className="ops-flagged-request-details-cancel-btn"
+              className="ops-flagged-request-details-cancel-btn no-copy"
               onClick={handleCancel}
               disabled={isApproving}
             >
@@ -811,7 +811,7 @@ const OpsFlaggedRequestDetails = () => {
             <Button
               variant="contained"
               color="success"
-              className="ops-flagged-request-details-approve-btn"
+              className="ops-flagged-request-details-approve-btn no-copy"
               onClick={handleApprove}
               disabled={isApproving || isLoading}
             >

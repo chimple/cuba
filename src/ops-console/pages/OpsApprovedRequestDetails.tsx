@@ -120,7 +120,7 @@ const OpsApprovedRequestDetails = () => {
       : requestedBy?.email;
 
   return (
-    <div className="ops-approved-request-details-layout">
+    <div className="ops-approved-request-details-layout copy-text">
       <Typography
         variant="h4"
         className="ops-approved-request-details-page-title"

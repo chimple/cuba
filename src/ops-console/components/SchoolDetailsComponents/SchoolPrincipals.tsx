@@ -304,6 +304,7 @@ const handlePrincipalSubmit = useCallback(
               src="/assets/icons/Interact.svg"
               alt="Interact"
               style={{ width: 30, height: 30 }}
+              className="no-copy"
             />
           </IconButton>
         </Box>
@@ -324,7 +325,7 @@ const handlePrincipalSubmit = useCallback(
   ];
 
   return (
-    <div className="school-principals-page-container">
+    <div className="school-principals-page-container copy-text">
       <Box className="school-principals-headerActionsRow">
         <Box className="school-principals-titleArea">
           <Typography variant="h5" className="school-principals-titleHeading">
@@ -341,7 +342,7 @@ const handlePrincipalSubmit = useCallback(
               onClick={handleAddNewPrincipal}
               className="school-principals-newTeacherButton-outlined"
             >
-              <AddIcon className="school-principals-newTeacherButton-outlined-icon" />
+              <AddIcon className="school-principals-newTeacherButton-outlined-icon no-copy" />
               {!isMobile && t("New Principal")}
             </MuiButton>
           )}

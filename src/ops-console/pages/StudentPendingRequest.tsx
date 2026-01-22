@@ -243,7 +243,7 @@ const StudentPendingRequestDetails = () => {
 
   return (
     <>
-      <div className="student-pending-request-details-layout">
+      <div className="student-pending-request-details-layout copy-text">
         <Typography
           variant="h4"
           className="student-pending-request-details-page-title"
@@ -360,7 +360,7 @@ const StudentPendingRequestDetails = () => {
                 variant="contained"
                 color="error"
                 size="large"
-                className="student-pending-request-details-remove-button"
+                className="student-pending-request-details-remove-button no-copy"
                 onClick={handleRemoveClick}
               >
                 {t("Remove")}
@@ -369,7 +369,7 @@ const StudentPendingRequestDetails = () => {
                 variant="contained"
                 color="success"
                 size="large"
-                className="student-pending-request-details-approve-button"
+                className="student-pending-request-details-approve-button no-copy"
                 onClick={handleConfirmApprove}
                 disabled={loading || !requestData?.id}
               >

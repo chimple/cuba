@@ -13,7 +13,7 @@ interface RequestFromCardProps {
 
 const RequestFromCard: React.FC<RequestFromCardProps> = ({ requestedBy }) => {
   return (
-    <Paper className="request-from-card" elevation={0}>
+    <Paper className="request-from-card copy-text" elevation={0}>
       <Typography variant="subtitle1" className="request-from-title">
         {t("Request From")}
       </Typography>

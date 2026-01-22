@@ -38,3 +38,15 @@
   margin-right: 8px;
   margin-left: -4px;
 }
+
+.copy-text, .copy-text * {
+  user-select: text !important;
+}
+
+.no-copy {
+  user-select: none !important;
+}
+
+.no-copy * {
+  user-select: none !important;
+}

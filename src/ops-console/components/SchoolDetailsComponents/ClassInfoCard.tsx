@@ -93,7 +93,7 @@ const ClassInfoCard: React.FC<Props> = ({
   const classLabel = classRow?.name;
 
   return (
-    <Card className="classinfocard-cic-card">
+    <Card className="classinfocard-cic-card copy-text">
       <CardContent className="classinfocard-cic-card-content">
         <Typography
           className="classinfocard-cic-title"
