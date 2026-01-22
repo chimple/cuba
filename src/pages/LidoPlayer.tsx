@@ -74,7 +74,8 @@ const LidoPlayer: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent()!;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
-
+  const user_id = sessionStorage.getItem("AuthUser.id");
+  console.log("Current User ID:", user_id);
   const contextRef = useRef({
     classId: undefined as string | undefined,
     schoolId: undefined as string | undefined,

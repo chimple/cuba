@@ -454,7 +454,8 @@ export class OneRosterApi implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    user_id?: string | undefined,
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }

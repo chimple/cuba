@@ -549,7 +549,8 @@ export class ApiHandler implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined
+    activities_scores?: string | undefined,
+    user_id?: string | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -575,7 +576,8 @@ export class ApiHandler implements ServiceApi {
       domain_ability,
       subject_id,
       subject_ability,
-      activities_scores
+      activities_scores,
+      user_id
     );
   }
 

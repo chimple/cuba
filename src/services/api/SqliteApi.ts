@@ -2355,7 +2355,8 @@ export class SqliteApi implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined
+    activities_scores?: string | undefined,
+    user_id?: string | undefined,
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2399,6 +2400,7 @@ export class SqliteApi implements ServiceApi {
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
+      user_id: user_id ?? null,
     };
 
     const res = await this.executeQuery(
