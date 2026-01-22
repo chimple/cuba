@@ -640,6 +640,7 @@ export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 // export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
 export const SEARCH_LESSON_HISTORY = "search_lesson_history";
+export const SEARCH_LESSON_CACHE_KEY = "search_lesson_last_state";
 export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
