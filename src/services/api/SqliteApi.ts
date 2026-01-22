@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -363,7 +363,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch { }
+        } catch {}
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -569,7 +569,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) { }
+              } catch (beginErr) {}
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -587,7 +587,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) { }
+                } catch (rbErr) {}
               }
               throw chunkErr;
             }
@@ -2156,17 +2156,20 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${langId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-        : ""
+      ${
+        langId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+          : ""
       }
-      ${localeId
-        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        localeId
+          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+          : ""
       }
-      ${langId && localeId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        langId && localeId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+          : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2454,7 +2457,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -2631,10 +2634,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         updated_at = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     const now = new Date().toISOString();
-    await this.executeQuery(updateUserQuery, [
+    const params = [
       name,
       age,
       gender,
@@ -2645,8 +2649,13 @@ export class SqliteApi implements ServiceApi {
       languageDocId,
       localeId,
       now,
-      student.id,
-    ]);
+    ];
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      params.push(null);
+    }
+    params.push(student.id);
+    await this.executeQuery(updateUserQuery, params);
 
     let courses;
     if (gradeDocId && boardDocId) {
@@ -2663,6 +2672,10 @@ export class SqliteApi implements ServiceApi {
     student.language_id = languageDocId;
     student.locale_id = localeId;
     student.updated_at = now;
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    if (languageChanged) {
+      student.learning_path = null;
+    }
 
     if (courses && courses.length > 0) {
       const now = new Date().toISOString();
@@ -2706,7 +2719,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    const pushChangesData: any = {
       name: name,
       age: age,
       gender: gender,
@@ -2718,7 +2731,12 @@ export class SqliteApi implements ServiceApi {
       locale_id: localeId,
       updated_at: now,
       id: student.id,
-    });
+    };
+    // Include learning_path in push changes when language changes
+    if (languageChanged) {
+      pushChangesData.learning_path = null;
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
     return student;
   }
 
@@ -2772,10 +2790,11 @@ export class SqliteApi implements ServiceApi {
         language_id = ?,
         locale_id = ?,
         student_id = ?
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
     try {
-      await this.executeQuery(updateUserQuery, [
+      const params = [
         name,
         age,
         gender,
@@ -2786,8 +2805,13 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-        student.id,
-      ]);
+      ];
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        params.push(null);
+      }
+      params.push(student.id);
+      await this.executeQuery(updateUserQuery, params);
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2798,7 +2822,11 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+      if (languageChanged) {
+        student.learning_path = null;
+      }
+      const pushChangesData: any = {
         name,
         age,
         gender,
@@ -2810,7 +2838,12 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         locale_id: localeId,
         id: student.id,
-      });
+      };
+      // Include learning_path in push changes when language changes
+      if (languageChanged) {
+        pushChangesData.learning_path = null;
+      }
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
       // Check if the class has changed
       const currentClassIdQuery = `
         SELECT class_id FROM class_user
@@ -3001,9 +3034,19 @@ export class SqliteApi implements ServiceApi {
         AND is_deleted = 0
         AND (
           (language_id IS NULL AND locale_id IS NULL)
-          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""}
-          ${localeId ? `OR (language_id IS NULL AND locale_id = "${localeId}")` : ""}
-          ${langId && localeId ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")` : ""}
+          ${
+            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
+          }
+          ${
+            localeId
+              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+              : ""
+          }
+          ${
+            langId && localeId
+              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+              : ""
+          }
         )
       ORDER BY sort_index ASC
       `,
@@ -6353,34 +6396,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6466,34 +6509,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null, // Assuming these fields are nullable or have default values in your User table type
-          avatar: null,
-          created_at: new Date().toISOString(), // Example, adjust if you fetch this
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6576,10 +6619,7 @@ order by
       const parentRows = parentRes?.values ?? [];
       return parentRows;
     } catch (error) {
-      console.error(
-        "Error fetching parents by student ID",
-        error
-      );
+      console.error("Error fetching parents by student ID", error);
       return [];
     }
   }
@@ -7757,12 +7797,13 @@ order by
       [skillId]
     );
 
-    return res?.values && res.values.length > 0
-      ? res.values[0]
-      : undefined;
+    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
   }
 
-  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+  async updateSchoolProgram(
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
   async getLatestAssessmentGroup(
@@ -7826,15 +7867,14 @@ order by
   `;
 
     const fetchRes = await this._db?.query(fetchQuery);
-    const assignments =
-      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
 
     if (!assignments.length) return [];
 
     /* ===============================
      * QUERY 2️⃣ : Pending result check
      * =============================== */
-    const assignmentIds = assignments.map(a => `'${a.id}'`).join(",");
+    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
 
     const completionQuery = `
     SELECT COUNT(*) AS pending_count
@@ -7849,8 +7889,7 @@ order by
   `;
 
     const completionRes = await this._db?.query(completionQuery);
-    const pendingCount =
-      completionRes?.values?.[0]?.pending_count ?? 0;
+    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
 
     if (pendingCount === 0) return [];
 
@@ -7874,13 +7913,11 @@ order by
 
         // same priority → latest first
         return (
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       });
     }
 
     return assignments;
   }
-
 }
