@@ -327,16 +327,21 @@ const LidoPlayer: FC = () => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent()!;
     try {
+      const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-        localStorage.removeItem(
-          `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`
+        const key = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;
+        const failMap: Record<string, boolean> = JSON.parse(
+          localStorage.getItem(key) || "{}",
         );
+        delete failMap[courseDetail?.id ?? courseDocId ?? ""];
+        Object.keys(failMap).length === 0
+          ? localStorage.removeItem(key)
+          : localStorage.setItem(key, JSON.stringify(failMap));
         await exitLidoGame();
         return;
       }
       const api = ServiceConfig.getI().apiHandler;
-      const courseDocId: string | undefined = state.courseDocId;
       const lesson: Lesson = JSON.parse(state.lesson);
       const assignment = state.assignment;
       const skillId: string | undefined = state.skillId;
@@ -630,7 +635,7 @@ const LidoPlayer: FC = () => {
     setIsReady(false);
     setShowDialogBox(false);
     // --- CRITICAL FIX: Clear the global variable pollution ---
-    // This ensures that when the new player starts, it doesn't see the 
+    // This ensures that when the new player starts, it doesn't see the
     // path from the PREVIOUS student's language.
     if (typeof window !== "undefined") {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
@@ -701,11 +706,11 @@ const LidoPlayer: FC = () => {
       )}
       {isReady && (xmlPath || basePath)
         ? React.createElement("lido-standalone", {
-          "xml-path": xmlPath,
-          "base-url": basePath,
-          "code-folder-path": "/Lido-player-code-versions",
-          "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
-        })
+            "xml-path": xmlPath,
+            "base-url": basePath,
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
+          })
         : null}
     </IonPage>
   );
