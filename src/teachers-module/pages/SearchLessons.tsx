@@ -4,7 +4,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import Header from "../components/homePage/Header";
 import { IonSearchbar } from "@ionic/react";
 import { useHistory } from "react-router";
-import { PAGES, TableTypes, AssignmentSource, SEARCH_LESSON_HISTORY } from "../../common/constants";
+import { PAGES, TableTypes, AssignmentSource, SEARCH_LESSON_HISTORY, SEARCH_LESSON_CACHE_KEY } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import LessonComponent from "../components/library/LessonComponent";
 import AssigmentCount from "../components/library/AssignmentCount";
@@ -29,6 +29,7 @@ const SearchLesson: React.FC = ({}) => {
   const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
     new Map()
   );
+  const hasRestoredRef = useRef(false);
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -53,9 +54,44 @@ const SearchLesson: React.FC = ({}) => {
   }, []);
 
   useEffect(() => {
+
+    if (!hasRestoredRef.current) return;
+
+    const cache = {
+      searchTerm,
+      lessons,
+    };
+
+    localStorage.setItem(SEARCH_LESSON_CACHE_KEY, JSON.stringify(cache));
+  }, [searchTerm, lessons]);
+
+  useEffect(() => {
     if (inputEl.current) {
       inputEl.current.setFocus();
     }
+
+    const cached = localStorage.getItem(SEARCH_LESSON_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        const cachedTerm = parsed.searchTerm ?? "";
+        const cachedLessons = parsed.lessons ?? [];
+
+        if (cachedTerm) {
+          setSearchTerm(cachedTerm);
+          setLessons(cachedLessons);
+          setShowHistory(false);
+        } else {
+          setShowHistory(true);
+        }
+      } catch (e) {
+        console.error("Failed to restore search lesson cache", e);
+      }
+    } else {
+      setShowHistory(true);
+    }
+
+    hasRestoredRef.current = true;
     init();
   }, []);
 

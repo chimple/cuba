@@ -671,9 +671,16 @@ const handleTeacherSubmit = useCallback(
       }
 
       const email = (values.email ?? "").toString().trim().toLowerCase();
-      const normalizedPhone = normalizePhone10(rawPhone);
       const hasEmail = !!email;
-      const hasPhone = !!normalizedPhone;
+
+      const normalizedPhone = normalizePhone10(rawPhone);
+
+      const digitsOnly = rawPhone.replace(/\D/g, "");
+      const hasPhone = digitsOnly.length > 10;
+
+      const localPhone = hasPhone
+        ? digitsOnly.slice(-10)
+        : "";
 
       let finalEmail = "";
       let finalPhone = "";
@@ -687,7 +694,7 @@ const handleTeacherSubmit = useCallback(
       }
 
       if (hasPhone) {
-        if (normalizedPhone.length !== 10) {
+        if (localPhone.length !== 10) {
           setErrorMessage({ text: t("Phone number must be 10 digits."), type: "error" });
           return;
         }
