@@ -2158,18 +2158,18 @@ export class SqliteApi implements ServiceApi {
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
       ${
         langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ""
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
       ${
         localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ""
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
       ${
         langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ""
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -3036,17 +3036,17 @@ export class SqliteApi implements ServiceApi {
           (language_id IS NULL AND locale_id IS NULL)
           ${
             langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
-          }
+      }
           ${
             localeId
-              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
-              : ""
-          }
+        ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+        : ""
+      }
           ${
             langId && localeId
-              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
-              : ""
-          }
+        ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+        : ""
+      }
         )
       ORDER BY sort_index ASC
       `,
@@ -7705,16 +7705,22 @@ order by
 
       // 3️⃣ Fetch lessons (LANGUAGE ONLY)
       const lessonQuery = `
-      SELECT sl.*
-      FROM subject_lesson sl
-      WHERE sl.subject_id = ?
-        AND sl.set_number = ?
-        AND sl.is_deleted = 0
-        AND (
-          sl.language_id IS NULL
-          OR sl.language_id = ?
-        );
-    `;
+  SELECT sl.*
+  FROM subject_lesson sl
+  WHERE sl.subject_id = ?
+    AND sl.set_number = ?
+    AND sl.is_deleted = 0
+    AND (
+      sl.language_id = ?
+      OR sl.language_id IS NULL
+    )
+  ORDER BY
+    CASE
+      WHEN sl.language_id = ? THEN 0
+      WHEN sl.language_id IS NULL THEN 1
+    END,
+    sl.sort_index ASC;
+`;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
         subjectId,
@@ -7878,8 +7884,7 @@ order by
   `;
 
     const fetchRes = await this._db?.query(fetchQuery);
-    const assignments =
-      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
 
     if (!assignments.length) return [];
 
@@ -7901,8 +7906,7 @@ order by
   `;
 
     const completionRes = await this._db?.query(completionQuery);
-    const pendingCount =
-      completionRes?.values?.[0]?.pending_count ?? 0;
+    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
 
     if (pendingCount === 0) return [];
 
@@ -7932,35 +7936,4 @@ order by
     }
     return assignments;
   }
-  async getWhatsappGroupDetails(groupId: string, bot: string) {
-    return this._serverApi.getWhatsappGroupDetails(groupId, bot);
-  }
-  async getGroupIdByInvite(invite_link: string, bot: string) {
-    return await this._serverApi.getGroupIdByInvite(invite_link, bot);
-  }
-  async getPhoneDetailsByBotNum(bot: string) {
-    return await this._serverApi.getPhoneDetailsByBotNum(bot);
-  }
-  async updateWhatsAppGroupSettings(
-    chatId: string,
-    phone: string,
-    name: string,
-    messagesAdminsOnly?: boolean,
-    infoAdminsOnly?: boolean,
-    addMembersAdminsOnly?: boolean
-  ): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-  async getWhatsAppGroupByInviteLink(
-    inviteLink: string,
-    bot: string,
-    classId: string
-  ): Promise<{
-    group_id: string;
-    group_name: string;
-    members: number;
-  } | null> {
-    throw new Error("Method not implemented.");
-  }
 }
-

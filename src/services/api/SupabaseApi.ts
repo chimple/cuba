@@ -344,7 +344,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          [],
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -468,7 +468,7 @@ export class SupabaseApi implements ServiceApi {
                   "🔄 [Fallback] Realtime update:",
                   status,
                   "ID:",
-                  id,
+                  id
                 );
                 if (
                   (status === "success" || status === "failed") &&
@@ -477,11 +477,11 @@ export class SupabaseApi implements ServiceApi {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
                   console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`,
+                    `✅ / ❌ Fallback resolved with status: ${status}`
                   );
                   resolve(status === "success");
                 }
-              },
+              }
             )
             .subscribe()
         : null;
@@ -7625,7 +7625,7 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
               )
             : [];
         }
@@ -7674,7 +7674,7 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
               )
             : [];
         }
@@ -11007,7 +11007,7 @@ export class SupabaseApi implements ServiceApi {
         id,
         is_deleted
       )
-    `,
+    `
       )
       .eq("class_id", classId)
       .eq("type", "assessment")
@@ -11091,128 +11091,14 @@ export class SupabaseApi implements ServiceApi {
      * STEP 5️⃣ : Final filter
      * =============================== */
     const validLessonIds = new Set(
-      subjectLessons.filter((sl) => sl.lesson_id).map((sl) => sl.lesson_id),
+      subjectLessons.filter((sl) => sl.lesson_id).map((sl) => sl.lesson_id)
     );
 
     const finalAssignments = batchFiltered.filter((a) =>
-      validLessonIds.has(a.lesson_id),
+      validLessonIds.has(a.lesson_id)
     );
 
     return finalAssignments as TableTypes<"assignment">[];
   }
-  async getWhatsappGroupDetails(groupId: string, bot: string) {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      "get-whatsapp-group-details",
-      {
-        body: { groupId, bot },
-      },
-    );
 
-    if (error) {
-      throw error;
-    }
-
-    return data.data;
-  }
-  async getGroupIdByInvite(invite_link: string, bot: string) {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      "get-groupId-by-invite",
-      {
-        body: { invite_link, bot },
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-    return data;
-  }
-
-  async getPhoneDetailsByBotNum(bot: string) {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      "get-phoneDetails-by-botNum",
-      {
-        body: { bot },
-      },
-    );
-
-    if (error) {
-      throw error;
-    }
-    return data;
-  }
-
-  async updateWhatsAppGroupSettings(
-    chatId: string,
-    phone: string,
-    name: string,
-    messagesAdminsOnly?: boolean,
-    infoAdminsOnly?: boolean,
-    addMembersAdminsOnly?: boolean,
-  ): Promise<boolean> {
-    if (!this.supabase) return false;
-
-    const { data, error } = await this.supabase.functions.invoke(
-      "edit-whatsapp-group-details",
-      {
-        body: {
-          chatId,
-          phone,
-          name,
-          messagesAdminsOnly,
-          infoAdminsOnly,
-          addMembersAdminsOnly,
-        },
-      },
-    );
-
-    return Boolean(data?.success && !error);
-  }
-  async getWhatsAppGroupByInviteLink(
-    inviteLink: string,
-    bot: string,
-    classId: string,
-  ): Promise<{
-    group_id: string;
-    group_name: string;
-    members: number;
-  } | null> {
-    if (!this.supabase) return null;
-
-    const { data, error } = await this.supabase.functions.invoke(
-      "get-groupId-by-invite",
-      {
-        body: {
-          invite_link: inviteLink,
-          bot,
-        },
-      },
-    );
-
-    if (error || !data?.success) {
-      console.error("Invite lookup failed", error || data);
-      return null;
-    }
-
-    const groupId = data.group_id;
-
-    // Update class table with group_id and updated_at
-    const { error: updateError } = await this.supabase
-      .from(TABLES.Class)
-      .update({
-        group_id: groupId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", classId);
-
-    if (updateError) {
-      console.error("Failed to update class with group_id", updateError);
-      return null;
-    }
-
-    return data;
-  }
 }
