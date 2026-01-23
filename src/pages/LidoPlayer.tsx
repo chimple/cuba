@@ -256,16 +256,6 @@ const LidoPlayer: FC = () => {
 
   const exitLidoGame = async (isAborted: boolean = false) => {
     setIsLoading(true);
-    Util.logEvent(
-      isAborted ? EVENTS.ASSESSMENT_ABORTED : EVENTS.ASSESSMENT_COMPLETED,
-      {
-        user_id: currentStudent.id,
-        lesson_id: lesson.id,
-        course_id: courseDocId,
-        is_assessment: isAssessmentLesson,
-        played_from: playedFrom,
-      }
-    );
     await processStoredResults(isAborted);
     setShowDialogBox(true);
     setIsLoading(false);
@@ -273,7 +263,6 @@ const LidoPlayer: FC = () => {
 
   const onActivityEnd = async (e: any) => {
     const { score } = e.detail;
-
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
     const existingData = localStorage.getItem(LIDO_SCORES_KEY);
@@ -308,7 +297,17 @@ const LidoPlayer: FC = () => {
       const courseKey = courseDetail?.id ?? courseDocId ?? "";
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
-      await exitLidoGame(true); // aborted
+      await exitLidoGame(true);
+      Util.logEvent(
+        EVENTS.ASSESSMENT_ABORTED,
+        {
+          user_id: currentStudent.id,
+          lesson_id: lesson.id,
+          course_id: courseDocId,
+          is_assessment: isAssessmentLesson,
+          played_from: playedFrom,
+        }
+      );// aborted
       return;
     }
     if (failStreak >= 4) {
@@ -316,6 +315,16 @@ const LidoPlayer: FC = () => {
       localStorage.setItem(failKey, JSON.stringify(failMap));
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
+       Util.logEvent(
+        EVENTS.ASSESSMENT_ABORTED,
+        {
+          user_id: currentStudent.id,
+          lesson_id: lesson.id,
+          course_id: courseDocId,
+          is_assessment: isAssessmentLesson,
+          played_from: playedFrom,
+        }
+      );// aborted
       await exitLidoGame(); // skipped
     }
   };
@@ -327,6 +336,16 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
+         Util.logEvent(
+        EVENTS.ASSESSMENT_COMPLETED,
+        {
+          user_id: currentStudent.id,
+          lesson_id: lessonData.id,
+          course_id: courseDocId,
+          is_assessment: isAssessmentLesson,
+          played_from: playedFrom,
+        }
+      );// aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
