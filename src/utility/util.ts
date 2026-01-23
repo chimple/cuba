@@ -3643,7 +3643,6 @@ export class Util {
         console.warn("[LidoCommonAudio] No audio config found");
         return;
       }
-
       await Util.downloadLidoCommonAudio(
         audioConfig.lido_common_audio_url,
         student.language_id
@@ -3652,4 +3651,29 @@ export class Util {
       console.error("[LidoCommonAudio] ensure failed:", err);
     }
   }
+static async removeCourseScopedKey(
+  baseKey: string,
+  userId: string,
+  courseId: string
+) {
+  if (!baseKey || !userId || !courseId) return;
+
+  const storageKey = `${baseKey}_${userId}`;
+
+  let map: Record<string, any> = {};
+  try {
+    map = JSON.parse(localStorage.getItem(storageKey) || "{}");
+  } catch {
+    map = {};
+  }
+
+  if (!map || typeof map !== "object") return;
+
+  delete map[courseId];
+
+  Object.keys(map).length === 0
+    ? localStorage.removeItem(storageKey)
+    : localStorage.setItem(storageKey, JSON.stringify(map));
+}
+
 }
