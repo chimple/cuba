@@ -689,8 +689,8 @@ const LidoPlayer: FC = () => {
         console.error("Could not get common audio path", e);
       }
     } else {
-      const path = `/assets/lessonBundles/${lessonId}/`
-      setBasePath(path);
+      const path = "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      setXmlPath(path);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
