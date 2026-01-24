@@ -2997,7 +2997,6 @@ export class Util {
     try {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
-
       let activeCourse = courses.courseList[courses.currentCourseIndex];
       let activePathItem = activeCourse.path[activeCourse.currentIndex];
 
@@ -3060,22 +3059,37 @@ export class Util {
             !isAborted &&
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
-            const courses = learningPath.courses.courseList.map((c: any) => ({
-              id: c.course_id,
-              subject_id: c.subject_id,
-              framework_id:
-                c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-            }));
+            const courseIndex = learningPath.courses.courseList.findIndex(
+              (c: any) => c.course_id === currentCourse.course_id
+            );
+
+            if (courseIndex === -1) return;
+            const courses = learningPath.courses.courseList
+              .filter((c: any) => c.course_id === currentCourse.course_id)
+              .map((c: any) => ({
+                id: c.course_id,
+                subject_id: c.subject_id,
+                framework_id:
+                  c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+              }));
 
             const rebuiltPath = await buildInitialLearningPath(
               storedPathwayMode,
               courses,
               currentStudent
             );
-
+            const rebuiltCourse = rebuiltPath.courses.courseList[0];
+            if (!rebuiltCourse) return;
+            // 3️⃣ Replace ONLY that course
+            learningPath.courses.courseList[courseIndex] = {
+              ...learningPath.courses.courseList[courseIndex],
+              ...rebuiltCourse,
+            };
+            // 4️⃣ Keep pointer correct
+            learningPath.courses.currentCourseIndex = courseIndex;
             await ServiceConfig.getI().apiHandler.updateLearningPath(
               currentStudent,
-              JSON.stringify(rebuiltPath),
+              JSON.stringify(learningPath),
               false
             );
 
@@ -3659,29 +3673,29 @@ export class Util {
       console.error("[LidoCommonAudio] ensure failed:", err);
     }
   }
-static async removeCourseScopedKey(
-  baseKey: string,
-  userId: string,
-  courseId: string
-) {
-  if (!baseKey || !userId || !courseId) return;
+  static async removeCourseScopedKey(
+    baseKey: string,
+    userId: string,
+    courseId: string
+  ) {
+    if (!baseKey || !userId || !courseId) return;
 
-  const storageKey = `${baseKey}_${userId}`;
+    const storageKey = `${baseKey}_${userId}`;
 
-  let map: Record<string, any> = {};
-  try {
-    map = JSON.parse(localStorage.getItem(storageKey) || "{}");
-  } catch {
-    map = {};
+    let map: Record<string, any> = {};
+    try {
+      map = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    } catch {
+      map = {};
+    }
+
+    if (!map || typeof map !== "object") return;
+
+    delete map[courseId];
+
+    Object.keys(map).length === 0
+      ? localStorage.removeItem(storageKey)
+      : localStorage.setItem(storageKey, JSON.stringify(map));
   }
-
-  if (!map || typeof map !== "object") return;
-
-  delete map[courseId];
-
-  Object.keys(map).length === 0
-    ? localStorage.removeItem(storageKey)
-    : localStorage.setItem(storageKey, JSON.stringify(map));
-}
 
 }
