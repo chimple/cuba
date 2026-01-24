@@ -55,6 +55,7 @@ import {
   DEFAULT_LOCALE_ID,
   SCHOOL,
   CLASS,
+  LANG_REFRESHED,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -363,7 +364,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch {}
+        } catch { }
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -569,7 +570,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) {}
+              } catch (beginErr) { }
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -587,7 +588,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) {}
+                } catch (rbErr) { }
               }
               throw chunkErr;
             }
@@ -2156,18 +2157,15 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
+      ${langId
         ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
         : ""
       }
-      ${
-        localeId
+      ${localeId
         ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
         : ""
       }
-      ${
-        langId && localeId
+      ${langId && localeId
         ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
         : ""
       }
@@ -2674,7 +2672,8 @@ export class SqliteApi implements ServiceApi {
     student.updated_at = now;
     // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
-      student.learning_path = null;
+      // student.learning_path = null;
+      localStorage.setItem(LANG_REFRESHED, "true");
     }
 
     if (courses && courses.length > 0) {
@@ -2734,7 +2733,8 @@ export class SqliteApi implements ServiceApi {
     };
     // Include learning_path in push changes when language changes
     if (languageChanged) {
-      pushChangesData.learning_path = null;
+      // pushChangesData.learning_path = null;
+      localStorage.setItem(LANG_REFRESHED, "true");
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
     return student;
@@ -3034,16 +3034,13 @@ export class SqliteApi implements ServiceApi {
         AND is_deleted = 0
         AND (
           (language_id IS NULL AND locale_id IS NULL)
-          ${
-            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
+          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
       }
-          ${
-            localeId
+          ${localeId
         ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
         : ""
       }
-          ${
-            langId && localeId
+          ${langId && localeId
         ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
         : ""
       }

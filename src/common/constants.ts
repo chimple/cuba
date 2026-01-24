@@ -1268,3 +1268,4 @@ export const LEARNING_PATHWAY_MODE = {
 };
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
+export const LANG_REFRESHED = "langRefreshed"
