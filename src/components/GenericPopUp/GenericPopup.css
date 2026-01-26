@@ -69,10 +69,35 @@
 /* ================= CONTENT ================= */
 .generic-popup-content {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
   align-items: center;
   width: 100%;
   margin-right: 77px;
+}
+
+/* Top row = 2-column layout */
+.generic-popup-main {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 1rem;
+  margin-right: 0.8rem;
+}
+
+/* Footer row = full width CTA */
+.generic-popup-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: -2rem;
+  margin-left: 2rem;
+}
+
+/* CTA truly auto-sizes now */
+.generic-popup-cta {
+  width: fit-content;     /* 🔥 key fix */
+  min-width: 0;           /* remove hard clamp */
+  padding: 0.6em 1.8em;   /* text-driven width */
+  white-space: nowrap;   /* prevent line break */
 }
 
 /* ================= THUMB ================= */
@@ -91,7 +116,7 @@
 .generic-popup-thumb {
   width: 100%;
   height: 200%;
-  margin-bottom: 57px;
+  margin-bottom: -18px;
 }
 
 /* ================= TEXT ================= */
