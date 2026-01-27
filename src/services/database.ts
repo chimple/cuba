@@ -13,6 +13,83 @@ export type Database = {
     PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
+    graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  pgmq_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      archive: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      delete: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      pop: {
+        Args: { queue_name: string }
+        Returns: unknown[]
+        SetofOptions: {
+          from: "*"
+          to: "message_record"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      read: {
+        Args: { n: number; queue_name: string; sleep_seconds: number }
+        Returns: unknown[]
+        SetofOptions: {
+          from: "*"
+          to: "message_record"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      send: {
+        Args: { message: Json; queue_name: string; sleep_seconds?: number }
+        Returns: number[]
+      }
+      send_batch: {
+        Args: { messages: Json[]; queue_name: string; sleep_seconds?: number }
+        Returns: number[]
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
     Tables: {
       announcement: {
         Row: {
@@ -1424,7 +1501,6 @@ export type Database = {
           check_out_lat: number | null
           check_out_lng: number | null
           created_at: string
-          distance_check_out: string | null
           distance_from_school: number | null
           id: string
           is_deleted: boolean
@@ -1442,7 +1518,6 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
-          distance_check_out?: string | null
           distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
@@ -1460,7 +1535,6 @@ export type Database = {
           check_out_lat?: number | null
           check_out_lng?: number | null
           created_at?: string
-          distance_check_out?: string | null
           distance_from_school?: number | null
           id?: string
           is_deleted?: boolean
@@ -4463,48 +4537,7 @@ export type Database = {
           },
         ]
       }
-      whatsapp_invite_logs: {
-        Row: {
-          bot_phone: string
-          class_id: string
-          error_message: string | null
-          group_id: string
-          id: string
-          is_deleted: boolean
-          phone: string
-          school_udise: string
-          sent_at: string | null
-          status: string
-          type: string | null
-        }
-        Insert: {
-          bot_phone: string
-          class_id: string
-          error_message?: string | null
-          group_id: string
-          id?: string
-          is_deleted?: boolean
-          phone: string
-          school_udise: string
-          sent_at?: string | null
-          status: string
-          type?: string | null
-        }
-        Update: {
-          bot_phone?: string
-          class_id?: string
-          error_message?: string | null
-          group_id?: string
-          id?: string
-          is_deleted?: boolean
-          phone?: string
-          school_udise?: string
-          sent_at?: string | null
-          status?: string
-          type?: string | null
-        }
-        Relationships: []
-      }
+      
       whatsapp_invite_school_status: {
         Row: {
           completed_at: string | null
@@ -4964,6 +4997,120 @@ export type Database = {
           isSetofReturn: true
         }
       }
+
+      sql_get_schools: {
+        Args: { p_updated_at: string }
+        Returns: {
+          academic_year: string | null
+          address: string | null
+          country: string | null
+          created_at: string
+          firebase_id: string | null
+          group1: string | null
+          group2: string | null
+          group3: string | null
+          group4: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          key_contacts: string | null
+          language: string | null
+          location_link: string | null
+          model: Database["public"]["Enums"]["program_model"] | null
+          name: string
+          ops_created_by: string | null
+          program_id: string | null
+          status: Database["public"]["Enums"]["status"] | null
+          student_login_type: Database["public"]["Enums"]["login_type"] | null
+          udise: string | null
+          updated_at: string | null
+          whatsapp_bot_number: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "school"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      sql_get_sticker: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "sticker"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      sql_get_subject: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "subject"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      sql_get_user_badges: {
+        Args: { p_updated_at: string }
+        Returns: {
+          badge_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_badge"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      sql_get_user_bonus: {
+        Args: { p_updated_at: string }
+        Returns: {
+          bonus_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_bonus"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+
       get_client_country_code: { Args: never; Returns: string }
       get_filtered_schools_with_optional_program: {
         Args: {
@@ -6036,6 +6183,26 @@ export type Database = {
           isSetofReturn: true
         }
       }
+       sql_sync_all_2: {
+        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Returns: Json
+      }
+      sql_sync_all_reserarc: {
+        Args: {
+          p_is_first_time?: boolean
+          p_tables?: string[]
+          p_updated_at?: Json
+        }
+        Returns: Json
+      }
+      sql_sync_all2: {
+        Args: {
+          p_is_first_time?: boolean
+          p_tables?: string[]
+          p_updated_at?: Json
+        }
+        Returns: Json
+      }
       sql_get_school_courses: {
         Args: { p_updated_at: string }
         Returns: {
@@ -6077,7 +6244,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
-  
+      
       sql_get_user_courses: {
         Args: { p_updated_at: string }
         Returns: {
@@ -6330,7 +6497,6 @@ export type Database = {
         | "program_manager"
         | "field_coordinator"
       status: "active" | "rejected" | "requested" | "migrated" | "in_active"
-      wa_validate: "yes" | "no"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6456,6 +6622,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  pgmq_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
@@ -6511,7 +6683,6 @@ export const Constants = {
         "field_coordinator",
       ],
       status: ["active", "rejected", "requested", "migrated", "in_active"],
-      wa_validate: ["yes", "no"],
     },
   },
 } as const
