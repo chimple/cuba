@@ -32,6 +32,7 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { palUtil } from "../utility/palUtil";
+import { SupabaseAuth } from "../services/auth/SupabaseAuth";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -175,6 +176,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
+      console.log("Current user.....📺📺📺",_currentUser);
     const data = e.detail as CocosLessonData;
 
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {

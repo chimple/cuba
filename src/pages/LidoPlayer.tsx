@@ -193,6 +193,8 @@ const LidoPlayer: FC = () => {
         const isStudentLinked = await api.isStudentLinked(currentStudent.id);
         let classId;
         let schoolId;
+        const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+        console.log("Current user.....",_currentUser);
         if (isStudentLinked) {
           const studentResult = await api.getStudentClassesAndSchools(
             currentStudent.id
@@ -226,7 +228,8 @@ const LidoPlayer: FC = () => {
           abilityUpdates.domain_ability,
           abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
-          activitiesScoresStr
+          activitiesScoresStr,
+          _currentUser?.id
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -255,6 +258,9 @@ const LidoPlayer: FC = () => {
   };
   const exitLidoGame = async (isAborted: boolean = false) => {
     setIsLoading(true);
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    console.log("Current user.....",_currentUser);
+    const student = await SupabaseAuth.i.getCurrentUser();
     Util.logEvent(
       isAborted ? EVENTS.ASSESSMENT_ABORTED : EVENTS.ASSESSMENT_COMPLETED,
       {

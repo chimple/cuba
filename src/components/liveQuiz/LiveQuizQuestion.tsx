@@ -498,12 +498,15 @@ const readLocalConfig = async (
     let totalTimeSpent = 0;
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    console.log("Current user.....",_currentUser);
     if (lessonId) {
       onTotalScoreChange(totalLessonScore);
       const classData = schoolUtil.getCurrentClass();
       if (isReward === true) {
         sessionStorage.setItem(REWARD_LESSON, "true");
       }
+      
       await api.updateResult(
         student!,
         quizData.courseId,
@@ -515,7 +518,21 @@ const readLocalConfig = async (
         undefined,
         quizData.chapterId,
         classData?.id,
-        classData?.school_id
+        classData?.school_id,
+        undefined, // isImediateSync
+        undefined, // isHomework
+        undefined, // skill_id
+        undefined, // skill_ability
+        undefined, // outcome_id
+        undefined, // outcome_ability
+        undefined, // competency_id
+        undefined, // competency_ability
+        undefined, // domain_id
+        undefined, // domain_ability
+        undefined, // subject_id
+        undefined, // subject_ability
+        undefined, // activities_scores
+        _currentUser?.id  // ✅ now correctly maps to user_id
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
@@ -546,7 +563,21 @@ const readLocalConfig = async (
         roomDoc.assignment_id,
         _assignment?.chapter_id ?? "",
         roomDoc.class_id,
-        roomDoc.school_id
+        roomDoc.school_id,
+        undefined, // isImediateSync
+        undefined, // isHomework
+        undefined, // skill_id
+        undefined, // skill_ability
+        undefined, // outcome_id
+        undefined, // outcome_ability
+        undefined, // competency_id
+        undefined, // competency_ability
+        undefined, // domain_id
+        undefined, // domain_ability
+        undefined, // subject_id
+        undefined, // subject_ability
+        undefined, // activities_scores
+        _currentUser?.id  // ✅ now correctly maps to user_id
       );
     }
   }
