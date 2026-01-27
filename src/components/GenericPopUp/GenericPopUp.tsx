@@ -53,70 +53,74 @@ const GenericPopup: React.FC<Props> = ({
           alt=""
         />
 
-        <div
-          id="generic-popup-content"
-          className="generic-popup-content"
+        <div id="generic-popup-content" className="generic-popup-content">
+  {/* Top row: thumb + text */}
+  <div className="generic-popup-main">
+    {/* Left thumbnail */}
+    <div
+      id="generic-popup-thumb-wrapper"
+      className="generic-popup-thumb-wrapper"
+    >
+      <img
+        id="generic-popup-thumb"
+        className="generic-popup-thumb"
+        src={thumbnailImageUrl}
+        alt=""
+      />
+    </div>
+
+    {/* Text content */}
+    <div
+      id="generic-popup-text-wrapper"
+      className="generic-popup-text-wrapper"
+    >
+      <h2
+        id="generic-popup-heading"
+        className="generic-popup-heading"
+      >
+        {heading}
+      </h2>
+
+      {subHeading && (
+        <p
+          id="generic-popup-subheading"
+          className="generic-popup-subheading"
         >
-          {/* Left thumbnail */}
-          <div
-            id="generic-popup-thumb-wrapper"
-            className="generic-popup-thumb-wrapper"
-          >
-            <img
-              id="generic-popup-thumb"
-              className="generic-popup-thumb"
-              src={thumbnailImageUrl}
-              alt=""
-            />
-          </div>
+          {subHeading}
+        </p>
+      )}
 
-          {/* Text content */}
-          <div
-            id="generic-popup-text-wrapper"
-            className="generic-popup-text-wrapper"
-          >
-            <h2
-              id="generic-popup-heading"
-              className="generic-popup-heading"
+      {details.length > 0 && (
+        <ul
+          id="generic-popup-details"
+          className="generic-popup-details"
+        >
+          {details.map((item, idx) => (
+            <li
+              id={`generic-popup-detail-${idx}`}
+              className="generic-popup-detail-item"
+              key={idx}
             >
-              {heading}
-            </h2>
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
 
-            {subHeading && (
-              <p
-                id="generic-popup-subheading"
-                className="generic-popup-subheading"
-              >
-                {subHeading}
-              </p>
-            )}
+  {/* Bottom row: CTA (full width) */}
+  <div className="generic-popup-footer">
+    <button
+      id="generic-popup-cta"
+      className="generic-popup-cta"
+      onClick={onAction}
+    >
+      {buttonText}
+    </button>
+  </div>
+</div>
 
-            {details.length > 0 && (
-              <ul
-                id="generic-popup-details"
-                className="generic-popup-details"
-              >
-                {details.map((item, idx) => (
-                  <li
-                    id={`generic-popup-detail-${idx}`}
-                    className="generic-popup-detail-item"
-                    key={idx}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <button
-              id="generic-popup-cta"
-              className="generic-popup-cta"
-              onClick={onAction}
-            >
-              {buttonText}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
