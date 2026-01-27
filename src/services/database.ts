@@ -4538,36 +4538,6 @@ export type Database = {
         ]
       }
       
-      whatsapp_invite_school_status: {
-        Row: {
-          completed_at: string | null
-          created_at: string | null
-          id: string
-          is_deleted: boolean
-          school_udise: string
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string | null
-          id?: string
-          is_deleted?: boolean
-          school_udise: string
-          status: string
-          updated_at?: string | null
-        }
-        Update: {
-          completed_at?: string | null
-          created_at?: string | null
-          id?: string
-          is_deleted?: boolean
-          school_udise?: string
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       get_leaderboard_generic_data: {
