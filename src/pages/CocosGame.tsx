@@ -306,6 +306,9 @@ const CocosGame: React.FC = () => {
     let schoolId;
     let chapter_id;
 
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+
     if (isStudentLinked) {
       const studentResult = await api.getStudentClassesAndSchools(
         currentStudent.id
@@ -439,7 +442,8 @@ const CocosGame: React.FC = () => {
       abilityUpdates.domain_ability,
       abilityUpdates.subject_id,
       abilityUpdates.subject_ability,
-      activities_scores ?? undefined
+      activities_scores ?? undefined,
+    _currentUser?.id
     );
 
     // Update the learning path / homework path
