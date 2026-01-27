@@ -30,6 +30,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import { palUtil } from "../utility/palUtil";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { SupabaseAuth } from "../services/auth/SupabaseAuth";
 
 
 const LidoPlayer: FC = () => {
@@ -74,8 +75,8 @@ const LidoPlayer: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent()!;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
-  const user_id = sessionStorage.getItem("AuthUser.id");
-  console.log("Current User ID:", user_id);
+  // const user_id = sessionStorage.getItem("AuthUser.id");
+  // console.log("Current User ID:", user_id);
   const contextRef = useRef({
     classId: undefined as string | undefined,
     schoolId: undefined as string | undefined,
@@ -318,6 +319,9 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    console.log("Current user.....",_currentUser);
+    const student = await SupabaseAuth.i.getCurrentUser();
     const currentStudent = Util.getCurrentStudent()!;
     try {
       const lessonData = e.detail;
