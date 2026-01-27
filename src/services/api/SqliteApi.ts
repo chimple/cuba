@@ -470,22 +470,28 @@ export class SqliteApi implements ServiceApi {
 
     const isInitialFetch = isFirstSync;
     console.log("🚀 ~ pullChanges ~ isInitialFetch:", isInitialFetch);
+
+    // Update pull_sync_info table with old timestamp for tables needing full sync
+    const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    if (this._tablesNeedingFullSync.size > 0) {
+      for (const tableName of this._tablesNeedingFullSync) {
+        if (tableNames.includes(tableName as TABLES)) {
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+            [tableName, FORCE_FULL_SYNC_DATE]
+          );
+          console.log(`Forcing full sync for table: ${tableName}`);
+        }
+      }
+      this._tablesNeedingFullSync.clear();
+    }
+
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
     try {
       const res = (await this._db.query(tablePullSync)).values ?? [];
       res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
-
-      // Override timestamps for tables with schema changes
-      const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
-      this._tablesNeedingFullSync.forEach((tableName) => {
-        if (tableNames.includes(tableName as TABLES)) {
-          lastPullTables.set(tableName, FORCE_FULL_SYNC_DATE);
-          console.log(`Forcing full sync for table: ${tableName}`);
-        }
-      });
-
     } catch (error) {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
