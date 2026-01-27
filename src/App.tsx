@@ -212,6 +212,28 @@ const App: React.FC = () => {
     {}
   );
 
+const OpsConsoleRouteWatcher = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const isOpsConsoleRoute =
+      location.pathname.includes("/admin-home-page");
+
+    if (isOpsConsoleRoute) {
+      document.body.classList.add("ops-console");
+    } else {
+      document.body.classList.remove("ops-console");
+    }
+
+    return () => {
+      document.body.classList.remove("ops-console");
+    };
+  }, [location.pathname]);
+
+  return null;
+};
+
+
 useEffect(() => {
   if (!growthbook) return;
 
@@ -526,6 +548,7 @@ useLayoutEffect(() => {
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
+        <OpsConsoleRouteWatcher />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>
