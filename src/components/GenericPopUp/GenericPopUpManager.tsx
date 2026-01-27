@@ -26,8 +26,8 @@ class PopupManager {
   }
 
   onGameComplete(config: PopupConfig) {
-    console.log("onGameComplete Triggered for Popup:", config.id);
-    if (config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.GAME_COMPLETE) return;
+    console.log("onGameComplete Triggered for Popup:", config.id ?? "unknown");
+    if (!config?.triggers || config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.GAME_COMPLETE) return;
 
     this.sessionGamesPlayed++;
     if (this.sessionGamesPlayed === config.triggers.value) {
