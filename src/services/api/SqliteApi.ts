@@ -294,7 +294,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-                new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -530,10 +530,17 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-          ", "
-        )}) VALUES (${placeholders})`;
+        const updateSetClause = fieldNames
+          .filter((f) => f !== "id")
+          .map((f) => `${f} = excluded.${f}`)
+          .join(", ");
 
+        const stmt = `
+        INSERT INTO ${tableName} (${fieldNames.join(", ")})
+        VALUES (${placeholders})
+        ON CONFLICT(id) DO UPDATE SET
+        ${updateSetClause};
+        `;
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
 
@@ -1962,6 +1969,8 @@ export class SqliteApi implements ServiceApi {
   WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0;
 `;
     const res = await this._db.query(query);
+    console.log("stud....", res.values);
+
     return res.values ?? [];
   }
 
@@ -7878,8 +7887,7 @@ order by
   `;
 
     const fetchRes = await this._db?.query(fetchQuery);
-    const assignments =
-      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
 
     if (!assignments.length) return [];
 
@@ -7901,8 +7909,7 @@ order by
   `;
 
     const completionRes = await this._db?.query(completionQuery);
-    const pendingCount =
-      completionRes?.values?.[0]?.pending_count ?? 0;
+    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
 
     if (pendingCount === 0) return [];
 
@@ -7963,4 +7970,3 @@ order by
     throw new Error("Method not implemented.");
   }
 }
-
