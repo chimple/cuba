@@ -102,6 +102,7 @@ export class SqliteApi implements ServiceApi {
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
   private _syncTableData = {};
+  private _tablesNeedingFullSync = new Set<string>();
 
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
@@ -168,23 +169,40 @@ export class SqliteApi implements ServiceApi {
           const versionData = upgradeStatementsMap[version];
 
           if (versionData && versionData["statements"]) {
+            const currentStatements = [...versionData["statements"]];
+
+            // Track tables with schema changes for forced full sync
+            for (const statement of versionData["statements"]) {
+              const match = statement.match(
+                /(?:ALTER|CREATE|DROP)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/i
+              );
+              if (match && match[1]) {
+                const tableName = match[1];
+                // Mark this table for full sync (will use old timestamp)
+                this._tablesNeedingFullSync.add(tableName);
+                console.log(
+                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`
+                );
+              }
+            }
+
             upgradeStatements.push({
               toVersion: version,
-              statements: versionData["statements"],
+              statements: currentStatements,
             });
+          }
 
-            if (versionData["tableChanges"]) {
-              for (const tableName in versionData["tableChanges"]) {
-                const changeDate = versionData["tableChanges"][tableName];
-                if (!this._syncTableData[tableName]) {
+          if (versionData["tableChanges"]) {
+            for (const tableName in versionData["tableChanges"]) {
+              const changeDate = versionData["tableChanges"][tableName];
+              if (!this._syncTableData[tableName]) {
+                this._syncTableData[tableName] = changeDate;
+              } else {
+                if (
+                  new Date(this._syncTableData[tableName]) >
+                  new Date(changeDate)
+                ) {
                   this._syncTableData[tableName] = changeDate;
-                } else {
-                  if (
-                    new Date(this._syncTableData[tableName]) >
-                    new Date(changeDate)
-                  ) {
-                    this._syncTableData[tableName] = changeDate;
-                  }
                 }
               }
             }
@@ -458,6 +476,16 @@ export class SqliteApi implements ServiceApi {
     try {
       const res = (await this._db.query(tablePullSync)).values ?? [];
       res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
+
+      // Override timestamps for tables with schema changes
+      const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+      this._tablesNeedingFullSync.forEach((tableName) => {
+        if (tableNames.includes(tableName as TABLES)) {
+          lastPullTables.set(tableName, FORCE_FULL_SYNC_DATE);
+          console.log(`Forcing full sync for table: ${tableName}`);
+        }
+      });
+
     } catch (error) {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
