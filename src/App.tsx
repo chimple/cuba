@@ -185,7 +185,6 @@ const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
-  console.log("App Component Rendered");
   const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
