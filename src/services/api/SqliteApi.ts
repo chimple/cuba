@@ -1969,8 +1969,6 @@ export class SqliteApi implements ServiceApi {
   WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0;
 `;
     const res = await this._db.query(query);
-    console.log("stud....", res.values);
-
     return res.values ?? [];
   }
 
