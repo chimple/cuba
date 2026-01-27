@@ -217,7 +217,7 @@ const OpsConsoleRouteWatcher = () => {
 
   useEffect(() => {
     const isOpsConsoleRoute =
-      location.pathname.includes("/admin-home-page");
+      location.pathname.includes(PAGES.SIDEBAR_PAGE);
 
     if (isOpsConsoleRoute) {
       document.body.classList.add("ops-console");
