@@ -1285,10 +1285,7 @@ export const LEARNING_PATHWAY_MODE = {
   ASSESSMENT_ONLY: "ASSESSMENT_ONLY",
   FULL_ADAPTIVE: "FULL_ADAPTIVE",
 };
-<<<<<<< HEAD
-export const CURRENT_PATHWAY_MODE="currentPathwayMode";
-=======
+
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
 export const LANG_REFRESHED = "langRefreshed"
->>>>>>> origin/main
