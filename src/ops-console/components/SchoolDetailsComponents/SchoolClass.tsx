@@ -126,6 +126,7 @@ const SchoolClasses: React.FC<Props> = ({
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("edit");
   const [showForm, setShowForm] = useState<boolean>(false);
+  const [isExit, setIsExit] = useState<boolean>(false);
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [waMetaLoading, setWaMetaLoading] = useState(true);
 
@@ -159,6 +160,31 @@ useEffect(() => {
   if (!bot) return; // 🚨 wait until bot exists
 
   let cancelled = false;
+  
+ (async () => {
+
+    for (const c of safeClasses) {
+      if (!c.group_id) continue;
+
+      try {
+        const res = await api.getWhatsappGroupDetails(
+          c.group_id,
+          bot
+        );
+        setIsExit(res.is_e);
+        
+        console.log("result",res, res.name,res.is_exited);
+        setIsExit(res.is_exited);
+        
+      } catch (err) {
+        console.error(
+          "Failed to fetch WhatsApp group:",
+          c.group_id,
+          err
+        );
+      }
+    }
+  })();
 
   (async () => {
     try {
@@ -398,12 +424,8 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
 
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
-
-
-      
-
       const isGroupConnected = hasValue(c.group_id ?? "");
-      const isBotConnected = phoneDetails?.phone.wa_state === "CONNECTED";
+      const isBotConnected = phoneDetails?.phone.wa_state === "CONNECTED" && !isExit;
       let waStatus: "connected" | "disconnected" | "not_connected" | "loading";
 
       if (waMetaLoading) {
