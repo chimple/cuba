@@ -247,6 +247,11 @@ export class SqliteApi implements ServiceApi {
   }
 
   private async setUpDatabase() {
+  //   console.log("🧱 setUpDatabase START", {
+  //   hasDb: !!this._db,
+  //   hasSqlite: !!this._sqlite,
+  //   DB_VERSION: this.DB_VERSION,
+  // });
     if (!this._db || !this._sqlite) return;
     // try {
     //   const exportedData = await this._db.exportToJson("full");
@@ -262,6 +267,8 @@ export class SqliteApi implements ServiceApi {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
+      // console.log("📊 sqlite_master count result:", res1);
+
     } catch (error) {
       console.error(
         "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
@@ -283,10 +290,12 @@ export class SqliteApi implements ServiceApi {
         // }
 
         try {
+          //  console.log("⬇️ About to import SQLite schema from JSON");
           const importData = await fetch("databases/import.json");
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
+          // console.log("✅ importFromJson SUCCESS:", resImport);
           localStorage.setItem(
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString()
@@ -294,6 +303,7 @@ export class SqliteApi implements ServiceApi {
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
           // if (!Capacitor.isNativePlatform())
           // window.location.reload();
+          //  console.warn("🔄 Reloading app after DB import");
           window.location.replace(BASE_NAME || "/");
           return;
         } catch (error) {
@@ -329,6 +339,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
+    // console.log("✅ SQLite DB is READY");
     // Move sync logic to a separate method that can be called after full initialization
     await this.checkAndSyncData();
   }
@@ -2397,7 +2408,8 @@ export class SqliteApi implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined
+    activities_scores?: string | undefined,
+    user_id?: string | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2441,12 +2453,13 @@ export class SqliteApi implements ServiceApi {
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
+      user_id: user_id ?? null,
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2475,6 +2488,7 @@ export class SqliteApi implements ServiceApi {
         newResult.subject_id,
         newResult.subject_ability,
         newResult.activities_scores,
+        newResult.user_id,
       ]
     );
     // ⭐ reward update

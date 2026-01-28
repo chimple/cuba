@@ -106,6 +106,8 @@ const LidoPlayer: FC = () => {
   const processStoredResults = async (isAborted: boolean = false) => {
     try {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
+      const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!storedData) {
         console.warn("⚠️ No stored data found.");
         return;
@@ -223,7 +225,8 @@ const LidoPlayer: FC = () => {
           abilityUpdates.domain_ability,
           abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
-          activitiesScoresStr
+          activitiesScoresStr,
+          _currentUser?.id
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -332,6 +335,8 @@ const LidoPlayer: FC = () => {
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent()!;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     try {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
@@ -486,6 +491,7 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_id,
         abilityUpdates.subject_ability,
         activitiesScoresStr,
+        _currentUser?.id
       );
 
       // Update the learning path
