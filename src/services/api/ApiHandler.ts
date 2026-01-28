@@ -40,8 +40,20 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
-  createAtSchoolUser(id: string, schoolName: string, udise: string, role: RoleType, isEmailVerified: boolean) {
-    return this.s.createAtSchoolUser(id, schoolName, udise, role, isEmailVerified);
+  createAtSchoolUser(
+    id: string,
+    schoolName: string,
+    udise: string,
+    role: RoleType,
+    isEmailVerified: boolean
+  ) {
+    return this.s.createAtSchoolUser(
+      id,
+      schoolName,
+      udise,
+      role,
+      isEmailVerified
+    );
   }
   public static i: ApiHandler;
 
@@ -952,12 +964,28 @@ export class ApiHandler implements ServiceApi {
   createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
-    return this.s.createClass(schoolId, className, groupId);
+    return this.s.createClass(
+      schoolId,
+      className,
+      groupId,
+      whatsapp_invite_link
+    );
   }
-  updateClass(classId: string, className: string, groupId?: string) {
-    return this.s.updateClass(classId, className, groupId);
+  updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  ) {
+    return this.s.updateClass(
+      classId,
+      className,
+      groupId,
+      whatsapp_invite_link
+    );
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
@@ -1487,7 +1515,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ user: any; parents: any[] }> {
     return await this.s.getStudentAndParentByStudentId(studentId);
   }
-  public async getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> {
+  public async getParentsByStudentId(
+    studentId: string
+  ): Promise<TableTypes<"user">[]> {
     return await this.s.getParentsByStudentId(studentId);
   }
   public async mergeStudentRequest(
@@ -1713,7 +1743,10 @@ export class ApiHandler implements ServiceApi {
   async getClientCountryCode(): Promise<any> {
     return await this.s.getClientCountryCode();
   }
-  async getLocaleByIdOrCode(locale_id?: string, locale_code?: string): Promise<TableTypes<"locale"> | null> {
+  async getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null> {
     return await this.s.getLocaleByIdOrCode(locale_id, locale_code);
   }
 
@@ -1853,14 +1886,9 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: "createdAt" | "createdBy",
+    sortBy?: "createdAt" | "createdBy"
   ): Promise<PaginatedResponse<SchoolNote>> {
-    return this.s.getNotesBySchoolId(
-      schoolId,
-      limit,
-      offset,
-      sortBy,
-    );
+    return this.s.getNotesBySchoolId(schoolId, limit, offset, sortBy);
   }
 
   public async getRecentAssignmentCountByTeacher(
@@ -1908,7 +1936,6 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLidoCommonAudioUrl(languageId, localeId);
   }
 
-
   public async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string
@@ -1919,20 +1946,60 @@ export class ApiHandler implements ServiceApi {
     subjectId: string,
     student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[] | null> {
-    return await this.s.getSubjectLessonsBySubjectId( subjectId,student);
+    return await this.s.getSubjectLessonsBySubjectId(subjectId, student);
   }
-  public async getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined> {
+  public async getSkillById(
+    skillId: string
+  ): Promise<TableTypes<"skill"> | undefined> {
     return await this.s.getSkillById(skillId);
   }
 
-  async updateSchoolProgram(schoolId: string, programId: string): Promise<boolean> {
+  async updateSchoolProgram(
+    schoolId: string,
+    programId: string
+  ): Promise<boolean> {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
   public async getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">,
+    student: TableTypes<"user">
   ): Promise<TableTypes<"assignment">[]> {
     return this.s.getLatestAssessmentGroup(classId, student);
+  }
+  public async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this.s.getWhatsappGroupDetails(groupId, bot);
+  }
+
+  public async getGroupIdByInvite(invite_link: string, bot: string) {
+    return await this.s.getGroupIdByInvite(invite_link, bot);
+  }
+
+  public async getPhoneDetailsByBotNum(bot: string) {
+    return await this.s.getPhoneDetailsByBotNum(bot);
+  }
+  async updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean> {
+    return this.s.updateWhatsAppGroupSettings(
+      chatId,
+      phone,
+      name,
+      messagesAdminsOnly,
+      infoAdminsOnly,
+      addMembersAdminsOnly
+    );
+  }
+  getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{ group_id: string; group_name: string; members: number } | null> {
+    return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
 }

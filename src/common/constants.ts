@@ -586,6 +586,24 @@ export enum STATUS {
   FLAGGED = "flagged",
 }
 
+// Labels for WhatsApp group status chips in Ops Console tables.
+export const WHATSAPP_GROUP_STATUS_KEYS = {
+  IN_GROUP: "IN_GROUP",
+  NOT_IN_GROUP: "NOT_IN_GROUP",
+  NOT_ON_WHATSAPP: "NOT_ON_WHATSAPP",
+  NOT_CHECKED: "NOT_CHECKED",
+} as const;
+
+export const WHATSAPP_GROUP_STATUS = {
+  IN_GROUP: "In Group",
+  NOT_IN_GROUP: "Not in Group",
+  NOT_ON_WHATSAPP: "Not on Whatsapp",
+  NOT_CHECKED: "Not Checked",
+};
+
+// Tick icon for the "In Group" pill.
+export const WHATSAPP_GROUP_TICK_ICON = "/assets/icons/SignCircleIcon.svg";
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
@@ -624,6 +642,7 @@ export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 // export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
 export const SEARCH_LESSON_HISTORY = "search_lesson_history";
+export const SEARCH_LESSON_CACHE_KEY = "search_lesson_last_state";
 export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
@@ -1266,6 +1285,7 @@ export const LEARNING_PATHWAY_MODE = {
   ASSESSMENT_ONLY: "ASSESSMENT_ONLY",
   FULL_ADAPTIVE: "FULL_ADAPTIVE",
 };
+
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
 export const LANG_REFRESHED = "langRefreshed"

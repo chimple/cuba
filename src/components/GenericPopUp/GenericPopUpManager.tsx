@@ -155,13 +155,13 @@ if (config.action?.type === "DEEP_LINK") {
   if (/^[a-z0-9_-]+$/i.test(rawTarget)) {
     // 1️⃣ Decide base route
     const baseRoute =
-      normalizedTarget === "rewards"
+      normalizedTarget === "rewards" || normalizedTarget === "leaderboard"
         ? "/leaderboard"
         : "/home";
 
 
     console.log("✅ Navigating to:", baseRoute, rawTarget);
-    window.location.replace(`${baseRoute}?tab=${normalizedTarget}`);
+    window.location.replace(`${baseRoute}?tab=${rawTarget}`);
     return;
   }
 

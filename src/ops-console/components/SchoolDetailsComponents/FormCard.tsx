@@ -36,7 +36,7 @@ interface EntityModalProps {
   onSubmit: (values: Record<string, string>) => void;
   message?: MessageConfig | string;
   initialValues?: Record<string, string>;
-  disabled?: boolean; 
+  disabled?: boolean;
 }
 
 const FormCard: React.FC<EntityModalProps> = ({
@@ -389,8 +389,10 @@ const isDirty = useMemo(() => {
     const messageType = messageConfig.type || "info";
 
     return (
-      <div className={`formcard-message formcard-message-${messageType}`}>
-        {t(messageConfig.text)}
+      <div className="formcard-message-wrapper">
+        <div className={`formcard-message formcard-message-${messageType}`}>
+          {t(messageConfig.text)}
+        </div>
       </div>
     );
   };

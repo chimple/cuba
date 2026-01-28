@@ -103,6 +103,7 @@ export class SqliteApi implements ServiceApi {
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
   private _syncTableData = {};
+  private _tablesNeedingFullSync = new Set<string>();
 
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
@@ -169,23 +170,40 @@ export class SqliteApi implements ServiceApi {
           const versionData = upgradeStatementsMap[version];
 
           if (versionData && versionData["statements"]) {
+            const currentStatements = [...versionData["statements"]];
+
+            // Track tables with schema changes for forced full sync
+            for (const statement of versionData["statements"]) {
+              const match = statement.match(
+                /(?:ALTER|CREATE|DROP)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/i
+              );
+              if (match && match[1]) {
+                const tableName = match[1];
+                // Mark this table for full sync (will use old timestamp)
+                this._tablesNeedingFullSync.add(tableName);
+                console.log(
+                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`
+                );
+              }
+            }
+
             upgradeStatements.push({
               toVersion: version,
-              statements: versionData["statements"],
+              statements: currentStatements,
             });
+          }
 
-            if (versionData["tableChanges"]) {
-              for (const tableName in versionData["tableChanges"]) {
-                const changeDate = versionData["tableChanges"][tableName];
-                if (!this._syncTableData[tableName]) {
+          if (versionData["tableChanges"]) {
+            for (const tableName in versionData["tableChanges"]) {
+              const changeDate = versionData["tableChanges"][tableName];
+              if (!this._syncTableData[tableName]) {
+                this._syncTableData[tableName] = changeDate;
+              } else {
+                if (
+                  new Date(this._syncTableData[tableName]) >
+                  new Date(changeDate)
+                ) {
                   this._syncTableData[tableName] = changeDate;
-                } else {
-                  if (
-                    new Date(this._syncTableData[tableName]) >
-                    new Date(changeDate)
-                  ) {
-                    this._syncTableData[tableName] = changeDate;
-                  }
                 }
               }
             }
@@ -295,7 +313,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -364,7 +382,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch { }
+        } catch {}
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -453,6 +471,22 @@ export class SqliteApi implements ServiceApi {
 
     const isInitialFetch = isFirstSync;
     console.log("🚀 ~ pullChanges ~ isInitialFetch:", isInitialFetch);
+
+    // Update pull_sync_info table with old timestamp for tables needing full sync
+    const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    if (this._tablesNeedingFullSync.size > 0) {
+      for (const tableName of this._tablesNeedingFullSync) {
+        if (tableNames.includes(tableName as TABLES)) {
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+            [tableName, FORCE_FULL_SYNC_DATE]
+          );
+          console.log(`Forcing full sync for table: ${tableName}`);
+        }
+      }
+      this._tablesNeedingFullSync.clear();
+    }
+
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -531,10 +565,17 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-          ", "
-        )}) VALUES (${placeholders})`;
+        const updateSetClause = fieldNames
+          .filter((f) => f !== "id")
+          .map((f) => `${f} = excluded.${f}`)
+          .join(", ");
 
+        const stmt = `
+        INSERT INTO ${tableName} (${fieldNames.join(", ")})
+        VALUES (${placeholders})
+        ON CONFLICT(id) DO UPDATE SET
+        ${updateSetClause};
+        `;
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
 
@@ -570,7 +611,7 @@ export class SqliteApi implements ServiceApi {
               try {
                 await this._db.run("BEGIN TRANSACTION;");
                 manualTransaction = true;
-              } catch (beginErr) { }
+              } catch (beginErr) {}
 
               for (const q of chunk) {
                 await this._db.run(q.statement, q.values);
@@ -588,7 +629,7 @@ export class SqliteApi implements ServiceApi {
               if (manualTransaction) {
                 try {
                   await this._db.run("ROLLBACK;");
-                } catch (rbErr) { }
+                } catch (rbErr) {}
               }
               throw chunkErr;
             }
@@ -2157,17 +2198,20 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${langId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-        : ""
+      ${
+        langId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+          : ""
       }
-      ${localeId
-        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        localeId
+          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+          : ""
       }
-      ${langId && localeId
-        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-        : ""
+      ${
+        langId && localeId
+          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+          : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2455,7 +2499,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3457,7 +3501,8 @@ export class SqliteApi implements ServiceApi {
   async createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3481,12 +3526,13 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       standard: null,
       status: null,
+      whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
@@ -3497,6 +3543,7 @@ export class SqliteApi implements ServiceApi {
         newClass.updated_at,
         newClass.is_deleted,
         newClass.group_id,
+        newClass.whatsapp_invite_link,
       ]
     );
 
@@ -3580,7 +3627,12 @@ export class SqliteApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string, groupId?: string) {
+  async updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  ) {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -3588,6 +3640,9 @@ export class SqliteApi implements ServiceApi {
     let updatedClassQuery = `UPDATE class SET name = "${className}"`;
     if (groupId !== undefined) {
       updatedClassQuery += `, group_id = "${groupId}"`;
+    }
+    if (whatsapp_invite_link !== undefined) {
+      updatedClassQuery += `, whatsapp_invite_link = "${whatsapp_invite_link}"`;
     }
     updatedClassQuery += `, updated_at = "${new Date().toISOString()}"`;
     updatedClassQuery += ` WHERE id = "${classId}";`;
@@ -6393,34 +6448,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6506,34 +6561,34 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null, // Assuming these fields are nullable or have default values in your User table type
-          avatar: null,
-          created_at: new Date().toISOString(), // Example, adjust if you fetch this
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          locale_id: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            locale_id: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -7920,7 +7975,36 @@ order by
         );
       });
     }
-
     return assignments;
+  }
+  async getWhatsappGroupDetails(groupId: string, bot: string) {
+    return this._serverApi.getWhatsappGroupDetails(groupId, bot);
+  }
+  async getGroupIdByInvite(invite_link: string, bot: string) {
+    return await this._serverApi.getGroupIdByInvite(invite_link, bot);
+  }
+  async getPhoneDetailsByBotNum(bot: string) {
+    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  }
+  async updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  async getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null> {
+    throw new Error("Method not implemented.");
   }
 }

@@ -1202,7 +1202,8 @@ export interface ServiceApi {
   createClass(
     schoolId: string,
     className: string,
-    groupId?: string
+    groupId?: string,
+    whatsapp_invite_link?: string
   ): Promise<TableTypes<"class">>;
   /**
    * Updates a class name for given classId
@@ -1210,7 +1211,12 @@ export interface ServiceApi {
    * @param className
    * @param groupId
    */
-  updateClass(classId: string, className: string, groupId?: string);
+  updateClass(
+    classId: string,
+    className: string,
+    groupId?: string,
+    whatsapp_invite_link?: string
+  );
   /**
    * Deletes a class
    * @param classId
@@ -2004,13 +2010,13 @@ export interface ServiceApi {
   getStudentAndParentByStudentId(
     studentId: string
   ): Promise<{ user: any; parents: any[] }>;
-  
+
   /**
    * Fetch  parent information even if the student is deleted.
    * @param {string} studentId - The ID of the student to fetch.
    * @returns Promise resolving to an array of parents.
    */
-  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]> ;
+  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]>;
 
   /**
    * Merge a new student into an existing student record in SQLite.
@@ -2312,7 +2318,10 @@ export interface ServiceApi {
    * Provide either `locale_id` or `locale_code`.
    * @returns Locale record or null if not found.
    */
-  getLocaleByIdOrCode(locale_id?: string, locale_code?: string): Promise<TableTypes<"locale"> | null>;
+  getLocaleByIdOrCode(
+    locale_id?: string,
+    locale_code?: string
+  ): Promise<TableTypes<"locale"> | null>;
 
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).
@@ -2551,14 +2560,17 @@ export interface ServiceApi {
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: "createdAt" | "createdBy",
+    sortBy?: "createdAt" | "createdBy"
   ): Promise<PaginatedResponse<SchoolNote>>;
   /**
    * Get interactions metrics for a school.
    */
   getSchoolStatsForSchool(schoolId: string): Promise<FCSchoolStats>;
 
-  getLidoCommonAudioUrl(languageId: string, localeId?: string | null): Promise<{ lido_common_audio_url: string | null } | null>;
+  getLidoCommonAudioUrl(
+    languageId: string,
+    localeId?: string | null
+  ): Promise<{ lido_common_audio_url: string | null } | null>;
 
   isStudentPlayedPalLesson(
     studentId: string,
@@ -2570,11 +2582,76 @@ export interface ServiceApi {
     student?: TableTypes<"user">
   ): Promise<TableTypes<"subject_lesson">[] | null>;
 
-  getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>
+  getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">,
-  ): Promise<TableTypes<"assignment">[]>
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]>;
+
+  /**
+   * Fetch WhatsApp group details from Periskope for a given group and bot number.
+   * @param {string} groupId - The WhatsApp group ID (e.g. 1203630xxxx@g.us).
+   * @param {string} bot - The WhatsApp bot phone number used to access the group.
+   * @returns Promise resolving to the WhatsApp group details including
+   *          group name, members list, and invite link.
+   */
+  getWhatsappGroupDetails(groupId: string, bot: string);
+
+  /**
+   * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.
+   * @param {string} inviteLink - The WhatsApp invite link.
+   * @param {string} bot - The WhatsApp bot phone number used to access the group.
+   * @returns Promise resolving to the WhatsApp group id
+   */
+  getGroupIdByInvite(invite_link: string, bot: string);
+
+  /**
+   * Fetch phone/botNum details using bot num.
+   * @param {string} bot - The WhatsApp bot phone number.
+   * @returns Promise resolving to the phoneNum details
+   */
+  getPhoneDetailsByBotNum(bot: string);
+  /**
+   * Updates WhatsApp group settings such as name, admin-only permissions, etc.
+   *
+   * @param chatId - Unique WhatsApp group chat ID
+   * @param phone - Phone number of the user/bot performing the update
+   * @param name - New name for the WhatsApp group
+   * @param messagesAdminsOnly - (Optional) If true, only admins can send messages
+   * @param infoAdminsOnly - (Optional) If true, only admins can edit group info
+   * @param addMembersAdminsOnly - (Optional) If true, only admins can add members
+   *
+   * @returns Promise<boolean> - Returns true if update succeeds, false otherwise
+   */
+  updateWhatsAppGroupSettings(
+    chatId: string,
+    phone: string,
+    name: string,
+    messagesAdminsOnly?: boolean,
+    infoAdminsOnly?: boolean,
+    addMembersAdminsOnly?: boolean
+  ): Promise<boolean>;
+
+  /**
+   * Fetches WhatsApp group details using an invite link.
+   * Also associates the group with a specific class.
+   *
+   * @param inviteLink - WhatsApp group invite link
+   * @param bot - Bot identifier used to fetch group details
+   * @param classId - Class ID to which this WhatsApp group belongs
+   *
+   * @returns Promise<{ group_id, group_name, members } | null>
+   *          - Group details if found, otherwise null
+   */
+  getWhatsAppGroupByInviteLink(
+    inviteLink: string,
+    bot: string,
+    classId: string
+  ): Promise<{
+    group_id: string;
+    group_name: string;
+    members: number;
+  } | null>;
 }
