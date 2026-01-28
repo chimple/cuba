@@ -468,7 +468,7 @@ export class SupabaseApi implements ServiceApi {
                   "🔄 [Fallback] Realtime update:",
                   status,
                   "ID:",
-                  id,
+                  id
                 );
                 if (
                   (status === "success" || status === "failed") &&
@@ -477,11 +477,11 @@ export class SupabaseApi implements ServiceApi {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
                   console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`,
+                    `✅ / ❌ Fallback resolved with status: ${status}`
                   );
                   resolve(status === "success");
                 }
-              },
+              }
             )
             .subscribe()
         : null;
@@ -7625,7 +7625,7 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
               )
             : [];
         }
@@ -11007,7 +11007,7 @@ export class SupabaseApi implements ServiceApi {
         id,
         is_deleted
       )
-    `,
+    `
       )
       .eq("class_id", classId)
       .eq("type", "assessment")
