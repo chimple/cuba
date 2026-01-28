@@ -344,7 +344,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          [],
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -468,7 +468,7 @@ export class SupabaseApi implements ServiceApi {
                   "🔄 [Fallback] Realtime update:",
                   status,
                   "ID:",
-                  id,
+                  id
                 );
                 if (
                   (status === "success" || status === "failed") &&
@@ -11007,7 +11007,7 @@ export class SupabaseApi implements ServiceApi {
         id,
         is_deleted
       )
-    `,
+    `
       )
       .eq("class_id", classId)
       .eq("type", "assessment")

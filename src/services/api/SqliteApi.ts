@@ -55,6 +55,7 @@ import {
   DEFAULT_LOCALE_ID,
   SCHOOL,
   CLASS,
+  LANG_REFRESHED,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2674,7 +2675,8 @@ export class SqliteApi implements ServiceApi {
     student.updated_at = now;
     // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
-      student.learning_path = null;
+      // student.learning_path = null;
+      localStorage.setItem(LANG_REFRESHED, "true");
     }
 
     if (courses && courses.length > 0) {
@@ -2734,7 +2736,8 @@ export class SqliteApi implements ServiceApi {
     };
     // Include learning_path in push changes when language changes
     if (languageChanged) {
-      pushChangesData.learning_path = null;
+      // pushChangesData.learning_path = null;
+      localStorage.setItem(LANG_REFRESHED, "true");
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
     return student;
@@ -3034,19 +3037,16 @@ export class SqliteApi implements ServiceApi {
         AND is_deleted = 0
         AND (
           (language_id IS NULL AND locale_id IS NULL)
-          ${
-            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
-          }
-          ${
-            localeId
-              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
-              : ""
-          }
-          ${
-            langId && localeId
-              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
-              : ""
-          }
+          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
+      }
+          ${localeId
+        ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+        : ""
+      }
+          ${langId && localeId
+        ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+        : ""
+      }
         )
       ORDER BY sort_index ASC
       `,
@@ -7705,16 +7705,22 @@ order by
 
       // 3️⃣ Fetch lessons (LANGUAGE ONLY)
       const lessonQuery = `
-      SELECT sl.*
-      FROM subject_lesson sl
-      WHERE sl.subject_id = ?
-        AND sl.set_number = ?
-        AND sl.is_deleted = 0
-        AND (
-          sl.language_id IS NULL
-          OR sl.language_id = ?
-        );
-    `;
+  SELECT sl.*
+  FROM subject_lesson sl
+  WHERE sl.subject_id = ?
+    AND sl.set_number = ?
+    AND sl.is_deleted = 0
+    AND (
+      sl.language_id = ?
+      OR sl.language_id IS NULL
+    )
+  ORDER BY
+    CASE
+      WHEN sl.language_id = ? THEN 0
+      WHEN sl.language_id IS NULL THEN 1
+    END,
+    sl.sort_index ASC;
+`;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
         subjectId,
@@ -7878,8 +7884,7 @@ order by
   `;
 
     const fetchRes = await this._db?.query(fetchQuery);
-    const assignments =
-      (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
 
     if (!assignments.length) return [];
 
@@ -7901,8 +7906,7 @@ order by
   `;
 
     const completionRes = await this._db?.query(completionQuery);
-    const pendingCount =
-      completionRes?.values?.[0]?.pending_count ?? 0;
+    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
 
     if (pendingCount === 0) return [];
 
@@ -7963,4 +7967,3 @@ order by
     throw new Error("Method not implemented.");
   }
 }
-
