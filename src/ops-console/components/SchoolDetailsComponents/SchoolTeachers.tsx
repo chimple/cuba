@@ -672,24 +672,29 @@ const handleTeacherSubmit = useCallback(
 
       const email = (values.email ?? "").toString().trim().toLowerCase();
       const hasEmail = !!email;
-      const hasPhone = !!rawPhone;
+      const hasPhone = (values.phoneNumber ?? "").toString().replace(/\D/g, "").length > 2;
 
       const normalizedPhone = normalizePhone10(rawPhone);
 
       const digitsOnly = rawPhone.replace(/\D/g, "");
+      const isValidPhone = digitsOnly.length == 12;
 
-      const localPhone = digitsOnly.slice(-10);
+      const localPhone = isValidPhone ? digitsOnly.slice(-10) : "";
 
-      if(hasPhone && localPhone.length !== 10) {
-        setErrorMessage({
-          text:t("Phone number must be 10 digits."),
-          type: "error",
-        })
-        return;
-      }
 
       let finalEmail = "";
-      const finalPhone = normalizedPhone;
+      let finalPhone = "";
+
+      if(hasPhone) {
+        if(!isValidPhone && localPhone.length !== 10) {
+          setErrorMessage({
+            text:t("Phone number must be 10 digits."),
+            type: "error",
+          })
+          return;
+        }
+        finalPhone = normalizedPhone;
+      }
 
       if (hasEmail) {
         if (!emailRegex.test(email)) {
