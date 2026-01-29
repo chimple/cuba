@@ -309,10 +309,8 @@
   line-height: 1.4;
 
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
 
-  text-align: center;
+  text-align: left;
   margin: 8px auto 12px;
 }
 

@@ -693,11 +693,12 @@ const handleTeacherSubmit = useCallback(
         finalEmail = email;
       }
 
-      if (hasPhone) {
+      if (!hasPhone) {
         if (localPhone.length !== 10) {
           setErrorMessage({ text: t("Phone number must be 10 digits."), type: "error" });
           return;
         }
+      } else {
         finalPhone = normalizedPhone;
       }
 
