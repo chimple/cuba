@@ -76,6 +76,8 @@ import {
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
  GENERIC_POP_UP,
+ SEARCH_LESSON_CACHE_KEY,
+ SEARCH_LESSON_HISTORY,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -233,6 +235,10 @@ const OpsConsoleRouteWatcher = () => {
   return null;
 };
 
+useEffect(() => {
+  localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+  localStorage.removeItem(SEARCH_LESSON_HISTORY);
+}, []);
 
 useEffect(() => {
   if (!growthbook) return;
@@ -678,9 +684,9 @@ useLayoutEffect(() => {
               <SchoolProfile />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
               <ReqEditSchool />
@@ -692,9 +698,9 @@ useLayoutEffect(() => {
               <ManageClass />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
               <ReqEditSchool />
