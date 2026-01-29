@@ -32,7 +32,6 @@ import { palUtil } from "../utility/palUtil";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 
-
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -86,14 +85,11 @@ const LidoPlayer: FC = () => {
   const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
-    const popupConfig = growthbook?.getFeatureValue(
-    "generic-pop-up",
-    null
-  );
+    const popupConfig = growthbook?.getFeatureValue("generic-pop-up", null);
 
-  if (popupConfig) {
-    PopupManager.onGameComplete(popupConfig);
-  }
+    if (popupConfig) {
+      PopupManager.onGameComplete(popupConfig);
+    }
   };
 
   const push = () => {
@@ -107,7 +103,7 @@ const LidoPlayer: FC = () => {
     try {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
       const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+        await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!storedData) {
         console.warn("⚠️ No stored data found.");
         return;
@@ -180,8 +176,7 @@ const LidoPlayer: FC = () => {
             outcomes: booleanOutcomes,
           });
 
-          if (!abilityUpdates.skill_id)
-            abilityUpdates.skill_id = skillId;
+          if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
           if (!abilityUpdates.outcome_id)
             abilityUpdates.outcome_id = currentOutcomeId;
         } catch (e) {
@@ -193,8 +188,9 @@ const LidoPlayer: FC = () => {
         let schoolId;
 
         if (isStudentLinked) {
-          const studentResult =
-            await api.getStudentClassesAndSchools(currentStudent.id);
+          const studentResult = await api.getStudentClassesAndSchools(
+            currentStudent.id,
+          );
           if (studentResult?.classes?.length) {
             classId = studentResult.classes[0].id;
             schoolId = studentResult.schools[0].id;
@@ -226,7 +222,7 @@ const LidoPlayer: FC = () => {
           abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
           activitiesScoresStr,
-          _currentUser?.id
+          _currentUser?.id,
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -246,7 +242,7 @@ const LidoPlayer: FC = () => {
           isReward,
           isAborted,
           courseDetail?.id ?? courseDocId ?? "",
-          isAssessmentLesson
+          isAssessmentLesson,
         );
       }
       localStorage.removeItem(LIDO_SCORES_KEY);
@@ -255,7 +251,6 @@ const LidoPlayer: FC = () => {
       push();
     }
   };
-
 
   const exitLidoGame = async (isAborted: boolean = false) => {
     setIsLoading(true);
@@ -269,8 +264,9 @@ const LidoPlayer: FC = () => {
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
     const existingData = localStorage.getItem(LIDO_SCORES_KEY);
-    const scoresList: Array<{ score: number; result: 0 | 1 }> =
-      existingData ? JSON.parse(existingData) : [];
+    const scoresList: Array<{ score: number; result: 0 | 1 }> = existingData
+      ? JSON.parse(existingData)
+      : [];
 
     scoresList.push({
       score,
@@ -281,10 +277,12 @@ const LidoPlayer: FC = () => {
     const courseKey = courseDetail?.id ?? courseDocId ?? "";
     const failKey = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;
     const streakKey = `${FAIL_STREAK_KEY}_${currentStudent.id}`;
-    const failMap: Record<string, boolean> =
-      JSON.parse(localStorage.getItem(failKey) || "{}");
-    const streakMap: Record<string, number> =
-      JSON.parse(localStorage.getItem(streakKey) || "{}");
+    const failMap: Record<string, boolean> = JSON.parse(
+      localStorage.getItem(failKey) || "{}",
+    );
+    const streakMap: Record<string, number> = JSON.parse(
+      localStorage.getItem(streakKey) || "{}",
+    );
     let failStreak = streakMap[courseKey] || 0;
     /* ✅ Correct answer → reset streak */
     if (!isFail) {
@@ -299,18 +297,19 @@ const LidoPlayer: FC = () => {
     if (previousLessonSkipped && failStreak >= 2) {
       const courseKey = courseDetail?.id ?? courseDocId ?? "";
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
-      Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
+      Util.removeCourseScopedKey(
+        ASSESSMENT_FAIL_KEY,
+        currentStudent.id,
+        courseKey,
+      );
       await exitLidoGame(true);
-      Util.logEvent(
-        EVENTS.ASSESSMENT_ABORTED,
-        {
-          user_id: currentStudent.id,
-          lesson_id: lesson.id,
-          course_id: courseDocId,
-          is_assessment: isAssessmentLesson,
-          played_from: playedFrom,
-        }
-      );// aborted
+      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
+        user_id: currentStudent.id,
+        lesson_id: lesson.id,
+        course_id: courseDocId,
+        is_assessment: isAssessmentLesson,
+        played_from: playedFrom,
+      }); // aborted
       return;
     }
     if (failStreak >= 4) {
@@ -318,16 +317,13 @@ const LidoPlayer: FC = () => {
       localStorage.setItem(failKey, JSON.stringify(failMap));
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
-       Util.logEvent(
-        EVENTS.ASSESSMENT_ABORTED,
-        {
-          user_id: currentStudent.id,
-          lesson_id: lesson.id,
-          course_id: courseDocId,
-          is_assessment: isAssessmentLesson,
-          played_from: playedFrom,
-        }
-      );// aborted
+      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
+        user_id: currentStudent.id,
+        lesson_id: lesson.id,
+        course_id: courseDocId,
+        is_assessment: isAssessmentLesson,
+        played_from: playedFrom,
+      }); // aborted
       await exitLidoGame(); // skipped
     }
   };
@@ -341,19 +337,24 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-         Util.logEvent(
-        EVENTS.ASSESSMENT_COMPLETED,
-        {
+        Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
           user_id: currentStudent.id,
           lesson_id: lessonData.id,
           course_id: courseDocId,
           is_assessment: isAssessmentLesson,
           played_from: playedFrom,
-        }
-      );// aborted
+        }); // aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
-        Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
-        Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
+        Util.removeCourseScopedKey(
+          FAIL_STREAK_KEY,
+          currentStudent.id,
+          courseKey,
+        );
+        Util.removeCourseScopedKey(
+          ASSESSMENT_FAIL_KEY,
+          currentStudent.id,
+          courseKey,
+        );
         await exitLidoGame();
         return;
       }
@@ -384,7 +385,7 @@ const LidoPlayer: FC = () => {
       let chapter_id;
       if (isStudentLinked) {
         const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
+          currentStudent.id,
         );
         if (!!studentResult && studentResult.classes.length > 0) {
           classId = studentResult.classes[0].id;
@@ -491,7 +492,7 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_id,
         abilityUpdates.subject_ability,
         activitiesScoresStr,
-        _currentUser?.id
+        _currentUser?.id,
       );
 
       // Update the learning path
@@ -499,7 +500,7 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(currentStudent, isReward);
       } else if (is_homework && homeworkIndex !== undefined) {
         // This handles our temporary homework path
-        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); 
+        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
@@ -659,7 +660,7 @@ const LidoPlayer: FC = () => {
     // This ensures that when the new player starts, it doesn't see the
     // path from the PREVIOUS student's language.
     if (typeof window !== "undefined") {
-     (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
+      (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
@@ -679,23 +680,38 @@ const LidoPlayer: FC = () => {
       }
       try {
         const student = Util.getCurrentStudent();
-        if (student && student.language_id) {
-          const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
-          const commonAudioUri = await Filesystem.getUri({
+        if (!student?.language_id) {
+          throw new Error("[LidoPlayer] Student language_id missing");
+        }
+        const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
+
+        let commonAudioUri;
+        try {
+          commonAudioUri = await Filesystem.getUri({
             directory: Directory.Data,
             path: audioPath,
           });
-          setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
-        } else {
-          console.warn(
-            "[LidoPlayer] Could not determine student language for common audio path.",
+        } catch (firstError) {
+          console.error(
+            "[LidoPlayer] Common audio not accessible, retrying once...",
           );
+          // small delay to handle async extract race (very common on Android)
+          await new Promise((r) => setTimeout(r, 150));
+          commonAudioUri = await Filesystem.getUri({
+            directory: Directory.Data,
+            path: audioPath,
+          });
         }
+        setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
       } catch (e) {
-        console.error("Could not get common audio path", e);
+        console.error("[LidoPlayer] Failed to resolve common audio path", e);
+        presentToast();
+        push();
+        return;
       }
     } else {
-      const path = "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      const path =
+        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
       setXmlPath(path);
     }
     setIsLoading(false);
@@ -730,11 +746,11 @@ const LidoPlayer: FC = () => {
       )}
       {isReady && (xmlPath || basePath)
         ? React.createElement("lido-standalone", {
-          "xml-path": xmlPath,
-          "base-url": basePath,
-          "code-folder-path": "/Lido-player-code-versions",
-          "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
-        })
+            "xml-path": xmlPath,
+            "base-url": basePath,
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
+          })
         : null}
     </IonPage>
   );
