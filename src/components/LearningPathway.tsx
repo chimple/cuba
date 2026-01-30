@@ -282,16 +282,15 @@ const LearningPathway: React.FC = () => {
     // 1. Try Local Storage first
     const localLanguageCode = localStorage.getItem(LANGUAGE)?.toLowerCase();
     if (localLanguageCode) {
-      const targetIndex = courses.findIndex(
+      const targetCourses = courses.filter(
         (c) => c.code?.toLowerCase() === localLanguageCode,
       );
 
-      if (targetIndex > -1) {
-        const targetCourse = courses[targetIndex];
+      if (targetCourses.length > 0) {
         const otherCourses = courses.filter(
-          (_, index) => index !== targetIndex,
+          (c) => c.code?.toLowerCase() !== localLanguageCode,
         );
-        return [targetCourse, ...otherCourses];
+        return [...targetCourses, ...otherCourses];
       }
     }
 
@@ -306,26 +305,29 @@ const LearningPathway: React.FC = () => {
       const languageName = language.name?.trim().toLowerCase();
 
       // Priority 1: Match by Code
-      let targetIndex = -1;
       if (languageCode) {
-        targetIndex = courses.findIndex(
+        const targetCourses = courses.filter(
           (c) => c.code?.toLowerCase() === languageCode,
         );
+        if (targetCourses.length > 0) {
+          const otherCourses = courses.filter(
+            (c) => c.code?.toLowerCase() !== languageCode,
+          );
+          return [...targetCourses, ...otherCourses];
+        }
       }
 
       // Priority 2: Match by Name (if code match failed)
-      if (targetIndex === -1 && languageName) {
-        targetIndex = courses.findIndex(
+      if (languageName) {
+        const targetCourses = courses.filter(
           (c) => c.name?.trim().toLowerCase() === languageName,
         );
-      }
-
-      if (targetIndex > -1) {
-        const targetCourse = courses[targetIndex];
-        const otherCourses = courses.filter(
-          (_, index) => index !== targetIndex,
-        );
-        return [targetCourse, ...otherCourses];
+        if (targetCourses.length > 0) {
+          const otherCourses = courses.filter(
+            (c) => c.name?.trim().toLowerCase() !== languageName,
+          );
+          return [...targetCourses, ...otherCourses];
+        }
       }
     } catch (e) {
       console.error("Error sorting courses by language", e);
