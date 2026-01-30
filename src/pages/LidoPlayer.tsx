@@ -16,6 +16,7 @@ import {
   TableTypes,
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
+  RESULT_STATUS,
 } from "../common/constants";
 import Loading from "../components/Loading";
 import ScoreCard from "../components/parent/ScoreCard";
@@ -87,13 +88,13 @@ const LidoPlayer: FC = () => {
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
     const popupConfig = growthbook?.getFeatureValue(
-    "generic-pop-up",
-    null
-  );
+      "generic-pop-up",
+      null
+    );
 
-  if (popupConfig) {
-    PopupManager.onGameComplete(popupConfig);
-  }
+    if (popupConfig) {
+      PopupManager.onGameComplete(popupConfig);
+    }
   };
 
   const push = () => {
@@ -103,11 +104,11 @@ const LidoPlayer: FC = () => {
     setIsLoading(false);
   };
 
-  const processStoredResults = async (isAborted: boolean = false) => {
+  const processStoredResults = async (isAborted: boolean = false, isFullPathwayTerminated: boolean = false) => {
     try {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
       const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+        await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!storedData) {
         console.warn("⚠️ No stored data found.");
         return;
@@ -226,7 +227,10 @@ const LidoPlayer: FC = () => {
           abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
           activitiesScoresStr,
-          _currentUser?.id
+          _currentUser?.id,
+          isAborted
+            ? RESULT_STATUS.SYSTEM_EXIT
+            : RESULT_STATUS.COMPLETED
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -244,7 +248,7 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(
           currentStudent,
           isReward,
-          isAborted,
+          isFullPathwayTerminated,
           courseDetail?.id ?? courseDocId ?? "",
           isAssessmentLesson
         );
@@ -257,9 +261,9 @@ const LidoPlayer: FC = () => {
   };
 
 
-  const exitLidoGame = async (isAborted: boolean = false) => {
+  const exitLidoGame = async (isAborted: boolean = false, isFullPathwayTerminated: boolean = false) => {
     setIsLoading(true);
-    await processStoredResults(isAborted);
+    await processStoredResults(isAborted, isFullPathwayTerminated);
     setShowDialogBox(true);
     setIsLoading(false);
   };
@@ -269,9 +273,11 @@ const LidoPlayer: FC = () => {
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
     const existingData = localStorage.getItem(LIDO_SCORES_KEY);
-    const scoresList: Array<{ score: number; result: 0 | 1 }> =
-      existingData ? JSON.parse(existingData) : [];
-
+    let scoresList: any[] = [];
+    if (existingData) {
+      const parsed = JSON.parse(existingData);
+      scoresList = Array.isArray(parsed) ? parsed : [];
+    }
     scoresList.push({
       score,
       result: binaryScore,
@@ -300,7 +306,9 @@ const LidoPlayer: FC = () => {
       const courseKey = courseDetail?.id ?? courseDocId ?? "";
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
-      await exitLidoGame(true);
+      const isAborted = true;
+      const isFullPathwayTerminated = true;
+      await exitLidoGame(isAborted, isFullPathwayTerminated); // aborted + full pathway terminated
       Util.logEvent(
         EVENTS.ASSESSMENT_ABORTED,
         {
@@ -318,7 +326,7 @@ const LidoPlayer: FC = () => {
       localStorage.setItem(failKey, JSON.stringify(failMap));
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
-       Util.logEvent(
+      Util.logEvent(
         EVENTS.ASSESSMENT_ABORTED,
         {
           user_id: currentStudent.id,
@@ -328,7 +336,8 @@ const LidoPlayer: FC = () => {
           played_from: playedFrom,
         }
       );// aborted
-      await exitLidoGame(); // skipped
+      const isAborted = true;
+      await exitLidoGame(isAborted); // skipped
     }
   };
 
@@ -341,16 +350,16 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-         Util.logEvent(
-        EVENTS.ASSESSMENT_COMPLETED,
-        {
-          user_id: currentStudent.id,
-          lesson_id: lessonData.id,
-          course_id: courseDocId,
-          is_assessment: isAssessmentLesson,
-          played_from: playedFrom,
-        }
-      );// aborted
+        Util.logEvent(
+          EVENTS.ASSESSMENT_COMPLETED,
+          {
+            user_id: currentStudent.id,
+            lesson_id: lessonData.id,
+            course_id: courseDocId,
+            is_assessment: isAssessmentLesson,
+            played_from: playedFrom,
+          }
+        );// aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
@@ -491,7 +500,8 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_id,
         abilityUpdates.subject_ability,
         activitiesScoresStr,
-        _currentUser?.id
+        _currentUser?.id,
+        RESULT_STATUS.COMPLETED
       );
 
       // Update the learning path
@@ -499,7 +509,7 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(currentStudent, isReward);
       } else if (is_homework && homeworkIndex !== undefined) {
         // This handles our temporary homework path
-        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); 
+        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
@@ -659,7 +669,7 @@ const LidoPlayer: FC = () => {
     // This ensures that when the new player starts, it doesn't see the
     // path from the PREVIOUS student's language.
     if (typeof window !== "undefined") {
-     (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
+      (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
