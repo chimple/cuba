@@ -2730,7 +2730,6 @@ export class SqliteApi implements ServiceApi {
     student.updated_at = now;
     // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
-      // student.learning_path = null;
       localStorage.setItem(LANG_REFRESHED, "true");
     }
 
@@ -2791,7 +2790,6 @@ export class SqliteApi implements ServiceApi {
     };
     // Include learning_path in push changes when language changes
     if (languageChanged) {
-      // pushChangesData.learning_path = null;
       localStorage.setItem(LANG_REFRESHED, "true");
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
@@ -2852,7 +2850,7 @@ export class SqliteApi implements ServiceApi {
       WHERE id = ?;
     `;
     try {
-      const params = [
+      await this.executeQuery(updateUserQuery, [
         name,
         age,
         gender,
@@ -2863,13 +2861,8 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-      ];
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      if (languageChanged) {
-        params.push(null);
-      }
-      params.push(student.id);
-      await this.executeQuery(updateUserQuery, params);
+        student.id,
+      ]);
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2880,11 +2873,7 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      if (languageChanged) {
-        student.learning_path = null;
-      }
-      const pushChangesData: any = {
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
         gender,
@@ -2896,12 +2885,7 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         locale_id: localeId,
         id: student.id,
-      };
-      // Include learning_path in push changes when language changes
-      if (languageChanged) {
-        pushChangesData.learning_path = null;
-      }
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
+      });
       // Check if the class has changed
       const currentClassIdQuery = `
         SELECT class_id FROM class_user
