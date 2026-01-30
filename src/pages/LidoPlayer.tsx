@@ -33,7 +33,6 @@ import { palUtil } from "../utility/palUtil";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 
-
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -181,8 +180,7 @@ const LidoPlayer: FC = () => {
             outcomes: booleanOutcomes,
           });
 
-          if (!abilityUpdates.skill_id)
-            abilityUpdates.skill_id = skillId;
+          if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
           if (!abilityUpdates.outcome_id)
             abilityUpdates.outcome_id = currentOutcomeId;
         } catch (e) {
@@ -194,8 +192,9 @@ const LidoPlayer: FC = () => {
         let schoolId;
 
         if (isStudentLinked) {
-          const studentResult =
-            await api.getStudentClassesAndSchools(currentStudent.id);
+          const studentResult = await api.getStudentClassesAndSchools(
+            currentStudent.id,
+          );
           if (studentResult?.classes?.length) {
             classId = studentResult.classes[0].id;
             schoolId = studentResult.schools[0].id;
@@ -250,7 +249,7 @@ const LidoPlayer: FC = () => {
           isReward,
           isFullPathwayTerminated,
           courseDetail?.id ?? courseDocId ?? "",
-          isAssessmentLesson
+          isAssessmentLesson,
         );
       }
       localStorage.removeItem(LIDO_SCORES_KEY);
@@ -287,10 +286,12 @@ const LidoPlayer: FC = () => {
     const courseKey = courseDetail?.id ?? courseDocId ?? "";
     const failKey = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;
     const streakKey = `${FAIL_STREAK_KEY}_${currentStudent.id}`;
-    const failMap: Record<string, boolean> =
-      JSON.parse(localStorage.getItem(failKey) || "{}");
-    const streakMap: Record<string, number> =
-      JSON.parse(localStorage.getItem(streakKey) || "{}");
+    const failMap: Record<string, boolean> = JSON.parse(
+      localStorage.getItem(failKey) || "{}",
+    );
+    const streakMap: Record<string, number> = JSON.parse(
+      localStorage.getItem(streakKey) || "{}",
+    );
     let failStreak = streakMap[courseKey] || 0;
     /* ✅ Correct answer → reset streak */
     if (!isFail) {
@@ -361,8 +362,16 @@ const LidoPlayer: FC = () => {
           }
         );// aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
-        Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
-        Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
+        Util.removeCourseScopedKey(
+          FAIL_STREAK_KEY,
+          currentStudent.id,
+          courseKey,
+        );
+        Util.removeCourseScopedKey(
+          ASSESSMENT_FAIL_KEY,
+          currentStudent.id,
+          courseKey,
+        );
         await exitLidoGame();
         return;
       }
@@ -393,7 +402,7 @@ const LidoPlayer: FC = () => {
       let chapter_id;
       if (isStudentLinked) {
         const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
+          currentStudent.id,
         );
         if (!!studentResult && studentResult.classes.length > 0) {
           classId = studentResult.classes[0].id;
@@ -689,23 +698,38 @@ const LidoPlayer: FC = () => {
       }
       try {
         const student = Util.getCurrentStudent();
-        if (student && student.language_id) {
-          const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
-          const commonAudioUri = await Filesystem.getUri({
+        if (!student?.language_id) {
+          throw new Error("[LidoPlayer] Student language_id missing");
+        }
+        const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
+
+        let commonAudioUri;
+        try {
+          commonAudioUri = await Filesystem.getUri({
             directory: Directory.Data,
             path: audioPath,
           });
-          setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
-        } else {
-          console.warn(
-            "[LidoPlayer] Could not determine student language for common audio path.",
+        } catch (firstError) {
+          console.error(
+            "[LidoPlayer] Common audio not accessible, retrying once...",
           );
+          // small delay to handle async extract race (very common on Android)
+          await new Promise((r) => setTimeout(r, 150));
+          commonAudioUri = await Filesystem.getUri({
+            directory: Directory.Data,
+            path: audioPath,
+          });
         }
+        setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
       } catch (e) {
-        console.error("Could not get common audio path", e);
+        console.error("[LidoPlayer] Failed to resolve common audio path", e);
+        presentToast();
+        push();
+        return;
       }
     } else {
-      const path = "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      const path =
+        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
       setXmlPath(path);
     }
     setIsLoading(false);
@@ -740,11 +764,11 @@ const LidoPlayer: FC = () => {
       )}
       {isReady && (xmlPath || basePath)
         ? React.createElement("lido-standalone", {
-          "xml-path": xmlPath,
-          "base-url": basePath,
-          "code-folder-path": "/Lido-player-code-versions",
-          "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
-        })
+            "xml-path": xmlPath,
+            "base-url": basePath,
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
+          })
         : null}
     </IonPage>
   );

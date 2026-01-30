@@ -243,3 +243,10 @@
   align-items: center;
   justify-content: center;
 }
+
+.schoolclass-wa-chip--warn {
+  background: #fdecea;        /* light red background */
+  color: #b42318;             /* red text */
+  border-color: #f5c2c7;      /* soft red border */
+}
+

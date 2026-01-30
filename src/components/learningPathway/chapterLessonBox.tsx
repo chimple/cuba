@@ -3,6 +3,7 @@ import "./chpaterLessonBox.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { COURSE_CHANGED } from "../../common/constants";
+import { useTranslation } from "react-i18next";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -17,11 +18,11 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
-
+  const { t } = useTranslation();
   useEffect(() => {
     // SCENARIO 1: Props are provided (Homework Page)
     if (chapterName && lessonName) {
-      setCurrentChapterName(`${chapterName} : ${lessonName}`);
+      setCurrentChapterName(`${t(chapterName)} : ${t(lessonName)}`);
       return; // Stop here, don't do the API fetch
     }
     const updateChapter = async () => {
@@ -48,8 +49,9 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
 
       // 3️⃣ Build chapter name safely
       const chapterName = chapter?.name
-        ? `${chapter.name} : ${lesson?.name ?? ""}`
-        : lesson?.name ?? "Default Chapter";
+        ? `${t(chapter.name)} : ${t(lesson?.name ?? "")}`
+        : t(lesson?.name ?? "default.chapter");
+
 
       setCurrentChapterName(chapterName);
     };
