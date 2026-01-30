@@ -53,6 +53,7 @@ import {
   REWARD_LESSON,
   OPS_ROLES,
   DEFAULT_LOCALE_ID,
+  RESULT_STATUS,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -2361,6 +2362,7 @@ export class SupabaseApi implements ServiceApi {
     subject_ability?: number | undefined,
     activities_scores?: string | null,
     user_id?: string | null,
+    status?: RESULT_STATUS | null
   ): Promise<TableTypes<"result">> {
     if (!this.supabase) return {} as TableTypes<"result">;
 
@@ -2397,6 +2399,7 @@ export class SupabaseApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
+      status:status ?? null,
     };
 
     const { error: insertError } = await this.supabase
