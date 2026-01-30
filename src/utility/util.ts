@@ -2928,7 +2928,7 @@ export class Util {
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean,
-    isAborted: boolean = false,
+    isFullPathwayTerminated: boolean = false,
     abortCourseId?: string,
     isAssessmentLesson: boolean = false,
   ) {
@@ -2941,7 +2941,7 @@ export class Util {
     if (!learningPath) return;
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
-    if (isAborted && abortCourseId && isAssessmentLesson) {
+    if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
       const courseIndex = learningPath.courses.courseList.findIndex(
         (c: any) => c.course_id === abortCourseId,
       );
@@ -3055,7 +3055,7 @@ export class Util {
           // ASSESSMENT COMPLETED CASE → rebuild initial learning path
           if (
             isAssessmentLesson &&
-            !isAborted &&
+            !isFullPathwayTerminated &&
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
             const courseIndex = learningPath.courses.courseList.findIndex(

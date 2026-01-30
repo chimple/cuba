@@ -16,6 +16,7 @@ import {
   TableTypes,
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
+  RESULT_STATUS,
 } from "../common/constants";
 import Loading from "../components/Loading";
 import ScoreCard from "../components/parent/ScoreCard";
@@ -85,7 +86,10 @@ const LidoPlayer: FC = () => {
   const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
-    const popupConfig = growthbook?.getFeatureValue("generic-pop-up", null);
+    const popupConfig = growthbook?.getFeatureValue(
+      "generic-pop-up",
+      null
+    );
 
     if (popupConfig) {
       PopupManager.onGameComplete(popupConfig);
@@ -99,7 +103,7 @@ const LidoPlayer: FC = () => {
     setIsLoading(false);
   };
 
-  const processStoredResults = async (isAborted: boolean = false) => {
+  const processStoredResults = async (isAborted: boolean = false, isFullPathwayTerminated: boolean = false) => {
     try {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
       const _currentUser =
@@ -223,6 +227,9 @@ const LidoPlayer: FC = () => {
           abilityUpdates.subject_ability,
           activitiesScoresStr,
           _currentUser?.id,
+          isAborted
+            ? RESULT_STATUS.SYSTEM_EXIT
+            : RESULT_STATUS.COMPLETED
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -240,7 +247,7 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(
           currentStudent,
           isReward,
-          isAborted,
+          isFullPathwayTerminated,
           courseDetail?.id ?? courseDocId ?? "",
           isAssessmentLesson,
         );
@@ -252,9 +259,10 @@ const LidoPlayer: FC = () => {
     }
   };
 
-  const exitLidoGame = async (isAborted: boolean = false) => {
+
+  const exitLidoGame = async (isAborted: boolean = false, isFullPathwayTerminated: boolean = false) => {
     setIsLoading(true);
-    await processStoredResults(isAborted);
+    await processStoredResults(isAborted, isFullPathwayTerminated);
     setShowDialogBox(true);
     setIsLoading(false);
   };
@@ -264,10 +272,11 @@ const LidoPlayer: FC = () => {
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
     const existingData = localStorage.getItem(LIDO_SCORES_KEY);
-    const scoresList: Array<{ score: number; result: 0 | 1 }> = existingData
-      ? JSON.parse(existingData)
-      : [];
-
+    let scoresList: any[] = [];
+    if (existingData) {
+      const parsed = JSON.parse(existingData);
+      scoresList = Array.isArray(parsed) ? parsed : [];
+    }
     scoresList.push({
       score,
       result: binaryScore,
@@ -297,19 +306,20 @@ const LidoPlayer: FC = () => {
     if (previousLessonSkipped && failStreak >= 2) {
       const courseKey = courseDetail?.id ?? courseDocId ?? "";
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
-      Util.removeCourseScopedKey(
-        ASSESSMENT_FAIL_KEY,
-        currentStudent.id,
-        courseKey,
-      );
-      await exitLidoGame(true);
-      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
-        user_id: currentStudent.id,
-        lesson_id: lesson.id,
-        course_id: courseDocId,
-        is_assessment: isAssessmentLesson,
-        played_from: playedFrom,
-      }); // aborted
+      Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, currentStudent.id, courseKey);
+      const isAborted = true;
+      const isFullPathwayTerminated = true;
+      await exitLidoGame(isAborted, isFullPathwayTerminated); // aborted + full pathway terminated
+      Util.logEvent(
+        EVENTS.ASSESSMENT_ABORTED,
+        {
+          user_id: currentStudent.id,
+          lesson_id: lesson.id,
+          course_id: courseDocId,
+          is_assessment: isAssessmentLesson,
+          played_from: playedFrom,
+        }
+      );// aborted
       return;
     }
     if (failStreak >= 4) {
@@ -317,14 +327,18 @@ const LidoPlayer: FC = () => {
       localStorage.setItem(failKey, JSON.stringify(failMap));
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
-      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
-        user_id: currentStudent.id,
-        lesson_id: lesson.id,
-        course_id: courseDocId,
-        is_assessment: isAssessmentLesson,
-        played_from: playedFrom,
-      }); // aborted
-      await exitLidoGame(); // skipped
+      Util.logEvent(
+        EVENTS.ASSESSMENT_ABORTED,
+        {
+          user_id: currentStudent.id,
+          lesson_id: lesson.id,
+          course_id: courseDocId,
+          is_assessment: isAssessmentLesson,
+          played_from: playedFrom,
+        }
+      );// aborted
+      const isAborted = true;
+      await exitLidoGame(isAborted); // skipped
     }
   };
 
@@ -337,13 +351,16 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-        Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
-          user_id: currentStudent.id,
-          lesson_id: lessonData.id,
-          course_id: courseDocId,
-          is_assessment: isAssessmentLesson,
-          played_from: playedFrom,
-        }); // aborted
+        Util.logEvent(
+          EVENTS.ASSESSMENT_COMPLETED,
+          {
+            user_id: currentStudent.id,
+            lesson_id: lessonData.id,
+            course_id: courseDocId,
+            is_assessment: isAssessmentLesson,
+            played_from: playedFrom,
+          }
+        );// aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
         Util.removeCourseScopedKey(
           FAIL_STREAK_KEY,
@@ -493,6 +510,7 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_ability,
         activitiesScoresStr,
         _currentUser?.id,
+        RESULT_STATUS.COMPLETED
       );
 
       // Update the learning path
