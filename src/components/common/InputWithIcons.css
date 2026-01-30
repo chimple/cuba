@@ -27,7 +27,7 @@
   font-style: normal;
   font-size: 12px;
   color: #182a4f;
-  z-index: 1;
+  z-index: 2;
   width: fit-content;
 }
 
@@ -40,7 +40,7 @@
   width: 100%;
   height: 3px;
   background-color: white;
-  z-index: -1;
+  z-index: -2;
   border-radius: 2px;
 }
 
