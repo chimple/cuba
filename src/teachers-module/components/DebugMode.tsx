@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./DebugMode.css"; // Import external CSS
 import { useHistory } from "react-router-dom";
-import { CAN_HOT_UPDATE, DOWNLOADED_LESSON_ID } from "../../common/constants";
+import { DOWNLOADED_LESSON_ID } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
-import { AppUpdater, HotUpdateStatus } from "../../services/AppUpdater";
-import { Util } from "../../utility/util";
+import { HotUpdateState, Util } from "../../utility/util";
 import { toPng } from "html-to-image";
 import { LiveUpdate } from "@capawesome/capacitor-live-update";
 
@@ -20,15 +19,21 @@ const DebugPage: React.FC = () => {
   const [columns, setColumns] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
   const [isHotUpdating, setIsHotUpdating] = useState(false);
-  const [hotUpdateStatus, setHotUpdateStatus] = useState<string>("Idle");
-  const [hotUpdateProgress, setHotUpdateProgress] = useState(0);
-  const [hotUpdateInfo, setHotUpdateInfo] = useState({
+  const [hotUpdateState, setHotUpdateStateUI] = useState<HotUpdateState>({
+    status: "Idle",
+    progress: 0,
+    channel: "N/A",
+    lastChecked: "N/A",
+    lastUpdated: "N/A",
+    error: "",
+    isAuto: false,
+  });
+  const [hotUpdateMeta, setHotUpdateMeta] = useState({
     versionName: "N/A",
     versionCode: "N/A",
     currentBundleId: "N/A",
     latestBundleId: "N/A",
-    status: "Idle",
-    lastChecked: "",
+    isUpdateAvailable: false,
   });
 
   const [classData, setClassData] = useState<
@@ -57,7 +62,26 @@ const DebugPage: React.FC = () => {
   useEffect(() => {
     fetchData();
     init();
-    loadHotUpdateInfo();
+    loadHotUpdateMeta();
+  }, []);
+
+  useEffect(() => {
+    // initial load
+    setHotUpdateStateUI(Util.getHotUpdateState());
+    const handler = () => {
+      const state = Util.getHotUpdateState();
+      setHotUpdateStateUI(state);
+      setIsHotUpdating(state.progress > 0 && state.progress < 100);
+      if (state.progress === 100) {
+        loadHotUpdateMeta(); // refresh bundle info
+      }
+    };
+
+    window.addEventListener("hot-update-progress", handler);
+
+    return () => {
+      window.removeEventListener("hot-update-progress", handler);
+    };
   }, []);
 
   async function init() {
@@ -257,77 +281,69 @@ const DebugPage: React.FC = () => {
   }
 
   const handleManualHotUpdate = async () => {
-    if (!Capacitor.isNativePlatform()) {
-      alert("Hot update only works on native platform");
-      return;
-    }
+    if (!Capacitor.isNativePlatform()) return;
+
+    const channel = await getHotUpdateChannel();
+
+    Util.setHotUpdateState({
+      status: "Checking (Manual)",
+      progress: 10,
+      channel,
+      lastChecked: new Date().toLocaleString(),
+      isAuto: false,
+      error: "",
+    });
 
     try {
-      setIsHotUpdating(true);
-      setHotUpdateProgress(0);
-      setHotUpdateStatus("Checking for update...");
-
-      const channel = await getHotUpdateChannel();
-
-      // STEP 1: fetch latest bundle
       const latest = await LiveUpdate.fetchLatestBundle({ channel });
-      setHotUpdateProgress(30);
+      Util.setHotUpdateState({ progress: 40 });
 
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
 
       if (!latest.bundleId || latest.bundleId === currentBundleId) {
-        setHotUpdateStatus("Already up to date");
-        setHotUpdateProgress(100);
-        setIsHotUpdating(false);
+        Util.setHotUpdateState({
+          status: "Already up to date",
+          progress: 100,
+        });
         return;
       }
 
-      // STEP 2: download + apply
-      setHotUpdateStatus("Downloading update...");
-      setHotUpdateProgress(60);
+      Util.setHotUpdateState({ status: "Downloading...", progress: 70 });
 
       await LiveUpdate.sync({ channel });
 
-      setHotUpdateStatus("Restarting app...");
-      setHotUpdateProgress(100);
+      Util.setHotUpdateState({
+        status: "Updated successfully",
+        progress: 100,
+        lastUpdated: new Date().toLocaleString(),
+      });
 
       await LiveUpdate.reload();
-    } catch (err) {
-      console.error("Manual hot update failed:", err);
-      setHotUpdateStatus("Update failed");
-      setHotUpdateProgress(0);
-      setIsHotUpdating(false);
+    } catch (err: any) {
+      Util.setHotUpdateState({
+        status: "Update failed",
+        progress: 0,
+        error: err?.message || "Manual update failed",
+      });
     }
   };
 
-  async function loadHotUpdateInfo() {
+  async function loadHotUpdateMeta() {
     if (!Capacitor.isNativePlatform()) return;
+    const channel = await getHotUpdateChannel();
+    const version = await LiveUpdate.getVersionName();
+    const code = await LiveUpdate.getVersionCode();
+    const current = await LiveUpdate.getCurrentBundle();
+    const latest = await LiveUpdate.fetchLatestBundle({ channel });
 
-    try {
-      const version = await LiveUpdate.getVersionName();
-      const code = await LiveUpdate.getVersionCode();
-      const current = await LiveUpdate.getCurrentBundle();
-      const latest = await LiveUpdate.fetchLatestBundle({ channel: "dev-1" });
-
-      setHotUpdateInfo({
-        versionName: version.versionName,
-        versionCode: String(code.versionCode),
-        currentBundleId: current.bundleId ?? "None",
-        latestBundleId: latest.bundleId ?? "None",
-        status:
-          current.bundleId === latest.bundleId
-            ? "Up to date"
-            : "Update available",
-        lastChecked: new Date().toLocaleString(),
-      });
-    } catch (err) {
-      console.error("Failed to load hot update info", err);
-      setHotUpdateInfo((prev) => ({
-        ...prev,
-        status: "Error",
-        lastChecked: new Date().toLocaleString(),
-      }));
-    }
+    setHotUpdateMeta({
+      versionName: version.versionName,
+      versionCode: String(code.versionCode),
+      currentBundleId: current.bundleId ?? "None",
+      latestBundleId: latest.bundleId ?? "None",
+      isUpdateAvailable:
+        !!latest.bundleId && latest.bundleId !== current.bundleId,
+    });
   }
 
   return (
@@ -354,7 +370,7 @@ const DebugPage: React.FC = () => {
             Capture & Share Screenshot
           </button>
           <button
-            className="debug-btn debug-hotupdate-btn"
+            className="debug-btn debugmode-debug-hotupdate-btn"
             onClick={handleManualHotUpdate}
             disabled={isHotUpdating}
           >
@@ -364,16 +380,16 @@ const DebugPage: React.FC = () => {
         {isHotUpdating && (
           <div className="debug-card">
             <strong>Hot Update Progress</strong>
-            <p>{hotUpdateProgress}%</p>
+            <p>{hotUpdateState.progress}%</p>
 
-            <div className="progress-bar-container">
+            <div className="debugmode-progress-bar-container">
               <div
-                className="progress-bar-fill"
-                style={{ width: `${hotUpdateProgress}%` }}
+                className="debugmode-progress-bar-fill"
+                style={{ width: `${hotUpdateState.progress}%` }}
               />
             </div>
 
-            <p>Status: {hotUpdateStatus}</p>
+            <p>Status: {hotUpdateState.status}</p>
           </div>
         )}
 
@@ -419,44 +435,6 @@ const DebugPage: React.FC = () => {
                   MB)
                 </p>
               </div>
-              <div className="debug-stat">
-                <strong>App Version Name:</strong>
-                <p>{hotUpdateInfo.versionName}</p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>App Version Code:</strong>
-                <p>{hotUpdateInfo.versionCode}</p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>Current Bundle ID:</strong>
-                <p style={{ wordBreak: "break-all" }}>
-                  {hotUpdateInfo.currentBundleId}
-                </p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>Latest Bundle ID:</strong>
-                <p style={{ wordBreak: "break-all" }}>
-                  {hotUpdateInfo.latestBundleId}
-                </p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>Status:</strong>
-                <p>{hotUpdateInfo.status}</p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>Last Checked:</strong>
-                <p>{hotUpdateInfo.lastChecked}</p>
-              </div>
-
-              <div className="debug-stat">
-                <strong>Hot Update Enabled:</strong>
-                <p>{String(process.env.REACT_APP_IS_HOT_UPDATE_ENABLED)}</p>
-              </div>
             </div>
 
             {classData.length > 0 && (
@@ -490,6 +468,70 @@ const DebugPage: React.FC = () => {
               </div>
             )}
           </div>
+          {/* 🔥 Hot Update Info Card */}
+          <div className="debug-card">
+            <div className="debug-card-content">
+              <div className="debug-stat">
+                <strong>Hot Update Channel:</strong>
+                <p>{hotUpdateState.channel}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>Update Mode:</strong>
+                <p>{hotUpdateState.isAuto ? "Auto" : "Manual"}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>App Version Name:</strong>
+                <p>{hotUpdateMeta.versionName}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>App Version Code:</strong>
+                <p>{hotUpdateMeta.versionCode}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Update Available:</strong>
+                <p>{String(hotUpdateMeta.isUpdateAvailable)}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Status:</strong>
+                <p>{hotUpdateState.status}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Current Bundle ID:</strong>
+                <p style={{ wordBreak: "break-all" }}>
+                  {hotUpdateMeta.currentBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Latest Bundle ID:</strong>
+                <p style={{ wordBreak: "break-all" }}>
+                  {hotUpdateMeta.latestBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Checked:</strong>
+                <p>{hotUpdateState.lastChecked}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Update Applied:</strong>
+                <p>{hotUpdateState.lastUpdated}</p>
+              </div>
+
+              {hotUpdateState.error && (
+                <div className="debug-stat">
+                  <strong>Hot Update Error:</strong>
+                  <p style={{ color: "red" }}>{hotUpdateState.error}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="debug-info-container">
             <h2>📊 30-Day Sync Summary</h2>
             {data.length > 0 ? (
