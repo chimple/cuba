@@ -52,3 +52,23 @@
   align-items: center;
   color: var(--text-color);
 }
+
+
+/* Ops console: enable selection */
+body.ops-console,
+body.ops-console * {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* Still block CTAs */
+body.ops-console button,
+body.ops-console a,
+body.ops-console [role="button"],
+body.ops-console input,
+body.ops-console textarea {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+}

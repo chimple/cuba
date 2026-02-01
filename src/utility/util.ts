@@ -2258,7 +2258,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2271,7 +2271,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2722,7 +2722,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-        currentReward?.reward_id
+          currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2961,23 +2961,38 @@ export class Util {
       if (courseIndex === -1) return;
 
       // Rebuild learning path for ALL courses
-      const courses = learningPath.courses.courseList.map((c: any) => ({
-        id: c.course_id,
-        subject_id: c.subject_id,
-        framework_id:
-          c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-      }));
+      const courses = learningPath.courses.courseList
+        .filter((c: any) => c.course_id === abortCourseId)
+        .map((c: any) => ({
+          id: c.course_id,
+          subject_id: c.subject_id,
+          framework_id:
+            c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+        }));
+
 
       const rebuiltPath = await buildInitialLearningPath(
         storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         courses,
         currentStudent,
       );
+      // 1️⃣ Get rebuilt course
+      const rebuiltCourse = rebuiltPath.courses.courseList[0];
+      if (!rebuiltCourse) return;
+      // 3️⃣ Replace ONLY that course
+      learningPath.courses.courseList[courseIndex] = {
+        ...learningPath.courses.courseList[courseIndex],
+        ...rebuiltCourse,
+      };
 
+      // 4️⃣ Keep pointer correct
+      learningPath.courses.currentCourseIndex = courseIndex;
+
+      // 5️⃣ Save FULL learning path
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
-        JSON.stringify(rebuiltPath),
-        false,
+        JSON.stringify(learningPath),
+        false
       );
 
       const updatedStudent =
@@ -2993,7 +3008,6 @@ export class Util {
     try {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
-
       let activeCourse = courses.courseList[courses.currentCourseIndex];
       let activePathItem = activeCourse.path[activeCourse.currentIndex];
 
@@ -3056,23 +3070,38 @@ export class Util {
             !isAborted &&
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
-            const courses = learningPath.courses.courseList.map((c: any) => ({
-              id: c.course_id,
-              subject_id: c.subject_id,
-              framework_id:
-                c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-            }));
+            const courseIndex = learningPath.courses.courseList.findIndex(
+              (c: any) => c.course_id === currentCourse.course_id
+            );
+
+            if (courseIndex === -1) return;
+            const courses = learningPath.courses.courseList
+              .filter((c: any) => c.course_id === currentCourse.course_id)
+              .map((c: any) => ({
+                id: c.course_id,
+                subject_id: c.subject_id,
+                framework_id:
+                  c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+              }));
 
             const rebuiltPath = await buildInitialLearningPath(
               storedPathwayMode,
               courses,
               currentStudent,
             );
-
+            const rebuiltCourse = rebuiltPath.courses.courseList[0];
+            if (!rebuiltCourse) return;
+            // 3️⃣ Replace ONLY that course
+            learningPath.courses.courseList[courseIndex] = {
+              ...learningPath.courses.courseList[courseIndex],
+              ...rebuiltCourse,
+            };
+            // 4️⃣ Keep pointer correct
+            learningPath.courses.currentCourseIndex = courseIndex;
             await ServiceConfig.getI().apiHandler.updateLearningPath(
               currentStudent,
-              JSON.stringify(rebuiltPath),
-              false,
+              JSON.stringify(learningPath),
+              false
             );
 
             const updatedStudent =
@@ -3087,16 +3116,21 @@ export class Util {
             return; // STOP further PAL / normal flow
           }
 
-          const palPath = await palUtil.getPalLessonPathForCourse(
-            currentCourse.course_id,
-            currentStudent.id,
-          );
-          if (palPath?.length) {
-            currentCourse.path_id = uuidv4();
-            currentCourse.path = palPath;
-            currentCourse.startIndex = 0;
-            currentCourse.currentIndex = 0;
-            currentCourse.pathEndIndex = palPath.length - 1;
+          if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+            const palPath = await palUtil.getPalLessonPathForCourse(
+              currentCourse.course_id,
+              currentStudent.id
+            );
+
+            if (palPath?.length) {
+              currentCourse.path_id = uuidv4();
+              currentCourse.path = palPath;
+              currentCourse.startIndex = 0;
+              currentCourse.currentIndex = 0;
+              currentCourse.pathEndIndex = palPath.length - 1;
+            } else {
+              advancePathSlice();
+            }
           } else {
             advancePathSlice();
           }
@@ -3148,7 +3182,10 @@ export class Util {
 
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else if (!isAssessmentLesson && storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+      } else if (
+        !isAssessmentLesson &&
+        storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+      ) {
         const recommended = await palUtil.getRecommendedLessonForCourse(
           currentStudent.id,
           currentCourse.course_id,
@@ -3612,7 +3649,6 @@ export class Util {
         console.warn("[LidoCommonAudio] No audio config found");
         return;
       }
-
       await Util.downloadLidoCommonAudio(
         audioConfig.lido_common_audio_url,
         student.language_id,
@@ -3644,5 +3680,29 @@ public static setHotUpdateState(partial: Partial<HotUpdateState>) {
 
   window.dispatchEvent(new Event("hot-update-progress"));
 }
+  static async removeCourseScopedKey(
+    baseKey: string,
+    userId: string,
+    courseId: string
+  ) {
+    if (!baseKey || !userId || !courseId) return;
+
+    const storageKey = `${baseKey}_${userId}`;
+
+    let map: Record<string, any> = {};
+    try {
+      map = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    } catch {
+      map = {};
+    }
+
+    if (!map || typeof map !== "object") return;
+
+    delete map[courseId];
+
+    Object.keys(map).length === 0
+      ? localStorage.removeItem(storageKey)
+      : localStorage.setItem(storageKey, JSON.stringify(map));
+  }
 
 }

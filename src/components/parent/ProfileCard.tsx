@@ -12,6 +12,7 @@ import {
   MODES,
   TableTypes,
   ASSESSMENT_FAIL_KEY,
+  FAIL_STREAK_KEY,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
@@ -39,195 +40,198 @@ const ProfileCard: React.FC<{
   profiles,
   studentCurrMode,
 }) => {
-  const history = useHistory();
-  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
-  const [showWarningDialogBox, setShowWarningDialogBox] =
-    useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const areProfilesAvailable = (profiles && profiles[0] == null) || undefined;
-  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-  return (
-    <IonCard
-      id="profile-card"
-      style={{
-        // width: "auto",
-        width: width,
-        // height: height,
-        height: "auto",
-        padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
-      }}
+    const history = useHistory();
+    const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+    const [showWarningDialogBox, setShowWarningDialogBox] =
+      useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const areProfilesAvailable = (profiles && profiles[0] == null) || undefined;
+    const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+    return (
+      <IonCard
+        id="profile-card"
+        style={{
+          // width: "auto",
+          width: width,
+          // height: height,
+          height: "auto",
+          padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
+        }}
       onClick={() => {}}
-    >
-      <div id="profile-card-edit-icon-div">
-        {userType ? (
-          <MdModeEditOutline
-            id="profile-card-edit-icon"
-            aria-label="Edit"
-            size={"5%"}
-            onClick={() => {
-              if (!online) {
-                presentToast({
-                  message: t(
-                    `Device is offline. Cannot edit or delete child profile`
-                  ),
-                  color: "danger",
-                  duration: 3000,
-                  position: "bottom",
-                  buttons: [
-                    {
-                      text: "Dismiss",
-                      role: "cancel",
-                    },
-                  ],
-                });
-                return;
-              }
-              setShowDialogBox(true);
-            }}
-          ></MdModeEditOutline>
-        ) : (
-          // <></>
-          <p className="profile-card-empty-element">&#9679;</p>
-        )}
-        {/* <img
+      >
+        <div id="profile-card-edit-icon-div">
+          {userType ? (
+            <MdModeEditOutline
+              id="profile-card-edit-icon"
+              aria-label="Edit"
+              size={"5%"}
+              onClick={() => {
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Cannot edit or delete child profile`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
+                setShowDialogBox(true);
+              }}
+            ></MdModeEditOutline>
+          ) : (
+            // <></>
+            <p className="profile-card-empty-element">&#9679;</p>
+          )}
+          {/* <img
           id="profile-card-edit-icon"
           loading="lazy"
           src="assets/icons/DoneIcon.svg"
           alt="assets/icons/DoneIcon.svg"
         /> */}
-      </div>
-      {userType ? (
-        <div id="profile-card-image-div">
-          <img
-            id="profile-card-image"
-            loading="lazy"
-            src={
-              (studentCurrMode === MODES.SCHOOL && user.image) ||
-              "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"
-            }
-            alt=""
-          />
-          <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
         </div>
-      ) : (
-        <div id="profile-card-new-user">
-          <HiPlusCircle
-            id="profile-card-new-user-icon"
-            size={"16vw"}
-            onClick={() => {
-              if (!online) {
-                presentToast({
-                  message: t(
-                    `Device is offline. Cannot create a new child profile`
-                  ),
-                  color: "danger",
-                  duration: 3000,
-                  position: "bottom",
-                  buttons: [
-                    {
-                      text: "Dismiss",
-                      role: "cancel",
-                    },
-                  ],
-                });
-                return;
+        {userType ? (
+          <div id="profile-card-image-div">
+            <img
+              id="profile-card-image"
+              loading="lazy"
+              src={
+                (studentCurrMode === MODES.SCHOOL && user.image) ||
+                "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"
               }
-              history.replace(PAGES.CREATE_STUDENT, {
-                showBackButton: !areProfilesAvailable,
-              });
+              alt=""
+            />
+            <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
+          </div>
+        ) : (
+          <div id="profile-card-new-user">
+            <HiPlusCircle
+              id="profile-card-new-user-icon"
+              size={"16vw"}
+              onClick={() => {
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Cannot create a new child profile`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
+                history.replace(PAGES.CREATE_STUDENT, {
+                  showBackButton: !areProfilesAvailable,
+                });
+              }}
+            ></HiPlusCircle>
+            <p>{t("New Profile")}</p>
+          </div>
+        )}
+
+        {userType ? (
+          <div
+            id="profile-card-image-report"
+            onClick={async () => {
+              await Util.setCurrentStudent(user, undefined, false, false);
+              // const api = ServiceConfig.getI().apiHandler;
+              // api.currentStudent = user;
+
+              Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
             }}
-          ></HiPlusCircle>
-          <p>{t("New Profile")}</p>
-        </div>
-      )}
-
-      {userType ? (
-        <div
-          id="profile-card-image-report"
-          onClick={async () => {
-            await Util.setCurrentStudent(user, undefined, false, false);
-            // const api = ServiceConfig.getI().apiHandler;
-            // api.currentStudent = user;
-
-            Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
-          }}
-        >
-          {/* {t("Progress Report")} */}
-          Progress
-        </div>
-      ) : (
-        // <></>
-        <p className="profile-card-empty-element">&#9679;</p>
-      )}
-      {showDialogBox ? (
-        <DialogBoxButtons
-          width={"40vw"}
-          height={"30vh"}
-          message={t(
-            "You can edit or delete the Profile by clicking on the buttons below."
-          )}
-          showDialogBox={showDialogBox}
-          yesText={t("Delete Profile")}
-          noText={t("Edit Profile")}
-          handleClose={() => {
-            setShowDialogBox(false);
-          }}
+          >
+            {/* {t("Progress Report")} */}
+            Progress
+          </div>
+        ) : (
+          // <></>
+          <p className="profile-card-empty-element">&#9679;</p>
+        )}
+        {showDialogBox ? (
+          <DialogBoxButtons
+            width={"40vw"}
+            height={"30vh"}
+            message={t(
+              "You can edit or delete the Profile by clicking on the buttons below."
+            )}
+            showDialogBox={showDialogBox}
+            yesText={t("Delete Profile")}
+            noText={t("Edit Profile")}
+            handleClose={() => {
+              setShowDialogBox(false);
+            }}
           onYesButtonClicked={async ({}) => {
-            setShowWarningDialogBox(true);
-          }}
+              setShowWarningDialogBox(true);
+            }}
           onNoButtonClicked={async ({}) => {
-            const api = ServiceConfig.getI().apiHandler;
-            await Util.setCurrentStudent(user, undefined, false);
-            history.replace(PAGES.EDIT_STUDENT, {
-              from: history.location.pathname,
-            });
-            setShowDialogBox(false);
-          }}
-        ></DialogBoxButtons>
-      ) : null}
-      {showWarningDialogBox ? (
-        <DialogBoxButtons
-          width={"40vw"}
-          height={"30vh"}
-          message={t("Do you want to delete the Profile?")}
-          showDialogBox={showDialogBox}
-          yesText={t("Yes")}
-          noText={t("No")}
-          handleClose={() => {
-            setShowDialogBox(false);
-          }}
+              const api = ServiceConfig.getI().apiHandler;
+              await Util.setCurrentStudent(user, undefined, false);
+              history.replace(PAGES.EDIT_STUDENT, {
+                from: history.location.pathname,
+              });
+              setShowDialogBox(false);
+            }}
+          ></DialogBoxButtons>
+        ) : null}
+        {showWarningDialogBox ? (
+          <DialogBoxButtons
+            width={"40vw"}
+            height={"30vh"}
+            message={t("Do you want to delete the Profile?")}
+            showDialogBox={showDialogBox}
+            yesText={t("Yes")}
+            noText={t("No")}
+            handleClose={() => {
+              setShowDialogBox(false);
+            }}
           onYesButtonClicked={async ({}) => {
-            setShowWarningDialogBox(false);
-            setShowDialogBox(false);
-            setIsLoading(true);
-            setReloadProfiles(false);
-             localStorage.removeItem(
+              setShowWarningDialogBox(false);
+              setShowDialogBox(false);
+              setIsLoading(true);
+              setReloadProfiles(false);
+              localStorage.removeItem(
                 `${ASSESSMENT_FAIL_KEY}_${user.id}`
               );
-            await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
-            setReloadProfiles(true);
-            const eventParams = {
-              user_id: user.id,
-              // user_type: user.role,
-              user_name: user.name,
-              user_gender: user.gender!,
-              user_age: user.age!,
-              phone_number: user.phone,
-              // parent_id: user.uid,
-              // parent_username: user.username,
-              action_type: ACTION.DELETE,
-            };
-            Util.logEvent(EVENTS.USER_PROFILE, eventParams);
-            setIsLoading(false);
-          }}
-          onNoButtonClicked={async ({}) => {
-            setShowWarningDialogBox(false);
-          }}
-        ></DialogBoxButtons>
-      ) : null}
-      <Loading isLoading={isLoading} />
-    </IonCard>
-  );
-};
+              localStorage.removeItem(
+                `${FAIL_STREAK_KEY}_${user.id}`
+              );
+              await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
+              setReloadProfiles(true);
+              const eventParams = {
+                user_id: user.id,
+                // user_type: user.role,
+                user_name: user.name,
+                user_gender: user.gender!,
+                user_age: user.age!,
+                phone_number: user.phone,
+                // parent_id: user.uid,
+                // parent_username: user.username,
+                action_type: ACTION.DELETE,
+              };
+              Util.logEvent(EVENTS.USER_PROFILE, eventParams);
+              setIsLoading(false);
+            }}
+            onNoButtonClicked={async ({ }) => {
+              setShowWarningDialogBox(false);
+            }}
+          ></DialogBoxButtons>
+        ) : null}
+        <Loading isLoading={isLoading} />
+      </IonCard>
+    );
+  };
 
 export default ProfileCard;

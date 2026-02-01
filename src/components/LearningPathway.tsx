@@ -19,6 +19,7 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   LANGUAGE,
+  LANG_REFRESHED,
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { palUtil } from "../utility/palUtil";
@@ -28,9 +29,37 @@ const buildLessonPath = async (
   mode: string,
   course: any,
   student: TableTypes<"user">,
+  isLanguageRefresh?: boolean,
 ) => {
   const api = ServiceConfig.getI().apiHandler;
+  if (isLanguageRefresh) {
+    if (shouldUseAssessment(mode)) {
+      const subjectLessons = await api.getSubjectLessonsBySubjectId(
+        course.subject_id,
+        student,
+      );
 
+      if (Array.isArray(subjectLessons) && subjectLessons.length > 0) {
+        return subjectLessons.map((lesson: any) => ({
+          lesson_id: lesson.lesson_id,
+          is_assessment: true,
+        }));
+      }
+    }
+    if (shouldUsePAL(mode)) {
+      const palPath = await palUtil.getPalLessonPathForCourse(
+        course.id,
+        student.id,
+      );
+
+      if (Array.isArray(palPath) && palPath.length > 0) {
+        return palPath.map((item: any) => ({
+          ...item,
+          is_assessment: false,
+        }));
+      }
+    }
+  }
   const rawResults = await api.isStudentPlayedPalLesson(student.id, course.id);
 
   /**
@@ -126,10 +155,11 @@ export const buildInitialLearningPath = async (
   mode: string,
   courses: any[],
   student: TableTypes<"user">,
+  isLanguageRefresh?: boolean,
 ) => {
   const courseList = await Promise.all(
     courses.map(async (course) => {
-      const path = await buildLessonPath(mode, course, student);
+      const path = await buildLessonPath(mode, course, student, isLanguageRefresh);
       return {
         path_id: uuidv4(),
         course_id: course.id,
@@ -252,16 +282,15 @@ const LearningPathway: React.FC = () => {
     // 1. Try Local Storage first
     const localLanguageCode = localStorage.getItem(LANGUAGE)?.toLowerCase();
     if (localLanguageCode) {
-      const targetIndex = courses.findIndex(
+      const targetCourses = courses.filter(
         (c) => c.code?.toLowerCase() === localLanguageCode,
       );
 
-      if (targetIndex > -1) {
-        const targetCourse = courses[targetIndex];
+      if (targetCourses.length > 0) {
         const otherCourses = courses.filter(
-          (_, index) => index !== targetIndex,
+          (c) => c.code?.toLowerCase() !== localLanguageCode,
         );
-        return [targetCourse, ...otherCourses];
+        return [...targetCourses, ...otherCourses];
       }
     }
 
@@ -276,26 +305,29 @@ const LearningPathway: React.FC = () => {
       const languageName = language.name?.trim().toLowerCase();
 
       // Priority 1: Match by Code
-      let targetIndex = -1;
       if (languageCode) {
-        targetIndex = courses.findIndex(
+        const targetCourses = courses.filter(
           (c) => c.code?.toLowerCase() === languageCode,
         );
+        if (targetCourses.length > 0) {
+          const otherCourses = courses.filter(
+            (c) => c.code?.toLowerCase() !== languageCode,
+          );
+          return [...targetCourses, ...otherCourses];
+        }
       }
 
       // Priority 2: Match by Name (if code match failed)
-      if (targetIndex === -1 && languageName) {
-        targetIndex = courses.findIndex(
+      if (languageName) {
+        const targetCourses = courses.filter(
           (c) => c.name?.trim().toLowerCase() === languageName,
         );
-      }
-
-      if (targetIndex > -1) {
-        const targetCourse = courses[targetIndex];
-        const otherCourses = courses.filter(
-          (_, index) => index !== targetIndex,
-        );
-        return [targetCourse, ...otherCourses];
+        if (targetCourses.length > 0) {
+          const otherCourses = courses.filter(
+            (c) => c.name?.trim().toLowerCase() !== languageName,
+          );
+          return [...targetCourses, ...otherCourses];
+        }
       }
     } catch (e) {
       console.error("Error sorting courses by language", e);
@@ -358,7 +390,6 @@ const LearningPathway: React.FC = () => {
           total_learning_path_completed,
         });
         setGbUpdated(true);
-
         if (updated) await saveLearningPath(student, learningPath);
         await buildLearningPathForUnplayedCourses(
           learningPath,
@@ -368,12 +399,79 @@ const LearningPathway: React.FC = () => {
         if (currClass) {
           await updateLearningPathWithLatestAssessment(currClass, student);
         }
+        const langRefreshed = localStorage.getItem(LANG_REFRESHED);
+        if (langRefreshed === "true") {
+          setLoading(true);
+          await rebuildLearningPathOnLangRefresh(
+            mode,
+            userCourses,
+            student,
+          );
+        }
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const rebuildLearningPathOnLangRefresh = async (
+    mode: string,
+    userCourses: any[],
+    student: TableTypes<"user">
+  ) => {
+    const langRefreshed = localStorage.getItem(LANG_REFRESHED);
+    if (langRefreshed !== "true") return;
+    localStorage.removeItem(LANG_REFRESHED);
+    const rebuiltPath = await buildInitialLearningPath(
+      mode,
+      userCourses,
+      student,
+      true
+    );
+    if (!rebuiltPath?.courses?.courseList?.length) return;
+    const learningPath = student.learning_path
+      ? JSON.parse(student.learning_path)
+      : null;
+    if (!learningPath?.courses?.courseList) return;
+    const existingList = [...learningPath.courses.courseList];
+    const newList = rebuiltPath.courses.courseList;
+    let hasChanges = false;
+    for (const newCourse of newList) {
+      const index = existingList.findIndex(
+        (c: any) => c.course_id === newCourse.course_id
+      );
+      if (index === -1) continue;
+      const oldCourse = existingList[index];
+      const oldStartNode =
+        oldCourse?.path?.[oldCourse.startIndex];
+      const newStartNode =
+        newCourse?.path?.[newCourse.startIndex];
+      if (!oldStartNode || !newStartNode) continue;
+      const oldStartLessonId = oldStartNode.lesson_id;
+      const newStartLessonId = newStartNode.lesson_id;
+      const isOldAssessment = oldStartNode.is_assessment === true;
+      // 🔹 replace ONLY if:
+      // 1️⃣ starting lesson changed
+      // 2️⃣ old starting lesson is assessment
+      if (
+        isOldAssessment &&
+        oldStartLessonId !== newStartLessonId
+      ) {
+        existingList[index] = newCourse;
+        hasChanges = true;
+      }
+    }
+    if (!hasChanges) return;
+    learningPath.courses.courseList = existingList;
+    if (
+      learningPath.courses.currentCourseIndex >=
+      learningPath.courses.courseList.length
+    ) {
+      learningPath.courses.currentCourseIndex = 0;
+    }
+    await saveLearningPath(student, learningPath);
   };
 
   async function buildLearningPathForUnplayedCourses(
