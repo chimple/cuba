@@ -7953,18 +7953,33 @@ order by
      * =============================== */
     const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
 
-    const completionQuery = `
-    SELECT COUNT(*) AS pending_count
-    FROM assignment a
-    LEFT JOIN result r
-      ON r.assignment_id = a.id
-     AND r.student_id = "${student.id}"
-     AND r.is_deleted = false
-    WHERE
-      a.id IN (${assignmentIds})
-      AND r.assignment_id IS NULL;
-  `;
+const completionQuery = `
+  SELECT COUNT(*) AS pending_count
+  FROM assignment a
+  LEFT JOIN result r
+    ON r.assignment_id = a.id
+   AND r.student_id = "${student.id}"
+   AND r.is_deleted = false
+  WHERE
+    a.id IN (${assignmentIds})
 
+    -- pending only
+    AND r.assignment_id IS NULL
+
+    -- ❌ exclude COURSE if >= 2 system_exit within these assignments
+    AND a.course_id NOT IN (
+      SELECT a2.course_id
+      FROM result r2
+      JOIN assignment a2
+        ON a2.id = r2.assignment_id
+      WHERE r2.student_id = "${student.id}"
+        AND r2.is_deleted = false
+        AND r2.status = 'system_exit'
+        AND r2.assignment_id IN (${assignmentIds})
+      GROUP BY a2.course_id
+      HAVING COUNT(*) >= 2
+    );
+`;
     const completionRes = await this._db?.query(completionQuery);
     const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
 

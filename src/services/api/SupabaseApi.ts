@@ -10990,121 +10990,120 @@ export class SupabaseApi implements ServiceApi {
 
     return true;
   }
-  async getLatestAssessmentGroup(
-    classId: string,
-    student: TableTypes<"user">,
-  ): Promise<TableTypes<"assignment">[]> {
-    if (!this.supabase) return [];
+async getLatestAssessmentGroup(
+  classId: string,
+  student: TableTypes<"user">
+): Promise<TableTypes<"assignment">[]> {
+  if (!this.supabase) return [];
+  const nowIso = new Date().toISOString();
+  const langId = student.language_id;
+  const localeId = student.locale_id;
+  const { data: assignments, error } = await this.supabase
+    .from(TABLES.Assignment)
+    .select(
+      `
+        *,
+        course!inner(
+          id,
+          is_deleted
+        )
+      `
+    )
+    .eq("class_id", classId)
+    .eq("type", "assessment")
+    .eq("is_deleted", false)
+    .eq("course.is_deleted", false)
+    .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+    .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
 
-    const nowIso = new Date().toISOString();
-    const langId = student.language_id;
-    const localeId = student.locale_id;
-
-    /* ===============================
-     * STEP 1️⃣ : Fetch base assessments
-     * =============================== */
-    const { data: assignments, error } = await this.supabase
-      .from(TABLES.Assignment)
-      .select(
-        `
-      *,
-      course!inner(
-        id,
-        is_deleted
-      )
-    `
-      )
-      .eq("class_id", classId)
-      .eq("type", "assessment")
-      .eq("is_deleted", false)
-      .eq("course.is_deleted", false)
-      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-      .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
-
-    if (error || !assignments?.length) return [];
-
-    /* ===============================
-     * STEP 2️⃣ : Keep latest batch PER COURSE
-     * =============================== */
-    const latestBatchByCourse = new Map<string, string>();
-
-    for (const a of assignments) {
-      if (!a.course_id || !a.batch_id) continue; // null-safe
-
-      if (!latestBatchByCourse.has(a.course_id)) {
-        latestBatchByCourse.set(a.course_id, a.batch_id);
-      }
+  if (error || !assignments?.length) return [];
+  const latestBatchByCourse = new Map<string, string>();
+  for (const a of assignments) {
+    if (!a.course_id || !a.batch_id) continue;
+    if (!latestBatchByCourse.has(a.course_id)) {
+      latestBatchByCourse.set(a.course_id, a.batch_id);
     }
-
-    const batchFiltered = assignments.filter(
-      (a) =>
-        a.course_id &&
-        a.batch_id &&
-        latestBatchByCourse.get(a.course_id) === a.batch_id,
-    );
-
-    if (!batchFiltered.length) return [];
-
-    /* ===============================
-     * STEP 3️⃣ : Pending result check
-     * =============================== */
-    const assignmentIds = batchFiltered.map((a) => a.id);
-
-    const { count: completedCount } = await this.supabase
-      .from(TABLES.Result)
-      .select("id", { count: "exact", head: true })
-      .in("assignment_id", assignmentIds)
-      .eq("student_id", student.id)
-      .eq("is_deleted", false);
-
-    if (completedCount === assignmentIds.length) return [];
-
-    /* ===============================
-     * STEP 4️⃣ : subject_lesson validation
-     * (lesson_id + language/locale fallback)
-     * =============================== */
-    const lessonIds = [...new Set(batchFiltered.map((a) => a.lesson_id))];
-
-    let subjectLessonQuery = this.supabase
-      .from(TABLES.SubjectLesson)
-      .select("lesson_id")
-      .in("lesson_id", lessonIds)
-      .eq("is_deleted", false);
-
-    // Loose / fallback language + locale matcher
-    const orConditions: string[] = ["language_id.is.null,locale_id.is.null"];
-
-    if (langId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
-    }
-
-    if (localeId) {
-      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
-    }
-
-    if (langId && localeId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
-    }
-
-    subjectLessonQuery = subjectLessonQuery.or(orConditions.join("|"));
-
-    const { data: subjectLessons } = await subjectLessonQuery;
-
-    if (!subjectLessons?.length) return [];
-
-    /* ===============================
-     * STEP 5️⃣ : Final filter
-     * =============================== */
-    const validLessonIds = new Set(
-      subjectLessons.filter((sl) => sl.lesson_id).map((sl) => sl.lesson_id),
-    );
-
-    const finalAssignments = batchFiltered.filter((a) =>
-      validLessonIds.has(a.lesson_id),
-    );
-
-    return finalAssignments as TableTypes<"assignment">[];
   }
+  const batchFiltered = assignments.filter(
+    (a) =>
+      a.course_id &&
+      a.batch_id &&
+      latestBatchByCourse.get(a.course_id) === a.batch_id
+  );
+  if (!batchFiltered.length) return [];
+  const assignmentIds = batchFiltered.map((a) => a.id);
+  const { data: systemExitResults } = await this.supabase
+    .from(TABLES.Result)
+    .select(
+      `
+        assignment_id,
+        assignment!inner(course_id)
+      `
+    )
+    .in("assignment_id", assignmentIds)
+    .eq("student_id", student.id)
+    .eq("status", "system_exit")
+    .eq("is_deleted", false);
+  const systemExitCountByCourse = new Map<string, number>();
+  (systemExitResults ?? []).forEach((r: any) => {
+    const courseId: string | null = r.assignment?.course_id ?? null;
+    if (!courseId) return;
+
+    systemExitCountByCourse.set(
+      courseId,
+      (systemExitCountByCourse.get(courseId) ?? 0) + 1
+    );
+  });
+  const blockedCourseIds = new Set<string>(
+    [...systemExitCountByCourse.entries()]
+      .filter(([, count]) => count >= 2)
+      .map(([courseId]) => courseId)
+  );
+  const systemExitFiltered = batchFiltered.filter(
+    (a) => a.course_id && !blockedCourseIds.has(a.course_id)
+  );
+  if (!systemExitFiltered.length) return [];
+  const filteredAssignmentIds = systemExitFiltered.map((a) => a.id);
+  const { count: completedCount } = await this.supabase
+    .from(TABLES.Result)
+    .select("id", { count: "exact", head: true })
+    .in("assignment_id", filteredAssignmentIds)
+    .eq("student_id", student.id)
+    .eq("is_deleted", false);
+
+  if (completedCount === filteredAssignmentIds.length) return [];
+  const lessonIds = [
+    ...new Set(systemExitFiltered.map((a) => a.lesson_id).filter(Boolean)),
+  ];
+  let subjectLessonQuery = this.supabase
+    .from(TABLES.SubjectLesson)
+    .select("lesson_id")
+    .in("lesson_id", lessonIds)
+    .eq("is_deleted", false);
+  const orConditions: string[] = ["language_id.is.null,locale_id.is.null"];
+  if (langId) {
+    orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+  }
+  if (localeId) {
+    orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+  }
+  if (langId && localeId) {
+    orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+  }
+  subjectLessonQuery = subjectLessonQuery.or(orConditions.join("|"));
+  const { data: subjectLessons } = await subjectLessonQuery;
+  if (!subjectLessons?.length) return [];
+  const validLessonIds = new Set(
+    subjectLessons
+      .map((sl) => sl.lesson_id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const finalAssignments = systemExitFiltered.filter(
+    (a) => a.lesson_id && validLessonIds.has(a.lesson_id)
+  );
+  return finalAssignments as TableTypes<"assignment">[];
+}
+
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
