@@ -762,13 +762,13 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {isReady && (xmlPath || basePath)
+      {isReady && (xmlPath || basePath) && !showDialogBox
         ? React.createElement("lido-standalone", {
-            "xml-path": xmlPath,
-            "base-url": basePath,
-            "code-folder-path": "/Lido-player-code-versions",
-            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
-          })
+          "xml-path": xmlPath,
+          "base-url": basePath,
+          "code-folder-path": "/Lido-player-code-versions",
+          "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
+        })
         : null}
     </IonPage>
   );
