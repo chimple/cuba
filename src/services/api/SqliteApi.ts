@@ -7883,144 +7883,144 @@ order by
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
- async getLatestAssessmentGroup(
-  classId: string,
-  student: TableTypes<"user">
-): Promise<TableTypes<"assignment">[]> {
-  const nowIso = new Date().toISOString();
-  const langId = student.language_id;
+  async getLatestAssessmentGroup(
+    classId: string,
+    student: TableTypes<"user">
+  ): Promise<TableTypes<"assignment">[]> {
+    const nowIso = new Date().toISOString();
+    const langId = student.language_id;
 
-  /* ===============================
-   * QUERY 1️⃣ : Fetch valid assessments
-   * =============================== */
-  const fetchQuery = `
-    SELECT a.*
-    FROM assignment a
-    JOIN course c
-      ON c.id = a.course_id
-     AND c.is_deleted = false
-    WHERE a.class_id = '${classId}'
-      AND a.type = 'assessment'
-      AND a.is_deleted = false
-
-      -- time window
-      AND (
-        a.starts_at IS NULL
-        OR a.starts_at = ''
-        OR datetime(a.starts_at) <= datetime('${nowIso}')
-      )
-      AND (
-        a.ends_at IS NULL
-        OR a.ends_at = ''
-        OR datetime(a.ends_at) > datetime('${nowIso}')
-      )
-
-      -- latest batch per course
-      AND a.batch_id = (
-        SELECT a2.batch_id
-        FROM assignment a2
-        WHERE a2.class_id = a.class_id
-          AND a2.course_id = a.course_id
-          AND a2.type = 'assessment'
-          AND a2.is_deleted = false
-          AND a2.batch_id IS NOT NULL
-        ORDER BY a2.created_at DESC
-        LIMIT 1
-      )
-
-      -- subject_lesson validation (LANGUAGE ONLY)
-      AND EXISTS (
-        SELECT 1
-        FROM subject_lesson sl
-        WHERE sl.lesson_id = a.lesson_id
-          AND sl.set_number = a.set_number
-          AND sl.is_deleted = false
-          AND (
-            sl.language_id IS NULL
-            OR sl.language_id = "${langId}"
-          )
-      )
-    ORDER BY a.course_id, a.created_at DESC;
-  `;
-  const fetchRes = await this._db?.query(fetchQuery);
-  const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
-  if (!assignments.length) return [];
-  /* ===============================
-   * QUERY 2️⃣ : Completion check (PER COURSE)
-   * =============================== */
-  const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
-  const completionQuery = `
-    WITH r AS (
-      SELECT
-        a.course_id,
-        a.id,
-        r.id AS result_id,
-        r.status,
-        LAG(r.status) OVER (
-          PARTITION BY a.course_id
-          ORDER BY a.created_at
-        ) AS prev_status
+    /* ===============================
+    * QUERY 1️⃣ : Fetch valid assessments
+    * =============================== */
+    const fetchQuery = `
+      SELECT a.*
       FROM assignment a
-      LEFT JOIN result r
-        ON r.assignment_id = a.id
-       AND r.student_id = "${student.id}"
-       AND r.is_deleted = false
-      WHERE a.id IN (${assignmentIds})
-    )
+      JOIN course c
+        ON c.id = a.course_id
+      AND c.is_deleted = false
+      WHERE a.class_id = '${classId}'
+        AND a.type = 'assessment'
+        AND a.is_deleted = false
 
-    SELECT
-      course_id,
-      CASE
-        -- 1️⃣ all assignments of this course attempted
-        WHEN COUNT(result_id) = COUNT(*) THEN 0
+        -- time window
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime('${nowIso}')
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime('${nowIso}')
+        )
 
-        -- 2️⃣ some attempted + 2 continuous system_exit (this course)
-        WHEN COUNT(result_id) > 0
-         AND COUNT(*) FILTER (
-           WHERE status = 'system_exit'
-             AND prev_status = 'system_exit'
-         ) > 0 THEN 0
+        -- latest batch per course
+        AND a.batch_id = (
+          SELECT a2.batch_id
+          FROM assignment a2
+          WHERE a2.class_id = a.class_id
+            AND a2.course_id = a.course_id
+            AND a2.type = 'assessment'
+            AND a2.is_deleted = false
+            AND a2.batch_id IS NOT NULL
+          ORDER BY a2.created_at DESC
+          LIMIT 1
+        )
 
-        -- 3️⃣ otherwise → pending exists
-        ELSE COUNT(*) - COUNT(result_id)
-      END AS pending_count
-    FROM r
-    GROUP BY course_id;
-  `;
-  const completionRes = await this._db?.query(completionQuery);
-  const rows = completionRes?.values ?? [];
-  console.log("Completion rows:", rows);
-  // courses that should be hidden
-  const blockedCourseIds = new Set(
-    rows
-      .filter((r: any) => r.pending_count === 0)
-      .map((r: any) => r.course_id)
-  );
-  const finalAssignments = assignments.filter(
-    (a) => a.course_id && !blockedCourseIds.has(a.course_id)
-  );
-  if (!finalAssignments.length) return [];
-  if (finalAssignments.length > 5) {
-    finalAssignments.sort((a, b) => {
-      const getPriority = (x: any): number => {
-        if (x.language_id === langId) return 1;
-        if (x.language_id === null) return 2;
-        return 3;
-      };
+        -- subject_lesson validation (LANGUAGE ONLY)
+        AND EXISTS (
+          SELECT 1
+          FROM subject_lesson sl
+          WHERE sl.lesson_id = a.lesson_id
+            AND sl.set_number = a.set_number
+            AND sl.is_deleted = false
+            AND (
+              sl.language_id IS NULL
+              OR sl.language_id = "${langId}"
+            )
+        )
+      ORDER BY a.course_id, a.created_at DESC;
+    `;
+    const fetchRes = await this._db?.query(fetchQuery);
+    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    if (!assignments.length) return [];
+    /* ===============================
+    * QUERY 2️⃣ : Completion check (PER COURSE)
+    * =============================== */
+    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
+    const completionQuery = `
+      WITH r AS (
+        SELECT
+          a.course_id,
+          a.id,
+          r.id AS result_id,
+          r.status,
+          LAG(r.status) OVER (
+            PARTITION BY a.course_id
+            ORDER BY a.created_at
+          ) AS prev_status
+        FROM assignment a
+        LEFT JOIN result r
+          ON r.assignment_id = a.id
+        AND r.student_id = "${student.id}"
+        AND r.is_deleted = false
+        WHERE a.id IN (${assignmentIds})
+      )
 
-      const pA = getPriority(a);
-      const pB = getPriority(b);
+      SELECT
+        course_id,
+        CASE
+          -- 1️⃣ all assignments of this course attempted
+          WHEN COUNT(result_id) = COUNT(*) THEN 0
 
-      if (pA !== pB) return pA - pB;
+          -- 2️⃣ some attempted + 2 continuous system_exit (this course)
+          WHEN COUNT(result_id) > 0
+          AND COUNT(*) FILTER (
+            WHERE status = 'system_exit'
+              AND prev_status = 'system_exit'
+          ) > 0 THEN 0
 
-      return (
-        new Date(b.created_at).getTime() -
-        new Date(a.created_at).getTime()
-      );
-    });
+          -- 3️⃣ otherwise → pending exists
+          ELSE COUNT(*) - COUNT(result_id)
+        END AS pending_count
+      FROM r
+      GROUP BY course_id;
+    `;
+    const completionRes = await this._db?.query(completionQuery);
+    const rows = completionRes?.values ?? [];
+    console.log("Completion rows:", rows);
+    // courses that should be hidden
+    const blockedCourseIds = new Set(
+      rows
+        .filter((r: any) => r.pending_count === 0)
+        .map((r: any) => r.course_id)
+    );
+    const finalAssignments = assignments.filter(
+      (a) => a.course_id && !blockedCourseIds.has(a.course_id)
+    );
+    if (!finalAssignments.length) return [];
+    if (finalAssignments.length > 5) {
+      finalAssignments.sort((a, b) => {
+        const getPriority = (x: any): number => {
+          if (x.language_id === langId) return 1;
+          if (x.language_id === null) return 2;
+          return 3;
+        };
+
+        const pA = getPriority(a);
+        const pB = getPriority(b);
+
+        if (pA !== pB) return pA - pB;
+
+        return (
+          new Date(b.created_at).getTime() -
+          new Date(a.created_at).getTime()
+        );
+      });
+    }
+    return finalAssignments;
   }
-  return finalAssignments;
-}
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
   }
