@@ -7883,17 +7883,17 @@ order by
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
-  async getLatestAssessmentGroup(
-    classId: string,
-    student: TableTypes<"user">
-  ): Promise<TableTypes<"assignment">[]> {
-    const nowIso = new Date().toISOString();
-    const langId = student.language_id;
+ async getLatestAssessmentGroup(
+  classId: string,
+  student: TableTypes<"user">
+): Promise<TableTypes<"assignment">[]> {
+  const nowIso = new Date().toISOString();
+  const langId = student.language_id;
 
-    /* ===============================
-     * QUERY 1️⃣ : Fetch valid assessments
-     * =============================== */
-    const fetchQuery = `
+  /* ===============================
+   * QUERY 1️⃣ : Fetch valid assessments
+   * =============================== */
+  const fetchQuery = `
     SELECT a.*
     FROM assignment a
     JOIN course c
@@ -7942,75 +7942,85 @@ order by
       )
     ORDER BY a.course_id, a.created_at DESC;
   `;
+  const fetchRes = await this._db?.query(fetchQuery);
+  const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+  if (!assignments.length) return [];
+  /* ===============================
+   * QUERY 2️⃣ : Completion check (PER COURSE)
+   * =============================== */
+  const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
+  const completionQuery = `
+    WITH r AS (
+      SELECT
+        a.course_id,
+        a.id,
+        r.id AS result_id,
+        r.status,
+        LAG(r.status) OVER (
+          PARTITION BY a.course_id
+          ORDER BY a.created_at
+        ) AS prev_status
+      FROM assignment a
+      LEFT JOIN result r
+        ON r.assignment_id = a.id
+       AND r.student_id = "${student.id}"
+       AND r.is_deleted = false
+      WHERE a.id IN (${assignmentIds})
+    )
 
-    const fetchRes = await this._db?.query(fetchQuery);
-    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
+    SELECT
+      course_id,
+      CASE
+        -- 1️⃣ all assignments of this course attempted
+        WHEN COUNT(result_id) = COUNT(*) THEN 0
 
-    if (!assignments.length) return [];
+        -- 2️⃣ some attempted + 2 continuous system_exit (this course)
+        WHEN COUNT(result_id) > 0
+         AND COUNT(*) FILTER (
+           WHERE status = 'system_exit'
+             AND prev_status = 'system_exit'
+         ) > 0 THEN 0
 
-    /* ===============================
-     * QUERY 2️⃣ : Pending result check
-     * =============================== */
-    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
+        -- 3️⃣ otherwise → pending exists
+        ELSE COUNT(*) - COUNT(result_id)
+      END AS pending_count
+    FROM r
+    GROUP BY course_id;
+  `;
+  const completionRes = await this._db?.query(completionQuery);
+  const rows = completionRes?.values ?? [];
+  console.log("Completion rows:", rows);
+  // courses that should be hidden
+  const blockedCourseIds = new Set(
+    rows
+      .filter((r: any) => r.pending_count === 0)
+      .map((r: any) => r.course_id)
+  );
+  const finalAssignments = assignments.filter(
+    (a) => a.course_id && !blockedCourseIds.has(a.course_id)
+  );
+  if (!finalAssignments.length) return [];
+  if (finalAssignments.length > 5) {
+    finalAssignments.sort((a, b) => {
+      const getPriority = (x: any): number => {
+        if (x.language_id === langId) return 1;
+        if (x.language_id === null) return 2;
+        return 3;
+      };
 
-const completionQuery = `
-  SELECT COUNT(*) AS pending_count
-  FROM assignment a
-  LEFT JOIN result r
-    ON r.assignment_id = a.id
-   AND r.student_id = "${student.id}"
-   AND r.is_deleted = false
-  WHERE
-    a.id IN (${assignmentIds})
+      const pA = getPriority(a);
+      const pB = getPriority(b);
 
-    -- pending only
-    AND r.assignment_id IS NULL
+      if (pA !== pB) return pA - pB;
 
-    -- ❌ exclude COURSE if >= 2 system_exit within these assignments
-    AND a.course_id NOT IN (
-      SELECT a2.course_id
-      FROM result r2
-      JOIN assignment a2
-        ON a2.id = r2.assignment_id
-      WHERE r2.student_id = "${student.id}"
-        AND r2.is_deleted = false
-        AND r2.status = 'system_exit'
-        AND r2.assignment_id IN (${assignmentIds})
-      GROUP BY a2.course_id
-      HAVING COUNT(*) >= 2
-    );
-`;
-    const completionRes = await this._db?.query(completionQuery);
-    const pendingCount = completionRes?.values?.[0]?.pending_count ?? 0;
-
-    if (pendingCount === 0) return [];
-
-    /* ===============================
-     * JS SORTING (ONLY IF > 5)
-     * LANGUAGE ONLY
-     * =============================== */
-    if (assignments.length > 5) {
-      assignments.sort((a, b) => {
-        const getPriority = (x: any): number => {
-          if (x.language_id === langId) return 1;
-          if (x.language_id === null) return 2;
-          return 3;
-        };
-
-        const pA = getPriority(a);
-        const pB = getPriority(b);
-
-        // priority first
-        if (pA !== pB) return pA - pB;
-
-        // same priority → latest first
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      });
-    }
-    return assignments;
+      return (
+        new Date(b.created_at).getTime() -
+        new Date(a.created_at).getTime()
+      );
+    });
   }
+  return finalAssignments;
+}
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
   }

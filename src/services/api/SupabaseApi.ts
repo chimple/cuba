@@ -11003,10 +11003,7 @@ async getLatestAssessmentGroup(
     .select(
       `
         *,
-        course!inner(
-          id,
-          is_deleted
-        )
+        course!inner(id, is_deleted)
       `
     )
     .eq("class_id", classId)
@@ -11032,48 +11029,70 @@ async getLatestAssessmentGroup(
   );
   if (!batchFiltered.length) return [];
   const assignmentIds = batchFiltered.map((a) => a.id);
-  const { data: systemExitResults } = await this.supabase
+  const { data: results } = await this.supabase
     .from(TABLES.Result)
     .select(
       `
         assignment_id,
-        assignment!inner(course_id)
+        status,
+        assignment!inner(course_id, created_at)
       `
     )
     .in("assignment_id", assignmentIds)
     .eq("student_id", student.id)
-    .eq("status", "system_exit")
     .eq("is_deleted", false);
-  const systemExitCountByCourse = new Map<string, number>();
-  (systemExitResults ?? []).forEach((r: any) => {
-    const courseId: string | null = r.assignment?.course_id ?? null;
-    if (!courseId) return;
-
-    systemExitCountByCourse.set(
-      courseId,
-      (systemExitCountByCourse.get(courseId) ?? 0) + 1
-    );
+  const courseMap = new Map<
+    string,
+    { assignments: any[]; results: any[] }
+  >();
+  for (const a of batchFiltered) {
+    if (!a.course_id) continue;
+    if (!courseMap.has(a.course_id)) {
+      courseMap.set(a.course_id, { assignments: [], results: [] });
+    }
+    courseMap.get(a.course_id)!.assignments.push(a);
+  }
+  (results ?? []).forEach((r: any) => {
+    const courseId = r.assignment?.course_id;
+    if (!courseId || !courseMap.has(courseId)) return;
+    courseMap.get(courseId)!.results.push(r);
   });
-  const blockedCourseIds = new Set<string>(
-    [...systemExitCountByCourse.entries()]
-      .filter(([, count]) => count >= 2)
-      .map(([courseId]) => courseId)
-  );
-  const systemExitFiltered = batchFiltered.filter(
+  const blockedCourseIds = new Set<string>();
+  courseMap.forEach(({ assignments, results }, courseId) => {
+    if (results.length === assignments.length) {
+      blockedCourseIds.add(courseId);
+      return;
+    }
+    const ordered = assignments
+      .map((a) => {
+        const res = results.find((r) => r.assignment_id === a.id);
+        return {
+          created_at: a.created_at,
+          status: res?.status ?? null,
+        };
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() -
+          new Date(b.created_at).getTime()
+      );
+
+    for (let i = 1; i < ordered.length; i++) {
+      if (
+        ordered[i].status === "system_exit" &&
+        ordered[i - 1].status === "system_exit"
+      ) {
+        blockedCourseIds.add(courseId);
+        return;
+      }
+    }
+  });
+  const courseFiltered = batchFiltered.filter(
     (a) => a.course_id && !blockedCourseIds.has(a.course_id)
   );
-  if (!systemExitFiltered.length) return [];
-  const filteredAssignmentIds = systemExitFiltered.map((a) => a.id);
-  const { count: completedCount } = await this.supabase
-    .from(TABLES.Result)
-    .select("id", { count: "exact", head: true })
-    .in("assignment_id", filteredAssignmentIds)
-    .eq("student_id", student.id)
-    .eq("is_deleted", false);
-
-  if (completedCount === filteredAssignmentIds.length) return [];
+  if (!courseFiltered.length) return [];
   const lessonIds = [
-    ...new Set(systemExitFiltered.map((a) => a.lesson_id).filter(Boolean)),
+    ...new Set(courseFiltered.map((a) => a.lesson_id).filter(Boolean)),
   ];
   let subjectLessonQuery = this.supabase
     .from(TABLES.SubjectLesson)
@@ -11081,29 +11100,22 @@ async getLatestAssessmentGroup(
     .in("lesson_id", lessonIds)
     .eq("is_deleted", false);
   const orConditions: string[] = ["language_id.is.null,locale_id.is.null"];
-  if (langId) {
-    orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
-  }
-  if (localeId) {
+  if (langId) orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+  if (localeId)
     orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
-  }
-  if (langId && localeId) {
+  if (langId && localeId)
     orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
-  }
   subjectLessonQuery = subjectLessonQuery.or(orConditions.join("|"));
   const { data: subjectLessons } = await subjectLessonQuery;
   if (!subjectLessons?.length) return [];
   const validLessonIds = new Set(
-    subjectLessons
-      .map((sl) => sl.lesson_id)
-      .filter((id): id is string => Boolean(id))
+    subjectLessons.map((sl) => sl.lesson_id)
   );
-  const finalAssignments = systemExitFiltered.filter(
+  const finalAssignments = courseFiltered.filter(
     (a) => a.lesson_id && validLessonIds.has(a.lesson_id)
   );
   return finalAssignments as TableTypes<"assignment">[];
 }
-
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
