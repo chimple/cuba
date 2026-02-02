@@ -5,8 +5,9 @@ import { DOWNLOADED_LESSON_ID } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Util } from "../../utility/util";
+import { HotUpdateState, Util } from "../../utility/util";
 import { toPng } from "html-to-image";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
 
 const DebugPage: React.FC = () => {
   const history = useHistory();
@@ -17,6 +18,24 @@ const DebugPage: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
+  const [isHotUpdating, setIsHotUpdating] = useState(false);
+  const [hotUpdateState, setHotUpdateStateUI] = useState<HotUpdateState>({
+    status: "Idle",
+    progress: 0,
+    channel: "N/A",
+    lastChecked: "N/A",
+    lastUpdated: "N/A",
+    error: "",
+    isAuto: false,
+  });
+  const [hotUpdateMeta, setHotUpdateMeta] = useState({
+    versionName: "N/A",
+    versionCode: "N/A",
+    currentBundleId: "N/A",
+    latestBundleId: "N/A",
+    isUpdateAvailable: false,
+  });
+
   const [classData, setClassData] = useState<
     {
       studentId: string;
@@ -43,6 +62,26 @@ const DebugPage: React.FC = () => {
   useEffect(() => {
     fetchData();
     init();
+    loadHotUpdateMeta();
+  }, []);
+
+  useEffect(() => {
+    // initial load
+    setHotUpdateStateUI(Util.getHotUpdateState());
+    const handler = () => {
+      const state = Util.getHotUpdateState();
+      setHotUpdateStateUI(state);
+      setIsHotUpdating(state.progress > 0 && state.progress < 100);
+      if (state.progress === 100) {
+        loadHotUpdateMeta(); // refresh bundle info
+      }
+    };
+
+    window.addEventListener("hot-update-progress", handler);
+
+    return () => {
+      window.removeEventListener("hot-update-progress", handler);
+    };
   }, []);
 
   async function init() {
@@ -66,7 +105,7 @@ const DebugPage: React.FC = () => {
           schoolId: class1?.school_id,
           schoolName: school?.name,
         };
-      })
+      }),
     );
 
     setClassData(classDataMapped);
@@ -78,13 +117,13 @@ const DebugPage: React.FC = () => {
     }
 
     const lessonData = JSON.parse(
-      localStorage.getItem("downloaded_lessons_size") || "{}"
+      localStorage.getItem("downloaded_lessons_size") || "{}",
     ) as { [lessonId: string]: { size: number } };
 
     const lessonsDownloaded = Object.keys(lessonData).length;
     const lessonsSizeInByte = Object.values(lessonData).reduce(
       (acc, lesson) => acc + lesson.size,
-      0
+      0,
     );
     const lessonsSize = lessonsSizeInByte / (1024 * 1024);
 
@@ -114,15 +153,15 @@ const DebugPage: React.FC = () => {
         // Optional: sum if more than one day
         const totalPushed = result.reduce(
           (sum, row) => sum + (row.total_pushed || 0),
-          0
+          0,
         );
         const totalPulled = result.reduce(
           (sum, row) => sum + (row.total_pulled || 0),
-          0
+          0,
         );
         const totalTransferred = result.reduce(
           (sum, row) => sum + (row.total_transferred || 0),
-          0
+          0,
         );
 
         setTotals({
@@ -203,7 +242,7 @@ const DebugPage: React.FC = () => {
           "Debug info attached.",
           "Debug Screenshot",
           undefined,
-          [file]
+          [file],
         );
         return;
       }
@@ -235,6 +274,77 @@ const DebugPage: React.FC = () => {
       console.error("Failed to capture or save screenshot:", err);
     }
   };
+  async function getHotUpdateChannel() {
+    const { versionName } = await LiveUpdate.getVersionName();
+    const majorVersion = versionName.split(".")[0];
+    return `${process.env.REACT_APP_ENV}-${majorVersion}`;
+  }
+
+  const handleManualHotUpdate = async () => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const channel = await getHotUpdateChannel();
+
+    Util.setHotUpdateState({
+      status: "Checking (Manual)",
+      progress: 10,
+      channel,
+      lastChecked: new Date().toLocaleString(),
+      isAuto: false,
+      error: "",
+    });
+
+    try {
+      const latest = await LiveUpdate.fetchLatestBundle({ channel });
+      Util.setHotUpdateState({ progress: 40 });
+
+      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+
+      if (!latest.bundleId || latest.bundleId === currentBundleId) {
+        Util.setHotUpdateState({
+          status: "Already up to date",
+          progress: 100,
+        });
+        return;
+      }
+
+      Util.setHotUpdateState({ status: "Downloading...", progress: 70 });
+
+      await LiveUpdate.sync({ channel });
+
+      Util.setHotUpdateState({
+        status: "Updated successfully",
+        progress: 100,
+        lastUpdated: new Date().toLocaleString(),
+      });
+
+      await LiveUpdate.reload();
+    } catch (err: any) {
+      Util.setHotUpdateState({
+        status: "Update failed",
+        progress: 0,
+        error: err?.message || "Manual update failed",
+      });
+    }
+  };
+
+  async function loadHotUpdateMeta() {
+    if (!Capacitor.isNativePlatform()) return;
+    const channel = await getHotUpdateChannel();
+    const version = await LiveUpdate.getVersionName();
+    const code = await LiveUpdate.getVersionCode();
+    const current = await LiveUpdate.getCurrentBundle();
+    const latest = await LiveUpdate.fetchLatestBundle({ channel });
+
+    setHotUpdateMeta({
+      versionName: version.versionName,
+      versionCode: String(code.versionCode),
+      currentBundleId: current.bundleId ?? "None",
+      latestBundleId: latest.bundleId ?? "None",
+      isUpdateAvailable:
+        !!latest.bundleId && latest.bundleId !== current.bundleId,
+    });
+  }
 
   return (
     <div className="debug-debug-page">
@@ -259,7 +369,29 @@ const DebugPage: React.FC = () => {
           >
             Capture & Share Screenshot
           </button>
+          <button
+            className="debug-btn debugmode-debug-hotupdate-btn"
+            onClick={handleManualHotUpdate}
+            disabled={isHotUpdating}
+          >
+            {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
+          </button>
         </div>
+        {isHotUpdating && (
+          <div className="debug-card">
+            <strong>Hot Update Progress</strong>
+            <p>{hotUpdateState.progress}%</p>
+
+            <div className="debugmode-progress-bar-container">
+              <div
+                className="debugmode-progress-bar-fill"
+                style={{ width: `${hotUpdateState.progress}%` }}
+              />
+            </div>
+
+            <p>Status: {hotUpdateState.status}</p>
+          </div>
+        )}
 
         {syncLogs && (
           <div className="debug-card debug-log-card">
@@ -336,6 +468,70 @@ const DebugPage: React.FC = () => {
               </div>
             )}
           </div>
+          {/* 🔥 Hot Update Info Card */}
+          <div className="debug-card">
+            <div className="debug-card-content">
+              <div className="debug-stat">
+                <strong>Hot Update Channel:</strong>
+                <p>{hotUpdateState.channel}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>Update Mode:</strong>
+                <p>{hotUpdateState.isAuto ? "Auto" : "Manual"}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>App Version Name:</strong>
+                <p>{hotUpdateMeta.versionName}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>App Version Code:</strong>
+                <p>{hotUpdateMeta.versionCode}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Update Available:</strong>
+                <p>{String(hotUpdateMeta.isUpdateAvailable)}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Status:</strong>
+                <p>{hotUpdateState.status}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Current Bundle ID:</strong>
+                <p style={{ wordBreak: "break-all" }}>
+                  {hotUpdateMeta.currentBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Latest Bundle ID:</strong>
+                <p style={{ wordBreak: "break-all" }}>
+                  {hotUpdateMeta.latestBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Checked:</strong>
+                <p>{hotUpdateState.lastChecked}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Update Applied:</strong>
+                <p>{hotUpdateState.lastUpdated}</p>
+              </div>
+
+              {hotUpdateState.error && (
+                <div className="debug-stat">
+                  <strong>Hot Update Error:</strong>
+                  <p style={{ color: "red" }}>{hotUpdateState.error}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="debug-info-container">
             <h2>📊 30-Day Sync Summary</h2>
             {data.length > 0 ? (
