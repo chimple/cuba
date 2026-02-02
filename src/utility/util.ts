@@ -71,6 +71,7 @@ import {
   LIDO_COMMON_AUDIO_DIR,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
+  HOT_UPDATE_STATE_KEY,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -121,6 +122,17 @@ declare global {
 enum NotificationType {
   REWARD = "reward",
 }
+
+export interface HotUpdateState {
+  status: string;
+  progress: number;
+  channel: string;
+  lastChecked: string;
+  lastUpdated: string;
+  error: string;
+  isAuto: boolean;
+}
+
 
 export class Util {
   public static port: PortPlugin;
@@ -3645,6 +3657,29 @@ export class Util {
       console.error("[LidoCommonAudio] ensure failed:", err);
     }
   }
+
+public static getHotUpdateState(): HotUpdateState {
+  const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+  return raw
+    ? JSON.parse(raw)
+    : {
+        status: "Idle",
+        progress: 0,
+        channel: "N/A",
+        lastChecked: "N/A",
+        lastUpdated: "N/A",
+        error: "",
+        isAuto: false,
+      };
+}
+
+public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+  const current = this.getHotUpdateState();
+  const updated = { ...current, ...partial };
+  localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+
+  window.dispatchEvent(new Event("hot-update-progress"));
+}
   static async removeCourseScopedKey(
     baseKey: string,
     userId: string,
