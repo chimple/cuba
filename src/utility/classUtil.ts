@@ -1,5 +1,10 @@
 import { start } from "repl";
-import { BANDS, TABLESORTBY, TableTypes } from "../common/constants";
+import {
+  BANDS,
+  LIDO_ASSESSMENT,
+  TABLESORTBY,
+  TableTypes,
+} from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
 
@@ -29,11 +34,14 @@ export class ClassUtil {
       oneWeekBackTimeStamp,
       true,
       false,
-      true
+      true,
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
     const assignmentResult =
-      await this.api.getResultByAssignmentIdsForCurrentClassMembers(assignmentIds, classId);
+      await this.api.getResultByAssignmentIdsForCurrentClassMembers(
+        assignmentIds,
+        classId,
+      );
 
     assignmentResult?.forEach((res) => {
       totalScore = totalScore + (res.score ?? 0);
@@ -52,7 +60,7 @@ export class ClassUtil {
         acc[student_id].add(assignment_id ?? "");
         return acc;
       },
-      {} as { [key: string]: Set<string> }
+      {} as { [key: string]: Set<string> },
     );
 
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
@@ -72,7 +80,7 @@ export class ClassUtil {
         }
         return acc;
       },
-      {} as { [key: string]: Set<string> }
+      {} as { [key: string]: Set<string> },
     );
 
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
@@ -140,11 +148,11 @@ export class ClassUtil {
       oneWeekBackTimeStamp,
       true,
       false,
-      true
+      true,
     );
     const assignmentIds = (assignements?.map((asgmt) => asgmt.id) || []).slice(
       0,
-      5
+      5,
     );
     const _students = await this.api.getStudentsForClass(classId);
     const studentResultsPromises = _students.map(async (student) => {
@@ -152,10 +160,10 @@ export class ClassUtil {
         student.id,
         courseIds,
         assignmentIds,
-        classId
+        classId,
       );
       const selfPlayedLength = results.filter(
-        (result) => result.assignment_id === null
+        (result) => result.assignment_id === null,
       ).length;
       if (
         results.length === 0 ||
@@ -165,12 +173,12 @@ export class ClassUtil {
           new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
             ["student", student],
             ["results", results],
-          ])
+          ]),
         );
       } else {
         const totalScore = results.reduce(
           (acc, result) => acc + (result.score ?? 0),
-          0
+          0,
         );
         const averageScore =
           totalScore / (selfPlayedLength + assignmentIds.length);
@@ -180,21 +188,21 @@ export class ClassUtil {
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
-            ])
+            ]),
           );
         } else if (averageScore <= 49) {
           redGroup.push(
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
-            ])
+            ]),
           );
         } else {
           yellowGroup.push(
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
-            ])
+            ]),
           );
         }
       }
@@ -252,14 +260,14 @@ export class ClassUtil {
     const sortedEntries = [...resultsByStudent.entries()].sort(
       ([, studentA], [, studentB]) => {
         const totalScoreA = this.calculateTotalScore(
-          studentA.results
+          studentA.results,
         ) as number;
         const totalScoreB = this.calculateTotalScore(
-          studentB.results
+          studentB.results,
         ) as number;
 
         return totalScoreB - totalScoreA;
-      }
+      },
     );
     return new Map(sortedEntries);
   }
@@ -269,7 +277,7 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     sortBy: TABLESORTBY,
-    isAssignments: boolean
+    isAssignments: boolean,
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -311,7 +319,7 @@ export class ClassUtil {
         courseIds,
         startTimeStamp,
         endTimeStamp,
-        classId
+        classId,
       );
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
@@ -365,7 +373,7 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     sortBy: TABLESORTBY,
-    isAssignments: boolean
+    isAssignments: boolean,
   ) {
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
@@ -406,7 +414,7 @@ export class ClassUtil {
         courseIds,
         startTimeStamp,
         endTimeStamp,
-        classId
+        classId,
       );
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
@@ -462,7 +470,7 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     isLiveQuiz: boolean,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -492,7 +500,7 @@ export class ClassUtil {
       startTimeStamp,
       /* isClassWise = */ false,
       isLiveQuiz,
-      false
+      false,
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
@@ -522,7 +530,7 @@ export class ClassUtil {
       }
     >[] = (_assignments || []).map((assignment) => {
       const lesson = lessonDetails?.find(
-        (lesson) => lesson.id === assignment.lesson_id
+        (lesson) => lesson.id === assignment.lesson_id,
       );
 
       const belongsToClass = Boolean(assignment.is_class_wise);
@@ -534,7 +542,7 @@ export class ClassUtil {
           startAt: string;
           endAt: string;
           belongsToClass: boolean;
-          courseId: string ;
+          courseId: string;
         }
       >();
 
@@ -543,7 +551,7 @@ export class ClassUtil {
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
         belongsToClass: belongsToClass,
-        courseId: assignment.course_id??"",
+        courseId: assignment.course_id ?? "",
       });
 
       return assignmentMap;
@@ -588,7 +596,7 @@ export class ClassUtil {
           const isAssignedToStudent = assignmentUserRecords?.some(
             (record) =>
               record.assignment_id === assignmentId &&
-              record.user_id === studentId
+              record.user_id === studentId,
           );
 
           if (
@@ -613,7 +621,7 @@ export class ClassUtil {
     courseIds: string[],
     startDate: string,
     endDate: string,
-    classId: string
+    classId: string,
   ) {
     const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
     const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
@@ -625,27 +633,62 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
-    var res = await this.api.getStudentResultByDate(
+    const res = await this.api.getStudentResultByDate(
       studentId,
       courseIds,
       startTimeStamp,
       endTimeStamp,
-      classId
+      classId,
     );
-    const lessonIds = res?.map((item) => item.lesson_id ?? "");
-    var lessons = await this.api.getLessonsBylessonIds(lessonIds ?? []);
-    const formattedResults = res?.map((result) => {
-      const matchingLesson = lessons?.find(
-        (lesson) => lesson.id === result.lesson_id
-      );
+    if (!res || res.length === 0) return [];
+    // Group by lesson_id
+    const lessonMap = new Map<
+      string,
+      {
+        totalScore: number;
+        count: number;
+        created_at: string;
+        assignment_id?: string | null;
+      }
+    >();
 
-      return {
-        lessonName: matchingLesson?.name ?? "",
-        score: result.score ?? 0,
-        date: new Date(result.created_at).toLocaleDateString("en-GB"),
-        isAssignment: result.assignment_id ? true : false,
-      };
-    });
+    for (const result of res) {
+      if (!result.lesson_id) continue;
+      const existing = lessonMap.get(result.lesson_id);
+      if (existing) {
+        existing.totalScore += result.score ?? 0;
+        existing.count += 1;
+      } else {
+        lessonMap.set(result.lesson_id, {
+          totalScore: result.score ?? 0,
+          count: 1,
+          created_at: result.created_at,
+          assignment_id: result.assignment_id,
+        });
+      }
+    }
+
+    const lessonIds = Array.from(lessonMap.keys());
+    const lessons = await this.api.getLessonsBylessonIds(lessonIds);
+    const formattedResults = Array.from(lessonMap.entries()).map(
+      ([lessonId, data]) => {
+        const matchingLesson = lessons?.find(
+          (lesson) => lesson.id === lessonId,
+        );
+        let finalScore = data.totalScore;
+        if (matchingLesson?.plugin_type === LIDO_ASSESSMENT) {
+          finalScore = data.totalScore / data.count;
+        }
+
+        return {
+          lessonName: matchingLesson?.name ?? "",
+          score: Math.round(finalScore),
+          date: new Date(data.created_at).toLocaleDateString("en-GB"),
+          isAssignment: data.assignment_id ? true : false,
+        };
+      },
+    );
+
     return formattedResults;
   }
   public async getChapterWiseReport(
@@ -655,7 +698,7 @@ export class ClassUtil {
     courseId: string,
     chapterId: string,
     sortBy: TABLESORTBY,
-    isAssignments: boolean
+    isAssignments: boolean,
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -683,7 +726,7 @@ export class ClassUtil {
       courseId,
       startTimeStamp,
       endTimeStamp,
-      classId
+      classId,
     );
     chapterResults = isAssignments
       ? chapterResults?.filter((item) => item.assignment_id !== null)
@@ -742,7 +785,7 @@ export class ClassUtil {
   }
 
   public async groupStudentsByCategoryInList(
-    studentsMap: Map<string, Map<string, TableTypes<"user">>>
+    studentsMap: Map<string, Map<string, TableTypes<"user">>>,
   ): Promise<Map<string, TableTypes<"user">[]>> {
     const groups: Map<string, TableTypes<"user">[]> = new Map();
 
@@ -769,7 +812,7 @@ export class ClassUtil {
     studentsMap: Map<
       string,
       { student: TableTypes<"user">; results: Record<string, any[]> }
-    >
+    >,
   ): Map<
     string,
     { student: TableTypes<"user">; results: Record<string, any[]> }
@@ -807,7 +850,7 @@ export class ClassUtil {
 
     // Convert back to Map
     return new Map(
-      studentsWithScores.map((item) => [item.studentId, item.studentData])
+      studentsWithScores.map((item) => [item.studentId, item.studentData]),
     );
   };
 }
