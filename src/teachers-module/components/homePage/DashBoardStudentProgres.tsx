@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "react-circular-progressbar/dist/styles.css";
 import "./DashBoardStudentProgress.css"; // Import the CSS file
-import { BANDWISECOLOR, TableTypes } from "../../../common/constants";
+import {
+  BANDWISECOLOR,
+  LIDO_ASSESSMENT,
+  TableTypes,
+} from "../../../common/constants";
 import { t } from "i18next";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { ServiceConfig } from "../../../services/ServiceConfig";
@@ -9,7 +13,12 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 interface DashBoardStudentProgresProps {
   studentProgress: Map<string, TableTypes<"user"> | TableTypes<"result">[]>;
 }
-
+type AggregatedResult = {
+  lessonId: string;
+  chapterId?: string | null;
+  totalScore: number;
+  count: number;
+};
 const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
   studentProgress,
 }) => {
@@ -21,26 +30,52 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
   useEffect(() => {
     init();
   }, []);
-
   const init = async () => {
     const resultList = studentProgress.get("results") as TableTypes<"result">[];
-    const promises = resultList.map(async (result) => {
+    // Group by lesson_id
+    const lessonMap = new Map<string, AggregatedResult>();
+
+    for (const result of resultList) {
+      if (!result.lesson_id) continue;
+
+      const existing = lessonMap.get(result.lesson_id);
+
+      if (existing) {
+        existing.totalScore += result.score ?? 0;
+        existing.count += 1;
+      } else {
+        lessonMap.set(result.lesson_id, {
+          lessonId: result.lesson_id,
+          chapterId: result.chapter_id,
+          totalScore: result.score ?? 0,
+          count: 1,
+        });
+      }
+    }
+
+    // Build final results
+    const promises = Array.from(lessonMap.values()).map(async (item) => {
       const _res = new Map<string, string>();
       try {
-        const lesson = await api.getLesson(result.lesson_id ?? "");
-        _res.set("score", result.score?.toString() ?? "0");
+        const lesson = await api.getLesson(item.lessonId);
+        let finalScore = item.totalScore;
+
+        // Average score ONLY for Lido assessment
+        if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+          finalScore = item.totalScore / item.count;
+        }
+        _res.set("score", Math.round(finalScore).toString());
         _res.set("lesson", lesson?.name ?? "");
-        const chapterId = result.chapter_id;
-        var chapterName = "";
-        if (chapterId != null) {
-          const chapter = await api.getChapterById(chapterId);
-          if (chapter !== undefined && chapter.name !== null) {
+        let chapterName = "";
+        if (item.chapterId) {
+          const chapter = await api.getChapterById(item.chapterId);
+          if (chapter?.name) {
             chapterName = chapter.name;
           }
         }
         _res.set("chapterName", chapterName);
       } catch (error) {
-        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
+        console.error(`Error fetching lesson for ${item.lessonId}:`, error);
       }
       return _res;
     });
@@ -77,8 +112,8 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
                       parseInt(result.get("score") ?? "0", 10) >= 70
                         ? "green"
                         : parseInt(result.get("score") ?? "0", 10) <= 49
-                        ? "red"
-                        : "orange",
+                          ? "red"
+                          : "orange",
                     trailColor: "#f1f1f1",
                     textColor: "#333",
                     textSize: "20px",
