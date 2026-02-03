@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -31,6 +31,7 @@ import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { registerBackButtonHandler } from "../common/backButtonRegistry";
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -68,7 +69,7 @@ const DisplayChapters: FC<{}> = () => {
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get("courseDocId");
   const getCourseByUrl = localGradeMap?.courses.find(
-    (course) => courseDocId == course.id
+    (course) => courseDocId == course.id,
   );
   useEffect(() => {
     Util.loadBackgroundImage();
@@ -231,7 +232,7 @@ const DisplayChapters: FC<{}> = () => {
   };
 
   const getLessonsForChapter = async (
-    chapter: TableTypes<"chapter">
+    chapter: TableTypes<"chapter">,
   ): Promise<TableTypes<"lesson">[]> => {
     setIsLoading(true);
 
@@ -255,7 +256,7 @@ const DisplayChapters: FC<{}> = () => {
     }
   };
 
-  const onBackButton = () => {
+  const onBackButton = useCallback(() => {
     switch (stage) {
       // case STAGES.SUBJECTS:
       //   localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
@@ -282,7 +283,13 @@ const DisplayChapters: FC<{}> = () => {
       default:
         break;
     }
-  };
+  }, [stage, history]);
+
+  useEffect(() => {
+    if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
+    const unregister = registerBackButtonHandler(onBackButton);
+    return unregister;
+  }, [location.pathname, onBackButton]);
 
   const onCourseChanges = async (course: TableTypes<"course">) => {
     const gradesMap: {
@@ -290,7 +297,7 @@ const DisplayChapters: FC<{}> = () => {
       courses: TableTypes<"course">[];
     } = await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
-      (grade) => grade.id === course.grade_id
+      (grade) => grade.id === course.grade_id,
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
@@ -313,7 +320,7 @@ const DisplayChapters: FC<{}> = () => {
   const onGradeChanges = async (grade: TableTypes<"grade">) => {
     let _localMap = getLocalGradeMap();
     const currentCourse = _localMap?.courses.find(
-      (course) => course.grade_id === grade.id
+      (course) => course.grade_id === grade.id,
     );
     localData.currentGrade = grade;
     setCurrentGrade(grade);
@@ -323,7 +330,7 @@ const DisplayChapters: FC<{}> = () => {
     setCurrentCourse(currentCourse);
     localStorage.setItem(
       CURRENT_SELECTED_COURSE,
-      JSON.stringify(currentCourse)
+      JSON.stringify(currentCourse),
     );
     localData.currentCourse = currentCourse;
   };
@@ -357,7 +364,7 @@ const DisplayChapters: FC<{}> = () => {
               lastPlayedLessonDate
             ) {
               lastPlayedLessonDate = new Date(
-                studentResultOfLess.updated_at ?? ""
+                studentResultOfLess.updated_at ?? "",
               );
               startIndex = i;
             }
@@ -405,7 +412,7 @@ const DisplayChapters: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(
-                  (grade) => grade.id === evt
+                  (grade) => grade.id === evt,
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }
