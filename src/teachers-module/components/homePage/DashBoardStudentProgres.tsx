@@ -32,55 +32,52 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
   }, []);
   const init = async () => {
     const resultList = studentProgress.get("results") as TableTypes<"result">[];
-    // Group by lesson_id
-    const lessonMap = new Map<string, AggregatedResult>();
+    if (!resultList || resultList.length === 0) {
+      setResults([]);
+      return;
+    }
+
+    const finalResults: Map<string, string>[] = [];
 
     for (const result of resultList) {
       if (!result.lesson_id) continue;
-
-      const existing = lessonMap.get(result.lesson_id);
-
-      if (existing) {
-        existing.totalScore += result.score ?? 0;
-        existing.count += 1;
-      } else {
-        lessonMap.set(result.lesson_id, {
-          lessonId: result.lesson_id,
-          chapterId: result.chapter_id,
-          totalScore: result.score ?? 0,
-          count: 1,
-        });
-      }
-    }
-
-    // Build final results
-    const promises = Array.from(lessonMap.values()).map(async (item) => {
-      const _res = new Map<string, string>();
       try {
-        const lesson = await api.getLesson(item.lessonId);
-        let finalScore = item.totalScore;
+        const lesson = await api.getLesson(result.lesson_id);
+        let finalScore = result.score ?? 0;
 
-        // Average score ONLY for Lido assessment
+        // LIDO → aggregate all results for this lesson
         if (lesson?.plugin_type === LIDO_ASSESSMENT) {
-          finalScore = item.totalScore / item.count;
+          const allResultsForLesson = resultList.filter(
+            (r) => r.lesson_id === result.lesson_id,
+          );
+          const totalScore = allResultsForLesson.reduce(
+            (acc, r) => acc + (r.score ?? 0),
+            0,
+          );
+          finalScore = totalScore / allResultsForLesson.length;
+
+          if (finalResults.find((r) => r.get("lesson") === lesson.name)) {
+            continue;
+          }
         }
+
+        const _res = new Map<string, string>();
         _res.set("score", Math.round(finalScore).toString());
         _res.set("lesson", lesson?.name ?? "");
         let chapterName = "";
-        if (item.chapterId) {
-          const chapter = await api.getChapterById(item.chapterId);
-          if (chapter?.name) {
-            chapterName = chapter.name;
-          }
+        const chapterId = result.chapter_id;
+        if (chapterId) {
+          const chapter = await api.getChapterById(chapterId);
+          if (chapter?.name) chapterName = chapter.name;
         }
         _res.set("chapterName", chapterName);
+        finalResults.push(_res);
       } catch (error) {
-        console.error(`Error fetching lesson for ${item.lessonId}:`, error);
+        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
-      return _res;
-    });
-    const _result = await Promise.all(promises);
-    setResults(_result);
+    }
+
+    setResults(finalResults);
   };
 
   return (

@@ -641,55 +641,45 @@ export class ClassUtil {
       classId,
     );
     if (!res || res.length === 0) return [];
-    // Group by lesson_id
-    const lessonMap = new Map<
-      string,
-      {
-        totalScore: number;
-        count: number;
-        created_at: string;
-        assignment_id?: string | null;
-      }
-    >();
+
+    const finalResults: any[] = [];
 
     for (const result of res) {
       if (!result.lesson_id) continue;
-      const existing = lessonMap.get(result.lesson_id);
-      if (existing) {
-        existing.totalScore += result.score ?? 0;
-        existing.count += 1;
-      } else {
-        lessonMap.set(result.lesson_id, {
-          totalScore: result.score ?? 0,
-          count: 1,
-          created_at: result.created_at,
-          assignment_id: result.assignment_id,
+
+      try {
+        const lesson = await this.api.getLesson(result.lesson_id);
+        let finalScore = result.score ?? 0;
+
+        // Only aggregate/average for LIDO
+        if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+          const allResultsForLesson = res.filter(
+            (r) => r.lesson_id === result.lesson_id,
+          );
+          const totalScore = allResultsForLesson.reduce(
+            (acc, r) => acc + (r.score ?? 0),
+            0,
+          );
+          finalScore = totalScore / allResultsForLesson.length;
+
+          // Make sure we only push one entry per LIDO lesson
+          if (finalResults.find((r) => r.lessonName === lesson?.name)) {
+            continue;
+          }
+        }
+
+        finalResults.push({
+          lessonName: lesson?.name ?? "",
+          score: Math.round(finalScore),
+          date: new Date(result.created_at!).toLocaleDateString("en-GB"),
+          isAssignment: result.assignment_id ? true : false,
         });
+      } catch (error) {
+        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
     }
 
-    const lessonIds = Array.from(lessonMap.keys());
-    const lessons = await this.api.getLessonsBylessonIds(lessonIds);
-    const formattedResults = Array.from(lessonMap.entries()).map(
-      ([lessonId, data]) => {
-        const matchingLesson = lessons?.find(
-          (lesson) => lesson.id === lessonId,
-        );
-        let finalScore = data.totalScore;
-        if (matchingLesson?.plugin_type === LIDO_ASSESSMENT) {
-          finalScore = data.totalScore / data.count;
-        }
-
-        return {
-          lessonName: matchingLesson?.name ?? "",
-          score: Math.round(finalScore),
-          date: new Date(data.created_at).toLocaleDateString("en-GB"),
-          isAssignment: data.assignment_id ? true : false,
-        };
-      },
-    );
-
-    return formattedResults;
+    return finalResults;
   }
   public async getChapterWiseReport(
     classId: string,
