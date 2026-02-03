@@ -196,7 +196,7 @@ const LidoPlayer: FC = () => {
             schoolId = studentResult.schools[0].id;
           }
         }
-
+        
         await api.updateResult(
           currentStudent,
           courseDetail?.id ?? courseDocId ?? "",
@@ -273,6 +273,12 @@ const LidoPlayer: FC = () => {
       result: binaryScore,
     });
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
+    if (isAssessmentLesson) {
+      const assessmentKey = `assessment_star_state_${currentStudent.id}_${lesson.id}`;
+      if (!sessionStorage.getItem(assessmentKey)) {
+        sessionStorage.setItem(assessmentKey, "pending");
+      }
+    }
     if (!isAssessmentLesson) return;
     const courseKey = courseDetail?.id ?? courseDocId ?? "";
     const failKey = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;

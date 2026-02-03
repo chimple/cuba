@@ -2384,6 +2384,31 @@ export class SqliteApi implements ServiceApi {
 
     return favoriteLesson;
   }
+  public async getAverageScoreForLesson(
+  studentId: string,
+  lessonId: string
+): Promise<number> {
+  const result = await this.executeQuery(
+     `
+    SELECT AVG(score) as avg_score
+    FROM (
+      SELECT score
+      FROM result
+      WHERE student_id = ?
+        AND lesson_id = ?
+        AND is_deleted = 0
+      ORDER BY created_at DESC
+      LIMIT ?
+    ) recent_scores
+    `,
+    [studentId, lessonId, 10] // Limit to last 10 scores
+  );
+
+  const avg = result?.values?.[0]?.avg_score;
+
+  return avg ? Number(avg) : 0;
+}
+
   async updateResult(
     student: TableTypes<"user">,
     courseId: string | undefined,
@@ -2523,10 +2548,21 @@ export class SqliteApi implements ServiceApi {
         }
       }
     }
+    const lesson = await this.getLesson(lessonId);
+    const isAssessment = lesson?.plugin_type === "lido_assessment";
     let starsEarned = 0;
-    if (score > 25) starsEarned++;
-    if (score > 50) starsEarned++;
-    if (score > 75) starsEarned++;
+    if (isAssessment) {
+      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+      const assessmentState = sessionStorage.getItem(assessmentKey);
+      if (assessmentState !== "awarded") {
+        starsEarned = 3;
+        sessionStorage.setItem(assessmentKey, "awarded");
+      }
+    } else {
+      if (score > 25) starsEarned++;
+      if (score > 50) starsEarned++;
+      if (score > 75) starsEarned++;
+    }
 
     if (starsEarned > 0) {
       const allStarsMap = localStorage.getItem(LATEST_STARS);
