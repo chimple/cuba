@@ -171,7 +171,7 @@ line-height: normal;
 
 /* ================= CTA (TEXT-DRIVEN SIZE) ================= */
 .generic-popup-cta {
-  min-width: 226px;   /* default size */
+  min-width: 201px;   /* default size */
   height: 56px;       /* keep fixed height */
   width: auto;        /* grow based on text */
   margin: clamp(0.8rem, 2vh, 1.2rem) auto 0;
@@ -195,6 +195,7 @@ line-height: normal;
   cursor: pointer;
   transition: transform 0.1s ease, border-bottom 0.1s ease;
   margin-top: 20px;
+  margin-right: 105px;
 }
 
 .generic-popup-cta:active {
