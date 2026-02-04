@@ -853,6 +853,7 @@ export class SqliteApi implements ServiceApi {
     const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
 
     const studentId = uuidv4();
+    const now = new Date().toISOString();
     const newStudent: TableTypes<"user"> = {
       id: studentId,
       name,
@@ -864,8 +865,8 @@ export class SqliteApi implements ServiceApi {
       grade_id: gradeDocId ?? null,
       language_id: languageDocId ?? null,
       locale_id: locale?.id ?? DEFAULT_LOCALE_ID,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      created_at: now,
+      updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
       email: null,
@@ -885,9 +886,13 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, locale_id)
+      INSERT INTO user (
+        id, name, age, gender, avatar, image,
+        curriculum_id, grade_id, language_id,
+        created_at, updated_at, locale_id
+      )
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `,
+    `,
       [
         newStudent.id,
         newStudent.name,
@@ -909,125 +914,32 @@ export class SqliteApi implements ServiceApi {
       `
       INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?);
-      `,
-      [
-        parentUserId,
-        _currentUser.id,
-        studentId,
-        new Date().toISOString(),
-        new Date().toISOString(),
-      ],
+    `,
+      [parentUserId, _currentUser.id, studentId, now, now],
     );
-    await this.updatePushChanges(
-      TABLES.User,
-      MUTATE_TYPES.INSERT,
-      newStudent,
-      false,
-    );
-    await this.updatePushChanges(
+
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent, false);
+
+    this.updatePushChanges(
       TABLES.ParentUser,
       MUTATE_TYPES.INSERT,
       {
         id: parentUserId,
         parent_id: _currentUser.id,
         student_id: studentId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
         is_deleted: false,
       },
       false,
     );
-    let courses: TableTypes<"course">[] = [];
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-      for (let idx = 0; idx < courses.length; idx++) {
-        const course = courses[idx];
-        const isLast = idx === courses.length - 1; // ✅ true only for last
 
-        const now = new Date().toISOString();
-
-        const newUserCourse: TableTypes<"user_course"> = {
-          course_id: course.id,
-          created_at: now,
-          id: uuidv4(),
-          is_deleted: false,
-          updated_at: now,
-          user_id: studentId,
-          is_firebase: null,
-        };
-
-        await this.executeQuery(
-          `
-      INSERT INTO user_course (id, user_id, course_id)
-      VALUES (?, ?, ?);
-    `,
-          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id],
-        );
-
-        // 🔥 Pass isLast here
-        this.updatePushChanges(
-          TABLES.UserCourse,
-          MUTATE_TYPES.INSERT,
-          newUserCourse,
-          isLast,
-        );
-      }
-    } else {
-      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
-      const language = await this.getLanguageWithId(languageDocId!);
-      let langCourse;
-      if (language && language.code !== COURSES.ENGLISH) {
-        // Map language code to courseId
-        const thirdLanguageCourseMap: Record<string, string> = {
-          hi: CHIMPLE_HINDI,
-          kn: GRADE1_KANNADA,
-          mr: GRADE1_MARATHI,
-        };
-
-        const courseId = thirdLanguageCourseMap[language.code ?? ""];
-        if (courseId) {
-          langCourse = await this.getCourse(courseId);
-        }
-      }
-      const coursesToAdd = [
-        englishCourse,
-        mathsCourse,
-        langCourse,
-        digitalSkillsCourse,
-      ].filter(Boolean);
-      for (let idx = 0; idx < coursesToAdd.length; idx++) {
-        const course = coursesToAdd[idx];
-        const isLast = idx === coursesToAdd.length - 1; // ✅ true only for last
-        const now = new Date().toISOString();
-
-        const newUserCourse: TableTypes<"user_course"> = {
-          course_id: course.id,
-          created_at: now,
-          id: uuidv4(),
-          is_deleted: false,
-          updated_at: now,
-          user_id: studentId,
-          is_firebase: null,
-        };
-
-        await this.executeQuery(
-          `
-      INSERT INTO user_course (id, user_id, course_id)
-      VALUES (?, ?, ?);
-    `,
-          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id],
-        );
-
-        this.updatePushChanges(
-          TABLES.UserCourse,
-          MUTATE_TYPES.INSERT,
-          newUserCourse,
-          isLast, // 🔥 false for all except last
-        );
-      }
-    }
+    await this.assignCoursesToUser(
+      studentId,
+      gradeDocId,
+      boardDocId,
+      languageDocId,
+    );
     return newStudent;
   }
 
@@ -2657,6 +2569,98 @@ export class SqliteApi implements ServiceApi {
     });
     return user;
   }
+  private async assignCoursesToUser(
+    studentId: string,
+    gradeDocId?: string,
+    boardDocId?: string,
+    languageDocId?: string,
+  ) {
+    const now = new Date().toISOString();
+    let coursesToAdd: TableTypes<"course">[] = [];
+
+    // Grade + Board based courses
+    if (gradeDocId && boardDocId) {
+      coursesToAdd = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    }
+    // Fallback default courses
+    else {
+      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+
+      let langCourse: TableTypes<"course"> | undefined;
+
+      if (languageDocId) {
+        const language = await this.getLanguageWithId(languageDocId);
+
+        if (language && language.code !== COURSES.ENGLISH) {
+          const thirdLanguageCourseMap: Record<string, string> = {
+            hi: CHIMPLE_HINDI,
+            kn: GRADE1_KANNADA,
+            mr: GRADE1_MARATHI,
+          };
+
+          const courseId = thirdLanguageCourseMap[language.code ?? ""];
+          if (courseId) {
+            langCourse = await this.getCourse(courseId);
+          }
+        }
+      }
+
+      coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean) as TableTypes<"course">[];
+    }
+
+    // Insert only if not exists
+    for (let idx = 0; idx < coursesToAdd.length; idx++) {
+      const course = coursesToAdd[idx];
+      const isLast = idx === coursesToAdd.length - 1;
+
+      // Prevent duplicates
+      const result = await this.executeQuery(
+        `
+        SELECT COUNT(*) as count
+        FROM user_course
+        WHERE user_id = ?
+          AND course_id = ?
+          AND is_deleted = false;
+      `,
+        [studentId, course.id],
+      );
+
+      const count = result?.values?.[0]?.count ?? 0;
+      if (count > 0) continue;
+
+      const newUserCourse: TableTypes<"user_course"> = {
+        id: uuidv4(),
+        user_id: studentId,
+        course_id: course.id,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+        is_firebase: null,
+      };
+
+      await this.executeQuery(
+        `
+        INSERT INTO user_course (id, user_id, course_id)
+        VALUES (?, ?, ?);
+      `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id],
+      );
+
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse,
+        isLast,
+      );
+    }
+  }
   async updateStudent(
     student: TableTypes<"user">,
     name: string,
@@ -2675,6 +2679,7 @@ export class SqliteApi implements ServiceApi {
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       localeId = locale?.id ?? DEFAULT_LOCALE_ID;
     }
+    const now = new Date().toISOString();
 
     const updateUserQuery = `
     UPDATE "user"
@@ -2692,7 +2697,6 @@ export class SqliteApi implements ServiceApi {
       ${languageChanged ? ", learning_path = ?" : ""}
     WHERE id = ?;
   `;
-    const now = new Date().toISOString();
     const params = [
       name,
       age,
@@ -2705,18 +2709,13 @@ export class SqliteApi implements ServiceApi {
       localeId,
       now,
     ];
-    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+  // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
       params.push(null);
     }
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
-    let courses;
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
-    // Update student object with new details
     student.name = name;
     student.age = age;
     student.gender = gender;
@@ -2727,137 +2726,30 @@ export class SqliteApi implements ServiceApi {
     student.language_id = languageDocId;
     student.locale_id = localeId;
     student.updated_at = now;
-    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
       localStorage.setItem(LANG_REFRESHED, "true");
     }
 
-    if (courses && courses.length > 0) {
-      const now = new Date().toISOString();
+    await this.assignCoursesToUser(
+      student.id,
+      gradeDocId,
+      boardDocId,
+      languageDocId,
+    );
 
-      for (let idx = 0; idx < courses.length; idx++) {
-        const course = courses[idx];
-        const result = await this.executeQuery(
-          `
-        SELECT COUNT(*) as count
-        FROM user_course
-        WHERE user_id = ? AND course_id = ?;
-        `,
-          [student.id, course.id],
-        );
-
-        const count = result?.values?.[0]?.count ?? 0;
-
-        if (count === 0) {
-          const newUserCourse: TableTypes<"user_course"> = {
-            course_id: course.id,
-            created_at: now,
-            id: uuidv4(),
-            is_deleted: false,
-            updated_at: now,
-            user_id: student.id,
-            is_firebase: null,
-          };
-          await this.executeQuery(
-            `
-          INSERT INTO user_course (id, user_id, course_id)
-          VALUES (?, ?, ?);
-          `,
-            [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id],
-          );
-
-          this.updatePushChanges(
-            TABLES.UserCourse,
-            MUTATE_TYPES.INSERT,
-            newUserCourse,
-            false,
-          );
-        }
-      }
-    }
-    if (languageChanged && (!gradeDocId || !boardDocId)) {
-      const language = await this.getLanguageWithId(languageDocId);
-
-      if (language && language.code !== COURSES.ENGLISH) {
-        const thirdLanguageCourseMap: Record<string, string> = {
-          hi: CHIMPLE_HINDI,
-          kn: GRADE1_KANNADA,
-          mr: GRADE1_MARATHI,
-        };
-
-        const courseId = thirdLanguageCourseMap[language.code ?? ""];
-
-        if (courseId) {
-          const langCourse = await this.getCourse(courseId);
-
-          const result = await this.executeQuery(
-            `
-              SELECT COUNT(*) as count
-              FROM user_course
-              WHERE user_id = ?
-              AND course_id = ?
-              AND is_deleted = false;
-          `,
-            [student.id, courseId],
-          );
-
-          const count = result?.values?.[0]?.count ?? 0;
-
-          if (count === 0) {
-            const now = new Date().toISOString();
-            if (!langCourse) {
-              return student;
-            }
-            const newUserCourse: TableTypes<"user_course"> = {
-              id: uuidv4(),
-              user_id: student.id,
-              course_id: langCourse.id,
-              created_at: now,
-              updated_at: now,
-              is_deleted: false,
-              is_firebase: null,
-            };
-
-            await this.executeQuery(
-              `
-            INSERT INTO user_course (id, user_id, course_id)
-            VALUES (?, ?, ?);
-            `,
-              [
-                newUserCourse.id,
-                newUserCourse.user_id,
-                newUserCourse.course_id,
-              ],
-            );
-
-            this.updatePushChanges(
-              TABLES.UserCourse,
-              MUTATE_TYPES.INSERT,
-              newUserCourse,
-              false,
-            );
-          }
-        }
-      }
-    }
-
-    const pushChangesData: any = {
-      name: name,
-      age: age,
-      gender: gender,
-      avatar: avatar,
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      id: student.id,
+      name,
+      age,
+      gender,
+      avatar,
       image: image ?? null,
       curriculum_id: boardDocId,
       grade_id: gradeDocId,
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
-      id: student.id,
-    };
-    if (languageChanged) {
-      localStorage.setItem(LANG_REFRESHED, "true");
-    }
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
+    });
     return student;
   }
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
