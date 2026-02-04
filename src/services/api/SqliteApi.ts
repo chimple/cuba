@@ -2553,10 +2553,11 @@ export class SqliteApi implements ServiceApi {
     let starsEarned = 0;
     if (isAssessment) {
       const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
-      const assessmentState = sessionStorage.getItem(assessmentKey);
-      if (assessmentState !== "awarded") {
+      const awarded = sessionStorage.getItem(assessmentKey) === "true";
+
+      if (!awarded) {
         starsEarned = 3;
-        sessionStorage.setItem(assessmentKey, "awarded");
+        sessionStorage.setItem(assessmentKey, "true");
       }
     } else {
       if (score > 25) starsEarned++;

@@ -275,8 +275,8 @@ const LidoPlayer: FC = () => {
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
     if (isAssessmentLesson) {
       const assessmentKey = `assessment_star_state_${currentStudent.id}_${lesson.id}`;
-      if (!sessionStorage.getItem(assessmentKey)) {
-        sessionStorage.setItem(assessmentKey, "pending");
+      if (sessionStorage.getItem(assessmentKey) !== "true") {
+        sessionStorage.setItem(assessmentKey, "false"); // not yet awarded
       }
     }
     if (!isAssessmentLesson) return;
