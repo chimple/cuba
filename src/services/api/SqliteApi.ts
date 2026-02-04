@@ -934,7 +934,7 @@ export class SqliteApi implements ServiceApi {
       false,
     );
 
-    await this.assignCoursesToUser(
+    await this.assignCoursesToStudent(
       studentId,
       gradeDocId,
       boardDocId,
@@ -2569,7 +2569,7 @@ export class SqliteApi implements ServiceApi {
     });
     return user;
   }
-  private async assignCoursesToUser(
+  private async assignCoursesToStudent(
     studentId: string,
     gradeDocId?: string,
     boardDocId?: string,
@@ -2730,7 +2730,7 @@ export class SqliteApi implements ServiceApi {
       localStorage.setItem(LANG_REFRESHED, "true");
     }
 
-    await this.assignCoursesToUser(
+    await this.assignCoursesToStudent(
       student.id,
       gradeDocId,
       boardDocId,
