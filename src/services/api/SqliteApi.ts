@@ -2384,30 +2384,6 @@ export class SqliteApi implements ServiceApi {
 
     return favoriteLesson;
   }
-  public async getAverageScoreForLesson(
-  studentId: string,
-  lessonId: string
-): Promise<number> {
-  const result = await this.executeQuery(
-     `
-    SELECT AVG(score) as avg_score
-    FROM (
-      SELECT score
-      FROM result
-      WHERE student_id = ?
-        AND lesson_id = ?
-        AND is_deleted = 0
-      ORDER BY created_at DESC
-      LIMIT ?
-    ) recent_scores
-    `,
-    [studentId, lessonId, 10] // Limit to last 10 scores
-  );
-
-  const avg = result?.values?.[0]?.avg_score;
-
-  return avg ? Number(avg) : 0;
-}
 
   async updateResult(
     student: TableTypes<"user">,
