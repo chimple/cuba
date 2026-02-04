@@ -159,7 +159,7 @@ import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanR
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
-import { getBackButtonHandler } from "./common/backButtonRegistry";
+import { HardwareBackButtonHandler } from "./common/backButtonRegistry";
 import {
   Dialog,
   DialogTitle,
@@ -243,86 +243,6 @@ const OpsConsoleRouteWatcher = () => {
       document.body.classList.remove("ops-console");
     };
   }, [location.pathname]);
-
-  return null;
-};
-
-const HardwareBackButtonHandler = () => {
-  const history = useHistory();
-  const isHandlingRef = useRef(false);
-
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    const dismissActiveOverlay = async () => {
-      const selectors =
-        "ion-modal, ion-alert, ion-popover, ion-action-sheet, ion-loading, ion-picker, ion-toast";
-      const overlays = Array.from(
-        document.querySelectorAll(selectors)
-      ) as Array<{ dismiss?: (data?: any, role?: string) => Promise<boolean>; classList?: DOMTokenList; getAttribute?: (name: string) => string | null }>;
-
-      const activeOverlay = overlays
-        .slice()
-        .reverse()
-        .find((overlay) => {
-          const isHidden =
-            overlay?.classList?.contains("overlay-hidden") ||
-            overlay?.getAttribute?.("aria-hidden") === "true";
-          return !isHidden;
-        });
-
-      if (activeOverlay?.dismiss) {
-        await activeOverlay.dismiss();
-        return true;
-      }
-      return false;
-    };
-
-    const handler = async ({ canGoBack }: { canGoBack: boolean }) => {
-      if (isHandlingRef.current) return;
-      isHandlingRef.current = true;
-      try {
-        const popupData = popupDataRef.current;
-        if (popupData) {
-          PopupManager.onDismiss(popupData.config);
-          setPopupData(null);
-          return;
-        }
-
-        if (showModalRef.current) {
-          setShowModal(false);
-          return;
-        }
-
-        const dismissed = await dismissActiveOverlay();
-        if (dismissed) return;
-
-        const registeredHandler = getBackButtonHandler();
-        if (registeredHandler) {
-          registeredHandler();
-          return;
-        }
-
-        const canNavigateBack =
-          typeof canGoBack === "boolean" ? canGoBack : history.length > 1;
-
-        if (canNavigateBack) {
-          history.goBack();
-        }
-      } finally {
-        isHandlingRef.current = false;
-      }
-    };
-
-    let listener: { remove: () => void } | null = null;
-    const addListener = async () => {
-      listener = await CapApp.addListener("backButton", handler);
-    };
-    addListener();
-    return () => {
-      listener?.remove();
-    };
-  }, [history]);
 
   return null;
 };
@@ -647,7 +567,13 @@ useLayoutEffect(() => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
-        <HardwareBackButtonHandler />
+        <HardwareBackButtonHandler
+          popupDataRef={popupDataRef}
+          setPopupData={setPopupData}
+          popupManager={PopupManager}
+          showModalRef={showModalRef}
+          setShowModal={setShowModal}
+        />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>
