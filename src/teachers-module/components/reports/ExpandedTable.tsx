@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./ExpandedTable.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { ApiHandler } from "../../../services/api/ApiHandler";
-import { SCORECOLOR } from "../../../common/constants";
+import { LIDO_ASSESSMENT, SCORECOLOR } from "../../../common/constants";
 interface ExpandedTableProps {
   expandedData;
 }
@@ -20,30 +20,49 @@ function getColor(score) {
 }
 async function getLessonScoresByDay(data, api: ApiHandler) {
   const orderedDays = Object.keys(data);
-  const result = {};
+  const result: Record<string, any> = {};
 
-  for (const key of orderedDays) {
-    for (const res of data[key]) {
-      const { id,lesson_id, score, assignment_id } = res;
+  for (const day of orderedDays) {
+    for (const res of data[day]) {
+      const { id, lesson_id, score, assignment_id } = res;
 
-      // Fetch lesson details
       const lesson = await api.getLesson(lesson_id);
       const lessonName = lesson?.name ?? "";
 
-      if (!result[id]) {
-        result[id] = {
+      // Use lesson_id as key for LIDO, id for COCOS
+      const key = lesson?.plugin_type === LIDO_ASSESSMENT ? lesson_id : id;
+
+      if (!result[key]) {
+        result[key] = {
           name: lessonName,
-          resultId:id,
+          resultId: id,
           is_assignment: assignment_id != null,
-          scoresByDay: orderedDays.reduce((acc, day) => {
-            acc[day] = null;
-            return acc;
-          }, {}),
+          scoresByDay: orderedDays.reduce(
+            (acc, d) => {
+              acc[d] = null;
+              return acc;
+            },
+            {} as Record<string, number | null>,
+          ),
         };
       }
 
-      // Update score for the specific day
-      result[id].scoresByDay[key] = score;
+      if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+        // Aggregate all LIDO results for the same lesson on this day
+        const allResultsForLessonOnDay = data[day].filter(
+          (r) => r.lesson_id === lesson_id,
+        );
+        const totalScore = allResultsForLessonOnDay.reduce(
+          (acc, r) => acc + (r.score ?? 0),
+          0,
+        );
+        const avgScore = totalScore / allResultsForLessonOnDay.length;
+
+        result[key].scoresByDay[day] = Math.round(avgScore);
+      } else {
+        // COCOS → keep each result separate
+        result[key].scoresByDay[day] = score;
+      }
     }
   }
   return result;
@@ -63,7 +82,7 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
     <>
       {Object.values(lessonIdsByDay).map((lesson: any, lessonIndex) => (
         <tr key={lessonIndex}>
-          <td style={{backgroundColor: "#EFE8F8"}}>
+          <td style={{ backgroundColor: "#EFE8F8" }}>
             <div className="expanded-table-lesson-details">
               <span className="lesson-name-text">{lesson.name}</span>
               {
@@ -83,7 +102,10 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
             <td
               key={dayIndex}
               className="square-cell"
-              style={{ color: getColor(lesson.scoresByDay[day]), backgroundColor: "#EFE8F8" }}
+              style={{
+                color: getColor(lesson.scoresByDay[day]),
+                backgroundColor: "#EFE8F8",
+              }}
             >
               {lesson.scoresByDay[day] !== null
                 ? `${lesson.scoresByDay[day]}`
