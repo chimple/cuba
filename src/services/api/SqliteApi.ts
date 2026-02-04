@@ -2556,9 +2556,6 @@ export class SqliteApi implements ServiceApi {
     const updatedStudent = await this.getUserByDocId(student.id);
     if (updatedStudent) {
       updatedStudent.language_id = student.language_id;
-      if (student.learning_path) {
-        updatedStudent.learning_path = student.learning_path;
-      }
       Util.setCurrentStudent(updatedStudent);
       Util.setLocalStarsForStudent(
         updatedStudent.id,
