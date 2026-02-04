@@ -32,8 +32,7 @@
 /* ================= CLOSE ================= */
 .generic-popup-close {
   position: absolute;
-  top: -0.5rem;
-  right: 0.5rem;
+  right: 1.3rem;
 
   width: 3.8rem;
   height: 4.8rem;
@@ -47,7 +46,7 @@
 
   font-size: 1rem;
   cursor: pointer;
-  z-index: 10;
+  z-index: 10 !important;
 }
 
 /* ================= BACKGROUND IMAGE ================= */
@@ -82,13 +81,14 @@
   align-items: center;
   column-gap: 1rem;
   margin-right: 0.8rem;
+  margin-top: 12px;
 }
 
 /* Footer row = full width CTA */
 .generic-popup-footer {
   display: flex;
   justify-content: center;
-  margin-top: -2rem;
+  margin-top: -4rem;
   margin-left: 2rem;
 }
 
