@@ -7,6 +7,7 @@ import {
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
+import { Util } from "./util";
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -312,7 +313,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[day] = [];
       });
     });
-
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -325,16 +326,24 @@ export class ClassUtil {
         ? res?.filter((item) => item.assignment_id !== null)
         : res;
 
-      res?.forEach((result) => {
+      for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
         const dayName = resultDate.toLocaleDateString("en-US", {
           weekday: "long",
         });
 
-        if (resultsByStudent.get(student.id)?.results[dayName]) {
-          resultsByStudent.get(student.id)!.results[dayName].push(result);
+        const dayResults = resultsByStudent.get(student.id)?.results[dayName];
+
+        if (!dayResults) continue;
+
+        let lesson = lessonCache.get(result.lesson_id!);
+
+        if (!lesson && result.lesson_id) {
+          lesson = await this.api.getLesson(result.lesson_id);
+          if (lesson) lessonCache.set(result.lesson_id, lesson);
         }
-      });
+        Util.upsertResultWithAggregation(dayResults, result, lesson);
+      }
     }
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
@@ -407,7 +416,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[month] = [];
       });
     });
-
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -419,14 +428,25 @@ export class ClassUtil {
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
         : res;
-      res?.forEach((result) => {
+      res?.forEach(async (result) => {
         const resultDate = new Date(result.created_at);
         const monthName = resultDate.toLocaleDateString("en-US", {
           month: "long",
         });
-        if (resultsByStudent.get(student.id)?.results[monthName]) {
-          resultsByStudent.get(student.id)!.results[monthName].push(result);
+
+        const monthResults = resultsByStudent.get(student.id)?.results[
+          monthName
+        ];
+        if (!monthResults) return;
+
+        let lesson = lessonCache.get(result.lesson_id!);
+
+        if (!lesson && result.lesson_id) {
+          lesson = await this.api.getLesson(result.lesson_id);
+          if (lesson) lessonCache.set(result.lesson_id, lesson);
         }
+
+        Util.upsertResultWithAggregation(monthResults, result, lesson);
       });
     }
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
@@ -532,9 +552,7 @@ export class ClassUtil {
       const lesson = lessonDetails?.find(
         (lesson) => lesson.id === assignment.lesson_id,
       );
-
       const belongsToClass = Boolean(assignment.is_class_wise);
-
       const assignmentMap = new Map<
         string,
         {
@@ -575,19 +593,36 @@ export class ClassUtil {
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
       if (sortBy === TABLESORTBY.HIGHSCORE) {
-        const reversedEntries = [...resultsByStudent.entries()].reverse();
-        resultsByStudent = new Map(reversedEntries);
+        resultsByStudent = new Map([...resultsByStudent.entries()].reverse());
       }
     }
+    // lesson cache for LIDO aggregation
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
 
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
-      if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
-        resultsByStudent
-          .get(studentId)!
-          .results[assignmentId ?? ""].push(result);
+
+      const bucket =
+        resultsByStudent.get(studentId)?.results[assignmentId ?? ""];
+
+      if (!bucket) return;
+
+      const assignment = _assignments?.find((a) => a.id === assignmentId);
+
+      if (!assignment?.lesson_id) {
+        bucket.push(result);
+        return;
       }
+
+      let lesson = lessonCache.get(assignment.lesson_id);
+
+      if (!lesson) {
+        lesson = lessonDetails?.find((l) => l.id === assignment.lesson_id);
+        if (lesson) lessonCache.set(assignment.lesson_id, lesson);
+      }
+      // LIDO → avg, others → push
+      Util.upsertResultWithAggregation(bucket, result, lesson);
     });
 
     resultsByStudent.forEach((studentData, studentId) => {
