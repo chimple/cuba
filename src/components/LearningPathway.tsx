@@ -282,15 +282,16 @@ const LearningPathway: React.FC = () => {
     // 1. Try Local Storage first
     const localLanguageCode = localStorage.getItem(LANGUAGE)?.toLowerCase();
     if (localLanguageCode) {
-      const targetCourses = courses.filter(
+      const targetIndex = courses.findIndex(
         (c) => c.code?.toLowerCase() === localLanguageCode,
       );
 
-      if (targetCourses.length > 0) {
+      if (targetIndex > -1) {
+        const targetCourse = courses[targetIndex];
         const otherCourses = courses.filter(
-          (c) => c.code?.toLowerCase() !== localLanguageCode,
+          (_, index) => index !== targetIndex,
         );
-        return [...targetCourses, ...otherCourses];
+        return [targetCourse, ...otherCourses];
       }
     }
 
@@ -305,29 +306,26 @@ const LearningPathway: React.FC = () => {
       const languageName = language.name?.trim().toLowerCase();
 
       // Priority 1: Match by Code
+      let targetIndex = -1;
       if (languageCode) {
-        const targetCourses = courses.filter(
+        targetIndex = courses.findIndex(
           (c) => c.code?.toLowerCase() === languageCode,
         );
-        if (targetCourses.length > 0) {
-          const otherCourses = courses.filter(
-            (c) => c.code?.toLowerCase() !== languageCode,
-          );
-          return [...targetCourses, ...otherCourses];
-        }
       }
 
       // Priority 2: Match by Name (if code match failed)
-      if (languageName) {
-        const targetCourses = courses.filter(
+      if (targetIndex === -1 && languageName) {
+        targetIndex = courses.findIndex(
           (c) => c.name?.trim().toLowerCase() === languageName,
         );
-        if (targetCourses.length > 0) {
-          const otherCourses = courses.filter(
-            (c) => c.name?.trim().toLowerCase() !== languageName,
-          );
-          return [...targetCourses, ...otherCourses];
-        }
+      }
+
+      if (targetIndex > -1) {
+        const targetCourse = courses[targetIndex];
+        const otherCourses = courses.filter(
+          (_, index) => index !== targetIndex,
+        );
+        return [targetCourse, ...otherCourses];
       }
     } catch (e) {
       console.error("Error sorting courses by language", e);
@@ -391,13 +389,15 @@ const LearningPathway: React.FC = () => {
         });
         setGbUpdated(true);
         if (updated) await saveLearningPath(student, learningPath);
-        await buildLearningPathForUnplayedCourses(
-          learningPath,
-          userCourses,
-          student,
-        );
-        if (currClass) {
-          await updateLearningPathWithLatestAssessment(currClass, student);
+        if (mode !== LEARNING_PATHWAY_MODE.DISABLED) {
+          await buildLearningPathForUnplayedCourses(
+            learningPath,
+            userCourses,
+            student,
+          );
+          if (currClass) {
+            await updateLearningPathWithLatestAssessment(currClass, student);
+          }
         }
         const langRefreshed = localStorage.getItem(LANG_REFRESHED);
         if (langRefreshed === "true") {
