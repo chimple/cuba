@@ -391,13 +391,15 @@ const LearningPathway: React.FC = () => {
         });
         setGbUpdated(true);
         if (updated) await saveLearningPath(student, learningPath);
-        await buildLearningPathForUnplayedCourses(
-          learningPath,
-          userCourses,
-          student,
-        );
-        if (currClass) {
-          await updateLearningPathWithLatestAssessment(currClass, student);
+        if (mode !== LEARNING_PATHWAY_MODE.DISABLED) {
+          await buildLearningPathForUnplayedCourses(
+            learningPath,
+            userCourses,
+            student,
+          );
+          if (currClass) {
+            await updateLearningPathWithLatestAssessment(currClass, student);
+          }
         }
         const langRefreshed = localStorage.getItem(LANG_REFRESHED);
         if (langRefreshed === "true") {
