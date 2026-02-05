@@ -72,6 +72,7 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -132,7 +133,6 @@ export interface HotUpdateState {
   error: string;
   isAuto: boolean;
 }
-
 
 export class Util {
   public static port: PortPlugin;
@@ -2258,7 +2258,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2271,7 +2271,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2970,7 +2970,6 @@ export class Util {
             c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
         }));
 
-
       const rebuiltPath = await buildInitialLearningPath(
         storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         courses,
@@ -2992,7 +2991,7 @@ export class Util {
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false
+        false,
       );
 
       const updatedStudent =
@@ -3071,7 +3070,7 @@ export class Util {
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
             const courseIndex = learningPath.courses.courseList.findIndex(
-              (c: any) => c.course_id === currentCourse.course_id
+              (c: any) => c.course_id === currentCourse.course_id,
             );
 
             if (courseIndex === -1) return;
@@ -3101,7 +3100,7 @@ export class Util {
             await ServiceConfig.getI().apiHandler.updateLearningPath(
               currentStudent,
               JSON.stringify(learningPath),
-              false
+              false,
             );
 
             const updatedStudent =
@@ -3119,7 +3118,7 @@ export class Util {
           if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
             const palPath = await palUtil.getPalLessonPathForCourse(
               currentCourse.course_id,
-              currentStudent.id
+              currentStudent.id,
             );
 
             if (palPath?.length) {
@@ -3658,32 +3657,32 @@ export class Util {
     }
   }
 
-public static getHotUpdateState(): HotUpdateState {
-  const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
-  return raw
-    ? JSON.parse(raw)
-    : {
-        status: "Idle",
-        progress: 0,
-        channel: "N/A",
-        lastChecked: "N/A",
-        lastUpdated: "N/A",
-        error: "",
-        isAuto: false,
-      };
-}
+  public static getHotUpdateState(): HotUpdateState {
+    const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : {
+          status: "Idle",
+          progress: 0,
+          channel: "N/A",
+          lastChecked: "N/A",
+          lastUpdated: "N/A",
+          error: "",
+          isAuto: false,
+        };
+  }
 
-public static setHotUpdateState(partial: Partial<HotUpdateState>) {
-  const current = this.getHotUpdateState();
-  const updated = { ...current, ...partial };
-  localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+  public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+    const current = this.getHotUpdateState();
+    const updated = { ...current, ...partial };
+    localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
 
-  window.dispatchEvent(new Event("hot-update-progress"));
-}
+    window.dispatchEvent(new Event("hot-update-progress"));
+  }
   static async removeCourseScopedKey(
     baseKey: string,
     userId: string,
-    courseId: string
+    courseId: string,
   ) {
     if (!baseKey || !userId || !courseId) return;
 
@@ -3704,5 +3703,37 @@ public static setHotUpdateState(partial: Partial<HotUpdateState>) {
       ? localStorage.removeItem(storageKey)
       : localStorage.setItem(storageKey, JSON.stringify(map));
   }
+  static upsertResultWithAggregation(
+    resultsBucket: any[],
+    result: any,
+    lesson?: TableTypes<"lesson">,
+  ) {
+    // LIDO → aggregate per lesson
+    if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+      const existing = resultsBucket.find(
+        (r) => r.lesson_id === result.lesson_id,
+      );
 
+      if (existing) {
+        const total =
+          (existing._totalScore ?? existing.score ?? 0) + (result.score ?? 0);
+
+        const count = (existing._count ?? 1) + 1;
+
+        existing._totalScore = total;
+        existing._count = count;
+        existing.score = Math.round(total / count);
+      } else {
+        resultsBucket.push({
+          ...result,
+          score: result.score ?? 0,
+          _totalScore: result.score ?? 0,
+          _count: 1,
+        });
+      }
+    } else {
+      // Non-LIDO → keep all attempts
+      resultsBucket.push(result);
+    }
+  }
 }
