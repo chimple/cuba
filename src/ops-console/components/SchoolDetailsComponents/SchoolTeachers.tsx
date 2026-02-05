@@ -222,7 +222,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     if (isAddTeacherModalOpen) {
       setErrorMessage({
         text: t(
-          "Provide at least one contact method (phone number or email address) for the teacher."
+          "*    Provide at least one contact method (phone number or email address) for the teacher."
         ),
         type: "error",
       });
@@ -764,7 +764,6 @@ const handleTeacherSubmit = useCallback(
         name: "phoneNumber",
         label: "Phone Number",
         kind: "phone",
-        required: true,
         placeholder: "Enter phone number",
         column: 2,
       },
