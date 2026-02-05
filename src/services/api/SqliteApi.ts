@@ -2384,6 +2384,7 @@ export class SqliteApi implements ServiceApi {
 
     return favoriteLesson;
   }
+
   async updateResult(
     student: TableTypes<"user">,
     courseId: string | undefined,
@@ -2523,10 +2524,22 @@ export class SqliteApi implements ServiceApi {
         }
       }
     }
+    const lesson = await this.getLesson(lessonId);
+    const isAssessment = lesson?.plugin_type === "lido_assessment";
     let starsEarned = 0;
-    if (score > 25) starsEarned++;
-    if (score > 50) starsEarned++;
-    if (score > 75) starsEarned++;
+    if (isAssessment) {
+      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+      const awarded = sessionStorage.getItem(assessmentKey) === "true";
+
+      if (!awarded) {
+        starsEarned = 3;
+        sessionStorage.setItem(assessmentKey, "true");
+      }
+    } else {
+      if (score > 25) starsEarned++;
+      if (score > 50) starsEarned++;
+      if (score > 75) starsEarned++;
+    }
 
     if (starsEarned > 0) {
       const allStarsMap = localStorage.getItem(LATEST_STARS);

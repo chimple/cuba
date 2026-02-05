@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState, useCallback } from "react";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -31,6 +31,7 @@ import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { registerBackButtonHandler } from "../common/backButtonRegistry";
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -63,12 +64,17 @@ const DisplayChapters: FC<{}> = () => {
   }>({});
   const history = useHistory();
   const location = useLocation();
+  const lastBackPressAtRef = useRef<number>(0);
+  const blockIonRouterBackUntilRef = useRef<number>(0);
+
+  const stageRef = useRef<STAGES>(stage);
+  stageRef.current = stage;
   const api = ServiceConfig.getI().apiHandler;
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get("courseDocId");
   const getCourseByUrl = localGradeMap?.courses.find(
-    (course) => courseDocId == course.id
+    (course) => courseDocId == course.id,
   );
   useEffect(() => {
     Util.loadBackgroundImage();
@@ -111,7 +117,7 @@ const DisplayChapters: FC<{}> = () => {
       setCurrentGrade(localData.currentGrade);
       setCurrentCourse(localData.currentCourse);
       const chapters = await api.getChaptersForCourse(
-        localData.currentCourse.id
+        localData.currentCourse.id,
       );
       setChapters(chapters);
       setCurrentChapter(localData.currentChapter);
@@ -137,7 +143,7 @@ const DisplayChapters: FC<{}> = () => {
       await getCourses();
       setIsLoading(true);
       const currentSelectedCourse = localStorage.getItem(
-        CURRENT_SELECTED_COURSE
+        CURRENT_SELECTED_COURSE,
       );
 
       if (currentSelectedCourse) {
@@ -146,7 +152,7 @@ const DisplayChapters: FC<{}> = () => {
         const chapters = await api.getChaptersForCourse(currentCourse.id);
         setChapters(chapters);
         const currentSelectedChapter = localStorage.getItem(
-          CURRENT_SELECTED_CHAPTER
+          CURRENT_SELECTED_CHAPTER,
         );
         if (currentSelectedChapter) {
           let currentChapter = JSON.parse(currentSelectedChapter);
@@ -231,7 +237,7 @@ const DisplayChapters: FC<{}> = () => {
   };
 
   const getLessonsForChapter = async (
-    chapter: TableTypes<"chapter">
+    chapter: TableTypes<"chapter">,
   ): Promise<TableTypes<"lesson">[]> => {
     setIsLoading(true);
 
@@ -255,7 +261,10 @@ const DisplayChapters: FC<{}> = () => {
     }
   };
 
-  const onBackButton = () => {
+  const onBackButton = useCallback(() => {
+    const now = Date.now();
+    if (now - lastBackPressAtRef.current < 150) return;
+    lastBackPressAtRef.current = now;
     switch (stage) {
       // case STAGES.SUBJECTS:
       //   localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
@@ -272,6 +281,7 @@ const DisplayChapters: FC<{}> = () => {
         Util.setPathToBackButton(PAGES.HOME, history);
         break;
       case STAGES.LESSONS:
+        blockIonRouterBackUntilRef.current = Date.now() + 800;
         delete localData.lessons;
         setLessons(undefined);
         setStage(STAGES.CHAPTERS);
@@ -282,7 +292,26 @@ const DisplayChapters: FC<{}> = () => {
       default:
         break;
     }
-  };
+  }, [stage, history]);
+
+  useEffect(() => {
+    const handler = (ev: any) => {
+      if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
+      const shouldBlockIonRouter =
+        stageRef.current === STAGES.LESSONS ||
+        Date.now() < blockIonRouterBackUntilRef.current;
+      if (!shouldBlockIonRouter) return;
+      ev?.detail?.register?.(1000, () => {
+        if (stageRef.current === STAGES.LESSONS) {
+          onBackButton();
+        }
+        blockIonRouterBackUntilRef.current = 0;
+      });
+    };
+
+    document.addEventListener("ionBackButton", handler as any);
+    return () => document.removeEventListener("ionBackButton", handler as any);
+  }, [location.pathname, onBackButton]);
 
   const onCourseChanges = async (course: TableTypes<"course">) => {
     const gradesMap: {
@@ -290,7 +319,7 @@ const DisplayChapters: FC<{}> = () => {
       courses: TableTypes<"course">[];
     } = await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
-      (grade) => grade.id === course.grade_id
+      (grade) => grade.id === course.grade_id,
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
@@ -313,7 +342,7 @@ const DisplayChapters: FC<{}> = () => {
   const onGradeChanges = async (grade: TableTypes<"grade">) => {
     let _localMap = getLocalGradeMap();
     const currentCourse = _localMap?.courses.find(
-      (course) => course.grade_id === grade.id
+      (course) => course.grade_id === grade.id,
     );
     localData.currentGrade = grade;
     setCurrentGrade(grade);
@@ -323,7 +352,7 @@ const DisplayChapters: FC<{}> = () => {
     setCurrentCourse(currentCourse);
     localStorage.setItem(
       CURRENT_SELECTED_COURSE,
-      JSON.stringify(currentCourse)
+      JSON.stringify(currentCourse),
     );
     localData.currentCourse = currentCourse;
   };
@@ -357,7 +386,7 @@ const DisplayChapters: FC<{}> = () => {
               lastPlayedLessonDate
             ) {
               lastPlayedLessonDate = new Date(
-                studentResultOfLess.updated_at ?? ""
+                studentResultOfLess.updated_at ?? "",
               );
               startIndex = i;
             }
@@ -405,7 +434,7 @@ const DisplayChapters: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(
-                  (grade) => grade.id === evt
+                  (grade) => grade.id === evt,
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }

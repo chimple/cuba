@@ -3,6 +3,7 @@ import {
   CURRENT_MODE,
   CURRENT_SCHOOL,
   CURRENT_USER,
+  LAST_MODE,
   MODES,
   PAGES,
   SCHOOL_LOGIN,
@@ -160,6 +161,10 @@ export class schoolUtil {
   public static setCurrMode = async (currMode: MODES) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentMode = currMode;
+    const previousMode = localStorage.getItem(CURRENT_MODE);
+    if (previousMode && previousMode !== currMode) {
+      localStorage.setItem(LAST_MODE, previousMode);
+    }
     localStorage.setItem(CURRENT_MODE, currMode);
   };
 

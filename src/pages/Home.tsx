@@ -468,7 +468,7 @@ useEffect(() => {
         handleHomeIconClick();
         break;
       case HOMEHEADERLIST.PROFILE:
-        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        history.push(PAGES.LEADERBOARD, history);
         const body = document.querySelector("body");
         body?.style.removeProperty("background-image");
         break;
