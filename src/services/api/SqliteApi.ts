@@ -2462,7 +2462,6 @@ export class SqliteApi implements ServiceApi {
       allStars[student.id] = currentLocalStars + starsEarned;
       localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     }
-
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
 
@@ -2470,9 +2469,9 @@ export class SqliteApi implements ServiceApi {
       query += `reward = ?, `;
       params.push(JSON.stringify(newReward));
     }
-
-    query += `stars = COALESCE(stars, 0) + ? WHERE id = ?;`;
-    params.push(starsEarned, student.id);
+    const totalStars = (currentUser?.stars || 0) + starsEarned;
+    query += `stars =  ? WHERE id = ?;`;
+    params.push(totalStars, student.id);
 
     await this.executeQuery(query, params);
 
