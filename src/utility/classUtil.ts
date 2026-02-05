@@ -428,7 +428,7 @@ export class ClassUtil {
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
         : res;
-      res?.forEach(async (result) => {
+      for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
         const monthName = resultDate.toLocaleDateString("en-US", {
           month: "long",
@@ -437,7 +437,7 @@ export class ClassUtil {
         const monthResults = resultsByStudent.get(student.id)?.results[
           monthName
         ];
-        if (!monthResults) return;
+        if (!monthResults) continue;
 
         let lesson = lessonCache.get(result.lesson_id!);
 
@@ -447,7 +447,7 @@ export class ClassUtil {
         }
 
         Util.upsertResultWithAggregation(monthResults, result, lesson);
-      });
+      }
     }
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
