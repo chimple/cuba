@@ -292,13 +292,19 @@ useLayoutEffect(() => {
   };
 }, []);
 
-  // this event listener is to remove the highlighted text(if exists) on a click
-  document.addEventListener("click", () => {
-    const sel = window.getSelection();
-    if (sel && !sel.isCollapsed) {
-      sel.removeAllRanges();
-    }
-  });
+  useEffect(() => {
+    // this event listener is to remove the highlighted text(if exists) on a click
+    const handleClick = () => {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        sel.removeAllRanges();
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, []);
 
   useEffect(() => {
   const handler = (e: any) => {
