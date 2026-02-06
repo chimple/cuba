@@ -168,6 +168,7 @@ import {
 } from "@mui/material";
 
 import PostSuccess from "./teachers-module/pages/PostSuccess";
+import StickersPOC from "./pages/StickersPOC";
 
 setupIonicReact();
 interface ExtraData {
@@ -746,6 +747,10 @@ useLayoutEffect(() => {
             >
               <ShowStudentsInAssignmentPage />
             </ProtectedRoute>
+            <ProtectedRoute path="/stickers-poc" exact={true}>
+  <StickersPOC />
+</ProtectedRoute>
+
             <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
               <AddTeacher />
             </ProtectedRoute>
