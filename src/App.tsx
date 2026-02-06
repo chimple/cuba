@@ -292,6 +292,14 @@ useLayoutEffect(() => {
   };
 }, []);
 
+  // this event listener is to remove the highlighted text(if exists) on a click
+  document.addEventListener("click", () => {
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) {
+      sel.removeAllRanges();
+    }
+  });
+
   useEffect(() => {
   const handler = (e: any) => {
     console.log("POPUP EVENT:", e.detail);
