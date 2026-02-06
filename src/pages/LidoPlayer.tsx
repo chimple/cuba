@@ -39,7 +39,7 @@ const LidoPlayer: FC = () => {
   // State
   const state = history.location.state as any;
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const lessonId = urlSearchParams.get("lessonId") ?? state?.lessonId;
+  const lessonId = urlSearchParams.get("lessonid") ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || "self-played";
   const playedFrom = localStorage.getItem("currentHeader");
 
@@ -196,7 +196,7 @@ const LidoPlayer: FC = () => {
             schoolId = studentResult.schools[0].id;
           }
         }
-        
+
         await api.updateResult(
           currentStudent,
           courseDetail?.id ?? courseDocId ?? "",
@@ -669,7 +669,7 @@ const LidoPlayer: FC = () => {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
+    const lessonId = urlSearchParams.get("lessonid") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
@@ -716,9 +716,10 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const path =
-        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      setXmlPath(path);
+      const pathBase = `https://chimple-bundles.web.app/${lessonId}/`;
+      const pathXml = `https://chimple-bundles.web.app/${lessonId}/index.xml`;
+      setBasePath(pathBase);
+      setXmlPath(pathXml);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
