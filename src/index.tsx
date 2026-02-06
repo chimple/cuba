@@ -216,12 +216,21 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 async function checkForUpdate() {
   let majorVersion = "0";
   const maxRetries = 5;
+  const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
+  console.log("Checking for updates...");
+  console.log("Native Platform", isNativePlatform);
+  console.log("CAN_HOT_UPDATE flag:", canHotUpdate);
+  console.log(
+    "REACT_APP_IS_HOT_UPDATE_ENABLED:",
+    process.env.REACT_APP_IS_HOT_UPDATE_ENABLED,
+  );
   try {
     if (
       isNativePlatform &&
-      gb.isOn(CAN_HOT_UPDATE) &&
-      process.env.REACT_IS_HOT_UPDATE_ENABLED === "true"
+      canHotUpdate &&
+      process.env.REACT_APP_IS_HOT_UPDATE_ENABLED === "true"
     ) {
+      console.log("🚀 Checking for updates...");
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
       Util.setHotUpdateState({
