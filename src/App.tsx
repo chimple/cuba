@@ -238,8 +238,17 @@ const OpsConsoleRouteWatcher = () => {
     } else {
       document.body.classList.remove("ops-console");
     }
+    // this event listener is to remove the highlighted text(if exists) on a click
+    const handleClick = () => {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        sel.removeAllRanges();
+      }
+    };
+    document.addEventListener("click", handleClick);
 
     return () => {
+      document.removeEventListener("click", handleClick);
       document.body.classList.remove("ops-console");
     };
   }, [location.pathname]);
@@ -291,20 +300,6 @@ useLayoutEffect(() => {
     window.removeEventListener(SHOW_GENERIC_POPUP, handler);
   };
 }, []);
-
-  useEffect(() => {
-    // this event listener is to remove the highlighted text(if exists) on a click
-    const handleClick = () => {
-      const sel = window.getSelection();
-      if (sel && !sel.isCollapsed) {
-        sel.removeAllRanges();
-      }
-    };
-    document.addEventListener("click", handleClick);
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  }, []);
 
   useEffect(() => {
   const handler = (e: any) => {
