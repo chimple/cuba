@@ -1,104 +1,116 @@
 import { useEffect, useState } from "react";
-import { dragState } from "./dragState";
+import { dragState, StickerId } from "./dragState";
 
 import { ReactComponent as BlankBoard } from "../../assets/images/stickers/Blank_space_layout.svg";
 import { ReactComponent as Snail } from "../../assets/images/stickers/Snail_thick.svg";
+import { ReactComponent as Butterfly } from "../../assets/images/stickers/butterfly_thick.svg";
 
 export default function Board() {
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
-  const [placed, setPlaced] = useState(false);
 
-  // track drag preview
+  const [placed, setPlaced] = useState<{
+    snail: boolean;
+    butterfly: boolean;
+  }>({
+    snail: false,
+    butterfly: false,
+  });
+
+  // preview tracking
   useEffect(() => {
     const move = () => {
       if (dragState.dragging && dragState.pos) {
         setDragPos(dragState.pos);
       }
     };
-
     window.addEventListener("dragging", move);
     return () => window.removeEventListener("dragging", move);
   }, []);
 
-  // handle drop
+  // drop handling
   useEffect(() => {
-    const handleDrop = (e: PointerEvent) => {
-      if (!dragState.dragging) return;
+  const handleDrop = (e: PointerEvent) => {
+    if (!dragState.dragging) return;
 
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const slot = el?.closest('[data-slot-id="snail"]');
+    const current = dragState.dragging; // ⭐ store locally
 
-      if (slot) {
-        setPlaced(true);
-      }
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const slot = el?.closest(`[data-slot-id="${current}"]`);
 
-      setDragPos(null);
-      dragState.dragging = null;
-      dragState.pos = null;
+    if (slot) {
+      setPlaced((p) => ({ ...p, [current]: true }));
+    }
+
+    setDragPos(null);
+    dragState.dragging = null;
+    dragState.pos = null;
+  };
+
+  window.addEventListener("pointerup", handleDrop);
+  return () => window.removeEventListener("pointerup", handleDrop);
+}, []);
+
+
+  const renderPreview = () => {
+    if (!dragPos || !dragState.dragging || !dragState.size) return null;
+
+    const style = {
+      position: "fixed" as const,
+      left: dragPos.x - dragState.size.w / 2,
+      top: dragPos.y - dragState.size.h / 2,
+      width: dragState.size.w,
+      height: dragState.size.h,
+      pointerEvents: "none" as const,
+      zIndex: 9999,
     };
 
-    window.addEventListener("pointerup", handleDrop);
-    return () => window.removeEventListener("pointerup", handleDrop);
-  }, []);
+    if (dragState.dragging === "snail") return <Snail style={style} />;
+    if (dragState.dragging === "butterfly") return <Butterfly style={style} />;
+
+    return null;
+  };
+
+  const renderPlaced = (id: StickerId, Comp: any) => {
+    if (!placed[id] || !dragState.size) return null;
+
+    return (
+      <div
+        ref={(el) => {
+          const slot = document.querySelector(`[data-slot-id="${id}"]`);
+          if (!slot || !el || !dragState.size) return;
+
+          const rect = (slot as HTMLElement).getBoundingClientRect();
+
+          el.style.position = "fixed";
+
+const stickerW = dragState.size.w;
+const stickerH = dragState.size.h;
+
+// const stickerW = rect.width;
+// const stickerH = rect.height;
+
+// ⭐ center inside slot
+el.style.left = rect.left + rect.width / 2 - stickerW / 2 + "px";
+el.style.top = rect.top + rect.height / 2 - stickerH / 2 + "px";
+
+el.style.width = stickerW + "px";
+el.style.height = stickerH + "px";
+
+        }}
+      >
+        <Comp width="100%" height="100%" />
+      </div>
+    );
+  };
 
   return (
     <div style={{ position: "relative" }}>
       <BlankBoard width={700} />
 
-      {/* DRAG PREVIEW */}
-      {dragPos && !placed && (
-        <Snail
-          style={{
-            position: "fixed",
-            left: dragPos.x - 60,
-            top: dragPos.y - 60,
-            width: 120,
-            pointerEvents: "none",
-            zIndex: 9999,
-          }}
-        />
-      )}
+      {renderPreview()}
 
-      {/* MOUNT INSIDE SLOT */}
-      {placed && (
-        <svg
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            width: 700,
-            height: "auto",
-            pointerEvents: "none",
-          }}
-        >
-          <g
-            dangerouslySetInnerHTML={{
-              __html: document
-                .querySelector('[data-slot-id="snail"]')
-                ?.innerHTML || "",
-            }}
-          />
-        </svg>
-      )}
-
-      {/* REAL sticker overlay inside slot */}
-      {placed && (
-        <div
-          ref={(el) => {
-            const slot = document.querySelector('[data-slot-id="snail"]');
-            if (slot && el) {
-              const rect = (slot as HTMLElement).getBoundingClientRect();
-              el.style.position = "fixed";
-              el.style.left = rect.left + "px";
-              el.style.top = rect.top + "px";
-              el.style.width = rect.width + "px";
-              el.style.height = rect.height + "px";
-            }
-          }}
-        >
-          <Snail width="100%" height="100%" />
-        </div>
-      )}
+      {renderPlaced("snail", Snail)}
+      {renderPlaced("butterfly", Butterfly)}
     </div>
   );
 }
