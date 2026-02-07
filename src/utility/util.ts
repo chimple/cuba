@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -72,6 +73,7 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
+  GrowthBookAttributes,
   LIDO_ASSESSMENT,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
@@ -113,6 +115,8 @@ import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 import { buildInitialLearningPath } from "../components/LearningPathway";
+import { logDeviceInfo } from "../pages/Home";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 declare global {
   interface Window {
@@ -3734,6 +3738,28 @@ export class Util {
     } else {
       // Non-LIDO → keep all attempts
       resultsBucket.push(result);
+    }
+  }
+  public static async updateSchStdAttb(): Promise<any[]> {
+    try {
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return [];
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData) return [];
+      const device = await logDeviceInfo();
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
+        classes: linkedData.classes.map((item: any) => item.id),
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      return [];
+    } catch (error) {
+      console.error("[Util.updateSchStdAttb] failed:", error);
+      return [];
     }
   }
 }

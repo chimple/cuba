@@ -51,6 +51,22 @@ import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterC
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 const localData: any = {};
+
+export const logDeviceInfo = async () => {
+  const info = await Device.getInfo();
+  const device_language = await Device.getLanguageCode();
+  const device = {
+    model: info.model,
+    manufacturer: info.manufacturer,
+    platform: info.platform,
+    os_version: info.osVersion,
+    operating_system: info.operatingSystem,
+    is_virtual: info.isVirtual,
+    device_language: device_language.value,
+  };
+  return device;
+};
+
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -102,24 +118,8 @@ const Home: FC = () => {
     Util.onAppStateChange({ isActive });
   };
 
-  
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-
-  const logDeviceInfo = async () => {
-    const info = await Device.getInfo();
-    const device_language = await Device.getLanguageCode();
-    const device = {
-      model: info.model,
-      manufacturer: info.manufacturer,
-      platform: info.platform,
-      os_version: info.osVersion,
-      operating_system: info.operatingSystem,
-      is_virtual: info.isVirtual,
-      device_language: device_language.value,
-    };
-    return device;
-  };
 
   useEffect(() => {
     if (currentHeader) {
@@ -192,7 +192,6 @@ const Home: FC = () => {
     };
   }, []);
 
-
   useEffect(() => {
     setCurrentHeader(
       currentHeader === HOMEHEADERLIST.PROFILE
@@ -261,9 +260,12 @@ const Home: FC = () => {
     fetchData();
     await isLinked();
 
-    // Call these to ensure attributes for Assignments and History are set on Home load
-    await getAssignments();
-    await getHistory();
+    // Call these to ensure attributes are set on Home load
+    const updateAtb = async () => {
+      await Util.updateSchStdAttb();
+      setGbUpdated(true);
+    };
+    await updateAtb();
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
@@ -430,7 +432,6 @@ const Home: FC = () => {
     setSubTab(SUBTAB.SUGGESTIONS);
   };
 
-
   const getHistory = async () => {
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
@@ -462,7 +463,6 @@ const Home: FC = () => {
     }
   };
 
-
   async function onHeaderIconClick(selectedHeader: any) {
     let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
@@ -486,7 +486,6 @@ const Home: FC = () => {
         break;
     }
   }
-
 
   return (
     <IonPage id="home-page">
@@ -521,7 +520,6 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
               <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
             )}
-
           </div>
         ) : null}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
