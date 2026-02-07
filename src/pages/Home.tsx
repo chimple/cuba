@@ -51,6 +51,22 @@ import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterC
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 const localData: any = {};
+
+export const logDeviceInfo = async () => {
+  const info = await Device.getInfo();
+  const device_language = await Device.getLanguageCode();
+  const device = {
+    model: info.model,
+    manufacturer: info.manufacturer,
+    platform: info.platform,
+    os_version: info.osVersion,
+    operating_system: info.operatingSystem,
+    is_virtual: info.isVirtual,
+    device_language: device_language.value,
+  };
+  return device;
+};
+
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -102,52 +118,34 @@ const Home: FC = () => {
     Util.onAppStateChange({ isActive });
   };
 
-  
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-  const logDeviceInfo = async () => {
-    const info = await Device.getInfo();
-    const device_language = await Device.getLanguageCode();
-    const device = {
-      model: info.model,
-      manufacturer: info.manufacturer,
-      platform: info.platform,
-      os_version: info.osVersion,
-      operating_system: info.operatingSystem,
-      is_virtual: info.isVirtual,
-      device_language: device_language.value,
-    };
-    return device;
-  };
 
   useEffect(() => {
-  if (currentHeader) {
-    const newUrl = new URL(window.location.href);
-    newUrl.searchParams.set("tab", currentHeader);
-    window.history.replaceState({}, "", newUrl.toString());
-  }
-}, [currentHeader]);
+    if (currentHeader) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", currentHeader);
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [currentHeader]);
 
   const growthbook = useGrowthBook();
-useEffect(() => {
-  if (!growthbook) return;
+  useEffect(() => {
+    if (!growthbook) return;
 
-  const popupConfig = growthbook.getFeatureValue(
-    GENERIC_POP_UP,
-    null
-  ) as any;
+    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
 
-  if (!popupConfig) return;
+    if (!popupConfig) return;
 
-  if (
-    currentHeader &&
-    popupConfig.screen_name &&
-    currentHeader.toLowerCase() === popupConfig.screen_name.toLowerCase()
-  ) {
-    PopupManager.onAppOpen(popupConfig);
-    PopupManager.onTimeElapsed(popupConfig);
-  }
-}, [growthbook, currentHeader]);
+    if (
+      currentHeader &&
+      popupConfig.screen_name &&
+      currentHeader.toLowerCase() === popupConfig.screen_name.toLowerCase()
+    ) {
+      PopupManager.onAppOpen(popupConfig);
+      PopupManager.onTimeElapsed(popupConfig);
+    }
+  }, [growthbook, currentHeader]);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -158,13 +156,20 @@ useEffect(() => {
     const studentDetails = student;
     let parent;
     (async () => {
+      // Get Parent Info
       if (!(studentDetails as any).parent_id) {
         parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
         (studentDetails as any).parent_id = parent?.id;
       }
-      updateLocalAttributes({ studentDetails });
+
+      // Get Device Info
+      const device = await logDeviceInfo();
+
+      // Initial Update with Student and Device info
+      updateLocalAttributes({ studentDetails, ...device });
       setGbUpdated(true);
     })();
+
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -176,7 +181,7 @@ useEffect(() => {
     }
     window.addEventListener("JoinClassListner", handleJoinClassEvent);
     App.addListener("appStateChange", ({ isActive }) =>
-      appStateChange(isActive)
+      appStateChange(isActive),
     );
     const handlePathwayCreated = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -187,12 +192,11 @@ useEffect(() => {
     };
   }, []);
 
-
   useEffect(() => {
     setCurrentHeader(
       currentHeader === HOMEHEADERLIST.PROFILE
         ? HOMEHEADERLIST.HOME
-        : currentHeader
+        : currentHeader,
     );
     localStorage.setItem("currentHeader", currentHeader);
     if (currentHeader !== HOMEHEADERLIST.HOME) {
@@ -226,10 +230,10 @@ useEffect(() => {
     if (!!studentResult) {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id === null
+        (item) => item.assignment_id === null,
       );
       const total_assignments_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id !== null
+        (item) => item.assignment_id !== null,
       );
       let latestDate = null;
       for (const lessonId in studentResult) {
@@ -250,11 +254,19 @@ useEffect(() => {
       Object.entries(studentResult).map(([lessonDocId, details]) => [
         lessonDocId,
         { course_id: details.course_id || "" },
-      ])
+      ]),
     );
     setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
+
+    // Call these to ensure attributes are set on Home load
+    const updateAtb = async () => {
+      await Util.updateSchStdAttb();
+      setGbUpdated(true);
+    };
+    await updateAtb();
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
@@ -271,7 +283,7 @@ useEffect(() => {
     const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
     for (const lessonDoc of playedLessonData) {
       const lessonDate = Timestamp.fromDate(
-        new Date(lessonDoc?.updated_at ?? "")
+        new Date(lessonDoc?.updated_at ?? ""),
       );
       const combinedTime =
         lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
@@ -340,7 +352,7 @@ useEffect(() => {
         linkedData.classes.map(async (_class) => {
           const res = await api.getPendingAssignments(_class.id, student.id);
           allAssignments.push(...res);
-        })
+        }),
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
@@ -369,7 +381,7 @@ useEffect(() => {
             (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
-        })
+        }),
       );
 
       setPendingLiveQuizCount(liveQuizCount);
@@ -420,7 +432,6 @@ useEffect(() => {
     setSubTab(SUBTAB.SUGGESTIONS);
   };
 
-
   const getHistory = async () => {
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
@@ -433,7 +444,7 @@ useEffect(() => {
       const playedLessonData = studentResult;
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
-        (lessonDoc) => lessonDoc !== undefined
+        (lessonDoc) => lessonDoc !== undefined,
       );
       for (const course of studentResult) {
         const courseId = course.course_id;
@@ -452,7 +463,6 @@ useEffect(() => {
     }
   };
 
-
   async function onHeaderIconClick(selectedHeader: any) {
     let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
@@ -468,7 +478,7 @@ useEffect(() => {
         handleHomeIconClick();
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD, history);
+        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
         const body = document.querySelector("body");
         body?.style.removeProperty("background-image");
         break;
@@ -476,7 +486,6 @@ useEffect(() => {
         break;
     }
   }
-
 
   return (
     <IonPage id="home-page">
@@ -502,7 +511,7 @@ useEffect(() => {
               <AssignmentPage
                 assignmentCount={setPendingAssignmentCount}
                 onPlayMoreHomework={() => {
-                  setCurrentHeader(HOMEHEADERLIST.HOME); 
+                  setCurrentHeader(HOMEHEADERLIST.HOME);
                 }}
               />
             )}
@@ -511,7 +520,6 @@ useEffect(() => {
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
               <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
             )}
-
           </div>
         ) : null}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />

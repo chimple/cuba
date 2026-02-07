@@ -14,7 +14,7 @@ import {
   SCHOOL_LOGIN,
   PAGES,
   USER_ROLE,
-  IS_OPS_USER
+  IS_OPS_USER,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes, Session } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
@@ -32,7 +32,7 @@ export class SupabaseAuth implements ServiceAuth {
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
 
-  private constructor() { }
+  private constructor() {}
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -50,8 +50,8 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async loginWithEmailAndPassword(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }> {
+    password: string,
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
     let isSpl = false;
     try {
       if (!this._auth) return { success: false, isSpl };
@@ -73,12 +73,13 @@ export class SupabaseAuth implements ServiceAuth {
         try {
           isSpl = await this.rpcRetry<boolean>(async () => {
             const { data, error } = await this._supabaseDb!.rpc(
-              "is_special_or_program_user"
+              "is_special_or_program_user",
             ).maybeSingle();
 
-            return { data: Boolean(data), error } as {
+            return { data: Boolean(data), error, userData: data } as {
               data: boolean;
               error: any;
+              userData: any;
             };
           });
         } catch (err) {
@@ -97,7 +98,7 @@ export class SupabaseAuth implements ServiceAuth {
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
-          isFirstSync
+          isFirstSync,
         );
       } else {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
@@ -105,19 +106,19 @@ export class SupabaseAuth implements ServiceAuth {
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
-      return { success: true, isSpl };
+      return { success: true, isSpl, userData: data.user };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
-        error
+        error,
       );
       return { success: false, isSpl };
     }
   }
   async signInWithEmail(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }> {
+    password: string,
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
     let isSplValue = false;
     try {
       if (!this._auth) return { success: false, isSpl: isSplValue };
@@ -139,16 +140,16 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         await ServiceConfig.getI().apiHandler.syncDB(
           Object.values(TABLES),
-          REFRESH_TABLES_ON_LOGIN
+          REFRESH_TABLES_ON_LOGIN,
         );
       }
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
-      return { success: true, isSpl: isSplValue };
+      return { success: true, isSpl: isSplValue, userData: data.user };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
-        error
+        error,
       );
       return { success: false, isSpl: isSplValue };
     }
@@ -181,7 +182,11 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
 
-  async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
+  async googleSign(): Promise<{
+    success: boolean;
+    isSpl: boolean;
+    userData?: any;
+  }> {
     try {
       if (!this._auth) return { success: false, isSpl: false };
 
@@ -208,12 +213,12 @@ export class SupabaseAuth implements ServiceAuth {
 
         if (error) {
           console.error("Web Google login failed:", error);
-          return { success: false, isSpl: false };
+          return { success: false, isSpl: false, userData: null };
         }
-        return { success: true, isSpl: false };
+        return { success: true, isSpl: false, userData: null };
       }
       if (response.result?.responseType !== "online") {
-        return { success: false, isSpl: false };
+        return { success: false, isSpl: false, userData: null };
       }
       const authentication = response.result;
       const authUser = authentication.profile;
@@ -223,7 +228,7 @@ export class SupabaseAuth implements ServiceAuth {
         authUser.email === null ||
         authUser.id === null
       )
-        return { success: false, isSpl: false };
+        return { success: false, isSpl: false, userData: null };
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
         token: authentication.idToken,
@@ -234,16 +239,21 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
 
-      if (!data.session) return { success: false, isSpl: false };
+      if (!data.session)
+        return { success: false, isSpl: false, userData: null };
 
       const initResult = await this.initializeUserRecord(data.session);
-      return { success: !!initResult, isSpl: initResult?.isSpl ?? false };
+      return {
+        success: !!initResult,
+        isSpl: initResult?.isSpl ?? false,
+        userData: data.user,
+      };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
-        error?.stack || error
+        error?.stack || error,
       );
-      return { success: false, isSpl: false };
+      return { success: false, isSpl: false, userData: null };
     }
   }
 
@@ -262,7 +272,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       const api = ServiceConfig.getI().apiHandler;
       const userRole = await api.getUserSpecialRoles(
-        authData.data.session?.user.id
+        authData.data.session?.user.id,
       );
       if (userRole.length > 0) {
         localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
@@ -303,11 +313,11 @@ export class SupabaseAuth implements ServiceAuth {
       const now = new Date();
 
       const daysDiff = Math.floor(
-        (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24),
       );
       if (daysDiff < 1) {
         console.log(
-          `Refresh token is only ${daysDiff} day(s) old. No need to refresh.`
+          `Refresh token is only ${daysDiff} day(s) old. No need to refresh.`,
         );
         return;
       }
@@ -370,7 +380,7 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async generateOtp(
     phoneNumber: string,
-    appName: string
+    appName: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       if (!this._auth)
@@ -407,17 +417,17 @@ export class SupabaseAuth implements ServiceAuth {
       code === "ERR_NETWORK_CHANGED" ||
       code === "ERR_NETWORK" ||
       /ERR_NETWORK_CHANGED|ERR_NETWORK|ERR_INTERNET_DISCONNECTED|ERR_NAME_NOT_RESOLVED|Failed to fetch|networkerror|offline|dns|socket/i.test(
-        msg
+        msg,
       )
     );
   }
   // helper stays the same
   private async rpcRetry<T>(
     fn: () => Promise<{ data: T; error: any }>,
-    max = 5
+    max = 5,
   ): Promise<T> {
     let attempt = 1;
-    for (; ;) {
+    for (;;) {
       try {
         const { data, error } = await fn();
         if (error) throw error;
@@ -428,9 +438,10 @@ export class SupabaseAuth implements ServiceAuth {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"
+          `RPC attempt ${attempt}/${max} failed${
+            burn ? "" : " (not counting)"
           }; retrying in ${backoff}ms`,
-          err
+          err,
         );
         await this.sleep(backoff);
         attempt = nextAttempt;
@@ -440,8 +451,8 @@ export class SupabaseAuth implements ServiceAuth {
 
   async proceedWithVerificationCode(
     phoneNumber: string,
-    verificationCode: string
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
+    verificationCode: string,
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean; userData?: any } | undefined> {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
@@ -455,7 +466,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       localStorage.setItem(
         REFRESH_TOKEN,
-        JSON.stringify(user.session?.refresh_token)
+        JSON.stringify(user.session?.refresh_token),
       );
       if (user.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(user.session.refresh_token);
@@ -507,10 +518,10 @@ export class SupabaseAuth implements ServiceAuth {
       // ✅ RETRY: is_special_or_program_user
       const isSpl = await this.rpcRetry<boolean>(async () => {
         const { data, error } = await this._supabaseDb!.rpc(
-          "is_special_or_program_user"
+          "is_special_or_program_user",
         ).maybeSingle();
 
-        return { data: !!data, error } as { data: boolean; error: any };
+        return { data: !!data, error, userData: data } as { data: boolean; error: any; userData: any };
       });
 
       if (isSpl) {
@@ -520,21 +531,23 @@ export class SupabaseAuth implements ServiceAuth {
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
-          isFirstSync
+          isFirstSync,
         );
       }
       try {
         await api.updateFcmToken(user.user?.id ?? "");
-      } catch (err) { }
+      } catch (err) {}
       if (isUserExist) await api.subscribeToClassTopic();
 
-      return { user, isUserExist: !!isUserExist, isSpl };
+      return { user, isUserExist: !!isUserExist, isSpl, userData: user.user };
     } catch (_err) {
-      return { user: null, isUserExist: false, isSpl: false };
+      return { user: null, isUserExist: false, isSpl: false, userData: null };
     }
   }
 
-  private async initializeUserRecord(session: Session): Promise<{ user: TableTypes<"user">; isSpl: boolean } | null> {
+  private async initializeUserRecord(
+    session: Session,
+  ): Promise<{ user: TableTypes<"user">; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
@@ -591,7 +604,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       const isSplQuery = await this.rpcRetry<boolean>(async () => {
         const { data, error } = await this._supabaseDb!.rpc(
-          "is_special_or_program_user"
+          "is_special_or_program_user",
         ).maybeSingle();
 
         return { data: !!data, error } as { data: boolean; error: any };
@@ -606,16 +619,18 @@ export class SupabaseAuth implements ServiceAuth {
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
-          isFirstSync
+          isFirstSync,
         );
       }
 
       api = ServiceConfig.getI().apiHandler;
-      if (isUserExists){
+      if (isUserExists) {
         createdUser = await api.getUserByDocId(id);
       }
       if (!createdUser) {
-        console.error("Failed to initialize user record: User could not be created or retrieved.");
+        console.error(
+          "Failed to initialize user record: User could not be created or retrieved.",
+        );
         return null;
       }
       this._currentUser = createdUser;

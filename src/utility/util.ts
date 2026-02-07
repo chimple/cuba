@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -72,6 +73,7 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
+  GrowthBookAttributes,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -112,6 +114,8 @@ import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 import { buildInitialLearningPath } from "../components/LearningPathway";
+import { logDeviceInfo } from "../pages/Home";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 declare global {
   interface Window {
@@ -132,7 +136,6 @@ export interface HotUpdateState {
   error: string;
   isAuto: boolean;
 }
-
 
 export class Util {
   public static port: PortPlugin;
@@ -2258,7 +2261,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2271,7 +2274,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2970,7 +2973,6 @@ export class Util {
             c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
         }));
 
-
       const rebuiltPath = await buildInitialLearningPath(
         storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         courses,
@@ -2992,7 +2994,7 @@ export class Util {
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false
+        false,
       );
 
       const updatedStudent =
@@ -3071,7 +3073,7 @@ export class Util {
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
             const courseIndex = learningPath.courses.courseList.findIndex(
-              (c: any) => c.course_id === currentCourse.course_id
+              (c: any) => c.course_id === currentCourse.course_id,
             );
 
             if (courseIndex === -1) return;
@@ -3101,7 +3103,7 @@ export class Util {
             await ServiceConfig.getI().apiHandler.updateLearningPath(
               currentStudent,
               JSON.stringify(learningPath),
-              false
+              false,
             );
 
             const updatedStudent =
@@ -3119,7 +3121,7 @@ export class Util {
           if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
             const palPath = await palUtil.getPalLessonPathForCourse(
               currentCourse.course_id,
-              currentStudent.id
+              currentStudent.id,
             );
 
             if (palPath?.length) {
@@ -3658,32 +3660,32 @@ export class Util {
     }
   }
 
-public static getHotUpdateState(): HotUpdateState {
-  const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
-  return raw
-    ? JSON.parse(raw)
-    : {
-        status: "Idle",
-        progress: 0,
-        channel: "N/A",
-        lastChecked: "N/A",
-        lastUpdated: "N/A",
-        error: "",
-        isAuto: false,
-      };
-}
+  public static getHotUpdateState(): HotUpdateState {
+    const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : {
+          status: "Idle",
+          progress: 0,
+          channel: "N/A",
+          lastChecked: "N/A",
+          lastUpdated: "N/A",
+          error: "",
+          isAuto: false,
+        };
+  }
 
-public static setHotUpdateState(partial: Partial<HotUpdateState>) {
-  const current = this.getHotUpdateState();
-  const updated = { ...current, ...partial };
-  localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+  public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+    const current = this.getHotUpdateState();
+    const updated = { ...current, ...partial };
+    localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
 
-  window.dispatchEvent(new Event("hot-update-progress"));
-}
+    window.dispatchEvent(new Event("hot-update-progress"));
+  }
   static async removeCourseScopedKey(
     baseKey: string,
     userId: string,
-    courseId: string
+    courseId: string,
   ) {
     if (!baseKey || !userId || !courseId) return;
 
@@ -3705,4 +3707,26 @@ public static setHotUpdateState(partial: Partial<HotUpdateState>) {
       : localStorage.setItem(storageKey, JSON.stringify(map));
   }
 
+  public static async updateSchStdAttb(): Promise<any[]> {
+    try {
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return [];
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData) return [];
+      const device = await logDeviceInfo();
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
+        classes: linkedData.classes.map((item: any) => item.id),
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      return [];
+    } catch (error) {
+      console.error("[Util.updateSchStdAttb] failed:", error);
+      return [];
+    }
+  }
 }
