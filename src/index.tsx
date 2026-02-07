@@ -217,7 +217,7 @@ async function checkForUpdate() {
   let majorVersion = "0";
   const maxRetries = 5;
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
-  console.log("Checking for updates...");
+  console.log("🚀 Started for updates...");
   console.log("Native Platform", isNativePlatform);
   console.log("CAN_HOT_UPDATE flag:", canHotUpdate);
   console.log(
