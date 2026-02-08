@@ -213,8 +213,8 @@ const StudentPendingRequestDetails = () => {
         className="student-pending-request-details-link"
       >
         {t("Pending")}
-      </span>
       <span> &gt; </span>
+      </span>
       <span className="student-pending-request-details-active">
         {t(`Request ID - ${id}`)}
       </span>

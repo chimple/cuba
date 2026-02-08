@@ -445,8 +445,8 @@ const OpsFlaggedRequestDetails = () => {
           className="ops-flagged-request-details-link"
         >
           {t("Requests")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span
           onClick={() =>
             history.push({
@@ -457,8 +457,8 @@ const OpsFlaggedRequestDetails = () => {
           className="ops-flagged-request-details-link"
         >
           {t("Flagged")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span className="ops-flagged-request-details-active">
           {t("Request ID - {{id}}", { id })}
         </span>

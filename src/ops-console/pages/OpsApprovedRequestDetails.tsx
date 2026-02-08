@@ -133,8 +133,8 @@ const OpsApprovedRequestDetails = () => {
           className="ops-approved-request-details-link"
         >
           {t("Requests")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span
           onClick={() =>
             history.push({
@@ -145,8 +145,8 @@ const OpsApprovedRequestDetails = () => {
           className="ops-approved-request-details-link"
         >
           {t("Approved")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span className="ops-approved-request-details-active">
           {t("RequestId")} - {id}
         </span>
@@ -214,14 +214,14 @@ const OpsApprovedRequestDetails = () => {
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Request For")}
-                </div>
                 <div>{requestDetails.request_type || "-"}</div>
+                </div>
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Requested On")}
-                </div>
                 <div>{formatDT(requestDetails.created_at)}</div>
+                </div>
               </Grid>
             </Grid>
           </Paper>

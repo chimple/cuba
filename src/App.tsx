@@ -238,17 +238,8 @@ const OpsConsoleRouteWatcher = () => {
     } else {
       document.body.classList.remove("ops-console");
     }
-    // this event listener is to remove the highlighted text(if exists) on a click
-    const handleClick = () => {
-      const sel = window.getSelection();
-      if (sel && !sel.isCollapsed) {
-        sel.removeAllRanges();
-      }
-    };
-    document.addEventListener("click", handleClick);
 
     return () => {
-      document.removeEventListener("click", handleClick);
       document.body.classList.remove("ops-console");
     };
   }, [location.pathname]);
@@ -257,8 +248,19 @@ const OpsConsoleRouteWatcher = () => {
 };
 
 useEffect(() => {
-  localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
-  localStorage.removeItem(SEARCH_LESSON_HISTORY);
+  // this event listener is to remove the highlighted text(if exists) on a click
+    const handleClick = () => {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        sel.removeAllRanges();
+      }
+    };
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+      localStorage.removeItem(SEARCH_LESSON_HISTORY);
+    };
 }, []);
 
 useEffect(() => {
