@@ -159,6 +159,7 @@ import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanR
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { HardwareBackButtonHandler } from "./common/backButtonRegistry";
 import {
   Dialog,
   DialogTitle,
@@ -207,6 +208,17 @@ const App: React.FC = () => {
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
     HOMEWORK_REMOTE_ASSETS_ENABLED
   );
+
+  const popupDataRef = useRef<any>(null);
+  const showModalRef = useRef(showModal);
+
+  useEffect(() => {
+    popupDataRef.current = popupData;
+  }, [popupData]);
+
+  useEffect(() => {
+    showModalRef.current = showModal;
+  }, [showModal]);
 
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
   const homeworkPathwayAssets: any = useFeatureValue(
@@ -555,6 +567,13 @@ useLayoutEffect(() => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <HardwareBackButtonHandler
+          popupDataRef={popupDataRef}
+          setPopupData={setPopupData}
+          popupManager={PopupManager}
+          showModalRef={showModalRef}
+          setShowModal={setShowModal}
+        />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>
