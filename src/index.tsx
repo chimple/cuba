@@ -218,12 +218,12 @@ async function checkForUpdate() {
   const maxRetries = 5;
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
   console.log("🚀 Started for updates...");
-  console.log("Native Platform", isNativePlatform);
-  console.log("CAN_HOT_UPDATE flag:", canHotUpdate);
-  console.log(
-    "REACT_APP_IS_HOT_UPDATE_ENABLED:",
-    process.env.REACT_APP_IS_HOT_UPDATE_ENABLED,
-  );
+  // console.log("Native Platform", isNativePlatform);
+  // console.log("CAN_HOT_UPDATE flag:", canHotUpdate);
+  // console.log(
+  //   "REACT_APP_IS_HOT_UPDATE_ENABLED:",
+  //   process.env.REACT_APP_IS_HOT_UPDATE_ENABLED,
+  // );
   try {
     if (
       isNativePlatform &&
