@@ -1,7 +1,11 @@
-export type StickerId = "snail" | "butterfly";
+export type StickerId = "butterfly" | "snail";
 
 export const dragState: {
-  dragging: StickerId | null;
+  dragging: null | "snail" | "butterfly";
+  offsetX: number;
+  offsetY: number;
 } = {
   dragging: null,
+  offsetX: 0,
+  offsetY: 0,
 };
