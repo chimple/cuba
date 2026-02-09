@@ -1,116 +1,92 @@
-import { useEffect, useState } from "react";
-import { dragState, StickerId } from "./dragState";
+import { useEffect } from "react";
+import { dragState } from "./dragState";
 
-import { ReactComponent as BlankBoard } from "../../assets/images/stickers/Blank_space_layout.svg";
-import { ReactComponent as Snail } from "../../assets/images/stickers/Snail_thick.svg";
-import { ReactComponent as Butterfly } from "../../assets/images/stickers/butterfly_thick.svg";
+import { ReactComponent as Layout } from "../../assets/images/stickers/Whole_layout.svg";
 
 export default function Board() {
-  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
 
-  const [placed, setPlaced] = useState<{
-    snail: boolean;
-    butterfly: boolean;
-  }>({
-    snail: false,
-    butterfly: false,
-  });
-
-  // preview tracking
   useEffect(() => {
-    const move = () => {
-      if (dragState.dragging && dragState.pos) {
-        setDragPos(dragState.pos);
-      }
-    };
-    window.addEventListener("dragging", move);
-    return () => window.removeEventListener("dragging", move);
-  }, []);
+  // make butterfly slot white on load
+  const makeWhite = () => {
+    const el = document.querySelector('[data-slot-id="butterfly"]');
+    if (!el) return;
 
-  // drop handling
-  useEffect(() => {
-  const handleDrop = (e: PointerEvent) => {
-    if (!dragState.dragging) return;
+    const shapes = el.querySelectorAll("path, circle, ellipse, rect, polygon");
+    shapes.forEach((s: any) => {
+      s.dataset.originalFill = s.getAttribute("fill") || "";
+      s.dataset.originalStroke = s.getAttribute("stroke") || "";
 
-    const current = dragState.dragging; // ⭐ store locally
-
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const slot = el?.closest(`[data-slot-id="${current}"]`);
-
-    if (slot) {
-      setPlaced((p) => ({ ...p, [current]: true }));
-    }
-
-    setDragPos(null);
-    dragState.dragging = null;
-    dragState.pos = null;
+      s.setAttribute("fill", "white");
+      s.setAttribute("stroke", "white");
+    });
   };
 
-  window.addEventListener("pointerup", handleDrop);
-  return () => window.removeEventListener("pointerup", handleDrop);
+  // wait for SVG mount
+  setTimeout(makeWhite, 50);
 }, []);
 
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragState.dragging) return;
 
-  const renderPreview = () => {
-    if (!dragPos || !dragState.dragging || !dragState.size) return null;
+      const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+      const slot = el?.closest("[data-slot-id]") as HTMLElement | null;
+      if (!slot) return;
 
-    const style = {
-      position: "fixed" as const,
-      left: dragPos.x - dragState.size.w / 2,
-      top: dragPos.y - dragState.size.h / 2,
-      width: dragState.size.w,
-      height: dragState.size.h,
-      pointerEvents: "none" as const,
-      zIndex: 9999,
+      const slotId = slot.getAttribute("data-slot-id");
+
+      if (slotId === dragState.dragging) {
+        // 👉 reveal by removing white class
+        const target = document.querySelector(
+          `[data-slot-id="${slotId}"]`
+        ) as SVGGElement | null;
+
+        target?.classList.remove("sticker-white");
+
+        dragState.dragging = null;
+
+        if (slotId === dragState.dragging) {
+  const target = document.querySelector(
+    `[data-slot-id="${slotId}"]`
+  ) as SVGGElement | null;
+
+  target?.classList.remove("butterfly"); // remove white css
+  dragState.dragging = null;
+}
+
+      }
     };
 
-    if (dragState.dragging === "snail") return <Snail style={style} />;
-    if (dragState.dragging === "butterfly") return <Butterfly style={style} />;
+    const onUp = () => (dragState.dragging = null);
 
-    return null;
-  };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
 
-  const renderPlaced = (id: StickerId, Comp: any) => {
-    if (!placed[id] || !dragState.size) return null;
-
-    return (
-      <div
-        ref={(el) => {
-          const slot = document.querySelector(`[data-slot-id="${id}"]`);
-          if (!slot || !el || !dragState.size) return;
-
-          const rect = (slot as HTMLElement).getBoundingClientRect();
-
-          el.style.position = "fixed";
-
-const stickerW = dragState.size.w;
-const stickerH = dragState.size.h;
-
-// const stickerW = rect.width;
-// const stickerH = rect.height;
-
-// ⭐ center inside slot
-el.style.left = rect.left + rect.width / 2 - stickerW / 2 + "px";
-el.style.top = rect.top + rect.height / 2 - stickerH / 2 + "px";
-
-el.style.width = stickerW + "px";
-el.style.height = stickerH + "px";
-
-        }}
-      >
-        <Comp width="100%" height="100%" />
-      </div>
-    );
-  };
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
 
   return (
     <div style={{ position: "relative" }}>
-      <BlankBoard width={700} />
+      {/* CSS INSIDE COMPONENT */}
+      <style>
+{`
+/* make butterfly slot white */
+.butterfly path,
+.butterfly circle,
+.butterfly ellipse,
+.butterfly rect,
+.butterfly polygon {
+  fill: white !important;
+  stroke: white !important;
+}
+`}
+</style>
 
-      {renderPreview()}
 
-      {renderPlaced("snail", Snail)}
-      {renderPlaced("butterfly", Butterfly)}
+      <Layout width={500} />
     </div>
   );
 }
