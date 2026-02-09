@@ -114,7 +114,7 @@ const buildLessonPath = async (
    * ================================
    * Trigger assessment if no history
    */
-  if (shouldUseAssessment(mode) && !rawResults) {
+  if (shouldUseAssessment(mode)) {
     const subjectLessons = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
@@ -159,7 +159,12 @@ export const buildInitialLearningPath = async (
 ) => {
   const courseList = await Promise.all(
     courses.map(async (course) => {
-      const path = await buildLessonPath(mode, course, student, isLanguageRefresh);
+      const path = await buildLessonPath(
+        mode,
+        course,
+        student,
+        isLanguageRefresh,
+      );
       return {
         path_id: uuidv4(),
         course_id: course.id,
@@ -404,11 +409,7 @@ const LearningPathway: React.FC = () => {
         const langRefreshed = localStorage.getItem(LANG_REFRESHED);
         if (langRefreshed === "true") {
           setLoading(true);
-          await rebuildLearningPathOnLangRefresh(
-            mode,
-            userCourses,
-            student,
-          );
+          await rebuildLearningPathOnLangRefresh(mode, userCourses, student);
         }
       }
     } catch (error) {
@@ -421,7 +422,7 @@ const LearningPathway: React.FC = () => {
   const rebuildLearningPathOnLangRefresh = async (
     mode: string,
     userCourses: any[],
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
   ) => {
     const langRefreshed = localStorage.getItem(LANG_REFRESHED);
     if (langRefreshed !== "true") return;
@@ -430,7 +431,7 @@ const LearningPathway: React.FC = () => {
       mode,
       userCourses,
       student,
-      true
+      true,
     );
     if (!rebuiltPath?.courses?.courseList?.length) return;
     const learningPath = student.learning_path
@@ -442,14 +443,12 @@ const LearningPathway: React.FC = () => {
     let hasChanges = false;
     for (const newCourse of newList) {
       const index = existingList.findIndex(
-        (c: any) => c.course_id === newCourse.course_id
+        (c: any) => c.course_id === newCourse.course_id,
       );
       if (index === -1) continue;
       const oldCourse = existingList[index];
-      const oldStartNode =
-        oldCourse?.path?.[oldCourse.startIndex];
-      const newStartNode =
-        newCourse?.path?.[newCourse.startIndex];
+      const oldStartNode = oldCourse?.path?.[oldCourse.startIndex];
+      const newStartNode = newCourse?.path?.[newCourse.startIndex];
       if (!oldStartNode || !newStartNode) continue;
       const oldStartLessonId = oldStartNode.lesson_id;
       const newStartLessonId = newStartNode.lesson_id;
@@ -457,10 +456,7 @@ const LearningPathway: React.FC = () => {
       // 🔹 replace ONLY if:
       // 1️⃣ starting lesson changed
       // 2️⃣ old starting lesson is assessment
-      if (
-        isOldAssessment &&
-        oldStartLessonId !== newStartLessonId
-      ) {
+      if (isOldAssessment && oldStartLessonId !== newStartLessonId) {
         existingList[index] = newCourse;
         hasChanges = true;
       }
@@ -484,63 +480,63 @@ const LearningPathway: React.FC = () => {
     if (!learningPath?.courses?.courseList) return null;
     if (!Array.isArray(userCourses) || userCourses.length === 0) return null;
 
-    // 1️⃣ Find unplayed courses
-    const unplayedCourses: any[] = [];
+    const coursesToRebuild: any[] = [];
     const existingList = [...learningPath.courses.courseList];
 
     for (const course of userCourses) {
       const existingCourse = existingList.find(
         (c: any) => c.course_id === course.id,
       );
-      const hasProgress =
-        (existingCourse?.currentIndex ?? 0) > 0 ||
-        (existingCourse?.startIndex ?? 0) > 0;
-      if (hasProgress) continue;
 
+      // Check if current path already has assessments
+      const hasAssessmentInPath = existingCourse?.path?.some(
+        (p: any) => p.is_assessment === true,
+      );
+
+      // Check if student has actually played/finished the assessment in the DB
       const hasPlayed = await api.isStudentPlayedPalLesson(
         student.id,
         course.id,
       );
-      if (!hasPlayed) {
-        unplayedCourses.push(course);
+
+      /**
+       * FIX: We rebuild the course path if:
+       * 1. The course is not in the list at all.
+       * 2. OR: The mode requires assessment, but the current path doesn't have them (even if they have progress).
+       * 3. OR: The student hasn't played this course at all.
+       */
+      const needsAssessmentRebuild =
+        shouldUseAssessment(mode) && !hasAssessmentInPath && !hasPlayed;
+
+      if (!existingCourse || needsAssessmentRebuild || !hasPlayed) {
+        coursesToRebuild.push(course);
       }
     }
 
-    if (unplayedCourses.length === 0) return null;
+    if (coursesToRebuild.length === 0) return null;
 
-    // 2️⃣ Build path ONCE for all unplayed
+    // Build the new paths (this will trigger the updated buildLessonPath above)
     const newLearningPath = await buildInitialLearningPath(
       mode,
-      unplayedCourses,
+      coursesToRebuild,
       student,
     );
-
     const newCourseList = newLearningPath?.courses?.courseList || [];
 
-    // 3️⃣ Replace matching courses
     for (const newCourse of newCourseList) {
       const index = existingList.findIndex(
         (c: any) => c.course_id === newCourse.course_id,
       );
-
-      const existingCourse = index !== -1 ? existingList[index] : null;
-      const hasProgress =
-        (existingCourse?.currentIndex ?? 0) > 0 ||
-        (existingCourse?.startIndex ?? 0) > 0;
-      if (hasProgress) {
-        continue;
-      }
       if (index !== -1) {
+        // If we are replacing a "played" subject with an assessment, we overwrite it
         existingList[index] = newCourse;
       } else {
         existingList.push(newCourse);
       }
     }
 
-    // 4️⃣ Save
     learningPath.courses.courseList = existingList;
     await saveLearningPath(student, learningPath);
-
     return true;
   }
 
