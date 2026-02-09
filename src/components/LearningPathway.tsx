@@ -114,7 +114,7 @@ const buildLessonPath = async (
    * ================================
    * Trigger assessment if no history
    */
-  if (shouldUseAssessment(mode)) {
+  if (shouldUseAssessment(mode ) && !rawResults) {
     const subjectLessons = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
