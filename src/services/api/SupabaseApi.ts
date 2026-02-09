@@ -344,7 +344,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+          [],
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -477,11 +477,11 @@ export class SupabaseApi implements ServiceApi {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
                   console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`,
+                    `✅ / ❌ Fallback resolved with status: ${status}`
                   );
                   resolve(status === "success");
                 }
-              },
+              }
             )
             .subscribe()
         : null;
@@ -2360,6 +2360,7 @@ export class SupabaseApi implements ServiceApi {
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
     activities_scores?: string | null,
+    user_id?: string | null,
   ): Promise<TableTypes<"result">> {
     if (!this.supabase) return {} as TableTypes<"result">;
 
@@ -2395,6 +2396,7 @@ export class SupabaseApi implements ServiceApi {
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
+      user_id: user_id ?? null,
     };
 
     const { error: insertError } = await this.supabase
@@ -2513,8 +2515,6 @@ export class SupabaseApi implements ServiceApi {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      updatedFields.learning_path = null;
     }
 
     await this.supabase.from("user").update(updatedFields).eq("id", student.id);
@@ -2592,8 +2592,6 @@ export class SupabaseApi implements ServiceApi {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      updatedFields.learning_path = null;
     }
 
     try {
@@ -7625,7 +7623,7 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
               )
             : [];
         }

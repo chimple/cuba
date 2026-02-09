@@ -541,7 +541,8 @@ export interface ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined
+    activities_scores?: string | undefined,
+    user_id?: string | undefined
   ): Promise<TableTypes<"result">>;
 
   /**

@@ -11,6 +11,7 @@ import {
   ACTION_TYPES,
   AGE_OPTIONS,
   AVATARS,
+  CONTINUE,
   CURRENT_STUDENT,
   DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
@@ -25,6 +26,7 @@ import {
 import { useHistory, useLocation } from "react-router";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { App as CapApp } from "@capacitor/app";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
@@ -56,7 +58,7 @@ const ProfileDetails = () => {
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
   const variation = useFeatureValue<string>(
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
   );
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
@@ -64,8 +66,8 @@ const ProfileDetails = () => {
   const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : "");
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit
-      ? currentStudent?.avatar ?? AVATARS[randomIndex]
-      : AVATARS[randomIndex]
+      ? (currentStudent?.avatar ?? AVATARS[randomIndex])
+      : AVATARS[randomIndex],
   );
 
   // New State for Class and School
@@ -79,15 +81,15 @@ const ProfileDetails = () => {
           ? 4
           : currentStudent.age
         : undefined
-      : undefined
+      : undefined,
   );
   const [gender, setGender] = useState<GENDER | undefined>(
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as GENDER)
-      : undefined
+      : undefined,
   );
   const [languageId, setLanguageId] = useState(
-    isEdit ? currentStudent?.language_id ?? "" : ""
+    isEdit ? (currentStudent?.language_id ?? "") : "",
   );
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -96,10 +98,10 @@ const ProfileDetails = () => {
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
 
   const initialValues = useRef({
-    fullName: isEdit ? currentStudent?.name ?? "" : "",
-    age: isEdit ? currentStudent?.age ?? undefined : undefined,
+    fullName: isEdit ? (currentStudent?.name ?? "") : "",
+    age: isEdit ? (currentStudent?.age ?? undefined) : undefined,
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
-    languageId: isEdit ? currentStudent?.language_id ?? "" : "",
+    languageId: isEdit ? (currentStudent?.language_id ?? "") : "",
   });
 
   useEffect(() => {
@@ -139,7 +141,7 @@ const ProfileDetails = () => {
   useEffect(() => {
     if (isEdit && currentStudent?.language_id && languages.length > 0) {
       const studentLang = languages.find(
-        (lang) => lang.id === currentStudent.language_id
+        (lang) => lang.id === currentStudent.language_id,
       );
       if (
         studentLang &&
@@ -183,12 +185,35 @@ const ProfileDetails = () => {
     }
   };
 
+  const handleBack = () => {
+    if (history.length > 1) {
+      history.goBack();
+      return;
+    }
+    const targetPage = PAGES.HOME;
+    Util.setPathToBackButton(targetPage, history);
+  };
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let backButtonListener: { remove: () => void } | null = null;
+    const addListener = async () => {
+      backButtonListener = await CapApp.addListener("backButton", () => {
+        handleBack();
+      });
+    };
+    addListener();
+    return () => {
+      backButtonListener?.remove();
+    };
+  }, [history]);
+
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
       ? fullName && age && languageId && gender
       : mode === FORM_MODES.NAME_REQUIRED
-      ? fullName
-      : true;
+        ? fullName
+        : true;
 
   const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
 
@@ -216,7 +241,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || currentStudent.language_id!
+          languageId || currentStudent.language_id!,
         );
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
@@ -242,7 +267,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || DEFAULT_LANGUAGE_ID_EN
+          languageId || DEFAULT_LANGUAGE_ID_EN,
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
@@ -257,18 +282,18 @@ const ProfileDetails = () => {
         });
         const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
         const langIndex = languages.findIndex(
-          (lang) => lang.id === resolvedLanguageId
+          (lang) => lang.id === resolvedLanguageId,
         );
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code
-            ? languages[langIndex]?.code ?? undefined
+            ? (languages[langIndex]?.code ?? undefined)
             : undefined,
-          tmpPath === PAGES.HOME ? true : false
+          tmpPath === PAGES.HOME ? true : false,
         );
       }
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.replace(PAGES.HOME);
+      history.push(PAGES.HOME);
       setIsCreatingProfile(false);
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -283,13 +308,13 @@ const ProfileDetails = () => {
     try {
       setIsCreatingProfile(true);
       if (parentHasStudent) {
-        history.replace(PAGES.HOME);
+        history.push(PAGES.HOME);
         return;
       }
       const languageCode = localStorage.getItem(LANGUAGE);
       const allLanguages = await api.getAllLanguages();
       const selectedLanguage = allLanguages.find(
-        (lang) => lang.code === languageCode
+        (lang) => lang.code === languageCode,
       );
       // Create auto profile with default/null values
       const student = await api.createAutoProfile(selectedLanguage?.id);
@@ -297,7 +322,7 @@ const ProfileDetails = () => {
       await Util.setCurrentStudent(
         student,
         selectedLanguage?.code ?? undefined,
-        true
+        true,
       );
       const user = await auth.getCurrentUser();
       Util.logEvent(EVENTS.PROFILE_CREATED, {
@@ -308,7 +333,7 @@ const ProfileDetails = () => {
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
       // Redirect to home page
-      history.replace(PAGES.HOME);
+      history.push(PAGES.HOME);
     } catch (err) {
       console.error("Error skipping profile:", err);
     } finally {
@@ -322,7 +347,7 @@ const ProfileDetails = () => {
       className="profiledetails-container"
       onClick={(e) => {
         logProfileClick(e).catch((err) =>
-          console.error("Error in logProfileClick", err)
+          console.error("Error in logProfileClick", err),
         );
       }}
     >
@@ -330,8 +355,7 @@ const ProfileDetails = () => {
         <button
           className="profiledetails-back-button"
           onClick={() => {
-            const targetPage = PAGES.HOME;
-            Util.setPathToBackButton(targetPage, history);
+            handleBack();
           }}
           aria-label="Back"
           id="click_on_profile_details_back_button"

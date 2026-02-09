@@ -53,12 +53,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   };
 
   const onLeaderboard = () => {
-    history.replace(PAGES.LEADERBOARD, { from: history.location.pathname });
+    history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
   };
 
   const onReward = () => {
     let avatarObj = AvatarObj.getInstance();
-    history.replace(
+    history.push(
       PAGES.LEADERBOARD +
         `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
     );

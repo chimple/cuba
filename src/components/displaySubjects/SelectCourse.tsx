@@ -100,7 +100,7 @@ const SelectCourse: FC<{
         <SplideSlide className="slide">
           <div
             onClick={() => {
-              history.replace(PAGES.ADD_SUBJECTS);
+              history.push(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
             key={courses[0].id}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Header.css";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
@@ -22,6 +22,7 @@ import SideMenu from "./SideMenu";
 import { t } from "i18next";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { IoShareSocialSharp } from "react-icons/io5";
+import { registerBackButtonHandler } from "../../../common/backButtonRegistry";
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -87,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const handleBackButtonClick = () => {
+  const handleBackButtonClick = useCallback(() => {
     if (disableBackButton) return;
     if (onBackButtonClick) {
       onBackButtonClick();
@@ -96,7 +97,15 @@ const Header: React.FC<HeaderProps> = ({
     } else {
       Util.setPathToBackButton(PAGES.HOME_PAGE, history);
     }
-  };
+  }, [disableBackButton, onBackButtonClick, onButtonClick, history]);
+
+  useEffect(() => {
+    if (!isBackButton || disableBackButton) return;
+    const unregister = registerBackButtonHandler(() => {
+      handleBackButtonClick();
+    });
+    return unregister;
+  }, [isBackButton, disableBackButton, handleBackButtonClick]);
 
   return (
     <header className="header-container">

@@ -76,6 +76,8 @@ import {
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
  GENERIC_POP_UP,
+ SEARCH_LESSON_CACHE_KEY,
+ SEARCH_LESSON_HISTORY,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -157,6 +159,7 @@ import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanR
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { HardwareBackButtonHandler } from "./common/backButtonRegistry";
 import {
   Dialog,
   DialogTitle,
@@ -206,6 +209,17 @@ const App: React.FC = () => {
     HOMEWORK_REMOTE_ASSETS_ENABLED
   );
 
+  const popupDataRef = useRef<any>(null);
+  const showModalRef = useRef(showModal);
+
+  useEffect(() => {
+    popupDataRef.current = popupData;
+  }, [popupData]);
+
+  useEffect(() => {
+    showModalRef.current = showModal;
+  }, [showModal]);
+
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
   const homeworkPathwayAssets: any = useFeatureValue(
     HOMEWORK_PATHWAY_ASSETS,
@@ -233,6 +247,10 @@ const OpsConsoleRouteWatcher = () => {
   return null;
 };
 
+useEffect(() => {
+  localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+  localStorage.removeItem(SEARCH_LESSON_HISTORY);
+}, []);
 
 useEffect(() => {
   if (!growthbook) return;
@@ -549,6 +567,13 @@ useLayoutEffect(() => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <HardwareBackButtonHandler
+          popupDataRef={popupDataRef}
+          setPopupData={setPopupData}
+          popupManager={PopupManager}
+          showModalRef={showModalRef}
+          setShowModal={setShowModal}
+        />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>
@@ -678,9 +703,9 @@ useLayoutEffect(() => {
               <SchoolProfile />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
               <ReqEditSchool />
@@ -692,9 +717,9 @@ useLayoutEffect(() => {
               <ManageClass />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
               <ReqEditSchool />

@@ -20,7 +20,7 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 // import reportWebVitals from "./reportWebVitals";
 import "./index.css";
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
@@ -78,7 +78,7 @@ Sentry.init(
     ],
   },
   // Forward the init method from @sentry/react
-  SentryReact.init
+  SentryReact.init,
 );
 let userId: string = "anonymous";
 let userData;
@@ -114,7 +114,7 @@ if (isNativePlatform) {
   } catch (error) {
     console.error(
       "Error in checkNativeVersionAndReset() or LiveUpdate.ready()",
-      error
+      error,
     );
   }
 }
@@ -217,9 +217,21 @@ async function checkForUpdate() {
   let majorVersion = "0";
   const maxRetries = 5;
   try {
-    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE) && process.env.REACT_IS_HOT_UPDATE_ENABLED === "true") {
+    if (
+      isNativePlatform &&
+      gb.isOn(CAN_HOT_UPDATE) &&
+      process.env.REACT_IS_HOT_UPDATE_ENABLED === "true"
+    ) {
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
+      Util.setHotUpdateState({
+        status: "Checking (Auto)",
+        progress: 10,
+        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        lastChecked: new Date().toLocaleString(),
+        isAuto: true,
+        error: "",
+      });
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
       const result = await LiveUpdate.fetchLatestBundle({
         channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
@@ -228,7 +240,7 @@ async function checkForUpdate() {
       if (result.customProperties && result.customProperties.version) {
         isUpdateAllowed = Util.isVersionAllowed(
           result.customProperties.version,
-          versionName
+          versionName,
         );
       }
       if (
@@ -257,9 +269,20 @@ async function checkForUpdate() {
             if (!navigator.onLine) throw new Error("Device is offline");
             console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
             const start = performance.now();
+            Util.setHotUpdateState({
+              status: "Downloading (Auto)",
+              progress: 60,
+            });
+
             await LiveUpdate.sync({
               channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
             });
+            Util.setHotUpdateState({
+              status: "Updated successfully (Auto)",
+              progress: 100,
+              lastUpdated: new Date().toLocaleString(),
+            });
+
             const totalEnd = performance.now();
             Util.logEvent(EVENTS.LIVE_UPDATE_APPLIED, {
               user_id: userId,
@@ -272,17 +295,22 @@ async function checkForUpdate() {
               update_type: result.artifactType,
             });
             console.log(
-              `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`
+              `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`,
             );
             console.log(
               `⏱️ Total time taken to download and set nextBundle ID: ${(
                 totalEnd - start
-              ).toFixed(2)} ms`
+              ).toFixed(2)} ms`,
             );
             success = true;
           } catch (err: any) {
             const msg = err instanceof Error ? err.message : String(err);
             console.error(`❌ Sync attempt ${attempt} failed`, err);
+            Util.setHotUpdateState({
+              status: "Auto update failed",
+              progress: 0,
+              error: msg,
+            });
 
             if (attempt === maxRetries) {
               console.error("❌ All retry attempts failed");
@@ -290,7 +318,8 @@ async function checkForUpdate() {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-                error: msg || "All attempts to apply update failed, Device offline",
+                error:
+                  msg || "All attempts to apply update failed, Device offline",
                 retries: attempt,
               });
             } else {
@@ -302,13 +331,19 @@ async function checkForUpdate() {
       } else {
         console.log(
           "🚀 LiveUpdate: No new update available, Current applied bundleID: ",
-          currentBundleId
+          currentBundleId,
         );
       }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("LiveUpdate failed❌", err);
+    Util.setHotUpdateState({
+      status: "Auto update failed",
+      progress: 0,
+      error: msg,
+    });
+
     Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
       user_id: userId,
       timestamp: new Date().toISOString(),
@@ -327,8 +362,7 @@ if (isOpsUser) {
           <App />
         </GbProvider>
       </GrowthBookProvider>
-    </BrowserRouter>
-
+    </BrowserRouter>,
   );
   SplashScreen.hide();
   setTimeout(() => {
@@ -347,7 +381,7 @@ if (isOpsUser) {
             <App />
           </GbProvider>
         </GrowthBookProvider>
-      </BrowserRouter>
+      </BrowserRouter>,
     );
     SplashScreen.hide();
     setTimeout(() => {

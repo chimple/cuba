@@ -103,6 +103,7 @@ export class SqliteApi implements ServiceApi {
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
   private _syncTableData = {};
+  private _tablesNeedingFullSync = new Set<string>();
 
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
@@ -169,23 +170,40 @@ export class SqliteApi implements ServiceApi {
           const versionData = upgradeStatementsMap[version];
 
           if (versionData && versionData["statements"]) {
+            const currentStatements = [...versionData["statements"]];
+
+            // Track tables with schema changes for forced full sync
+            for (const statement of versionData["statements"]) {
+              const match = statement.match(
+                /(?:ALTER|CREATE|DROP)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/i
+              );
+              if (match && match[1]) {
+                const tableName = match[1];
+                // Mark this table for full sync (will use old timestamp)
+                this._tablesNeedingFullSync.add(tableName);
+                console.log(
+                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`
+                );
+              }
+            }
+
             upgradeStatements.push({
               toVersion: version,
-              statements: versionData["statements"],
+              statements: currentStatements,
             });
+          }
 
-            if (versionData["tableChanges"]) {
-              for (const tableName in versionData["tableChanges"]) {
-                const changeDate = versionData["tableChanges"][tableName];
-                if (!this._syncTableData[tableName]) {
+          if (versionData["tableChanges"]) {
+            for (const tableName in versionData["tableChanges"]) {
+              const changeDate = versionData["tableChanges"][tableName];
+              if (!this._syncTableData[tableName]) {
+                this._syncTableData[tableName] = changeDate;
+              } else {
+                if (
+                  new Date(this._syncTableData[tableName]) >
+                  new Date(changeDate)
+                ) {
                   this._syncTableData[tableName] = changeDate;
-                } else {
-                  if (
-                    new Date(this._syncTableData[tableName]) >
-                    new Date(changeDate)
-                  ) {
-                    this._syncTableData[tableName] = changeDate;
-                  }
                 }
               }
             }
@@ -229,6 +247,11 @@ export class SqliteApi implements ServiceApi {
   }
 
   private async setUpDatabase() {
+  //   console.log("🧱 setUpDatabase START", {
+  //   hasDb: !!this._db,
+  //   hasSqlite: !!this._sqlite,
+  //   DB_VERSION: this.DB_VERSION,
+  // });
     if (!this._db || !this._sqlite) return;
     // try {
     //   const exportedData = await this._db.exportToJson("full");
@@ -244,6 +267,8 @@ export class SqliteApi implements ServiceApi {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
+      // console.log("📊 sqlite_master count result:", res1);
+
     } catch (error) {
       console.error(
         "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
@@ -265,10 +290,12 @@ export class SqliteApi implements ServiceApi {
         // }
 
         try {
+          //  console.log("⬇️ About to import SQLite schema from JSON");
           const importData = await fetch("databases/import.json");
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
+          // console.log("✅ importFromJson SUCCESS:", resImport);
           localStorage.setItem(
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString()
@@ -276,6 +303,7 @@ export class SqliteApi implements ServiceApi {
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
           // if (!Capacitor.isNativePlatform())
           // window.location.reload();
+          //  console.warn("🔄 Reloading app after DB import");
           window.location.replace(BASE_NAME || "/");
           return;
         } catch (error) {
@@ -295,7 +323,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-                new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -311,6 +339,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
+    // console.log("✅ SQLite DB is READY");
     // Move sync logic to a separate method that can be called after full initialization
     await this.checkAndSyncData();
   }
@@ -453,6 +482,22 @@ export class SqliteApi implements ServiceApi {
 
     const isInitialFetch = isFirstSync;
     console.log("🚀 ~ pullChanges ~ isInitialFetch:", isInitialFetch);
+
+    // Update pull_sync_info table with old timestamp for tables needing full sync
+    const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    if (this._tablesNeedingFullSync.size > 0) {
+      for (const tableName of this._tablesNeedingFullSync) {
+        if (tableNames.includes(tableName as TABLES)) {
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+            [tableName, FORCE_FULL_SYNC_DATE]
+          );
+          console.log(`Forcing full sync for table: ${tableName}`);
+        }
+      }
+      this._tablesNeedingFullSync.clear();
+    }
+
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -531,10 +576,17 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-          ", "
-        )}) VALUES (${placeholders})`;
+        const updateSetClause = fieldNames
+          .filter((f) => f !== "id")
+          .map((f) => `${f} = excluded.${f}`)
+          .join(", ");
 
+        const stmt = `
+        INSERT INTO ${tableName} (${fieldNames.join(", ")})
+        VALUES (${placeholders})
+        ON CONFLICT(id) DO UPDATE SET
+        ${updateSetClause};
+        `;
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
 
@@ -2332,6 +2384,7 @@ export class SqliteApi implements ServiceApi {
 
     return favoriteLesson;
   }
+
   async updateResult(
     student: TableTypes<"user">,
     courseId: string | undefined,
@@ -2356,7 +2409,8 @@ export class SqliteApi implements ServiceApi {
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
-    activities_scores?: string | undefined
+    activities_scores?: string | undefined,
+    user_id?: string | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2400,12 +2454,13 @@ export class SqliteApi implements ServiceApi {
       subject_id: subject_id ?? null,
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
+      user_id: user_id ?? null,
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores, user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2434,6 +2489,7 @@ export class SqliteApi implements ServiceApi {
         newResult.subject_id,
         newResult.subject_ability,
         newResult.activities_scores,
+        newResult.user_id,
       ]
     );
     // ⭐ reward update
@@ -2468,10 +2524,22 @@ export class SqliteApi implements ServiceApi {
         }
       }
     }
+    const lesson = await this.getLesson(lessonId);
+    const isAssessment = lesson?.plugin_type === "lido_assessment";
     let starsEarned = 0;
-    if (score > 25) starsEarned++;
-    if (score > 50) starsEarned++;
-    if (score > 75) starsEarned++;
+    if (isAssessment) {
+      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+      const awarded = sessionStorage.getItem(assessmentKey) === "true";
+
+      if (!awarded) {
+        starsEarned = 3;
+        sessionStorage.setItem(assessmentKey, "true");
+      }
+    } else {
+      if (score > 25) starsEarned++;
+      if (score > 50) starsEarned++;
+      if (score > 75) starsEarned++;
+    }
 
     if (starsEarned > 0) {
       const allStarsMap = localStorage.getItem(LATEST_STARS);
@@ -2675,7 +2743,6 @@ export class SqliteApi implements ServiceApi {
     student.updated_at = now;
     // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
-      // student.learning_path = null;
       localStorage.setItem(LANG_REFRESHED, "true");
     }
 
@@ -2736,7 +2803,6 @@ export class SqliteApi implements ServiceApi {
     };
     // Include learning_path in push changes when language changes
     if (languageChanged) {
-      // pushChangesData.learning_path = null;
       localStorage.setItem(LANG_REFRESHED, "true");
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
@@ -2797,7 +2863,7 @@ export class SqliteApi implements ServiceApi {
       WHERE id = ?;
     `;
     try {
-      const params = [
+      await this.executeQuery(updateUserQuery, [
         name,
         age,
         gender,
@@ -2808,13 +2874,8 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-      ];
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      if (languageChanged) {
-        params.push(null);
-      }
-      params.push(student.id);
-      await this.executeQuery(updateUserQuery, params);
+        student.id,
+      ]);
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2825,11 +2886,7 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
-      // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-      if (languageChanged) {
-        student.learning_path = null;
-      }
-      const pushChangesData: any = {
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
         gender,
@@ -2841,12 +2898,7 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         locale_id: localeId,
         id: student.id,
-      };
-      // Include learning_path in push changes when language changes
-      if (languageChanged) {
-        pushChangesData.learning_path = null;
-      }
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushChangesData);
+      });
       // Check if the class has changed
       const currentClassIdQuery = `
         SELECT class_id FROM class_user

@@ -644,6 +644,7 @@ export const CURRENT_SCHOOL = "currentSchool";
 export const SEARCH_LESSON_HISTORY = "search_lesson_history";
 export const SEARCH_LESSON_CACHE_KEY = "search_lesson_last_state";
 export const CURRENT_MODE = "currentMode";
+export const LAST_MODE = "lastMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
@@ -914,6 +915,8 @@ export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
 export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
+export const HOT_UPDATE_STATE_KEY = "hotUpdateState";
+
 
 
 
@@ -1285,6 +1288,7 @@ export const LEARNING_PATHWAY_MODE = {
   ASSESSMENT_ONLY: "ASSESSMENT_ONLY",
   FULL_ADAPTIVE: "FULL_ADAPTIVE",
 };
+
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
 export const LANG_REFRESHED = "langRefreshed"
