@@ -210,11 +210,11 @@ const StudentPendingRequestDetails = () => {
     <div className="student-pending-request-details-breadcrumbs">
       <span
         onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-        className="student-pending-request-details-link"
+        className="student-pending-request-details-link icon-button"
       >
         {t("Pending")}
-      </span>
       <span> &gt; </span>
+      </span>
       <span className="student-pending-request-details-active">
         {t(`Request ID - ${id}`)}
       </span>
