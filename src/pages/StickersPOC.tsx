@@ -6,9 +6,13 @@ import DragPreview from "../components/stickers/DragPreview";
 
 export default function StickersPOC() {
   const [placed, setPlaced] = useState<Record<StickerId, boolean>>({
-    butterfly: false,
-    snail: false,
-  });
+  butterfly: false,
+  snail: false,
+  ant: false,
+  beetle: false,
+  fly: false,
+  flea: false,
+});
 
   const handlePlaced = (id: StickerId) => {
     setPlaced((p) => ({ ...p, [id]: true }));

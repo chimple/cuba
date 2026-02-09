@@ -1,8 +1,21 @@
 import { useEffect, useState } from "react";
 import { dragState } from "./dragState";
-
 import { ReactComponent as Snail } from "../../assets/images/stickers/Snail_thick.svg";
 import { ReactComponent as Butterfly } from "../../assets/images/stickers/butterfly_thick.svg";
+import { ReactComponent as Ant } from "../../assets/images/stickers/Ant.svg";
+import { ReactComponent as Beetle } from "../../assets/images/stickers/beetle.svg";
+import { ReactComponent as Fly } from "../../assets/images/stickers/fly.svg";
+import { ReactComponent as Flea } from "../../assets/images/stickers/Flea.svg";
+
+
+const MAP = {
+  snail: Snail,
+  butterfly: Butterfly,
+  ant: Ant,
+  beetle: Beetle,
+  fly: Fly,
+  flea: Flea,
+};
 
 export default function DragPreview() {
     const [pos, setPos] = useState({ x: 0, y: 0 });
@@ -30,7 +43,7 @@ export default function DragPreview() {
 
     if (!dragging) return null;
 
-    const Comp = dragging === "snail" ? Snail : Butterfly;
+    const Comp = MAP[dragging];
 
     return (
         <div

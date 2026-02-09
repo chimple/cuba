@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { dragState, StickerId } from "./dragState";
-import { ReactComponent as Layout } from "../../assets/images/stickers/Whole_layout.svg";
+import { ReactComponent as Layout } from "../../assets/images/stickers/WholeCompletelayout.svg";
 
 export default function Board({
   onPlaced,
@@ -8,22 +8,32 @@ export default function Board({
   onPlaced: (id: StickerId) => void;
 }) {
   const [ready, setReady] = useState(false);
+  const ALL_IDS: StickerId[] = [
+  "butterfly",
+  "snail",
+  "ant",
+  "beetle",
+  "fly",
+  "flea",
+];
+
 
   // 1️⃣ make slots white initially
   useEffect(() => {
     setTimeout(() => {
-      ["butterfly", "snail"].forEach((id) => {
-        const el = document.querySelector(`[data-slot-id="${id}"]`);
-        if (!el) return;
+      ALL_IDS.forEach((id) => {
+  const el = document.querySelector(`[data-slot-id="${id}"]`);
+  if (!el) return;
 
-        const shapes = el.querySelectorAll("path,circle,ellipse,rect,polygon");
-        shapes.forEach((s: any) => {
-          s.dataset.fill = s.getAttribute("fill") || "";
-          s.dataset.stroke = s.getAttribute("stroke") || "";
-          s.setAttribute("fill", "white");
-          s.setAttribute("stroke", "white");
-        });
-      });
+  const shapes = el.querySelectorAll("path,circle,ellipse,rect,polygon");
+
+  shapes.forEach((s: any) => {
+    s.dataset.fill = s.getAttribute("fill") || "";
+    s.dataset.stroke = s.getAttribute("stroke") || "";
+    s.setAttribute("fill", "white");
+    s.setAttribute("stroke", "white");
+  });
+});
 
       setReady(true);
     }, 50);
