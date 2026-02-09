@@ -602,44 +602,28 @@ export class SqliteApi implements ServiceApi {
         // flush early
         if (batchQueries.length >= BATCH_SIZE) {
           if (Capacitor.getPlatform() === "web") {
-            await this._db.run("BEGIN TRANSACTION;");
-            try {
-              for (const q of batchQueries) {
-                await this._db.run(q.statement, q.values);
-              }
-              await this._db.run("COMMIT;");
-              await this._sqlite?.saveToStore(this.DB_NAME);
-            } catch (e) {
-              await this._db.run("ROLLBACK;");
-              throw e;
+            for (const q of batchQueries) {
+              await this._db.run(q.statement, q.values);
             }
+            await this._sqlite?.saveToStore(this.DB_NAME);
           } else {
             await this._db.executeSet(batchQueries);
           }
           batchQueries = [];
         }
-
       }
 
       // flush leftovers
       if (batchQueries.length > 0) {
         if (Capacitor.getPlatform() === "web") {
-          await this._db.run("BEGIN TRANSACTION;");
-          try {
-            for (const q of batchQueries) {
-              await this._db.run(q.statement, q.values);
-            }
-            await this._db.run("COMMIT;");
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } catch (e) {
-            await this._db.run("ROLLBACK;");
-            throw e;
+          for (const q of batchQueries) {
+            await this._db.run(q.statement, q.values);
           }
+          await this._sqlite?.saveToStore(this.DB_NAME);
         } else {
           await this._db.executeSet(batchQueries);
         }
       }
-
 
       // update sync timestamp per table
       await this.executeQuery(
