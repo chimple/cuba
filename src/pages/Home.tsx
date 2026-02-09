@@ -52,21 +52,6 @@ import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 const localData: any = {};
 
-export const logDeviceInfo = async () => {
-  const info = await Device.getInfo();
-  const device_language = await Device.getLanguageCode();
-  const device = {
-    model: info.model,
-    manufacturer: info.manufacturer,
-    platform: info.platform,
-    os_version: info.osVersion,
-    operating_system: info.operatingSystem,
-    is_virtual: info.isVirtual,
-    device_language: device_language.value,
-  };
-  return device;
-};
-
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -163,7 +148,7 @@ const Home: FC = () => {
       }
 
       // Get Device Info
-      const device = await logDeviceInfo();
+      const device = await Util.logDeviceInfo();
 
       // Initial Update with Student and Device info
       updateLocalAttributes({ studentDetails, ...device });
@@ -265,7 +250,7 @@ const Home: FC = () => {
       await Util.updateSchStdAttb();
       setGbUpdated(true);
     };
-    await updateAtb();
+    updateAtb();
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
@@ -400,7 +385,7 @@ const Home: FC = () => {
         acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
         return acc;
       }, {});
-      const device = await logDeviceInfo();
+      const device = await Util.logDeviceInfo();
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
