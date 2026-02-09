@@ -53,115 +53,42 @@
   color: var(--text-color);
 }
 
-body.ops-console,
-body.ops-console * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
-}
-
-body.ops-console :is(
-  p,
-  span,
-  td,
-  pre,
-  code,
-  h1, h2, h3, h4, h5, h6,
-  .selectable,
-  .content,
-  .table-data,
-  .copyable
-) {
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  -webkit-touch-callout: default !important;
+body.ops-console *{
+  user-select: text;
 }
 
 body.ops-console :is(
   button,
   a,
-  svg,
+  th,
   img,
-  svg *,
-  i,
   [role="button"],
-  [onclick],
-  [class*="icon"],
-  [class*="Icon"],
   .btn,
   .cta,
   .icon-button
-) {
-  user-select: none !important;
-  -webkit-user-select: none !important;
+),
+body.ops-console :is(
+  button,
+  a,
+  th,
+  img,
+  [role="button"],
+  .btn,
+  .cta,
+  .icon-button
+) * {
+  user-select: none;
 }
 
-body.ops-console .school-detail-infocard,
-body.ops-console .school-detail-infocard *,
-body.ops-console .student-pending-request-details-field-stack,
-body.ops-console .student-pending-request-details-field-stack *,
-body.ops-console .student-pending-request-details-label,
-body.ops-console .student-pending-request-details-label *,
-body.ops-console .ops-approved-request-details-field-stack,
-body.ops-console .ops-approved-request-details-field-stack *,
-body.ops-console .ops-approved-request-details-label-sm,
-body.ops-console .ops-approved-request-details-label-sm *,
-body.ops-console .ops-rejected-request-details-field-stack,
-body.ops-console .ops-rejected-request-details-field-stack *,
-body.ops-console .ops-rejected-request-details-label-sm,
-body.ops-console .ops-rejected-request-details-label-sm *,
-body.ops-console .ops-rejected-request-details-label,
-body.ops-console .ops-rejected-request-details-label *,
-body.ops-console .ops-flagged-request-details-field-stack,
-body.ops-console .ops-flagged-request-details-field-stack *,
-body.ops-console .ops-flagged-request-details-label-sm,
-body.ops-console .ops-flagged-request-details-label-sm *,
-body.ops-console .ops-flagged-request-details-field-row-label,
-body.ops-console .ops-flagged-request-details-field-row-label *,
-body.ops-console .ops-flagged-request-details-field-column,
-body.ops-console .ops-flagged-request-details-field-column *,
-body.ops-console .school-details-field-stack,
-body.ops-console .school-details-field-stack *,
-body.ops-console .school-details-label-sm,
-body.ops-console .school-details-label-sm *,
-body.ops-console .school-details-value-sm,
-body.ops-console .school-details-value-sm *,
-body.ops-console .request-from-field-stack,
-body.ops-console .request-from-field-stack *,
-body.ops-console .info-card-items,
-body.ops-console .info-card-items *,
-body.ops-console .school-card,
-body.ops-console .school-card *{
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  -webkit-touch-callout: default !important;
-}
-
-body.ops-console .search-input-SearchAndFilter,
-body.ops-console .search-input-SearchAndFilter *,
-body.ops-console .user-search-desktop,
-body.ops-console .user-search-desktop *,
-body.ops-console .search-input-SearchAndFilter input,
-body.ops-console .search-input-SearchAndFilter .MuiInputBase-input,
-body.ops-console .filter-button-SearchAndFilter,
-body.ops-console .program-button-and-search-filter,
-body.ops-console .program-button-and-search-filter *,
-body.ops-console .school-list-upload-text1,
-body.ops-console .school-list-upload-text1 *,
-body.ops-console .student-pending-request-details-link,
-body.ops-console .student-pending-request-details-link *,
-body.ops-console .ops-approved-request-details-link,
-body.ops-console .ops-approved-request-details-link *,
-body.ops-console .ops-rejected-request-details-link,
-body.ops-console .ops-rejected-request-details-link *,
-body.ops-console .ops-flagged-request-details-link,
-body.ops-console .ops-flagged-request-details-link *,
-body.ops-console .school-detail-infocard .edit-icon,
-body.ops-console .school-detail-infocard .edit-button,
-body.ops-console .filter-button-SearchAndFilter *,
-body.ops-console .info-card-edit-icon,
-body.ops-console .info-card-edit-icon * {
+body.ops-console .MuiButtonBase-root,
+body.ops-console .MuiButtonBase-root *,
+body.ops-console .MuiIconButton-root,
+body.ops-console .MuiIconButton-root *,
+body.ops-console .MuiInputAdornment-root,
+body.ops-console .MuiInputAdornment-root *,
+body.ops-console input,
+body.ops-console svg,
+body.ops-console svg * {
   user-select: none !important;
   -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
 }

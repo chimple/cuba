@@ -130,7 +130,7 @@ const OpsApprovedRequestDetails = () => {
       <div className="ops-approved-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
           {t("Requests")}
         <span> &gt; </span>
@@ -142,7 +142,7 @@ const OpsApprovedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.APPROVED}`,
             })
           }
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
           {t("Approved")}
         <span> &gt; </span>

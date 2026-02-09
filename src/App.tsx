@@ -256,10 +256,10 @@ useEffect(() => {
       }
     };
     document.addEventListener("click", handleClick);
+    localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+    localStorage.removeItem(SEARCH_LESSON_HISTORY);
     return () => {
       document.removeEventListener("click", handleClick);
-      localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
-      localStorage.removeItem(SEARCH_LESSON_HISTORY);
     };
 }, []);
 
