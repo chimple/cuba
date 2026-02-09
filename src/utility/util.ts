@@ -115,7 +115,6 @@ import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 import { buildInitialLearningPath } from "../components/LearningPathway";
-import { logDeviceInfo } from "../pages/Home";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 declare global {
@@ -3747,7 +3746,7 @@ export class Util {
       const api = ServiceConfig.getI().apiHandler;
       const linkedData = await api.getStudentClassesAndSchools(student.id);
       if (!linkedData) return [];
-      const device = await logDeviceInfo();
+      const device = await Util.logDeviceInfo();
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
@@ -3761,5 +3760,20 @@ export class Util {
       console.error("[Util.updateSchStdAttb] failed:", error);
       return [];
     }
+  }
+
+  public static async logDeviceInfo(): Promise<any> {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value,
+    };
+    return device;
   }
 }
