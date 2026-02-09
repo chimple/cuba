@@ -498,7 +498,7 @@ export class SqliteApi implements ServiceApi {
       this._tablesNeedingFullSync.clear();
     }
 
-    // ✅ ensure USER table syncs first (single-row, heavy JSON)
+    // ensure USER table syncs first (single-row, heavy JSON)
     const orderedTableNames = tableNames.includes(TABLES.User)
       ? [TABLES.User, ...tableNames.filter((t) => t !== TABLES.User)]
       : [...tableNames];
@@ -601,14 +601,28 @@ export class SqliteApi implements ServiceApi {
 
         // flush early
         if (batchQueries.length >= BATCH_SIZE) {
-          await this._db.executeSet(batchQueries);
+          if (Capacitor.getPlatform() === "web") {
+            for (const q of batchQueries) {
+              await this._db.run(q.statement, q.values);
+            }
+            await this._sqlite?.saveToStore(this.DB_NAME);
+          } else {
+            await this._db.executeSet(batchQueries);
+          }
           batchQueries = [];
         }
       }
 
       // flush leftovers
       if (batchQueries.length > 0) {
-        await this._db.executeSet(batchQueries);
+        if (Capacitor.getPlatform() === "web") {
+          for (const q of batchQueries) {
+            await this._db.run(q.statement, q.values);
+          }
+          await this._sqlite?.saveToStore(this.DB_NAME);
+        } else {
+          await this._db.executeSet(batchQueries);
+        }
       }
 
       // update sync timestamp per table
