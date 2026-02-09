@@ -9,7 +9,7 @@ export default function Board({
 }) {
   const [ready, setReady] = useState(false);
 
-  // make slots white initially
+  // 1️⃣ make slots white initially
   useEffect(() => {
     setTimeout(() => {
       ["butterfly", "snail"].forEach((id) => {
@@ -29,19 +29,23 @@ export default function Board({
     }, 50);
   }, []);
 
-  // drag detection
+  // 2️⃣ ONLY reveal on mouse drop
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    const onMouseUp = (e: MouseEvent) => {
       if (!dragState.dragging) return;
 
       const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
       const slot = el?.closest("[data-slot-id]") as HTMLElement | null;
-      if (!slot) return;
+
+      if (!slot) {
+        dragState.dragging = null;
+        return;
+      }
 
       const slotId = slot.getAttribute("data-slot-id") as StickerId;
 
+      // drop must match correct slot
       if (slotId === dragState.dragging) {
-        // restore color
         const shapes = slot.querySelectorAll(
           "path,circle,ellipse,rect,polygon"
         );
@@ -52,17 +56,13 @@ export default function Board({
         });
 
         onPlaced(slotId);
-        dragState.dragging = null;
       }
+
+      dragState.dragging = null;
     };
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", () => (dragState.dragging = null));
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", () => (dragState.dragging = null));
-    };
+    window.addEventListener("mouseup", onMouseUp);
+    return () => window.removeEventListener("mouseup", onMouseUp);
   }, [onPlaced]);
 
   return (
