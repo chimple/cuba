@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./DebugMode.css"; // Import external CSS
 import { useHistory } from "react-router-dom";
-import { DOWNLOADED_LESSON_ID } from "../../common/constants";
+import { CAN_HOT_UPDATE, DOWNLOADED_LESSON_ID } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { HotUpdateState, Util } from "../../utility/util";
 import { toPng } from "html-to-image";
 import { LiveUpdate } from "@capawesome/capacitor-live-update";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 
 const DebugPage: React.FC = () => {
   const history = useHistory();
@@ -58,6 +59,7 @@ const DebugPage: React.FC = () => {
     lessonsDownloaded: 0,
     lessonsSize: 0,
   });
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     fetchData();
@@ -369,13 +371,15 @@ const DebugPage: React.FC = () => {
           >
             Capture & Share Screenshot
           </button>
-          <button
-            className="debug-btn debugmode-debug-hotupdate-btn"
-            onClick={handleManualHotUpdate}
-            disabled={isHotUpdating}
-          >
-            {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
-          </button>
+          {growthbook?.isOn(CAN_HOT_UPDATE) && (
+            <button
+              className="debug-btn debugmode-debug-hotupdate-btn"
+              onClick={handleManualHotUpdate}
+              disabled={isHotUpdating}
+            >
+              {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
+            </button>
+          )}
         </div>
         {isHotUpdating && (
           <div className="debug-card">
