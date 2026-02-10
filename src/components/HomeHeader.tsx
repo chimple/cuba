@@ -29,12 +29,12 @@ interface StarsCounterProps {
 const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
   return (
     <div className="home-header-stars-counter">
-      <span>{starsCount}</span>
+      {/* <span>{starsCount}</span>
       <img
         src="assets/StarsCounter.svg"
         alt="Stars"
         className="home-header-star-icon"
-      />
+      /> */}
     </div>
   );
 };
