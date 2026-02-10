@@ -498,7 +498,12 @@ export class SqliteApi implements ServiceApi {
       this._tablesNeedingFullSync.clear();
     }
 
-    const tables = tableNames.map((t) => `'${t}'`).join(", ");
+    // ensure USER table syncs first (single-row, heavy JSON)
+    const orderedTableNames = tableNames.includes(TABLES.User)
+      ? [TABLES.User, ...tableNames.filter((t) => t !== TABLES.User)]
+      : [...tableNames];
+
+    const tables = orderedTableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
     try {
@@ -513,7 +518,7 @@ export class SqliteApi implements ServiceApi {
       let attempt = 1;
       try {
         data = await this._serverApi.getTablesData(
-          tableNames,
+          orderedTableNames,
           lastPullTables,
           isInitialFetch,
         );
@@ -529,7 +534,7 @@ export class SqliteApi implements ServiceApi {
           const query = `PRAGMA foreign_keys=OFF;`;
           const result = await this._db?.query(query);
           console.log(result);
-          for (const table of tableNames) {
+          for (const table of orderedTableNames) {
             const tableDel = `DELETE FROM "${table}";`;
             const res = await this._db.query(tableDel);
             console.log(res);
@@ -554,19 +559,23 @@ export class SqliteApi implements ServiceApi {
       }
     } else {
       data = await this._serverApi.getTablesData(
-        tableNames,
+        orderedTableNames,
         lastPullTables,
         isInitialFetch,
       );
     }
     const lastPulled = new Date().toISOString();
-    let batchQueries: { statement: string; values: any[] }[] = [];
-    for (const tableName of tableNames) {
+    // let batchQueries: { statement: string; values: any[] }[] = [];
+    for (const tableName of orderedTableNames) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
 
       const existingColumns = await this.getTableColumns(tableName);
       if (!existingColumns || existingColumns.length === 0) continue;
+
+      const isUserTable = tableName === TABLES.User;
+      const BATCH_SIZE = isUserTable ? tableData.length : 100;
+      let batchQueries: { statement: string; values: any[] }[] = [];
 
       for (const row of tableData) {
         const fieldNames = Object.keys(row).filter((f) =>
@@ -587,14 +596,40 @@ export class SqliteApi implements ServiceApi {
         ON CONFLICT(id) DO UPDATE SET
         ${updateSetClause};
         `;
+
         batchQueries.push({ statement: stmt, values: fieldValues });
+
+        // flush early
+        if (batchQueries.length >= BATCH_SIZE) {
+          if (Capacitor.getPlatform() === "web") {
+            for (const q of batchQueries) {
+              await this._db.run(q.statement, q.values);
+            }
+            await this._sqlite?.saveToStore(this.DB_NAME);
+          } else {
+            await this._db.executeSet(batchQueries);
+          }
+          batchQueries = [];
+        }
       }
 
-      // Update sync timestamp
-      batchQueries.push({
-        statement: `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-        values: [tableName, lastPulled],
-      });
+      // flush leftovers
+      if (batchQueries.length > 0) {
+        if (Capacitor.getPlatform() === "web") {
+          for (const q of batchQueries) {
+            await this._db.run(q.statement, q.values);
+          }
+          await this._sqlite?.saveToStore(this.DB_NAME);
+        } else {
+          await this._db.executeSet(batchQueries);
+        }
+      }
+
+      // update sync timestamp per table
+      await this.executeQuery(
+        `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+        [tableName, lastPulled],
+      );
     }
 
     // Update debug info
@@ -609,50 +644,50 @@ export class SqliteApi implements ServiceApi {
     const jsonString = JSON.stringify(filteredObject);
     const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
-    if (batchQueries.length > 0) {
-      try {
-        if (Capacitor.getPlatform() === "web") {
-          const chunkSize = 100;
+    // if (batchQueries.length > 0) {
+    //   try {
+    //     if (Capacitor.getPlatform() === "web") {
+    //       const chunkSize = 100;
 
-          for (let i = 0; i < batchQueries.length; i += chunkSize) {
-            const chunk = batchQueries.slice(i, i + chunkSize);
-            let manualTransaction = false;
-            try {
-              // Try to start a transaction manually
-              try {
-                await this._db.run("BEGIN TRANSACTION;");
-                manualTransaction = true;
-              } catch (beginErr) {}
+    //       for (let i = 0; i < batchQueries.length; i += chunkSize) {
+    //         const chunk = batchQueries.slice(i, i + chunkSize);
+    //         let manualTransaction = false;
+    //         try {
+    //           // Try to start a transaction manually
+    //           try {
+    //             await this._db.run("BEGIN TRANSACTION;");
+    //             manualTransaction = true;
+    //           } catch (beginErr) {}
 
-              for (const q of chunk) {
-                await this._db.run(q.statement, q.values);
-              }
+    //           for (const q of chunk) {
+    //             await this._db.run(q.statement, q.values);
+    //           }
 
-              if (manualTransaction) {
-                await this._db.run("COMMIT;");
-              }
-            } catch (chunkErr) {
-              console.error(
-                `SqliteApi: Error in chunk ${i / chunkSize + 1}`,
-                chunkErr,
-              );
+    //           if (manualTransaction) {
+    //             await this._db.run("COMMIT;");
+    //           }
+    //         } catch (chunkErr) {
+    //           console.error(
+    //             `SqliteApi: Error in chunk ${i / chunkSize + 1}`,
+    //             chunkErr,
+    //           );
 
-              if (manualTransaction) {
-                try {
-                  await this._db.run("ROLLBACK;");
-                } catch (rbErr) {}
-              }
-              throw chunkErr;
-            }
-          }
-          await this._sqlite?.saveToStore(this.DB_NAME);
-        } else {
-          await this._db.executeSet(batchQueries);
-        }
-      } catch (error) {
-        console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
-      }
-    }
+    //           if (manualTransaction) {
+    //             try {
+    //               await this._db.run("ROLLBACK;");
+    //             } catch (rbErr) {}
+    //           }
+    //           throw chunkErr;
+    //         }
+    //       }
+    //       await this._sqlite?.saveToStore(this.DB_NAME);
+    //     } else {
+    //       await this._db.executeSet(batchQueries);
+    //     }
+    //   } catch (error) {
+    //     console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
+    //   }
+    // }
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
