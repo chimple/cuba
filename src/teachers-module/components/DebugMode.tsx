@@ -284,18 +284,20 @@ const DebugPage: React.FC = () => {
 
   const handleManualHotUpdate = async () => {
     if (!Capacitor.isNativePlatform()) return;
+    const isAllowed = growthbook?.isOn(CAN_HOT_UPDATE) ?? false;
 
     const channel = await getHotUpdateChannel();
 
-    Util.setHotUpdateState({
-      status: "Checking (Manual)",
-      progress: 10,
-      channel,
-      lastChecked: new Date().toLocaleString(),
-      isAuto: false,
-      error: "",
-    });
-
+    if (!isAllowed) {
+      Util.setHotUpdateState({
+        status: "Hot Update disabled for this user",
+        progress: 0,
+        error: "User not included in GrowthBook rollout",
+        isAuto: false,
+        lastChecked: new Date().toLocaleString(),
+      });
+      return;
+    }
     try {
       const latest = await LiveUpdate.fetchLatestBundle({ channel });
       Util.setHotUpdateState({ progress: 40 });
@@ -371,15 +373,13 @@ const DebugPage: React.FC = () => {
           >
             Capture & Share Screenshot
           </button>
-          {growthbook?.isOn(CAN_HOT_UPDATE) && (
-            <button
-              className="debug-btn debugmode-debug-hotupdate-btn"
-              onClick={handleManualHotUpdate}
-              disabled={isHotUpdating}
-            >
-              {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
-            </button>
-          )}
+          <button
+            className="debug-btn debugmode-debug-hotupdate-btn"
+            onClick={handleManualHotUpdate}
+            disabled={isHotUpdating}
+          >
+            {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
+          </button>
         </div>
         {isHotUpdating && (
           <div className="debug-card">
