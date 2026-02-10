@@ -255,11 +255,8 @@ const LearningPathway: React.FC = () => {
       10,
     );
 
-    const latestStarsJson = localStorage.getItem(LATEST_STARS);
-    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-
     const latestLocalStars = parseInt(
-      latestStarsMap[currentStudent.id] || "0",
+      localStorage.getItem(LATEST_STARS(currentStudent.id)) || "0",
       10,
     );
     const dbStars = currentStudent.stars || 0;
@@ -276,8 +273,10 @@ const LearningPathway: React.FC = () => {
     }
 
     if (latestLocalStars <= dbStars) {
-      latestStarsMap[currentStudent.id] = dbStars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(
+        LATEST_STARS(currentStudent.id),
+        dbStars.toString(),
+      );
     } else {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }

@@ -2360,9 +2360,6 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
-    const logStar = (label: string, data?: any) => {
-      console.log(`⭐ [STAR-DEBUG] ${label}`, data ?? "");
-    };
 
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2488,27 +2485,23 @@ export class SqliteApi implements ServiceApi {
     if (!awarded) {
       starsEarned = 3;
       sessionStorage.setItem(assessmentKey, "true");
-
-      logStar("Assessment stars awarded", {
-        starsEarned,
-        newSessionValue: sessionStorage.getItem(assessmentKey),
-      });
-    } else {
-      logStar("Assessment stars skipped (already awarded)");
     }
-  } else {
+    } else {
       if (score > 25) starsEarned++;
       if (score > 50) starsEarned++;
       if (score > 75) starsEarned++;
     }
 
-    if (starsEarned > 0) {
-      const allStarsMap = localStorage.getItem(LATEST_STARS);
-      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-      const currentLocalStars = allStars[student.id] ?? 0;
-      allStars[student.id] = currentLocalStars + starsEarned;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
-    }
+      if (starsEarned > 0) {
+        const latestStarsKey = LATEST_STARS(student.id);
+        const currentLocalStars = parseInt(
+          localStorage.getItem(latestStarsKey) || "0"
+        );
+        localStorage.setItem(
+          latestStarsKey,
+          (currentLocalStars + starsEarned).toString(),
+        );
+      }
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
 
@@ -2518,24 +2511,14 @@ export class SqliteApi implements ServiceApi {
     }
     // Fetch fresh value only for star calculation
     const latestUserForStars = await this.getUserByDocId(student.id);
-    logStar("Latest user data for star calculation",latestUserForStars?.stars)
     const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
-    const latestLocalStars1 = localStorage.getItem(LATEST_STARS);
-    const latestAllStars = latestLocalStars1 ? JSON.parse(latestLocalStars1)
-      : {};
-    const latestLocalStarsForStudent = latestAllStars[student.id] ?? 0; 
-    console.log("🚀 ~ SqliteApi ~ updateResult ~ latestLocalStarsForStudent:", latestLocalStarsForStudent);
+      const latestLocalStarsForStudent = parseInt(
+        localStorage.getItem(LATEST_STARS(student.id)) || "0"
+      );
     const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
-    logStar("Total stars after addition", totalStars);
     query += `stars =  ? WHERE id = ?;`;
     params.push(finalStarsToSet, student.id);
 
-    logStar("Executing DB star update", {
-    starsEarned,
-    studentId: student.id,
-    query,
-    params,
-  });
 
     await this.executeQuery(query, params);
 
@@ -5949,17 +5932,19 @@ order by
     starsCount: number,
     is_immediate_sync?: boolean,
   ): Promise<void> {
-    if (!studentId) return;
-    try {
-      const be = await this.getUserByDocId(studentId);
-      const allStarsMap = localStorage.getItem(LATEST_STARS);
-      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-      const currentLocalStars = allStars[studentId] ?? 0;
+      if (!studentId) return;
+      try {
+        const be = await this.getUserByDocId(studentId);
+        const latestStarsKey = LATEST_STARS(studentId);
+        const currentLocalStars = parseInt(
+          localStorage.getItem(latestStarsKey) || "0",
+          10,
+        );
 
-      allStars[studentId] = currentLocalStars + starsCount;
-      console.log("zuzu 2", allStars);
+        const nextLocalStars = currentLocalStars + starsCount;
+        console.log("zuzu 2", { studentId, stars: nextLocalStars });
 
-      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
+        localStorage.setItem(latestStarsKey, nextLocalStars.toString());
 
       await this.executeQuery(
         `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,

@@ -671,7 +671,8 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
-export const LATEST_STARS = "latestStar";
+export const LATEST_STARS = (studentId: string) =>
+  `latestStar_${studentId}`;
 export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
