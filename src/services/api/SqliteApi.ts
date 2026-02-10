@@ -2360,6 +2360,10 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
+    const logStar = (label: string, data?: any) => {
+      console.log(`⭐ [STAR-DEBUG] ${label}`, data ?? "");
+    };
+
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2474,17 +2478,25 @@ export class SqliteApi implements ServiceApi {
       }
     }
     const lesson = await this.getLesson(lessonId);
+
     const isAssessment = lesson?.plugin_type === "lido_assessment";
+
     let starsEarned = 0;
     if (isAssessment) {
-      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
-      const awarded = sessionStorage.getItem(assessmentKey) === "true";
+    const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+    const awarded = sessionStorage.getItem(assessmentKey) === "true";
+    if (!awarded) {
+      starsEarned = 3;
+      sessionStorage.setItem(assessmentKey, "true");
 
-      if (!awarded) {
-        starsEarned = 3;
-        sessionStorage.setItem(assessmentKey, "true");
-      }
+      logStar("Assessment stars awarded", {
+        starsEarned,
+        newSessionValue: sessionStorage.getItem(assessmentKey),
+      });
     } else {
+      logStar("Assessment stars skipped (already awarded)");
+    }
+  } else {
       if (score > 25) starsEarned++;
       if (score > 50) starsEarned++;
       if (score > 75) starsEarned++;
@@ -2494,7 +2506,6 @@ export class SqliteApi implements ServiceApi {
       const allStarsMap = localStorage.getItem(LATEST_STARS);
       const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
       const currentLocalStars = allStars[student.id] ?? 0;
-
       allStars[student.id] = currentLocalStars + starsEarned;
       localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     }
@@ -2505,9 +2516,26 @@ export class SqliteApi implements ServiceApi {
       query += `reward = ?, `;
       params.push(JSON.stringify(newReward));
     }
-    const totalStars = (currentUser?.stars || 0) + starsEarned;
+    // Fetch fresh value only for star calculation
+    const latestUserForStars = await this.getUserByDocId(student.id);
+    logStar("Latest user data for star calculation",latestUserForStars?.stars)
+    const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
+    const latestLocalStars1 = localStorage.getItem(LATEST_STARS);
+    const latestAllStars = latestLocalStars1 ? JSON.parse(latestLocalStars1)
+      : {};
+    const latestLocalStarsForStudent = latestAllStars[student.id] ?? 0; 
+    console.log("🚀 ~ SqliteApi ~ updateResult ~ latestLocalStarsForStudent:", latestLocalStarsForStudent);
+    const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
+    logStar("Total stars after addition", totalStars);
     query += `stars =  ? WHERE id = ?;`;
-    params.push(totalStars, student.id);
+    params.push(finalStarsToSet, student.id);
+
+    logStar("Executing DB star update", {
+    starsEarned,
+    studentId: student.id,
+    query,
+    params,
+  });
 
     await this.executeQuery(query, params);
 
