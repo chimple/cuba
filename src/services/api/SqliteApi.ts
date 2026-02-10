@@ -4927,19 +4927,16 @@ order by
 
       -- Non-LIDO lessons → latest attempt
       non_lido_results AS (
-        SELECT lesson_id, assignment_id, score, created_at
-        FROM (
-          SELECT *,
-                ROW_NUMBER() OVER (
-                  PARTITION BY lesson_id
-                  ORDER BY created_at DESC
-                ) AS rn
-          FROM base_results
-          WHERE plugin_type <> '${LIDO_ASSESSMENT}'
-            OR plugin_type IS NULL
-        ) t
-        WHERE rn = 1
-      ),
+      SELECT
+        lesson_id,
+        assignment_id,
+        score,
+        created_at
+      FROM base_results
+      WHERE plugin_type <> '${LIDO_ASSESSMENT}'
+        OR plugin_type IS NULL
+    ),
+
 
       -- Combine aggregated lessons
       final_results AS (
