@@ -4913,31 +4913,29 @@ order by
           )
       ),
 
-      -- LIDO lessons → average score per lesson
-      lido_results AS (
-        SELECT
-          lesson_id,
-          assignment_id,
-          AVG(score) AS score,
-          MAX(created_at) AS created_at
-        FROM base_results
-        WHERE plugin_type = '${LIDO_ASSESSMENT}'
-        GROUP BY lesson_id, assignment_id
-      ),
+      -- LIDO lessons → average score per lesson (same lesson counted once)
+        lido_results AS (
+          SELECT
+            lesson_id,
+            assignment_id,
+            AVG(score) AS score,
+            MAX(created_at) AS created_at
+          FROM base_results
+          WHERE plugin_type = '${LIDO_ASSESSMENT}'
+          GROUP BY lesson_id, assignment_id
+        ),
 
-      -- Non-LIDO lessons → latest attempt
-      non_lido_results AS (
-      SELECT
-        lesson_id,
-        assignment_id,
-        score,
-        created_at
-      FROM base_results
-      WHERE plugin_type <> '${LIDO_ASSESSMENT}'
-        OR plugin_type IS NULL
-    ),
-
-
+        -- Non-LIDO lessons → return ALL attempts (duplicate rows allowed)
+        non_lido_results AS (
+          SELECT
+            lesson_id,
+            assignment_id,
+            score,
+            created_at
+          FROM base_results
+          WHERE plugin_type <> '${LIDO_ASSESSMENT}'
+            OR plugin_type IS NULL
+        ),
       -- Combine aggregated lessons
       final_results AS (
         SELECT * FROM lido_results
