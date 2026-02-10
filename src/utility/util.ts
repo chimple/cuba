@@ -3257,15 +3257,13 @@ export class Util {
       const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
       const localStarsRaw = storedStarsMap[studentId];
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      const latestStarsRaw = latestStarsMap[studentId];
+      const latestStarsRaw = localStorage.getItem(LATEST_STARS(studentId));
 
       const localStars = Number.isFinite(+localStarsRaw)
         ? parseInt(localStarsRaw, 10)
         : 0;
-      const latestStars = Number.isFinite(+latestStarsRaw)
-        ? parseInt(latestStarsRaw, 10)
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? "0"))
+        ? parseInt(latestStarsRaw ?? "0", 10)
         : 0;
 
       // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
@@ -3323,10 +3321,7 @@ export class Util {
       storedStarsMap[studentId] = stars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      latestStarsMap[studentId] = stars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
       console.warn("[Util.setLocalStarsForStudent] failed", e);
     }
