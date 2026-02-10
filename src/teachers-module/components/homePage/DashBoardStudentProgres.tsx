@@ -55,10 +55,6 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
             0,
           );
           finalScore = totalScore / allResultsForLesson.length;
-
-          if (finalResults.find((r) => r.get("lesson") === lesson.name)) {
-            continue;
-          }
         }
 
         const _res = new Map<string, string>();

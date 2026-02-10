@@ -57,6 +57,7 @@ import {
   CLASS,
   LANG_REFRESHED,
   RESULT_STATUS,
+  LIDO_ASSESSMENT,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2721,7 +2722,7 @@ export class SqliteApi implements ServiceApi {
       localeId,
       now,
     ];
-  // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
+    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
     if (languageChanged) {
       params.push(null);
     }
@@ -4892,49 +4893,88 @@ order by
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId,
+    classId: string,
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
     const courseholders = courseIds.map(() => "?").join(", ");
     const res = await this._db?.query(
-      `WITH null_assignments AS (
-     SELECT *
-     FROM ${TABLES.Result}
-     WHERE student_id = ?
-     AND course_id IN (${courseholders})
-     AND class_id = ?
-     AND assignment_id IS NULL
-     AND is_deleted = false
-     ORDER BY created_at DESC
-     LIMIT 5
-   ),
-   non_null_assignments AS (
-     SELECT *
-     FROM ${TABLES.Result}
-     WHERE student_id = ?
-     AND course_id IN (${courseholders})
-     AND class_id = ?
-     AND assignment_id IN (${assignmentholders})
-     AND is_deleted = false
-     ORDER BY created_at DESC
-     LIMIT 5
-   )
-   SELECT *
-   FROM null_assignments
-   UNION ALL
-   SELECT *
-   FROM non_null_assignments
-   ORDER BY created_at DESC
-   LIMIT 10;`,
-      [
-        studentId,
-        ...courseIds,
-        classId,
-        studentId,
-        ...courseIds,
-        classId,
-        ...assignmentIds,
-      ],
+      `
+        WITH base_results AS (
+        SELECT r.*, l.plugin_type
+        FROM ${TABLES.Result} r
+        JOIN ${TABLES.Lesson} l ON l.id = r.lesson_id
+        WHERE r.student_id = ?
+          AND r.course_id IN (${courseholders})
+          AND r.class_id = ?
+          AND r.is_deleted = false
+          AND (
+            r.assignment_id IS NULL
+            OR r.assignment_id IN (${assignmentholders})
+          )
+      ),
+
+      -- LIDO lessons → average score per lesson
+      lido_results AS (
+        SELECT
+          lesson_id,
+          assignment_id,
+          AVG(score) AS score,
+          MAX(created_at) AS created_at
+        FROM base_results
+        WHERE plugin_type = '${LIDO_ASSESSMENT}'
+        GROUP BY lesson_id, assignment_id
+      ),
+
+      -- Non-LIDO lessons → latest attempt
+      non_lido_results AS (
+        SELECT lesson_id, assignment_id, score, created_at
+        FROM (
+          SELECT *,
+                ROW_NUMBER() OVER (
+                  PARTITION BY lesson_id
+                  ORDER BY created_at DESC
+                ) AS rn
+          FROM base_results
+          WHERE plugin_type <> '${LIDO_ASSESSMENT}'
+            OR plugin_type IS NULL
+        ) t
+        WHERE rn = 1
+      ),
+
+      -- Combine aggregated lessons
+      final_results AS (
+        SELECT * FROM lido_results
+        UNION ALL
+        SELECT * FROM non_lido_results
+      ),
+
+      -- Last 5 non-assignments
+      non_assignment AS (
+        SELECT *
+        FROM final_results
+        WHERE assignment_id IS NULL
+        ORDER BY created_at DESC
+        LIMIT 5
+      ),
+
+      -- Last 5 assignments
+      assignment AS (
+        SELECT *
+        FROM final_results
+        WHERE assignment_id IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 5
+      )
+
+      SELECT *
+      FROM non_assignment
+      UNION ALL
+      SELECT *
+      FROM assignment
+      ORDER BY created_at DESC;
+
+    `,
+      [studentId, ...courseIds, classId, ...assignmentIds],
     );
     return res?.values ?? [];
   }
