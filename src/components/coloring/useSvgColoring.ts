@@ -1,66 +1,47 @@
 import { useEffect, useState } from "react";
-import { SlotColorMap } from "./types";
 
 export function useSvgColoring() {
   const [selectedColor, setSelectedColor] = useState("#ff0000");
-  const [colors, setColors] = useState<SlotColorMap>({});
 
-  // 🟢 run only once → make all slots white initially
+  // 🔹 make all colorable shapes white ONCE
   useEffect(() => {
     const svg = document.querySelector("#coloring-svg");
     if (!svg) return;
 
-    const slots = svg.querySelectorAll("[data-slot-id]");
+    const colorables = svg.querySelectorAll("[color-id]");
 
-    slots.forEach((group) => {
-      const elements = group.querySelectorAll("path, circle, ellipse");
-      elements.forEach((el) => {
-        const fill = el.getAttribute("fill");
-        if (!fill || fill === "none") return;
-
-        el.setAttribute("fill", "#ffffff");
-      });
+    colorables.forEach((el) => {
+      (el as SVGElement).setAttribute("fill", "#ffffff");
     });
-  }, []); // ← empty dependency (runs once)
+  }, []);
 
-  // 🟢 click handling
+  // 🔹 click handler
   useEffect(() => {
     const svg = document.querySelector("#coloring-svg");
     if (!svg) return;
 
     const handleClick = (e: Event) => {
-      const target = (e.target as HTMLElement).closest("[data-slot-id]");
-      if (!target) return;
+      const target = e.target as HTMLElement;
 
-      const group = target as SVGGElement;
-      const slotId = group.dataset.slotId!;
+      const shape = target.closest("[color-id]");
+      if (!shape) return;
 
-      applyFill(group, selectedColor);
+      const id = shape.getAttribute("color-id")!;
+      
+      // fill ALL shapes with same id
+      const same = svg.querySelectorAll(`[color-id="${id}"]`);
 
-      setColors((prev) => ({
-        ...prev,
-        [slotId]: selectedColor,
-      }));
+      same.forEach((el) => {
+        (el as SVGElement).setAttribute("fill", selectedColor);
+      });
     };
 
     svg.addEventListener("click", handleClick);
     return () => svg.removeEventListener("click", handleClick);
   }, [selectedColor]);
 
-  const applyFill = (group: SVGGElement, color: string) => {
-    const elements = group.querySelectorAll("path, circle, ellipse");
-
-    elements.forEach((el) => {
-      const fill = el.getAttribute("fill");
-      if (!fill || fill === "none") return;
-
-      el.setAttribute("fill", color);
-    });
-  };
-
   return {
     selectedColor,
     setSelectedColor,
-    colors,
   };
 }

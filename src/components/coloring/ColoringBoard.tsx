@@ -1,4 +1,6 @@
-import { ReactComponent as LayoutSvg } from "../../assets/images/stickers/WholeCompletelayout.svg";
+// import { ReactComponent as LayoutSvg } from "../../assets/images/stickers/WholeCompletelayout.svg";
+import { ReactComponent as LayoutSvg } from "../../assets/images/stickers/BWUnfilled.svg";
+
 import ColorTray from "./ColorTray";
 import { useSvgColoring } from "./useSvgColoring";
 
