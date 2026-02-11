@@ -29,7 +29,9 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
   const today = new Date().toISOString().split("T")[0];
   const effectiveMaxDate = (maxDate || today).split("T")[0];
   const effectiveMinDate =
-    mode === "start" ? minDate : startDate || "1900-01-01";
+    mode === "start"
+      ? minDate
+      : minDate || startDate || "1900-01-01";
   // Ensure that effectiveMinDate is never undefined
   const safeMinDate = effectiveMinDate ?? "1900-01-01";
 
@@ -89,3 +91,4 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
 };
 
 export default CalendarPicker;
+
