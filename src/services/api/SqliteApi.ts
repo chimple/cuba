@@ -2360,6 +2360,7 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
+
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2474,30 +2475,33 @@ export class SqliteApi implements ServiceApi {
       }
     }
     const lesson = await this.getLesson(lessonId);
+
     const isAssessment = lesson?.plugin_type === "lido_assessment";
+
     let starsEarned = 0;
     if (isAssessment) {
-      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
-      const awarded = sessionStorage.getItem(assessmentKey) === "true";
-
-      if (!awarded) {
-        starsEarned = 3;
-        sessionStorage.setItem(assessmentKey, "true");
-      }
+    const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+    const awarded = sessionStorage.getItem(assessmentKey) === "true";
+    if (!awarded) {
+      starsEarned = 3;
+      sessionStorage.setItem(assessmentKey, "true");
+    }
     } else {
       if (score > 25) starsEarned++;
       if (score > 50) starsEarned++;
       if (score > 75) starsEarned++;
     }
 
-    if (starsEarned > 0) {
-      const allStarsMap = localStorage.getItem(LATEST_STARS);
-      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-      const currentLocalStars = allStars[student.id] ?? 0;
-
-      allStars[student.id] = currentLocalStars + starsEarned;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
-    }
+      if (starsEarned > 0) {
+        const latestStarsKey = LATEST_STARS(student.id);
+        const currentLocalStars = parseInt(
+          localStorage.getItem(latestStarsKey) || "0"
+        );
+        localStorage.setItem(
+          latestStarsKey,
+          (currentLocalStars + starsEarned).toString(),
+        );
+      }
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
 
@@ -2505,9 +2509,16 @@ export class SqliteApi implements ServiceApi {
       query += `reward = ?, `;
       params.push(JSON.stringify(newReward));
     }
-    const totalStars = (currentUser?.stars || 0) + starsEarned;
+    // Fetch fresh value only for star calculation
+    const latestUserForStars = await this.getUserByDocId(student.id);
+    const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
+      const latestLocalStarsForStudent = parseInt(
+        localStorage.getItem(LATEST_STARS(student.id)) || "0"
+      );
+    const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
     query += `stars =  ? WHERE id = ?;`;
-    params.push(totalStars, student.id);
+    params.push(finalStarsToSet, student.id);
+
 
     await this.executeQuery(query, params);
 
@@ -5921,17 +5932,19 @@ order by
     starsCount: number,
     is_immediate_sync?: boolean,
   ): Promise<void> {
-    if (!studentId) return;
-    try {
-      const be = await this.getUserByDocId(studentId);
-      const allStarsMap = localStorage.getItem(LATEST_STARS);
-      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-      const currentLocalStars = allStars[studentId] ?? 0;
+      if (!studentId) return;
+      try {
+        const be = await this.getUserByDocId(studentId);
+        const latestStarsKey = LATEST_STARS(studentId);
+        const currentLocalStars = parseInt(
+          localStorage.getItem(latestStarsKey) || "0",
+          10,
+        );
 
-      allStars[studentId] = currentLocalStars + starsCount;
-      console.log("zuzu 2", allStars);
+        const nextLocalStars = currentLocalStars + starsCount;
+        console.log("zuzu 2", { studentId, stars: nextLocalStars });
 
-      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
+        localStorage.setItem(latestStarsKey, nextLocalStars.toString());
 
       await this.executeQuery(
         `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,

@@ -24,7 +24,7 @@ import CommonDialogBox from "../../../../common/CommonDialogBox";
 import Loading from "../../../../components/Loading";
 import CalendarPicker from "../../../../common/CalendarPicker";
 import { Toast } from "@capacitor/toast";
-import { addMonths, format } from "date-fns";
+import { addDays, addMonths, format } from "date-fns";
 import { Trans } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 interface LessonDetail {
@@ -210,6 +210,9 @@ const CreateSelectedAssignment = ({
   const handleDateConfirm = (type: "start" | "end", date: string) => {
     if (type === "start") {
       setStartDate(date);
+       // Always move end date to start date + 1 day
+      const nextDay = format(addDays(new Date(date), 1), "yyyy-MM-dd");
+      setEndDate(nextDay);
       setShowStartDatePicker(false);
     } else {
       setEndDate(date);
@@ -626,8 +629,8 @@ const CreateSelectedAssignment = ({
                     mode="end"
                     minDate={
                       startDate
-                        ? format(new Date(startDate), "yyyy-MM-dd")
-                        : new Date().toISOString().split("T")[0]
+                        ? format(addDays(new Date(startDate), 1), "yyyy-MM-dd")
+                        : format(addDays(new Date(), 1), "yyyy-MM-dd")
                     }
                     maxDate={format(
                       addMonths(new Date(startDate), 1),
