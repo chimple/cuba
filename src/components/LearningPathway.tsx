@@ -107,14 +107,13 @@ const buildLessonPath = async (
       }));
     }
   }
-
   /**
    * ================================
    * MODE: ASSESSMENT_ONLY or FULL_ADAPTIVE
    * ================================
    * Trigger assessment if no history
    */
-  if (shouldUseAssessment(mode ) && !rawResults) {
+  if (shouldUseAssessment(mode) && !rawResults) {
     const subjectLessons = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
@@ -226,6 +225,23 @@ const LearningPathway: React.FC = () => {
     fetchStudent();
   }, []);
 
+  function mergeCourseProgress(oldCourse: any, newCourse: any) {
+    const windowSize = (newCourse.pathEndIndex ?? 4) + 1;
+    // currentIndex is already absolute
+    const absoluteIndex = oldCourse?.currentIndex ?? 0;
+    const newStartIndex = Math.floor(absoluteIndex / windowSize) * windowSize;
+
+    return {
+      ...newCourse,
+      startIndex: newStartIndex,
+      currentIndex: absoluteIndex,
+      pathEndIndex: Math.min(
+        newStartIndex + windowSize - 1,
+        newCourse.path.length - 1,
+      ),
+    };
+  }
+
   useEffect(() => {
     if (!gb?.ready || !currentStudent?.id) return;
     const currentClass = schoolUtil.getCurrentClass();
@@ -273,10 +289,7 @@ const LearningPathway: React.FC = () => {
     }
 
     if (latestLocalStars <= dbStars) {
-      localStorage.setItem(
-        LATEST_STARS(currentStudent.id),
-        dbStars.toString(),
-      );
+      localStorage.setItem(LATEST_STARS(currentStudent.id), dbStars.toString());
     } else {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
@@ -355,6 +368,28 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
+
+      const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
+
+      if (currClass && learningPath?.courses?.courseList?.length) {
+        const hasReset = localStorage.getItem(RESET_ON_JOIN_KEY);
+
+        if (!hasReset) {
+          learningPath.courses.courseList = learningPath.courses.courseList.map(
+            (course: any) => ({
+              ...course,
+              startIndex: 0,
+              currentIndex: 0,
+              pathEndIndex: 4,
+              path_id: uuidv4(),
+            }),
+          );
+
+          learningPath.courses.currentCourseIndex = 0;
+          localStorage.setItem(RESET_ON_JOIN_KEY, "true");
+          await saveLearningPath(student, learningPath);
+        }
+      }
       const hasFrameworkCourse = userCourses.some(
         (course) => course?.framework_id,
       );
@@ -456,7 +491,11 @@ const LearningPathway: React.FC = () => {
       // 1️⃣ starting lesson changed
       // 2️⃣ old starting lesson is assessment
       if (isOldAssessment && oldStartLessonId !== newStartLessonId) {
-        existingList[index] = newCourse;
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
+
         hasChanges = true;
       }
     }
@@ -528,7 +567,10 @@ const LearningPathway: React.FC = () => {
       );
       if (index !== -1) {
         // If we are replacing a "played" subject with an assessment, we overwrite it
-        existingList[index] = newCourse;
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
       } else {
         existingList.push(newCourse);
       }
@@ -795,7 +837,10 @@ const LearningPathway: React.FC = () => {
       );
 
       if (index !== -1) {
-        existingList[index] = newCourse;
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
       } else {
         existingList.push(newCourse);
       }
