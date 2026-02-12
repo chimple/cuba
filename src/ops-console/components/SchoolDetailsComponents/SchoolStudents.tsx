@@ -1343,14 +1343,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return;
       }
 
-      // 🔥 Call your API
       await api.deleteUserFromClass(studentId, classId);
 
-      // ✅ Close modal
       setIsDeleteModalOpen(false);
       setDeleteTargetStudent(null);
 
-      // ✅ Refresh list
       fetchStudents(page, debouncedSearchTerm);
 
     } catch (error) {
