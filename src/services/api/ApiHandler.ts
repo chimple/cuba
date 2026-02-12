@@ -1,6 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
+import { RESULT_STATUS, SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -550,7 +550,8 @@ export class ApiHandler implements ServiceApi {
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
     activities_scores?: string | undefined,
-    user_id?: string | undefined
+    user_id?: string | undefined,
+    status?: RESULT_STATUS | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -577,7 +578,8 @@ export class ApiHandler implements ServiceApi {
       subject_id,
       subject_ability,
       activities_scores,
-      user_id
+      user_id,
+      status
     );
   }
 

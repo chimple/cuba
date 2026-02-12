@@ -6,9 +6,9 @@ export interface ServiceAuth {
   loginWithEmailAndPassword(
     email: string,
     password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
 
-  googleSign(): Promise<{ success: boolean; isSpl: boolean }>;
+  googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
 
   getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
@@ -28,7 +28,7 @@ export interface ServiceAuth {
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined>;
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean; userData?: any } | undefined>;
 
   logOut(): Promise<void>;
   doRefreshSession(): Promise<void>;
@@ -45,7 +45,7 @@ export interface ServiceAuth {
   signInWithEmail(
     email: string,
     password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
   /**
    * Sends a password reset email to the given address.
    *

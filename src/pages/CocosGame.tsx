@@ -12,6 +12,7 @@ import {
   LESSON_END,
   PAGES,
   PROBLEM_END,
+  RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
   TableTypes,
@@ -439,7 +440,8 @@ const CocosGame: React.FC = () => {
       abilityUpdates.subject_id,
       abilityUpdates.subject_ability,
       activities_scores ?? undefined,
-      _currentUser?.id
+      _currentUser?.id,
+      RESULT_STATUS.COMPLETED
     );
 
     // Update the learning path / homework path

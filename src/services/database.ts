@@ -143,6 +143,7 @@ export type Database = {
           is_firebase: boolean | null
           lesson_id: string
           school_id: string
+          set_number: number | null
           source: string | null
           starts_at: string
           type: string | null
@@ -163,6 +164,7 @@ export type Database = {
           is_firebase?: boolean | null
           lesson_id: string
           school_id: string
+          set_number?: number | null
           source?: string | null
           starts_at?: string
           type?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           is_firebase?: boolean | null
           lesson_id?: string
           school_id?: string
+          set_number?: number | null
           source?: string | null
           starts_at?: string
           type?: string | null
@@ -2873,7 +2876,8 @@ export type Database = {
           },
         ]
       }
-         result: {Row: {
+       result: {
+        Row: {
           activities_scores: string | null
           assignment_id: string | null
           chapter_id: string | null
@@ -2896,6 +2900,7 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
@@ -2927,6 +2932,7 @@ export type Database = {
           score?: number | null
           skill_ability?: number | null
           skill_id?: string | null
+          status?: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability?: number | null
           subject_id?: string | null
@@ -2958,6 +2964,7 @@ export type Database = {
           score?: number | null
           skill_ability?: number | null
           skill_id?: string | null
+          status?: Database["public"]["Enums"]["result_status"] | null
           student_id?: string
           subject_ability?: number | null
           subject_id?: string | null
@@ -4932,6 +4939,7 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
@@ -5533,6 +5541,7 @@ export type Database = {
           is_firebase: boolean | null
           lesson_id: string
           school_id: string
+          set_number: number | null
           source: string | null
           starts_at: string
           type: string | null
@@ -5923,6 +5932,7 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
@@ -6358,6 +6368,7 @@ export type Database = {
       ops_request_type: "student" | "teacher" | "principal" | "school"
       program_model: "hybrid" | "at_home" | "at_school"
       program_type: "government" | "private" | "learning_centers"
+      result_status: "user_exit" | "system_exit" | "completed"
       rive_type: "idle" | "normal" | "celebrating"
       role:
         | "coordinator"
@@ -6541,6 +6552,7 @@ export const Constants = {
       ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
       program_type: ["government", "private", "learning_centers"],
+      result_status: ["user_exit", "system_exit", "completed"],
       rive_type: ["idle", "normal", "celebrating"],
       role: [
         "coordinator",

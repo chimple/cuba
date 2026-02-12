@@ -210,7 +210,7 @@ const CreateSelectedAssignment = ({
   const handleDateConfirm = (type: "start" | "end", date: string) => {
     if (type === "start") {
       setStartDate(date);
-      // Always move end date to start date + 1 day
+       // Always move end date to start date + 1 day
       const nextDay = format(addDays(new Date(date), 1), "yyyy-MM-dd");
       setEndDate(nextDay);
       setShowStartDatePicker(false);
