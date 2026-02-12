@@ -89,23 +89,69 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleBackButtonClick = useCallback(() => {
-    if (disableBackButton) return;
+    console.log(
+      `[Header.UI] Back button clicked - disableBackButton: ${disableBackButton}, isDrawerOpen: ${isDrawerOpen}, Path: ${window.location.pathname}, Stack:`,
+      new Error().stack?.split("\n").slice(2, 6).join("\n"),
+    );
+
+    if (disableBackButton) {
+      console.log("[Header.UI] Back button is disabled, ignoring click");
+      return;
+    }
+
+    // If drawer is open, close it first
+    if (isDrawerOpen) {
+      console.log(
+        "[Header.UI] Drawer is open, closing drawer instead of navigating back",
+      );
+      setIsDrawerOpen(false);
+      return;
+    }
+
     if (onBackButtonClick) {
+      console.log("[Header.UI] Calling custom onBackButtonClick callback");
       onBackButtonClick();
     } else if (onButtonClick) {
+      console.log("[Header.UI] Calling onButtonClick callback");
       onButtonClick();
     } else {
+      console.log(
+        "[Header.UI] Navigating to HOME_PAGE using setPathToBackButton",
+      );
       Util.setPathToBackButton(PAGES.HOME_PAGE, history);
     }
-  }, [disableBackButton, onBackButtonClick, onButtonClick, history]);
+  }, [
+    disableBackButton,
+    onBackButtonClick,
+    onButtonClick,
+    history,
+    isDrawerOpen,
+  ]);
+
+  const handleBackRef = React.useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (!isBackButton || disableBackButton) return;
+    handleBackRef.current = handleBackButtonClick;
+  }, [handleBackButtonClick]);
+
+  useEffect(() => {
+    if (!isBackButton || disableBackButton) {
+      console.log(
+        `[Header.Registry] Not registering back button handler - isBackButton: ${isBackButton}, disableBackButton: ${disableBackButton}`,
+      );
+      return;
+    }
+    console.log(
+      `[Header.Registry] Registering back button handler for Header component at path: ${window.location.pathname}`,
+    );
     const unregister = registerBackButtonHandler(() => {
-      handleBackButtonClick();
+      console.log(
+        "[Header.Registry] Header's registered back button handler invoked",
+      );
+      return handleBackRef.current();
     });
     return unregister;
-  }, [isBackButton, disableBackButton, handleBackButtonClick]);
+  }, [isBackButton, disableBackButton]);
 
   return (
     <header className="header-container">
@@ -198,16 +244,15 @@ const Header: React.FC<HeaderProps> = ({
                 <IoShareSocialSharp size={28} color="white" />
               </button>
             )}
-           
           </div>
         </div>
-         <div className="help-icon-container">
-              <img
-                src="assets/icons/helpIcon.svg"
-                alt={String(t("Menu"))}
-                className="help-icon"
-              />
-            </div>
+        <div className="help-icon-container">
+          <img
+            src="assets/icons/helpIcon.svg"
+            alt={String(t("Menu"))}
+            className="help-icon"
+          />
+        </div>
       </div>
     </header>
   );

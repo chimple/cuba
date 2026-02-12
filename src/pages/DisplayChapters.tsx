@@ -261,9 +261,9 @@ const DisplayChapters: FC<{}> = () => {
     }
   };
 
-  const onBackButton = useCallback(() => {
+  const onBackButton = useCallback((): boolean => {
     const now = Date.now();
-    if (now - lastBackPressAtRef.current < 150) return;
+    if (now - lastBackPressAtRef.current < 150) return true;
     lastBackPressAtRef.current = now;
     switch (stage) {
       // case STAGES.SUBJECTS:
@@ -279,7 +279,7 @@ const DisplayChapters: FC<{}> = () => {
         localStorage.removeItem(CURRENT_SELECTED_GRADE);
         addStateTolocalStorage(STAGES.SUBJECTS);
         Util.setPathToBackButton(PAGES.HOME, history);
-        break;
+        return true;
       case STAGES.LESSONS:
         blockIonRouterBackUntilRef.current = Date.now() + 800;
         delete localData.lessons;
@@ -288,9 +288,9 @@ const DisplayChapters: FC<{}> = () => {
         addStateTolocalStorage(STAGES.CHAPTERS);
         localStorage.removeItem(CURRENT_SELECTED_CHAPTER);
 
-        break;
+        return true;
       default:
-        break;
+        return false;
     }
   }, [stage, history]);
 
@@ -312,6 +312,30 @@ const DisplayChapters: FC<{}> = () => {
     document.addEventListener("ionBackButton", handler as any);
     return () => document.removeEventListener("ionBackButton", handler as any);
   }, [location.pathname, onBackButton]);
+
+  useEffect(() => {
+    const unregister = registerBackButtonHandler(
+      () => {
+        if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return false;
+        return onBackButton();
+      },
+      { path: PAGES.DISPLAY_CHAPTERS },
+    );
+    return unregister;
+  }, [location.pathname, onBackButton]);
+
+  useEffect(() => {
+    const unblock = history.block((_nextLocation, action) => {
+      if (action !== "POP") return;
+      if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
+      const handled = onBackButton();
+      if (handled) return false;
+    });
+
+    return () => {
+      unblock();
+    };
+  }, [history, location.pathname, onBackButton]);
 
   const onCourseChanges = async (course: TableTypes<"course">) => {
     const gradesMap: {

@@ -1,4 +1,5 @@
-import { MouseEvent, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { IonPage, useIonViewDidEnter, useIonViewWillLeave } from "@ionic/react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -7,12 +8,10 @@ import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
-  ACTION,
   ACTION_TYPES,
   AGE_OPTIONS,
   AVATARS,
   CONTINUE,
-  CURRENT_STUDENT,
   DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   EVENTS,
@@ -26,13 +25,11 @@ import {
 import { useHistory, useLocation } from "react-router";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { App as CapApp } from "@capacitor/app";
-import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
 import { logProfileClick } from "../../analytics/profileClickUtil";
 import i18n from "../../i18n";
-import { language } from "ionicons/icons";
+import { registerBackButtonHandler } from "../../common/backButtonRegistry";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -51,11 +48,33 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-  const profileRef = useRef<HTMLDivElement>(null);
-  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
-  const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
-  const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // --- STATE ---
+  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
+  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
+  const [className, setClassName] = useState<string>("");
+  const [schoolName, setSchoolName] = useState<string>("");
+
+  // --- REFS FOR BACK HANDLER (Critical for Freshness) ---
+  const isCreatingProfileRef = useRef(false);
+  const parentHasStudentRef = useRef(false);
+  const backRegistrationRef = useRef<(() => void) | null>(null);
+  const isNavigatingBackRef = useRef(false);
+
+  // Sync State to Refs
+  useEffect(() => {
+    isCreatingProfileRef.current = isCreatingProfile;
+  }, [isCreatingProfile]);
+  useEffect(() => {
+    parentHasStudentRef.current = parentHasStudent;
+  }, [parentHasStudent]);
+
+  const currentStudent = Util.getCurrentStudent();
+  const isEdit =
+    location.pathname.startsWith(PAGES.EDIT_STUDENT) && !!currentStudent;
+
   const variation = useFeatureValue<string>(
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
@@ -69,10 +88,6 @@ const ProfileDetails = () => {
       ? (currentStudent?.avatar ?? AVATARS[randomIndex])
       : AVATARS[randomIndex],
   );
-
-  // New State for Class and School
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
 
   const [age, setAge] = useState<number | undefined>(
     isEdit
@@ -94,8 +109,6 @@ const ProfileDetails = () => {
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const labelRef = useRef<HTMLDivElement>(null);
-  const [labelWidth, setLabelWidth] = useState(0);
-  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
 
   const initialValues = useRef({
     fullName: isEdit ? (currentStudent?.name ?? "") : "",
@@ -103,6 +116,8 @@ const ProfileDetails = () => {
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
     languageId: isEdit ? (currentStudent?.language_id ?? "") : "",
   });
+
+  // --- EFFECTS ---
 
   useEffect(() => {
     if (isEdit && currentStudent) {
@@ -117,26 +132,17 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     const initial = initialValues.current;
-
     if (!initial) {
       setHasChanges(false);
       return;
     }
-
     const changed =
       fullName !== initial.fullName ||
       age !== initial.age ||
       gender !== initial.gender ||
       languageId !== initial.languageId;
-
     setHasChanges(changed);
   }, [fullName, age, gender, languageId]);
-
-  useEffect(() => {
-    if (labelRef.current) {
-      setLabelWidth(labelRef.current.offsetWidth);
-    }
-  }, [labelRef.current?.offsetWidth]);
 
   useEffect(() => {
     if (isEdit && currentStudent?.language_id && languages.length > 0) {
@@ -165,12 +171,14 @@ const ProfileDetails = () => {
     };
     loadLanguages();
 
-    const isParentHasStudent = async () => {
-      const student = await api.getParentStudentProfiles();
-      setParentHasStudent(student.length > 0);
+    const checkParentStudents = async () => {
+      const students = await api.getParentStudentProfiles();
+      setParentHasStudent(students.length > 0);
     };
-    isParentHasStudent();
+    checkParentStudents();
+
     loadProfileData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfileData = async () => {
@@ -185,28 +193,87 @@ const ProfileDetails = () => {
     }
   };
 
-  const handleBack = () => {
-    if (history.length > 1) {
-      history.goBack();
-      return;
-    }
-    const targetPage = PAGES.HOME;
-    Util.setPathToBackButton(targetPage, history);
+  const withContinueIfNeeded = (base: string) => {
+    const url = new URLSearchParams(window.location.search);
+    if (!url.has(CONTINUE)) return base;
+    return base.includes("?")
+      ? `${base}&${CONTINUE}=true`
+      : `${base}?${CONTINUE}=true`;
   };
 
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    let backButtonListener: { remove: () => void } | null = null;
-    const addListener = async () => {
-      backButtonListener = await CapApp.addListener("backButton", () => {
-        handleBack();
-      });
-    };
-    addListener();
-    return () => {
-      backButtonListener?.remove();
-    };
-  }, [history]);
+  // ---------------------------------------------------------------------------
+  // HARDWARE BACK BUTTON LOGIC
+  // ---------------------------------------------------------------------------
+
+  const executeBackLogic = () => {
+    // 1. Check Locks (Refs)
+    if (isCreatingProfileRef.current || isNavigatingBackRef.current) {
+      return;
+    }
+    isNavigatingBackRef.current = true;
+
+    console.log("ProfileDetails: Hardware Back Triggered");
+
+    try {
+      // 2. Determine Mode based on Live Pathname (Not State)
+      const currentPath = window.location.pathname;
+      const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
+
+      // 3. EDIT MODE Logic
+      if (isEditMode) {
+        const state = history.location.state as any;
+        if (state?.from) {
+          history.replace(withContinueIfNeeded(state.from));
+        } else if (history.length > 1) {
+          history.goBack();
+        } else {
+          history.replace(withContinueIfNeeded(PAGES.DISPLAY_STUDENT));
+        }
+        return;
+      }
+
+      // 4. CREATE MODE Logic
+      // Check ParentHasStudent Ref (Fresh data)
+      if (parentHasStudentRef.current) {
+        history.replace(PAGES.HOME);
+      } else {
+        // First onboarding student: Go back to Login/Landing
+        history.replace("/"); // Replace with your Landing/Login route
+      }
+    } catch (e) {
+      console.error("Back Logic Error", e);
+      history.replace(PAGES.HOME);
+    } finally {
+      setTimeout(() => {
+        isNavigatingBackRef.current = false;
+      }, 500);
+    }
+  };
+
+  useIonViewDidEnter(() => {
+    // Cleanup previous if exists (Double protection)
+    if (backRegistrationRef.current) backRegistrationRef.current();
+
+    // Register Handler
+    backRegistrationRef.current = registerBackButtonHandler(() => {
+      executeBackLogic();
+    });
+  });
+
+  useIonViewWillLeave(() => {
+    // Unregister immediately
+    if (backRegistrationRef.current) {
+      backRegistrationRef.current();
+      backRegistrationRef.current = null;
+    }
+    // Unlock UI
+    setIsCreatingProfile(false);
+    isNavigatingBackRef.current = false;
+  });
+
+  // ---------------------------------------------------------------------------
+  // FORM ACTIONS
+  // ---------------------------------------------------------------------------
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
@@ -224,13 +291,17 @@ const ProfileDetails = () => {
 
   const handleSave = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       let _studentName = fullName?.trim();
       const state = history.location.state as any;
       const tmpPath = state?.from ?? PAGES.HOME;
       const user = await auth.getCurrentUser();
+
       let student;
+
       if (isEdit && !!currentStudent && !!currentStudent.id) {
         student = await api.updateStudent(
           currentStudent,
@@ -243,10 +314,12 @@ const ProfileDetails = () => {
           undefined,
           languageId || currentStudent.language_id!,
         );
+
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
         studentsMap[student.id] = student;
         sessionStorage.setItem(EDIT_STUDENTS_MAP, JSON.stringify(studentsMap));
+
         Util.logEvent(EVENTS.PROFILE_UPDATED, {
           user_id: user?.id,
           name: fullName,
@@ -269,6 +342,7 @@ const ProfileDetails = () => {
           undefined,
           languageId || DEFAULT_LANGUAGE_ID_EN,
         );
+
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
           name: fullName,
@@ -280,10 +354,12 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
+
         const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
         const langIndex = languages.findIndex(
           (lang) => lang.id === resolvedLanguageId,
         );
+
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code
@@ -292,39 +368,42 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false,
         );
       }
+
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.push(PAGES.HOME);
-      setIsCreatingProfile(false);
+      history.replace(PAGES.HOME);
     } catch (err) {
       console.error("Error saving profile:", err);
-      setIsCreatingProfile(false);
-    } finally {
       setIsCreatingProfile(false);
     }
   };
 
   const handleSkip = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       if (parentHasStudent) {
-        history.push(PAGES.HOME);
+        history.replace(PAGES.HOME);
         return;
       }
+
       const languageCode = localStorage.getItem(LANGUAGE);
       const allLanguages = await api.getAllLanguages();
       const selectedLanguage = allLanguages.find(
         (lang) => lang.code === languageCode,
       );
-      // Create auto profile with default/null values
+
       const student = await api.createAutoProfile(selectedLanguage?.id);
-      // Set as current student
+
       await Util.setCurrentStudent(
         student,
         selectedLanguage?.code ?? undefined,
         true,
       );
+
       const user = await auth.getCurrentUser();
+
       Util.logEvent(EVENTS.PROFILE_CREATED, {
         user_id: user?.id,
         name: fullName,
@@ -332,211 +411,198 @@ const ProfileDetails = () => {
         page_path: window.location.pathname,
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
-      // Redirect to home page
-      history.push(PAGES.HOME);
+
+      history.replace(PAGES.HOME);
     } catch (err) {
       console.error("Error skipping profile:", err);
-    } finally {
       setIsCreatingProfile(false);
     }
   };
 
   return (
-    <div
-      ref={profileRef}
-      className="profiledetails-container"
-      onClick={(e) => {
-        logProfileClick(e).catch((err) =>
-          console.error("Error in logProfileClick", err),
-        );
-      }}
-    >
-      {parentHasStudent && (
-        <button
-          className="profiledetails-back-button"
-          onClick={() => {
-            handleBack();
-          }}
-          aria-label="Back"
-          id="click_on_profile_details_back_button"
-        >
-          <img src="/assets/icons/BackButtonIcon.svg" alt="BackButtonIcon" />
-        </button>
-      )}
-      <div className="profiledetails-avatar-form">
-        <div className="profiledetails-avatar-section">
-          <img
-            src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
-            className="profiledetails-avatar-image"
-          />
-        </div>
+    <IonPage id="profile-details-page">
+      <div
+        ref={profileRef}
+        className="profiledetails-container"
+        onClick={(e) => {
+          logProfileClick(e).catch((err) =>
+            console.error("Error in logProfileClick", err),
+          );
+        }}
+      >
+        {(parentHasStudent || isEdit) && (
+          <button
+            className="profiledetails-back-button"
+            onClick={executeBackLogic}
+            aria-label="Back"
+            id="click_on_profile_details_back_button"
+          >
+            <img src="/assets/icons/BackButtonIcon.svg" alt="BackButtonIcon" />
+          </button>
+        )}
 
-        <div className="profiledetails-form-fields">
-          {/* Header Info: Class Name | School Name */}
-          {(className || schoolName) && (
-            <div className="profiledetails-header-info">
-              {className && (
-                <div className="pd-info-item">
-                  <img
-                    src="/assets/icons/classIcon.svg"
-                    alt="class"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <span>{className}</span>
-                </div>
-              )}
-              {className && schoolName && <span className="pd-divider">|</span>}
-              {schoolName && (
-                <div className="pd-info-item">
-                  <img
-                    src="/assets/icons/scholarIcon.svg"
-                    alt="school"
-                    className="profiledetails-info-icon"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <span>{schoolName}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* {mode !== FORM_MODES.ALL_OPTIONAL && (
-            <div className="profiledetails-required-indicator">
-              {`* ${t("Indicates Required Information")}`}
-            </div>
-          )} */}
-
-          <div className="profiledetails-full-name">
-            <InputWithIcons
-              id="click_on_profile_details_full_name"
-              label={t("Full Name")}
-              placeholder={t("Name Surname")}
-              value={fullName ?? ""}
-              setValue={setFullName}
-              icon="/assets/icons/BusinessCard.svg"
-              // required={
-              //   mode === FORM_MODES.ALL_REQUIRED ||
-              //   mode === FORM_MODES.NAME_REQUIRED
-              // }
+        <div className="profiledetails-avatar-form">
+          <div className="profiledetails-avatar-section">
+            <img
+              src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
+              className="profiledetails-avatar-image"
+              alt="avatar"
             />
           </div>
 
-          <div className="profiledetails-row-group">
-            <div className="profiledetails-flex-item">
-              <SelectWithIcons
-                id="click_on_profile_details_age"
-                label={t("Age")}
-                value={age?.toString() ?? ""}
-                setValue={(age) => setAge(parseInt(age))}
-                icon="/assets/icons/age.svg"
-                optionId={`click_on_profile_details_age_option_${age}`}
-                options={[
-                  {
-                    value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-                    label: `≤${t("4 years")}`,
-                  },
-                  { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-                  { value: AGE_OPTIONS.SIX, label: t("6 years") },
-                  { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-                  { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-                  { value: AGE_OPTIONS.NINE, label: t("9 years") },
-                  {
-                    value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: `≥${t("10 years")}`,
-                  },
-                ]}
-                // required={mode === FORM_MODES.ALL_REQUIRED}
-              />
-            </div>
-
-            <div className="profiledetails-flex-item">
-              <SelectWithIcons
-                id="click_on_profile_details_language"
-                label={t("Language")}
-                value={languageId}
-                setValue={setLanguageId}
-                icon="/assets/icons/language.svg"
-                optionId={
-                  `click_on_profile_details_language_option_` +
-                  (languageId || "")
-                }
-                options={languages.map((lang) => ({
-                  value: lang.id,
-                  label: t(lang.name),
-                }))}
-                // required={mode === FORM_MODES.ALL_REQUIRED}
-              />
-            </div>
-          </div>
-
-          <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
-            <legend className="profiledetails-gender-label">
-              <div className="profiledetails-gender-label-text" ref={labelRef}>
-                {t("Gender")}
-                {/* {mode === FORM_MODES.ALL_REQUIRED && (
-                  <span className="profiledetails-required">*</span>
-                )} */}
-              </div>
-            </legend>
-            <div className="profiledetails-gender-buttons">
-              {[
-                { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
-                { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
-                {
-                  label: t("UNSPECIFIED"),
-                  value: GENDER.OTHER,
-                  name: "UNSPECIFIED",
-                },
-              ].map(({ label, value, name }) => {
-                const isSelected = gender === value;
-                const iconName = isSelected
-                  ? `${name.toLowerCase()}Selected`
-                  : name.toLowerCase();
-
-                return (
-                  <button
-                    key={label}
-                    id={`click_on_profile_details_gender_${label.toLowerCase()}`}
-                    type="button"
-                    className={`profiledetails-gender-btn ${
-                      isSelected ? "selected" : ""
-                    }`}
-                    onClick={() => setGender(value)}
-                  >
+          <div className="profiledetails-form-fields">
+            {(className || schoolName) && (
+              <div className="profiledetails-header-info">
+                {className && (
+                  <div className="pd-info-item">
                     <img
-                      src={`/assets/icons/${iconName}.svg`}
-                      alt={`${label} icon`}
+                      src="/assets/icons/classIcon.svg"
+                      alt="class"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
                     />
-                    {t(label)}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          <div className="profiledetails-button-group">
-            {shouldShowSkip && (
-              <button
-                id="click_on_profile_details_skip"
-                className="profiledetails-skip-button"
-                onClick={handleSkip}
-              >
-                {t("SKIP FOR NOW")}
-              </button>
+                    <span>{className}</span>
+                  </div>
+                )}
+                {className && schoolName && (
+                  <span className="pd-divider">|</span>
+                )}
+                {schoolName && (
+                  <div className="pd-info-item">
+                    <img
+                      src="/assets/icons/scholarIcon.svg"
+                      alt="school"
+                      className="profiledetails-info-icon"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
+                    <span>{schoolName}</span>
+                  </div>
+                )}
+              </div>
             )}
-            <button
-              id="click_on_profile_details_save"
-              className="profiledetails-save-button"
-              disabled={!isSaveEnabled || isCreatingProfile}
-              onClick={handleSave}
-            >
-              {t("SAVE")}
-            </button>
+
+            <div className="profiledetails-full-name">
+              <InputWithIcons
+                id="click_on_profile_details_full_name"
+                label={t("Full Name")}
+                placeholder={t("Name Surname")}
+                value={fullName ?? ""}
+                setValue={setFullName}
+                icon="/assets/icons/BusinessCard.svg"
+              />
+            </div>
+
+            <div className="profiledetails-row-group">
+              <div className="profiledetails-flex-item">
+                <SelectWithIcons
+                  id="click_on_profile_details_age"
+                  label={t("Age")}
+                  value={age?.toString() ?? ""}
+                  setValue={(age) => setAge(parseInt(age))}
+                  icon="/assets/icons/age.svg"
+                  optionId={`click_on_profile_details_age_option_${age}`}
+                  options={[
+                    {
+                      value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+                      label: `≤${t("4 years")}`,
+                    },
+                    { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+                    { value: AGE_OPTIONS.SIX, label: t("6 years") },
+                    { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+                    { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+                    { value: AGE_OPTIONS.NINE, label: t("9 years") },
+                    {
+                      value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+                      label: `≥${t("10 years")}`,
+                    },
+                  ]}
+                />
+              </div>
+
+              <div className="profiledetails-flex-item">
+                <SelectWithIcons
+                  id="click_on_profile_details_language"
+                  label={t("Language")}
+                  value={languageId}
+                  setValue={setLanguageId}
+                  icon="/assets/icons/language.svg"
+                  optionId={`click_on_profile_details_language_option_${languageId || ""}`}
+                  options={languages.map((lang) => ({
+                    value: lang.id,
+                    label: t(lang.name),
+                  }))}
+                />
+              </div>
+            </div>
+
+            <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
+              <legend className="profiledetails-gender-label">
+                <div
+                  className="profiledetails-gender-label-text"
+                  ref={labelRef}
+                >
+                  {t("Gender")}
+                </div>
+              </legend>
+              <div className="profiledetails-gender-buttons">
+                {[
+                  { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
+                  { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
+                  {
+                    label: t("UNSPECIFIED"),
+                    value: GENDER.OTHER,
+                    name: "UNSPECIFIED",
+                  },
+                ].map(({ label, value, name }) => {
+                  const isSelected = gender === value;
+                  const iconName = isSelected
+                    ? `${name.toLowerCase()}Selected`
+                    : name.toLowerCase();
+
+                  return (
+                    <button
+                      key={label}
+                      id={`click_on_profile_details_gender_${label.toLowerCase()}`}
+                      type="button"
+                      className={`profiledetails-gender-btn ${isSelected ? "selected" : ""}`}
+                      onClick={() => setGender(value)}
+                    >
+                      <img
+                        src={`/assets/icons/${iconName}.svg`}
+                        alt={`${label} icon`}
+                      />
+                      {t(label)}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="profiledetails-button-group">
+              {shouldShowSkip && (
+                <button
+                  id="click_on_profile_details_skip"
+                  className="profiledetails-skip-button"
+                  onClick={handleSkip}
+                >
+                  {t("SKIP FOR NOW")}
+                </button>
+              )}
+
+              <button
+                id="click_on_profile_details_save"
+                className="profiledetails-save-button"
+                disabled={!isSaveEnabled || isCreatingProfile}
+                onClick={handleSave}
+              >
+                {t("SAVE")}
+              </button>
+            </div>
           </div>
         </div>
+
+        <Loading isLoading={isCreatingProfile} />
       </div>
-      <Loading isLoading={isCreatingProfile} />
-    </div>
+    </IonPage>
   );
 };
 

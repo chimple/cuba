@@ -8,10 +8,11 @@ import {
   PAGES,
   SCHOOL_LOGIN,
   TableTypes,
-  IS_OPS_USER
+  IS_OPS_USER,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "./util";
+import { reinitializeHardwareBackButton } from "../common/backButtonRegistry";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -52,14 +53,14 @@ export class schoolUtil {
   }
 
   public static setCurrentClass = async (
-    currClass: TableTypes<"class"> | undefined
+    currClass: TableTypes<"class"> | undefined,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = currClass;
 
     localStorage.setItem(
       CURRENT_CLASS,
-      JSON.stringify(currClass)
+      JSON.stringify(currClass),
       // JSON.stringify({
       //   name: currClass.name,
       //   image: currClass.image,
@@ -115,7 +116,7 @@ export class schoolUtil {
 
     localStorage.setItem(
       CURRENT_SCHOOL,
-      JSON.stringify(currSchool)
+      JSON.stringify(currSchool),
       // JSON.stringify({
       //   name: currSchool.name,
       //   image: currSchool.image,
@@ -138,7 +139,7 @@ export class schoolUtil {
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
     const isOpsUser = localStorage.getItem(IS_OPS_USER);
-    if(isOpsUser == "true") {
+    if (isOpsUser == "true") {
       this.setCurrMode(MODES.OPS_CONSOLE);
       return MODES.OPS_CONSOLE;
     }
@@ -162,10 +163,14 @@ export class schoolUtil {
     const api = ServiceConfig.getI().apiHandler;
     api.currentMode = currMode;
     const previousMode = localStorage.getItem(CURRENT_MODE);
-    if (previousMode && previousMode !== currMode) {
+    const modeChanged = previousMode !== currMode;
+    if (previousMode && modeChanged) {
       localStorage.setItem(LAST_MODE, previousMode);
     }
     localStorage.setItem(CURRENT_MODE, currMode);
+    if (modeChanged) {
+      reinitializeHardwareBackButton();
+    }
   };
 
   public static async trySchoolRelogin(): Promise<boolean> {
@@ -180,14 +185,14 @@ export class schoolUtil {
       const authInstance = ServiceConfig.getI().authHandler;
       const result = await authInstance.loginWithEmailAndPassword(
         credentials.email,
-        credentials.password
+        credentials.password,
       );
       if (result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         window.history.replaceState(
           window.history.state,
           "",
-          PAGES.SELECT_MODE.toString()
+          PAGES.SELECT_MODE.toString(),
         );
 
         return true;
@@ -196,7 +201,7 @@ export class schoolUtil {
         window.history.replaceState(
           window.history.state,
           "",
-          PAGES.LOGIN.toString()
+          PAGES.LOGIN.toString(),
         );
         return false;
       }
