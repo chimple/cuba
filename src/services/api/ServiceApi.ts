@@ -2655,4 +2655,6 @@ export interface ServiceApi {
     group_name: string;
     members: number;
   } | null>;
+
+  deleteStudentFromClass(studentId: string, classId: string): Promise<void>;
 }

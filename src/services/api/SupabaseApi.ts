@@ -11213,4 +11213,107 @@ export class SupabaseApi implements ServiceApi {
 
     return data;
   }
+
+  async deleteStudentFromClass(
+  studentId: string,
+  classId: string
+): Promise<void> {
+  if (!this.supabase) {
+    throw new Error("Supabase not initialized");
+  }
+
+  const timestamp = new Date().toISOString();
+
+  try {
+    /* ===============================
+     * 1️⃣ Soft delete student mapping
+     * =============================== */
+    const { error: studentClassError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .update({
+        is_deleted: true,
+        updated_at: timestamp,
+      })
+      .eq("class_id", classId)
+      .eq("user_id", studentId)
+      .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false);
+
+    if (studentClassError) {
+      throw studentClassError;
+    }
+
+    /* ===============================
+     * 2️⃣ Get parentId from parent_user
+     * =============================== */
+    const { data: parentData, error: parentFetchError } =
+      await this.supabase
+        .from("parent_user")
+        .select("parent_id")
+        .eq("student_id", studentId)
+        .eq("is_deleted", false)
+        .maybeSingle();
+
+    if (parentFetchError) {
+      throw parentFetchError;
+    }
+
+    const parentId = parentData?.parent_id;
+    if (!parentId) return;
+/* ===============================
+ * 3️⃣ Get sibling student IDs
+ * =============================== */
+const { data: siblingStudents, error: siblingFetchError } =
+  await this.supabase
+    .from("parent_user")
+    .select("student_id")
+    .eq("parent_id", parentId)
+    .neq("student_id", studentId)
+    .eq("is_deleted", false);
+
+if (siblingFetchError) throw siblingFetchError;
+
+const siblingIds = siblingStudents?.map(s => s.student_id) ?? [];
+
+let remainingSiblings = 0;
+
+if (siblingIds.length > 0) {
+  const { count, error: classCheckError } =
+    await this.supabase
+      .from("class_user")
+      .select("*", { count: "exact", head: true })
+      .in("user_id", siblingIds)
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
+
+  if (classCheckError) throw classCheckError;
+
+  remainingSiblings = count ?? 0;
+}
+
+    /* ===============================
+     * 4️⃣ If no siblings → delete parent mapping
+     * =============================== */
+    if (remainingSiblings === 0) {
+      const { error: parentDeleteError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .update({
+          is_deleted: true,
+          updated_at: timestamp,
+        })
+        .eq("class_id", classId)
+        .eq("user_id", parentId)
+        .eq("role", RoleType.PARENT)
+        .eq("is_deleted", false);
+
+      if (parentDeleteError) {
+        throw parentDeleteError;
+      }
+    }
+
+  } catch (error) {
+    console.error("deleteStudentFromClass failed:", error);
+    throw error;
+  }
+}
 }

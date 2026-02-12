@@ -2004,4 +2004,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ group_id: string; group_name: string; members: number } | null> {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
+
+  deleteStudentFromClass(studentId: string, classId: string): Promise<void> {
+    return this.s.deleteStudentFromClass(studentId, classId);
+  }
 }
