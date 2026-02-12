@@ -110,11 +110,11 @@ const StudentRejectedRequestDetails = () => {
       <div className="ops-rejected-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-rejected-request-details-link"
+          className="ops-rejected-request-details-link icon-button"
         >
           {t("Requests")}
-        </span>
         <span> &gt; </span>
+        </span>
 
         <span
           onClick={() =>
@@ -123,11 +123,11 @@ const StudentRejectedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.REJECTED}`,
             })
           }
-          className="ops-rejected-request-details-link"
+          className="ops-rejected-request-details-link icon-button"
         >
           {t("Rejected")}
-        </span>
         <span> &gt; </span>
+        </span>
 
         <span className="ops-rejected-request-details-active">
           {t("Request ID - {{id}}", { id })}{" "}
@@ -155,16 +155,18 @@ const StudentRejectedRequestDetails = () => {
             <div className="ops-rejected-request-details-field-stack">
               <div className="ops-rejected-request-details-label">
                 {t("School Name")}
-              </div>{" "}
+              {" "}
               {/* Class name updated & Translated */}
               <div>{school.name || t("-")}</div> {/* Translated '-' */}
+              </div>
             </div>
             <div className="ops-rejected-request-details-field-stack">
               <div className="ops-rejected-request-details-label">
                 {t("School ID (UDISE)")}
-              </div>{" "}
+              {" "}
               {/* Class name updated & Translated */}
               <div>{school.udise || t("-")}</div> {/* Translated '-' */}
+              </div>
             </div>
             <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
@@ -207,18 +209,19 @@ const StudentRejectedRequestDetails = () => {
               <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Request For:")}
-                </div>{" "}
                 {/* Class name updated & Translated */}
                 <div>
                   {requestDetails.request_type || t("-")} {/* Translated '-' */}
                 </div>
+                </div>{" "}
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Requested On:")}
-                </div>{" "}
+                {" "}
                 {/* Class name updated & Translated */}
                 <div>{formatDT(requestDetails.created_at)}</div>
+                </div>
               </Grid>
             </Grid>
           </Paper>
