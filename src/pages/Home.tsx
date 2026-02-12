@@ -204,7 +204,7 @@ useEffect(() => {
     Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
-    await getAssignments();
+    await getAssignments(true);
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
@@ -255,6 +255,7 @@ useEffect(() => {
     setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
+    await getAssignments(false);
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
@@ -316,7 +317,10 @@ useEffect(() => {
 
   const api = ServiceConfig.getI().apiHandler;
 
-  async function getAssignments(): Promise<TableTypes<"lesson">[]> {
+  async function getAssignments(
+    withListeners: boolean = true
+  ): Promise<TableTypes<"lesson">[]> {
+    
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
@@ -325,8 +329,10 @@ useEffect(() => {
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
     const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
-    if (student) await api.assignmentUserListner(student.id, () => {});
+    if (withListeners) {
+      if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+      if (student) await api.assignmentUserListner(student.id, () => {});
+    }
 
     if (
       student != null &&
