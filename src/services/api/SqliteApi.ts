@@ -592,11 +592,12 @@ export class SqliteApi implements ServiceApi {
           .join(", ");
 
         const stmt = `
-        INSERT INTO ${tableName} (${fieldNames.join(", ")})
-        VALUES (${placeholders})
-        ON CONFLICT(id) DO UPDATE SET
-        ${updateSetClause};
-        `;
+          INSERT INTO ${tableName} (${fieldNames.join(", ")})
+          VALUES (${placeholders})
+          ON CONFLICT(id) DO UPDATE SET
+          ${updateSetClause}
+          WHERE excluded.updated_at > ${tableName}.updated_at;
+          `;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
 
@@ -2829,13 +2830,17 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string,
   ): Promise<TableTypes<"user">> {
+
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
+
     if (languageChanged) {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       localeId = locale?.id ?? DEFAULT_LOCALE_ID;
     }
+
+    const now = new Date().toISOString();
 
     const updateUserQuery = `
       UPDATE "user"
@@ -2849,12 +2854,14 @@ export class SqliteApi implements ServiceApi {
         grade_id = ?,
         language_id = ?,
         locale_id = ?,
-        student_id = ?
+        student_id = ?,
+        updated_at = ?
         ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
+
     try {
-      await this.executeQuery(updateUserQuery, [
+      const params = [
         name,
         age,
         gender,
@@ -2865,8 +2872,18 @@ export class SqliteApi implements ServiceApi {
         languageDocId,
         localeId,
         student_id,
-        student.id,
-      ]);
+        now,
+      ];
+
+      if (languageChanged) {
+        params.push(JSON.stringify([])); // keep your existing logic
+      }
+
+      params.push(student.id);
+
+      await this.executeQuery(updateUserQuery, params);
+
+      // Update local object
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2877,6 +2894,12 @@ export class SqliteApi implements ServiceApi {
       student.language_id = languageDocId;
       student.student_id = student_id;
       student.locale_id = localeId;
+      student.updated_at = now;
+
+      if (languageChanged) {
+        student.learning_path = JSON.stringify([]);
+      }
+
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
@@ -2888,6 +2911,8 @@ export class SqliteApi implements ServiceApi {
         language_id: languageDocId,
         student_id: student_id,
         locale_id: localeId,
+        updated_at: now,
+        ...(languageChanged && { learning_path: JSON.stringify([]) }),
         id: student.id,
       });
       // Check if the class has changed
@@ -2896,24 +2921,31 @@ export class SqliteApi implements ServiceApi {
         WHERE user_id = ? AND is_deleted = 0 AND role = 'student'
         LIMIT 1
       `;
+
       const currentClassRes = await this.executeQuery(currentClassIdQuery, [
         student.id,
       ]);
+
       const currentClassId = currentClassRes?.values?.[0]?.class_id;
 
       if (currentClassId !== newClassId) {
         // Update class_user table to set previous record as deleted
-        const currentClassUserId = `SELECT id FROM class_user where user_id =? AND class_id = ? AND is_deleted = 0`;
-        var data = await this.executeQuery(currentClassUserId, [
+        const currentClassUserId = `
+          SELECT id FROM class_user 
+          WHERE user_id = ? AND class_id = ? AND is_deleted = 0
+        `;
+
+        const data = await this.executeQuery(currentClassUserId, [
           student.id,
           currentClassId,
         ]);
+
         const deleteOldClassUserQuery = `
           UPDATE class_user
           SET is_deleted = 1, updated_at = ?
           WHERE id = ? AND is_deleted = 0;
         `;
-        const now = new Date().toISOString();
+
         await this.executeQuery(deleteOldClassUserQuery, [
           now,
           data?.values?.[0]?.id,
