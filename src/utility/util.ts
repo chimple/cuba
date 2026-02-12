@@ -74,6 +74,7 @@ import {
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
   GrowthBookAttributes,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -2942,7 +2943,7 @@ export class Util {
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean,
-    isAborted: boolean = false,
+    isFullPathwayTerminated: boolean = false,
     abortCourseId?: string,
     isAssessmentLesson: boolean = false,
   ) {
@@ -2955,7 +2956,7 @@ export class Util {
     if (!learningPath) return;
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
-    if (isAborted && abortCourseId && isAssessmentLesson) {
+    if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
       const courseIndex = learningPath.courses.courseList.findIndex(
         (c: any) => c.course_id === abortCourseId,
       );
@@ -3068,7 +3069,7 @@ export class Util {
           // ASSESSMENT COMPLETED CASE → rebuild initial learning path
           if (
             isAssessmentLesson &&
-            !isAborted &&
+            !isFullPathwayTerminated &&
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
             const courseIndex = learningPath.courses.courseList.findIndex(
@@ -3256,15 +3257,13 @@ export class Util {
       const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
       const localStarsRaw = storedStarsMap[studentId];
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      const latestStarsRaw = latestStarsMap[studentId];
+      const latestStarsRaw = localStorage.getItem(LATEST_STARS(studentId));
 
       const localStars = Number.isFinite(+localStarsRaw)
         ? parseInt(localStarsRaw, 10)
         : 0;
-      const latestStars = Number.isFinite(+latestStarsRaw)
-        ? parseInt(latestStarsRaw, 10)
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? "0"))
+        ? parseInt(latestStarsRaw ?? "0", 10)
         : 0;
 
       // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
@@ -3322,10 +3321,7 @@ export class Util {
       storedStarsMap[studentId] = stars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      latestStarsMap[studentId] = stars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
       console.warn("[Util.setLocalStarsForStudent] failed", e);
     }
@@ -3705,7 +3701,39 @@ export class Util {
       ? localStorage.removeItem(storageKey)
       : localStorage.setItem(storageKey, JSON.stringify(map));
   }
+  static upsertResultWithAggregation(
+    resultsBucket: any[],
+    result: any,
+    lesson?: TableTypes<"lesson">,
+  ) {
+    // LIDO → aggregate per lesson
+    if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+      const existing = resultsBucket.find(
+        (r) => r.lesson_id === result.lesson_id,
+      );
 
+      if (existing) {
+        const total =
+          (existing._totalScore ?? existing.score ?? 0) + (result.score ?? 0);
+
+        const count = (existing._count ?? 1) + 1;
+
+        existing._totalScore = total;
+        existing._count = count;
+        existing.score = Math.round(total / count);
+      } else {
+        resultsBucket.push({
+          ...result,
+          score: result.score ?? 0,
+          _totalScore: result.score ?? 0,
+          _count: 1,
+        });
+      }
+    } else {
+      // Non-LIDO → keep all attempts
+      resultsBucket.push(result);
+    }
+  }
   public static async updateSchStdAttb(): Promise<any[]> {
     try {
       const student = Util.getCurrentStudent();
