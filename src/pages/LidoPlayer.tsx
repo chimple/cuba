@@ -31,6 +31,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import { palUtil } from "../utility/palUtil";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { registerBackButtonHandler } from "../common/backButtonRegistry";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -81,6 +82,7 @@ const LidoPlayer: FC = () => {
     chapterId: undefined as string | undefined,
     isStudentLinked: false,
   });
+  const isExitingRef = useRef(false);
 
   const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
@@ -93,10 +95,22 @@ const LidoPlayer: FC = () => {
   };
 
   const push = () => {
+    if (isExitingRef.current) return;
+    isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
+    const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    history.replace(fromPath, state);
+    let targetPath = fromPath;
+    if (Capacitor.isNativePlatform() || !!urlParams.get("isReload")) {
+      const separator = fromPath.includes("?") ? "&" : "?";
+      targetPath = `${fromPath}${separator}isReload=true`;
+    }
+
+    history.replace(targetPath, state);
     setIsLoading(false);
+    setTimeout(() => {
+      isExitingRef.current = false;
+    }, 300);
   };
 
   const processStoredResults = async (isAborted: boolean = false) => {
@@ -640,6 +654,19 @@ const LidoPlayer: FC = () => {
       window.removeEventListener(LidoLessonEndKey, onLessonEnd);
       window.removeEventListener(LidoActivityEndKey, onActivityEnd);
     };
+  }, []);
+
+  useEffect(() => {
+    const unregister = registerBackButtonHandler(
+      () => {
+        if (window.location.pathname !== PAGES.LIDO_PLAYER) return false;
+        push();
+        return true;
+      },
+      { path: PAGES.LIDO_PLAYER },
+    );
+
+    return unregister;
   }, []);
 
   const presentToast = async () => {

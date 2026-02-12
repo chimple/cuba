@@ -39,30 +39,15 @@ const isActiveForPath = (record: BackButtonRecord, path: string) => {
 };
 
 const runBackButtonHandlers = async (path: string) => {
-  console.log(
-    `[BackButtonRegistry] Running back button handlers for path: ${path}, Active handlers: ${handlers.length}`,
-  );
-
   for (let i = handlers.length - 1; i >= 0; i--) {
     const record = handlers[i];
     if (!isActiveForPath(record, path)) continue;
 
-    console.log(
-      `[BackButtonRegistry] Executing handler #${i} - Path: ${record.path}, Scope: ${record.scope}`,
-    );
-
     const handled = await record.handler();
     if (handled !== false) {
-      console.log(
-        `[BackButtonRegistry] Handler #${i} handled the back event (returned: ${handled})`,
-      );
       return true;
     }
   }
-
-  console.log(
-    `[BackButtonRegistry] No handlers handled the back event, falling back to default behavior`,
-  );
   return false;
 };
 
@@ -75,18 +60,10 @@ export const registerBackButtonHandler = (
   const record: BackButtonRecord = { handler, path, scope };
   handlers.push(record);
 
-  console.log(
-    `[BackButtonRegistry] Handler registered - Path: ${path}, Scope: ${scope}, Total handlers: ${handlers.length}, Stack:`,
-    new Error().stack?.split("\n").slice(2, 6).join("\n"),
-  );
-
   return () => {
     const index = handlers.lastIndexOf(record);
     if (index >= 0) {
       handlers.splice(index, 1);
-      console.log(
-        `[BackButtonRegistry] Handler unregistered - Path: ${path}, Scope: ${scope}, Remaining handlers: ${handlers.length}`,
-      );
     }
   };
 };
@@ -200,43 +177,25 @@ export const HardwareBackButtonHandler = ({
       if (isHandlingRef.current) return;
       isHandlingRef.current = true;
       try {
-        console.log(
-          `[HardwareBackButtonHandler] Android back pressed - Current path: ${getCurrentPath()}, canGoBack: ${canGoBack}`,
-        );
-
         const popupData = popupDataRefRef.current.current;
         if (popupData) {
-          console.log(
-            `[HardwareBackButtonHandler] Step 1: Dismissing popup - Config:`,
-            popupData.config,
-          );
           popupManagerRef.current.onDismiss(popupData.config);
           setPopupDataRef.current(null);
           return;
         }
 
         if (showModalRefRef.current?.current && setShowModalRef.current) {
-          console.log(`[HardwareBackButtonHandler] Step 2: Closing modal`);
           setShowModalRef.current(false);
           return;
         }
 
         const dismissed = await dismissActiveOverlay();
         if (dismissed) {
-          console.log(
-            `[HardwareBackButtonHandler] Step 3: Dismissed active overlay (ion-modal, ion-alert, etc.)`,
-          );
           return;
         }
 
-        console.log(
-          `[HardwareBackButtonHandler] Step 4: Running registered back button handlers`,
-        );
         const handled = await runBackButtonHandlers(getCurrentPath());
         if (handled) {
-          console.log(
-            `[HardwareBackButtonHandler] Registered handler handled the back event`,
-          );
           return;
         }
 
@@ -246,14 +205,8 @@ export const HardwareBackButtonHandler = ({
             : historyRef.current.length > 1;
 
         if (canNavigateBack) {
-          console.log(
-            `[HardwareBackButtonHandler] Step 5: Navigating back in history (history.length: ${historyRef.current.length})`,
-          );
           historyRef.current.goBack();
         } else {
-          console.log(
-            `[HardwareBackButtonHandler] Cannot navigate back - No history available`,
-          );
         }
       } finally {
         isHandlingRef.current = false;

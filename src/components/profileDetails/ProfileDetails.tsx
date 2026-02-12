@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { IonPage, useIonViewDidEnter, useIonViewWillLeave } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -29,7 +29,10 @@ import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
 import { logProfileClick } from "../../analytics/profileClickUtil";
 import i18n from "../../i18n";
-import { registerBackButtonHandler } from "../../common/backButtonRegistry";
+import {
+  registerBackButtonHandler,
+  reinitializeHardwareBackButton,
+} from "../../common/backButtonRegistry";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -51,13 +54,11 @@ const ProfileDetails = () => {
   const location = useLocation();
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // --- STATE ---
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
   const [className, setClassName] = useState<string>("");
   const [schoolName, setSchoolName] = useState<string>("");
 
-  // --- REFS FOR BACK HANDLER (Critical for Freshness) ---
   const isCreatingProfileRef = useRef(false);
   const parentHasStudentRef = useRef(false);
   const backRegistrationRef = useRef<(() => void) | null>(null);
@@ -116,8 +117,6 @@ const ProfileDetails = () => {
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
     languageId: isEdit ? (currentStudent?.language_id ?? "") : "",
   });
-
-  // --- EFFECTS ---
 
   useEffect(() => {
     if (isEdit && currentStudent) {
@@ -201,25 +200,19 @@ const ProfileDetails = () => {
       : `${base}?${CONTINUE}=true`;
   };
 
-  // ---------------------------------------------------------------------------
-  // HARDWARE BACK BUTTON LOGIC
-  // ---------------------------------------------------------------------------
-
   const executeBackLogic = () => {
-    // 1. Check Locks (Refs)
+    // Check Locks (Refs)
     if (isCreatingProfileRef.current || isNavigatingBackRef.current) {
       return;
     }
     isNavigatingBackRef.current = true;
 
-    console.log("ProfileDetails: Hardware Back Triggered");
-
     try {
-      // 2. Determine Mode based on Live Pathname (Not State)
+      // Determine Mode based on Live Pathname (Not State)
       const currentPath = window.location.pathname;
       const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
 
-      // 3. EDIT MODE Logic
+      // EDIT MODE Logic
       if (isEditMode) {
         const state = history.location.state as any;
         if (state?.from) {
@@ -232,17 +225,27 @@ const ProfileDetails = () => {
         return;
       }
 
-      // 4. CREATE MODE Logic
-      // Check ParentHasStudent Ref (Fresh data)
-      if (parentHasStudentRef.current) {
-        history.replace(PAGES.HOME);
+      // CREATE MODE Logic
+      const state = history.location.state as any;
+      const createFallbackPath = parentHasStudentRef.current
+        ? PAGES.DISPLAY_STUDENT
+        : PAGES.SELECT_MODE;
+      const targetPath = withContinueIfNeeded(
+        state?.from ?? createFallbackPath,
+      );
+
+      if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
+        // Reinitialize hardware back handling only for create -> display students path.
+        reinitializeHardwareBackButton();
+        const separator = targetPath.includes("?") ? "&" : "?";
+        history.replace(`${targetPath}${separator}forceReload=1`);
       } else {
-        // First onboarding student: Go back to Login/Landing
-        history.replace("/"); // Replace with your Landing/Login route
+        history.replace(targetPath);
       }
+      return;
     } catch (e) {
       console.error("Back Logic Error", e);
-      history.replace(PAGES.HOME);
+      history.replace(PAGES.DISPLAY_STUDENT);
     } finally {
       setTimeout(() => {
         isNavigatingBackRef.current = false;
@@ -250,30 +253,29 @@ const ProfileDetails = () => {
     }
   };
 
-  useIonViewDidEnter(() => {
-    // Cleanup previous if exists (Double protection)
-    if (backRegistrationRef.current) backRegistrationRef.current();
-
-    // Register Handler
-    backRegistrationRef.current = registerBackButtonHandler(() => {
-      executeBackLogic();
-    });
-  });
-
-  useIonViewWillLeave(() => {
-    // Unregister immediately
+  useEffect(() => {
     if (backRegistrationRef.current) {
       backRegistrationRef.current();
       backRegistrationRef.current = null;
     }
-    // Unlock UI
-    setIsCreatingProfile(false);
-    isNavigatingBackRef.current = false;
-  });
 
-  // ---------------------------------------------------------------------------
-  // FORM ACTIONS
-  // ---------------------------------------------------------------------------
+    backRegistrationRef.current = registerBackButtonHandler(
+      () => {
+        executeBackLogic();
+        return true;
+      },
+      { path: location.pathname },
+    );
+
+    return () => {
+      if (backRegistrationRef.current) {
+        backRegistrationRef.current();
+        backRegistrationRef.current = null;
+      }
+      setIsCreatingProfile(false);
+      isNavigatingBackRef.current = false;
+    };
+  }, [location.pathname]);
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
@@ -420,189 +422,202 @@ const ProfileDetails = () => {
   };
 
   return (
-    <IonPage id="profile-details-page">
-      <div
-        ref={profileRef}
-        className="profiledetails-container"
-        onClick={(e) => {
-          logProfileClick(e).catch((err) =>
-            console.error("Error in logProfileClick", err),
-          );
-        }}
-      >
-        {(parentHasStudent || isEdit) && (
-          <button
-            className="profiledetails-back-button"
-            onClick={executeBackLogic}
-            aria-label="Back"
-            id="click_on_profile_details_back_button"
-          >
-            <img src="/assets/icons/BackButtonIcon.svg" alt="BackButtonIcon" />
-          </button>
-        )}
+    <div
+      ref={profileRef}
+      className="profiledetails-container"
+      onClick={(e) => {
+        logProfileClick(e).catch((err) =>
+          console.error("Error in logProfileClick", err),
+        );
+      }}
+    >
+      {parentHasStudent && (
+        <button
+          className="profiledetails-back-button"
+          onClick={() => {
+            const targetPage = PAGES.HOME;
+            Util.setPathToBackButton(targetPage, history);
+          }}
+          aria-label="Back"
+          id="click_on_profile_details_back_button"
+        >
+          <img src="/assets/icons/BackButtonIcon.svg" alt="BackButtonIcon" />
+        </button>
+      )}
+      <div className="profiledetails-avatar-form">
+        <div className="profiledetails-avatar-section">
+          <img
+            src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
+            className="profiledetails-avatar-image"
+          />
+        </div>
 
-        <div className="profiledetails-avatar-form">
-          <div className="profiledetails-avatar-section">
-            <img
-              src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
-              className="profiledetails-avatar-image"
-              alt="avatar"
+        <div className="profiledetails-form-fields">
+          {/* Header Info: Class Name | School Name */}
+          {(className || schoolName) && (
+            <div className="profiledetails-header-info">
+              {className && (
+                <div className="pd-info-item">
+                  <img
+                    src="/assets/icons/classIcon.svg"
+                    alt="class"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <span>{className}</span>
+                </div>
+              )}
+              {className && schoolName && <span className="pd-divider">|</span>}
+              {schoolName && (
+                <div className="pd-info-item">
+                  <img
+                    src="/assets/icons/scholarIcon.svg"
+                    alt="school"
+                    className="profiledetails-info-icon"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <span>{schoolName}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* {mode !== FORM_MODES.ALL_OPTIONAL && (
+            <div className="profiledetails-required-indicator">
+              {`* ${t("Indicates Required Information")}`}
+            </div>
+          )} */}
+
+          <div className="profiledetails-full-name">
+            <InputWithIcons
+              id="click_on_profile_details_full_name"
+              label={t("Full Name")}
+              placeholder={t("Name Surname")}
+              value={fullName ?? ""}
+              setValue={setFullName}
+              icon="/assets/icons/BusinessCard.svg"
+              // required={
+              //   mode === FORM_MODES.ALL_REQUIRED ||
+              //   mode === FORM_MODES.NAME_REQUIRED
+              // }
             />
           </div>
 
-          <div className="profiledetails-form-fields">
-            {(className || schoolName) && (
-              <div className="profiledetails-header-info">
-                {className && (
-                  <div className="pd-info-item">
-                    <img
-                      src="/assets/icons/classIcon.svg"
-                      alt="class"
-                      onError={(e) => (e.currentTarget.style.display = "none")}
-                    />
-                    <span>{className}</span>
-                  </div>
-                )}
-                {className && schoolName && (
-                  <span className="pd-divider">|</span>
-                )}
-                {schoolName && (
-                  <div className="pd-info-item">
-                    <img
-                      src="/assets/icons/scholarIcon.svg"
-                      alt="school"
-                      className="profiledetails-info-icon"
-                      onError={(e) => (e.currentTarget.style.display = "none")}
-                    />
-                    <span>{schoolName}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="profiledetails-full-name">
-              <InputWithIcons
-                id="click_on_profile_details_full_name"
-                label={t("Full Name")}
-                placeholder={t("Name Surname")}
-                value={fullName ?? ""}
-                setValue={setFullName}
-                icon="/assets/icons/BusinessCard.svg"
+          <div className="profiledetails-row-group">
+            <div className="profiledetails-flex-item">
+              <SelectWithIcons
+                id="click_on_profile_details_age"
+                label={t("Age")}
+                value={age?.toString() ?? ""}
+                setValue={(age) => setAge(parseInt(age))}
+                icon="/assets/icons/age.svg"
+                optionId={`click_on_profile_details_age_option_${age}`}
+                options={[
+                  {
+                    value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+                    label: `≤${t("4 years")}`,
+                  },
+                  { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+                  { value: AGE_OPTIONS.SIX, label: t("6 years") },
+                  { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+                  { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+                  { value: AGE_OPTIONS.NINE, label: t("9 years") },
+                  {
+                    value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+                    label: `≥${t("10 years")}`,
+                  },
+                ]}
+                // required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>
 
-            <div className="profiledetails-row-group">
-              <div className="profiledetails-flex-item">
-                <SelectWithIcons
-                  id="click_on_profile_details_age"
-                  label={t("Age")}
-                  value={age?.toString() ?? ""}
-                  setValue={(age) => setAge(parseInt(age))}
-                  icon="/assets/icons/age.svg"
-                  optionId={`click_on_profile_details_age_option_${age}`}
-                  options={[
-                    {
-                      value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-                      label: `≤${t("4 years")}`,
-                    },
-                    { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-                    { value: AGE_OPTIONS.SIX, label: t("6 years") },
-                    { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-                    { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-                    { value: AGE_OPTIONS.NINE, label: t("9 years") },
-                    {
-                      value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                      label: `≥${t("10 years")}`,
-                    },
-                  ]}
-                />
-              </div>
-
-              <div className="profiledetails-flex-item">
-                <SelectWithIcons
-                  id="click_on_profile_details_language"
-                  label={t("Language")}
-                  value={languageId}
-                  setValue={setLanguageId}
-                  icon="/assets/icons/language.svg"
-                  optionId={`click_on_profile_details_language_option_${languageId || ""}`}
-                  options={languages.map((lang) => ({
-                    value: lang.id,
-                    label: t(lang.name),
-                  }))}
-                />
-              </div>
-            </div>
-
-            <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
-              <legend className="profiledetails-gender-label">
-                <div
-                  className="profiledetails-gender-label-text"
-                  ref={labelRef}
-                >
-                  {t("Gender")}
-                </div>
-              </legend>
-              <div className="profiledetails-gender-buttons">
-                {[
-                  { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
-                  { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
-                  {
-                    label: t("UNSPECIFIED"),
-                    value: GENDER.OTHER,
-                    name: "UNSPECIFIED",
-                  },
-                ].map(({ label, value, name }) => {
-                  const isSelected = gender === value;
-                  const iconName = isSelected
-                    ? `${name.toLowerCase()}Selected`
-                    : name.toLowerCase();
-
-                  return (
-                    <button
-                      key={label}
-                      id={`click_on_profile_details_gender_${label.toLowerCase()}`}
-                      type="button"
-                      className={`profiledetails-gender-btn ${isSelected ? "selected" : ""}`}
-                      onClick={() => setGender(value)}
-                    >
-                      <img
-                        src={`/assets/icons/${iconName}.svg`}
-                        alt={`${label} icon`}
-                      />
-                      {t(label)}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-
-            <div className="profiledetails-button-group">
-              {shouldShowSkip && (
-                <button
-                  id="click_on_profile_details_skip"
-                  className="profiledetails-skip-button"
-                  onClick={handleSkip}
-                >
-                  {t("SKIP FOR NOW")}
-                </button>
-              )}
-
-              <button
-                id="click_on_profile_details_save"
-                className="profiledetails-save-button"
-                disabled={!isSaveEnabled || isCreatingProfile}
-                onClick={handleSave}
-              >
-                {t("SAVE")}
-              </button>
+            <div className="profiledetails-flex-item">
+              <SelectWithIcons
+                id="click_on_profile_details_language"
+                label={t("Language")}
+                value={languageId}
+                setValue={setLanguageId}
+                icon="/assets/icons/language.svg"
+                optionId={
+                  `click_on_profile_details_language_option_` +
+                  (languageId || "")
+                }
+                options={languages.map((lang) => ({
+                  value: lang.id,
+                  label: t(lang.name),
+                }))}
+                // required={mode === FORM_MODES.ALL_REQUIRED}
+              />
             </div>
           </div>
-        </div>
 
-        <Loading isLoading={isCreatingProfile} />
+          <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
+            <legend className="profiledetails-gender-label">
+              <div className="profiledetails-gender-label-text" ref={labelRef}>
+                {t("Gender")}
+                {/* {mode === FORM_MODES.ALL_REQUIRED && (
+                  <span className="profiledetails-required">*</span>
+                )} */}
+              </div>
+            </legend>
+            <div className="profiledetails-gender-buttons">
+              {[
+                { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
+                { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
+                {
+                  label: t("UNSPECIFIED"),
+                  value: GENDER.OTHER,
+                  name: "UNSPECIFIED",
+                },
+              ].map(({ label, value, name }) => {
+                const isSelected = gender === value;
+                const iconName = isSelected
+                  ? `${name.toLowerCase()}Selected`
+                  : name.toLowerCase();
+
+                return (
+                  <button
+                    key={label}
+                    id={`click_on_profile_details_gender_${label.toLowerCase()}`}
+                    type="button"
+                    className={`profiledetails-gender-btn ${
+                      isSelected ? "selected" : ""
+                    }`}
+                    onClick={() => setGender(value)}
+                  >
+                    <img
+                      src={`/assets/icons/${iconName}.svg`}
+                      alt={`${label} icon`}
+                    />
+                    {t(label)}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div className="profiledetails-button-group">
+            {shouldShowSkip && (
+              <button
+                id="click_on_profile_details_skip"
+                className="profiledetails-skip-button"
+                onClick={handleSkip}
+              >
+                {t("SKIP FOR NOW")}
+              </button>
+            )}
+            <button
+              id="click_on_profile_details_save"
+              className="profiledetails-save-button"
+              disabled={!isSaveEnabled || isCreatingProfile}
+              onClick={handleSave}
+            >
+              {t("SAVE")}
+            </button>
+          </div>
+        </div>
       </div>
-    </IonPage>
+      <Loading isLoading={isCreatingProfile} />
+    </div>
   );
 };
 
