@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -72,6 +73,8 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
+  GrowthBookAttributes,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -112,6 +115,7 @@ import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 import { buildInitialLearningPath } from "../components/LearningPathway";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 declare global {
   interface Window {
@@ -132,7 +136,6 @@ export interface HotUpdateState {
   error: string;
   isAuto: boolean;
 }
-
 
 export class Util {
   public static port: PortPlugin;
@@ -2258,7 +2261,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2271,7 +2274,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2940,7 +2943,7 @@ export class Util {
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean,
-    isAborted: boolean = false,
+    isFullPathwayTerminated: boolean = false,
     abortCourseId?: string,
     isAssessmentLesson: boolean = false,
   ) {
@@ -2953,7 +2956,7 @@ export class Util {
     if (!learningPath) return;
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
-    if (isAborted && abortCourseId && isAssessmentLesson) {
+    if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
       const courseIndex = learningPath.courses.courseList.findIndex(
         (c: any) => c.course_id === abortCourseId,
       );
@@ -2969,7 +2972,6 @@ export class Util {
           framework_id:
             c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
         }));
-
 
       const rebuiltPath = await buildInitialLearningPath(
         storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
@@ -2992,7 +2994,7 @@ export class Util {
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false
+        false,
       );
 
       const updatedStudent =
@@ -3067,11 +3069,11 @@ export class Util {
           // ASSESSMENT COMPLETED CASE → rebuild initial learning path
           if (
             isAssessmentLesson &&
-            !isAborted &&
+            !isFullPathwayTerminated &&
             storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
           ) {
             const courseIndex = learningPath.courses.courseList.findIndex(
-              (c: any) => c.course_id === currentCourse.course_id
+              (c: any) => c.course_id === currentCourse.course_id,
             );
 
             if (courseIndex === -1) return;
@@ -3101,7 +3103,7 @@ export class Util {
             await ServiceConfig.getI().apiHandler.updateLearningPath(
               currentStudent,
               JSON.stringify(learningPath),
-              false
+              false,
             );
 
             const updatedStudent =
@@ -3119,7 +3121,7 @@ export class Util {
           if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
             const palPath = await palUtil.getPalLessonPathForCourse(
               currentCourse.course_id,
-              currentStudent.id
+              currentStudent.id,
             );
 
             if (palPath?.length) {
@@ -3255,15 +3257,13 @@ export class Util {
       const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
       const localStarsRaw = storedStarsMap[studentId];
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      const latestStarsRaw = latestStarsMap[studentId];
+      const latestStarsRaw = localStorage.getItem(LATEST_STARS(studentId));
 
       const localStars = Number.isFinite(+localStarsRaw)
         ? parseInt(localStarsRaw, 10)
         : 0;
-      const latestStars = Number.isFinite(+latestStarsRaw)
-        ? parseInt(latestStarsRaw, 10)
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? "0"))
+        ? parseInt(latestStarsRaw ?? "0", 10)
         : 0;
 
       // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
@@ -3321,10 +3321,7 @@ export class Util {
       storedStarsMap[studentId] = stars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      latestStarsMap[studentId] = stars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
       console.warn("[Util.setLocalStarsForStudent] failed", e);
     }
@@ -3658,32 +3655,32 @@ export class Util {
     }
   }
 
-public static getHotUpdateState(): HotUpdateState {
-  const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
-  return raw
-    ? JSON.parse(raw)
-    : {
-        status: "Idle",
-        progress: 0,
-        channel: "N/A",
-        lastChecked: "N/A",
-        lastUpdated: "N/A",
-        error: "",
-        isAuto: false,
-      };
-}
+  public static getHotUpdateState(): HotUpdateState {
+    const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : {
+          status: "Idle",
+          progress: 0,
+          channel: "N/A",
+          lastChecked: "N/A",
+          lastUpdated: "N/A",
+          error: "",
+          isAuto: false,
+        };
+  }
 
-public static setHotUpdateState(partial: Partial<HotUpdateState>) {
-  const current = this.getHotUpdateState();
-  const updated = { ...current, ...partial };
-  localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+  public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+    const current = this.getHotUpdateState();
+    const updated = { ...current, ...partial };
+    localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
 
-  window.dispatchEvent(new Event("hot-update-progress"));
-}
+    window.dispatchEvent(new Event("hot-update-progress"));
+  }
   static async removeCourseScopedKey(
     baseKey: string,
     userId: string,
-    courseId: string
+    courseId: string,
   ) {
     if (!baseKey || !userId || !courseId) return;
 
@@ -3704,5 +3701,74 @@ public static setHotUpdateState(partial: Partial<HotUpdateState>) {
       ? localStorage.removeItem(storageKey)
       : localStorage.setItem(storageKey, JSON.stringify(map));
   }
+  static upsertResultWithAggregation(
+    resultsBucket: any[],
+    result: any,
+    lesson?: TableTypes<"lesson">,
+  ) {
+    // LIDO → aggregate per lesson
+    if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+      const existing = resultsBucket.find(
+        (r) => r.lesson_id === result.lesson_id,
+      );
 
+      if (existing) {
+        const total =
+          (existing._totalScore ?? existing.score ?? 0) + (result.score ?? 0);
+
+        const count = (existing._count ?? 1) + 1;
+
+        existing._totalScore = total;
+        existing._count = count;
+        existing.score = Math.round(total / count);
+      } else {
+        resultsBucket.push({
+          ...result,
+          score: result.score ?? 0,
+          _totalScore: result.score ?? 0,
+          _count: 1,
+        });
+      }
+    } else {
+      // Non-LIDO → keep all attempts
+      resultsBucket.push(result);
+    }
+  }
+  public static async updateSchStdAttb(): Promise<any[]> {
+    try {
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return [];
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData) return [];
+      const device = await Util.logDeviceInfo();
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
+        classes: linkedData.classes.map((item: any) => item.id),
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      return [];
+    } catch (error) {
+      console.error("[Util.updateSchStdAttb] failed:", error);
+      return [];
+    }
+  }
+
+  public static async logDeviceInfo(): Promise<any> {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value,
+    };
+    return device;
+  }
 }

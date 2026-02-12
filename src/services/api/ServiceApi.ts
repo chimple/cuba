@@ -26,6 +26,7 @@ import {
   TeacherAPIResponse,
   SchoolVisitAction,
   SchoolVisitType,
+  RESULT_STATUS,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -542,7 +543,8 @@ export interface ServiceApi {
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
     activities_scores?: string | undefined,
-    user_id?: string | undefined
+    user_id?: string | undefined,
+    status?: RESULT_STATUS | undefined
   ): Promise<TableTypes<"result">>;
 
   /**
