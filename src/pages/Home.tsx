@@ -193,7 +193,7 @@ const Home: FC = () => {
     Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
-    await getAssignments();
+    await getAssignments(true);
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
@@ -244,6 +244,7 @@ const Home: FC = () => {
     setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
+    await getAssignments(false);
 
     // Call these to ensure attributes are set on Home load
     const updateAtb = async () => {
@@ -313,7 +314,9 @@ const Home: FC = () => {
 
   const api = ServiceConfig.getI().apiHandler;
 
-  async function getAssignments(): Promise<TableTypes<"lesson">[]> {
+  async function getAssignments(
+     withListeners: boolean = true
+  ): Promise<TableTypes<"lesson">[]> {
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
@@ -322,8 +325,10 @@ const Home: FC = () => {
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
     const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
-    if (student) await api.assignmentUserListner(student.id, () => {});
+     if (withListeners) {
+      if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+      if (student) await api.assignmentUserListner(student.id, () => {});
+    }
 
     if (
       student != null &&
