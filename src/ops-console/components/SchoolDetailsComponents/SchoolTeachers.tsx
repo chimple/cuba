@@ -10,8 +10,13 @@ import {
   CircularProgress,
   Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
@@ -39,6 +44,10 @@ import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
 import { ClassRow, SchoolData } from "./SchoolClass";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import ActionMenu from "./ActionMenu";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -58,6 +67,7 @@ interface DisplayTeacher {
   performance: EnumType<"fc_support_level">;
   interactPayload: TeacherInfo;
   whatsappGroupStatus?: WhatsappGroupStatusKey;
+  teacher_actions?: string;
 }
 
 interface SchoolTeachersProps {
@@ -106,15 +116,26 @@ const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
       }
       label={t(WHATSAPP_GROUP_STATUS[key])}
       size="small"
-      className={`schoolteachers-whatsapp-chip ${getWhatsappChipClass(key)}`}
-      sx={{
-        fontWeight: 500,
-        fontSize: "0.75rem",
-        height: 24,
-        borderRadius: "9999px",
-      }}
+      className={`schoolteachers-whatsapp-chip schoolteachers-whatsapp-chip-base ${getWhatsappChipClass(key)}`}
     />
   );
+};
+
+const getPerformancePillClass = (
+  performance: EnumType<"fc_support_level">,
+): string => {
+  switch (performance) {
+    case PerformanceLevel.NOT_ASSIGNING:
+      return "schoolTeachers-performance-pill-not-assigning";
+    case PerformanceLevel.ONE_TO_TWO_ASSIGNED:
+      return "schoolTeachers-performance-pill-one-to-two";
+    case PerformanceLevel.THREE_TO_FOUR_ASSIGNED:
+      return "schoolTeachers-performance-pill-three-to-four";
+    case PerformanceLevel.FOUR_PLUS_ASSIGNED:
+      return "schoolTeachers-performance-pill-four-plus";
+    default:
+      return "schoolTeachers-performance-pill-not-tracked";
+  }
 };
 
 // Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
@@ -136,7 +157,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
   const [totalCount, setTotalCount] = useState<number>(
-    data.totalTeacherCount || 0
+    data.totalTeacherCount || 0,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
@@ -159,17 +180,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [currentTeachers, setcurrentTeachers] = useState<TeacherInfo>();
   const [teacherStatus, setTeacherStatus] =
     useState<EnumType<"fc_support_level">>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetTeacher, setDeleteTargetTeacher] =
+    useState<TeacherInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const getTeacherInfo = useCallback(
     (userId: string, classId: string): TeacherInfo | null => {
       if (!Array.isArray(teachers)) return null;
 
       return (
         teachers.find(
-          (t) => t.user?.id === userId && t.classWithidname.id === classId
+          (t) => t.user?.id === userId && t.classWithidname.id === classId,
         ) || null
       );
     },
-    [teachers]
+    [teachers],
   );
 
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
@@ -179,7 +204,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [whatsappMembersByClass, setWhatsappMembersByClass] = useState<
     Map<string, Set<string>>
   >(new Map());
-const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
     return (currentPage: number, search: string, silent = false) => {
@@ -196,7 +221,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
               schoolId,
               search,
               currentPage,
-              ROWS_PER_PAGE
+              ROWS_PER_PAGE,
             );
             setTeachers(result.data);
             setTotalCount(result.total);
@@ -204,7 +229,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             response = await api.getTeacherInfoBySchoolId(
               schoolId,
               currentPage,
-              ROWS_PER_PAGE
+              ROWS_PER_PAGE,
             );
             setTeachers(response.data);
             setTotalCount(response.total);
@@ -222,7 +247,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     if (isAddTeacherModalOpen) {
       setErrorMessage({
         text: t(
-          "*    Provide at least one contact method (phone number or email address) for the teacher."
+          "*    Provide at least one contact method (phone number or email address) for the teacher.",
         ),
         type: "error",
       });
@@ -276,7 +301,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     const bot = data?.schoolData?.whatsapp_bot_number;
     const classes = Array.isArray(data.classData) ? data.classData : [];
     const groupTargets = classes.filter(
-      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== ""
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== "",
     );
 
     // No bot or no linked groups: clear cache so pills show "Not Checked".
@@ -293,14 +318,14 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             try {
               const group = await api.getWhatsappGroupDetails(
                 row.group_id as string,
-                bot
+                bot,
               );
               return [row.id as string, group] as const;
             } catch (error) {
               console.error("Failed to fetch WhatsApp group members:", error);
               return [row.id as string, null] as const;
             }
-          })
+          }),
         );
 
         if (cancelled) return;
@@ -311,7 +336,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
           const normalizedMembers = new Set<string>(
             members
               .map((member: unknown) => normalizePhone10(String(member)))
-              .filter((member): member is string => Boolean(member))
+              .filter((member): member is string => Boolean(member)),
           );
           next.set(classId, normalizedMembers);
         });
@@ -334,7 +359,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       if (!classId) return "";
       return String(classGroupIdMap.get(classId) ?? "").trim();
     },
-    [classGroupIdMap]
+    [classGroupIdMap],
   );
 
   const handlePageChange = (newPage: number) => setPage(newPage);
@@ -385,7 +410,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
           },
         };
       }),
-    [teachers]
+    [teachers],
   );
 
   const studentPhoneSet = useMemo(() => {
@@ -406,9 +431,9 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         normalizedTeachers,
         filters,
         searchTerm,
-        "teacher"
+        "teacher",
       ),
-    [normalizedTeachers, filters, searchTerm]
+    [normalizedTeachers, filters, searchTerm],
   );
   const sortedTeachers = useMemo(() => {
     return [...filteredTeachers].sort((a, b) => {
@@ -463,7 +488,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       const phone = normalizePhone10(String(teacher.user?.phone ?? ""));
       return !!phone && members.has(phone);
     },
-    [whatsappMembersByClass]
+    [whatsappMembersByClass],
   );
 
   // Gate group membership by the teacher is_wa_contact flag.
@@ -494,7 +519,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
       }
       return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
     },
-    [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet]
+    [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet],
   );
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
@@ -515,7 +540,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         teachersWithPerformance.find(
           (t) =>
             t.id === apiTeacher.user.id &&
-            t.classId === apiTeacher.classWithidname?.id
+            t.classId === apiTeacher.classWithidname?.id,
         )?.performance ?? "not_assigning",
     }));
   }, [sortedTeachers, teachersWithPerformance]);
@@ -553,7 +578,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
           const count = await api.getRecentAssignmentCountByTeacher(
             teacherId,
-            classId
+            classId,
           );
 
           const perfLevel = mapCountToPerformance(count);
@@ -573,7 +598,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
             interactPayload: apiTeacher,
             performance: perfLevel as EnumType<"fc_support_level">,
           };
-        })
+        }),
       );
 
       setTeachersWithPerformance(enriched);
@@ -589,7 +614,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
         ...row,
         whatsappGroupStatus: getWhatsappGroupStatus(row.interactPayload),
       })),
-    [teachersWithPerformance, getWhatsappGroupStatus]
+    [teachersWithPerformance, getWhatsappGroupStatus],
   );
 
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
@@ -635,7 +660,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   }, []);
   const handleCancelFilters = useCallback(
     () => setIsFilterSliderOpen(false),
-    []
+    [],
   );
 
   const handleCloseAddTeacherModal = () => {
@@ -643,96 +668,111 @@ const [isSubmitting, setIsSubmitting] = useState(false);
     setErrorMessage(undefined);
   };
 
-const handleTeacherSubmit = useCallback(
-  async (values: Record<string, string>) => {
-    try {
-      const name = (values.name ?? "").toString().trim();
-      const classIdsString = (values.class ?? "").toString().trim();
-      const rawEmail = (values.email ?? "").toString().trim();
-      const rawPhone = (values.phoneNumber ?? "").toString();
+  const handleTeacherSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        const name = (values.name ?? "").toString().trim();
+        const classIdsString = (values.class ?? "").toString().trim();
+        const rawEmail = (values.email ?? "").toString().trim();
+        const rawPhone = (values.phoneNumber ?? "").toString();
 
-      if (!name) {
-        setErrorMessage({ text: t("Teacher name is required."), type: "error" });
-        return;
-      }
-      if (!classIdsString) {
-        setErrorMessage({ text: t("At least one class is required."), type: "error" });
-        return;
-      }
-
-      const classIds = classIdsString
-        .split(",")
-        .map((id) => id.trim())
-        .filter(Boolean);
-
-      if (classIds.length === 0) {
-        setErrorMessage({ text: t("At least one class is required."), type: "error" });
-        return;
-      }
-
-      const email = (values.email ?? "").toString().trim().toLowerCase();
-      const hasEmail = !!email;
-      const hasPhone = (values.phoneNumber ?? "").toString().replace(/\D/g, "").length > 2;
-
-      const normalizedPhone = normalizePhone10(rawPhone);
-
-      const digitsOnly = rawPhone.replace(/\D/g, "");
-      const isValidPhone = digitsOnly.length == 12;
-
-      const localPhone = isValidPhone ? digitsOnly.slice(-10) : "";
-
-
-      let finalEmail = "";
-      let finalPhone = "";
-
-      if(hasPhone) {
-        if(!isValidPhone && localPhone.length !== 10) {
+        if (!name) {
           setErrorMessage({
-            text:t("Phone number must be 10 digits."),
+            text: t("Teacher name is required."),
             type: "error",
-          })
+          });
           return;
         }
-        finalPhone = normalizedPhone;
-      }
-
-      if (hasEmail) {
-        if (!emailRegex.test(email)) {
-          setErrorMessage({ text: t("Please enter a valid email address."), type: "error" });
+        if (!classIdsString) {
+          setErrorMessage({
+            text: t("At least one class is required."),
+            type: "error",
+          });
           return;
         }
-        finalEmail = email;
+
+        const classIds = classIdsString
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+
+        if (classIds.length === 0) {
+          setErrorMessage({
+            text: t("At least one class is required."),
+            type: "error",
+          });
+          return;
+        }
+
+        const email = (values.email ?? "").toString().trim().toLowerCase();
+        const hasEmail = !!email;
+        const hasPhone =
+          (values.phoneNumber ?? "").toString().replace(/\D/g, "").length > 2;
+
+        const normalizedPhone = normalizePhone10(rawPhone);
+
+        const digitsOnly = rawPhone.replace(/\D/g, "");
+        const isValidPhone = digitsOnly.length == 12;
+
+        const localPhone = isValidPhone ? digitsOnly.slice(-10) : "";
+
+        let finalEmail = "";
+        let finalPhone = "";
+
+        if (hasPhone) {
+          if (!isValidPhone && localPhone.length !== 10) {
+            setErrorMessage({
+              text: t("Phone number must be 10 digits."),
+              type: "error",
+            });
+            return;
+          }
+          finalPhone = normalizedPhone;
+        }
+
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            setErrorMessage({
+              text: t("Please enter a valid email address."),
+              type: "error",
+            });
+            return;
+          }
+          finalEmail = email;
+        }
+
+        setIsSubmitting(true); // start loading
+        setErrorMessage(undefined);
+
+        await api.getOrcreateschooluser({
+          name,
+          phoneNumber: finalPhone || undefined,
+          email: finalEmail.trim() === "" ? undefined : finalEmail,
+          role: RoleType.TEACHER,
+          classId: classIds,
+          schoolId: schoolId,
+        });
+
+        // Show success message for 2 seconds
+        setErrorMessage({
+          text: t("Teacher added successfully"),
+          type: "success",
+        });
+        setTimeout(() => {
+          setIsAddTeacherModalOpen(false); // close modal
+          setPage(1);
+          fetchTeachers(1, ""); // refresh teacher list
+        }, 2000);
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({ text: message, type: "error" });
+        console.error("Failed to add teacher:", e);
+      } finally {
+        setIsSubmitting(false); // stop loading
       }
-
-      setIsSubmitting(true); // start loading
-      setErrorMessage(undefined);
-
-      await api.getOrcreateschooluser({
-        name,
-        phoneNumber: finalPhone || undefined,
-        email: finalEmail.trim() === "" ? undefined : finalEmail,
-        role: RoleType.TEACHER,
-        classId: classIds,
-        schoolId: schoolId,
-      });
-
-      // Show success message for 2 seconds
-      setErrorMessage({ text: t("Teacher added successfully") ,type:"success"});
-      setTimeout(() => {
-        setIsAddTeacherModalOpen(false); // close modal
-        setPage(1);
-        fetchTeachers(1, ""); // refresh teacher list
-      }, 2000);
-    } catch (e: any) {
-      const message = e instanceof Error ? e.message : String(e);
-      setErrorMessage({ text: message, type: "error" });
-      console.error("Failed to add teacher:", e);
-    } finally {
-      setIsSubmitting(false); // stop loading
-    }
-  },
-  [schoolId, fetchTeachers, api]
-);
+    },
+    [schoolId, fetchTeachers, api],
+  );
 
   const classOptions = useMemo(() => {
     if (!data.classData || data.classData.length === 0) return [];
@@ -775,7 +815,7 @@ const handleTeacherSubmit = useCallback(
         column: 2,
       },
     ],
-    [classOptions]
+    [classOptions],
   );
 
   const columns: Column<DisplayTeacher>[] = [
@@ -795,13 +835,7 @@ const handleTeacherSubmit = useCallback(
       width: 60,
       sortable: false,
       render: (row) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
-          }}
-        >
+        <Box className="schoolTeachers-interactCell">
           <IconButton
             size="small"
             onClick={async () => {
@@ -812,7 +846,7 @@ const handleTeacherSubmit = useCallback(
               }
               const performance =
                 teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.classId === row.classId
+                  (t) => t.id === row.id && t.classId === row.classId,
                 )?.performance ?? null;
               if (performance) setTeacherStatus(performance);
             }}
@@ -820,7 +854,7 @@ const handleTeacherSubmit = useCallback(
             <img
               src="/assets/icons/Interact.svg"
               alt="Interact"
-              style={{ width: 30, height: 30 }}
+              className="schoolTeachers-interactIcon"
             />
           </IconButton>
         </Box>
@@ -849,16 +883,9 @@ const handleTeacherSubmit = useCallback(
 
         return (
           <Box
-            sx={{
-              background: ui.bgColor,
-              color: ui.textColor,
-              px: 1,
-              py: 0.5,
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: 600,
-              textAlign: "center",
-            }}
+            className={`schoolTeachers-performance-pill ${getPerformancePillClass(
+              row.performance,
+            )}`}
           >
             {ui.label}
           </Box>
@@ -873,13 +900,53 @@ const handleTeacherSubmit = useCallback(
     },
     // { key: "phoneNumber", label: t("Phone Number") },
     {
-      key: "phoneEmailDisplay",   // 🔹 use merged column
-          label: t("Phone no. / Email"),
-          renderCell: (row) => (
-            <Typography variant="body2" className="truncate-text">
-              {row.phoneEmailDisplay}
-            </Typography>
-          ),
+      key: "phoneEmailDisplay", // 🔹 use merged column
+      label: t("Phone / Email"),
+      renderCell: (row) => (
+        <Typography variant="body2" className="truncate-text">
+          {row.phoneEmailDisplay}
+        </Typography>
+      ),
+    },
+    {
+      key: "teacher_actions",
+      label: "",
+      sortable: false,
+      render: (row) => (
+        <Box className="schoolTeachers-actionsCell">
+          <ActionMenu
+            items={[
+              {
+                name: t("Delete"),
+                icon: (
+                  <DeleteOutlineIcon
+                    fontSize="small"
+                    className="schoolTeachers-actionDeleteIcon"
+                  />
+                ),
+                onClick: () => {
+                  const fullTeacher = getTeacherInfo(row.id, row.classId);
+                  if (!fullTeacher) return;
+                  setDeleteTargetTeacher(fullTeacher);
+                  setIsDeleteModalOpen(true);
+                },
+              },
+            ]}
+            renderTrigger={(open) => (
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  open(e);
+                }}
+                className="schoolTeachers-actionTrigger"
+              >
+                <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
+              </IconButton>
+            )}
+          />
+        </Box>
+      ),
     },
   ];
 
@@ -891,9 +958,111 @@ const handleTeacherSubmit = useCallback(
 
   const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetTeacher) return;
+
+    try {
+      setIsDeleting(true);
+
+      const teacherId = deleteTargetTeacher.user?.id;
+      const classId = deleteTargetTeacher.classWithidname?.id;
+
+      if (!teacherId || !classId) {
+        console.error("Missing teacherId or classId");
+        return;
+      }
+
+      await api.deleteUserFromClass(teacherId, classId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetTeacher(null);
+      fetchTeachers(page, searchTerm);
+    } catch (error) {
+      console.error("Delete teacher failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  const deleteClassDisplay = deleteTargetTeacher
+    ? `${deleteTargetTeacher.grade ?? ""}${deleteTargetTeacher.classSection ?? ""}`.trim()
+    : "";
+
   return (
     // The JSX remains the same
     <div className="schoolTeachers-pageContainer">
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          if (isDeleting) return;
+          setIsDeleteModalOpen(false);
+        }}
+        disableEscapeKeyDown={isDeleting}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ className: "schoolTeachers-deleteDialogPaper" }}
+      >
+        <DialogTitle className="schoolTeachers-deleteDialogTitle">
+          <Box className="schoolTeachers-deleteDialogTitleLeft">
+            <ErrorOutlineIcon className="schoolTeachers-deleteDialogAlertIcon" />
+            {t("Delete Teacher?")}
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent className="schoolTeachers-deleteDialogContent">
+          <Typography
+            variant="body2"
+            className="schoolTeachers-deleteDialogText"
+          >
+            {t(
+              "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
+              { name: deleteTargetTeacher?.user?.name ?? "" },
+            )}
+          </Typography>
+
+          {deleteTargetTeacher && (
+            <Box className="schoolTeachers-deleteDetails">
+              <Typography>{deleteTargetTeacher.user?.name ?? "N/A"}</Typography>
+              <Typography>{deleteClassDisplay || "N/A"}</Typography>
+              <Typography>
+                {deleteTargetTeacher.user?.phone ?? "N/A"}
+              </Typography>
+            </Box>
+          )}
+
+          <Box className="schoolTeachers-deleteWarning">
+            {t("This cannot be reversed. Please be certain.")}
+          </Box>
+        </DialogContent>
+
+        <DialogActions className="schoolTeachers-deleteDialogActions">
+          <Button
+            variant="outlined"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteCancelButton"
+          >
+            {t("Cancel")}
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteConfirmButton"
+          >
+            {isDeleting ? t("Deleting...") : t("Delete Teacher")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className="schoolTeachers-headerActionsRow">
         <Box className="schoolTeachers-titleArea">
           <Typography variant="h5" className="schoolTeachers-titleHeading">
@@ -1011,7 +1180,7 @@ const handleTeacherSubmit = useCallback(
         </Box>
       )}
 
-     <FormCard
+      <FormCard
         open={isAddTeacherModalOpen}
         title={t("Add New Teacher")}
         submitLabel={isSubmitting ? t("Adding...") : t("Add Teacher")}
@@ -1020,7 +1189,6 @@ const handleTeacherSubmit = useCallback(
         onSubmit={handleTeacherSubmit}
         message={errorMessage}
       />
-
     </div>
   );
 };
