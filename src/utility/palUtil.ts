@@ -352,7 +352,7 @@ export class palUtil {
     courseId: string,
     studentId: string
   ): Promise<
-    { lesson_id: string; skill_id?: string; chapter_id?: string }[] | undefined
+    { lesson_id: string; skill_id?: string; chapter_id?: string } | undefined
   > {
     const recommended = await this.getRecommendedLessonForCourse(
       studentId,
@@ -366,7 +366,7 @@ export class palUtil {
       chapter_id: recommended.chapterId,
     };
 
-    return Array.from({ length: 5 }, () => ({ ...entry }));
+    return entry;
   }
 
   private static async getChapterIdForLessonInCourse(
