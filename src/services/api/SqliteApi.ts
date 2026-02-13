@@ -6016,10 +6016,11 @@ order by
     is_immediate_sync?: boolean,
   ): Promise<TableTypes<"user">> {
     try {
+      const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
-      SET learning_path = ?
+      SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
