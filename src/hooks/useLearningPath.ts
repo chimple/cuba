@@ -123,14 +123,12 @@ export async function recommendNextLesson({
     );
 
     if (assessments && assessments.length > 0) {
-      const lesosn = {
+      return {
         lesson_id: assessments[0].lesson_id,
         chapter_id: undefined,
         is_assessment: true,
         isPlayed: false,
       };
-
-      return lesosn;
     }
   }
 
@@ -143,13 +141,12 @@ export async function recommendNextLesson({
       student,
     );
     if (res && res.id) {
-      const lesson = {
+      return {
         lesson_id: res.lesson_id,
         chapter_id: undefined,
         is_assessment: true,
         isPlayed: false,
       };
-      return lesson;
     }
   }
 
@@ -163,13 +160,12 @@ export async function recommendNextLesson({
     );
 
     if (palLesson) {
-      const Lesson = {
+      return {
         lesson_id: palLesson.lesson_id,
         chapter_id: palLesson.chapter_id,
         is_assessment: false,
         isPlayed: false,
       };
-      return Lesson;
     }
   }
 
@@ -436,32 +432,33 @@ export const useLearningPath = (opts?: {
 
     // 🔁 Recompute ONLY active lesson
     // for (const coursePath of learningPath.courses.courseList) {
-      // let active = coursePath.path.find((l: LessonNode) => !l.isPlayed);
-      // if(!active) {
-      //   active = await recommendNextLesson({
-      //     student:currentStudent,
-      //     course: courses.find((c) => c.id === coursePath.course_id),
-      //     mode,
-      //     classId,
-      //     coursePath,
-      //   });
-      //   }
+    // let active = coursePath.path.find((l: LessonNode) => !l.isPlayed);
+    // if(!active) {
+    //   active = await recommendNextLesson({
+    //     student:currentStudent,
+    //     course: courses.find((c) => c.id === coursePath.course_id),
+    //     mode,
+    //     classId,
+    //     coursePath,
+    //   });
+    //   }
 
-      //   coursePath.path = [
-      //     ...(lastPlayed ? [{ ...lastPlayed, isPlayed: true }] : []),
-      //     ...(active ? [active] : []),
-      //   ];
+    //   coursePath.path = [
+    //     ...(lastPlayed ? [{ ...lastPlayed, isPlayed: true }] : []),
+    //     ...(active ? [active] : []),
+    //   ];
     // }
 
     const total_learning_path_completed =
       learningPath.courses.courseList.reduce(
         (total, course) => total + (course.completedPath ?? 0),
-        0
+        0,
       );
 
     const learning_path_completed =
-      learningPath.courses.courseList[learningPath.courses.currentCourseIndex].completedPath ?? 0;
-    // update local attributes    
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .completedPath ?? 0;
+    // update local attributes
     updateLocalAttributes({
       learning_path_completed,
       total_learning_path_completed,
