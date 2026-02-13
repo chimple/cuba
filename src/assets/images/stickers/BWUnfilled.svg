@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg width="567" height="319" viewBox="0 0 567 319" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M0 5C0 2.23858 2.23858 0 5 0H562C564.761 0 567 2.23858 567 5V318.881H0V5Z" fill="white"/>
+  <path d="M0 5C0 2.23858 2.23858 0 5 0H562C564.761 0 567 2.23858 567 5V318.881H0V5Z" fill="white" color-id="background"/>
   <mask id="mask0_1083_13815" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="567" height="319">
     <path d="M5 1H562C564.209 1 566 2.79086 566 5V317.881H1V5C1 2.79086 2.79086 1 5 1Z" fill="white" stroke="#02C1C1" stroke-width="2"/>
   </mask>
