@@ -89,7 +89,16 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const handleBackButtonClick = useCallback(() => {
-    if (disableBackButton) return;
+    if (disableBackButton) {
+      return;
+    }
+
+    // If drawer is open, close it first
+    if (isDrawerOpen) {
+      setIsDrawerOpen(false);
+      return;
+    }
+
     if (onBackButtonClick) {
       onBackButtonClick();
     } else if (onButtonClick) {
@@ -97,15 +106,30 @@ const Header: React.FC<HeaderProps> = ({
     } else {
       Util.setPathToBackButton(PAGES.HOME_PAGE, history);
     }
-  }, [disableBackButton, onBackButtonClick, onButtonClick, history]);
+  }, [
+    disableBackButton,
+    onBackButtonClick,
+    onButtonClick,
+    history,
+    isDrawerOpen,
+  ]);
+
+  const handleBackRef = React.useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (!isBackButton || disableBackButton) return;
+    handleBackRef.current = handleBackButtonClick;
+  }, [handleBackButtonClick]);
+
+  useEffect(() => {
+    if (!isBackButton || disableBackButton) {
+      return;
+    }
+
     const unregister = registerBackButtonHandler(() => {
-      handleBackButtonClick();
+      return handleBackRef.current();
     });
     return unregister;
-  }, [isBackButton, disableBackButton, handleBackButtonClick]);
+  }, [isBackButton, disableBackButton]);
 
   return (
     <header className="header-container">
@@ -198,16 +222,15 @@ const Header: React.FC<HeaderProps> = ({
                 <IoShareSocialSharp size={28} color="white" />
               </button>
             )}
-           
           </div>
         </div>
-         <div className="help-icon-container">
-              <img
-                src="assets/icons/helpIcon.svg"
-                alt={String(t("Menu"))}
-                className="help-icon"
-              />
-            </div>
+        <div className="help-icon-container">
+          <img
+            src="assets/icons/helpIcon.svg"
+            alt={String(t("Menu"))}
+            className="help-icon"
+          />
+        </div>
       </div>
     </header>
   );

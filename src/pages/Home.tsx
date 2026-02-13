@@ -469,7 +469,7 @@ const Home: FC = () => {
         handleHomeIconClick();
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD, history);
+        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
         const body = document.querySelector("body");
         body?.style.removeProperty("background-image");
         break;

@@ -92,11 +92,25 @@ const CocosGame: React.FC = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "landscape" });
     }
-    CapApp.addListener("appStateChange", handleAppStateChange);
+    let appStateListener: { remove: () => void } | null = null;
+    let disposed = false;
+
+    const addAppStateListener = async () => {
+      const created = await CapApp.addListener(
+        "appStateChange",
+        handleAppStateChange,
+      );
+      if (disposed) {
+        created.remove();
+        return;
+      }
+      appStateListener = created;
+    };
+    addAppStateListener();
+
     return () => {
-      CapApp.removeAllListeners();
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
+      disposed = true;
+      appStateListener?.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

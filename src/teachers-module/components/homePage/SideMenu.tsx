@@ -38,6 +38,7 @@ import {
   useGbContext,
 } from "../../../growthbook/Growthbook";
 import { ClearCacheData } from "../../../components/parent/DataClear";
+import { registerBackButtonHandler } from "../../../common/backButtonRegistry";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -71,6 +72,16 @@ const SideMenu: React.FC<{
   const [currentClassId, setCurrentClassId] = useState<string>("");
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const unregister = registerBackButtonHandler(() => {
+      menuRef.current?.close();
+      return true;
+    });
+    return () => unregister();
+  }, [isMenuOpen]);
 
   useEffect(() => {
     fetchData();
@@ -110,7 +121,7 @@ const SideMenu: React.FC<{
         // Fetch classes for the current school
         const classes = await api.getClassesForSchool(
           tempSchool.id,
-          currentUser.id
+          currentUser.id,
         );
         teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
@@ -176,7 +187,7 @@ const SideMenu: React.FC<{
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     setTimeout(() => {
-      Util.killCocosGame()
+      Util.killCocosGame();
     }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
@@ -316,6 +327,8 @@ const SideMenu: React.FC<{
         aria-label={String(t("Menu"))}
         contentId="main-content"
         id="main-container"
+        onIonDidOpen={() => setIsMenuOpen(true)}
+        onIonDidClose={() => setIsMenuOpen(false)}
       >
         <div aria-label={String(t("Menu"))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
