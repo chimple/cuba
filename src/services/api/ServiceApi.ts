@@ -2583,14 +2583,15 @@ export interface ServiceApi {
   getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<"user">
-  ): Promise<TableTypes<"subject_lesson">[] | null>;
+  ): Promise<TableTypes<"subject_lesson"> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
+    courseId: string,
   ): Promise<TableTypes<"assignment">[]>;
 
   /**
