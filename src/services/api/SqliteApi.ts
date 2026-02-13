@@ -55,7 +55,6 @@ import {
   DEFAULT_LOCALE_ID,
   SCHOOL,
   CLASS,
-  LANG_REFRESHED,
   RESULT_STATUS,
   LIDO_ASSESSMENT,
 } from "../../common/constants";
@@ -2754,7 +2753,6 @@ export class SqliteApi implements ServiceApi {
       language_id = ?,
       locale_id = ?,
       updated_at = ?
-      ${languageChanged ? ", learning_path = ?" : ""}
     WHERE id = ?;
   `;
     const params = [
@@ -2769,10 +2767,6 @@ export class SqliteApi implements ServiceApi {
       localeId,
       now,
     ];
-    // Clear learning_path when language changes so it gets rebuilt with lessons in the new language
-    if (languageChanged) {
-      params.push(null);
-    }
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
@@ -2786,9 +2780,6 @@ export class SqliteApi implements ServiceApi {
     student.language_id = languageDocId;
     student.locale_id = localeId;
     student.updated_at = now;
-    if (languageChanged) {
-      localStorage.setItem(LANG_REFRESHED, "true");
-    }
 
     await this.assignCoursesToStudent(
       student.id,
@@ -6016,10 +6007,11 @@ order by
     is_immediate_sync?: boolean,
   ): Promise<TableTypes<"user">> {
     try {
+      const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
-      SET learning_path = ?
+      SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
@@ -7803,9 +7795,11 @@ order by
   }
   async getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">,
-  ): Promise<TableTypes<"subject_lesson">[]> {
-    const langId = student?.language_id ?? null;
+    student?: TableTypes<"user">
+  ): Promise<TableTypes<"subject_lesson">> {
+    if (!student) return {} as TableTypes<"subject_lesson">;
+    const studentId = student.id;
+    const langId = student.language_id ?? null;
 
     try {
       // 1️⃣ Fetch ALL available set_numbers
@@ -7820,67 +7814,91 @@ order by
       const setRows = (setRes as any)?.values ?? [];
 
       if (!setRows.length) {
-        return [];
+        return {} as TableTypes<"subject_lesson">;
       }
 
       // 2️⃣ Pick ANY ONE set randomly
       const randomIndex = Math.floor(Math.random() * setRows.length);
       const setNumber = setRows[randomIndex].set_number;
 
-      // 3️⃣ Fetch lessons (LANGUAGE ONLY)
+      /* ==========================================
+      * 3️⃣ Abort Check (with assignment_id IS NULL)
+      * ========================================== */
+      const abortQuery = `
+        SELECT lesson_id, status
+        FROM (
+            SELECT lesson_id, status, created_at,
+                  ROW_NUMBER() OVER (
+                      PARTITION BY lesson_id
+                      ORDER BY created_at DESC
+                  ) as rn
+            FROM result
+            WHERE student_id = ?
+              AND subject_id = ?
+              AND assignment_id IS NULL
+              AND is_deleted = 0
+        ) t
+        WHERE rn = 1
+        ORDER BY created_at DESC
+        LIMIT 2;
+      `;
+
+      const abortRes = await this.executeQuery(abortQuery, [
+        studentId,
+        subjectId,
+      ]);
+
+      const lastTwo = (abortRes as any)?.values ?? [];
+
+      const isAborted =
+        lastTwo.length === 2 &&
+        lastTwo.every((r: any) => r.status === "system_exit");
+
+      if (isAborted) {
+        return {} as TableTypes<"subject_lesson">; // 🚫 Aborted group
+      }
+
+      /* ==========================================
+      * 4️⃣ Fetch ONLY pending lessons from set
+      * ========================================== */
       const lessonQuery = `
-  SELECT sl.*
-  FROM subject_lesson sl
-  WHERE sl.subject_id = ?
-    AND sl.set_number = ?
-    AND sl.is_deleted = 0
-    AND (
-      sl.language_id = ?
-      OR sl.language_id IS NULL
-    )
-  ORDER BY
-    CASE
-      WHEN sl.language_id = ? THEN 0
-      WHEN sl.language_id IS NULL THEN 1
-    END,
-    sl.sort_index ASC;
-`;
+        SELECT sl.*
+        FROM subject_lesson sl
+        LEFT JOIN result r
+          ON r.lesson_id = sl.lesson_id
+          AND r.student_id = ?
+          AND r.assignment_id IS NULL
+          AND r.is_deleted = 0
+
+        WHERE sl.subject_id = ?
+          AND sl.set_number = ?
+          AND sl.is_deleted = 0
+          AND (
+            sl.language_id = ?
+            OR sl.language_id IS NULL
+          )
+          AND r.lesson_id IS NULL
+
+        ORDER BY
+          sl.set_number ASC,
+          sl.sort_index ASC;
+      `;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
+        studentId,
         subjectId,
         setNumber,
         langId,
       ]);
 
-      const lessons = (lessonRes as any)?.values ?? [];
-      if (!lessons.length) return [];
-
-      /* =====================================================
-       * 4️⃣ JS SORTING (ONLY IF > 5) — LANGUAGE ONLY
-       * ===================================================== */
-      if (lessons.length > 5) {
-        lessons.sort((a: any, b: any) => {
-          const getPriority = (x: any): number => {
-            if (x.language_id === langId) return 1;
-            if (x.language_id === null) return 2;
-            return 3;
-          };
-
-          const pA = getPriority(a);
-          const pB = getPriority(b);
-
-          if (pA !== pB) return pA - pB;
-          return (a.sort_index ?? 0) - (b.sort_index ?? 0);
-        });
-      }
-
-      return lessons;
+      const pendingLessons = (lessonRes as any)?.values ?? [];
+      return pendingLessons.length ? pendingLessons[0] : {} as TableTypes<"subject_lesson">;
     } catch (error) {
       console.error(
         "❌ Error fetching subject lessons by subject (SQL):",
         error,
       );
-      return [];
+      return {} as TableTypes<"subject_lesson">;
     }
   }
 
@@ -7890,37 +7908,42 @@ order by
   ): Promise<boolean> {
     try {
       const query = `
-      SELECT 1
-      FROM result
-      WHERE student_id = ?
-        AND course_id = ?
-        AND is_deleted = false
+        SELECT 1
+        FROM result r
+        INNER JOIN lesson l
+          ON l.id = r.lesson_id
+          AND l.is_deleted = false
+        WHERE r.student_id = ?
+          AND r.course_id = ?
+          AND r.is_deleted = false
 
-        -- 🔒 STRICT: all required columns must be present
-        AND skill_id IS NOT NULL
-        AND outcome_id IS NOT NULL
-        AND competency_id IS NOT NULL
-        AND domain_id IS NOT NULL
-        AND subject_id IS NOT NULL
+          -- ❗ Only PAL lessons (exclude assessments)
+          AND l.plugin_type != 'lido_assessment'
 
-        AND skill_ability IS NOT NULL
-        AND outcome_ability IS NOT NULL
-        AND competency_ability IS NOT NULL
-        AND domain_ability IS NOT NULL
-        AND subject_ability IS NOT NULL
+          -- 🔒 STRICT ability validation
+          AND r.skill_id IS NOT NULL
+          AND r.outcome_id IS NOT NULL
+          AND r.competency_id IS NOT NULL
+          AND r.domain_id IS NOT NULL
+          AND r.subject_id IS NOT NULL
 
-        AND activities_scores IS NOT NULL
-        AND activities_scores <> ''
-      LIMIT 1;
-    `;
+          AND r.skill_ability IS NOT NULL
+          AND r.outcome_ability IS NOT NULL
+          AND r.competency_ability IS NOT NULL
+          AND r.domain_ability IS NOT NULL
+          AND r.subject_ability IS NOT NULL
+
+          AND r.activities_scores IS NOT NULL
+          AND r.activities_scores <> ''
+        LIMIT 1;
+      `;
 
       const res = await this.executeQuery(query, [studentId, courseId]);
       const rows = (res as any)?.values ?? [];
 
-      // ✅ true ONLY if a fully-filled result exists
       return rows.length > 0;
     } catch (error) {
-      console.error("❌ Error checking course history:", error);
+      console.error("❌ Error checking PAL lesson history:", error);
       return false;
     }
   }
@@ -7950,22 +7973,116 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
+    courseId: string
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
+    const studentId = student.id;
     const langId = student.language_id;
 
-    /* ===============================
-     * QUERY 1️⃣ : Fetch valid assessments
-     * =============================== */
-    const fetchQuery = `
-      SELECT a.*
+    /* ==========================================
+    * Get latest valid assessment batch
+    * ========================================== */
+    const latestBatchQuery = `
+      SELECT a.batch_id
       FROM assignment a
-      JOIN course c
-        ON c.id = a.course_id
-      AND c.is_deleted = false
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = false
       WHERE a.class_id = '${classId}'
+        AND a.course_id = '${courseId}'
         AND a.type = 'assessment'
         AND a.is_deleted = false
+        AND a.batch_id IS NOT NULL
+
+        -- Active time window
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime('${nowIso}')
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime('${nowIso}')
+        )
+
+        -- Assigned to this student
+        AND (
+          a.is_class_wise = true
+          OR au.user_id = '${studentId}'
+        )
+
+      ORDER BY a.created_at DESC
+      LIMIT 1;
+    `;
+
+    const batchRes = await this._db?.query(latestBatchQuery);
+    const latestBatchId = batchRes?.values?.[0]?.batch_id;
+
+    if (!latestBatchId) return [];
+
+    /* ==========================================
+    * Check if batch is ABORTED
+    * (2 consecutive system_exit results)
+    * ========================================== */
+    const abortCheckQuery = `
+    SELECT assignment_id, status
+    FROM (
+        SELECT r.assignment_id,
+              r.status,
+              r.created_at,
+              ROW_NUMBER() OVER (
+                  PARTITION BY r.assignment_id
+                  ORDER BY r.created_at DESC
+              ) as rn
+        FROM result r
+        INNER JOIN assignment a
+            ON a.id = r.assignment_id
+        WHERE r.student_id = '${studentId}'
+          AND r.is_deleted = false
+          AND a.batch_id = '${latestBatchId}'
+          AND a.course_id = '${courseId}'
+          AND a.type = 'assessment'
+    ) t
+    WHERE rn = 1
+    ORDER BY created_at DESC
+    LIMIT 2;
+    `;
+
+    const abortRes = await this._db?.query(abortCheckQuery);
+    const lastTwoResults = abortRes?.values ?? [];
+
+    if (
+      lastTwoResults.length === 2 &&
+      lastTwoResults.every((r: any) => r.status === "system_exit")
+    ) {
+      // 🚫 Assessment group is aborted
+      return [];
+    }
+
+
+    /* ==========================================
+    * Get only INCOMPLETE assignments
+    * from that latest batch
+    * ========================================== */
+    const assignmentsQuery = `
+      SELECT a.*
+      FROM assignment a
+
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = false
+
+      LEFT JOIN result r
+        ON r.assignment_id = a.id
+        AND r.student_id = '${studentId}'
+        AND r.is_deleted = false
+
+      WHERE a.class_id = '${classId}'
+        AND a.course_id = '${courseId}'
+        AND a.type = 'assessment'
+        AND a.is_deleted = false
+        AND a.batch_id = '${latestBatchId}'
 
         -- time window
         AND (
@@ -7979,18 +8096,14 @@ order by
           OR datetime(a.ends_at) > datetime('${nowIso}')
         )
 
-        -- latest batch per course
-        AND a.batch_id = (
-          SELECT a2.batch_id
-          FROM assignment a2
-          WHERE a2.class_id = a.class_id
-            AND a2.course_id = a.course_id
-            AND a2.type = 'assessment'
-            AND a2.is_deleted = false
-            AND a2.batch_id IS NOT NULL
-          ORDER BY a2.created_at DESC
-          LIMIT 1
+        -- Assigned to this student
+        AND (
+          a.is_class_wise = true
+          OR au.user_id = '${studentId}'
         )
+
+        -- NOT completed
+        AND r.assignment_id IS NULL
 
         -- subject_lesson validation (LANGUAGE ONLY)
         AND EXISTS (
@@ -8001,88 +8114,26 @@ order by
             AND sl.is_deleted = false
             AND (
               sl.language_id IS NULL
-              OR sl.language_id = "${langId}"
+              OR sl.language_id = '${langId}'
             )
         )
-      ORDER BY a.course_id, a.created_at DESC;
+
+      ORDER BY (
+        SELECT sl.sort_index
+        FROM subject_lesson sl
+        WHERE sl.lesson_id = a.lesson_id
+          AND sl.set_number = a.set_number
+          AND sl.is_deleted = false
+        LIMIT 1
+      ) ASC,
+      a.created_at DESC;
     `;
-    const fetchRes = await this._db?.query(fetchQuery);
-    const assignments = (fetchRes?.values ?? []) as TableTypes<"assignment">[];
-    if (!assignments.length) return [];
-    /* ===============================
-     * QUERY 2️⃣ : Completion check (PER COURSE)
-     * =============================== */
-    const assignmentIds = assignments.map((a) => `'${a.id}'`).join(",");
-    const completionQuery = `
-      WITH r AS (
-        SELECT
-          a.course_id,
-          a.id,
-          r.id AS result_id,
-          r.status,
-          LAG(r.status) OVER (
-            PARTITION BY a.course_id
-            ORDER BY a.created_at
-          ) AS prev_status
-        FROM assignment a
-        LEFT JOIN result r
-          ON r.assignment_id = a.id
-        AND r.student_id = "${student.id}"
-        AND r.is_deleted = false
-        WHERE a.id IN (${assignmentIds})
-      )
 
-      SELECT
-        course_id,
-        CASE
-          -- 1️⃣ all assignments of this course attempted
-          WHEN COUNT(result_id) = COUNT(*) THEN 0
+    const res = await this._db?.query(assignmentsQuery);
+    const pendingAssignments =
+      (res?.values ?? []) as TableTypes<"assignment">[];
 
-          -- 2️⃣ some attempted + 2 continuous system_exit (this course)
-          WHEN COUNT(result_id) > 0
-          AND COUNT(*) FILTER (
-            WHERE status = 'system_exit'
-              AND prev_status = 'system_exit'
-          ) > 0 THEN 0
-
-          -- 3️⃣ otherwise → pending exists
-          ELSE COUNT(*) - COUNT(result_id)
-        END AS pending_count
-      FROM r
-      GROUP BY course_id;
-    `;
-    const completionRes = await this._db?.query(completionQuery);
-    const rows = completionRes?.values ?? [];
-    console.log("Completion rows:", rows);
-    // courses that should be hidden
-    const blockedCourseIds = new Set(
-      rows
-        .filter((r: any) => r.pending_count === 0)
-        .map((r: any) => r.course_id),
-    );
-    const finalAssignments = assignments.filter(
-      (a) => a.course_id && !blockedCourseIds.has(a.course_id),
-    );
-    if (!finalAssignments.length) return [];
-    if (finalAssignments.length > 5) {
-      finalAssignments.sort((a, b) => {
-        const getPriority = (x: any): number => {
-          if (x.language_id === langId) return 1;
-          if (x.language_id === null) return 2;
-          return 3;
-        };
-
-        const pA = getPriority(a);
-        const pB = getPriority(b);
-
-        if (pA !== pB) return pA - pB;
-
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      });
-    }
-    return finalAssignments;
+    return pendingAssignments.length ? pendingAssignments : [];
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
