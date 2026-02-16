@@ -340,8 +340,8 @@ const readLocalConfig = async (
      REMOTE FETCH (UNCHANGED)
      ===================== */
   const remoteUrls = [
-    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
     "https://cuba-stage-zip-bundle.web.app/",
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
   ];
 
   for (const baseUrl of remoteUrls) {
