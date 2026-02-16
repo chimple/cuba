@@ -370,8 +370,13 @@ const LearningPathway: React.FC = () => {
         : null;
 
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
+      const currentMode = localStorage.getItem("currentMode");
 
-      if (currClass && learningPath?.courses?.courseList?.length) {
+      if (
+        currClass &&
+        currentMode !== "SCHOOL" &&
+        learningPath?.courses?.courseList?.length
+      ) {
         const hasReset = localStorage.getItem(RESET_ON_JOIN_KEY);
 
         if (!hasReset) {
