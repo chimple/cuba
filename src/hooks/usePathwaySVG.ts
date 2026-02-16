@@ -15,6 +15,7 @@ import {
   LIDO_ASSESSMENT,
 } from "../common/constants";
 import { Util } from "../utility/util";
+import { LessonNode } from "./useLearningPath";
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -42,6 +43,7 @@ const svgStringCache: Record<string, string> = {};
 let pathwayTemplateCache: string | null = null;
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const PATH_SIZE = 5;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -149,17 +151,19 @@ export function usePathwaySVG({
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
-      const courseCurrentIndex = course.currentIndex;
-      const pathItem = course.path[courseCurrentIndex];
+      if (!course) return;
+      const pathItem = course.path.find((p: LessonNode) => p && p.isPlayed === false);
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
-      if (!course) return;
+      const activeIndex = course.path.findIndex((p: LessonNode) => p.isPlayed === false);
+      const currentIndex = (activeIndex === -1 ? course.path.length - 1 : activeIndex);
 
-      const { startIndex, currentIndex, pathEndIndex } = course;
+      const startIndex = Math.max(0, currentIndex - (PATH_SIZE - 1));
+      const pathEndIndex = Math.min(Math.max(course.path.length - 1, 4), startIndex + PATH_SIZE - 1);
 
       const [courseData, chapterData] = await Promise.all([
         api.getCourse(course.id),
-        api.getChapterById(course.path[currentIndex].chapter_id),
+        api.getChapterById(course.path.find((p: LessonNode) => p && p.isPlayed === false).chapter_id),
       ]);
 
       (window as any).__currentCourseForPathway__ = courseData;
@@ -170,7 +174,7 @@ export function usePathwaySVG({
       const lessons = await Promise.all(
         course.path
           .slice(startIndex, pathEndIndex + 1)
-          .map((p: any) => getCachedLesson(p.lesson_id))
+          .map((p: LessonNode) => getCachedLesson(p.lesson_id))
       );
 
       // Preload icons/images for lessons (to reduce flicker)
@@ -246,7 +250,7 @@ export function usePathwaySVG({
         );
         chimple.setAttribute("width", "32.5%");
         chimple.setAttribute("height", "100%");
-
+        let lastIndex = -1;
         // Build lesson nodes
         lessons.forEach((lesson: any, idx: number) => {
           const path = paths[idx];
@@ -276,17 +280,7 @@ export function usePathwaySVG({
             activeGroup: {
               x: [flowerX - 20, flowerX - 20, 260, flowerX - 10, flowerX - 15],
               y: [flowerY - 23, 5, 10, 5, 10],
-            },
-            flowerInactive: {
-              x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
-              y: [
-                flowerY - 20,
-                flowerY + 5,
-                flowerY - 6,
-                flowerY + 3,
-                flowerY - 5,
-              ],
-            },
+            }
           };
 
           if (startIndex + idx < currentIndex) {
@@ -363,35 +357,54 @@ export function usePathwaySVG({
             });
 
             fragment.appendChild(activeGroup);
-          } else {
-            // Locked lesson
-            const flower_Inactive = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 21, 23);
-            flower_Inactive.appendChild(
-              flowerInactive.cloneNode(true) as SVGGElement
-            );
-            flower_Inactive.appendChild(lessonImage);
-            flower_Inactive.addEventListener("click", () => {
-              setModalOpen(true);
-              setModalText(
-                "This lesson is locked. Play the current active lesson."
-              );
-            });
-            flower_Inactive.setAttribute(
-              "style",
-              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
-            );
-            placeElement(
-              flower_Inactive as SVGGElement,
-              positionMappings.flowerInactive.x[idx] ?? flowerX - 20,
-              positionMappings.flowerInactive.y[idx] ?? flowerY - 20
-            );
-            fragment.appendChild(flower_Inactive);
-          }
+          } 
+          lastIndex = idx;
         });
+
+        for(let i = lastIndex+ 1; i < PATH_SIZE; i++){
+        const path = paths[i];
+        const point = path.getPointAtLength(0);
+        const flowerX = point.x - 40;
+        const flowerY = point.y - 40;
+          // Locked lesson
+          const flower_Inactive = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "g",
+          );
+          const positionMappings = {
+            flowerInactive: {
+              x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
+              y: [
+                flowerY - 20,
+                flowerY + 5,
+                flowerY - 6,
+                flowerY + 3,
+                flowerY - 5,
+              ],
+            },
+          };
+          const lessonImage = createSVGImage("assets/icons/NextNodeIcon.svg", 30, 30, 21, 23);
+          flower_Inactive.appendChild(
+            flowerInactive.cloneNode(true) as SVGGElement,
+          );
+          flower_Inactive.appendChild(lessonImage);
+          flower_Inactive.addEventListener("click", () => {
+            setModalOpen(true);
+            setModalText(
+              "This lesson is locked. Play the current active lesson.",
+            );
+          });
+          flower_Inactive.setAttribute(
+            "style",
+            "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);",
+          );
+          placeElement(
+            flower_Inactive as SVGGElement,
+            positionMappings.flowerInactive.x[i] ?? flowerX - 20,
+            positionMappings.flowerInactive.y[i] ?? flowerY - 20,
+          );
+          fragment.appendChild(flower_Inactive);
+        }
 
         // Gift node
         const endPath = paths[paths.length - 1];
