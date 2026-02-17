@@ -102,6 +102,8 @@ const JoinClass: FC<{
         );
       }
       await api.linkStudent(parseInt(inviteCode, 10), student.id);
+      const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
+      localStorage.setItem(RESET_ON_JOIN_KEY, "true");
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
@@ -110,8 +112,6 @@ const JoinClass: FC<{
         const currClass = await api.getClassById(codeResult["class_id"]);
         if (currClass) {
           await schoolUtil.setCurrentClass(currClass);
-          const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
-          localStorage.setItem(RESET_ON_JOIN_KEY, "true");
         } else {
           console.error("Class data not found.");
           throw new Error("Class data could not be fetched.");
