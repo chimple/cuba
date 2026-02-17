@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import Leaderboard from "./Leaderboard";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
+  AVATARS,
   CURRENT_MODE,
   LANGUAGE,
   LEADERBOARDHEADERLIST,
@@ -542,6 +543,471 @@ describe("Leaderboard", () => {
       expect(view.getAllByText("2 min 5 sec").length).toBeGreaterThanOrEqual(1);
       expect(view.getByText("Gourav-B2C")).toBeInTheDocument();
     });
+  });
+
+  // 5g) When cache has weekly/monthly/all-time, dropdown changes should reuse local cache and not call API again.
+  it("reuses cached leaderboard data on dropdown changes without extra leaderboard API calls", async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "weekly-top",
+          name: "Cache Weekly Top",
+          score: 99,
+          lessonsPlayed: 10,
+          timeSpent: 120,
+        },
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 90,
+          lessonsPlayed: 8,
+          timeSpent: 100,
+        },
+      ],
+      monthly: [
+        {
+          userId: "monthly-top",
+          name: "Cache Monthly Top",
+          score: 96,
+          lessonsPlayed: 9,
+          timeSpent: 130,
+        },
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 88,
+          lessonsPlayed: 7,
+          timeSpent: 90,
+        },
+      ],
+      allTime: [
+        {
+          userId: "all-top",
+          name: "Cache All Time Top",
+          score: 100,
+          lessonsPlayed: 30,
+          timeSpent: 300,
+        },
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 92,
+          lessonsPlayed: 25,
+          timeSpent: 250,
+        },
+      ],
+    });
+
+    const view = render(<Leaderboard />);
+    expect(await view.findByText("Cache Weekly Top")).toBeInTheDocument();
+    expect(mockApiHandler.getLeaderboardResults).toHaveBeenCalledTimes(1);
+
+    await user.selectOptions(view.getByTestId("leaderboard-filter"), "1");
+    expect(await view.findByText("Cache Monthly Top")).toBeInTheDocument();
+
+    await user.selectOptions(view.getByTestId("leaderboard-filter"), "2");
+    expect(await view.findByText("Cache All Time Top")).toBeInTheDocument();
+
+    expect(mockApiHandler.getLeaderboardResults).toHaveBeenCalledTimes(1);
+  });
+
+  // 5h) B2C fallback must not run if class id exists even when student is missing in class leaderboard.
+  it("does not call B2C fallback when class id is non-empty and student is missing", async () => {
+    mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: "class-1" }],
+      schools: [{ id: "school-1" }],
+    });
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "student-777",
+          name: "Class Other",
+          score: 80,
+          lessonsPlayed: 6,
+          timeSpent: 95,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    expect(await view.findByText("Class Other")).toBeInTheDocument();
+    expect(
+      mockApiHandler.getLeaderboardStudentResultFromB2CCollection
+    ).not.toHaveBeenCalled();
+  });
+
+  // 5i) B2C fallback must not run when class id is empty but student is already present in leaderboard.
+  it("does not call B2C fallback when class id is empty and student is already present", async () => {
+    mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [],
+      schools: [],
+    });
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "student-2",
+          name: "Weekly Topper",
+          score: 97,
+          lessonsPlayed: 10,
+          timeSpent: 130,
+        },
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 90,
+          lessonsPlayed: 8,
+          timeSpent: 120,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    expect(await view.findByText("Weekly Topper")).toBeInTheDocument();
+    expect(
+      mockApiHandler.getLeaderboardStudentResultFromB2CCollection
+    ).not.toHaveBeenCalled();
+  });
+
+  // 5j) If B2C fallback bucket is empty, component should use placeholder/dummy row values.
+  it("uses dummy placeholder values when B2C fallback bucket is empty", async () => {
+    mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [],
+      schools: [],
+    });
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "student-404",
+          name: "Not Current User",
+          score: 75,
+          lessonsPlayed: 3,
+          timeSpent: 45,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockResolvedValue({
+      weekly: [],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    await eventually(() => {
+      expect(
+        mockApiHandler.getLeaderboardStudentResultFromB2CCollection
+      ).toHaveBeenCalledWith("student-1");
+    });
+    await eventually(() => {
+      expect(
+        view.getByTestId("skeleton-loading").textContent
+      ).toBe("false-LEADERBOARD");
+      expect(view.getAllByText("--").length).toBeGreaterThan(0);
+      expect(view.getAllByText("--min --sec").length).toBeGreaterThan(0);
+    });
+  });
+
+  // 5k) With class id empty and student missing, monthly dropdown should use monthly B2C bucket with <N>+ rank.
+  it("uses monthly B2C bucket and shows plus rank when monthly dropdown is selected", async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [],
+      schools: [],
+    });
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 90,
+          lessonsPlayed: 8,
+          timeSpent: 120,
+        },
+      ],
+      monthly: [
+        {
+          userId: "m-1",
+          name: "Monthly Rank 1",
+          score: 95,
+          lessonsPlayed: 11,
+          timeSpent: 150,
+        },
+        {
+          userId: "m-2",
+          name: "Monthly Rank 2",
+          score: 92,
+          lessonsPlayed: 10,
+          timeSpent: 140,
+        },
+      ],
+      allTime: [
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 93,
+          lessonsPlayed: 20,
+          timeSpent: 200,
+        },
+      ],
+    });
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockResolvedValue({
+      weekly: [],
+      monthly: [
+        {
+          name: "Monthly B2C Student",
+          lessonsPlayed: 9,
+          score: 66,
+          timeSpent: 125,
+        },
+      ],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    await view.findByTestId("leaderboard-filter");
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockClear();
+
+    await user.selectOptions(view.getByTestId("leaderboard-filter"), "1");
+
+    await eventually(() => {
+      expect(
+        mockApiHandler.getLeaderboardStudentResultFromB2CCollection
+      ).toHaveBeenCalledWith("student-1");
+    });
+    expect(await view.findByText("Monthly B2C Student")).toBeInTheDocument();
+    expect(view.getAllByText("3+").length).toBeGreaterThanOrEqual(1);
+  });
+
+  // 5l) With class id empty and student missing, all-time dropdown should use all-time B2C bucket with <N>+ rank.
+  it("uses all-time B2C bucket and shows plus rank when all-time dropdown is selected", async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [],
+      schools: [],
+    });
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 90,
+          lessonsPlayed: 8,
+          timeSpent: 120,
+        },
+      ],
+      monthly: [
+        {
+          userId: "student-1",
+          name: "Current Student",
+          score: 91,
+          lessonsPlayed: 9,
+          timeSpent: 130,
+        },
+      ],
+      allTime: [
+        {
+          userId: "a-1",
+          name: "All Rank 1",
+          score: 99,
+          lessonsPlayed: 28,
+          timeSpent: 320,
+        },
+        {
+          userId: "a-2",
+          name: "All Rank 2",
+          score: 98,
+          lessonsPlayed: 26,
+          timeSpent: 300,
+        },
+      ],
+    });
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockResolvedValue({
+      weekly: [],
+      monthly: [],
+      allTime: [
+        {
+          name: "AllTime B2C Student",
+          lessonsPlayed: 12,
+          score: 77,
+          timeSpent: 240,
+        },
+      ],
+    });
+
+    const view = render(<Leaderboard />);
+    await view.findByTestId("leaderboard-filter");
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockClear();
+
+    await user.selectOptions(view.getByTestId("leaderboard-filter"), "2");
+
+    await eventually(() => {
+      expect(
+        mockApiHandler.getLeaderboardStudentResultFromB2CCollection
+      ).toHaveBeenCalledWith("student-1");
+    });
+    expect(await view.findByText("AllTime B2C Student")).toBeInTheDocument();
+    expect(view.getAllByText("3+").length).toBeGreaterThanOrEqual(1);
+  });
+
+  // 5m) If current user is missing from all buckets, Growthbook positions should be 0 for weekly/monthly/all-time.
+  it("updates growthbook leaderboard positions to 0 when current student is missing from all lists", async () => {
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "weekly-other",
+          name: "Weekly Other",
+          score: 80,
+          lessonsPlayed: 5,
+          timeSpent: 80,
+        },
+      ],
+      monthly: [
+        {
+          userId: "monthly-other",
+          name: "Monthly Other",
+          score: 82,
+          lessonsPlayed: 6,
+          timeSpent: 90,
+        },
+      ],
+      allTime: [
+        {
+          userId: "all-other",
+          name: "All Other",
+          score: 84,
+          lessonsPlayed: 7,
+          timeSpent: 100,
+        },
+      ],
+    });
+
+    render(<Leaderboard />);
+
+    await eventually(() => {
+      expect(mockUpdateLocalAttributes).toHaveBeenCalledWith({
+        leaderboard_position_weekly: 0,
+        leaderboard_position_monthly: 0,
+        leaderboard_position_all: 0,
+      });
+    });
+  });
+
+  // 5n) In school mode with student.image, avatar src should use image field directly.
+  it("uses currentStudent.image as avatar src in school mode", async () => {
+    mockGetCurrentStudent.mockReturnValue({
+      id: "img-student",
+      name: "Image Student",
+      avatar: "fox",
+      image: "https://cdn.example.com/student-image.png",
+    });
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "img-student",
+          name: "Image Student",
+          score: 88,
+          lessonsPlayed: 8,
+          timeSpent: 120,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    await eventually(() => {
+      expect(view.getAllByText("Image Student").length).toBeGreaterThan(0);
+    });
+
+    const avatarImg = document.querySelector(
+      ".leaderboard-avatar-img"
+    ) as HTMLImageElement | null;
+    expect(avatarImg).toBeTruthy();
+    if (!avatarImg) throw new Error("Avatar image is missing");
+    expect(avatarImg.getAttribute("src")).toBe(
+      "https://cdn.example.com/student-image.png"
+    );
+  });
+
+  // 5o) Outside school-image case, avatar src should use assets/avatars/<avatar>.png.
+  it("uses assets avatar path when image is missing", async () => {
+    mockGetCurrentStudent.mockReturnValue({
+      id: "avatar-student",
+      name: "Avatar Student",
+      avatar: "fox",
+      image: "",
+    });
+    mockGetCurrMode.mockResolvedValue(MODES.PARENT);
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "avatar-student",
+          name: "Avatar Student",
+          score: 82,
+          lessonsPlayed: 6,
+          timeSpent: 110,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    await eventually(() => {
+      expect(view.getAllByText("Avatar Student").length).toBeGreaterThan(0);
+    });
+
+    const avatarImg = document.querySelector(
+      ".leaderboard-avatar-img"
+    ) as HTMLImageElement | null;
+    expect(avatarImg).toBeTruthy();
+    if (!avatarImg) throw new Error("Avatar image is missing");
+    expect(avatarImg.getAttribute("src")).toBe("assets/avatars/fox.png");
+  });
+
+  // 5p) If avatar is missing, avatar src should fallback to assets/avatars/<AVATARS[0]>.png.
+  it("falls back to default avatar when avatar id is missing", async () => {
+    mockGetCurrentStudent.mockReturnValue({
+      id: "fallback-student",
+      name: "Fallback Student",
+      avatar: undefined,
+      image: "",
+    });
+    mockGetCurrMode.mockResolvedValue(MODES.PARENT);
+    mockApiHandler.getLeaderboardResults.mockResolvedValue({
+      weekly: [
+        {
+          userId: "fallback-student",
+          name: "Fallback Student",
+          score: 81,
+          lessonsPlayed: 5,
+          timeSpent: 100,
+        },
+      ],
+      monthly: [],
+      allTime: [],
+    });
+
+    const view = render(<Leaderboard />);
+    await eventually(() => {
+      expect(view.getAllByText("Fallback Student").length).toBeGreaterThan(0);
+    });
+
+    const avatarImg = document.querySelector(
+      ".leaderboard-avatar-img"
+    ) as HTMLImageElement | null;
+    expect(avatarImg).toBeTruthy();
+    if (!avatarImg) throw new Error("Avatar image is missing");
+    expect(avatarImg.getAttribute("src")).toBe(
+      `assets/avatars/${AVATARS[0]}.png`
+    );
   });
 
   // 6a) Less than 7 clicks should not open debug dialog.
