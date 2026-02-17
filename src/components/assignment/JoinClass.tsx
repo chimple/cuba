@@ -60,7 +60,9 @@ const JoinClass: FC<{
       setLoading(true);
       try {
         const codeToVerify = urlClassCode.inviteCode || inviteCode;
-        const result = await api.getDataByInviteCode(parseInt(codeToVerify, 10));
+        const result = await api.getDataByInviteCode(
+          parseInt(codeToVerify, 10),
+        );
         setCodeResult(result);
         setShowDialogBox(true);
       } catch (error) {
@@ -96,18 +98,20 @@ const JoinClass: FC<{
           student.image!,
           student.curriculum_id!,
           student.grade_id!,
-          student.language_id!
+          student.language_id!,
         );
       }
       await api.linkStudent(parseInt(inviteCode, 10), student.id);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
-          codeResult["school_id"]
+          codeResult["school_id"],
         );
         const currClass = await api.getClassById(codeResult["class_id"]);
         if (currClass) {
           await schoolUtil.setCurrentClass(currClass);
+          const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
+          localStorage.setItem(RESET_ON_JOIN_KEY, "true");
         } else {
           console.error("Class data not found.");
           throw new Error("Class data could not be fetched.");
@@ -150,7 +154,6 @@ const JoinClass: FC<{
     if (Capacitor.isNativePlatform()) {
       Keyboard.setScroll({ isDisabled: true });
 
-
       const handleKeyboardHide = () => {
         window.scrollTo({
           top: 0,
@@ -165,7 +168,7 @@ const JoinClass: FC<{
       (async () => {
         hideSub = await Keyboard.addListener(
           "keyboardWillHide",
-          handleKeyboardHide
+          handleKeyboardHide,
         );
       })();
 
@@ -242,16 +245,13 @@ const JoinClass: FC<{
         </div>
 
         <div className="join-class-message">
-          {codeResult &&
-          !error &&
-          error == "" &&
-          inviteCode?.length === 6
+          {codeResult && !error && error == "" && inviteCode?.length === 6
             ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${
                 codeResult["class_name"]
               }`
             : error && inviteCode?.length === 6
-            ? error
-            : null}
+              ? error
+              : null}
         </div>
         <button
           className="join-class-confirm-button"

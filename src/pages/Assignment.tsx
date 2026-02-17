@@ -145,8 +145,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       const classDoc = linkedData.classes[0];
       setCurrentClass(classDoc);
       Util.setCurrentClass(classDoc);
-      const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
-      localStorage.setItem(RESET_ON_JOIN_KEY, "true");
       setSchoolName(
         linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || "",
       );
