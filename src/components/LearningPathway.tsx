@@ -368,7 +368,6 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
-
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       const currentMode = localStorage.getItem("currentMode");
 
@@ -378,8 +377,7 @@ const LearningPathway: React.FC = () => {
         learningPath?.courses?.courseList?.length
       ) {
         const hasReset = localStorage.getItem(RESET_ON_JOIN_KEY);
-
-        if (!hasReset) {
+        if (hasReset) {
           learningPath.courses.courseList = learningPath.courses.courseList.map(
             (course: any) => ({
               ...course,
@@ -391,7 +389,7 @@ const LearningPathway: React.FC = () => {
           );
 
           learningPath.courses.currentCourseIndex = 0;
-          localStorage.setItem(RESET_ON_JOIN_KEY, "true");
+          localStorage.removeItem(RESET_ON_JOIN_KEY);
           await saveLearningPath(student, learningPath);
         }
       }
@@ -641,7 +639,6 @@ const LearningPathway: React.FC = () => {
       path.courses.courseList[path.courses.currentCourseIndex];
     const currentPath = currentCourse.path ?? [];
     if (!currentPath.length) return;
-
     const cappedEndIndex = Math.min(
       currentCourse.pathEndIndex ?? 0,
       currentPath.length - 1,
