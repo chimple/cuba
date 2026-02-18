@@ -317,7 +317,7 @@ const Home: FC = () => {
   async function getAssignments(
     withListeners: boolean = true
   ): Promise<TableTypes<"lesson">[]> {
-    
+
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
