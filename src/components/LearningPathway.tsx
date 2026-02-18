@@ -1,29 +1,29 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Util } from "../utility/util";
 import ChapterLessonBox from "./learningPathway/chapterLessonBox";
 import PathwayStructure from "./learningPathway/PathwayStructure";
 import "./LearningPathway.css";
-import TressureBox from "./learningPathway/TressureBox";
 import DropdownMenu from "./Home/DropdownMenu";
-import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
+import { ServiceConfig } from "../services/ServiceConfig";
 import { schoolUtil } from "../utility/schoolUtil";
 import { v4 as uuidv4 } from "uuid";
 import {
-  COURSE_CHANGED,
-  EVENTS,
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
-  RECOMMENDATION_TYPE,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
+  RECOMMENDATION_TYPE,
+  COURSE_CHANGED,
+  EVENTS,
   LANGUAGE,
   LANG_REFRESHED,
 } from "../common/constants";
+import { useGrowthBook } from "@growthbook/growthbook-react";
+import { sortCoursesByStudentLanguage, useLearningPath } from "../hooks/useLearningPath";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { palUtil } from "../utility/palUtil";
-import { useGrowthBook } from "@growthbook/growthbook-react";
 
 const buildLessonPath = async (
   mode: string,
@@ -107,7 +107,6 @@ const buildLessonPath = async (
       }));
     }
   }
-
   /**
    * ================================
    * MODE: ASSESSMENT_ONLY or FULL_ADAPTIVE
@@ -159,7 +158,12 @@ export const buildInitialLearningPath = async (
 ) => {
   const courseList = await Promise.all(
     courses.map(async (course) => {
-      const path = await buildLessonPath(mode, course, student, isLanguageRefresh);
+      const path = await buildLessonPath(
+        mode,
+        course,
+        student,
+        isLanguageRefresh,
+      );
       return {
         path_id: uuidv4(),
         course_id: course.id,
@@ -195,52 +199,107 @@ const shouldUsePAL = (mode: string) =>
   mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
-  const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-  const currentStudent = Util.getCurrentStudent();
   const { setGbUpdated } = useGbContext();
   const gb = useGrowthBook();
-  const [isModeResolved, setIsModeResolved] = useState(false);
 
-  type LearningPathwayMode =
-    (typeof LEARNING_PATHWAY_MODE)[keyof typeof LEARNING_PATHWAY_MODE];
-
-  const [mode, setMode] = useState<LearningPathwayMode>(
+  const [loading, setLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>(
     LEARNING_PATHWAY_MODE.DISABLED,
   );
+  const [isModeResolved, setIsModeResolved] = useState(false);
+
+  const student = Util.getCurrentStudent();
+
+  const { getPath } = useLearningPath({
+    student,
+    gb,
+  });
+
+  /* -----------------------------------
+   * 1️⃣ Refresh student from DB
+   * ----------------------------------- */
   useEffect(() => {
-    const fetchStudent = async () => {
-      const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent) return;
-      const student = await api.getUserByDocId(currentStudent.id);
-      if (student) {
-        Util.setCurrentStudent(student);
+    const refreshStudent = async () => {
+      if (!student?.id) return;
+      const latest = await api.getUserByDocId(student.id);
+      if (latest) {
+        Util.setCurrentStudent(latest);
       }
     };
-    fetchStudent();
+    refreshStudent();
   }, []);
 
+  function mergeCourseProgress(oldCourse: any, newCourse: any) {
+    const windowSize = (newCourse.pathEndIndex ?? 4) + 1;
+    // currentIndex is already absolute
+    const absoluteIndex = oldCourse?.currentIndex ?? 0;
+    const newStartIndex = Math.floor(absoluteIndex / windowSize) * windowSize;
+
+    return {
+      ...newCourse,
+      startIndex: newStartIndex,
+      currentIndex: absoluteIndex,
+      pathEndIndex: Math.min(
+        newStartIndex + windowSize - 1,
+        newCourse.path.length - 1,
+      ),
+    };
+  }
+
   useEffect(() => {
-    if (!gb?.ready || !currentStudent?.id) return;
+    if (!gb?.ready || !student?.id) return;
+
     const currentClass = schoolUtil.getCurrentClass();
     gb.setAttributes({
       ...gb.getAttributes(),
       school_ids: [currentClass?.school_id],
     });
-    const result = gb.getFeatureValue(
+    const resolvedMode = gb.getFeatureValue(
       "learning-pathway-mode",
       LEARNING_PATHWAY_MODE.DISABLED,
-    );
-    setMode(result as LearningPathwayMode);
-    localStorage.setItem(CURRENT_PATHWAY_MODE, result);
+    ) as string;
+    setMode(resolvedMode);
+    localStorage.setItem(CURRENT_PATHWAY_MODE, resolvedMode);
     setIsModeResolved(true);
-  }, [gb?.ready, currentStudent?.id]);
+  }, [gb?.ready, student?.id]);
+
+  /* -----------------------------------
+   * 3️⃣ Fetch path
+   * ----------------------------------- */
   useEffect(() => {
-    if (!currentStudent?.id || !isModeResolved) return;
-    updateStarCount(currentStudent);
-    fetchLearningPathway(currentStudent);
-  }, [isModeResolved]);
+    if (!student?.id || !isModeResolved) return;
+
+    const init = async () => {
+      setLoading(true);
+
+      try {
+        const isLinked = await api.isStudentLinked(student.id);
+        const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
+
+        const courses = currClass
+          ? await api.getCoursesForClassStudent(currClass.id)
+          : await api.getCoursesForPathway(student.id);
+
+        const sortedCourses = await sortCoursesByStudentLanguage(courses, student.language_id);
+        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
+        updateStarCount(student);
+        await getPath({
+          courses: sortedCourses,
+          mode,
+          classId: currClass?.id,
+        });
+      } catch (e) {
+        console.error("Error in init() learningPathway", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [student?.id, isModeResolved, mode]);
 
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
@@ -250,11 +309,8 @@ const LearningPathway: React.FC = () => {
       10,
     );
 
-    const latestStarsJson = localStorage.getItem(LATEST_STARS);
-    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-
     const latestLocalStars = parseInt(
-      latestStarsMap[currentStudent.id] || "0",
+      localStorage.getItem(LATEST_STARS(currentStudent.id)) || "0",
       10,
     );
     const dbStars = currentStudent.stars || 0;
@@ -271,8 +327,7 @@ const LearningPathway: React.FC = () => {
     }
 
     if (latestLocalStars <= dbStars) {
-      latestStarsMap[currentStudent.id] = dbStars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(currentStudent.id), dbStars.toString());
     } else {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
@@ -351,6 +406,31 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
+      const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
+      const currentMode = localStorage.getItem("currentMode");
+
+      if (
+        currClass &&
+        currentMode !== "SCHOOL" &&
+        learningPath?.courses?.courseList?.length
+      ) {
+        const hasReset = localStorage.getItem(RESET_ON_JOIN_KEY);
+        if (hasReset) {
+          learningPath.courses.courseList = learningPath.courses.courseList.map(
+            (course: any) => ({
+              ...course,
+              startIndex: 0,
+              currentIndex: 0,
+              pathEndIndex: 4,
+              path_id: uuidv4(),
+            }),
+          );
+
+          learningPath.courses.currentCourseIndex = 0;
+          localStorage.removeItem(RESET_ON_JOIN_KEY);
+          await saveLearningPath(student, learningPath);
+        }
+      }
       const hasFrameworkCourse = userCourses.some(
         (course) => course?.framework_id,
       );
@@ -391,22 +471,20 @@ const LearningPathway: React.FC = () => {
         });
         setGbUpdated(true);
         if (updated) await saveLearningPath(student, learningPath);
-        await buildLearningPathForUnplayedCourses(
-          learningPath,
-          userCourses,
-          student,
-        );
-        if (currClass) {
-          await updateLearningPathWithLatestAssessment(currClass, student);
+        if (mode !== LEARNING_PATHWAY_MODE.DISABLED) {
+          await buildLearningPathForUnplayedCourses(
+            learningPath,
+            userCourses,
+            student,
+          );
+          if (currClass) {
+            await updateLearningPathWithLatestAssessment(currClass, student);
+          }
         }
         const langRefreshed = localStorage.getItem(LANG_REFRESHED);
         if (langRefreshed === "true") {
           setLoading(true);
-          await rebuildLearningPathOnLangRefresh(
-            mode,
-            userCourses,
-            student,
-          );
+          await rebuildLearningPathOnLangRefresh(mode, userCourses, student);
         }
       }
     } catch (error) {
@@ -419,7 +497,7 @@ const LearningPathway: React.FC = () => {
   const rebuildLearningPathOnLangRefresh = async (
     mode: string,
     userCourses: any[],
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
   ) => {
     const langRefreshed = localStorage.getItem(LANG_REFRESHED);
     if (langRefreshed !== "true") return;
@@ -428,7 +506,7 @@ const LearningPathway: React.FC = () => {
       mode,
       userCourses,
       student,
-      true
+      true,
     );
     if (!rebuiltPath?.courses?.courseList?.length) return;
     const learningPath = student.learning_path
@@ -440,14 +518,12 @@ const LearningPathway: React.FC = () => {
     let hasChanges = false;
     for (const newCourse of newList) {
       const index = existingList.findIndex(
-        (c: any) => c.course_id === newCourse.course_id
+        (c: any) => c.course_id === newCourse.course_id,
       );
       if (index === -1) continue;
       const oldCourse = existingList[index];
-      const oldStartNode =
-        oldCourse?.path?.[oldCourse.startIndex];
-      const newStartNode =
-        newCourse?.path?.[newCourse.startIndex];
+      const oldStartNode = oldCourse?.path?.[oldCourse.startIndex];
+      const newStartNode = newCourse?.path?.[newCourse.startIndex];
       if (!oldStartNode || !newStartNode) continue;
       const oldStartLessonId = oldStartNode.lesson_id;
       const newStartLessonId = newStartNode.lesson_id;
@@ -455,11 +531,12 @@ const LearningPathway: React.FC = () => {
       // 🔹 replace ONLY if:
       // 1️⃣ starting lesson changed
       // 2️⃣ old starting lesson is assessment
-      if (
-        isOldAssessment &&
-        oldStartLessonId !== newStartLessonId
-      ) {
-        existingList[index] = newCourse;
+      if (isOldAssessment && oldStartLessonId !== newStartLessonId) {
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
+
         hasChanges = true;
       }
     }
@@ -482,63 +559,66 @@ const LearningPathway: React.FC = () => {
     if (!learningPath?.courses?.courseList) return null;
     if (!Array.isArray(userCourses) || userCourses.length === 0) return null;
 
-    // 1️⃣ Find unplayed courses
-    const unplayedCourses: any[] = [];
+    const coursesToRebuild: any[] = [];
     const existingList = [...learningPath.courses.courseList];
 
     for (const course of userCourses) {
       const existingCourse = existingList.find(
         (c: any) => c.course_id === course.id,
       );
-      const hasProgress =
-        (existingCourse?.currentIndex ?? 0) > 0 ||
-        (existingCourse?.startIndex ?? 0) > 0;
-      if (hasProgress) continue;
 
+      // Check if current path already has assessments
+      const hasAssessmentInPath = existingCourse?.path?.some(
+        (p: any) => p.is_assessment === true,
+      );
+
+      // Check if student has actually played/finished the assessment in the DB
       const hasPlayed = await api.isStudentPlayedPalLesson(
         student.id,
         course.id,
       );
-      if (!hasPlayed) {
-        unplayedCourses.push(course);
+
+      /**
+       * FIX: We rebuild the course path if:
+       * 1. The course is not in the list at all.
+       * 2. OR: The mode requires assessment, but the current path doesn't have them (even if they have progress).
+       * 3. OR: The student hasn't played this course at all.
+       */
+      const needsAssessmentRebuild =
+        shouldUseAssessment(mode) && !hasAssessmentInPath && !hasPlayed;
+
+      if (!existingCourse || needsAssessmentRebuild || !hasPlayed) {
+        coursesToRebuild.push(course);
       }
     }
 
-    if (unplayedCourses.length === 0) return null;
+    if (coursesToRebuild.length === 0) return null;
 
-    // 2️⃣ Build path ONCE for all unplayed
+    // Build the new paths (this will trigger the updated buildLessonPath above)
     const newLearningPath = await buildInitialLearningPath(
       mode,
-      unplayedCourses,
+      coursesToRebuild,
       student,
     );
-
     const newCourseList = newLearningPath?.courses?.courseList || [];
 
-    // 3️⃣ Replace matching courses
     for (const newCourse of newCourseList) {
       const index = existingList.findIndex(
         (c: any) => c.course_id === newCourse.course_id,
       );
-
-      const existingCourse = index !== -1 ? existingList[index] : null;
-      const hasProgress =
-        (existingCourse?.currentIndex ?? 0) > 0 ||
-        (existingCourse?.startIndex ?? 0) > 0;
-      if (hasProgress) {
-        continue;
-      }
       if (index !== -1) {
-        existingList[index] = newCourse;
+        // If we are replacing a "played" subject with an assessment, we overwrite it
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
       } else {
         existingList.push(newCourse);
       }
     }
 
-    // 4️⃣ Save
     learningPath.courses.courseList = existingList;
     await saveLearningPath(student, learningPath);
-
     return true;
   }
 
@@ -597,7 +677,6 @@ const LearningPathway: React.FC = () => {
       path.courses.courseList[path.courses.currentCourseIndex];
     const currentPath = currentCourse.path ?? [];
     if (!currentPath.length) return;
-
     const cappedEndIndex = Math.min(
       currentCourse.pathEndIndex ?? 0,
       currentPath.length - 1,
@@ -798,7 +877,10 @@ const LearningPathway: React.FC = () => {
       );
 
       if (index !== -1) {
-        existingList[index] = newCourse;
+        existingList[index] = mergeCourseProgress(
+          existingList[index],
+          newCourse,
+        );
       } else {
         existingList.push(newCourse);
       }
@@ -822,7 +904,6 @@ const LearningPathway: React.FC = () => {
             width: "35vw",
           }}
         />
-        {/* <TressureBox startNumber={from} endNumber={to} /> */}
       </div>
     </div>
   );

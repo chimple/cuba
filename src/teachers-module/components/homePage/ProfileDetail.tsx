@@ -16,7 +16,7 @@ const ProfileDetail: React.FC<ProfileDetailsProps> = ({ fullName, email }) => {
   return (
     <div className="side-menu-header">
       <IonToolbar
-        onClick={() => history.replace(PAGES.USER_PROFILE)}
+        onClick={() => history.push(PAGES.USER_PROFILE)}
       >
         <IonAvatar slot="start">
           <img src={"assets/avatars/armydog.png"} alt="Profile Avatar" />

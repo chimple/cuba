@@ -1,6 +1,6 @@
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-import { SchoolVisitAction, SchoolVisitType } from "../../common/constants";
+import { RESULT_STATUS, SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -550,7 +550,8 @@ export class ApiHandler implements ServiceApi {
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
     activities_scores?: string | undefined,
-    user_id?: string | undefined
+    user_id?: string | undefined,
+    status?: RESULT_STATUS | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -577,7 +578,8 @@ export class ApiHandler implements ServiceApi {
       subject_id,
       subject_ability,
       activities_scores,
-      user_id
+      user_id,
+      status
     );
   }
 
@@ -1947,7 +1949,7 @@ export class ApiHandler implements ServiceApi {
   public async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<"user">
-  ): Promise<TableTypes<"subject_lesson">[] | null> {
+  ): Promise<TableTypes<"subject_lesson"> | null> {
     return await this.s.getSubjectLessonsBySubjectId(subjectId, student);
   }
   public async getSkillById(
@@ -1965,9 +1967,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
+    courseId?: string
   ): Promise<TableTypes<"assignment">[]> {
-    return this.s.getLatestAssessmentGroup(classId, student);
+    return this.s.getLatestAssessmentGroup(classId, student, courseId);
   }
   public async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this.s.getWhatsappGroupDetails(groupId, bot);

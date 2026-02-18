@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import { Device } from "@capacitor/device";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -72,6 +73,8 @@ import {
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
+  GrowthBookAttributes,
+  LIDO_ASSESSMENT,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -111,7 +114,8 @@ import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
-import { buildInitialLearningPath } from "../components/LearningPathway";
+import { updateLocalAttributes } from "../growthbook/Growthbook";
+import { recommendNextLesson } from "../hooks/useLearningPath";
 
 declare global {
   interface Window {
@@ -132,7 +136,6 @@ export interface HotUpdateState {
   error: string;
   isAuto: boolean;
 }
-
 
 export class Util {
   public static port: PortPlugin;
@@ -2258,7 +2261,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2271,7 +2274,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2940,7 +2943,7 @@ export class Util {
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean,
-    isAborted: boolean = false,
+    isFullPathwayTerminated: boolean = false,
     abortCourseId?: string,
     isAssessmentLesson: boolean = false,
   ) {
@@ -2953,46 +2956,42 @@ export class Util {
     if (!learningPath) return;
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
-    if (isAborted && abortCourseId && isAssessmentLesson) {
-      const courseIndex = learningPath.courses.courseList.findIndex(
+    if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
+      let courseIndex = learningPath.courses.courseList.findIndex(
         (c: any) => c.course_id === abortCourseId,
       );
 
       if (courseIndex === -1) return;
 
-      // Rebuild learning path for ALL courses
-      const courses = learningPath.courses.courseList
-        .filter((c: any) => c.course_id === abortCourseId)
-        .map((c: any) => ({
-          id: c.course_id,
-          subject_id: c.subject_id,
+      const courses = learningPath.courses;
+      let course = courses.courseList[courseIndex];
+      course.path.length = 0;
+      const nextLesson = await recommendNextLesson({
+        student: currentStudent,
+        course: {
+          id: course.course_id,
+          subject_id: course.subject_id,
           framework_id:
-            c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-        }));
+            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+        },
+        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        coursePath: course,
+      });
 
-
-      const rebuiltPath = await buildInitialLearningPath(
-        storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        courses,
-        currentStudent,
-      );
-      // 1️⃣ Get rebuilt course
-      const rebuiltCourse = rebuiltPath.courses.courseList[0];
-      if (!rebuiltCourse) return;
-      // 3️⃣ Replace ONLY that course
-      learningPath.courses.courseList[courseIndex] = {
-        ...learningPath.courses.courseList[courseIndex],
-        ...rebuiltCourse,
-      };
-
-      // 4️⃣ Keep pointer correct
-      learningPath.courses.currentCourseIndex = courseIndex;
+      if (nextLesson) {
+        course.path.push(nextLesson);
+      }
+      courseIndex += 1;
+      if (courseIndex >= courses.courseList.length) {
+        courseIndex = 0;
+      }
+      courses.currentCourseIndex = courseIndex;
 
       // 5️⃣ Save FULL learning path
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false
+        false,
       );
 
       const updatedStudent =
@@ -3006,216 +3005,99 @@ export class Util {
     }
 
     try {
-      const { courses } = learningPath;
-      const currentCourse = courses.courseList[courses.currentCourseIndex];
-      let activeCourse = courses.courseList[courses.currentCourseIndex];
-      let activePathItem = activeCourse.path[activeCourse.currentIndex];
+      const PATH_SIZE = 5;
+      const api = ServiceConfig.getI().apiHandler;
 
+      const courses = learningPath.courses;
+      let courseIndex = courses.currentCourseIndex;
+      let course = courses.courseList[courseIndex];
+      if (!course) return;
+
+      /* 1️⃣ Identify active lesson */
+      const activeLessonIndex = course.path.findIndex(
+        (l: any) => l.isPlayed === false,
+      );
+      const activeLesson =
+        activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
       const prevData = {
-        pathId: activeCourse.path_id,
-        courseId: activeCourse.course_id,
-        lessonId: activePathItem.lesson_id,
-        chapterId: activePathItem.chapter_id,
-        prevPath_id: activeCourse.path_id,
+        pathId: course.path_id,
+        courseId: course.course_id,
+        lessonId: activeLesson.lesson_id,
+        chapterId: activeLesson.chapter_id,
+        prevPath_id: course.path_id,
+      };
+      if (!activeLesson) return;
+
+      /* 2️⃣ Mark active lesson as played */
+      course.path[activeLessonIndex] = {
+        ...activeLesson,
+        isPlayed: true,
       };
 
-      const eventsToLog: string[] = [];
-      const advancePathSlice = () => {
-        const pathLen = currentCourse.path?.length ?? 0;
-        if (!pathLen) return;
-        const nextStartIndex = Math.max(
-          0,
-          Math.min(currentCourse.currentIndex, pathLen - 1),
-        );
-        const nextEndIndex = Math.max(
-          nextStartIndex,
-          Math.min(currentCourse.pathEndIndex + 5, pathLen - 1),
-        );
+      /* 3️⃣ Compute next active lesson */
+      const nextLesson = await recommendNextLesson({
+        student: currentStudent,
+        course: {
+          id: course.course_id,
+          subject_id: course.subject_id,
+          framework_id:
+            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+        },
+        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        coursePath: course,
+      });
 
-        currentCourse.startIndex = nextStartIndex;
-        currentCourse.currentIndex = nextStartIndex;
-        currentCourse.pathEndIndex = nextEndIndex;
-        currentCourse.path_id = uuidv4();
-        prevData.prevPath_id = currentCourse.path_id;
-      };
+      if (nextLesson) {
+        course.path.push(nextLesson);
+      }
 
-      currentCourse.currentIndex += 1;
-      const is_immediate_sync =
-        currentCourse.currentIndex >= currentCourse.pathEndIndex;
-      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+      /* 4️⃣ Check path overflow */
+      let pathCompleted = false;
+
+      if (course.path.length > PATH_SIZE) {
+        // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
+        const active = course.path.find((l: any) => !l.isPlayed);
+        course.path.length = 0;
+        course.path.push(active);
+        pathCompleted = true;
+      }
+
+      /* 5️⃣ Move course index if path completed */
+      if (pathCompleted) {
         if (isRewardLesson) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
             JSON.stringify(learningPath),
           );
         }
-
-        if (
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].type === RECOMMENDATION_TYPE.CHAPTER
-        ) {
-          currentCourse.startIndex = currentCourse.currentIndex;
-          currentCourse.pathEndIndex += 5;
-          currentCourse.path_id = uuidv4();
-          prevData.prevPath_id = currentCourse.path_id;
-
-          if (currentCourse.pathEndIndex > currentCourse.path.length) {
-            currentCourse.pathEndIndex = currentCourse.path.length - 1;
-          }
-        } else {
-          // ASSESSMENT COMPLETED CASE → rebuild initial learning path
-          if (
-            isAssessmentLesson &&
-            !isAborted &&
-            storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
-          ) {
-            const courseIndex = learningPath.courses.courseList.findIndex(
-              (c: any) => c.course_id === currentCourse.course_id
-            );
-
-            if (courseIndex === -1) return;
-            const courses = learningPath.courses.courseList
-              .filter((c: any) => c.course_id === currentCourse.course_id)
-              .map((c: any) => ({
-                id: c.course_id,
-                subject_id: c.subject_id,
-                framework_id:
-                  c.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
-              }));
-
-            const rebuiltPath = await buildInitialLearningPath(
-              storedPathwayMode,
-              courses,
-              currentStudent,
-            );
-            const rebuiltCourse = rebuiltPath.courses.courseList[0];
-            if (!rebuiltCourse) return;
-            // 3️⃣ Replace ONLY that course
-            learningPath.courses.courseList[courseIndex] = {
-              ...learningPath.courses.courseList[courseIndex],
-              ...rebuiltCourse,
-            };
-            // 4️⃣ Keep pointer correct
-            learningPath.courses.currentCourseIndex = courseIndex;
-            await ServiceConfig.getI().apiHandler.updateLearningPath(
-              currentStudent,
-              JSON.stringify(learningPath),
-              false
-            );
-
-            const updatedStudent =
-              await ServiceConfig.getI().apiHandler.getUserByDocId(
-                currentStudent.id,
-              );
-
-            if (updatedStudent) {
-              Util.setCurrentStudent(updatedStudent);
-            }
-
-            return; // STOP further PAL / normal flow
-          }
-
-          if (storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
-            const palPath = await palUtil.getPalLessonPathForCourse(
-              currentCourse.course_id,
-              currentStudent.id
-            );
-
-            if (palPath?.length) {
-              currentCourse.path_id = uuidv4();
-              currentCourse.path = palPath;
-              currentCourse.startIndex = 0;
-              currentCourse.currentIndex = 0;
-              currentCourse.pathEndIndex = palPath.length - 1;
-            } else {
-              advancePathSlice();
-            }
-          } else {
-            advancePathSlice();
-          }
-        }
-
-        courses.currentCourseIndex += 1;
-
+        const newpathId = uuidv4();
+        course.path_id = newpathId;
+        prevData.pathId = newpathId;
+        course.completedPath +=1;
+        courseIndex += 1;
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
           10,
           false,
         );
-
-        if (courses.currentCourseIndex >= courses.courseList.length) {
-          courses.currentCourseIndex = 0;
+        if (courseIndex >= courses.courseList.length) {
+          courseIndex = 0;
         }
-
-        const pathwayEndData = {
-          user_id: currentStudent.id,
-          current_path_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path_id,
-          current_course_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].course_id,
-          current_lesson_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].lesson_id,
-          current_chapter_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].chapter_id,
-          prev_path_id: prevData.pathId,
-          prev_course_id: prevData.courseId,
-          prev_lesson_id: prevData.lessonId,
-          prev_chapter_id: prevData.chapterId,
-        };
-
-        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
-      } else if (
-        !isAssessmentLesson &&
-        storedPathwayMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
-      ) {
-        const recommended = await palUtil.getRecommendedLessonForCourse(
-          currentStudent.id,
-          currentCourse.course_id,
-        );
-        if (recommended?.lesson?.id) {
-          currentCourse.path[currentCourse.currentIndex] = {
-            ...currentCourse.path[currentCourse.currentIndex],
-            lesson_id: recommended.lesson.id,
-            chapter_id: recommended.chapterId,
-            skill_id: recommended.skillId,
-          };
-        }
-        eventsToLog.push(
-          EVENTS.PATHWAY_COMPLETED,
-          EVENTS.PATHWAY_COURSE_CHANGED,
-        );
+        courses.currentCourseIndex = courseIndex;
       }
 
-      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
-
+      /* 6️⃣ Event collection */
       const newCourse = courses.courseList[courses.currentCourseIndex];
-      const newPathItem =
-        newCourse.path[newCourse.currentIndex] || newCourse.path[0];
+      const newActiveLesson = newCourse.path.find(
+        (l: any) => l.isPlayed === false,
+      );
 
       const eventPayload = {
         user_id: currentStudent.id,
         current_path_id: newCourse.path_id,
         current_course_id: newCourse.course_id,
-        current_lesson_id: newPathItem.lesson_id,
-        current_chapter_id: newPathItem.chapter_id,
+        current_lesson_id: newActiveLesson?.lesson_id ?? null,
+        current_chapter_id: newActiveLesson?.chapter_id ?? null,
         path_id: prevData.pathId,
         prev_path_id: prevData.prevPath_id,
         prev_course_id: prevData.courseId,
@@ -3224,19 +3106,22 @@ export class Util {
         timestamp: new Date().toISOString(),
       };
 
+      const events: EVENTS[] = [EVENTS.PATHWAY_LESSON_END];
+      if (pathCompleted) {
+        events.push(EVENTS.PATHWAY_COMPLETED, EVENTS.PATHWAY_COURSE_CHANGED);
+      }
+
+      /* 7️⃣ Persist + log */
       await Promise.all([
-        ServiceConfig.getI().apiHandler.updateLearningPath(
+        api.updateLearningPath(
           currentStudent,
           JSON.stringify(learningPath),
-          is_immediate_sync,
+          false,
         ),
-        ...eventsToLog.map((eventName) =>
-          Util.logEvent(eventName as EVENTS, eventPayload),
-        ),
+        ...events.map((e) => Util.logEvent(e, eventPayload)),
       ]);
-      // Update the current student object
-      const updatedStudent =
-        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+
+      const updatedStudent = await api.getUserByDocId(currentStudent.id);
       if (updatedStudent) {
         Util.setCurrentStudent(updatedStudent);
       }
@@ -3255,15 +3140,13 @@ export class Util {
       const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
       const localStarsRaw = storedStarsMap[studentId];
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      const latestStarsRaw = latestStarsMap[studentId];
+      const latestStarsRaw = localStorage.getItem(LATEST_STARS(studentId));
 
       const localStars = Number.isFinite(+localStarsRaw)
         ? parseInt(localStarsRaw, 10)
         : 0;
-      const latestStars = Number.isFinite(+latestStarsRaw)
-        ? parseInt(latestStarsRaw, 10)
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? "0"))
+        ? parseInt(latestStarsRaw ?? "0", 10)
         : 0;
 
       // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
@@ -3321,10 +3204,7 @@ export class Util {
       storedStarsMap[studentId] = stars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-      const latestStarsJson = localStorage.getItem(LATEST_STARS);
-      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-      latestStarsMap[studentId] = stars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
       console.warn("[Util.setLocalStarsForStudent] failed", e);
     }
@@ -3658,32 +3538,32 @@ export class Util {
     }
   }
 
-public static getHotUpdateState(): HotUpdateState {
-  const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
-  return raw
-    ? JSON.parse(raw)
-    : {
-        status: "Idle",
-        progress: 0,
-        channel: "N/A",
-        lastChecked: "N/A",
-        lastUpdated: "N/A",
-        error: "",
-        isAuto: false,
-      };
-}
+  public static getHotUpdateState(): HotUpdateState {
+    const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : {
+          status: "Idle",
+          progress: 0,
+          channel: "N/A",
+          lastChecked: "N/A",
+          lastUpdated: "N/A",
+          error: "",
+          isAuto: false,
+        };
+  }
 
-public static setHotUpdateState(partial: Partial<HotUpdateState>) {
-  const current = this.getHotUpdateState();
-  const updated = { ...current, ...partial };
-  localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+  public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+    const current = this.getHotUpdateState();
+    const updated = { ...current, ...partial };
+    localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
 
-  window.dispatchEvent(new Event("hot-update-progress"));
-}
+    window.dispatchEvent(new Event("hot-update-progress"));
+  }
   static async removeCourseScopedKey(
     baseKey: string,
     userId: string,
-    courseId: string
+    courseId: string,
   ) {
     if (!baseKey || !userId || !courseId) return;
 
@@ -3704,5 +3584,74 @@ public static setHotUpdateState(partial: Partial<HotUpdateState>) {
       ? localStorage.removeItem(storageKey)
       : localStorage.setItem(storageKey, JSON.stringify(map));
   }
+  static upsertResultWithAggregation(
+    resultsBucket: any[],
+    result: any,
+    lesson?: TableTypes<"lesson">,
+  ) {
+    // LIDO → aggregate per lesson
+    if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+      const existing = resultsBucket.find(
+        (r) => r.lesson_id === result.lesson_id,
+      );
 
+      if (existing) {
+        const total =
+          (existing._totalScore ?? existing.score ?? 0) + (result.score ?? 0);
+
+        const count = (existing._count ?? 1) + 1;
+
+        existing._totalScore = total;
+        existing._count = count;
+        existing.score = Math.round(total / count);
+      } else {
+        resultsBucket.push({
+          ...result,
+          score: result.score ?? 0,
+          _totalScore: result.score ?? 0,
+          _count: 1,
+        });
+      }
+    } else {
+      // Non-LIDO → keep all attempts
+      resultsBucket.push(result);
+    }
+  }
+  public static async updateSchStdAttb(): Promise<any[]> {
+    try {
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return [];
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData) return [];
+      const device = await Util.logDeviceInfo();
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
+        classes: linkedData.classes.map((item: any) => item.id),
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      return [];
+    } catch (error) {
+      console.error("[Util.updateSchStdAttb] failed:", error);
+      return [];
+    }
+  }
+
+  public static async logDeviceInfo(): Promise<any> {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value,
+    };
+    return device;
+  }
 }

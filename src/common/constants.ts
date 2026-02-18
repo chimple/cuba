@@ -647,6 +647,7 @@ export const CURRENT_MODE = "currentMode";
 export const LAST_MODE = "lastMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
+export const LANG_REFRESHED = "langRefreshed"
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";
@@ -672,7 +673,8 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
-export const LATEST_STARS = "latestStar";
+export const LATEST_STARS = (studentId: string) =>
+  `latestStar_${studentId}`;
 export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
@@ -1291,4 +1293,8 @@ export const LEARNING_PATHWAY_MODE = {
 
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
-export const LANG_REFRESHED = "langRefreshed"
+export enum RESULT_STATUS {
+  COMPLETED = "completed",
+  USER_EXIT = "user_exit",
+  SYSTEM_EXIT = "system_exit",
+}

@@ -61,7 +61,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
   const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
-    []
+    [],
   );
   const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
@@ -87,16 +87,19 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         new Set(
           assignments
             .map((assignment) => assignment.chapter_id)
-            .filter((id): id is string => !!id) // Filter out any null or undefined ids
-        )
+            .filter((id): id is string => !!id), // Filter out any null or undefined ids
+        ),
       );
 
       const chapters = await api.getChaptersByIds(chapterIds);
 
-      const chapterIdMap = chapters.reduce((acc, chapter) => {
-        acc[chapter.id] = chapter;
-        return acc;
-      }, {} as { [id: string]: TableTypes<"chapter"> });
+      const chapterIdMap = chapters.reduce(
+        (acc, chapter) => {
+          acc[chapter.id] = chapter;
+          return acc;
+        },
+        {} as { [id: string]: TableTypes<"chapter"> },
+      );
 
       // Build the final lessonChapterMap by iterating through assignments
       const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
@@ -121,7 +124,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       });
       setAssignmentLessonCourseMap(lessonCourseMap);
     },
-    [api]
+    [api],
   );
 
   const init = useCallback(
@@ -143,7 +146,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       setCurrentClass(classDoc);
       Util.setCurrentClass(classDoc);
       setSchoolName(
-        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
+        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || "",
       );
       const classId = classDoc.id;
       const studentId = student.id;
@@ -155,7 +158,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         // Update only if length or content has changed
         const assignmentIds = assignments.map((a) => a.id);
         const newAssignments = allAssignments.filter(
-          (a) => !assignmentIds.includes(a.id)
+          (a) => !assignmentIds.includes(a.id),
         );
         const updatedAssignments = fullRefresh
           ? allAssignments
@@ -171,7 +174,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         });
         const lessonList = await Promise.all(lessonPromises);
         const filteredLessons = lessonList.filter(
-          (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
+          (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined,
         );
         const mergedLessons = fullRefresh
           ? filteredLessons
@@ -189,7 +192,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       setLoading(false);
       setIsLinked(true);
     },
-    [api, history, assignmentCount, updateLessonChapterAndCourseMaps]
+    [api, history, assignmentCount, updateLessonChapterAndCourseMaps],
   );
 
   // --- Debounced handler for assignment updates ---
@@ -226,7 +229,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     api.assignmentUserListner(student.id, async (assignmentUser) => {
       if (assignmentUser) {
         const assignment = await api.getAssignmentById(
-          assignmentUser.assignment_id
+          assignmentUser.assignment_id,
         );
         if (isMounted.current && assignment && assignment.type !== LIVE_QUIZ) {
           await updateLessonChapterAndCourseMaps([...assignments, assignment]);
@@ -275,20 +278,20 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       return;
     }
     const downloadedLessonIds = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]",
     );
     const allLessonIdPresent = lessons.every((lesson) =>
-      downloadedLessonIds.includes(lesson.cocos_lesson_id)
+      downloadedLessonIds.includes(lesson.cocos_lesson_id),
     );
     setShowDownloadHomeworkButton(!allLessonIdPresent);
     setDownloadButtonLoading(
       JSON.parse(
-        localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
-      )
+        localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false",
+      ),
     );
     window.removeEventListener(
       ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-      checkAllHomeworkDownloaded
+      checkAllHomeworkDownloaded,
     );
   };
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
@@ -298,14 +301,14 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     try {
       const storedLessonIds = Util.getStoredLessonIds();
       const filteredLessonIds: string[] = allLessonIds.filter(
-        (id): id is string => id !== null && !storedLessonIds.includes(id)
+        (id): id is string => id !== null && !storedLessonIds.includes(id),
       );
       const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
       await Util.downloadZipBundle(uniqueFilteredLessonIds);
 
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
-        JSON.stringify(false)
+        JSON.stringify(false),
       );
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
@@ -313,7 +316,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       console.error("Error downloading homework:", error);
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
-        JSON.stringify(false)
+        JSON.stringify(false),
       );
       setDownloadButtonLoading(false);
     }
@@ -321,7 +324,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   window.addEventListener(
     ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-    checkAllHomeworkDownloaded
+    checkAllHomeworkDownloaded,
   );
 
   useEffect(() => {
@@ -369,7 +372,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       // Synchronously evaluate feature
       const val = (growthbook.getFeatureValue?.(
         "homework-learning-pathway",
-        false
+        false,
       ) ?? false) as boolean;
 
       setIsHomeworkPathwayOnLocal(Boolean(val));
@@ -387,12 +390,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   const bodyClass = !isLinked
     ? "lesson-body"
     : !isHomeworkPathwayOnLocal
-    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
-      lessons.length < 1
-      ? "lesson-body"
-      : "assignment-body"
-    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
-      "assignment-body";
+      ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+        lessons.length < 1
+        ? "lesson-body"
+        : "assignment-body"
+      : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+        "assignment-body";
 
   return !loading ? (
     <div>
@@ -414,7 +417,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 </div>
 
                 {isLinked &&
-                !showDownloadHomeworkButton &&
+                showDownloadHomeworkButton &&
                 lessons.length > 0 &&
                 Capacitor.isNativePlatform() ? (
                   <IonButton
@@ -490,7 +493,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         {showHomeworkCompleteModal && (
                           <HomeworkCompleteModal
                             text={t(
-                              "Yay!! You have completed all the Homework!!"
+                              "Yay!! You have completed all the Homework!!",
                             )}
                             borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
                             onClose={() => setShowHomeworkCompleteModal(false)}
@@ -514,7 +517,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                       {showHomeworkCompleteModal && (
                         <HomeworkCompleteModal
                           text={t(
-                            "Yay!! You have completed all the Homework!!"
+                            "Yay!! You have completed all the Homework!!",
                           )}
                           borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
                           onClose={() => setShowHomeworkCompleteModal(false)}

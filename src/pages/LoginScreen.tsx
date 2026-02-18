@@ -548,7 +548,7 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const { success: result, isSpl: isOps } =
+      const { success: result, isSpl: isOps, userData } =
         await authInstance.loginWithEmailAndPassword(
           schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
           studentPassword.trimEnd()
@@ -563,7 +563,7 @@ const LoginScreen: React.FC = () => {
       }
       setAnimatedLoading(false);
       setIsLoading(false);
-      localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+      localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
       const user = JSON.parse(localStorage.getItem(USER_DATA)!);
       const userSchools = await getSchoolsForUser(user.id);
       await redirectUser(userSchools, isOps);
@@ -628,12 +628,12 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const { success: result, isSpl: isOpsUser } =
+      const { success: result, isSpl: isOpsUser, userData } =
         await authInstance.signInWithEmail(email, password);
 
       if (result) {
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        localStorage.setItem(USER_DATA, JSON.stringify(result));
+        localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
+        localStorage.setItem(USER_DATA, JSON.stringify(userData));
         setIsLoading(false);
         const user: any =
           await ServiceConfig.getI().authHandler.getCurrentUser();

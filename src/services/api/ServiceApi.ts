@@ -26,6 +26,7 @@ import {
   TeacherAPIResponse,
   SchoolVisitAction,
   SchoolVisitType,
+  RESULT_STATUS,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -542,7 +543,8 @@ export interface ServiceApi {
     subject_id?: string | undefined,
     subject_ability?: number | undefined,
     activities_scores?: string | undefined,
-    user_id?: string | undefined
+    user_id?: string | undefined,
+    status?: RESULT_STATUS | undefined
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -2581,14 +2583,15 @@ export interface ServiceApi {
   getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<"user">
-  ): Promise<TableTypes<"subject_lesson">[] | null>;
+  ): Promise<TableTypes<"subject_lesson"> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]>;
 
   /**

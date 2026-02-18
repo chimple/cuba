@@ -33,30 +33,34 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const [classDoc, setClassDoc] = useState<TableTypes<"class">>();
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   useEffect(() => {
-    if (!groupId || !bot) {
-      resetPopup();
-      setIsChangingGroup(true);
-      return;
-    }
-    const getGroup = async () => {
+    if (!classData?.id) return;
+
+    const init = async () => {
       try {
-        const updatedClass = await api.getClassById(classData?.id!);
+        const updatedClass = await api.getClassById(classData.id);
         if (updatedClass) setClassDoc(updatedClass);
+
+        if (!updatedClass?.group_id || !bot) {
+          resetPopup();
+          setIsChangingGroup(true);
+          return;
+        }
+
         const group = await api.getWhatsappGroupDetails(
-          updatedClass?.group_id!,
-          bot!
+          updatedClass.group_id,
+          bot,
         );
         setGroupName(group.name);
         setEditedGroupName(group.name);
         setMembers(group.members.length);
         setInviteLink(group.inviteLink);
       } catch (err) {
-        console.error("Failed to fetch WhatsApp group:", err);
+        console.error("Failed to fetch data:", err);
       }
     };
 
-    getGroup();
-  }, [groupId, bot, api, classData?.id]);
+    init();
+  }, [classData?.id, bot]);
 
   const handleEdit = () => {
     setEditedGroupName(groupName ?? "");
@@ -72,11 +76,10 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     if (!groupId || !bot) return;
 
     setIsSaving(true);
-
     const success = await api.updateWhatsAppGroupSettings(
       groupId,
       bot,
-      editedGroupName
+      editedGroupName,
     );
     setIsSaving(false);
 
@@ -119,7 +122,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       const result = await api.getWhatsAppGroupByInviteLink(
         normalized,
         bot,
-        classDoc?.id!
+        classDoc?.id!,
       );
       if (!result) {
         setError(t("No WhatsApp group found for this invite link"));

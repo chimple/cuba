@@ -1,24 +1,93 @@
 import { useHistory } from "react-router-dom";
-import { useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 
-export type BackButtonHandler = () => void;
+export type BackButtonHandler = () => boolean | void | Promise<boolean | void>;
 
-const handlers: BackButtonHandler[] = [];
+type BackButtonScope = "path" | "global";
 
-export const registerBackButtonHandler = (handler: BackButtonHandler) => {
-  handlers.push(handler);
+type BackButtonRecord = {
+  handler: BackButtonHandler;
+  path: string;
+  scope: BackButtonScope;
+};
+
+const handlers: BackButtonRecord[] = [];
+const HARDWARE_BACK_BUTTON_REINIT_EVENT =
+  "hardwareBackButtonRegistry:reinitialize";
+
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, "");
+  return trimmed || "/";
+};
+
+const getCurrentPath = () => {
+  if (typeof window === "undefined") return "/";
+  return normalizePath(window.location?.pathname || "/");
+};
+
+const isActiveForPath = (record: BackButtonRecord, path: string) => {
+  if (record.scope === "global") return true;
+  return record.path === path;
+};
+
+const runBackButtonHandlers = async (path: string) => {
+  for (let i = handlers.length - 1; i >= 0; i--) {
+    const record = handlers[i];
+    if (!isActiveForPath(record, path)) continue;
+
+    const handled = await record.handler();
+    if (handled !== false) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const registerBackButtonHandler = (
+  handler: BackButtonHandler,
+  options?: { path?: string; scope?: BackButtonScope },
+) => {
+  const scope = options?.scope ?? "path";
+  const path = normalizePath(options?.path ?? getCurrentPath());
+  const record: BackButtonRecord = { handler, path, scope };
+  handlers.push(record);
+
   return () => {
-    const index = handlers.lastIndexOf(handler);
+    const index = handlers.lastIndexOf(record);
     if (index >= 0) {
       handlers.splice(index, 1);
     }
   };
 };
 
-export const getBackButtonHandler = (): BackButtonHandler | null => {
-  return handlers.length > 0 ? handlers[handlers.length - 1] : null;
+export const getBackButtonHandler = (
+  path: string = getCurrentPath(),
+): BackButtonHandler | null => {
+  const normalized = normalizePath(path);
+  for (let i = handlers.length - 1; i >= 0; i--) {
+    const record = handlers[i];
+    if (isActiveForPath(record, normalized)) return record.handler;
+  }
+  return null;
+};
+
+export const resetBackButtonHandlers = () => {
+  handlers.length = 0;
+};
+
+export const reinitializeHardwareBackButton = () => {
+  resetBackButtonHandlers();
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(HARDWARE_BACK_BUTTON_REINIT_EVENT));
+  }
 };
 
 type PopupManagerLike = {
@@ -42,6 +111,36 @@ export const HardwareBackButtonHandler = ({
 }: HardwareBackButtonHandlerProps) => {
   const history = useHistory();
   const isHandlingRef = useRef(false);
+  const popupDataRefRef = useRef(popupDataRef);
+  const historyRef = useRef(history);
+  const setPopupDataRef = useRef(setPopupData);
+  const popupManagerRef = useRef(popupManager);
+  const showModalRefRef = useRef(showModalRef);
+  const setShowModalRef = useRef(setShowModal);
+
+  useEffect(() => {
+    popupDataRefRef.current = popupDataRef;
+  }, [popupDataRef]);
+
+  useEffect(() => {
+    historyRef.current = history;
+  }, [history]);
+
+  useEffect(() => {
+    setPopupDataRef.current = setPopupData;
+  }, [setPopupData]);
+
+  useEffect(() => {
+    popupManagerRef.current = popupManager;
+  }, [popupManager]);
+
+  useEffect(() => {
+    showModalRefRef.current = showModalRef;
+  }, [showModalRef]);
+
+  useEffect(() => {
+    setShowModalRef.current = setShowModal;
+  }, [setShowModal]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -50,8 +149,12 @@ export const HardwareBackButtonHandler = ({
       const selectors =
         "ion-modal, ion-alert, ion-popover, ion-action-sheet, ion-loading, ion-picker, ion-toast";
       const overlays = Array.from(
-        document.querySelectorAll(selectors)
-      ) as Array<{ dismiss?: (data?: any, role?: string) => Promise<boolean>; classList?: DOMTokenList; getAttribute?: (name: string) => string | null }>;
+        document.querySelectorAll(selectors),
+      ) as Array<{
+        dismiss?: (data?: any, role?: string) => Promise<boolean>;
+        classList?: DOMTokenList;
+        getAttribute?: (name: string) => string | null;
+      }>;
 
       const activeOverlay = overlays
         .slice()
@@ -74,32 +177,36 @@ export const HardwareBackButtonHandler = ({
       if (isHandlingRef.current) return;
       isHandlingRef.current = true;
       try {
-        const popupData = popupDataRef.current;
+        const popupData = popupDataRefRef.current.current;
         if (popupData) {
-          popupManager.onDismiss(popupData.config);
-          setPopupData(null);
+          popupManagerRef.current.onDismiss(popupData.config);
+          setPopupDataRef.current(null);
           return;
         }
 
-        if (showModalRef?.current && setShowModal) {
-          setShowModal(false);
+        if (showModalRefRef.current?.current && setShowModalRef.current) {
+          setShowModalRef.current(false);
           return;
         }
 
         const dismissed = await dismissActiveOverlay();
-        if (dismissed) return;
+        if (dismissed) {
+          return;
+        }
 
-        const registeredHandler = getBackButtonHandler();
-        if (registeredHandler) {
-          registeredHandler();
+        const handled = await runBackButtonHandlers(getCurrentPath());
+        if (handled) {
           return;
         }
 
         const canNavigateBack =
-          typeof canGoBack === "boolean" ? canGoBack : history.length > 1;
+          typeof canGoBack === "boolean"
+            ? canGoBack
+            : historyRef.current.length > 1;
 
         if (canNavigateBack) {
-          history.goBack();
+          historyRef.current.goBack();
+        } else {
         }
       } finally {
         isHandlingRef.current = false;
@@ -107,21 +214,40 @@ export const HardwareBackButtonHandler = ({
     };
 
     let listener: { remove: () => void } | null = null;
+    let disposed = false;
+    let listenerVersion = 0;
+
     const addListener = async () => {
-      listener = await CapApp.addListener("backButton", handler);
+      const currentVersion = ++listenerVersion;
+      const created = await CapApp.addListener("backButton", handler);
+      if (disposed || currentVersion !== listenerVersion) {
+        created.remove();
+        return;
+      }
+      listener = created;
     };
+
+    const reinitializeListener = () => {
+      listener?.remove();
+      listener = null;
+      addListener();
+    };
+
     addListener();
+    window.addEventListener(
+      HARDWARE_BACK_BUTTON_REINIT_EVENT,
+      reinitializeListener,
+    );
+
     return () => {
+      disposed = true;
+      window.removeEventListener(
+        HARDWARE_BACK_BUTTON_REINIT_EVENT,
+        reinitializeListener,
+      );
       listener?.remove();
     };
-  }, [
-    history,
-    popupDataRef,
-    setPopupData,
-    popupManager,
-    showModalRef,
-    setShowModal,
-  ]);
+  }, []);
 
   return null;
 };
