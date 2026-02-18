@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import fs from "fs";
 import path from "path";
@@ -302,6 +302,35 @@ describe("DisplayChapters", () => {
     });
   });
 
+  it("updates displayed chapters when dropdown grade changes", async () => {
+    const user = userEvent.setup();
+    mockLocation.search = `?courseDocId=${course1.id}`;
+    localStorage.setItem(
+      GRADE_MAP,
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] })
+    );
+    mockApiHandler.getChaptersForCourse.mockImplementation(async (courseId: string) =>
+      courseId === course1.id
+        ? [{ id: "chapter-a", name: "Grade 1 Chapter" }]
+        : [{ id: "chapter-b", name: "Grade 2 Chapter" }]
+    );
+
+    const view = render(<DisplayChapters />);
+    await view.findByTestId("grade-dropdown");
+
+    await eventually(() => {
+      expect(view.getByTestId("chapter-chapter-a")).toBeInTheDocument();
+      expect(view.queryByTestId("chapter-chapter-b")).not.toBeInTheDocument();
+    });
+
+    await user.selectOptions(view.getByTestId("grade-dropdown"), "g2");
+
+    await eventually(() => {
+      expect(view.getByTestId("chapter-chapter-b")).toBeInTheDocument();
+      expect(view.queryByTestId("chapter-chapter-a")).not.toBeInTheDocument();
+    });
+  });
+
   it("selects chapter and opens lessons slider", async () => {
     const user = userEvent.setup();
     mockLocation.search = `?courseDocId=${course1.id}`;
@@ -406,6 +435,73 @@ describe("DisplayChapters", () => {
 
     await user.click(view.getByTestId("chapters-back"));
 
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toBeNull();
+      expect(localStorage.getItem(CURRENT_SELECTED_GRADE)).toBeNull();
+      expect(mockSetPathToBackButton).toHaveBeenCalledWith(PAGES.HOME, mockHistory);
+    });
+  });
+
+  it("handles ion back callback by returning from lessons to chapters", async () => {
+    const user = userEvent.setup();
+    mockLocation.search = `?courseDocId=${course1.id}`;
+    localStorage.setItem(
+      GRADE_MAP,
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] })
+    );
+
+    const view = render(<DisplayChapters />);
+    await view.findByTestId("select-chapter");
+    await user.click(view.getByTestId(`chapter-${chapter1.id}`));
+    await view.findByTestId("lesson-slider");
+
+    let backCallback: (() => void) | undefined;
+    const register = jest.fn((_priority: number, callback: () => void) => {
+      backCallback = callback;
+    });
+    const event: any = new Event("ionBackButton");
+    event.detail = { register };
+    fireEvent(document, event);
+
+    expect(register).toHaveBeenCalled();
+    expect(typeof backCallback).toBe("function");
+
+    await act(async () => {
+      backCallback?.();
+    });
+
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_CHAPTER)).toBeNull();
+      expect(view.queryByTestId("lesson-slider")).not.toBeInTheDocument();
+      expect(view.getByTestId("select-chapter")).toBeInTheDocument();
+    });
+  });
+
+  it("handles registered back callback from chapters stage", async () => {
+    mockLocation.search = `?courseDocId=${course1.id}`;
+    localStorage.setItem(
+      GRADE_MAP,
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] })
+    );
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course1));
+    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade1));
+
+    const view = render(<DisplayChapters />);
+    await view.findByTestId("select-chapter");
+    await eventually(() => {
+      expect(mockRegisterBackButtonHandler).toHaveBeenCalled();
+    });
+
+    const callback =
+      mockRegisterBackButtonHandler.mock.calls[
+        mockRegisterBackButtonHandler.mock.calls.length - 1
+      ][0];
+    let handled = false;
+    await act(async () => {
+      handled = callback();
+    });
+
+    expect(handled).toBe(true);
     await eventually(() => {
       expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toBeNull();
       expect(localStorage.getItem(CURRENT_SELECTED_GRADE)).toBeNull();
