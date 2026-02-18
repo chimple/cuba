@@ -647,6 +647,7 @@ export const CURRENT_MODE = "currentMode";
 export const LAST_MODE = "lastMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
+export const LANG_REFRESHED = "langRefreshed"
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";

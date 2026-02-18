@@ -7,6 +7,7 @@ import DropdownMenu from "./Home/DropdownMenu";
 import Loading from "./Loading";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { schoolUtil } from "../utility/schoolUtil";
+import { v4 as uuidv4 } from "uuid";
 import {
   LATEST_STARS,
   STARS_COUNT,
@@ -16,10 +17,13 @@ import {
   RECOMMENDATION_TYPE,
   COURSE_CHANGED,
   EVENTS,
+  LANGUAGE,
+  LANG_REFRESHED,
 } from "../common/constants";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 import { sortCoursesByStudentLanguage, useLearningPath } from "../hooks/useLearningPath";
-import { updateLocalAttributes } from "../growthbook/Growthbook";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { palUtil } from "../utility/palUtil";
 
 const buildLessonPath = async (
   mode: string,
@@ -197,6 +201,7 @@ const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
+  const { setGbUpdated } = useGbContext();
   const gb = useGrowthBook();
 
   const [loading, setLoading] = useState<boolean>(false);

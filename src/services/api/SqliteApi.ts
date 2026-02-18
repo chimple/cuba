@@ -7969,7 +7969,7 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId: string
+    courseId?: string
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
