@@ -200,5 +200,11 @@
       "ALTER TABLE result ADD COLUMN user_id TEXT;",
       "ALTER TABLE result ADD COLUMN status TEXT;"
     ]
+  },
+  "11": {
+    "toVersion": 11,
+    "statements": [
+      "ALTER TABLE class ADD COLUMN whatsapp_invite_link TEXT;"
+    ]
   }
 }
