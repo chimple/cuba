@@ -61,8 +61,8 @@ jest.mock("../utility/schoolUtil", () => ({
 }));
 
 jest.mock("../common/backButtonRegistry", () => ({
-  registerBackButtonHandler: (...args: any[]) =>
-    mockRegisterBackButtonHandler(...args),
+  registerBackButtonHandler: (handler: any, options?: any) =>
+    mockRegisterBackButtonHandler(handler, options),
 }));
 
 jest.mock("@capacitor/screen-orientation", () => ({
