@@ -11037,13 +11037,15 @@ export class SupabaseApi implements ServiceApi {
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId: string,
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]> {
     if (!this.supabase) return [];
 
     const nowIso = new Date().toISOString();
     const studentId = student.id;
     const langId = student.language_id;
+
+    courseId = courseId ?? "";
 
     /* ==========================================
      * STEP 1️⃣  Get latest valid batch for course
