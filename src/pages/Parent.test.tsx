@@ -87,16 +87,16 @@ jest.mock("../components/parent/ProfileCard", () => ({
   ),
 }));
 
-const toggleCheckedByTitle = new Map<string, boolean>();
+const mockToggleCheckedByTitle = new Map<string, boolean>();
 jest.mock("../components/parent/ToggleButton", () => ({
   __esModule: true,
   default: ({ title, onIonChangeClick }: any) => (
     <button
       type="button"
       onClick={() => {
-        const prev = toggleCheckedByTitle.get(title) ?? false;
+        const prev = mockToggleCheckedByTitle.get(title) ?? false;
         const next = !prev;
-        toggleCheckedByTitle.set(title, next);
+        mockToggleCheckedByTitle.set(title, next);
 
         try {
           onIonChangeClick?.({ detail: { checked: next } });
@@ -184,7 +184,7 @@ const Parent = require("./Parent").default;
 describe("Parent page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    toggleCheckedByTitle.clear();
+    mockToggleCheckedByTitle.clear();
 
     localStorage.clear();
     sessionStorage.clear();
