@@ -247,7 +247,7 @@
 }
 
 .schoolTeachers-deleteDialogPaper {
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px;
 }
 
@@ -293,6 +293,11 @@
   border: 1px solid #e5e7eb;
 }
 
+.schoolTeachers-deleteName.MuiTypography-root {
+  font-weight: 700;
+  color: #111827;
+}
+
 .schoolTeachers-deleteWarning {
   margin-top: 16px;
   background: #fee2e2;
@@ -313,6 +318,16 @@
 .schoolTeachers-deleteConfirmButton.MuiButton-root {
   text-transform: none;
   border-radius: 6px;
+}
+
+.schoolTeachers-deleteCancelButton.MuiButton-root {
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+}
+
+.schoolTeachers-deleteCancelButton.MuiButton-root:hover {
+  border-color: #9ca3af !important;
+  background-color: #f9fafb !important;
 }
 
 .schoolTeachers-deleteConfirmButton.MuiButton-root {
