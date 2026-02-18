@@ -925,7 +925,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
                   />
                 ),
                 onClick: () => {
-                  const fullTeacher = getTeacherInfo(row.id, row.classId);
+                  const fullTeacher =
+                    row.interactPayload ?? getTeacherInfo(row.id, row.classId);
                   if (!fullTeacher) return;
                   setDeleteTargetTeacher(fullTeacher);
                   setIsDeleteModalOpen(true);
@@ -964,8 +965,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     try {
       setIsDeleting(true);
 
-      const teacherId = deleteTargetTeacher.user?.id;
-      const classId = deleteTargetTeacher.classWithidname?.id;
+      const teacherId =
+        deleteTargetTeacher.user?.id ||
+        (deleteTargetTeacher as { id?: string }).id ||
+        "";
+      const classId =
+        deleteTargetTeacher.classWithidname?.id ||
+        (deleteTargetTeacher as { classId?: string }).classId ||
+        (deleteTargetTeacher as { class_id?: string }).class_id ||
+        "";
 
       if (!teacherId || !classId) {
         console.error("Missing teacherId or classId");
@@ -985,6 +993,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const deleteClassDisplay = deleteTargetTeacher
     ? `${deleteTargetTeacher.grade ?? ""}${deleteTargetTeacher.classSection ?? ""}`.trim()
     : "";
+  const deleteContactDisplay = deleteTargetTeacher
+    ? deleteTargetTeacher.user?.phone?.trim() ||
+      deleteTargetTeacher.user?.email?.trim() ||
+      "N/A"
+    : "N/A";
 
   return (
     // The JSX remains the same
@@ -1028,11 +1041,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
           {deleteTargetTeacher && (
             <Box className="schoolTeachers-deleteDetails">
-              <Typography>{deleteTargetTeacher.user?.name ?? "N/A"}</Typography>
-              <Typography>{deleteClassDisplay || "N/A"}</Typography>
-              <Typography>
-                {deleteTargetTeacher.user?.phone ?? "N/A"}
+              <Typography className="schoolTeachers-deleteName">
+                {deleteTargetTeacher.user?.name ?? "N/A"}
               </Typography>
+              <Typography>{deleteClassDisplay || "N/A"}</Typography>
+              <Typography>{deleteContactDisplay}</Typography>
             </Box>
           )}
 
