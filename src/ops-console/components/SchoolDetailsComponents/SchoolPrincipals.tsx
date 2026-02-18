@@ -415,6 +415,11 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   // Principals are linked at school-level in this view.
   const deleteClassDisplay = t("N/A");
+  const deleteContactDisplay = deleteTargetPrincipal
+    ? deleteTargetPrincipal.phone?.trim() ||
+      deleteTargetPrincipal.email?.trim() ||
+      "N/A"
+    : "N/A";
 
   return (
     <div className="school-principals-page-container">
@@ -457,8 +462,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
           {deleteTargetPrincipal && (
             <Box className="school-principals-deleteDetails">
-              <Typography>{deleteTargetPrincipal.name ?? "N/A"}</Typography>
-              <Typography>{deleteTargetPrincipal.phone ?? "N/A"}</Typography>
+              <Typography className="school-principals-deleteName">
+                {deleteTargetPrincipal.name ?? "N/A"}
+              </Typography>
+              <Typography>{deleteContactDisplay}</Typography>
             </Box>
           )}
 

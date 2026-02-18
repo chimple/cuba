@@ -2591,7 +2591,7 @@ export interface ServiceApi {
   getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId: string,
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]>;
 
   /**

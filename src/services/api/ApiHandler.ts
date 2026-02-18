@@ -1968,7 +1968,7 @@ export class ApiHandler implements ServiceApi {
   public async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId: string
+    courseId?: string
   ): Promise<TableTypes<"assignment">[]> {
     return this.s.getLatestAssessmentGroup(classId, student, courseId);
   }

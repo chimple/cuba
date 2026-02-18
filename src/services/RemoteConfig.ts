@@ -56,8 +56,8 @@ export enum REMOTE_CONFIG_KEYS {
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: false,
   [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
-    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
     "https://cuba-stage-zip-bundle.web.app/",
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
     "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
   ],
   // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [

@@ -94,7 +94,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 10;
+  private DB_VERSION = 11;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -2933,7 +2933,7 @@ export class SqliteApi implements ServiceApi {
       if (currentClassId !== newClassId) {
         // Update class_user table to set previous record as deleted
         const currentClassUserId = `
-          SELECT id FROM class_user 
+          SELECT id FROM class_user
           WHERE user_id = ? AND class_id = ? AND is_deleted = 0
         `;
 
@@ -4976,10 +4976,6 @@ order by
           AND r.course_id IN (${courseholders})
           AND r.class_id = ?
           AND r.is_deleted = false
-          AND (
-            r.assignment_id IS NULL
-            OR r.assignment_id IN (${assignmentholders})
-          )
       ),
 
       -- LIDO lessons → average score per lesson (same lesson counted once)
@@ -5038,7 +5034,7 @@ order by
       ORDER BY created_at DESC;
 
     `,
-      [studentId, ...courseIds, classId, ...assignmentIds],
+      [studentId, ...courseIds, classId],
     );
     return res?.values ?? [];
   }
@@ -6011,7 +6007,7 @@ order by
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
@@ -7973,7 +7969,7 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId: string
+    courseId?: string
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
