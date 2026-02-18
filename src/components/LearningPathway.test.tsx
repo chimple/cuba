@@ -41,7 +41,7 @@ describe("LearningPathway", () => {
   const getPath = jest.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     jest.spyOn(ServiceConfig, "getI").mockReturnValue({ apiHandler: mockApi } as any);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: "stu-1",
@@ -195,12 +195,14 @@ describe("LearningPathway", () => {
   });
 
   test("sorts courses by student language before getPath", async () => {
+    mockApi.isStudentLinked.mockResolvedValue(false);
     mockApi.getCoursesForPathway.mockResolvedValue([
       { id: "c1", name: "Course 1" },
       { id: "c2", name: "Course 2" },
     ]);
     render(<LearningPathway />);
     await waitFor(() => {
+      expect(getPath).toHaveBeenCalled();
       expect(sortCoursesByStudentLanguage).toHaveBeenCalledWith(
         [{ id: "c1", name: "Course 1" }, { id: "c2", name: "Course 2" }],
         "en"
@@ -274,13 +276,16 @@ describe("LearningPathway", () => {
   });
 
   test("always renders structural components even when init errors", async () => {
-    mockApi.isStudentLinked.mockRejectedValue(new Error("link-check-failed"));
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    mockApi.isStudentLinked.mockRejectedValueOnce(new Error("link-check-failed"));
     render(<LearningPathway />);
     await waitFor(() => {
+      expect(spy).toHaveBeenCalled();
       expect(screen.getByTestId("dropdown-menu")).toBeInTheDocument();
       expect(screen.getByTestId("pathway-structure")).toBeInTheDocument();
       expect(screen.getByTestId("chapter-lesson-box")).toBeInTheDocument();
     });
+    spy.mockRestore();
   });
 
   test("calls schoolUtil.getCurrentClass during mode resolution even when not linked", async () => {
