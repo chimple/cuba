@@ -238,11 +238,11 @@ const Subjects: React.FC<{}> = ({}) => {
     const params = `courseDocId=${course.id}`;
     // history.replace(PAGES.DISPLAY_CHAPTERS + params);
     if (urlParams.get(CONTINUE)) {
-      history.replace(
+      history.push(
         PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` + "&" + params
       );
     } else {
-      history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);
+      history.push(PAGES.DISPLAY_CHAPTERS + "?" + params);
     }
   };
 

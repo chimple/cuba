@@ -130,11 +130,11 @@ const OpsApprovedRequestDetails = () => {
       <div className="ops-approved-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
           {t("Requests")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span
           onClick={() =>
             history.push({
@@ -142,11 +142,11 @@ const OpsApprovedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.APPROVED}`,
             })
           }
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
           {t("Approved")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span className="ops-approved-request-details-active">
           {t("RequestId")} - {id}
         </span>
@@ -214,14 +214,14 @@ const OpsApprovedRequestDetails = () => {
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Request For")}
-                </div>
                 <div>{requestDetails.request_type || "-"}</div>
+                </div>
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Requested On")}
-                </div>
                 <div>{formatDT(requestDetails.created_at)}</div>
+                </div>
               </Grid>
             </Grid>
           </Paper>

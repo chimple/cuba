@@ -196,7 +196,7 @@ const LessonCard: React.FC<{
                 lesson.cocos_subject_code
               );
               const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-              history.replace(PAGES.GAME + parmas, {
+              history.push(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId:
@@ -237,12 +237,12 @@ const LessonCard: React.FC<{
               }
 
               if (assignment) {
-                history.replace(
+                history.push(
                   PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
                   { assignment: JSON.stringify(assignment) }
                 );
               } else {
-                history.replace(
+                history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
                     courseId: course?.id ?? currentCourse?.id,
@@ -253,7 +253,7 @@ const LessonCard: React.FC<{
               }
             } else if (lesson.plugin_type === LIDO) {
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-              history.replace(PAGES.LIDO_PLAYER + parmas, {
+              history.push(PAGES.LIDO_PLAYER + parmas, {
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId: course?.id ?? currentCourse?.id,
                 course: JSON.stringify(course??currentCourse),

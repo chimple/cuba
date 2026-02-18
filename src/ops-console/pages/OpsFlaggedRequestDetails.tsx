@@ -442,11 +442,11 @@ const OpsFlaggedRequestDetails = () => {
       <div className="ops-flagged-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-flagged-request-details-link"
+          className="ops-flagged-request-details-link icon-button"
         >
           {t("Requests")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span
           onClick={() =>
             history.push({
@@ -454,11 +454,11 @@ const OpsFlaggedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.FLAGGED}`,
             })
           }
-          className="ops-flagged-request-details-link"
+          className="ops-flagged-request-details-link icon-button"
         >
           {t("Flagged")}
-        </span>
         <span> &gt; </span>
+        </span>
         <span className="ops-flagged-request-details-active">
           {t("Request ID - {{id}}", { id })}
         </span>

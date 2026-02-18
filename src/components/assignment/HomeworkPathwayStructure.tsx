@@ -676,7 +676,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.addEventListener("click", () => {
               if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.replace(PAGES.GAME + params, {
+                history.push(PAGES.GAME + params, {
                   url: "chimple-lib/index.html" + params,
                   lessonId: lesson.cocos_lesson_id,
                   courseDocId: fetchedCourse?.id,
@@ -688,7 +688,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   homeworkIndex: lessonIdx,
                 });
               } else if (lesson.plugin_type === LIVE_QUIZ) {
-                history.replace(
+                history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
                     courseId: fetchedCourse?.id,
@@ -700,7 +700,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 );
               } else if (lesson.plugin_type === LIDO) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.replace(PAGES.LIDO_PLAYER + params, {
+                history.push(PAGES.LIDO_PLAYER + params, {
                   lessonId: lesson.cocos_lesson_id,
                   courseDocId: fetchedCourse?.id,
                   course: JSON.stringify(fetchedCourse),
@@ -1105,7 +1105,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.GAME + params, {
+        history.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
@@ -1117,7 +1117,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           reward: true,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
-        history.replace(
+        history.push(
           PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
           {
             courseId: course.course_id,
@@ -1129,7 +1129,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         );
       } else if (lesson.plugin_type === LIDO) {
         const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.LIDO_PLAYER + parmas, {
+        history.push(PAGES.LIDO_PLAYER + parmas, {
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
           course: JSON.stringify(currentCourse),

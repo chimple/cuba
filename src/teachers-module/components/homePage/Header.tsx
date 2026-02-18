@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Header.css";
 import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
@@ -22,6 +22,7 @@ import SideMenu from "./SideMenu";
 import { t } from "i18next";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { IoShareSocialSharp } from "react-icons/io5";
+import { registerBackButtonHandler } from "../../../common/backButtonRegistry";
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -87,8 +88,17 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const handleBackButtonClick = () => {
-    if (disableBackButton) return;
+  const handleBackButtonClick = useCallback(() => {
+    if (disableBackButton) {
+      return;
+    }
+
+    // If drawer is open, close it first
+    if (isDrawerOpen) {
+      setIsDrawerOpen(false);
+      return;
+    }
+
     if (onBackButtonClick) {
       onBackButtonClick();
     } else if (onButtonClick) {
@@ -96,7 +106,30 @@ const Header: React.FC<HeaderProps> = ({
     } else {
       Util.setPathToBackButton(PAGES.HOME_PAGE, history);
     }
-  };
+  }, [
+    disableBackButton,
+    onBackButtonClick,
+    onButtonClick,
+    history,
+    isDrawerOpen,
+  ]);
+
+  const handleBackRef = React.useRef<() => void>(() => {});
+
+  useEffect(() => {
+    handleBackRef.current = handleBackButtonClick;
+  }, [handleBackButtonClick]);
+
+  useEffect(() => {
+    if (!isBackButton || disableBackButton) {
+      return;
+    }
+
+    const unregister = registerBackButtonHandler(() => {
+      return handleBackRef.current();
+    });
+    return unregister;
+  }, [isBackButton, disableBackButton]);
 
   return (
     <header className="header-container">
@@ -189,16 +222,15 @@ const Header: React.FC<HeaderProps> = ({
                 <IoShareSocialSharp size={28} color="white" />
               </button>
             )}
-           
           </div>
         </div>
-         <div className="help-icon-container">
-              <img
-                src="assets/icons/helpIcon.svg"
-                alt={String(t("Menu"))}
-                className="help-icon"
-              />
-            </div>
+        <div className="help-icon-container">
+          <img
+            src="assets/icons/helpIcon.svg"
+            alt={String(t("Menu"))}
+            className="help-icon"
+          />
+        </div>
       </div>
     </header>
   );

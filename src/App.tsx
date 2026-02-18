@@ -159,6 +159,7 @@ import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanR
 import GenericPopup from "./components/GenericPopUp/GenericPopUp";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { HardwareBackButtonHandler } from "./common/backButtonRegistry";
 import {
   Dialog,
   DialogTitle,
@@ -208,6 +209,17 @@ const App: React.FC = () => {
     HOMEWORK_REMOTE_ASSETS_ENABLED
   );
 
+  const popupDataRef = useRef<any>(null);
+  const showModalRef = useRef(showModal);
+
+  useEffect(() => {
+    popupDataRef.current = popupData;
+  }, [popupData]);
+
+  useEffect(() => {
+    showModalRef.current = showModal;
+  }, [showModal]);
+
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
   const homeworkPathwayAssets: any = useFeatureValue(
     HOMEWORK_PATHWAY_ASSETS,
@@ -236,8 +248,19 @@ const OpsConsoleRouteWatcher = () => {
 };
 
 useEffect(() => {
-  localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
-  localStorage.removeItem(SEARCH_LESSON_HISTORY);
+  // this event listener is to remove the highlighted text(if exists) on a click
+    const handleClick = () => {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        sel.removeAllRanges();
+      }
+    };
+    document.addEventListener("click", handleClick);
+    localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+    localStorage.removeItem(SEARCH_LESSON_HISTORY);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
 }, []);
 
 useEffect(() => {
@@ -555,6 +578,13 @@ useLayoutEffect(() => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <HardwareBackButtonHandler
+          popupDataRef={popupDataRef}
+          setPopupData={setPopupData}
+          popupManager={PopupManager}
+          showModalRef={showModalRef}
+          setShowModal={setShowModal}
+        />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>

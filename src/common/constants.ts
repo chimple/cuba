@@ -644,6 +644,7 @@ export const CURRENT_SCHOOL = "currentSchool";
 export const SEARCH_LESSON_HISTORY = "search_lesson_history";
 export const SEARCH_LESSON_CACHE_KEY = "search_lesson_last_state";
 export const CURRENT_MODE = "currentMode";
+export const LAST_MODE = "lastMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
@@ -1291,7 +1292,6 @@ export const LEARNING_PATHWAY_MODE = {
 
 export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
 export const FAIL_STREAK_KEY = "failStreakCount";
-export const LANG_REFRESHED = "langRefreshed"
 export enum RESULT_STATUS {
   COMPLETED = "completed",
   USER_EXIT = "user_exit",

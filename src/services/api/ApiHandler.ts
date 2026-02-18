@@ -1949,7 +1949,7 @@ export class ApiHandler implements ServiceApi {
   public async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<"user">
-  ): Promise<TableTypes<"subject_lesson">[] | null> {
+  ): Promise<TableTypes<"subject_lesson"> | null> {
     return await this.s.getSubjectLessonsBySubjectId(subjectId, student);
   }
   public async getSkillById(
@@ -1967,9 +1967,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
+    courseId: string
   ): Promise<TableTypes<"assignment">[]> {
-    return this.s.getLatestAssessmentGroup(classId, student);
+    return this.s.getLatestAssessmentGroup(classId, student, courseId);
   }
   public async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this.s.getWhatsappGroupDetails(groupId, bot);

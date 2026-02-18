@@ -22,6 +22,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { useReward } from "./useReward";
 import { schoolUtil } from "../utility/schoolUtil";
+import { LessonNode } from "./useLearningPath";
 
 export interface MascotProps {
   stateMachine: string;
@@ -254,11 +255,12 @@ export const usePathwayData = () => {
       const learningPath = JSON.parse(currentStudent.learning_path);
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const { currentIndex } = course;
-      const pathItem = course.path[currentIndex];
+      const pathItem = course.path.find((p : LessonNode) => p.isPlayed === false);
       const isAssessment = pathItem?.is_assessment
 
-      const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
+      const lesson = await api.getLesson(
+        course.path.find((p : LessonNode) => p.isPlayed === false).lesson_id,
+      );
       if (!lesson) return;
 
       // Navigate based on plugin type
@@ -274,8 +276,8 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
-          skillId: course.path[currentIndex]?.skill_id,
-          is_assessment: isAssessment
+          skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
+          is_assessment: isAssessment,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.replace(
@@ -286,9 +288,9 @@ export const usePathwayData = () => {
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
-            skillId: course.path[currentIndex]?.skill_id,
-            is_assessment: isAssessment
-          }
+            skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
+            is_assessment: isAssessment,
+          },
         );
       } else if (lesson.plugin_type === LIDO) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -301,8 +303,8 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
-          skillId: course.path[currentIndex]?.skill_id,
-          is_assessment: isAssessment
+          skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
+          is_assessment: isAssessment,
         });
       }
     } catch (error) {

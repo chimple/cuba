@@ -130,6 +130,7 @@ const Parent: React.FC = () => {
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
+      if (!allLang || allLang.length == 0) return;
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
 
@@ -171,9 +172,9 @@ const Parent: React.FC = () => {
     }
   }
 
-  function onHeaderIconClick(selectedHeader: any) {
-    setCurrentHeader(selectedHeader);
-  }
+  // function onHeaderIconClick(selectedHeader: any) {
+  //   setCurrentHeader(selectedHeader);
+  // }
 
   function profileUI() {
     // setIsLoading(false);

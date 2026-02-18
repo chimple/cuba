@@ -1,7 +1,17 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Typography, Box, CircularProgress, IconButton } from "@mui/material";
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import { t } from "i18next";
 import "./SchoolPrincipals.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
@@ -12,6 +22,11 @@ import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import ActionMenu from "./ActionMenu";
+import { MoreHoriz } from "@mui/icons-material";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 interface DisplayPrincipal {
   id: string;
@@ -22,6 +37,7 @@ interface DisplayPrincipal {
   phoneEmailDisplay: string;
   interact: "";
   interactPayload: PrincipalInfo;
+  principal_actions?: string;
 }
 
 interface SchoolPrincipalsProps {
@@ -41,10 +57,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   isMobile,
 }) => {
   const [principals, setPrincipals] = useState<PrincipalInfo[]>(
-    data.principals || []
+    data.principals || [],
   );
   const [totalCount, setTotalCount] = useState<number>(
-    data.totalPrincipalCount || 0
+    data.totalPrincipalCount || 0,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
@@ -55,6 +71,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const [openPopup, setOpenPopup] = useState(false);
   const [currentPrincipal, setCurrentPrincipal] = useState<PrincipalInfo>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetPrincipal, setDeleteTargetPrincipal] =
+    useState<PrincipalInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
@@ -67,7 +87,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         const response = await api.getPrincipalsForSchoolPaginated(
           schoolId,
           currentPage,
-          ROWS_PER_PAGE
+          ROWS_PER_PAGE,
         );
         setPrincipals(response.data);
         setTotalCount(response.total);
@@ -77,7 +97,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         setIsLoading(false);
       }
     },
-    [schoolId]
+    [schoolId],
   );
 
   useEffect(() => {
@@ -97,14 +117,14 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       setOrder(isAsc ? "desc" : "asc");
       setOrderBy(key);
     },
-    [order, orderBy]
+    [order, orderBy],
   );
   const getPrincipalInfo = useCallback(
     (id: string): PrincipalInfo | null => {
       if (!Array.isArray(principals)) return null;
       return principals.find((p) => p?.id === id) || null;
     },
-    [principals]
+    [principals],
   );
   const displayPrincipals = useMemo((): DisplayPrincipal[] => {
     let sorted = [...principals].sort((a, b) => {
@@ -167,75 +187,90 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     setErrorMessage(undefined);
   };
 
-const handlePrincipalSubmit = useCallback(
-  async (values: Record<string, string>) => {
-    try {
-      const name = (values.name ?? "").toString().trim();
-      const rawEmail = (values.email ?? "").toString().trim();
-      const rawPhone = (values.phoneNumber ?? "").toString();
+  const handlePrincipalSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        const name = (values.name ?? "").toString().trim();
+        const rawEmail = (values.email ?? "").toString().trim();
+        const rawPhone = (values.phoneNumber ?? "").toString();
 
-      if (!name) {
-        setErrorMessage({ text: "Principal name is required.", type: "error" });
-        return;
-      }
-
-      const email = rawEmail.toLowerCase();
-      const normalizedPhone = normalizePhone10(rawPhone);
-      const hasEmail = !!email;
-      const hasPhone = !!normalizedPhone;
-
-      if (!hasEmail && !hasPhone) {
-        setErrorMessage({ text: "Please provide either an email or a phone number.", type: "error" });
-        return;
-      }
-
-      let finalEmail = "";
-      let finalPhone = "";
-
-      if (hasEmail) {
-        if (!emailRegex.test(email)) {
-          setErrorMessage({ text: "Please enter a valid email address.", type: "error" });
+        if (!name) {
+          setErrorMessage({
+            text: "Principal name is required.",
+            type: "error",
+          });
           return;
         }
-        finalEmail = email;
-      }
 
-      if (hasPhone) {
-        if (normalizedPhone.length !== 10) {
-          setErrorMessage({ text: "Phone number must be 10 digits.", type: "error" });
+        const email = rawEmail.toLowerCase();
+        const normalizedPhone = normalizePhone10(rawPhone);
+        const hasEmail = !!email;
+        const hasPhone = !!normalizedPhone;
+
+        if (!hasEmail && !hasPhone) {
+          setErrorMessage({
+            text: "Please provide either an email or a phone number.",
+            type: "error",
+          });
           return;
         }
-        finalPhone = normalizedPhone;
+
+        let finalEmail = "";
+        let finalPhone = "";
+
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            setErrorMessage({
+              text: "Please enter a valid email address.",
+              type: "error",
+            });
+            return;
+          }
+          finalEmail = email;
+        }
+
+        if (hasPhone) {
+          if (normalizedPhone.length !== 10) {
+            setErrorMessage({
+              text: "Phone number must be 10 digits.",
+              type: "error",
+            });
+            return;
+          }
+          finalPhone = normalizedPhone;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage(undefined);
+
+        await api.getOrcreateschooluser({
+          name,
+          phoneNumber: finalPhone || undefined,
+          email: finalEmail || undefined,
+          schoolId,
+          role: RoleType.PRINCIPAL,
+        });
+
+        // Show success message for 2 seconds
+        setErrorMessage({
+          text: "Principal added successfully",
+          type: "success",
+        });
+        setTimeout(() => {
+          setIsAddPrincipalModalOpen(false); // close modal
+          setPage(1);
+          fetchPrincipals(1); // refresh principal list
+        }, 2000);
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({ text: message, type: "error" });
+        console.error("Failed to add principal:", e);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      setIsSubmitting(true);
-      setErrorMessage(undefined);
-
-      await api.getOrcreateschooluser({
-        name,
-        phoneNumber: finalPhone || undefined,
-        email: finalEmail || undefined,
-        schoolId,
-        role: RoleType.PRINCIPAL,
-      });
-
-      // Show success message for 2 seconds
-      setErrorMessage({ text: "Principal added successfully", type: "success" });
-      setTimeout(() => {
-        setIsAddPrincipalModalOpen(false); // close modal
-        setPage(1);
-        fetchPrincipals(1); // refresh principal list
-      }, 2000);
-    } catch (e: any) {
-      const message = e instanceof Error ? e.message : String(e);
-      setErrorMessage({ text: message, type: "error" });
-      console.error("Failed to add principal:", e);
-    } finally {
-      setIsSubmitting(false);
-    }
-  },
-  [schoolId, fetchPrincipals, api]
-);
+    },
+    [schoolId, fetchPrincipals, api],
+  );
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -263,7 +298,7 @@ const handlePrincipalSubmit = useCallback(
         column: 2,
       },
     ],
-    []
+    [],
   );
 
   const columns: Column<DisplayPrincipal>[] = [
@@ -283,13 +318,7 @@ const handlePrincipalSubmit = useCallback(
       width: 60,
       sortable: false,
       render: (row) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
-          }}
-        >
+        <Box className="school-principals-interactCell">
           <IconButton
             size="small"
             onClick={async () => {
@@ -303,7 +332,7 @@ const handlePrincipalSubmit = useCallback(
             <img
               src="/assets/icons/Interact.svg"
               alt="Interact"
-              style={{ width: 30, height: 30 }}
+              className="school-principals-interactIcon"
             />
           </IconButton>
         </Box>
@@ -311,20 +340,155 @@ const handlePrincipalSubmit = useCallback(
     },
 
     {
-      key: "phoneEmailDisplay",   // 🔹 use merged column
-      label: t("Phone no. / Email"),
+      key: "phoneEmailDisplay", // 🔹 use merged column
+      label: t("Phone / Email"),
       renderCell: (row) => (
         <Typography variant="body2" className="truncate-text">
           {row.phoneEmailDisplay}
         </Typography>
       ),
-    }
-
-
+    },
+    {
+      key: "principal_actions",
+      label: "",
+      sortable: false,
+      render: (row) => (
+        <Box className="school-principals-actionsCell">
+          <ActionMenu
+            items={[
+              {
+                name: t("Delete"),
+                icon: (
+                  <DeleteOutlineIcon
+                    fontSize="small"
+                    className="school-principals-actionDeleteIcon"
+                  />
+                ),
+                onClick: () => {
+                  const fullPrincipal = getPrincipalInfo(row.id);
+                  if (!fullPrincipal) return;
+                  setDeleteTargetPrincipal(fullPrincipal);
+                  setIsDeleteModalOpen(true);
+                },
+              },
+            ]}
+            renderTrigger={(open) => (
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  open(e);
+                }}
+                className="school-principals-actionTrigger"
+              >
+                <MoreHoriz className="school-principals-actionTriggerIcon" />
+              </IconButton>
+            )}
+          />
+        </Box>
+      ),
+    },
   ];
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetPrincipal) return;
+
+    try {
+      setIsDeleting(true);
+      const principalId = deleteTargetPrincipal.id;
+
+      if (!principalId) {
+        console.error("Missing principalId");
+        return;
+      }
+
+      await api.deleteUserFromSchool(schoolId, principalId, RoleType.PRINCIPAL);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetPrincipal(null);
+      fetchPrincipals(page);
+    } catch (error) {
+      console.error("Delete principal failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Principals are linked at school-level in this view.
+  const deleteClassDisplay = t("N/A");
 
   return (
     <div className="school-principals-page-container">
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          if (isDeleting) return;
+          setIsDeleteModalOpen(false);
+        }}
+        disableEscapeKeyDown={isDeleting}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ className: "school-principals-deleteDialogPaper" }}
+      >
+        <DialogTitle className="school-principals-deleteDialogTitle">
+          <Box className="school-principals-deleteDialogTitleLeft">
+            <ErrorOutlineIcon className="school-principals-deleteDialogAlertIcon" />
+            {t("Delete Principal?")}
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent className="school-principals-deleteDialogContent">
+          <Typography
+            variant="body2"
+            className="school-principals-deleteDialogText"
+          >
+            {t(
+              "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
+              { name: deleteTargetPrincipal?.name ?? "" },
+            )}
+          </Typography>
+
+          {deleteTargetPrincipal && (
+            <Box className="school-principals-deleteDetails">
+              <Typography>{deleteTargetPrincipal.name ?? "N/A"}</Typography>
+              <Typography>{deleteTargetPrincipal.phone ?? "N/A"}</Typography>
+            </Box>
+          )}
+
+          <Box className="school-principals-deleteWarning">
+            {t("This cannot be reversed. Please be certain.")}
+          </Box>
+        </DialogContent>
+
+        <DialogActions className="school-principals-deleteDialogActions">
+          <Button
+            variant="outlined"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+            className="school-principals-deleteCancelButton"
+          >
+            {t("Cancel")}
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="school-principals-deleteConfirmButton"
+          >
+            {isDeleting ? t("Deleting...") : t("Delete Principal")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className="school-principals-headerActionsRow">
         <Box className="school-principals-titleArea">
           <Typography variant="h5" className="school-principals-titleHeading">
@@ -373,7 +537,7 @@ const handlePrincipalSubmit = useCallback(
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
-              onRowClick={() => { }}
+              onRowClick={() => {}}
             />
           </div>
           {pageCount > 1 && (
@@ -413,7 +577,7 @@ const handlePrincipalSubmit = useCallback(
       <FormCard
         open={isAddPrincipalModalOpen}
         title={t("Add New Principal")}
-  submitLabel={isSubmitting ? t("Adding...") : t("Add Principal")}
+        submitLabel={isSubmitting ? t("Adding...") : t("Add Principal")}
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handlePrincipalSubmit}

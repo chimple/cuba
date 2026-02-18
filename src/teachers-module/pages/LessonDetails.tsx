@@ -97,7 +97,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
       setTimeout(()=>{
         Util.launchCocosGame();
       },1000)
-      history.replace(PAGES.GAME + parmas, {
+      history.push(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: lesson.cocos_lesson_id,
         courseDocId:
@@ -127,7 +127,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
         });
         return;
       }
-      history.replace(
+      history.push(
         PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
         {
           courseId: course?.id,
@@ -139,7 +139,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
 
     } else if (lesson.plugin_type === LIDO) {
       const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      history.replace(PAGES.LIDO_PLAYER + parmas, {
+      history.push(PAGES.LIDO_PLAYER + parmas, {
         lessonId: lesson.cocos_lesson_id,
         courseDocId: course?.id,
         course: JSON.stringify(course!),

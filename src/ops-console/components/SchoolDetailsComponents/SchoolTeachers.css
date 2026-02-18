@@ -166,10 +166,157 @@
   font-weight: 600;
 }
 
+.schoolteachers-whatsapp-chip-base.MuiChip-root {
+  font-weight: 500;
+  font-size: 0.75rem;
+  height: 24px;
+  border-radius: 9999px;
+}
+
 /* Tick icon size inside the pill. */
 .schoolteachers-whatsapp-chip-icon {
   width: 14px;
   height: 14px;
+}
+
+.schoolTeachers-interactCell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.schoolTeachers-interactIcon {
+  width: 30px;
+  height: 30px;
+}
+
+.schoolTeachers-performance-pill {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.schoolTeachers-performance-pill-not-assigning {
+  background: #ffe2e2;
+  color: #ca3500;
+}
+
+.schoolTeachers-performance-pill-one-to-two {
+  background: #ffedd4;
+  color: #e4916a;
+}
+
+.schoolTeachers-performance-pill-three-to-four {
+  background: #dcfce7;
+  color: #008236;
+}
+
+.schoolTeachers-performance-pill-four-plus {
+  background: #dcfce7;
+  color: #008236;
+}
+
+.schoolTeachers-performance-pill-not-tracked {
+  background: #f3f4f6;
+  color: #364153;
+}
+
+.schoolTeachers-actionsCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.schoolTeachers-actionDeleteIcon.MuiSvgIcon-root {
+  color: #2563eb;
+}
+
+.schoolTeachers-actionTrigger.MuiIconButton-root {
+  color: #6b7280;
+}
+
+.schoolTeachers-actionTrigger.MuiIconButton-root:hover {
+  background-color: #f3f4f6;
+}
+
+.schoolTeachers-actionTriggerIcon.MuiSvgIcon-root {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.schoolTeachers-deleteDialogPaper {
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.schoolTeachers-deleteDialogTitle.MuiDialogTitle-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.schoolTeachers-deleteDialogTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.schoolTeachers-deleteDialogAlertIcon.MuiSvgIcon-root {
+  color: #dc2626;
+  font-size: 20px;
+}
+
+.schoolTeachers-deleteDialogContent.MuiDialogContent-root {
+  padding-top: 0;
+  text-align: left;
+}
+
+.schoolTeachers-deleteDialogText.MuiTypography-root {
+  margin-bottom: 16px;
+  color: #4b5563;
+  text-align: left;
+  width: 100%;
+}
+
+.schoolTeachers-deleteDetails {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.schoolTeachers-deleteWarning {
+  margin-top: 16px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 13px;
+  border: 1px solid #fecaca;
+}
+
+.schoolTeachers-deleteDialogActions.MuiDialogActions-root {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 16px;
+}
+
+.schoolTeachers-deleteCancelButton.MuiButton-root,
+.schoolTeachers-deleteConfirmButton.MuiButton-root {
+  text-transform: none;
+  border-radius: 6px;
+}
+
+.schoolTeachers-deleteConfirmButton.MuiButton-root {
+  font-weight: 500;
 }
 
 .schoolTeachers-footer {

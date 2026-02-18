@@ -315,8 +315,9 @@ const Home: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   async function getAssignments(
-     withListeners: boolean = true
+    withListeners: boolean = true
   ): Promise<TableTypes<"lesson">[]> {
+
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
@@ -325,7 +326,7 @@ const Home: FC = () => {
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
     const classDoc = linkedData?.classes[0];
-     if (withListeners) {
+    if (withListeners) {
       if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
       if (student) await api.assignmentUserListner(student.id, () => {});
     }

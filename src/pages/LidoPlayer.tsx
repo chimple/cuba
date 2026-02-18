@@ -32,6 +32,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import { palUtil } from "../utility/palUtil";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { registerBackButtonHandler } from "../common/backButtonRegistry";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -40,7 +41,7 @@ const LidoPlayer: FC = () => {
   // State
   const state = history.location.state as any;
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const lessonId = urlSearchParams.get("lessonId") ?? state?.lessonId;
+  const lessonId = urlSearchParams.get("lessonid") ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || "self-played";
   const playedFrom = localStorage.getItem("currentHeader");
 
@@ -82,6 +83,7 @@ const LidoPlayer: FC = () => {
     chapterId: undefined as string | undefined,
     isStudentLinked: false,
   });
+  const isExitingRef = useRef(false);
 
   const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
@@ -94,10 +96,22 @@ const LidoPlayer: FC = () => {
   };
 
   const push = () => {
+    if (isExitingRef.current) return;
+    isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
+    const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    history.replace(fromPath, state);
+    let targetPath = fromPath;
+    if (Capacitor.isNativePlatform() || !!urlParams.get("isReload")) {
+      const separator = fromPath.includes("?") ? "&" : "?";
+      targetPath = `${fromPath}${separator}isReload=true`;
+    }
+
+    history.replace(targetPath, state);
     setIsLoading(false);
+    setTimeout(() => {
+      isExitingRef.current = false;
+    }, 300);
   };
 
   const processStoredResults = async (
@@ -667,6 +681,19 @@ const LidoPlayer: FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const unregister = registerBackButtonHandler(
+      () => {
+        if (window.location.pathname !== PAGES.LIDO_PLAYER) return false;
+        push();
+        return true;
+      },
+      { path: PAGES.LIDO_PLAYER },
+    );
+
+    return unregister;
+  }, []);
+
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -694,7 +721,7 @@ const LidoPlayer: FC = () => {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
+    const lessonId = urlSearchParams.get("lessonid") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
@@ -741,9 +768,10 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const path =
-        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      setXmlPath(path);
+      const pathBase = `https://chimple-bundles.web.app/${lessonId}/`;
+      const pathXml = `https://chimple-bundles.web.app/${lessonId}/index.xml`;
+      setBasePath(pathBase);
+      setXmlPath(pathXml);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount

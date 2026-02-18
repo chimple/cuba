@@ -1,29 +1,25 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Util } from "../utility/util";
 import ChapterLessonBox from "./learningPathway/chapterLessonBox";
 import PathwayStructure from "./learningPathway/PathwayStructure";
 import "./LearningPathway.css";
-import TressureBox from "./learningPathway/TressureBox";
 import DropdownMenu from "./Home/DropdownMenu";
-import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
+import { ServiceConfig } from "../services/ServiceConfig";
 import { schoolUtil } from "../utility/schoolUtil";
-import { v4 as uuidv4 } from "uuid";
 import {
-  COURSE_CHANGED,
-  EVENTS,
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
-  RECOMMENDATION_TYPE,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
-  LANGUAGE,
-  LANG_REFRESHED,
+  RECOMMENDATION_TYPE,
+  COURSE_CHANGED,
+  EVENTS,
 } from "../common/constants";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { palUtil } from "../utility/palUtil";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { sortCoursesByStudentLanguage, useLearningPath } from "../hooks/useLearningPath";
+import { updateLocalAttributes } from "../growthbook/Growthbook";
 
 const buildLessonPath = async (
   mode: string,
@@ -199,30 +195,35 @@ const shouldUsePAL = (mode: string) =>
   mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
-  const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-  const currentStudent = Util.getCurrentStudent();
-  const { setGbUpdated } = useGbContext();
   const gb = useGrowthBook();
-  const [isModeResolved, setIsModeResolved] = useState(false);
 
-  type LearningPathwayMode =
-    (typeof LEARNING_PATHWAY_MODE)[keyof typeof LEARNING_PATHWAY_MODE];
-
-  const [mode, setMode] = useState<LearningPathwayMode>(
+  const [loading, setLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>(
     LEARNING_PATHWAY_MODE.DISABLED,
   );
+  const [isModeResolved, setIsModeResolved] = useState(false);
+
+  const student = Util.getCurrentStudent();
+
+  const { getPath } = useLearningPath({
+    student,
+    gb,
+  });
+
+  /* -----------------------------------
+   * 1️⃣ Refresh student from DB
+   * ----------------------------------- */
   useEffect(() => {
-    const fetchStudent = async () => {
-      const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent) return;
-      const student = await api.getUserByDocId(currentStudent.id);
-      if (student) {
-        Util.setCurrentStudent(student);
+    const refreshStudent = async () => {
+      if (!student?.id) return;
+      const latest = await api.getUserByDocId(student.id);
+      if (latest) {
+        Util.setCurrentStudent(latest);
       }
     };
-    fetchStudent();
+    refreshStudent();
   }, []);
 
   function mergeCourseProgress(oldCourse: any, newCourse: any) {
@@ -243,25 +244,57 @@ const LearningPathway: React.FC = () => {
   }
 
   useEffect(() => {
-    if (!gb?.ready || !currentStudent?.id) return;
+    if (!gb?.ready || !student?.id) return;
+
     const currentClass = schoolUtil.getCurrentClass();
     gb.setAttributes({
       ...gb.getAttributes(),
       school_ids: [currentClass?.school_id],
     });
-    const result = gb.getFeatureValue(
+    const resolvedMode = gb.getFeatureValue(
       "learning-pathway-mode",
       LEARNING_PATHWAY_MODE.DISABLED,
-    );
-    setMode(result as LearningPathwayMode);
-    localStorage.setItem(CURRENT_PATHWAY_MODE, result);
+    ) as string;
+    setMode(resolvedMode);
+    localStorage.setItem(CURRENT_PATHWAY_MODE, resolvedMode);
     setIsModeResolved(true);
-  }, [gb?.ready, currentStudent?.id]);
+  }, [gb?.ready, student?.id]);
+
+  /* -----------------------------------
+   * 3️⃣ Fetch path
+   * ----------------------------------- */
   useEffect(() => {
-    if (!currentStudent?.id || !isModeResolved) return;
-    updateStarCount(currentStudent);
-    fetchLearningPathway(currentStudent);
-  }, [isModeResolved]);
+    if (!student?.id || !isModeResolved) return;
+
+    const init = async () => {
+      setLoading(true);
+
+      try {
+        const isLinked = await api.isStudentLinked(student.id);
+        const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
+
+        const courses = currClass
+          ? await api.getCoursesForClassStudent(currClass.id)
+          : await api.getCoursesForPathway(student.id);
+
+        const sortedCourses = await sortCoursesByStudentLanguage(courses, student.language_id);
+        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
+        updateStarCount(student);
+        await getPath({
+          courses: sortedCourses,
+          mode,
+          classId: currClass?.id,
+        });
+      } catch (e) {
+        console.error("Error in init() learningPathway", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [student?.id, isModeResolved, mode]);
 
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
@@ -866,7 +899,6 @@ const LearningPathway: React.FC = () => {
             width: "35vw",
           }}
         />
-        {/* <TressureBox startNumber={from} endNumber={to} /> */}
       </div>
     </div>
   );

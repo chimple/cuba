@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+﻿import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
@@ -10,6 +10,11 @@ import {
   CircularProgress,
   Chip,
   IconButton,
+   Dialog,
+   DialogTitle,
+   DialogContent,
+   DialogActions,
+   Button,
 } from "@mui/material";
 import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
@@ -32,6 +37,8 @@ import {
   WHATSAPP_GROUP_STATUS,
   WHATSAPP_GROUP_TICK_ICON,
 } from "../../../common/constants";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
@@ -46,6 +53,7 @@ import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 type ApiStudentData = StudentInfo;
 
@@ -213,6 +221,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(
     null
   );
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetStudent, setDeleteTargetStudent] = useState<StudentInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
@@ -776,6 +788,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                     setIsEditStudentModalOpen(true);
                   },
                 },
+                {
+                  name: t("Delete"),
+                  icon: (
+                    <DeleteOutlineIcon
+                      fontSize="small"
+                      sx={{ color: "#2563eb" }}  
+                    />
+                  ),
+                  onClick: () => {
+                    console.log("Delete clicked for student:", s.id);
+                    const fullStudent = getStudentInfoById(s.id);
+                    if (!fullStudent) return;
+                    setDeleteTargetStudent(fullStudent);
+                    setIsDeleteModalOpen(true);
+                  },
+                },
               ]}
               renderTrigger={(open) => (
                 <IconButton
@@ -1301,6 +1329,34 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     ]
   );
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetStudent) return;
+
+    try {
+      setIsDeleting(true);
+
+      const studentId = deleteTargetStudent.user.id;
+      const classId = deleteTargetStudent.classWithidname?.id;
+
+      if (!studentId || !classId) {
+        console.error("Missing studentId or classId");
+        return;
+      }
+
+      await api.deleteUserFromClass(studentId, classId);
+
+      setIsDeleteModalOpen(false);
+      setDeleteTargetStudent(null);
+
+      fetchStudents(page, debouncedSearchTerm);
+
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
 
   const performanceFilters = [
@@ -1347,6 +1403,118 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         }}
         onSubmit={handleEditSubmit}
       />
+
+      <Dialog
+      open={isDeleteModalOpen}
+      onClose={() => setIsDeleteModalOpen(false)}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "12px",
+          padding: 1,
+        },
+      }}
+    >
+      {/* Header */}
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontWeight: 600,
+          fontSize: "18px",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ErrorOutlineIcon sx={{ color: "#dc2626", fontSize: 20 }} />
+          {t("Delete Student?")}
+        </Box>
+
+        <IconButton
+          size="small"
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 0 , textAlign: "left"}}>
+        <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}>
+          {t(
+            `You’re about to permanently delete ${deleteTargetStudent?.user?.name}'s record. This action cannot be undone.`
+          )}
+        </Typography>
+
+        {deleteTargetStudent && (
+          <Box
+            sx={{
+              background: "#F9FAFB",
+              borderRadius: "8px",
+              padding: "12px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr 1fr",
+              gap: 1,
+              fontSize: 14,
+              border: "1px solid #E5E7EB", 
+            }}
+          >
+            <Typography>
+              {deleteTargetStudent.user.student_id ?? "N/A"}
+            </Typography>
+            <Typography>{deleteTargetStudent.user.name}</Typography>
+            <Typography>
+              {deleteTargetStudent.user.gender}
+            </Typography>
+            <Typography>
+              {deleteTargetStudent.parent?.phone || "N/A"}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Warning Box */}
+        <Box
+          sx={{
+            mt: 2,
+            background: "#FEE2E2",
+            color: "#B91C1C",
+            borderRadius: "6px",
+            padding: "10px",
+            fontSize: "13px",
+            border: "1px solid #FECACA",
+          }}
+        >
+          {t("This cannot be reversed. Please be certain.")}
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={() => setIsDeleteModalOpen(false)}
+          sx={{
+            textTransform: "none",
+            borderRadius: "6px",
+          }}
+        >
+          {t("Cancel")}
+        </Button>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleConfirmDelete}
+          disabled={isDeleting}
+          sx={{
+            textTransform: "none",
+            borderRadius: "6px",
+            fontWeight: 500,
+          }}
+        >
+          {isDeleting ? t("Deleting...") : t("Delete Student")}
+        </Button>
+      </DialogActions>
+    </Dialog>
 
       {openPopup && studentData && (
         <FcInteractPopUp
