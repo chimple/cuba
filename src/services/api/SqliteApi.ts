@@ -4985,10 +4985,6 @@ order by
           AND r.course_id IN (${courseholders})
           AND r.class_id = ?
           AND r.is_deleted = false
-          AND (
-            r.assignment_id IS NULL
-            OR r.assignment_id IN (${assignmentholders})
-          )
       ),
 
       -- LIDO lessons → average score per lesson (same lesson counted once)
@@ -5047,7 +5043,7 @@ order by
       ORDER BY created_at DESC;
 
     `,
-      [studentId, ...courseIds, classId, ...assignmentIds],
+      [studentId, ...courseIds, classId],
     );
     return res?.values ?? [];
   }
@@ -6016,10 +6012,11 @@ order by
     is_immediate_sync?: boolean,
   ): Promise<TableTypes<"user">> {
     try {
+      const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
-      SET learning_path = ?
+      SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
