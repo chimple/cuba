@@ -37,9 +37,17 @@ const mockApi = {
 
 describe("HomeHeader", () => {
   const onHeaderIconClick = jest.fn();
+  let originalConsoleError: typeof console.error;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    originalConsoleError = console.error;
+    jest.spyOn(console, "error").mockImplementation((...args: any[]) => {
+      const msg = String(args[0] ?? "");
+      // Ignore known jsdom/XHR noise not related to HomeHeader logic assertions.
+      if (msg.includes("AggregateError")) return;
+      originalConsoleError(...args);
+    });
     jest.spyOn(ServiceConfig, "getI").mockReturnValue({ apiHandler: mockApi } as any);
     (Util.getCanShowAvatar as jest.Mock).mockResolvedValue(true);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
@@ -51,6 +59,10 @@ describe("HomeHeader", () => {
     (Util.getLocalStarsForStudent as jest.Mock).mockReturnValue(20);
     (schoolUtil.getCurrMode as jest.Mock).mockResolvedValue(MODES.PARENT);
     mockApi.isStudentLinked.mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const renderHeader = (currentHeader = HOMEHEADERLIST.HOME) =>
@@ -173,11 +185,13 @@ describe("HomeHeader", () => {
     await screen.findByText("20");
     (Util.getLocalStarsForStudent as jest.Mock).mockReturnValue(25);
 
-    window.dispatchEvent(
-      new CustomEvent("starsUpdated", {
-        detail: { studentId: "stu-1", newStars: 25 },
-      })
-    );
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("starsUpdated", {
+          detail: { studentId: "stu-1", newStars: 25 },
+        })
+      );
+    });
 
     await waitFor(() => {
       expect(screen.getByText("25")).toBeInTheDocument();
