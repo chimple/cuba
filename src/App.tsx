@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2015 Chimple
  *
@@ -15,7 +16,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Route, Switch, useHistory } from "react-router-dom";
+import { Route, Switch, useHistory, useLocation } from "react-router-dom";
 import {
   IonAlert,
   IonApp,
@@ -42,13 +43,12 @@ import "@ionic/react/css/text-alignment.css";
 import "@ionic/react/css/text-transformation.css";
 import "@ionic/react/css/flex-utils.css";
 import "@ionic/react/css/display.css";
-
 /* Theme variables */
 import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -74,6 +74,10 @@ import {
   PortPlugin,
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
+  SHOW_GENERIC_POPUP,
+ GENERIC_POP_UP,
+ SEARCH_LESSON_CACHE_KEY,
+ SEARCH_LESSON_HISTORY,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -152,6 +156,10 @@ import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import GenericPopup from "./components/GenericPopUp/GenericPopUp";
+import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
+import { HardwareBackButtonHandler } from "./common/backButtonRegistry";
 import {
   Dialog,
   DialogTitle,
@@ -180,6 +188,7 @@ const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
+  const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [startTime, setStartTime] = useState<number>(() => {
@@ -190,6 +199,7 @@ const App: React.FC = () => {
     }
     return initialTime;
   });
+  const [popupData, setPopupData] = useState<any>(null);
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
@@ -199,11 +209,110 @@ const App: React.FC = () => {
     HOMEWORK_REMOTE_ASSETS_ENABLED
   );
 
+  const popupDataRef = useRef<any>(null);
+  const showModalRef = useRef(showModal);
+
+  useEffect(() => {
+    popupDataRef.current = popupData;
+  }, [popupData]);
+
+  useEffect(() => {
+    showModalRef.current = showModal;
+  }, [showModal]);
+
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
   const homeworkPathwayAssets: any = useFeatureValue(
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
+
+const OpsConsoleRouteWatcher = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const isOpsConsoleRoute =
+      location.pathname.includes(PAGES.SIDEBAR_PAGE);
+
+    if (isOpsConsoleRoute) {
+      document.body.classList.add("ops-console");
+    } else {
+      document.body.classList.remove("ops-console");
+    }
+
+    return () => {
+      document.body.classList.remove("ops-console");
+    };
+  }, [location.pathname]);
+
+  return null;
+};
+
+useEffect(() => {
+  // this event listener is to remove the highlighted text(if exists) on a click
+    const handleClick = () => {
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) {
+        sel.removeAllRanges();
+      }
+    };
+    document.addEventListener("click", handleClick);
+    localStorage.removeItem(SEARCH_LESSON_CACHE_KEY);
+    localStorage.removeItem(SEARCH_LESSON_HISTORY);
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+}, []);
+
+useEffect(() => {
+  if (!growthbook) return;
+
+  const popupConfig = growthbook.getFeatureValue(
+    GENERIC_POP_UP,
+    null
+  ) as any;
+
+  if (!popupConfig) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const currentTab = params.get("tab");
+
+  // console.log("POPUP CHECK");
+  // console.log("tab from URL:", currentTab);
+  // console.log("screen_name from GB:", popupConfig.screen_name);
+
+  if (
+    currentTab &&
+    popupConfig.screen_name &&
+    currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
+  ) {
+    PopupManager.onAppOpen(popupConfig);
+    PopupManager.onTimeElapsed(popupConfig);
+  }
+}, [growthbook, window.location.search]);
+
+useLayoutEffect(() => {
+  const handler = (e: any) => {
+    console.log("POPUP EVENT RECEIVED:", e.detail);
+    setPopupData(e.detail);
+  };
+
+  window.addEventListener(SHOW_GENERIC_POPUP, handler);
+
+  return () => {
+    window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+  };
+}, []);
+
+  useEffect(() => {
+  const handler = (e: any) => {
+    console.log("POPUP EVENT:", e.detail);
+    setPopupData(e.detail);
+  };
+
+  window.addEventListener(SHOW_GENERIC_POPUP, handler);
+  return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+}, []);
+
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -468,6 +577,14 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
+        <OpsConsoleRouteWatcher />
+        <HardwareBackButtonHandler
+          popupDataRef={popupDataRef}
+          setPopupData={setPopupData}
+          popupManager={PopupManager}
+          showModalRef={showModalRef}
+          setShowModal={setShowModal}
+        />
         <IonRouterOutlet>
           <Switch>
             <Route path={PAGES.APP_UPDATE} exact={true}>
@@ -597,9 +714,9 @@ const App: React.FC = () => {
               <SchoolProfile />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
               <ReqEditSchool />
@@ -611,9 +728,9 @@ const App: React.FC = () => {
               <ManageClass />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
               <ReqEditSchool />
@@ -742,6 +859,26 @@ const App: React.FC = () => {
           duration={3000}
         />
       </IonReactRouter>
+      {popupData && (
+  <GenericPopup
+    thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
+    backgroundImageUrl={popupData.localized.backgroundImageUrl}
+    heading={popupData.localized.heading}
+    subHeading={popupData.localized.subHeading}
+    details={popupData.localized.details}
+    buttonText={popupData.localized.buttonText}
+    onClose={() => {
+      PopupManager.onDismiss(popupData.config);
+      setPopupData(null);
+    }}
+    onAction={() => {
+      PopupManager.onAction(popupData.config);
+      setPopupData(null);
+    }}
+  />
+)}
+
+
     </IonApp>
   );
 };

@@ -1,6 +1,8 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import {
   EVENTS,
   GAME_END,
@@ -10,6 +12,7 @@ import {
   LESSON_END,
   PAGES,
   PROBLEM_END,
+  RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
   TableTypes,
@@ -37,7 +40,7 @@ const CocosGame: React.FC = () => {
     from?: string;
     assignment?: any;
   };
-
+  const growthbook = useGrowthBook();
   // const playedFrom = location?.from?.split('/')[1].split('?')[0]
   const playedFrom = localStorage.getItem("currentHeader");
   const assignmentType = location?.assignment?.type || "self-played";
@@ -89,11 +92,25 @@ const CocosGame: React.FC = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "landscape" });
     }
-    CapApp.addListener("appStateChange", handleAppStateChange);
+    let appStateListener: { remove: () => void } | null = null;
+    let disposed = false;
+
+    const addAppStateListener = async () => {
+      const created = await CapApp.addListener(
+        "appStateChange",
+        handleAppStateChange,
+      );
+      if (disposed) {
+        created.remove();
+        return;
+      }
+      appStateListener = created;
+    };
+    addAppStateListener();
+
     return () => {
-      CapApp.removeAllListeners();
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
+      disposed = true;
+      appStateListener?.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -216,6 +233,14 @@ const CocosGame: React.FC = () => {
   const handleLessonEndListner = (event: any) => {
   savingPromiseRef.current = saveTempData(event.detail); // Store the promise
   setGameResult(event);
+  const popupConfig = growthbook?.getFeatureValue(
+    "generic-pop-up",
+    null
+  );
+
+  if (popupConfig) {
+    PopupManager.onGameComplete(popupConfig);
+  }
 };
 
   function handleProblemEnd(event: any) {
@@ -285,14 +310,16 @@ const CocosGame: React.FC = () => {
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
     const assignment = state.assignment;
-    const currentStudent = api.currentStudent!;
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return;
     const data = lessonData;
     let assignmentId = assignment ? assignment.id : null;
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
     let classId;
     let schoolId;
     let chapter_id;
-
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (isStudentLinked) {
       const studentResult = await api.getStudentClassesAndSchools(
         currentStudent.id
@@ -426,13 +453,16 @@ const CocosGame: React.FC = () => {
       abilityUpdates.domain_ability,
       abilityUpdates.subject_id,
       abilityUpdates.subject_ability,
-      activities_scores ?? undefined
+      activities_scores ?? undefined,
+      _currentUser?.id,
+      RESULT_STATUS.COMPLETED
     );
 
     // Update the learning path / homework path
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
-    } else if (is_homework) {
+    } else if (is_homework && homeworkIndex !== undefined) {
+      await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);  // NEW
       await Util.updateHomeworkPath(homeworkIndex);
     }
 
@@ -529,8 +559,12 @@ const CocosGame: React.FC = () => {
               }}
               onContinueButtonClicked={async (e: any) => {
                 setIsLoading(true);
-                if (savingPromiseRef.current) {
-                  await savingPromiseRef.current;
+                try {
+                  if (savingPromiseRef.current) {
+                    await savingPromiseRef.current;
+                  }
+                } catch (error) {
+                  console.error("Error saving data", error);
                 }
                 setShowDialogBox(false);
                 push();

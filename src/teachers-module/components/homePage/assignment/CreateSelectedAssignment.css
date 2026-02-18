@@ -51,6 +51,7 @@
 
 .assignments-list {
   margin-top: 20px;
+  margin-bottom: 60px;
 }
 
 .assignment-category {
@@ -100,7 +101,7 @@
   width: 50vw;
   height: 50px;
   padding: 10px;
-  background-color: #7C5DB0;
+  background-color: #7c5db0;
   color: white;
   border: none;
   border-radius: 8px;
@@ -187,6 +188,6 @@
   transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
 }
 
-.select-all-student-count{
+.select-all-student-count {
   text-align: left;
 }

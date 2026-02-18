@@ -21,18 +21,14 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   isEditMode,
 }) => {
   return (
-    <div className={`profile-details ${className || ""}`}>
+    <div className={`profile-details-main ${className || ""}`}>
       <label htmlFor="profilePic" className="profile-details-data">
-        <img
-          src={imgSrc}
-          alt=''
-          className="profile-details-img"
-        />
-        {isEditMode &&
+        <img src={imgSrc} alt="" className="profile-details-img" />
+        {isEditMode && (
           <div className="overlay">
             <IonIcon className="camera-icon" icon={camera} size="large" />
           </div>
-        }
+        )}
       </label>
       {isEditMode && (
         <input

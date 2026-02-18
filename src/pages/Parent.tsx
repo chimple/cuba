@@ -130,6 +130,7 @@ const Parent: React.FC = () => {
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
+      if (!allLang || allLang.length == 0) return;
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
 
@@ -144,18 +145,36 @@ const Parent: React.FC = () => {
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
 
-      const element = allLang.find((obj) => obj.code === localAppLang);
+      // Get the user's language_id from their profile
+      const userLangId = parentUser.language_id;
+
+      // Find the language object from allLang using the language_id
+      const element =
+        allLang.find((obj) => obj.id === userLangId) || allLang[0];
+
       if (!element) return;
 
+      // Set the current language ID
       setCurrentAppLang(element.id);
+
+      // Also update i18n language using its code
+      if (element.code) {
+        await i18n.changeLanguage(element.code);
+        localStorage.setItem(LANGUAGE, element.code);
+      }
+
+      // ✅ FIX: set initial tabIndex so content renders immediately
+      if (!tabIndex) {
+        setTabIndex(t(parentHeaderIconList[0].header));
+      }
 
       setIsLoading(false);
     }
   }
 
-  function onHeaderIconClick(selectedHeader: any) {
-    setCurrentHeader(selectedHeader);
-  }
+  // function onHeaderIconClick(selectedHeader: any) {
+  //   setCurrentHeader(selectedHeader);
+  // }
 
   function profileUI() {
     // setIsLoading(false);

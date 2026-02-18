@@ -241,3 +241,15 @@
     margin-top: 16px;
   }
 }
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiIconButton-root {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root:hover .MuiIconButton-root,
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-focused .MuiIconButton-root {
+  visibility: visible;
+  opacity: 1;
+}

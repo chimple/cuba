@@ -19,8 +19,8 @@ const EditClassField: FC<EditClassFieldProps> = ({
         className="class-text-field"
         value={className}
         onIonChange={(e) => setClassName(e.detail.value!)}
-        placeholder={t("Enter class name")??""}
-        class="custom"
+        placeholder={t("Enter class name") ?? ""}
+        class="custom-edit-class"
       />
     </div>
   );

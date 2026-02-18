@@ -95,7 +95,7 @@
 .classdetailspage-info-grid {
   display: grid;
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
   margin-bottom: 24px;
 }
 

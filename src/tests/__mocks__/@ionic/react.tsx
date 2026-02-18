@@ -9,6 +9,7 @@ export const IonModal = ({ isOpen, children }: any) =>
   isOpen ? <div>{children}</div> : null;
 export const IonToast = () => null;
 export const IonAlert = () => null;
+export const IonText = ({ children }: any) => <div>{children}</div>;
 
 export const useIonToast = () => [jest.fn(), jest.fn()];
 export const setupIonicReact = jest.fn();

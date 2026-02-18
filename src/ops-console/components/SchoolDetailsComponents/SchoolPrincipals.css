@@ -139,6 +139,113 @@
   vertical-align: middle;
 }
 
+.school-principals-interactCell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.school-principals-interactIcon {
+  width: 30px;
+  height: 30px;
+}
+
+.school-principals-actionsCell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.school-principals-actionDeleteIcon.MuiSvgIcon-root {
+  color: #2563eb;
+}
+
+.school-principals-actionTrigger.MuiIconButton-root {
+  color: #6b7280;
+}
+
+.school-principals-actionTrigger.MuiIconButton-root:hover {
+  background-color: #f3f4f6;
+}
+
+.school-principals-actionTriggerIcon.MuiSvgIcon-root {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.school-principals-deleteDialogPaper {
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.school-principals-deleteDialogTitle.MuiDialogTitle-root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.school-principals-deleteDialogTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.school-principals-deleteDialogAlertIcon.MuiSvgIcon-root {
+  color: #dc2626;
+  font-size: 20px;
+}
+
+.school-principals-deleteDialogContent.MuiDialogContent-root {
+  padding-top: 0;
+  text-align: left;
+}
+
+.school-principals-deleteDialogText.MuiTypography-root {
+  margin-bottom: 16px;
+  color: #4b5563;
+  text-align: left;
+  width: 100%;
+}
+
+.school-principals-deleteDetails {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 14px;
+  border: 1px solid #e5e7eb;
+}
+
+.school-principals-deleteWarning {
+  margin-top: 16px;
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 13px;
+  border: 1px solid #fecaca;
+}
+
+.school-principals-deleteDialogActions.MuiDialogActions-root {
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 16px;
+}
+
+.school-principals-deleteCancelButton.MuiButton-root,
+.school-principals-deleteConfirmButton.MuiButton-root {
+  text-transform: none;
+  border-radius: 6px;
+}
+
+.school-principals-deleteConfirmButton.MuiButton-root {
+  font-weight: 500;
+}
+
 .school-principals-school-list-pagination {
   padding: 12px 24px;
   border-top: 1px solid #eaecf0;

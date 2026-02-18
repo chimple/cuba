@@ -869,7 +869,8 @@ export class FirebaseApi implements ServiceApi {
     domain_id?: string | undefined,
     domain_ability?: number | undefined,
     subject_id?: string | undefined,
-    subject_ability?: number | undefined
+    subject_ability?: number | undefined,
+    user_id?: string | undefined
   ): Promise<TableTypes<"result">> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -902,7 +903,8 @@ export class FirebaseApi implements ServiceApi {
       timeSpent,
       studentRef,
       null!,
-      isLoved
+      isLoved,
+      user_id
     );
     const resultDoc = doc(collection(this._db, CollectionIds.RESULT));
     if (navigator.onLine) {

@@ -95,6 +95,14 @@
   outline: none;
 }
 
+.formcard-form-group input:disabled,
+.formcard-form-group select:disabled {
+  background-color: #f3f4f6;   /* disabled bg */
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+
 .formcard-form-group input::placeholder,
 .formcard-form-group select::placeholder {
   color: #9aa0a6;
@@ -213,6 +221,13 @@
   border-right-color: #dadce0;
 }
 
+.formcard-btn-primary:disabled {
+  background: #c7d2fe;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+
 .formcard-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -278,10 +293,25 @@
   line-height: 1.4;
 }
 
+.formcard-message-wrapper {
+  text-align: center;
+}
+
 .formcard-message-error {
   background-color: #fce8e6;
   color: #c5221f;
   border: 1px solid #f6aea9;
+
+  padding: 8px 12px;
+  border-radius: 6px;
+
+  font-size: 13px;
+  line-height: 1.4;
+
+  display: inline-flex;
+
+  text-align: left;
+  margin: 8px auto 12px;
 }
 
 .formcard-message-warning {

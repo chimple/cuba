@@ -263,7 +263,30 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           if (hasLessons && notFinished) {
             // ✅ Use only if path is unfinished
-            setHomeworkLessons(lessons);
+            // setHomeworkLessons(lessons);
+            // return;
+            const normalizeLessonShape = (item: any) => {
+              if (item.lesson && item.lesson.id) return item; // already good
+
+              // Full lesson shape for SVG rendering
+              return {
+                ...item,
+                lesson: {
+                  id: item.lesson_id,
+                  cocoslessonid: item.lesson_id,
+                  image: "assets/icons/DefaultIcon.png", // 👈 CRITICAL for SVG
+                  subjectid: item.subject_id || lessons[0]?.lesson?.subjectid,
+                  plugin: { type: "COCOS" },
+                },
+                assignment_id: item.assignment_id ?? item.id,
+                chapter_id: item.chapter_id,
+                course_id: item.course_id,
+                raw_assignment: item,
+              };
+            };
+
+            const normalizedLessons = lessons.map(normalizeLessonShape);
+            setHomeworkLessons(normalizedLessons);
             return;
           }
 
@@ -471,7 +494,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         "foreignObject"
       );
       chimple.setAttribute("width", "40%");
-      chimple.setAttribute("height", "300%");
+      chimple.setAttribute("height", "260%");
 
       requestAnimationFrame(async () => {
         if (!containerRef.current) return;
@@ -557,11 +580,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const lessonIdx = pathIndex - startIndexOffset;
           const { lesson } = lessonsToRender[lessonIdx];
 
-          const isValidUrl = (url: string) =>
-            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-          const lesson_image = isValidUrl(lesson.image)
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
+          const isPlayed = lessonIdx < currentIndex;
+          const isActive = lessonIdx === currentIndex;
+
+          const isValidUrl =
+            typeof lesson.image === "string" &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+
+          const lesson_image =
+            isPlayed || isActive
+              ? isValidUrl
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png"
+              : "assets/icons/NextNodeIcon.svg";
 
           if (lessonIdx < currentIndex) {
             const playedLesson = document.createElementNS(
@@ -645,7 +676,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.addEventListener("click", () => {
               if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.replace(PAGES.GAME + params, {
+                history.push(PAGES.GAME + params, {
                   url: "chimple-lib/index.html" + params,
                   lessonId: lesson.cocos_lesson_id,
                   courseDocId: fetchedCourse?.id,
@@ -657,7 +688,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   homeworkIndex: lessonIdx,
                 });
               } else if (lesson.plugin_type === LIVE_QUIZ) {
-                history.replace(
+                history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
                     courseId: fetchedCourse?.id,
@@ -669,7 +700,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 );
               } else if (lesson.plugin_type === LIDO) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.replace(PAGES.LIDO_PLAYER + params, {
+                history.push(PAGES.LIDO_PLAYER + params, {
                   lessonId: lesson.cocos_lesson_id,
                   courseDocId: fetchedCourse?.id,
                   course: JSON.stringify(fetchedCourse),
@@ -972,6 +1003,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           riveWrapper.style.width = "100%";
           riveWrapper.style.height = "100%";
 
+          riveWrapper.style.transform = "scale(1.01)";
+          riveWrapper.style.transformOrigin = "bottom center";
           const riveDiv = document.createElement("div");
           riveDiv.style.width = "100%";
           riveDiv.style.height = "100%";
@@ -1072,7 +1105,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.GAME + params, {
+        history.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
@@ -1084,7 +1117,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           reward: true,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
-        history.replace(
+        history.push(
           PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
           {
             courseId: course.course_id,
@@ -1096,7 +1129,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         );
       } else if (lesson.plugin_type === LIDO) {
         const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.LIDO_PLAYER + parmas, {
+        history.push(PAGES.LIDO_PLAYER + parmas, {
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
           course: JSON.stringify(currentCourse),

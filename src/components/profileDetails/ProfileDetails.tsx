@@ -1,4 +1,5 @@
-import { MouseEvent, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { IonPage } from "@ionic/react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -7,11 +8,11 @@ import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
-  ACTION,
   ACTION_TYPES,
   AGE_OPTIONS,
   AVATARS,
-  CURRENT_STUDENT,
+  CONTINUE,
+  DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   EVENTS,
   FORM_MODES,
@@ -24,11 +25,14 @@ import {
 import { useHistory, useLocation } from "react-router";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
 import { logProfileClick } from "../../analytics/profileClickUtil";
 import i18n from "../../i18n";
+import {
+  registerBackButtonHandler,
+  reinitializeHardwareBackButton,
+} from "../../common/backButtonRegistry";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -47,14 +51,34 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-  const profileRef = useRef<HTMLDivElement>(null);
-  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
-  const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
-  const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
+  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
+  const [className, setClassName] = useState<string>("");
+  const [schoolName, setSchoolName] = useState<string>("");
+
+  const isCreatingProfileRef = useRef(false);
+  const parentHasStudentRef = useRef(false);
+  const backRegistrationRef = useRef<(() => void) | null>(null);
+  const isNavigatingBackRef = useRef(false);
+
+  // Sync State to Refs
+  useEffect(() => {
+    isCreatingProfileRef.current = isCreatingProfile;
+  }, [isCreatingProfile]);
+  useEffect(() => {
+    parentHasStudentRef.current = parentHasStudent;
+  }, [parentHasStudent]);
+
+  const currentStudent = Util.getCurrentStudent();
+  const isEdit =
+    location.pathname.startsWith(PAGES.EDIT_STUDENT) && !!currentStudent;
+
   const variation = useFeatureValue<string>(
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
   );
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
@@ -62,13 +86,9 @@ const ProfileDetails = () => {
   const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : "");
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit
-      ? currentStudent?.avatar ?? AVATARS[randomIndex]
-      : AVATARS[randomIndex]
+      ? (currentStudent?.avatar ?? AVATARS[randomIndex])
+      : AVATARS[randomIndex],
   );
-
-  // New State for Class and School
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
 
   const [age, setAge] = useState<number | undefined>(
     isEdit
@@ -77,27 +97,25 @@ const ProfileDetails = () => {
           ? 4
           : currentStudent.age
         : undefined
-      : undefined
+      : undefined,
   );
   const [gender, setGender] = useState<GENDER | undefined>(
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as GENDER)
-      : undefined
+      : undefined,
   );
   const [languageId, setLanguageId] = useState(
-    isEdit ? currentStudent?.language_id ?? "" : ""
+    isEdit ? (currentStudent?.language_id ?? "") : "",
   );
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const labelRef = useRef<HTMLDivElement>(null);
-  const [labelWidth, setLabelWidth] = useState(0);
-  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
 
   const initialValues = useRef({
-    fullName: isEdit ? currentStudent?.name ?? "" : "",
-    age: isEdit ? currentStudent?.age ?? undefined : undefined,
+    fullName: isEdit ? (currentStudent?.name ?? "") : "",
+    age: isEdit ? (currentStudent?.age ?? undefined) : undefined,
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
-    languageId: isEdit ? currentStudent?.language_id ?? "" : "",
+    languageId: isEdit ? (currentStudent?.language_id ?? "") : "",
   });
 
   useEffect(() => {
@@ -113,35 +131,33 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     const initial = initialValues.current;
-
     if (!initial) {
       setHasChanges(false);
       return;
     }
-
     const changed =
       fullName !== initial.fullName ||
       age !== initial.age ||
       gender !== initial.gender ||
       languageId !== initial.languageId;
-
     setHasChanges(changed);
   }, [fullName, age, gender, languageId]);
 
   useEffect(() => {
-    if (labelRef.current) {
-      setLabelWidth(labelRef.current.offsetWidth);
-    }
-  }, [labelRef.current?.offsetWidth]);
-
-  useEffect(() => {
-    if (isEdit) {
-      const langCode = localStorage.getItem("language");
-      if (langCode && i18n.language !== langCode) {
-        i18n.changeLanguage(langCode);
+    if (isEdit && currentStudent?.language_id && languages.length > 0) {
+      const studentLang = languages.find(
+        (lang) => lang.id === currentStudent.language_id,
+      );
+      if (
+        studentLang &&
+        studentLang.code &&
+        i18n.language !== studentLang.code
+      ) {
+        i18n.changeLanguage(studentLang.code);
+        localStorage.setItem(LANGUAGE, studentLang.code);
       }
     }
-  }, [isEdit]);
+  }, [isEdit, currentStudent, languages]);
 
   useEffect(() => {
     initializeFireBase();
@@ -154,12 +170,14 @@ const ProfileDetails = () => {
     };
     loadLanguages();
 
-    const isParentHasStudent = async () => {
-      const student = await api.getParentStudentProfiles();
-      setParentHasStudent(student.length > 0);
+    const checkParentStudents = async () => {
+      const students = await api.getParentStudentProfiles();
+      setParentHasStudent(students.length > 0);
     };
-    isParentHasStudent();
+    checkParentStudents();
+
     loadProfileData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfileData = async () => {
@@ -174,12 +192,97 @@ const ProfileDetails = () => {
     }
   };
 
+  const withContinueIfNeeded = (base: string) => {
+    const url = new URLSearchParams(window.location.search);
+    if (!url.has(CONTINUE)) return base;
+    return base.includes("?")
+      ? `${base}&${CONTINUE}=true`
+      : `${base}?${CONTINUE}=true`;
+  };
+
+  const executeBackLogic = () => {
+    // Check Locks (Refs)
+    if (isCreatingProfileRef.current || isNavigatingBackRef.current) {
+      return;
+    }
+    isNavigatingBackRef.current = true;
+
+    try {
+      // Determine Mode based on Live Pathname (Not State)
+      const currentPath = window.location.pathname;
+      const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
+
+      // EDIT MODE Logic
+      if (isEditMode) {
+        const state = history.location.state as any;
+        if (state?.from) {
+          history.replace(withContinueIfNeeded(state.from));
+        } else if (history.length > 1) {
+          history.goBack();
+        } else {
+          history.replace(withContinueIfNeeded(PAGES.DISPLAY_STUDENT));
+        }
+        return;
+      }
+
+      // CREATE MODE Logic
+      const state = history.location.state as any;
+      const createFallbackPath = parentHasStudentRef.current
+        ? PAGES.DISPLAY_STUDENT
+        : PAGES.SELECT_MODE;
+      const targetPath = withContinueIfNeeded(
+        state?.from ?? createFallbackPath,
+      );
+
+      if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
+        // Reinitialize hardware back handling only for create -> display students path.
+        reinitializeHardwareBackButton();
+        const separator = targetPath.includes("?") ? "&" : "?";
+        history.replace(`${targetPath}${separator}forceReload=1`);
+      } else {
+        history.replace(targetPath);
+      }
+      return;
+    } catch (e) {
+      console.error("Back Logic Error", e);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingBackRef.current = false;
+      }, 500);
+    }
+  };
+
+  useEffect(() => {
+    if (backRegistrationRef.current) {
+      backRegistrationRef.current();
+      backRegistrationRef.current = null;
+    }
+
+    backRegistrationRef.current = registerBackButtonHandler(
+      () => {
+        executeBackLogic();
+        return true;
+      },
+      { path: location.pathname },
+    );
+
+    return () => {
+      if (backRegistrationRef.current) {
+        backRegistrationRef.current();
+        backRegistrationRef.current = null;
+      }
+      setIsCreatingProfile(false);
+      isNavigatingBackRef.current = false;
+    };
+  }, [location.pathname]);
+
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
       ? fullName && age && languageId && gender
       : mode === FORM_MODES.NAME_REQUIRED
-      ? fullName
-      : true;
+        ? fullName
+        : true;
 
   const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
 
@@ -190,13 +293,17 @@ const ProfileDetails = () => {
 
   const handleSave = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       let _studentName = fullName?.trim();
       const state = history.location.state as any;
       const tmpPath = state?.from ?? PAGES.HOME;
       const user = await auth.getCurrentUser();
+
       let student;
+
       if (isEdit && !!currentStudent && !!currentStudent.id) {
         student = await api.updateStudent(
           currentStudent,
@@ -207,12 +314,14 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || currentStudent.language_id!
+          languageId || currentStudent.language_id!,
         );
+
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
         studentsMap[student.id] = student;
         sessionStorage.setItem(EDIT_STUDENTS_MAP, JSON.stringify(studentsMap));
+
         Util.logEvent(EVENTS.PROFILE_UPDATED, {
           user_id: user?.id,
           name: fullName,
@@ -233,8 +342,9 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || languages[0].id
+          languageId || DEFAULT_LANGUAGE_ID_EN,
         );
+
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
           name: fullName,
@@ -246,50 +356,56 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
-        const langIndex = languages?.findIndex(
-          (lang) => lang.id === languages[0].id
+
+        const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
+        const langIndex = languages.findIndex(
+          (lang) => lang.id === resolvedLanguageId,
         );
+
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code
-            ? languages[langIndex]?.code ?? undefined
+            ? (languages[langIndex]?.code ?? undefined)
             : undefined,
-          tmpPath === PAGES.HOME ? true : false
+          tmpPath === PAGES.HOME ? true : false,
         );
       }
+
       await Util.ensureLidoCommonAudioForStudent(student);
       history.replace(PAGES.HOME);
-      setIsCreatingProfile(false);
     } catch (err) {
       console.error("Error saving profile:", err);
-      setIsCreatingProfile(false);
-    } finally {
       setIsCreatingProfile(false);
     }
   };
 
   const handleSkip = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       if (parentHasStudent) {
         history.replace(PAGES.HOME);
         return;
       }
+
       const languageCode = localStorage.getItem(LANGUAGE);
       const allLanguages = await api.getAllLanguages();
       const selectedLanguage = allLanguages.find(
-        (lang) => lang.code === languageCode
+        (lang) => lang.code === languageCode,
       );
-      // Create auto profile with default/null values
+
       const student = await api.createAutoProfile(selectedLanguage?.id);
-      // Set as current student
+
       await Util.setCurrentStudent(
         student,
         selectedLanguage?.code ?? undefined,
-        true
+        true,
       );
+
       const user = await auth.getCurrentUser();
+
       Util.logEvent(EVENTS.PROFILE_CREATED, {
         user_id: user?.id,
         name: fullName,
@@ -297,11 +413,10 @@ const ProfileDetails = () => {
         page_path: window.location.pathname,
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
-      // Redirect to home page
+
       history.replace(PAGES.HOME);
     } catch (err) {
       console.error("Error skipping profile:", err);
-    } finally {
       setIsCreatingProfile(false);
     }
   };
@@ -312,7 +427,7 @@ const ProfileDetails = () => {
       className="profiledetails-container"
       onClick={(e) => {
         logProfileClick(e).catch((err) =>
-          console.error("Error in logProfileClick", err)
+          console.error("Error in logProfileClick", err),
         );
       }}
     >

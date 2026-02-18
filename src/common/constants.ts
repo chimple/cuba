@@ -5,6 +5,7 @@ import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export const DEFAULT_LOCALE_ID = "6854a7ef-dcd3-4362-8488-0e8de869aacf"; //this is the default locale id for india
+export const DEFAULT_LANGUAGE_ID_EN = "7eaf3509-e44e-460f-80a1-7f6a13a8a883"; //this is the default language id for english
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -80,6 +81,7 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Framework = "framework",
   Domain = "domain",
   Competency = "competency",
   Outcome = "outcome",
@@ -89,6 +91,9 @@ export enum TABLES {
   FcQuestion = "fc_question",
   FcSchoolVisit = "fc_school_visit",
   FcUserForms = "fc_user_forms",
+  Locale = "locale",
+  LanguageLocale = "language_locale",
+  SubjectLesson = "subject_lesson",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -252,7 +257,7 @@ export const CONTINUE = "continue";
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
     displayName: "User",
-    iconSrc: "assets/icons/favicon.png",
+    iconSrc: "/assets/icons/favicon.png",
     headerList: PARENTHEADERLIST.PROFILE,
   },
   {
@@ -581,6 +586,24 @@ export enum STATUS {
   FLAGGED = "flagged",
 }
 
+// Labels for WhatsApp group status chips in Ops Console tables.
+export const WHATSAPP_GROUP_STATUS_KEYS = {
+  IN_GROUP: "IN_GROUP",
+  NOT_IN_GROUP: "NOT_IN_GROUP",
+  NOT_ON_WHATSAPP: "NOT_ON_WHATSAPP",
+  NOT_CHECKED: "NOT_CHECKED",
+} as const;
+
+export const WHATSAPP_GROUP_STATUS = {
+  IN_GROUP: "In Group",
+  NOT_IN_GROUP: "Not in Group",
+  NOT_ON_WHATSAPP: "Not on Whatsapp",
+  NOT_CHECKED: "Not Checked",
+};
+
+// Tick icon for the "In Group" pill.
+export const WHATSAPP_GROUP_TICK_ICON = "/assets/icons/SignCircleIcon.svg";
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
@@ -618,7 +641,10 @@ export const PREVIOUS_SELECTED_COURSE = () =>
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 // export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
+export const SEARCH_LESSON_HISTORY = "search_lesson_history";
+export const SEARCH_LESSON_CACHE_KEY = "search_lesson_last_state";
 export const CURRENT_MODE = "currentMode";
+export const LAST_MODE = "lastMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
@@ -634,6 +660,7 @@ export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const LIDO = "lido";
+export const LIDO_ASSESSMENT = "lido_assessment";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -645,17 +672,33 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
-export const LATEST_STARS = "latestStar";
+export const LATEST_STARS = (studentId: string) =>
+  `latestStar_${studentId}`;
 export const IS_OPS_USER = "isOpsUser";
 export const EDIT_STUDENTS_MAP = "editStudentsMap";
+export const SHOW_GENERIC_POPUP = "SHOW_GENERIC_POPUP";
+export const GENERIC_POPUP_INTERNAL_NAVIGATION = "POPUP_INTERNAL_NAVIGATION";
+export const GENERIC_POP_UP = "generic-pop-up";
+export enum GENERIC_POPUP_TRIGGER_CONDITION {
+  APP_OPEN = "APP_OPEN",
+  GAME_COMPLETE = "GAME_COMPLETE",
+  TIME_ELAPSED = "TIME_ELAPSED",
+}
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",
 }
 
+const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? "";
+const normalizedWebBaseName = rawWebBaseName
+  .replace(/\/$/, "")
+  .replace(/^\.$/, "")
+  .replace(/^\.\//, "");
 export const BASE_NAME =
-  !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
-    ? process.env.REACT_APP_GITHUB_BASE
+  !Capacitor.isNativePlatform() && normalizedWebBaseName
+    ? normalizedWebBaseName.startsWith("/")
+      ? normalizedWebBaseName
+      : `/${normalizedWebBaseName}`
     : "";
 export const MIN_PASS = 70;
 export const IS_CUBA = "is_cuba";
@@ -727,6 +770,8 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.ReqNewSchool,
   TABLES.Program,
   TABLES.FcSchoolVisit,
+  TABLES.LanguageLocale,
+  TABLES.Locale,
 ];
 
 export const AVATARS: string[] = [
@@ -835,6 +880,9 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = "live_update_applied",
   LIVE_UPDATE_STARTED = "live_update_started",
   LIVE_UPDATE_ERROR = "live_update_error",
+  ASSESSMENT_ABORTED = "assessment_aborted",
+  ASSESSMENT_COMPLETED = "assessment_completed",
+  RESULTS_SAVED = "results_saved",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -868,6 +916,9 @@ export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 export const CAMPAIGN_SEQUENCE_FINISHED = "CAMPAIGN_SEQUENCE_FINISHED";
 export const LIDO_COMMON_AUDIO_DIR = "Lido-CommonAudios";
 export const LIDO_COMMON_AUDIO_LANG_KEY = "lido_common_audio_language";
+export const HOT_UPDATE_STATE_KEY = "hotUpdateState";
+
+
 
 
 export type LeaderboardBadge = {
@@ -938,7 +989,6 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
-
 export const LidoActivityEndKey = "lidoActivityEnd";
 export const LidoLessonEndKey = "lidoLessonEnd";
 export const LidoNextContainerKey = "lidoNextContainer";
@@ -1226,3 +1276,24 @@ export const PERFORMANCE_UI: Record<
 };
 export const COURSE_CHANGED = "courseChanged";
 export const NOTES_UPDATED_EVENT = "notes:updated";
+export const ASSESSMENT_FAIL_KEY = "assessment_failed_once";
+export const LIDO_SCORES_KEY = "lido_scores";
+// 🔔 Custom Lido lifecycle events
+export const LIDO_ASSESSMENT_ABORTED = "LIDO_ASSESSMENT_ABORTED";
+export const LIDO_ASSESSMENT_COMPLETED = "LIDO_ASSESSMENT_COMPLETED";
+export const LIDO_LESSON_COMPLETED = "LIDO_LESSON_COMPLETED";
+export const LIDO_RESULTS_SAVED = "LIDO_RESULTS_SAVED";
+
+export const LEARNING_PATHWAY_MODE = {
+  DISABLED: "DISABLED",
+  ASSESSMENT_ONLY: "ASSESSMENT_ONLY",
+  FULL_ADAPTIVE: "FULL_ADAPTIVE",
+};
+
+export const CURRENT_PATHWAY_MODE = "currentPathwayMode";
+export const FAIL_STREAK_KEY = "failStreakCount";
+export enum RESULT_STATUS {
+  COMPLETED = "completed",
+  USER_EXIT = "user_exit",
+  SYSTEM_EXIT = "system_exit",
+}

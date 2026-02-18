@@ -143,6 +143,7 @@ export type Database = {
           is_firebase: boolean | null
           lesson_id: string
           school_id: string
+          set_number: number | null
           source: string | null
           starts_at: string
           type: string | null
@@ -163,6 +164,7 @@ export type Database = {
           is_firebase?: boolean | null
           lesson_id: string
           school_id: string
+          set_number?: number | null
           source?: string | null
           starts_at?: string
           type?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           is_firebase?: boolean | null
           lesson_id?: string
           school_id?: string
+          set_number?: number | null
           source?: string | null
           starts_at?: string
           type?: string | null
@@ -704,6 +707,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }
         Insert: {
           academic_year?: string | null
@@ -721,6 +725,7 @@ export type Database = {
           standard?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp_invite_link?: string | null
         }
         Update: {
           academic_year?: string | null
@@ -738,6 +743,7 @@ export type Database = {
           standard?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp_invite_link?: string | null
         }
         Relationships: [
           {
@@ -2870,7 +2876,7 @@ export type Database = {
           },
         ]
       }
-      result: {
+       result: {
         Row: {
           activities_scores: string | null
           assignment_id: string | null
@@ -2894,11 +2900,13 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
           time_spent: number | null
           updated_at: string | null
+          user_id: string | null
           wrong_moves: number | null
         }
         Insert: {
@@ -2924,11 +2932,13 @@ export type Database = {
           score?: number | null
           skill_ability?: number | null
           skill_id?: string | null
+          status?: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability?: number | null
           subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
+          user_id?: string | null
           wrong_moves?: number | null
         }
         Update: {
@@ -2954,148 +2964,108 @@ export type Database = {
           score?: number | null
           skill_ability?: number | null
           skill_id?: string | null
+          status?: Database["public"]["Enums"]["result_status"] | null
           student_id?: string
           subject_ability?: number | null
           subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
+          user_id?: string | null
           wrong_moves?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "public_result_assignment_id_fkey"
-            columns: ["assignment_id"]
-            isOneToOne: false
-            referencedRelation: "assignment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_result_lesson_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lesson"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_result_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "school"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_chapter_id_fkey"
-            columns: ["chapter_id"]
-            isOneToOne: false
-            referencedRelation: "chapter"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "class"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "student_flat_view"
-            referencedColumns: ["class_id"]
-          },
-          {
-            foreignKeyName: "result_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "student_sorted_view"
-            referencedColumns: ["class_id_real"]
-          },
-          {
-            foreignKeyName: "result_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "student_sorted_view1"
-            referencedColumns: ["class_id"]
-          },
-          {
-            foreignKeyName: "result_competency_id_fkey"
-            columns: ["competency_id"]
-            isOneToOne: false
-            referencedRelation: "competency"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "course"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domain"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_outcome_id_fkey"
-            columns: ["outcome_id"]
-            isOneToOne: false
-            referencedRelation: "outcome"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_skill_id_fkey"
-            columns: ["skill_id"]
-            isOneToOne: false
-            referencedRelation: "skill"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_flat_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_sorted_view"
-            referencedColumns: ["parent_id_real"]
-          },
-          {
-            foreignKeyName: "result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_sorted_view"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_sorted_view1"
-            referencedColumns: ["student_id"]
-          },
-          {
-            foreignKeyName: "result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subject"
-            referencedColumns: ["id"]
-          },
-        ]
+         Relationships: [
+  {
+    foreignKeyName: "public_result_assignment_id_fkey"
+    columns: ["assignment_id"]
+    isOneToOne: false
+    referencedRelation: "assignment"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "public_result_lesson_fkey"
+    columns: ["lesson_id"]
+    isOneToOne: false
+    referencedRelation: "lesson"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "public_result_school_id_fkey"
+    columns: ["school_id"]
+    isOneToOne: false
+    referencedRelation: "school"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_chapter_id_fkey"
+    columns: ["chapter_id"]
+    isOneToOne: false
+    referencedRelation: "chapter"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_class_id_fkey"
+    columns: ["class_id"]
+    isOneToOne: false
+    referencedRelation: "class"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_competency_id_fkey"
+    columns: ["competency_id"]
+    isOneToOne: false
+    referencedRelation: "competency"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_course_id_fkey"
+    columns: ["course_id"]
+    isOneToOne: false
+    referencedRelation: "course"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_domain_id_fkey"
+    columns: ["domain_id"]
+    isOneToOne: false
+    referencedRelation: "domain"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_outcome_id_fkey"
+    columns: ["outcome_id"]
+    isOneToOne: false
+    referencedRelation: "outcome"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_skill_id_fkey"
+    columns: ["skill_id"]
+    isOneToOne: false
+    referencedRelation: "skill"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_student_id_fkey"
+    columns: ["student_id"]
+    isOneToOne: false
+    referencedRelation: "user"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_subject_id_fkey"
+    columns: ["subject_id"]
+    isOneToOne: false
+    referencedRelation: "subject"
+    referencedColumns: ["id"]
+  },
+  {
+    foreignKeyName: "result_user_id_fkey"
+    columns: ["user_id"]
+    isOneToOne: false
+    referencedRelation: "user"
+    referencedColumns: ["id"]
+  }
+]
       }
       reward: {
         Row: {
@@ -4913,6 +4883,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -4968,12 +4939,14 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
           time_spent: number | null
           updated_at: string | null
           wrong_moves: number | null
+          user_id:string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -5568,6 +5541,7 @@ export type Database = {
           is_firebase: boolean | null
           lesson_id: string
           school_id: string
+          set_number: number | null
           source: string | null
           starts_at: string
           type: string | null
@@ -5656,6 +5630,7 @@ export type Database = {
           standard: string | null
           status: string | null
           updated_at: string | null
+          whatsapp_invite_link: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -5957,6 +5932,7 @@ export type Database = {
           score: number | null
           skill_ability: number | null
           skill_id: string | null
+          status: Database["public"]["Enums"]["result_status"] | null
           student_id: string
           subject_ability: number | null
           subject_id: string | null
@@ -6392,6 +6368,7 @@ export type Database = {
       ops_request_type: "student" | "teacher" | "principal" | "school"
       program_model: "hybrid" | "at_home" | "at_school"
       program_type: "government" | "private" | "learning_centers"
+      result_status: "user_exit" | "system_exit" | "completed"
       rive_type: "idle" | "normal" | "celebrating"
       role:
         | "coordinator"
@@ -6575,6 +6552,7 @@ export const Constants = {
       ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
       program_type: ["government", "private", "learning_centers"],
+      result_status: ["user_exit", "system_exit", "completed"],
       rive_type: ["idle", "normal", "celebrating"],
       role: [
         "coordinator",

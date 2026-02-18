@@ -11,7 +11,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { RoleType } from "../../interface/modelInterfaces";
 import DropdownField from "../components/DropdownField";
 
-const DEFAULT_COUNTRY = "India";
+const DEFAULT_COUNTRY = "INDIA";
 
 const AddSchoolPage: React.FC = () => {
   const history = useHistory();

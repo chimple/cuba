@@ -12,7 +12,6 @@ import {
   TableTypes,
 } from "../common/constants";
 import { IonPage } from "@ionic/react";
-import "./DisplaySubjects.css";
 import Loading from "../components/Loading";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
@@ -22,7 +21,7 @@ import NextButton from "../components/common/NextButton";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
 import SkeltonLoading from "../components/SkeltonLoading";
-import "./DisplayChapters.css";
+import "./AddCourses.css";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -129,15 +128,15 @@ const AddCourses: React.FC = () => {
   }
 
   return (
-    <IonPage id="display-subjects-page">
+    <IonPage id="add-courses-subjects-main-page">
       <Loading isLoading={isLoading} />
-      <div className="subjects-header">
-        <div id="back-button-container">
+      <div className="add-course-subjects-header">
+        <div id="add-courses-back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
-        <div id="next-button">
+        <div id="add-courses-next-button">
           <NextButton
-            disabled={selectedCourses == null}
+            disabled={!selectedCourses?.length}
             onClicked={() => {
               if (!online) {
                 presentToast({
@@ -160,7 +159,7 @@ const AddCourses: React.FC = () => {
         </div>
         {/* {stage !== STAGES.CHAPTERS && <div className="button-right" />} */}
       </div>
-      <div id="display-subjects-page" style={{ height: "100%" }}>
+      <div id="add-courses-subjects-page">
         <SkeltonLoading
           isLoading={isLoading}
           header={HOMEHEADERLIST.SUBJECTS}
@@ -176,7 +175,10 @@ const AddCourses: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="center no-subjects-text">
+          <div
+            className="add-courses-center no-subjects-text"
+            id="add-courses-center no-subjects-text-id"
+          >
             {!isLoading && t("No more subjects available to add")}
           </div>
         )}

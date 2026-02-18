@@ -53,27 +53,25 @@ const INITIAL_FILTER_OPTIONS: FilterOptions = {
 const getTabOptions = () => {
   let userRoles: string[] = [];
   try {
-    userRoles = JSON.parse(
-      localStorage.getItem(USER_ROLE) || "[]"
-    );
+    userRoles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
   } catch (error) {
     console.error("Failed to parse user roles from localStorage:", error);
   }
   // Only Super Admin and Operational Director can see the Flagged tab
-  const canSeeFlaggedTab = 
+  const canSeeFlaggedTab =
     userRoles.includes(RoleType.SUPER_ADMIN) ||
     userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-  
+
   const allTabs = Object.entries(REQUEST_TABS).map(([key, val]) => ({
     label: val,
     value: val,
   }));
-  
+
   // Filter out FLAGGED tab for users who don't have permission
   if (!canSeeFlaggedTab) {
     return allTabs.filter((tab) => tab.value !== REQUEST_TABS.FLAGGED);
   }
-  
+
   return allTabs;
 };
 
@@ -121,9 +119,11 @@ const RequestList: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
-  const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<Map<string, string>>(new Map());
-  const [orderBy, setOrderBy] = useState("school_name");
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<
+    Map<string, string>
+  >(new Map());
+  const [orderBy, setOrderBy] = useState("requested_date");
+  const [orderDir, setOrderDir] = useState<"desc" | "asc">("desc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
@@ -162,11 +162,13 @@ const RequestList: React.FC = () => {
             request_type: data.requestType || [],
             school: data.school || [],
           });
-          
+
           const nameToIdMap = new Map<string, string>();
-          (data.school || []).forEach((school: { id: string; name: string }) => {
-            nameToIdMap.set(school.name, school.id);
-          });
+          (data.school || []).forEach(
+            (school: { id: string; name: string }) => {
+              nameToIdMap.set(school.name, school.id);
+            }
+          );
           setSchoolNameToIdMap(nameToIdMap);
         }
       } catch (error) {
@@ -203,7 +205,9 @@ const RequestList: React.FC = () => {
 
         const filtersWithSchoolIds = {
           ...filters,
-          school: filters.school.map((name) => schoolNameToIdMap.get(name) || name).filter(Boolean),
+          school: filters.school
+            .map((name) => schoolNameToIdMap.get(name) || name)
+            .filter(Boolean),
         };
 
         const cleanedFilters = Object.fromEntries(
@@ -219,7 +223,7 @@ const RequestList: React.FC = () => {
           flagged_date: "updated_at",
           school_name: "school(name)",
         };
-        
+
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
         // console.log("🚀 MAKING API CALL WITH:", {
@@ -542,7 +546,7 @@ const RequestList: React.FC = () => {
       setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setOrderBy(colKey);
-      setOrderDir("desc");
+      setOrderDir(colKey === "school_name" ? "asc" : "desc");
     }
     setPage(1);
   };
@@ -554,7 +558,7 @@ const RequestList: React.FC = () => {
     setPage(1);
   };
   const pageCount = Math.ceil(total / pageSize);
-  
+
   const filterOptionsForSlider: Record<string, string[]> = {
     request_type: filterOptions.request_type,
     school: filterOptions.school.map((s) => s.name),
@@ -652,8 +656,19 @@ const RequestList: React.FC = () => {
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
-                  setSelectedTab(val);
                   setPage(1);
+                  const newTab = val as REQUEST_TABS;
+                  setSelectedTab(newTab);
+                  setPage(1);
+                  // Update order based on the new tab
+                  if (newTab === REQUEST_TABS.APPROVED)
+                    setOrderBy("approved_date");
+                  else if (newTab === REQUEST_TABS.REJECTED)
+                    setOrderBy("rejected_date");
+                  else if (newTab === REQUEST_TABS.FLAGGED)
+                    setOrderBy("flagged_date");
+                  else setOrderBy("requested_date");
+                  setOrderDir("desc");
                 }}
                 indicatorColor="primary"
                 variant="scrollable"

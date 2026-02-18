@@ -1,10 +1,18 @@
 .filter-slider-drawer-FilterSlider .MuiDrawer-paper {
   width: 400px;
+  height: 100vh; /* Fallback for browsers that don't support dvh */
+  height: 100dvh; /* Dynamic viewport height - accounts for browser UI */
+  max-height: 100vh;
+  max-height: 100dvh;
+  padding-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + 24px
+  ); /* Add safe area for mobile/desktop bottom nav bars */
+  overflow: hidden;
   padding: 16px;
   box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  box-sizing: border-box;
 }
 
 .filter-header-FilterSlider {
@@ -24,6 +32,7 @@
   padding-right: 8px;
   margin-bottom: 16px;
   padding-top: 8px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .filter-footer-FilterSlider {
@@ -31,6 +40,10 @@
   display: flex;
   gap: 16px;
   flex-shrink: 0;
+  margin-bottom: 16px;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+  position: sticky;
+  bottom: 0;
 }
 
 .filter-outlined-button-FilterSlider {

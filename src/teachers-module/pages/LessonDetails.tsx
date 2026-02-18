@@ -19,23 +19,20 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const state = history.location.state as any;
   const course: TableTypes<"course"> = history.location.state?.[
     "course"
   ] as TableTypes<"course">;
   const lesson: TableTypes<"lesson"> = history.location.state?.[
     "lesson"
   ] as TableTypes<"lesson">;
-  const fromCocos: boolean = history.location.state?.[
-    "fromCocos"
-  ] as boolean;
-  const [chapterId, setChapterId] = useState(
-    history.location.state?.["chapterId"] as string
-  );
+  const fromCocos: boolean = state?.["fromCocos"] as boolean;
+  const [chapterId, setChapterId] = useState(state?.["chapterId"] as string);
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
-  const selectedLesson = history.location.state?.["selectedLesson"];
+  const selectedLesson = state?.["selectedLesson"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
@@ -100,7 +97,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
       setTimeout(()=>{
         Util.launchCocosGame();
       },1000)
-      history.replace(PAGES.GAME + parmas, {
+      history.push(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: lesson.cocos_lesson_id,
         courseDocId:
@@ -130,7 +127,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
         });
         return;
       }
-      history.replace(
+      history.push(
         PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
         {
           courseId: course?.id,
@@ -142,7 +139,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
 
     } else if (lesson.plugin_type === LIDO) {
       const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      history.replace(PAGES.LIDO_PLAYER + parmas, {
+      history.push(PAGES.LIDO_PLAYER + parmas, {
         lessonId: lesson.cocos_lesson_id,
         courseDocId: course?.id,
         course: JSON.stringify(course!),

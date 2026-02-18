@@ -1,0 +1,69 @@
+.add-course-subject-header {
+  border-right: 1px solid #ddd;
+  text-align: center;
+  font-weight: bold;
+  padding: 0 10px;
+  background-color: #f3edff;
+  color: var(--text-color);
+  border-radius: 10px;
+  gap: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0px 5px;
+}
+.add-course-subject-slider-content {
+  text-align: -webkit-center;
+  overflow: hidden scroll;
+  margin-top: 1vh;
+  margin-bottom: 20vh;
+}
+.add-course-slide {
+  max-width: fit-content;
+}
+.add-course-subject-button {
+  font-size: var(--text-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 3vh;
+  cursor: pointer;
+  margin-bottom: 0;
+  color: var(--text-color);
+}
+.add-course-gender-check-box {
+  margin-right: 1vh;
+  color: white;
+}
+.add-course-course-icon {
+  margin-top: 3vh;
+  width: clamp(26vh, 28vh, 37vh);
+  height: clamp(13vh, 49vh, 71vh);
+  border-radius: 4vh;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 22vw;
+  padding: 0% 4% 0% 4%;
+}
+#add-course-subject-card-select-icon {
+  justify-self: right;
+  position: absolute;
+  width: 40%;
+  right: -3%;
+  top: 12%;
+}
+#add-course-subject-card-subject-name {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-color);
+  font-size: clamp(8px, 2vh, 10px);
+  border-radius: 25px;
+  position: absolute;
+  top: 13%;
+  justify-self: left;
+  width: 30%;
+  padding: 0 1vw;
+  width: fit-content;
+}

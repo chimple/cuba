@@ -41,7 +41,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   filterConfigs,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); 
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Drawer
@@ -56,7 +56,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
           boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
           display: "flex",
           flexDirection: "column",
-          height: "100vh",
+          // Height is controlled by CSS for proper dvh support
         },
       }}
     >
@@ -89,12 +89,18 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
               <TextField
                 {...params}
                 label={label}
-                placeholder={(placeholder ? t("Search {{placeholder}}...", { placeholder }) : t("Search {{key}}...", { key })) ?? ""}
+                placeholder={
+                  (placeholder
+                    ? t("Search {{placeholder}}...", { placeholder })
+                    : t("Search {{key}}...", { key })) ?? ""
+                }
                 variant="outlined"
               />
             )}
             className={`filter-autocomplete${
-              filters[key]?.length > 0 ? " filter-autocomplete-selected-FilterSlider" : ""
+              filters[key]?.length > 0
+                ? " filter-autocomplete-selected-FilterSlider"
+                : ""
             }`}
             sx={autocompleteStyles}
           />

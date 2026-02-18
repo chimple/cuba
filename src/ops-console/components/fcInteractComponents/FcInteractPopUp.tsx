@@ -162,6 +162,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     }
     if (techIssueMarked === null) return false;
 
+    if (techIssueMarked === true && techIssueDetails.trim() === "") {
+      return false;
+    }
+
     return true;
   }, [
     mode,
@@ -171,6 +175,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     spokeWith,
     isQuestionsLoading,
     techIssueMarked,
+    techIssueDetails,
     showMandatory,
     initialUserType,
   ]);

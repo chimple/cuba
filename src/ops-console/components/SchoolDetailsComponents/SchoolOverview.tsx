@@ -14,6 +14,7 @@ import {
 } from "../../../common/constants";
 import { useHistory } from "react-router";
 import { RoleType } from "../../../interface/modelInterfaces";
+import SubjectCurriculumCard from "../SubjectCurriculumCard";
 
 interface SchoolOverviewProps {
   data: any;
@@ -301,34 +302,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               )
             }
           />
-          {/* <Box position="relative" width="100%">
-            <InfoCard title={t("Address & Location")} className="address-card">
-              <Box>
-                {schooladdressDetailsItems.map((item, idx) => (
-                  <Box key={idx} mb={2}>
-                    <Typography variant="caption" color="text.secondary">
-                      {t(item.label)}
-                    </Typography>
-                    <Typography variant="body2" align="left">
-                      {item.value}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-              <Box
-                style={{
-                  position: "absolute",
-                  top: 20,
-                  right: 24,
-                  zIndex: 2,
-                }}
-              >
-                <BsBoxArrowUpRight
-                  style={{ fontSize: 18, cursor: "pointer" }}
-                />
-              </Box>
-            </InfoCard>
-          </Box> */}
+          <SubjectCurriculumCard schoolId={data.schoolData?.id} />
           <InfoCard title={t("Program Details")} className="program-card">
             <Box className="info-card-items">
               {programDetailsItems.map((item, idx) => (
@@ -416,37 +390,9 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   )
                 }
               />
-              {/* <Box position="relative" width="100%">
-                  <InfoCard
-                  title={t("Address & Location")}
-                  className="address-card"
-                >
-                  <Box>
-                    {schooladdressDetailsItems.map((item, idx) => (
-                      <Box key={idx} mb={2}>
-                        <Typography variant="caption" color="text.secondary">
-                          {t(item.label)}
-                        </Typography>
-                        <Typography variant="body2" align="left">
-                          {item.value}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                  <Box
-                    style={{
-                      position: "absolute",
-                      top: 20,
-                      right: 24,
-                      zIndex: 2,
-                    }}
-                  >
-                    <BsBoxArrowUpRight
-                      style={{ fontSize: 18, cursor: "pointer" }}
-                    />
-                  </Box>
-                </InfoCard>
-              </Box> */}
+              <Box mb={5}>
+                <SubjectCurriculumCard schoolId={data.schoolData?.id} />
+              </Box>
             </Box>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>

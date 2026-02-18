@@ -3,13 +3,13 @@ import "./DropdownMenu.css";
 import {
   COURSE_CHANGED,
   EVENTS,
-  HOMEWORK_PATHWAY,
   LIVE_QUIZ,
   TableTypes,
 } from "../../common/constants";
 import SelectIconImage from "../displaySubjects/SelectIconImage";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
+import { LessonNode } from "../../hooks/useLearningPath";
 
 interface CourseDetails {
   course: TableTypes<"course">;
@@ -229,14 +229,14 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
-      const currentStudent = await Util.getCurrentStudent();
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
       const { courseList, currentCourseIndex } = learningPath.courses;
 
       const prevCourse = courseList[currentCourseIndex];
-      const prevPathItem = prevCourse?.path?.[prevCourse.currentIndex];
+      const prevPathItem = prevCourse?.path?.find((p : LessonNode) => p.isPlayed === false);
 
       const prevCourseId = prevCourse?.course_id;
       const prevLessonId = prevPathItem?.lesson_id;
@@ -249,12 +249,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         { ...currentStudent, learning_path: JSON.stringify(learningPath) },
         undefined
       )
+      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
       window.dispatchEvent(
         new CustomEvent(COURSE_CHANGED)
       );
 
       const currentCourse = courseList[index];
-      const currentPathItem = currentCourse?.path?.[currentCourse.currentIndex];
+      const currentPathItem = currentCourse?.path?.find((p : LessonNode) => p.isPlayed === false);
 
       const eventData = {
         user_id: currentStudent.id,
@@ -270,7 +271,6 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
 
-      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
 
       if (onSubjectChange) {
         onSubjectChange(subject.course.id);

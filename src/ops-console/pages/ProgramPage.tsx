@@ -283,8 +283,8 @@ const ProgramsPage: React.FC = () => {
       model: [],
       state: [],
       district: [],
-      block: [],
-      cluster: [],
+      // block: [],
+      // cluster: [],
     };
     setTempFilters(reset);
     setFilters(reset);
@@ -309,8 +309,8 @@ const ProgramsPage: React.FC = () => {
     { key: "Program Type", label: t("Select Program Type") },
     { key: "state", label: t("Select State") },
     { key: "district", label: t("Select District") },
-    { key: "block", label: t("Select Block") },
-    { key: "cluster", label: t("Select Cluster") },
+    // { key: "block", label: t("Select Block") },
+    // { key: "cluster", label: t("Select Cluster") },
   ];
 
   return (

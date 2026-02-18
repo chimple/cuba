@@ -186,6 +186,47 @@
   color: #364153 !important;
 }
 
+/* WhatsApp Group Chip Styles */
+/* In Group: success green with subtle border. */
+.schoolstudents-whatsapp-chip-in-group {
+  background-color: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1px solid #86efac !important;
+}
+
+/* Not in Group: warning/error red to draw attention. */
+.schoolstudents-whatsapp-chip-not-in-group {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+/* Not Checked: amber to show pending verification. */
+.schoolstudents-whatsapp-chip-not-checked {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+}
+
+/* Not on Whatsapp: neutral gray to indicate inapplicable. */
+.schoolstudents-whatsapp-chip-not-on-whatsapp {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Tighten label spacing to keep the pill compact. */
+.schoolstudents-whatsapp-chip .MuiChip-label {
+  padding: 0 10px;
+  font-weight: 600;
+}
+
+/* Tick icon size inside the pill. */
+.schoolstudents-whatsapp-chip-icon {
+  width: 14px;
+  height: 14px;
+}
+
 /* Performance Filter Pills - Inactive State */
 .performance-filter-pill {
   background-color: #f3f4f6 !important;

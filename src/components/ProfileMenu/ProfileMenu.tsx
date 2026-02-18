@@ -3,6 +3,7 @@ import "./ProfileMenu.css";
 import {
   AVATARS,
   CURRENT_MODE,
+  CURRENT_PATHWAY_MODE,
   HOMEHEADERLIST,
   HOMEWORK_PATHWAY,
   LEADERBOARDHEADERLIST,
@@ -52,12 +53,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   };
 
   const onLeaderboard = () => {
-    history.replace(PAGES.LEADERBOARD, { from: history.location.pathname });
+    history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
   };
 
   const onReward = () => {
     let avatarObj = AvatarObj.getInstance();
-    history.replace(
+    history.push(
       PAGES.LEADERBOARD +
         `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
     );
@@ -67,7 +68,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
     schoolUtil.setCurrentClass(undefined);
+    localStorage.removeItem(CURRENT_PATHWAY_MODE)
     localStorage.removeItem(HOMEWORK_PATHWAY);
+    // Also tell GrowthBook attributes are now cleared (or set to parent-level)
+    updateLocalAttributes({
+      student_id: null,
+    });
+
+    setGbUpdated(true); // cause consumers to re-evaluate
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
 

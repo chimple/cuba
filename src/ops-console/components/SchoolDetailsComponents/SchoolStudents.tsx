@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+﻿import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
@@ -10,6 +10,11 @@ import {
   CircularProgress,
   Chip,
   IconButton,
+   Dialog,
+   DialogTitle,
+   DialogContent,
+   DialogActions,
+   Button,
 } from "@mui/material";
 import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
@@ -27,7 +32,13 @@ import {
   EnumType,
   SupportLevelMap,
   ContactTarget,
+  AVATARS,
+  WHATSAPP_GROUP_STATUS_KEYS,
+  WHATSAPP_GROUP_STATUS,
+  WHATSAPP_GROUP_TICK_ICON,
 } from "../../../common/constants";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
@@ -42,8 +53,12 @@ import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 type ApiStudentData = StudentInfo;
+
+// Keys used to select the WhatsApp status label + chip styling.
+type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayStudent {
   id: string;
@@ -56,6 +71,7 @@ interface DisplayStudent {
   phoneNumber: string;
   class: string;
   schstudents_performance?: string;
+  whatsappGroupStatus?: WhatsappGroupStatusKey;
   schstudents_actions?: string;
 }
 
@@ -74,6 +90,59 @@ const getPerformanceChipClass = (schstudents_performance: string): string => {
     default:
       return "performance-chip-not-tracked";
   }
+};
+
+// Map logical WhatsApp statuses to CSS chip classes.
+const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
+  switch (status) {
+    case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
+      return "schoolstudents-whatsapp-chip-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
+      return "schoolstudents-whatsapp-chip-not-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
+      return "schoolstudents-whatsapp-chip-not-on-whatsapp";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
+    default:
+      return "schoolstudents-whatsapp-chip-not-checked";
+  }
+};
+
+// Shared renderer for WhatsApp group pills to keep UI consistent.
+const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
+  const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+  return (
+    <Chip
+      icon={
+        key === WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP ? (
+          <img
+            src={WHATSAPP_GROUP_TICK_ICON}
+            alt=""
+            aria-hidden="true"
+            className="schoolstudents-whatsapp-chip-icon"
+          />
+        ) : undefined
+      }
+      label={t(WHATSAPP_GROUP_STATUS[key])}
+      size="small"
+      className={`schoolstudents-whatsapp-chip ${getWhatsappChipClass(key)}`}
+      sx={{
+        fontWeight: 500,
+        fontSize: "0.75rem",
+        height: 24,
+        borderRadius: "9999px",
+      }}
+    />
+  );
+};
+
+// Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
+const normalizeWhatsappContactFlag = (value: unknown): "yes" | "no" | null => {
+  if (value == null) return null;
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "yes" || normalized === "true") return "yes";
+  if (normalized === "no" || normalized === "false") return "no";
+  return null;
 };
 
 interface SchoolStudentsProps {
@@ -148,6 +217,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentData, setStudentData] = useState<StudentInfo>();
   const [studentStatus, setStudentStatus] =
     useState<EnumType<"fc_support_level">>();
+  const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(
+    null
+  );
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetStudent, setDeleteTargetStudent] = useState<StudentInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
@@ -379,6 +456,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentPerformanceMap, setStudentPerformanceMap] = useState<
     Map<string, string>
   >(new Map());
+  // Cache: classId -> normalized WhatsApp member phone numbers.
+  const [whatsappMembersByClass, setWhatsappMembersByClass] = useState<
+    Map<string, Set<string>>
+  >(new Map());
 
   const studentIdsKey = useMemo(
     () => sortedStudents.map((s) => s.user.id).join(","),
@@ -387,6 +468,148 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const classDataRef = useMemo(() => {
     return Array.isArray(data.classData) ? data.classData[0] : undefined;
   }, [data.classData]);
+
+  // Fold classId + group_id into one key so the fetch effect reruns on link changes.
+  const classGroupKey = useMemo(() => {
+    if (!issTotal) return "";
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    return classes
+      .map((row) => `${row?.id ?? ""}:${row?.group_id ?? ""}`)
+      .join("|");
+  }, [data.classData, issTotal]);
+
+  const classGroupIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    classes.forEach((row) => {
+      if (row?.id) map.set(row.id, String(row?.group_id ?? "").trim());
+    });
+    return map;
+  }, [data.classData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const bot = data?.schoolData?.whatsapp_bot_number;
+    const classes = issTotal
+      ? Array.isArray(data.classData)
+        ? data.classData
+        : []
+      : classDataRef
+      ? [classDataRef]
+      : [];
+    const groupTargets = classes.filter(
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== ""
+    );
+
+    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
+      setWhatsappMembersByClass(new Map());
+      return;
+    }
+
+    (async () => {
+      try {
+        // Fetch group members for each class in parallel, keep classId -> group map.
+        const results = await Promise.all(
+          groupTargets.map(async (row) => {
+            try {
+              const group = await api.getWhatsappGroupDetails(
+                row.group_id as string,
+                bot
+              );
+              return [row.id as string, group] as const;
+            } catch (error) {
+              console.error("Failed to fetch WhatsApp group members:", error);
+              return [row.id as string, null] as const;
+            }
+          })
+        );
+
+        if (cancelled) return;
+        const next = new Map<string, Set<string>>();
+        results.forEach(([classId, group]) => {
+          const members = Array.isArray(group?.members) ? group.members : [];
+          // Normalize to 10-digit numbers so comparisons are consistent.
+          const normalizedMembers = new Set<string>(
+            members
+              .map((member: unknown) => normalizePhone10(String(member)))
+              .filter((member): member is string => Boolean(member))
+          );
+          next.set(classId, normalizedMembers);
+        });
+        setWhatsappMembersByClass(next);
+      } catch (error) {
+        console.error("Failed to fetch WhatsApp group members:", error);
+        if (!cancelled) {
+          setWhatsappMembersByClass(new Map());
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    api,
+    classDataRef?.id,
+    classDataRef?.group_id,
+    classGroupKey,
+    data?.schoolData?.whatsapp_bot_number,
+    issTotal,
+  ]);
+
+  const getGroupIdForClass = useCallback(
+    (classId?: string) => {
+      if (!classId) return "";
+      if (!issTotal && classDataRef?.group_id != null) {
+        return String(classDataRef.group_id ?? "").trim();
+      }
+      return String(classGroupIdMap.get(classId) ?? "").trim();
+    },
+    [classDataRef?.group_id, classGroupIdMap, issTotal]
+  );
+
+  // Check the parent's phone against the WhatsApp members set for the class.
+  const isStudentInWhatsappGroup = useCallback(
+    (student: ApiStudentData) => {
+      const classId = issTotal
+        ? student.classWithidname?.id
+        : classDataRef?.id ?? student.classWithidname?.id;
+      if (!classId) return false;
+      const members = whatsappMembersByClass.get(classId);
+      if (!members || members.size === 0) return false;
+      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ""));
+      return !!parentPhone && members.has(parentPhone);
+    },
+    [classDataRef?.id, issTotal, whatsappMembersByClass]
+  );
+
+  // Gate group membership by the parent WhatsApp contact flag.
+  const getWhatsappGroupStatus = useCallback(
+    (student: ApiStudentData): WhatsappGroupStatusKey => {
+      const classId = issTotal
+        ? student.classWithidname?.id
+        : classDataRef?.id ?? student.classWithidname?.id;
+      if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const groupId = getGroupIdForClass(classId);
+      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+
+      const waContactRaw =
+        (student.parent as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
+      const waContact = normalizeWhatsappContactFlag(waContactRaw);
+      if (waContact === "yes") {
+        return isStudentInWhatsappGroup(student)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      if (waContact === "no") {
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      }
+      return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+    },
+    [classDataRef?.id, getGroupIdForClass, isStudentInWhatsappGroup, issTotal]
+  );
 
   useEffect(() => {
     const fetchStudentPerformance = async () => {
@@ -469,6 +692,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
         schstudents_performance:
           studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
+        // Status is derived from parent is_wa_contact + class group membership.
+        whatsappGroupStatus: getWhatsappGroupStatus(s_api),
       })
     );
     // Filter by performance if not "all"
@@ -481,7 +706,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       });
     }
     return filtered;
-  }, [sortedStudents, performanceFilter, studentPerformanceMap]);
+  }, [
+    sortedStudents,
+    performanceFilter,
+    studentPerformanceMap,
+    getWhatsappGroupStatus,
+  ]);
 
   const pageCount = useMemo(() => {
     return Math.ceil(totalCount / ROWS_PER_PAGE);
@@ -513,7 +743,88 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
+  const hasAnyStudents = (totalCount ?? 0) > 0;
+  const isNoStudentsState = !isLoading && !hasAnyStudents;
+  const hideHeaderActions = isNoStudentsState;
+  const hideFilterUI = isNoStudentsState;
+
   const columns: Column<DisplayStudent>[] = useMemo(() => {
+    const actionColumn: Column<DisplayStudent>[] = [
+      {
+        key: "schstudents_actions",
+        label: "",
+        sortable: false,
+        render: (s) => (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <ActionMenu
+              items={[
+                {
+                  name: t("Send Message"),
+                  icon: (
+                    <ChatBubbleOutlineOutlined
+                      fontSize="small"
+                      sx={{ color: "#2563eb" }}
+                    />
+                  ),
+                },
+                {
+                  name: t("Edit Details"),
+                  icon: (
+                    <BorderColorIcon
+                      fontSize="small"
+                      sx={{ color: "#2563eb" }}
+                    />
+                  ),
+                  onClick: () => {
+                    const fullStudent = getStudentInfoById(s.id);
+                    if (!fullStudent) return;
+                    setEditStudentData(fullStudent);
+                    setIsEditStudentModalOpen(true);
+                  },
+                },
+                {
+                  name: t("Delete"),
+                  icon: (
+                    <DeleteOutlineIcon
+                      fontSize="small"
+                      sx={{ color: "#2563eb" }}  
+                    />
+                  ),
+                  onClick: () => {
+                    console.log("Delete clicked for student:", s.id);
+                    const fullStudent = getStudentInfoById(s.id);
+                    if (!fullStudent) return;
+                    setDeleteTargetStudent(fullStudent);
+                    setIsDeleteModalOpen(true);
+                  },
+                },
+              ]}
+              renderTrigger={(open) => (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    open(e);
+                  }}
+                  sx={{
+                    color: "#6B7280",
+                    "&:hover": { bgcolor: "#F3F4F6" },
+                  }}
+                >
+                  <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                </IconButton>
+              )}
+            />
+          </Box>
+        ),
+      },
+    ];
     const commonColumns: Column<DisplayStudent>[] = [
       {
         key: "studentIdDisplay",
@@ -605,47 +916,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ),
         },
         {
-          key: "schstudents_actions",
-          label: "",
+          key: "whatsappGroupStatus",
+          label: t("WhatsApp Group"),
           sortable: false,
-          render: (s) => (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ActionMenu
-                items={[
-                  {
-                    name: t("Send Message"),
-                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
-                  },
-                  {
-                    name: t("Edit Details"),
-                    icon: <BorderColorIcon fontSize="small" />,
-                  },
-                ]}
-                renderTrigger={(open) => (
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      open(e);
-                    }}
-                    sx={{
-                      color: "#6B7280",
-                      "&:hover": { bgcolor: "#F3F4F6" },
-                    }}
-                  >
-                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
-                  </IconButton>
-                )}
-              />
-            </Box>
-          ),
+          render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
         },
+        ...actionColumn,
       ];
     } else {
       return [
@@ -662,8 +938,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           ),
         },
-        { key: "phoneNumber", label: t("Phone Number / Email") },
+        // { key: "phoneNumber", label: t("Phone Number / Email") },
         { key: "class", label: t("Class") },
+        {
+          key: "whatsappGroupStatus",
+          label: t("WhatsApp Group"),
+          sortable: false,
+          render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
+        },
+        ...actionColumn,
       ];
     }
   }, [issTotal]);
@@ -857,10 +1140,110 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
+  const editStudentFields: FieldConfig[] = [
+    {
+      name: "studentName",
+      label: "Student Name",
+      kind: "text",
+      required: true,
+      column: 2,
+    },
+
+    // 2️⃣ Student ID – left
+    {
+      name: "studentID",
+      label: "Student ID",
+      kind: "text",
+      column: 0,
+      disabled: true,
+    },
+
+    {
+      name: "gender",
+      label: "Gender",
+      kind: "select",
+      required: true,
+      column: 1,
+      options: [
+        { label: t("FEMALE"), value: GENDER.GIRL },
+        { label: t("MALE"), value: GENDER.BOY },
+        { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+      ],
+    },
+    // 3️⃣ Class & Section – right
+    {
+      name: "classAndSection",
+      label: "Class And Section",
+      kind: "text",
+      column: 0,
+      disabled: true,
+    },
+
+    // 5️⃣ Age – right
+    {
+      name: "ageGroup",
+      label: "Age",
+      kind: "select",
+      required: true,
+      column: 1,
+      options: Object.values(AGE_OPTIONS).map((v) => ({
+        value: v,
+        label: v,
+      })),
+    },
+
+    // 6️⃣ Phone – full width
+    {
+      name: "phone",
+      label: "Phone Number",
+      kind: "text",
+      column: 2,
+      disabled: true,
+    },
+  ];
+
+  const getRandomAvatar = () => {
+    if (AVATARS.length === 0) return "";
+    const randomIndex = Math.floor(Math.random() * AVATARS.length);
+    return AVATARS[randomIndex];
+  };
+
   const handleAddNewStudent = useCallback(() => {
     setIsAddStudentModalOpen(true);
     setErrorMessage(undefined);
   }, [history]);
+
+  const handleEditSubmit = async (values) => {
+    if (!editStudentData) return; // ✅ null safety
+
+    const user = editStudentData.user;
+    const classId = editStudentData.classWithidname?.id;
+    const avatarToSend =
+      user.avatar && user.avatar.trim() !== ""
+        ? user.avatar
+        : getRandomAvatar();
+
+    if (!classId) {
+      console.error("Class ID missing for student");
+      return;
+    }
+    await api.updateStudentFromSchoolMode(
+      user,
+      values.studentName,
+      Number(values.ageGroup),
+      values.gender,
+      avatarToSend,
+      user.image || "",
+      user.curriculum_id || user.curriculum_id!,
+      user.grade_id || user.grade_id!,
+      user.language_id || user.language_id!,
+      user.student_id || user.student_id!,
+      classId
+    );
+
+    setIsEditStudentModalOpen(false);
+    fetchStudents(page, debouncedSearchTerm);
+  };
 
   const handleCloseAddStudentModal = useCallback(() => {
     setIsAddStudentModalOpen(false);
@@ -946,6 +1329,34 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     ]
   );
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetStudent) return;
+
+    try {
+      setIsDeleting(true);
+
+      const studentId = deleteTargetStudent.user.id;
+      const classId = deleteTargetStudent.classWithidname?.id;
+
+      if (!studentId || !classId) {
+        console.error("Missing studentId or classId");
+        return;
+      }
+
+      await api.deleteUserFromClass(studentId, classId);
+
+      setIsDeleteModalOpen(false);
+      setDeleteTargetStudent(null);
+
+      fetchStudents(page, debouncedSearchTerm);
+
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
 
   const performanceFilters = [
@@ -971,6 +1382,140 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onSubmit={handleSubmitAddStudentModal}
         message={errorMessage}
       />
+      <FormCard
+        open={isEditStudentModalOpen}
+        title={t("Edit Student Details")}
+        submitLabel={t("Save Changes")}
+        fields={editStudentFields}
+        initialValues={{
+          studentName: editStudentData?.user?.name ?? "",
+          gender: editStudentData?.user?.gender ?? "",
+          ageGroup: String(editStudentData?.user?.age ?? ""),
+          studentID: editStudentData?.user?.student_id ?? "",
+          classAndSection: `${editStudentData?.grade ?? ""}${
+            editStudentData?.classSection ?? ""
+          }`,
+          phone: editStudentData?.parent?.phone ?? "",
+        }}
+        onClose={() => {
+          setIsEditStudentModalOpen(false);
+          setEditStudentData(null);
+        }}
+        onSubmit={handleEditSubmit}
+      />
+
+      <Dialog
+      open={isDeleteModalOpen}
+      onClose={() => setIsDeleteModalOpen(false)}
+      maxWidth="xs"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "12px",
+          padding: 1,
+        },
+      }}
+    >
+      {/* Header */}
+      <DialogTitle
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontWeight: 600,
+          fontSize: "18px",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ErrorOutlineIcon sx={{ color: "#dc2626", fontSize: 20 }} />
+          {t("Delete Student?")}
+        </Box>
+
+        <IconButton
+          size="small"
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent sx={{ pt: 0 , textAlign: "left"}}>
+        <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}>
+          {t(
+            `You’re about to permanently delete ${deleteTargetStudent?.user?.name}'s record. This action cannot be undone.`
+          )}
+        </Typography>
+
+        {deleteTargetStudent && (
+          <Box
+            sx={{
+              background: "#F9FAFB",
+              borderRadius: "8px",
+              padding: "12px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr 1fr",
+              gap: 1,
+              fontSize: 14,
+              border: "1px solid #E5E7EB", 
+            }}
+          >
+            <Typography>
+              {deleteTargetStudent.user.student_id ?? "N/A"}
+            </Typography>
+            <Typography>{deleteTargetStudent.user.name}</Typography>
+            <Typography>
+              {deleteTargetStudent.user.gender}
+            </Typography>
+            <Typography>
+              {deleteTargetStudent.parent?.phone || "N/A"}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Warning Box */}
+        <Box
+          sx={{
+            mt: 2,
+            background: "#FEE2E2",
+            color: "#B91C1C",
+            borderRadius: "6px",
+            padding: "10px",
+            fontSize: "13px",
+            border: "1px solid #FECACA",
+          }}
+        >
+          {t("This cannot be reversed. Please be certain.")}
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button
+          variant="outlined"
+          onClick={() => setIsDeleteModalOpen(false)}
+          sx={{
+            textTransform: "none",
+            borderRadius: "6px",
+          }}
+        >
+          {t("Cancel")}
+        </Button>
+
+        <Button
+          variant="contained"
+          color="error"
+          onClick={handleConfirmDelete}
+          disabled={isDeleting}
+          sx={{
+            textTransform: "none",
+            borderRadius: "6px",
+            fontWeight: 500,
+          }}
+        >
+          {isDeleting ? t("Deleting...") : t("Delete Student")}
+        </Button>
+      </DialogActions>
+    </Dialog>
+
       {openPopup && studentData && (
         <FcInteractPopUp
           studentData={studentData}
@@ -992,27 +1537,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           )}
         </Box>
-        <Box className="schoolStudents-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewStudent}
-            className="schoolStudents-newStudentButton-outlined"
-          >
-            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-            {!isSmallScreen && t("New Student")}
-          </MuiButton>
-          <SearchAndFilter
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterClick={handleFilterIconClick}
-            onClearFilters={handleClearFilters}
-            isFilter={issFilter}
-          />
-        </Box>
+
+        {/* Hide New Student + Search/Filter when there are NO students overall */}
+        {!hideHeaderActions && (
+          <Box className="schoolStudents-actionsGroup">
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-newStudentButton-outlined"
+            >
+              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+              {!isSmallScreen && t("New Student")}
+            </MuiButton>
+
+            <SearchAndFilter
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFilterClick={handleFilterIconClick}
+              onClearFilters={handleClearFilters}
+              isFilter={issFilter}
+            />
+          </Box>
+        )}
       </Box>
 
-      {!issTotal && (
+      {/* Keep as-is, but hide when no students overall */}
+      {!issTotal && !isNoStudentsState && (
         <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
@@ -1055,24 +1606,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       )}
 
-      {Object.values(filters).some((arr) => arr.length > 0) && (
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteAppliedFilter}
+      {/* Hide filters UI when no students overall */}
+      {!hideFilterUI &&
+        Object.values(filters).some((arr) => arr.length > 0) && (
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={handleDeleteAppliedFilter}
+          />
+        )}
+
+      {!hideFilterUI && (
+        <FilterSlider
+          isOpen={isFilterSliderOpen}
+          onClose={() => setIsFilterSliderOpen(false)}
+          filters={tempFilters}
+          filterOptions={{
+            grade: getGradeOptions(baseStudents),
+          }}
+          onFilterChange={handleSliderFilterChange}
+          onApply={handleApplyFilters}
+          onCancel={handleCancelFilters}
+          filterConfigs={filterConfigsForSchool}
         />
       )}
-      <FilterSlider
-        isOpen={isFilterSliderOpen}
-        onClose={() => setIsFilterSliderOpen(false)}
-        filters={tempFilters}
-        filterOptions={{
-          grade: getGradeOptions(baseStudents),
-        }}
-        onFilterChange={handleSliderFilterChange}
-        onApply={handleApplyFilters}
-        onCancel={handleCancelFilters}
-        filterConfigs={filterConfigsForSchool}
-      />
 
       {isLoading || isPerformanceLoading ? (
         <Box

@@ -414,7 +414,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 </div>
 
                 {isLinked &&
-                !showDownloadHomeworkButton &&
+                showDownloadHomeworkButton &&
                 lessons.length > 0 &&
                 Capacitor.isNativePlatform() ? (
                   <IonButton

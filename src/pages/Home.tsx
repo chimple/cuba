@@ -1,4 +1,4 @@
-import { IonPage, IonHeader } from "@ionic/react";
+import { IonPage, IonHeader, useIonRouter } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   HOMEHEADERLIST,
@@ -17,6 +17,7 @@ import {
   LANGUAGE,
   LANG,
   IS_REWARD_FEATURE_ON,
+  GENERIC_POP_UP,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -47,8 +48,10 @@ import i18n from "../i18n";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import CampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
-
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 const localData: any = {};
+
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -102,20 +105,32 @@ const Home: FC = () => {
 
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-  const logDeviceInfo = async () => {
-    const info = await Device.getInfo();
-    const device_language = await Device.getLanguageCode();
-    const device = {
-      model: info.model,
-      manufacturer: info.manufacturer,
-      platform: info.platform,
-      os_version: info.osVersion,
-      operating_system: info.operatingSystem,
-      is_virtual: info.isVirtual,
-      device_language: device_language.value,
-    };
-    return device;
-  };
+
+  useEffect(() => {
+    if (currentHeader) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", currentHeader);
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [currentHeader]);
+
+  const growthbook = useGrowthBook();
+  useEffect(() => {
+    if (!growthbook) return;
+
+    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
+
+    if (!popupConfig) return;
+
+    if (
+      currentHeader &&
+      popupConfig.screen_name &&
+      currentHeader.toLowerCase() === popupConfig.screen_name.toLowerCase()
+    ) {
+      PopupManager.onAppOpen(popupConfig);
+      PopupManager.onTimeElapsed(popupConfig);
+    }
+  }, [growthbook, currentHeader]);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -126,13 +141,20 @@ const Home: FC = () => {
     const studentDetails = student;
     let parent;
     (async () => {
+      // Get Parent Info
       if (!(studentDetails as any).parent_id) {
         parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
         (studentDetails as any).parent_id = parent?.id;
       }
-      updateLocalAttributes({ studentDetails });
+
+      // Get Device Info
+      const device = await Util.logDeviceInfo();
+
+      // Initial Update with Student and Device info
+      updateLocalAttributes({ studentDetails, ...device });
       setGbUpdated(true);
     })();
+
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -144,7 +166,7 @@ const Home: FC = () => {
     }
     window.addEventListener("JoinClassListner", handleJoinClassEvent);
     App.addListener("appStateChange", ({ isActive }) =>
-      appStateChange(isActive)
+      appStateChange(isActive),
     );
     const handlePathwayCreated = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -159,7 +181,7 @@ const Home: FC = () => {
     setCurrentHeader(
       currentHeader === HOMEHEADERLIST.PROFILE
         ? HOMEHEADERLIST.HOME
-        : currentHeader
+        : currentHeader,
     );
     localStorage.setItem("currentHeader", currentHeader);
     if (currentHeader !== HOMEHEADERLIST.HOME) {
@@ -171,7 +193,7 @@ const Home: FC = () => {
     Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
-    await getAssignments();
+    await getAssignments(true);
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
@@ -193,10 +215,10 @@ const Home: FC = () => {
     if (!!studentResult) {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id === null
+        (item) => item.assignment_id === null,
       );
       const total_assignments_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id !== null
+        (item) => item.assignment_id !== null,
       );
       let latestDate = null;
       for (const lessonId in studentResult) {
@@ -217,11 +239,20 @@ const Home: FC = () => {
       Object.entries(studentResult).map(([lessonDocId, details]) => [
         lessonDocId,
         { course_id: details.course_id || "" },
-      ])
+      ]),
     );
     setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
+    await getAssignments(false);
+
+    // Call these to ensure attributes are set on Home load
+    const updateAtb = async () => {
+      await Util.updateSchStdAttb();
+      setGbUpdated(true);
+    };
+    updateAtb();
+
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
@@ -238,7 +269,7 @@ const Home: FC = () => {
     const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
     for (const lessonDoc of playedLessonData) {
       const lessonDate = Timestamp.fromDate(
-        new Date(lessonDoc?.updated_at ?? "")
+        new Date(lessonDoc?.updated_at ?? ""),
       );
       const combinedTime =
         lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
@@ -283,7 +314,10 @@ const Home: FC = () => {
 
   const api = ServiceConfig.getI().apiHandler;
 
-  async function getAssignments(): Promise<TableTypes<"lesson">[]> {
+  async function getAssignments(
+    withListeners: boolean = true
+  ): Promise<TableTypes<"lesson">[]> {
+    
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
@@ -292,8 +326,10 @@ const Home: FC = () => {
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
     const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
-    if (student) await api.assignmentUserListner(student.id, () => {});
+    if (withListeners) {
+      if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+      if (student) await api.assignmentUserListner(student.id, () => {});
+    }
 
     if (
       student != null &&
@@ -307,7 +343,7 @@ const Home: FC = () => {
         linkedData.classes.map(async (_class) => {
           const res = await api.getPendingAssignments(_class.id, student.id);
           allAssignments.push(...res);
-        })
+        }),
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
@@ -336,7 +372,7 @@ const Home: FC = () => {
             (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
-        })
+        }),
       );
 
       setPendingLiveQuizCount(liveQuizCount);
@@ -355,7 +391,7 @@ const Home: FC = () => {
         acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
         return acc;
       }, {});
-      const device = await logDeviceInfo();
+      const device = await Util.logDeviceInfo();
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
@@ -387,7 +423,6 @@ const Home: FC = () => {
     setSubTab(SUBTAB.SUGGESTIONS);
   };
 
-
   const getHistory = async () => {
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
@@ -400,7 +435,7 @@ const Home: FC = () => {
       const playedLessonData = studentResult;
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
-        (lessonDoc) => lessonDoc !== undefined
+        (lessonDoc) => lessonDoc !== undefined,
       );
       for (const course of studentResult) {
         const courseId = course.course_id;
@@ -418,7 +453,6 @@ const Home: FC = () => {
       return allValidPlayedLessonDocIds;
     }
   };
-
 
   async function onHeaderIconClick(selectedHeader: any) {
     let reqLes: TableTypes<"lesson">[] = [];
@@ -444,7 +478,6 @@ const Home: FC = () => {
     }
   }
 
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -469,7 +502,7 @@ const Home: FC = () => {
               <AssignmentPage
                 assignmentCount={setPendingAssignmentCount}
                 onPlayMoreHomework={() => {
-                  setCurrentHeader(HOMEHEADERLIST.HOME); 
+                  setCurrentHeader(HOMEHEADERLIST.HOME);
                 }}
               />
             )}
@@ -478,7 +511,6 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
               <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
             )}
-
           </div>
         ) : null}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />

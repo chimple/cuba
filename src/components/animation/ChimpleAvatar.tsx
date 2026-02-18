@@ -228,7 +228,7 @@ const ChimpleAvatar: FC<{
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
-          history.replace(
+          history.push(
             PAGES.LEADERBOARD +
               `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
           );
@@ -395,7 +395,7 @@ const ChimpleAvatar: FC<{
         assignmentMap[assignmentFound.id] = currentLesson.id;
       }
       if (!!assignmentFound?.id && currentLesson.plugin_type === LIVE_QUIZ) {
-        history.replace(
+        history.push(
           PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignmentFound.id}`,
           {
             assignment: JSON.stringify(assignmentFound),
@@ -405,7 +405,7 @@ const ChimpleAvatar: FC<{
         const lessonCourse =
           (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
         const parmas = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
-        history.replace(PAGES.GAME + parmas, {
+        history.push(PAGES.GAME + parmas, {
           url: "chimple-lib/index.html" + parmas,
           lessonId: currentLesson.cocos_lesson_id,
           courseDocId: lessonCourse[0].id,
@@ -418,7 +418,7 @@ const ChimpleAvatar: FC<{
         const lessonCourse =
           (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
         const params = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
-        history.replace(PAGES.LIDO_PLAYER + params, {
+        history.push(PAGES.LIDO_PLAYER + params, {
           lessonId: currentLesson.cocos_lesson_id,
           courseDocId: lessonCourse[0].id,
           course: JSON.stringify(lessonCourse),

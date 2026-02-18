@@ -8,9 +8,15 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
+  Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
@@ -22,7 +28,11 @@ import {
   EnumType,
   PERFORMANCE_UI,
   PerformanceLevel,
+  StudentInfo,
   TeacherInfo,
+  WHATSAPP_GROUP_STATUS_KEYS,
+  WHATSAPP_GROUP_STATUS,
+  WHATSAPP_GROUP_TICK_ICON,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -32,7 +42,15 @@ import {
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
+import { ClassRow, SchoolData } from "./SchoolClass";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import ActionMenu from "./ActionMenu";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+
+// Keys used to select the WhatsApp status label + chip styling.
+type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayTeacher {
   id: string;
@@ -42,24 +60,93 @@ interface DisplayTeacher {
   classSection: string;
   phoneNumber: string;
   emailDisplay: string;
+  phoneEmailDisplay: string;
   class: string;
   classId: string;
   interactData: string;
   performance: EnumType<"fc_support_level">;
   interactPayload: TeacherInfo;
+  whatsappGroupStatus?: WhatsappGroupStatusKey;
+  teacher_actions?: string;
 }
 
 interface SchoolTeachersProps {
   data: {
+    schoolData?: SchoolData;
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
-    classData?: { id: string; name: string }[];
+    classData?: ClassRow[];
+    students?: StudentInfo[];
   };
   isMobile: boolean;
   schoolId: string;
 }
 
 const ROWS_PER_PAGE = 20;
+
+// Map logical WhatsApp statuses to CSS chip classes.
+const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
+  switch (status) {
+    case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
+      return "schoolteachers-whatsapp-chip-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
+      return "schoolteachers-whatsapp-chip-not-in-group";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
+      return "schoolteachers-whatsapp-chip-not-on-whatsapp";
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
+    default:
+      return "schoolteachers-whatsapp-chip-not-checked";
+  }
+};
+
+// Shared renderer for WhatsApp group pills to keep UI consistent.
+const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
+  const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+  return (
+    <Chip
+      icon={
+        key === WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP ? (
+          <img
+            src={WHATSAPP_GROUP_TICK_ICON}
+            alt=""
+            aria-hidden="true"
+            className="schoolteachers-whatsapp-chip-icon"
+          />
+        ) : undefined
+      }
+      label={t(WHATSAPP_GROUP_STATUS[key])}
+      size="small"
+      className={`schoolteachers-whatsapp-chip schoolteachers-whatsapp-chip-base ${getWhatsappChipClass(key)}`}
+    />
+  );
+};
+
+const getPerformancePillClass = (
+  performance: EnumType<"fc_support_level">,
+): string => {
+  switch (performance) {
+    case PerformanceLevel.NOT_ASSIGNING:
+      return "schoolTeachers-performance-pill-not-assigning";
+    case PerformanceLevel.ONE_TO_TWO_ASSIGNED:
+      return "schoolTeachers-performance-pill-one-to-two";
+    case PerformanceLevel.THREE_TO_FOUR_ASSIGNED:
+      return "schoolTeachers-performance-pill-three-to-four";
+    case PerformanceLevel.FOUR_PLUS_ASSIGNED:
+      return "schoolTeachers-performance-pill-four-plus";
+    default:
+      return "schoolTeachers-performance-pill-not-tracked";
+  }
+};
+
+// Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
+const normalizeWhatsappContactFlag = (value: unknown): "yes" | "no" | null => {
+  if (value == null) return null;
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === "yes" || normalized === "true") return "yes";
+  if (normalized === "no" || normalized === "false") return "no";
+  return null;
+};
 
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   data,
@@ -70,7 +157,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
   const [totalCount, setTotalCount] = useState<number>(
-    data.totalTeacherCount || 0
+    data.totalTeacherCount || 0,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
@@ -93,23 +180,31 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [currentTeachers, setcurrentTeachers] = useState<TeacherInfo>();
   const [teacherStatus, setTeacherStatus] =
     useState<EnumType<"fc_support_level">>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetTeacher, setDeleteTargetTeacher] =
+    useState<TeacherInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const getTeacherInfo = useCallback(
     (userId: string, classId: string): TeacherInfo | null => {
       if (!Array.isArray(teachers)) return null;
 
       return (
         teachers.find(
-          (t) => t.user?.id === userId && t.classWithidname.id === classId
+          (t) => t.user?.id === userId && t.classWithidname.id === classId,
         ) || null
       );
     },
-    [teachers]
+    [teachers],
   );
 
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
     DisplayTeacher[]
   >([]);
-
+  // Cache: classId -> normalized WhatsApp member phone numbers.
+  const [whatsappMembersByClass, setWhatsappMembersByClass] = useState<
+    Map<string, Set<string>>
+  >(new Map());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
     return (currentPage: number, search: string, silent = false) => {
@@ -126,7 +221,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               schoolId,
               search,
               currentPage,
-              ROWS_PER_PAGE
+              ROWS_PER_PAGE,
             );
             setTeachers(result.data);
             setTotalCount(result.total);
@@ -134,7 +229,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             response = await api.getTeacherInfoBySchoolId(
               schoolId,
               currentPage,
-              ROWS_PER_PAGE
+              ROWS_PER_PAGE,
             );
             setTeachers(response.data);
             setTotalCount(response.total);
@@ -147,6 +242,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       }, 500);
     };
   }, [schoolId]);
+
+  useEffect(() => {
+    if (isAddTeacherModalOpen) {
+      setErrorMessage({
+        text: t(
+          "*    Provide at least one contact method (phone number or email address) for the teacher.",
+        ),
+        type: "error",
+      });
+    } else {
+      setErrorMessage(undefined);
+    }
+  }, [isAddTeacherModalOpen]);
 
   useEffect(() => {
     const isInitial =
@@ -170,6 +278,89 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     searchTerm,
     filters,
   ]);
+
+  // Fold classId + group_id into one key so the fetch effect reruns on link changes.
+  const classGroupKey = useMemo(() => {
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    return classes
+      .map((row) => `${row?.id ?? ""}:${row?.group_id ?? ""}`)
+      .join("|");
+  }, [data.classData]);
+
+  const classGroupIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    classes.forEach((row) => {
+      if (row?.id) map.set(row.id, String(row?.group_id ?? "").trim());
+    });
+    return map;
+  }, [data.classData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const bot = data?.schoolData?.whatsapp_bot_number;
+    const classes = Array.isArray(data.classData) ? data.classData : [];
+    const groupTargets = classes.filter(
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== "",
+    );
+
+    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
+      setWhatsappMembersByClass(new Map());
+      return;
+    }
+
+    (async () => {
+      try {
+        // Fetch group members for each class in parallel, keep classId -> group map.
+        const results = await Promise.all(
+          groupTargets.map(async (row) => {
+            try {
+              const group = await api.getWhatsappGroupDetails(
+                row.group_id as string,
+                bot,
+              );
+              return [row.id as string, group] as const;
+            } catch (error) {
+              console.error("Failed to fetch WhatsApp group members:", error);
+              return [row.id as string, null] as const;
+            }
+          }),
+        );
+
+        if (cancelled) return;
+        const next = new Map<string, Set<string>>();
+        results.forEach(([classId, group]) => {
+          const members = Array.isArray(group?.members) ? group.members : [];
+          // Normalize to 10-digit numbers so comparisons are consistent.
+          const normalizedMembers = new Set<string>(
+            members
+              .map((member: unknown) => normalizePhone10(String(member)))
+              .filter((member): member is string => Boolean(member)),
+          );
+          next.set(classId, normalizedMembers);
+        });
+        setWhatsappMembersByClass(next);
+      } catch (error) {
+        console.error("Failed to fetch WhatsApp group members:", error);
+        if (!cancelled) {
+          setWhatsappMembersByClass(new Map());
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api, classGroupKey, data?.schoolData?.whatsapp_bot_number]);
+
+  const getGroupIdForClass = useCallback(
+    (classId?: string) => {
+      if (!classId) return "";
+      return String(classGroupIdMap.get(classId) ?? "").trim();
+    },
+    [classGroupIdMap],
+  );
 
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = (key: string) => {
@@ -208,6 +399,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             student_id: user.student_id ?? undefined,
             phone: user.phone ?? undefined,
             gender: user.gender ?? "N/A",
+            is_wa_contact: user.is_wa_contact ?? undefined,
           },
           grade: t.grade ?? t.grade ?? 0,
           classSection: t.classSection ?? "N/A",
@@ -218,8 +410,20 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           },
         };
       }),
-    [teachers]
+    [teachers],
   );
+
+  const studentPhoneSet = useMemo(() => {
+    const set = new Set<string>();
+    const students = Array.isArray(data.students) ? data.students : [];
+    students.forEach((student) => {
+      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ""));
+      const userPhone = normalizePhone10(String(student.user?.phone ?? ""));
+      if (parentPhone) set.add(parentPhone);
+      if (userPhone) set.add(userPhone);
+    });
+    return set;
+  }, [data.students]);
 
   const filteredTeachers = useMemo(
     () =>
@@ -227,9 +431,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         normalizedTeachers,
         filters,
         searchTerm,
-        "teacher"
+        "teacher",
       ),
-    [normalizedTeachers, filters, searchTerm]
+    [normalizedTeachers, filters, searchTerm],
   );
   const sortedTeachers = useMemo(() => {
     return [...filteredTeachers].sort((a, b) => {
@@ -274,6 +478,50 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     });
   }, [filteredTeachers, orderBy, order]);
 
+  // Compare the teacher's phone to the WhatsApp members set for the class.
+  const isTeacherInWhatsappGroup = useCallback(
+    (teacher: TeacherInfo) => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return false;
+      const members = whatsappMembersByClass.get(classId);
+      if (!members || members.size === 0) return false;
+      const phone = normalizePhone10(String(teacher.user?.phone ?? ""));
+      return !!phone && members.has(phone);
+    },
+    [whatsappMembersByClass],
+  );
+
+  // Gate group membership by the teacher is_wa_contact flag.
+  const getWhatsappGroupStatus = useCallback(
+    (teacher: TeacherInfo): WhatsappGroupStatusKey => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const groupId = getGroupIdForClass(classId);
+      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+
+      const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ""));
+      if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      const waContactRaw =
+        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
+      const waContact = normalizeWhatsappContactFlag(waContactRaw);
+      if (waContact === "yes") {
+        return isTeacherInWhatsappGroup(teacher)
+          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
+          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      if (waContact === "no") {
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      }
+      return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+    },
+    [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet],
+  );
+
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return sortedTeachers.map((apiTeacher) => ({
       id: apiTeacher.user.id,
@@ -283,6 +531,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       classSection: apiTeacher.classSection,
       phoneNumber: apiTeacher.user.phone || "—",
       emailDisplay: apiTeacher.user.email || "—",
+      phoneEmailDisplay: `${apiTeacher.user.phone || "—"} / ${apiTeacher.user.email || "—"}`,
       class: `${apiTeacher.grade}${apiTeacher.classSection}`,
       classId: apiTeacher.classWithidname?.id ?? "",
       interactData: "",
@@ -291,7 +540,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         teachersWithPerformance.find(
           (t) =>
             t.id === apiTeacher.user.id &&
-            t.classId === apiTeacher.classWithidname?.id
+            t.classId === apiTeacher.classWithidname?.id,
         )?.performance ?? "not_assigning",
     }));
   }, [sortedTeachers, teachersWithPerformance]);
@@ -317,6 +566,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               classSection: apiTeacher.classSection,
               phoneNumber: apiTeacher.user?.phone || "—",
               emailDisplay: apiTeacher.user?.email || "—",
+              phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || "—"} / ${apiTeacher.user?.email?.trim() || "—"}`,
               class: `${apiTeacher.grade}${apiTeacher.classSection}`,
               classId: "",
               interactData: "",
@@ -328,7 +578,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
           const count = await api.getRecentAssignmentCountByTeacher(
             teacherId,
-            classId
+            classId,
           );
 
           const perfLevel = mapCountToPerformance(count);
@@ -341,13 +591,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             classSection: apiTeacher.classSection,
             phoneNumber: apiTeacher.user?.phone || "—",
             emailDisplay: apiTeacher.user?.email || "—",
+            phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || "—"} / ${apiTeacher.user?.email?.trim() || "—"}`,
             class: `${apiTeacher.grade}${apiTeacher.classSection}`,
             classId,
             interactData: "",
             interactPayload: apiTeacher,
             performance: perfLevel as EnumType<"fc_support_level">,
           };
-        })
+        }),
       );
 
       setTeachersWithPerformance(enriched);
@@ -355,6 +606,16 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
     loadPerformance();
   }, [sortedTeachers]);
+
+  // Add WhatsApp status to the rows used by the table.
+  const teachersWithWhatsappStatus = useMemo(
+    () =>
+      teachersWithPerformance.map((row) => ({
+        ...row,
+        whatsappGroupStatus: getWhatsappGroupStatus(row.interactPayload),
+      })),
+    [teachersWithPerformance, getWhatsappGroupStatus],
+  );
 
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
     if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
@@ -372,10 +633,16 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return Math.ceil(totalCount / ROWS_PER_PAGE);
   }, [totalCount, filters, searchTerm, filteredTeachers.length]);
 
-  const isDataPresent = teachersWithPerformance.length > 0;
+  const isDataPresent = teachersWithWhatsappStatus.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
+
+  const hasAnyTeachers = (totalCount ?? 0) > 0;
+  const isNoTeachersState = !isLoading && !hasAnyTeachers;
+  const isFilteredEmptyState =
+    !isLoading && hasAnyTeachers && !isDataPresent && isFilteringOrSearching;
+  const hideHeaderActions = isNoTeachersState || isFilteredEmptyState;
 
   const handleAddNewTeacher = useCallback(() => {
     setErrorMessage(undefined);
@@ -393,7 +660,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, []);
   const handleCancelFilters = useCallback(
     () => setIsFilterSliderOpen(false),
-    []
+    [],
   );
 
   const handleCloseAddTeacherModal = () => {
@@ -408,17 +675,22 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const classIdsString = (values.class ?? "").toString().trim();
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
+
         if (!name) {
-          setErrorMessage({ text: "Teacher name is required.", type: "error" });
-          return;
-        }
-        if (!classIdsString) {
           setErrorMessage({
-            text: "At least one class is required.",
+            text: t("Teacher name is required."),
             type: "error",
           });
           return;
         }
+        if (!classIdsString) {
+          setErrorMessage({
+            text: t("At least one class is required."),
+            type: "error",
+          });
+          return;
+        }
+
         const classIds = classIdsString
           .split(",")
           .map((id) => id.trim())
@@ -426,65 +698,80 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
         if (classIds.length === 0) {
           setErrorMessage({
-            text: "At least one class is required.",
+            text: t("At least one class is required."),
             type: "error",
           });
           return;
         }
-        const email = rawEmail.toLowerCase();
-        const normalizedPhone = normalizePhone10(rawPhone);
+
+        const email = (values.email ?? "").toString().trim().toLowerCase();
         const hasEmail = !!email;
-        const hasPhone = !!normalizedPhone;
-        if (!hasEmail && !hasPhone) {
-          setErrorMessage({
-            text: "Please provide either an email or a phone number.",
-            type: "error",
-          });
-          return;
-        }
+        const hasPhone =
+          (values.phoneNumber ?? "").toString().replace(/\D/g, "").length > 2;
+
+        const normalizedPhone = normalizePhone10(rawPhone);
+
+        const digitsOnly = rawPhone.replace(/\D/g, "");
+        const isValidPhone = digitsOnly.length == 12;
+
+        const localPhone = isValidPhone ? digitsOnly.slice(-10) : "";
+
         let finalEmail = "";
         let finalPhone = "";
-        if (hasEmail) {
-          if (!emailRegex.test(email)) {
-            setErrorMessage({
-              text: "Please enter a valid email address.",
-              type: "error",
-            });
-            return;
-          }
-          finalEmail = email;
-        }
+
         if (hasPhone) {
-          if (normalizedPhone.length !== 10) {
+          if (!isValidPhone && localPhone.length !== 10) {
             setErrorMessage({
-              text: "Phone number must be 10 digits.",
+              text: t("Phone number must be 10 digits."),
               type: "error",
             });
             return;
           }
           finalPhone = normalizedPhone;
         }
+
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            setErrorMessage({
+              text: t("Please enter a valid email address."),
+              type: "error",
+            });
+            return;
+          }
+          finalEmail = email;
+        }
+
+        setIsSubmitting(true); // start loading
+        setErrorMessage(undefined);
+
         await api.getOrcreateschooluser({
           name,
           phoneNumber: finalPhone || undefined,
-          email: finalEmail || undefined,
+          email: finalEmail.trim() === "" ? undefined : finalEmail,
           role: RoleType.TEACHER,
           classId: classIds,
           schoolId: schoolId,
         });
-        setIsAddTeacherModalOpen(false);
-        setPage(1);
-        fetchTeachers(1, "");
+
+        // Show success message for 2 seconds
+        setErrorMessage({
+          text: t("Teacher added successfully"),
+          type: "success",
+        });
+        setTimeout(() => {
+          setIsAddTeacherModalOpen(false); // close modal
+          setPage(1);
+          fetchTeachers(1, ""); // refresh teacher list
+        }, 2000);
       } catch (e: any) {
         const message = e instanceof Error ? e.message : String(e);
-        setErrorMessage({
-          text: message,
-          type: "error",
-        });
+        setErrorMessage({ text: message, type: "error" });
         console.error("Failed to add teacher:", e);
+      } finally {
+        setIsSubmitting(false); // stop loading
       }
     },
-    [schoolId, fetchTeachers, api]
+    [schoolId, fetchTeachers, api],
   );
 
   const classOptions = useMemo(() => {
@@ -517,7 +804,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         name: "phoneNumber",
         label: "Phone Number",
         kind: "phone",
-        required: true,
         placeholder: "Enter phone number",
         column: 2,
       },
@@ -529,7 +815,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         column: 2,
       },
     ],
-    [classOptions]
+    [classOptions],
   );
 
   const columns: Column<DisplayTeacher>[] = [
@@ -549,13 +835,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       width: 60,
       sortable: false,
       render: (row) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
-          }}
-        >
+        <Box className="schoolTeachers-interactCell">
           <IconButton
             size="small"
             onClick={async () => {
@@ -566,7 +846,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               }
               const performance =
                 teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.classId === row.classId
+                  (t) => t.id === row.id && t.classId === row.classId,
                 )?.performance ?? null;
               if (performance) setTeacherStatus(performance);
             }}
@@ -574,7 +854,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             <img
               src="/assets/icons/Interact.svg"
               alt="Interact"
-              style={{ width: 30, height: 30 }}
+              className="schoolTeachers-interactIcon"
             />
           </IconButton>
         </Box>
@@ -603,30 +883,69 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
         return (
           <Box
-            sx={{
-              background: ui.bgColor,
-              color: ui.textColor,
-              px: 1,
-              py: 0.5,
-              borderRadius: "20px",
-              fontSize: "12px",
-              fontWeight: 600,
-              textAlign: "center",
-            }}
+            className={`schoolTeachers-performance-pill ${getPerformancePillClass(
+              row.performance,
+            )}`}
           >
             {ui.label}
           </Box>
         );
       },
     },
+    {
+      key: "whatsappGroupStatus",
+      label: t("WhatsApp Group"),
+      sortable: false,
+      render: (row) => renderWhatsappGroupChip(row.whatsappGroupStatus),
+    },
     // { key: "phoneNumber", label: t("Phone Number") },
     {
-      key: "emailDisplay",
-      label: t("Email"),
-      renderCell: (t) => (
+      key: "phoneEmailDisplay", // 🔹 use merged column
+      label: t("Phone / Email"),
+      renderCell: (row) => (
         <Typography variant="body2" className="truncate-text">
-          {t.emailDisplay}
+          {row.phoneEmailDisplay}
         </Typography>
+      ),
+    },
+    {
+      key: "teacher_actions",
+      label: "",
+      sortable: false,
+      render: (row) => (
+        <Box className="schoolTeachers-actionsCell">
+          <ActionMenu
+            items={[
+              {
+                name: t("Delete"),
+                icon: (
+                  <DeleteOutlineIcon
+                    fontSize="small"
+                    className="schoolTeachers-actionDeleteIcon"
+                  />
+                ),
+                onClick: () => {
+                  const fullTeacher = getTeacherInfo(row.id, row.classId);
+                  if (!fullTeacher) return;
+                  setDeleteTargetTeacher(fullTeacher);
+                  setIsDeleteModalOpen(true);
+                },
+              },
+            ]}
+            renderTrigger={(open) => (
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  open(e);
+                }}
+                className="schoolTeachers-actionTrigger"
+              >
+                <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
+              </IconButton>
+            )}
+          />
+        </Box>
       ),
     },
   ];
@@ -639,9 +958,111 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetTeacher) return;
+
+    try {
+      setIsDeleting(true);
+
+      const teacherId = deleteTargetTeacher.user?.id;
+      const classId = deleteTargetTeacher.classWithidname?.id;
+
+      if (!teacherId || !classId) {
+        console.error("Missing teacherId or classId");
+        return;
+      }
+
+      await api.deleteUserFromClass(teacherId, classId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetTeacher(null);
+      fetchTeachers(page, searchTerm);
+    } catch (error) {
+      console.error("Delete teacher failed:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  const deleteClassDisplay = deleteTargetTeacher
+    ? `${deleteTargetTeacher.grade ?? ""}${deleteTargetTeacher.classSection ?? ""}`.trim()
+    : "";
+
   return (
     // The JSX remains the same
     <div className="schoolTeachers-pageContainer">
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          if (isDeleting) return;
+          setIsDeleteModalOpen(false);
+        }}
+        disableEscapeKeyDown={isDeleting}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ className: "schoolTeachers-deleteDialogPaper" }}
+      >
+        <DialogTitle className="schoolTeachers-deleteDialogTitle">
+          <Box className="schoolTeachers-deleteDialogTitleLeft">
+            <ErrorOutlineIcon className="schoolTeachers-deleteDialogAlertIcon" />
+            {t("Delete Teacher?")}
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent className="schoolTeachers-deleteDialogContent">
+          <Typography
+            variant="body2"
+            className="schoolTeachers-deleteDialogText"
+          >
+            {t(
+              "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
+              { name: deleteTargetTeacher?.user?.name ?? "" },
+            )}
+          </Typography>
+
+          {deleteTargetTeacher && (
+            <Box className="schoolTeachers-deleteDetails">
+              <Typography>{deleteTargetTeacher.user?.name ?? "N/A"}</Typography>
+              <Typography>{deleteClassDisplay || "N/A"}</Typography>
+              <Typography>
+                {deleteTargetTeacher.user?.phone ?? "N/A"}
+              </Typography>
+            </Box>
+          )}
+
+          <Box className="schoolTeachers-deleteWarning">
+            {t("This cannot be reversed. Please be certain.")}
+          </Box>
+        </DialogContent>
+
+        <DialogActions className="schoolTeachers-deleteDialogActions">
+          <Button
+            variant="outlined"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteCancelButton"
+          >
+            {t("Cancel")}
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteConfirmButton"
+          >
+            {isDeleting ? t("Deleting...") : t("Delete Teacher")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className="schoolTeachers-headerActionsRow">
         <Box className="schoolTeachers-titleArea">
           <Typography variant="h5" className="schoolTeachers-titleHeading">
@@ -652,21 +1073,26 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-newTeacherButton-outlined"
-          >
-            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-            {!isSmallScreen && t("New Teacher")}
-          </MuiButton>
-          <SearchAndFilter
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFilterClick={handleFilterIconClick}
-            onClearFilters={handleClearFilters}
-          />
+          {!hideHeaderActions && (
+            <>
+              <MuiButton
+                variant="outlined"
+                onClick={handleAddNewTeacher}
+                className="schoolTeachers-newTeacherButton-outlined"
+              >
+                <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+                {!isSmallScreen && t("New Teacher")}
+              </MuiButton>
+
+              <SearchAndFilter
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFilterClick={handleFilterIconClick}
+                onClearFilters={handleClearFilters}
+              />
+            </>
+          )}
         </Box>
       </Box>
 
@@ -703,7 +1129,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           <div className="schoolTeachers-table-container">
             <DataTableBody
               columns={columns}
-              rows={teachersWithPerformance}
+              rows={teachersWithWhatsappStatus}
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
@@ -757,7 +1183,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       <FormCard
         open={isAddTeacherModalOpen}
         title={t("Add New Teacher")}
-        submitLabel={t("Add Teacher")}
+        submitLabel={isSubmitting ? t("Adding...") : t("Add Teacher")}
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handleTeacherSubmit}

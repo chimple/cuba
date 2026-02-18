@@ -78,23 +78,41 @@ interface Props {
   onGenerateCode?: (classId: string) => void;
   refreshClasses?: () => void;
 }
+const StatusChip: React.FC<{
+   status: "connected" | "disconnected" | "not_connected" | "loading";
+}> = ({ status }) => {
+  const isConnected = status === "connected";
 
-const StatusChip: React.FC<{ ok?: boolean }> = ({ ok }) => (
-  <span
-    role="status"
-    className={`schoolclass-wa-chip ${
-      ok ? "schoolclass-wa-chip--ok" : "schoolclass-wa-chip--na"
-    }`}
-  >
-    {ok && (
-      <ChatBubbleOutlineOutlined
-        fontSize="small"
-        className="schoolclass-wa-chip__icon"
-      />
-    )}
-    {ok ? t("Connected") : t("Not Connected")}
-  </span>
-);
+  return (
+    <span
+      role="status"
+      className={`schoolclass-wa-chip ${
+  status === "connected"
+    ? "schoolclass-wa-chip--ok"
+    : status === "disconnected"
+    ? "schoolclass-wa-chip--warn"
+    : status === "loading"
+    ? "schoolclass-wa-chip--loading"
+    : "schoolclass-wa-chip--na"
+}`}
+    >
+      {isConnected && (
+        <ChatBubbleOutlineOutlined
+          fontSize="small"
+          className="schoolclass-wa-chip__icon"
+        />
+      )}
+
+     {status === "connected"
+  ? t("Connected")
+  : status === "disconnected"
+  ? t("Disconnected")
+  : status === "loading"
+  ? t("Loading...")
+  : t("Not Connected")}
+    </span>
+  );
+};
 
 const SchoolClasses: React.FC<Props> = ({
   data,
@@ -108,7 +126,10 @@ const SchoolClasses: React.FC<Props> = ({
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [mode, setMode] = useState<"create" | "edit">("edit");
   const [showForm, setShowForm] = useState<boolean>(false);
+  const [exitStatuses, setExitStatuses] = useState<Record<string, boolean>>({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
+  const [waMetaLoading, setWaMetaLoading] = useState(true);
+
 
   // Add Student Modal State
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
@@ -131,9 +152,62 @@ const SchoolClasses: React.FC<Props> = ({
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
   const hasWhatsAppBot = typeof bot === "string" && /^\d{12}$/.test(bot.trim());
   const hasValue = (v: string) => v != null && String(v).trim() !== "";
-
+  const [phoneDetails, setPhoneDetails] = useState<any>(null);
   const [codes, setCodes] = useState<Record<string, string | null>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
+
+useEffect(() => {
+  if (!bot) return; // 🚨 wait until bot exists
+
+  let cancelled = false;
+  
+   (async () => {
+    const promises = safeClasses
+      .filter((c) => c.group_id)
+      .map(async (c) => {
+        try {
+          const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
+          return { classId: c.id, isExited: res.is_exited };
+        } catch (err) {
+          console.error(`Failed to fetch WhatsApp group details for group ${c.group_id}:`, err);
+          return null;
+        }
+      });
+
+    const results = await Promise.all(promises);
+
+    if (cancelled) {
+      return;
+    }
+
+    const newStatuses = results
+      .filter((r): r is { classId: string; isExited: boolean } => r !== null)
+      .reduce((acc, { classId, isExited }) => {
+        acc[classId] = isExited;
+        return acc;
+      }, {} as Record<string, boolean>);
+    
+    setExitStatuses((prev) => ({ ...prev, ...newStatuses }));
+  })();
+
+  (async () => {
+    try {
+      const details = await api.getPhoneDetailsByBotNum(String(bot));
+      if (!cancelled) setPhoneDetails(details);
+    } catch (e) {
+      console.error("getPhoneDetailsByBotNum failed", e);
+    }
+
+    if (!cancelled) setWaMetaLoading(false); // ✅ critical
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [bot]); // ✅ MUST depend on bot
+
+console.log("WhatsApp Phone Details value:", phoneDetails);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -354,8 +428,20 @@ const SchoolClasses: React.FC<Props> = ({
 
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
-
       const isGroupConnected = hasValue(c.group_id ?? "");
+      const isBotConnected = phoneDetails?.phone.wa_state === "CONNECTED" && !(exitStatuses[c.id]);
+      let waStatus: "connected" | "disconnected" | "not_connected" | "loading";
+
+      if (waMetaLoading) {
+        waStatus = "loading";                 // ✅ don't guess yet
+      } else if (!isGroupConnected) {
+        waStatus = "not_connected";
+      } else if (isBotConnected) {
+        waStatus = "connected";
+      } else {
+        waStatus = "disconnected";
+      }
+
 
       const codeVal = codes[c.id] ?? null;
       const hasCode = typeof codeVal === "string" && codeVal.trim().length > 0;
@@ -462,7 +548,7 @@ const SchoolClasses: React.FC<Props> = ({
         baseRow.whatsapp = {
           render: (
             <div className="schoolclass-cell-center">
-              <StatusChip ok={isGroupConnected} />
+              <StatusChip status={waStatus} />
             </div>
           ),
         };
@@ -470,7 +556,7 @@ const SchoolClasses: React.FC<Props> = ({
 
       return baseRow;
     });
-  }, [safeClasses, codes, loadingIds, hasWhatsAppBot]);
+  }, [ safeClasses,codes,loadingIds,hasWhatsAppBot,phoneDetails,waMetaLoading ]);
 
   const selectedRow = useMemo(
     () =>
@@ -573,6 +659,7 @@ const SchoolClasses: React.FC<Props> = ({
           mode={mode}
           classData={editingClass}
           schoolId={schoolId}
+          whatspAppBotNumber={data.schoolData?.whatsapp_bot_number || ""}
           onSaved={refreshClasses}
           onClose={() => setShowForm(false)}
         />
