@@ -38,3 +38,16 @@
   margin-right: 8px;
   margin-left: -4px;
 }
+.cardlist-search {
+  padding: 12px 20px 0;
+}
+.cardlist-search .MuiInputBase-root {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.cardlist-search .MuiInput-underline:before,
+.cardlist-search .MuiInput-underline:after {
+  display: none !important;
+}

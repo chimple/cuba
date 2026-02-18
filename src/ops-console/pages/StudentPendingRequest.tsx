@@ -161,9 +161,9 @@ const StudentPendingRequestDetails = () => {
       if (currentSelectedStudent && newStudentUserId) {
         // MERGE & APPROVE logic
         await api.mergeStudentRequest(
-          currentRequestId,
           currentSelectedStudent,
           newStudentUserId,
+          currentRequestId,
           respondedBy
         );
       } else {

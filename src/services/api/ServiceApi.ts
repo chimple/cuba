@@ -2028,10 +2028,10 @@ export interface ServiceApi {
    * @returns Promise resolving when the merge is complete.
    */
   mergeStudentRequest(
-    requestId: string,
     existingStudentId: string,
     newStudentId: string,
-    respondedBy: string
+    requestId?: string | undefined,
+    respondedBy?: string | undefined
   ): Promise<void>;
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;

@@ -46,6 +46,8 @@ import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import MergeOutlinedIcon from '@mui/icons-material/MergeOutlined';
+import CardListModal from "./CardListModal";
 
 type ApiStudentData = StudentInfo;
 
@@ -210,10 +212,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentStatus, setStudentStatus] =
     useState<EnumType<"fc_support_level">>();
   const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [isMergeStudentModalOpen, setIsMergeStudentModalOpen] = useState(false);
   const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(
     null
   );
-
+  const [mergePrimaryStudent, setMergePrimaryStudent] =
+    useState<DisplayStudent | null>(null);
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
   const isAtSchool = useMemo(() => {
@@ -483,8 +487,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? data.classData
         : []
       : classDataRef
-      ? [classDataRef]
-      : [];
+        ? [classDataRef]
+        : [];
     const groupTargets = classes.filter(
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== ""
     );
@@ -776,6 +780,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                     setIsEditStudentModalOpen(true);
                   },
                 },
+                {
+                  name: t("Merge"),
+                  icon: (
+                    <MergeOutlinedIcon
+                      fontSize="small"
+                      sx={{ color: "#2563eb" }}
+                      style={{ transform: "rotate(90deg)" }}
+                    />
+                  ),
+                  onClick: () => {
+                    setMergePrimaryStudent(s);
+                    setIsMergeStudentModalOpen(true);
+                  },
+                },
               ]}
               renderTrigger={(open) => (
                 <IconButton
@@ -836,8 +854,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   if (!fullStudent) return;
                   const mappedType = s.schstudents_performance
                     ? SupportLevelMap[
-                        s.schstudents_performance as keyof typeof SupportLevelMap
-                      ]
+                    s.schstudents_performance as keyof typeof SupportLevelMap
+                    ]
                     : null;
 
                   setStudentData(fullStudent);
@@ -862,7 +880,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
-                  s.gender.slice(1).toLowerCase()
+                s.gender.slice(1).toLowerCase()
                 : ""}
             </Typography>
           ),
@@ -905,7 +923,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
-                  s.gender.slice(1).toLowerCase()
+                s.gender.slice(1).toLowerCase()
                 : ""}
             </Typography>
           ),
@@ -1310,6 +1328,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     { key: PerformanceLevel.STILL_LEARNING, label: t("Still Learning") },
     { key: PerformanceLevel.NOT_TRACKED, label: t("Not Tracked") },
   ];
+  async function handleMergeStudents(student: any): Promise<void> {
+    if (!mergePrimaryStudent) return;
+    const oldId = mergePrimaryStudent.id;
+    const newId = student?.user?.id;
+    if (!oldId || !newId) {
+      console.error("Invalid student IDs");
+      return;
+    }
+    if (oldId === newId) {
+      console.error("Cannot merge same student");
+      return;
+    }
+    await api.mergeStudentRequest(oldId, newId);
+    setIsMergeStudentModalOpen(false);
+  }
 
   return (
     <div className="schoolStudents-pageContainer">
@@ -1336,9 +1369,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           gender: editStudentData?.user?.gender ?? "",
           ageGroup: String(editStudentData?.user?.age ?? ""),
           studentID: editStudentData?.user?.student_id ?? "",
-          classAndSection: `${editStudentData?.grade ?? ""}${
-            editStudentData?.classSection ?? ""
-          }`,
+          classAndSection: `${editStudentData?.grade ?? ""}${editStudentData?.classSection ?? ""
+            }`,
           phone: editStudentData?.parent?.phone ?? "",
         }}
         onClose={() => {
@@ -1346,6 +1378,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setEditStudentData(null);
         }}
         onSubmit={handleEditSubmit}
+      />
+      <CardListModal
+        open={isMergeStudentModalOpen}
+        schoolId={schoolId}
+        primaryStudentId={mergePrimaryStudent?.id}
+        onClose={() => setIsMergeStudentModalOpen(false)}
+        onSubmit={handleMergeStudents}
       />
 
       {openPopup && studentData && (
@@ -1480,7 +1519,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
-              onRowClick={() => {}}
+              onRowClick={() => { }}
             />
           </div>
           {pageCount > 1 && (
@@ -1502,12 +1541,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             {performanceFilter !== PerformanceLevel.ALL
               ? t("No student data found for the selected filter")
               : isFilteringOrSearching
-              ? t("No students found matching your criteria.")
-              : !issTotal &&
-                optionalGrade != null &&
-                String(optionalSection ?? "").trim() !== ""
-              ? t("No students found for your class.")
-              : t("No students data found for the selected school")}
+                ? t("No students found matching your criteria.")
+                : !issTotal &&
+                  optionalGrade != null &&
+                  String(optionalSection ?? "").trim() !== ""
+                  ? t("No students found for your class.")
+                  : t("No students data found for the selected school")}
           </Typography>
           {!isFilteringOrSearching &&
             performanceFilter === PerformanceLevel.ALL && (
