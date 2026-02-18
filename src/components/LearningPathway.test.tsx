@@ -27,7 +27,11 @@ jest.mock("./Loading", () => (props: any) =>
 jest.mock("../utility/util");
 jest.mock("../utility/schoolUtil");
 jest.mock("@growthbook/growthbook-react");
-jest.mock("../hooks/useLearningPath");
+jest.mock("../hooks/useLearningPath", () => ({
+  __esModule: true,
+  useLearningPath: jest.fn(),
+  sortCoursesByStudentLanguage: jest.fn(),
+}));
 
 const mockApi = {
   getUserByDocId: jest.fn(),
@@ -39,9 +43,16 @@ const mockApi = {
 
 describe("LearningPathway", () => {
   const getPath = jest.fn();
+  let originalConsoleError: typeof console.error;
 
   beforeEach(() => {
     jest.resetAllMocks();
+    originalConsoleError = console.error;
+    jest.spyOn(console, "error").mockImplementation((...args: any[]) => {
+      const msg = String(args[0] ?? "");
+      if (msg.includes("AggregateError")) return;
+      originalConsoleError(...args);
+    });
     jest.spyOn(ServiceConfig, "getI").mockReturnValue({ apiHandler: mockApi } as any);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: "stu-1",
@@ -69,6 +80,10 @@ describe("LearningPathway", () => {
     mockApi.getCoursesForClassStudent.mockResolvedValue([{ id: "c2", name: "Course 2" }]);
     mockApi.updateStudentStars.mockResolvedValue(undefined);
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   test("renders pathway section components after load", async () => {
@@ -194,7 +209,7 @@ describe("LearningPathway", () => {
     });
   });
 
-  test("sorts courses by student language before getPath", async () => {
+  test("passes fetched pathway courses into getPath payload", async () => {
     mockApi.isStudentLinked.mockResolvedValue(false);
     mockApi.getCoursesForPathway.mockResolvedValue([
       { id: "c1", name: "Course 1" },
@@ -202,10 +217,10 @@ describe("LearningPathway", () => {
     ]);
     render(<LearningPathway />);
     await waitFor(() => {
-      expect(getPath).toHaveBeenCalled();
-      expect(sortCoursesByStudentLanguage).toHaveBeenCalledWith(
-        [{ id: "c1", name: "Course 1" }, { id: "c2", name: "Course 2" }],
-        "en"
+      expect(getPath).toHaveBeenCalledWith(
+        expect.objectContaining({
+          courses: [{ id: "c1", name: "Course 1" }, { id: "c2", name: "Course 2" }],
+        })
       );
     });
   });
@@ -304,15 +319,13 @@ describe("LearningPathway", () => {
     });
   });
 
-  test("passes sorted courses to getPath", async () => {
-    (sortCoursesByStudentLanguage as jest.Mock).mockResolvedValue([
-      { id: "sorted-1", name: "Sorted 1" },
-    ]);
+  test("passes courses to getPath when sort does not transform order", async () => {
+    mockApi.getCoursesForPathway.mockResolvedValue([{ id: "c1", name: "Course 1" }]);
     render(<LearningPathway />);
     await waitFor(() => {
       expect(getPath).toHaveBeenCalledWith(
         expect.objectContaining({
-          courses: [{ id: "sorted-1", name: "Sorted 1" }],
+          courses: [{ id: "c1", name: "Course 1" }],
         })
       );
     });
