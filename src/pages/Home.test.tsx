@@ -1,10 +1,17 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import Home from "./Home";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
-import { PAGES } from "../common/constants";
+import {
+  IS_CONECTED,
+  IS_REWARD_FEATURE_ON,
+  LIVE_QUIZ,
+  PAGES,
+} from "../common/constants";
 import { updateLocalAttributes } from "../growthbook/Growthbook";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
 
 const mockHistoryReplace = jest.fn();
 const mockHistoryPush = jest.fn();
@@ -23,6 +30,9 @@ jest.mock("react-router", () => ({
 
 jest.mock("../components/HomeHeader", () => (props: any) => (
   <div>
+    <div data-testid="header-assignment-count">{String(props.pendingAssignmentCount)}</div>
+    <div data-testid="header-livequiz-count">{String(props.pendingLiveQuizCount)}</div>
+    <div data-testid="header-current">{String(props.currentHeader)}</div>
     <button onClick={() => props.onHeaderIconClick("HOME")}>go-home</button>
     <button onClick={() => props.onHeaderIconClick("SUBJECTS")}>go-subjects</button>
     <button onClick={() => props.onHeaderIconClick("ASSIGNMENT")}>
@@ -45,6 +55,13 @@ jest.mock("../components/SkeltonLoading", () => () => <div data-testid="skeleton
 jest.mock("../components/WinterCampaignPopup/WinterCampaignPopupGating", () => () => (
   <div data-testid="winter-campaign-gating" />
 ));
+jest.mock("../components/GenericPopUp/GenericPopUpManager", () => ({
+  __esModule: true,
+  default: {
+    onAppOpen: jest.fn(),
+    onTimeElapsed: jest.fn(),
+  },
+}));
 
 jest.mock("../utility/util");
 jest.mock("../i18n", () => ({
@@ -108,8 +125,14 @@ describe("Home page (Home tab)", () => {
       schools: [{ id: "school-1", name: "School One" }],
     });
     mockApi.getPendingAssignments.mockResolvedValue([]);
+    mockApi.getLesson.mockResolvedValue({ id: "l-1", subject_id: "sub-1" });
     mockApi.assignmentListner.mockResolvedValue(undefined);
     mockApi.assignmentUserListner.mockResolvedValue(undefined);
+    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => null),
+    });
+    window.history.replaceState({}, "", "/");
   });
 
   test("redirects to select mode when no current student", async () => {
@@ -280,4 +303,186 @@ describe("Home page (Home tab)", () => {
       expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
   });
+
+  test("stores reward feature flag true in localStorage when enabled", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+    render(<Home />);
+    await waitFor(() => {
+      expect(localStorage.getItem(IS_REWARD_FEATURE_ON)).toBe("true");
+    });
+  });
+
+  test("stores reward feature flag false in localStorage when disabled", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
+    render(<Home />);
+    await waitFor(() => {
+      expect(localStorage.getItem(IS_REWARD_FEATURE_ON)).toBe("false");
+    });
+  });
+
+  test("aggregates pending assignment and active live-quiz counts across linked classes", async () => {
+    const now = Date.now();
+    const past = new Date(now - 60_000).toISOString();
+    const future = new Date(now + 60_000).toISOString();
+    const expired = new Date(now - 1_000).toISOString();
+    const farPast = new Date(now - 120_000).toISOString();
+
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: "class-1" }, { id: "class-2" }],
+      schools: [{ id: "school-1", name: "School One" }],
+    });
+    mockApi.getPendingAssignments.mockImplementation((classId: string) => {
+      if (classId === "class-1") {
+        return Promise.resolve([
+          { id: "a1", type: "HOMEWORK", lesson_id: "l-1", course_id: "c-1" },
+          {
+            id: "lq-active",
+            type: LIVE_QUIZ,
+            lesson_id: "l-2",
+            course_id: "c-1",
+            starts_at: past,
+            ends_at: future,
+          },
+        ]);
+      }
+      return Promise.resolve([
+        { id: "a2", type: "HOMEWORK", lesson_id: "l-3", course_id: "c-2" },
+        {
+          id: "lq-expired",
+          type: LIVE_QUIZ,
+          lesson_id: "l-4",
+          course_id: "c-2",
+          starts_at: farPast,
+          ends_at: expired,
+        },
+      ]);
+    });
+    mockApi.getLesson.mockImplementation((lessonId: string) =>
+      Promise.resolve({ id: lessonId, subject_id: lessonId === "l-3" ? "sub-2" : "sub-1" })
+    );
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent("2");
+      expect(screen.getByTestId("header-livequiz-count")).toHaveTextContent("1");
+      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith("class-1", "stu-1");
+      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith("class-2", "stu-1");
+    });
+  });
+
+  test("keeps no-homework state visible with zero assignment count", async () => {
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+    render(<Home />);
+    await waitFor(() => {
+      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent("0");
+    });
+  });
+
+  test("does not register class listener when class id is missing on join-class event", async () => {
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{}],
+      schools: [{ id: "school-1", name: "School One" }],
+    });
+    render(<Home />);
+    window.dispatchEvent(new Event("JoinClassListner"));
+
+    await waitFor(() => {
+      expect(mockApi.assignmentListner).not.toHaveBeenCalled();
+      expect(mockApi.assignmentUserListner).toHaveBeenCalledWith("stu-1", expect.any(Function));
+    });
+  });
+
+  test("routes to assignment page for LIVE_QUIZ url page when student is not linked", async () => {
+    mockLocationSearch = `?page=${PAGES.LIVE_QUIZ}`;
+    window.history.replaceState({}, "", `/?page=${PAGES.LIVE_QUIZ}`);
+    mockApi.isStudentLinked.mockResolvedValue(false);
+
+    render(<Home />);
+    await waitFor(() => {
+      expect(screen.getByTestId("assignment-tab")).toBeInTheDocument();
+    });
+  });
+
+  test("routes to assignment page for JOIN_CLASS url page", async () => {
+    jest.useFakeTimers();
+    mockLocationSearch = `?page=${PAGES.JOIN_CLASS}`;
+    window.history.replaceState({}, "", `/?page=${PAGES.JOIN_CLASS}`);
+
+    render(<Home />);
+    act(() => {
+      jest.advanceTimersByTime(600);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("assignment-tab")).toBeInTheDocument();
+    });
+    jest.useRealTimers();
+  });
+
+  test("starts on assignment tab from url tab param", async () => {
+    mockLocationSearch = "?tab=ASSIGNMENT";
+    render(<Home />);
+    await waitFor(() => {
+      expect(screen.getByTestId("assignment-tab")).toBeInTheDocument();
+      expect(screen.getByTestId("header-current")).toHaveTextContent("ASSIGNMENT");
+    });
+  });
+
+  test("isLinked cache still refreshes from API and rewrites cache", async () => {
+    localStorage.setItem(IS_CONECTED, JSON.stringify({ "stu-1": false }));
+    mockApi.isStudentLinked.mockResolvedValue(true);
+
+    render(<Home />);
+    await waitFor(() => {
+      expect(mockApi.isStudentLinked).toHaveBeenCalledWith("stu-1");
+      const parsed = JSON.parse(localStorage.getItem(IS_CONECTED) || "{}");
+      expect(parsed["stu-1"]).toBe(true);
+    });
+  });
+
+  test("isLinked writes API value to cache when empty", async () => {
+    localStorage.removeItem(IS_CONECTED);
+    mockApi.isStudentLinked.mockResolvedValue(false);
+
+    render(<Home />);
+    await waitFor(() => {
+      const parsed = JSON.parse(localStorage.getItem(IS_CONECTED) || "{}");
+      expect(parsed["stu-1"]).toBe(false);
+    });
+  });
+
+  test("triggers generic popup handlers when popup screen matches current header", async () => {
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => ({ screen_name: "home" })),
+    });
+
+    render(<Home />);
+    await waitFor(() => {
+      expect(PopupManager.onAppOpen).toHaveBeenCalled();
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalled();
+    });
+  });
+
+  test("triggers generic popup handlers after navigating to matching header", async () => {
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => ({ screen_name: "subjects" })),
+    });
+
+    render(<Home />);
+    fireEvent.click(await screen.findByText("go-subjects"));
+    await waitFor(() => {
+      expect(PopupManager.onAppOpen).toHaveBeenCalled();
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalled();
+    });
+  });
+
+  test("persist current header in localStorage after navigation click", async () => {
+    render(<Home />);
+    fireEvent.click(await screen.findByText("go-assignment"));
+    await waitFor(() => {
+      expect(localStorage.getItem("currentHeader")).toBe("ASSIGNMENT");
+    });
+  });
+
 });
