@@ -8,7 +8,7 @@ import {
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
-import { LEARNING_PATHWAY_MODE } from "../common/constants";
+import { EVENTS, LEARNING_PATHWAY_MODE } from "../common/constants";
 
 jest.mock("../utility/util");
 jest.mock("../utility/schoolUtil");
@@ -183,5 +183,34 @@ describe("useLearningPath features used by Home tab", () => {
       is_assessment: true,
       isPlayed: true,
     });
+  });
+
+  test("getPath logs assessment-active pathway when assessment is first playable node", async () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: "stu-1",
+      learning_path: null,
+      language_id: "en",
+    });
+    mockApi.isStudentLinked.mockResolvedValue(false);
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: "assessment-doc",
+      lesson_id: "assessment-lesson-77",
+    });
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [{ id: "c1", subject_id: "s1", framework_id: null }],
+        mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+      });
+    });
+
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.PATHWAY_CREATED,
+      expect.objectContaining({
+        current_lesson_id: "assessment-lesson-77",
+        is_assessment_active: true,
+      })
+    );
   });
 });

@@ -389,4 +389,41 @@ describe("DropdownMenu", () => {
       expect(screen.getByText("Science")).toBeInTheDocument();
     });
   });
+
+  test("learning-path mode preselects course from currentCourseIndex (post-completion switch)", async () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: "stu-1",
+      learning_path: JSON.stringify({
+        courses: {
+          currentCourseIndex: 1,
+          courseList: [
+            { course_id: "c1", path_id: "p1", path: [{ lesson_id: "l1", isPlayed: true }] },
+            { course_id: "c2", path_id: "p2", path: [{ lesson_id: "l2", isPlayed: false }] },
+          ],
+        },
+      }),
+    });
+    mockApi.getCourse.mockImplementation((id: string) =>
+      Promise.resolve({ id, name: id === "c1" ? "Grade Math" : "Grade Science", code: id })
+    );
+
+    render(<DropdownMenu syncWithLearningPath={true} />);
+    await waitFor(() => {
+      expect(screen.getByText("Grade Science")).toBeInTheDocument();
+    });
+  });
+
+  test("dropdown options enter open/scrollable state when expanded", async () => {
+    primeHomeworkCourses();
+    const { container } = render(<DropdownMenu syncWithLearningPath={false} />);
+    await screen.findByText("Grade Math");
+    const dropdown = container.querySelector(".dropdownmenu-dropdown-container");
+    if (dropdown) fireEvent.click(dropdown);
+
+    await waitFor(() => {
+      const options = container.querySelector(".dropdownmenu-dropdown-items");
+      expect(options?.className).toContain("dropdownmenu-open");
+      expect(options?.getAttribute("aria-hidden")).toBe("false");
+    });
+  });
 });
