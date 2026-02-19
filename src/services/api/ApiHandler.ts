@@ -1525,15 +1525,15 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentsByStudentId(studentId);
   }
   public async mergeStudentRequest(
-    requestId: string,
     existingStudentId: string,
     newStudentId: string,
-    respondedBy: string
+    requestId?: string | undefined,
+    respondedBy?: string | undefined,
   ): Promise<void> {
     return await this.s.mergeStudentRequest(
-      requestId,
       existingStudentId,
       newStudentId,
+      requestId,
       respondedBy
     );
   }

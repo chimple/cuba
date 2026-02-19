@@ -17,10 +17,12 @@ import { useTranslation } from "react-i18next";
 interface SearchAndFilterProps {
   searchTerm: string;
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  filters: Record<string, string[]>;
-  onFilterClick: () => void;
+  filters?: Record<string, string[]>;
+  onFilterClick?: () => void;
   onClearFilters?: () => void;
   isFilter?: boolean;
+  forceOpenSearch?: boolean;
+  variantType?: "outlined" | "standard";
 }
 
 const DEBOUNCE_MS = 400;
@@ -32,6 +34,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   onFilterClick,
   onClearFilters,
   isFilter,
+  forceOpenSearch = false,
+  variantType
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -40,7 +44,9 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   const isPortraitMobile = useMediaQuery(
     "(max-width: 600px) and (orientation: portrait)"
   );
-  const hasFilters = Object.values(filters).some((values) => values.length > 0);
+  if (filters) {
+    const hasFilters = Object.values(filters).some((values) => values.length > 0);
+  }
 
   const [inputValue, setInputValue] = useState(searchTerm);
 
@@ -59,7 +65,14 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
     return () => clearTimeout(handler);
   }, [inputValue]);
 
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] =
+    useState(forceOpenSearch);
+
+  useEffect(() => {
+    if (forceOpenSearch) {
+      setShowMobileSearch(true);
+    }
+  }, [forceOpenSearch]);
 
   return (
     <Stack
@@ -70,7 +83,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
     >
       {isPortraitMobile ? (
         <TextField
-          variant="outlined"
+          variant={variantType}
           placeholder={t("Search") || "Search"}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
@@ -85,10 +98,10 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           }}
           sx={{ flex: 1 }}
         />
-      ) : isMobile ? (
+      ) : isMobile && !forceOpenSearch ? (
         showMobileSearch ? (
           <TextField
-            variant="outlined"
+            variant={variantType}
             placeholder={t("Search") || "Search"}
             onChange={(e) => setInputValue(e.target.value)}
             value={inputValue}
@@ -122,7 +135,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         )
       ) : (
         <TextField
-          variant="outlined"
+          variant={variantType}
           placeholder={t("Search") || "Search"}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
@@ -148,7 +161,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           </IconButton>
         ) : (
           <Button
-            variant="outlined"
+            // variant="outlined"
             startIcon={<FilterListIcon />}
             className="filter-button-SearchAndFilter"
             onClick={onFilterClick}
