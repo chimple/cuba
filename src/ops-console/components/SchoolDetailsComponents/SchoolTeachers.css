@@ -229,10 +229,6 @@
   align-items: center;
 }
 
-.schoolTeachers-actionDeleteIcon.MuiSvgIcon-root {
-  color: #2563eb;
-}
-
 .schoolTeachers-actionTrigger.MuiIconButton-root {
   color: #6b7280;
 }
@@ -247,7 +243,7 @@
 }
 
 .schoolTeachers-deleteDialogPaper {
-  border-radius: 8px;
+  border-radius: 12px !important;
   padding: 8px;
 }
 
@@ -293,11 +289,6 @@
   border: 1px solid #e5e7eb;
 }
 
-.schoolTeachers-deleteName.MuiTypography-root {
-  font-weight: 700;
-  color: #111827;
-}
-
 .schoolTeachers-deleteWarning {
   margin-top: 16px;
   background: #fee2e2;
@@ -312,6 +303,7 @@
   padding-left: 24px;
   padding-right: 24px;
   padding-bottom: 16px;
+  gap: 15px;
 }
 
 .schoolTeachers-deleteCancelButton.MuiButton-root,
