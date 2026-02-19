@@ -156,10 +156,6 @@
   align-items: center;
 }
 
-.school-principals-actionDeleteIcon.MuiSvgIcon-root {
-  color: #2563eb;
-}
-
 .school-principals-actionTrigger.MuiIconButton-root {
   color: #6b7280;
 }
@@ -174,7 +170,7 @@
 }
 
 .school-principals-deleteDialogPaper {
-  border-radius: 6px;
+  border-radius: 12px !important;
   padding: 8px;
 }
 
@@ -214,15 +210,10 @@
   border-radius: 8px;
   padding: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   font-size: 14px;
   border: 1px solid #e5e7eb;
-}
-
-.school-principals-deleteName.MuiTypography-root {
-  font-weight: 700;
-  color: #111827;
 }
 
 .school-principals-deleteWarning {
@@ -239,6 +230,7 @@
   padding-left: 24px;
   padding-right: 24px;
   padding-bottom: 16px;
+  gap: 15px;
 }
 
 .school-principals-deleteCancelButton.MuiButton-root,
