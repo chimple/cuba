@@ -64,6 +64,7 @@ type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayStudent {
   id: string;
+  original: StudentInfo;
   studentIdDisplay: string;
   name: string;
   schstudents_interact?: string;
@@ -688,6 +689,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
+        original: s_api,
         studentIdDisplay: s_api.user.student_id ?? "N/A",
         name: s_api.user.name ?? "N/A",
         gender: s_api.user.gender ?? "N/A",
@@ -774,7 +776,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <ChatBubbleOutlineOutlined
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}
+                      sx={{ color: "black" }}
                     />
                   ),
                 },
@@ -783,7 +785,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <BorderColorIcon
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}
+                      sx={{ color: "black" }}
                     />
                   ),
                   onClick: () => {
@@ -798,7 +800,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <MergeOutlinedIcon
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}
+                      sx={{ color: "black" }}
                       style={{ transform: "rotate(90deg)" }}
                     />
                   ),
@@ -812,14 +814,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <DeleteOutlineIcon
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}  
+                      sx={{ color: "black" }}  
                     />
                   ),
                   onClick: () => {
-                    console.log("Delete clicked for student:", s.id);
-                    const fullStudent = getStudentInfoById(s.id);
-                    if (!fullStudent) return;
-                    setDeleteTargetStudent(fullStudent);
+                    setDeleteTargetStudent(s.original);
                     setIsDeleteModalOpen(true);
                   },
                 },
@@ -883,8 +882,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   if (!fullStudent) return;
                   const mappedType = s.schstudents_performance
                     ? SupportLevelMap[
-                    s.schstudents_performance as keyof typeof SupportLevelMap
-                    ]
+                        s.schstudents_performance as keyof typeof SupportLevelMap
+                      ]
                     : null;
 
                   setStudentData(fullStudent);
@@ -909,7 +908,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
-                s.gender.slice(1).toLowerCase()
+                  s.gender.slice(1).toLowerCase()
                 : ""}
             </Typography>
           ),
@@ -952,7 +951,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
-                s.gender.slice(1).toLowerCase()
+                  s.gender.slice(1).toLowerCase()
                 : ""}
             </Typography>
           ),
@@ -1480,11 +1479,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ pt: 0 , textAlign: "left"}}>
-        <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}>
-          {t(
-            `You’re about to permanently delete ${deleteTargetStudent?.user?.name}'s record. This action cannot be undone.`
-          )}
-        </Typography>
+       <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}> You’re about to permanently delete{" "} <Typography component="span" variant="body2" sx={{ fontWeight: 700, color: "#4B5563" }}> {deleteTargetStudent?.user?.name} </Typography> {"'s record. This action cannot be undone."} </Typography>
 
         {deleteTargetStudent && (
           <Box
@@ -1507,7 +1502,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               {deleteTargetStudent.user.gender}
             </Typography>
             <Typography>
-              {deleteTargetStudent.parent?.phone || "N/A"}
+              {deleteTargetStudent.parent?.phone || deleteTargetStudent.parent?.email || "N/A"}
             </Typography>
           </Box>
         )}
@@ -1529,12 +1524,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
+        <Button 
           variant="outlined"
           onClick={() => setIsDeleteModalOpen(false)}
           sx={{
             textTransform: "none",
             borderRadius: "6px",
+            color:"black",
+            borderColor: "#807c7b5b",
           }}
         >
           {t("Cancel")}
