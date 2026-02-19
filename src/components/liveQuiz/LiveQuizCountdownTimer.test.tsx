@@ -193,7 +193,8 @@ describe("LiveQuizCountdownTimer", () => {
   });
 
   test("does not throw when timeout callback is a simple function", () => {
-    renderTimer(1, () => {});
+    renderTimer(1, jest.fn());
+
     act(() => {
       jest.advanceTimersByTime(1000);
     });
