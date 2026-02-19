@@ -27,7 +27,6 @@ import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
 import { SocialLogin } from "@capgo/capacitor-social-login";
-import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
@@ -51,7 +50,6 @@ import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
 import { Preferences } from "@capacitor/preferences";
-import { Browser } from "@capacitor/browser";
 import { BrowserRouter } from "react-router-dom";
 
 Sentry.init(
@@ -87,6 +85,12 @@ try {
   if (data) {
     userData = JSON.parse(data);
     userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+  } else { 
+    let tempData = localStorage.getItem("userData");
+    if(tempData) {
+    userData = JSON.parse(tempData);
+    userId = userData?.id ?? "anonymous";
+    }
   }
 } catch (error) {
   console.error("Error retrieving user ID for Sentry:", error);

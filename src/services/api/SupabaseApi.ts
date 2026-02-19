@@ -86,6 +86,7 @@ export class SupabaseApi implements ServiceApi {
   private _assignmentUserRealTime?: RealtimeChannel;
   private _liveQuizRealTime?: RealtimeChannel;
   private _currentMode: MODES;
+  private searchStudentsTimer: any = null;
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -345,7 +346,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          [],
+        [],
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -453,38 +454,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-            .channel(`upload-fallback-${uploadingUser}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "upload_queue",
-                filter: `uploading_user=eq.${uploadingUser}`,
-              },
-              async (payload) => {
-                const status = payload.new?.status;
-                const id = payload.new?.id;
+          .channel(`upload-fallback-${uploadingUser}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `uploading_user=eq.${uploadingUser}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              const id = payload.new?.id;
+              console.log(
+                "🔄 [Fallback] Realtime update:",
+                status,
+                "ID:",
+                id
+              );
+              if (
+                (status === "success" || status === "failed") &&
+                !resolved
+              ) {
+                resolved = true;
+                await fallbackChannel?.unsubscribe();
                 console.log(
-                  "🔄 [Fallback] Realtime update:",
-                  status,
-                  "ID:",
-                  id
+                  `✅ / ❌ Fallback resolved with status: ${status}`
                 );
-                if (
-                  (status === "success" || status === "failed") &&
-                  !resolved
-                ) {
-                  resolved = true;
-                  await fallbackChannel?.unsubscribe();
-                  console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`
-                  );
-                  resolve(status === "success");
-                }
+                resolve(status === "success");
               }
-            )
-            .subscribe()
+            }
+          )
+          .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -2399,7 +2400,7 @@ export class SupabaseApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
-      status:status ?? null,
+      status: status ?? null,
     };
 
     const { error: insertError } = await this.supabase
@@ -2433,7 +2434,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3690,40 +3691,38 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    requestId: string, //request row Id
-    existingStudentId: string,
+    existingStudentId: string, // OLD student (to delete)
     newStudentId: string,
-    respondedBy: string,
+    requestId?: string | undefined,    // NEW student (to keep)
+    respondedBy?: string | undefined
   ): Promise<void> {
     if (!this.supabase) {
       throw new Error("Supabase not initialized.");
     }
     const now = new Date().toISOString();
-
-    // 1. Get new student details (including parents)
-    const { data: newStudentData, error: newStudentError } = await this.supabase
-      .from("user")
-      .select(
-        `
-      *,
-      parent_links:parent_user!student_id (
-        parent:parent_id (*)
-      )
-    `,
-      )
-      .eq("id", newStudentId)
-      .eq("is_deleted", false)
-      .single();
-
+    // 1. Get NEW student (kept student)
+    const { data: newStudentData, error: newStudentError } =
+      await this.supabase
+        .from("user")
+        .select(
+          `
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (*)
+        )
+      `
+        )
+        .eq("id", newStudentId)
+        .eq("is_deleted", false)
+        .single();
     if (newStudentError || !newStudentData) {
       throw new Error("New student not found");
     }
-
-    const newParents = (newStudentData.parent_links || []).map(
-      (link: any) => link.parent,
-    );
-
-    // 2. Get existing student details (with parents)
+    const newParents =
+      (newStudentData.parent_links || []).map(
+        (link: any) => link.parent
+      );
+    // 2. Get OLD student (to merge & delete)
     const { data: existingStudentData, error: existingStudentError } =
       await this.supabase
         .from("user")
@@ -3733,91 +3732,109 @@ export class SupabaseApi implements ServiceApi {
         parent_links:parent_user!student_id (
           parent:parent_id (*)
         )
-      `,
+      `
         )
         .eq("id", existingStudentId)
         .eq("is_deleted", false)
         .single();
-
+    console.log("Existing student data:", existingStudentData, "Error:", existingStudentError);
     if (existingStudentError || !existingStudentData) {
       throw new Error("Existing student not found");
     }
-
-    const existingParents = (existingStudentData.parent_links || []).map(
-      (link: any) => link.parent,
-    );
-
-    // 3. Compare phone or email
-    const existingContact =
-      existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
-    const newContact = newParents?.[0]?.phone || newParents?.[0]?.email || null;
-
-    // 4. Transfer results if present
+    const existingParents =
+      (existingStudentData.parent_links || []).map(
+        (link: any) => link.parent
+      );
+    // 3. Transfer results OLD → NEW
     const { data: results } = await this.supabase
       .from("result")
       .select("*")
-      .eq("student_id", newStudentId)
+      .eq("student_id", existingStudentId)
       .eq("is_deleted", false);
 
     if (results && results.length > 0) {
       await this.supabase
         .from("result")
-        .update({ student_id: existingStudentId, updated_at: now })
-        .eq("student_id", newStudentId)
+        .update({
+          student_id: newStudentId,
+          updated_at: now,
+        })
+        .eq("student_id", existingStudentId)
         .eq("is_deleted", false);
     }
+    // 4. Merge parents (phone-phone, email-email, phone-email supported)
+    const allParents = [...existingParents, ...newParents];
+    const uniqueParents: any[] = [];
+    for (const parent of allParents) {
+      const alreadyExists = uniqueParents.some((p) => {
+        const phoneMatch =
+          p.phone && parent.phone && p.phone === parent.phone;
 
-    // 5. If contact different, link new parent(s)
-    if (newContact && newContact !== existingContact) {
-      for (const parent of newParents) {
-        const alreadyLinked = existingParents.some(
-          (p: any) =>
-            (p.phone && parent.phone && p.phone === parent.phone) ||
-            (p.email && parent.email && p.email === parent.email),
-        );
+        const emailMatch =
+          p.email && parent.email && p.email === parent.email;
 
-        if (!alreadyLinked) {
-          await this.supabase.from("parent_user").insert({
-            student_id: existingStudentId,
-            parent_id: parent.id,
-            is_deleted: false,
-            updated_at: now,
-          });
-        }
+        return phoneMatch || emailMatch;
+      });
+
+      if (!alreadyExists) {
+        uniqueParents.push(parent);
       }
     }
+    // Link all unique parents to NEW student
+    for (const parent of uniqueParents) {
+      // 1️⃣ Check if relation exists
+      const { data: existingLink } = await this.supabase
+        .from("parent_user")
+        .select("id")
+        .eq("student_id", newStudentId)
+        .eq("parent_id", parent.id)
+        .maybeSingle();
 
-    // 6. Mark new student and related records as deleted
+      // 2️⃣ If not exists → insert
+      if (!existingLink) {
+        await this.supabase.from("parent_user").insert({
+          student_id: newStudentId,
+          parent_id: parent.id,
+          is_deleted: false,
+          updated_at: now,
+        });
+      } else {
+        console.log("Already linked — skipping");
+      }
+    }
+    // 5. Soft delete OLD student relations
     await this.supabase
       .from("class_user")
       .update({ is_deleted: true, updated_at: now })
-      .eq("user_id", newStudentId);
+      .eq("user_id", existingStudentId);
 
     await this.supabase
       .from("parent_user")
       .update({ is_deleted: true, updated_at: now })
-      .eq("student_id", newStudentId);
+      .eq("student_id", existingStudentId);
 
     await this.supabase
       .from("user")
       .update({ is_deleted: true, updated_at: now })
-      .eq("id", newStudentId);
+      .eq("id", existingStudentId);
 
-    const { error: updateRequestError } = await this.supabase
-      .from("ops_requests")
-      .update({
-        request_status: "approved",
-        updated_at: now,
-        responded_by: respondedBy,
-      })
-      .eq("id", requestId); // Identify the specific request
-
-    if (updateRequestError) {
-      console.error(
-        "Error updating ops_requests status:",
-        updateRequestError.message,
-      );
-      throw new Error("Failed to update request status.");
+    // 6. Update ops request status
+    if (requestId && respondedBy) {
+      const { error: updateRequestError } = await this.supabase
+        .from("ops_requests")
+        .update({
+          request_status: "approved",
+          updated_at: now,
+          responded_by: respondedBy,
+        })
+        .eq("request_id", requestId);
+      if (updateRequestError) {
+        console.error(
+          "Error updating ops_requests status:",
+          updateRequestError.message
+        );
+        throw new Error("Failed to update request status.");
+      }
     }
   }
 
@@ -7626,8 +7643,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -7675,8 +7692,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+            )
             : [];
         }
       }
@@ -8665,21 +8682,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-              .from(TABLES.School)
-              .select("id, name, udise, group1,group2, group3, country")
-              .in("id", schoolIds)
+            .from(TABLES.School)
+            .select("id, name, udise, group1,group2, group3, country")
+            .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-              .from(TABLES.User)
-              .select("id, name, email, phone, gender")
-              .in("id", userIds)
+            .from(TABLES.User)
+            .select("id, name, email, phone, gender")
+            .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-              .from(TABLES.Class)
-              .select("id, name, school_id")
-              .in("id", classIds)
+            .from(TABLES.Class)
+            .select("id, name, school_id")
+            .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -8785,109 +8802,234 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-
   async searchStudentsInSchool(
     schoolId: string,
     searchTerm: string,
     page: number,
     limit: number,
   ): Promise<{ data: any[]; total: number }> {
-    if (!this.supabase) return { data: [], total: 0 };
-    try {
-      // Step 1: Get all class_ids for the school
-      const { data: classData, error: classError } = await this.supabase
-        .from("class")
-        .select("id, name")
-        .eq("school_id", schoolId)
-        .eq("is_deleted", false);
-      if (classError || !classData) {
-        console.error("Error fetching classes for school:", classError);
-        return { data: [], total: 0 };
-      }
-      const classIds = classData.map((row: any) => row.id);
-      if (classIds.length === 0) return { data: [], total: 0 };
-      // Step 2: Get all class_user rows for those classes and role student, filter by name using ilike
-      const { data: classUserData, error: classUserError } = await this.supabase
-        .from("class_user")
-        .select(`user:user_id (*), class_id`)
-        .in("class_id", classIds)
-        .eq("role", "student")
-        .eq("is_deleted", false)
-        .ilike("user.name", `%${searchTerm}%`)
-        .not("user", "is", null);
-      if (classUserError || !classUserData) {
-        console.error("Error fetching class_user rows:", classUserError);
-        return { data: [], total: 0 };
-      }
-      // Step 3: Get parent phone numbers for each student using an inner query
-      const studentIds = classUserData.map((row: any) => row.user.id);
-      let parentPhoneMap: Record<
-        string,
-        {
-          parent_id: string;
-          parent_name: string | null;
-          parent_phone: string | null;
-        }
-      > = {};
-      if (studentIds.length > 0) {
-        const { data: parentData, error: parentError } = await this.supabase
-          .from("parent_user")
-          .select("student_id, parent_id, user:parent_id(id, name, phone)")
-          .in("student_id", studentIds)
-          .eq("is_deleted", false);
-        if (parentError) {
-          console.error("Error fetching parent_user rows:", parentError);
-        } else {
-          for (const row of parentData ?? []) {
-            let parent_name = null;
-            let parent_phone = null;
-            if (
-              row.user &&
-              typeof row.user === "object" &&
-              !Array.isArray(row.user)
-            ) {
-              parent_name = (row.user as any).name ?? null;
-              parent_phone = (row.user as any).phone ?? null;
-            }
-            parentPhoneMap[row.student_id] = {
-              parent_id: row.parent_id,
-              parent_name,
-              parent_phone,
-            };
-          }
-        }
-      }
-      // Step 4: Pagination
-      const offset = (page - 1) * limit;
-      const pagedRows = classUserData.slice(offset, offset + limit);
-      // Step 5: Build result objects
-      const result = pagedRows.map((row: any) => {
-        const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? "";
-        const { grade, section } = this.parseClassName(className);
-        const parentInfo = parentPhoneMap[row.user.id] ?? {};
-        return {
-          id: row.user.id,
-          name: row.user.name,
-          gender: row.user.gender ?? null,
-          student_id: row.user.student_id,
-          phone: row.user.phone,
-          class_id: row.class_id,
-          class_name: className,
-          grade,
-          classSection: section,
-          parent: {
-            id: parentInfo.parent_id ?? undefined,
-            name: parentInfo.parent_name ?? undefined,
-            phone: parentInfo.parent_phone ?? undefined,
-          },
-        };
-      });
-      return { data: result, total: classUserData.length };
-    } catch (err) {
-      console.error("Error searching students in school:", err);
+    if (!this.supabase) {
       return { data: [], total: 0 };
     }
+    const supabase = this.supabase;
+    return new Promise((resolve) => {
+      if (this.searchStudentsTimer) {
+        clearTimeout(this.searchStudentsTimer);
+      }
+      this.searchStudentsTimer = setTimeout(async () => {
+        try {
+          const { data: classData } =
+            await supabase
+              .from("class")
+              .select("id, name")
+              .eq("school_id", schoolId)
+              .eq("is_deleted", false);
+
+          const classIds =
+            (classData ?? []).map(
+              (c: any) => c.id
+            );
+
+          if (classIds.length === 0) {
+            resolve({ data: [], total: 0 });
+            return;
+          }
+          const studentFilter =
+            `name.ilike.%${searchTerm}%,student_id.ilike.%${searchTerm}%`;
+          const { data: studentRows } =
+            await supabase
+              .from("class_user")
+              .select(`
+              class_id,
+              user:user_id!inner (
+                id,
+                name,
+                email,
+                gender,
+                student_id
+              )
+            `)
+              .in("class_id", classIds)
+              .eq("role", "student")
+              .eq("is_deleted", false)
+              .or(studentFilter, {
+                foreignTable: "user",
+              });
+          const parentFilter =
+            `phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`;
+          const { data: parentRows } =
+            await supabase
+              .from("class_user")
+              .select(`
+              user:user_id!inner (
+                id,
+                phone,
+                email
+              )
+            `)
+              .in("class_id", classIds)
+              .eq("role", "parent")
+              .eq("is_deleted", false)
+              .or(parentFilter, {
+                foreignTable: "user",
+              });
+          const parentIds =
+            (parentRows ?? []).map(
+              (p: any) => p.user.id
+            );
+
+          let parentLinkedStudents: any[] = [];
+
+          const parentContactMap =
+            new Map<string, any>();
+
+          if (parentIds.length > 0) {
+
+            const { data: parentLinks } =
+              await supabase
+                .from("parent_user")
+                .select(`
+                student_id,
+                parent:parent_id (
+                  phone,
+                  email
+                )
+              `)
+                .in("parent_id", parentIds)
+                .eq("is_deleted", false);
+
+            const studentIds =
+              (parentLinks ?? []).map(
+                (l: any) => l.student_id
+              );
+
+            (parentLinks ?? []).forEach(
+              (link: any) => {
+                parentContactMap.set(
+                  link.student_id,
+                  {
+                    phone:
+                      link.parent?.phone ??
+                      null,
+                    email:
+                      link.parent?.email ??
+                      null,
+                  }
+                );
+              }
+            );
+
+            if (studentIds.length > 0) {
+              const { data } =
+                await supabase
+                  .from("class_user")
+                  .select(`
+                  class_id,
+                  user:user_id!inner (
+                    id,
+                    name,
+                    email,
+                    gender,
+                    student_id
+                  )
+                `)
+                  .in("class_id", classIds)
+                  .eq("role", "student")
+                  .in("user_id", studentIds)
+                  .eq("is_deleted", false);
+
+              parentLinkedStudents =
+                data ?? [];
+            }
+          }
+          const allRows = [
+            ...(studentRows ?? []),
+            ...parentLinkedStudents,
+          ];
+
+          const uniqueMap =
+            new Map<string, any>();
+
+          allRows.forEach((row) => {
+            uniqueMap.set(
+              row.user.id,
+              row
+            );
+          });
+
+          const mergedRows = Array.from(
+            uniqueMap.values()
+          );
+          const offset = (page - 1) * limit;
+
+          const pagedRows =
+            mergedRows.slice(
+              offset,
+              offset + limit
+            );
+          const result = pagedRows.map(
+            (row: any) => {
+
+              const classInfo =
+                classData?.find(
+                  (c: any) =>
+                    c.id === row.class_id
+                );
+
+              const className =
+                classInfo?.name ?? "";
+
+              const { grade, section } =
+                this.parseClassName(
+                  className
+                );
+
+              const parentContact =
+                parentContactMap.get(
+                  row.user.id
+                ) ?? {};
+
+              return {
+                user: {
+                  id: row.user.id,
+                  name: row.user.name,
+                  student_id:
+                    row.user.student_id,
+                  gender:
+                    row.user.gender,
+                  email:
+                    row.user.email,
+                },
+
+                parent: {
+                  phone:
+                    parentContact.phone ??
+                    null,
+                  email:
+                    parentContact.email ??
+                    null,
+                },
+
+                class_id: row.class_id,
+                class_name: className,
+                grade,
+                classSection: section,
+              };
+            }
+          );
+
+          resolve({
+            data: result,
+            total: mergedRows.length,
+          });
+
+        } catch (err) {
+          console.error(err);
+          resolve({ data: [], total: 0 });
+        }
+
+      }, 400);
+    });
   }
   async searchTeachersInSchool(
     schoolId: string,
@@ -9543,7 +9685,7 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string; [key: string]: any };
+      user: { id: string;[key: string]: any };
     };
     const isNewUser = message === "success-created";
     const dedupeAndPickLatest = async (
@@ -11052,17 +11194,17 @@ export class SupabaseApi implements ServiceApi {
      * ========================================== */
     const { data: latestBatchData, error: batchError } =
       await this.supabase
-      .from(TABLES.Assignment)
-      .select("batch_id, created_at")
-      .eq("class_id", classId)
-      .eq("course_id", courseId)
-      .eq("type", "assessment")
-      .eq("is_deleted", false)
-      .not("batch_id", "is", null)
-      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
-      .order("created_at", { ascending: false })
-      .limit(1);
+        .from(TABLES.Assignment)
+        .select("batch_id, created_at")
+        .eq("class_id", classId)
+        .eq("course_id", courseId)
+        .eq("type", "assessment")
+        .eq("is_deleted", false)
+        .not("batch_id", "is", null)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
     if (batchError || !latestBatchData?.length) return [];
 
@@ -11072,7 +11214,7 @@ export class SupabaseApi implements ServiceApi {
     /* ==========================================
      * STEP 2️⃣  Abort check (2 system_exit)
      * ========================================== */
-    const { data, error:abortError } = await this.supabase
+    const { data, error: abortError } = await this.supabase
       .from(TABLES.Result)
       .select(
         `
@@ -11131,7 +11273,7 @@ export class SupabaseApi implements ServiceApi {
     /* ==========================================
      * STEP 3️⃣  Get incomplete assignments
      * ========================================== */
-    const { data: assignments, error:lessonError } = await this.supabase
+    const { data: assignments, error: lessonError } = await this.supabase
       .from(TABLES.Assignment)
       .select("*")
       .eq("class_id", classId)

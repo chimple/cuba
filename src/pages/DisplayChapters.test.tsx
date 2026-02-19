@@ -29,7 +29,7 @@ const mockLoadBackgroundImage = jest.fn();
 const mockSetPathToBackButton = jest.fn();
 const mockGetCurrentClass = jest.fn();
 const mockGetCurrMode = jest.fn();
-const mockRegisterBackButtonHandler = jest.fn(() => jest.fn());
+const mockRegisterBackButtonHandler = jest.fn((..._args: any[]) => jest.fn());
 const mockScreenLock = jest.fn();
 
 const eventually = async (assertion: () => void, timeoutMs = 5000) =>
@@ -61,8 +61,8 @@ jest.mock("../utility/schoolUtil", () => ({
 }));
 
 jest.mock("../common/backButtonRegistry", () => ({
-  registerBackButtonHandler: (...args: any[]) =>
-    mockRegisterBackButtonHandler(...args),
+  registerBackButtonHandler: (handler: any, options?: any) =>
+    mockRegisterBackButtonHandler(handler, options),
 }));
 
 jest.mock("@capacitor/screen-orientation", () => ({
