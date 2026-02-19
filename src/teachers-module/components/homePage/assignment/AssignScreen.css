@@ -2,7 +2,7 @@
   height: 100%;
   width: 100%;
   background: #ececec;
-  padding: clamp(10px, 1.4vh, 20px) clamp(10px, 2.4vw, 24px);
+  padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
@@ -22,7 +22,7 @@
 .assign-screen-heading {
   margin: 0 0 clamp(12px, 1.8vh, 20px);
   color: #2f2f2f;
-  font-size: clamp(20px, 4.8vw, 30px);
+  font-size: clamp(20px, calc(1.2vw + 1.2vh), 34px);
   line-height: 1.15;
   font-weight: 700;
   width: 100%;
@@ -43,6 +43,7 @@
   width: 100%;
   flex: 1 1 0;
   min-height: clamp(100px, 13vh, 156px);
+  font-size: clamp(13px, calc(0.7vw + 0.75vh), 20px);
   border-radius: clamp(18px, 2.5vw, 24px);
   border: clamp(2px, 0.35vw, 3px) solid var(--card-accent);
   background-color: #ffffff !important;
@@ -141,7 +142,7 @@
 .assign-screen-card-caption {
   margin: 0 0 clamp(6px, 1vw, 10px);
   color: #646464;
-  font-size: clamp(11px, 1.4vw, 14px);
+  font-size: 0.88em;
   line-height: 1.25;
   font-weight: 500;
   text-align: center;
@@ -150,7 +151,7 @@
 .assign-screen-card-title {
   margin: 0;
   color: #2a2a2a;
-  font-size: clamp(18px, 3.4vw, 28px);
+  font-size: 1.8em;
   line-height: 1.05;
   font-weight: 700;
   text-align: center;
@@ -190,7 +191,7 @@
     width: 100%;
     max-width: none;
     text-align: left;
-    font-size: clamp(24px, 2.2vw, 30px);
+    font-size: clamp(24px, calc(0.9vw + 1vh), 34px);
   }
 
   .assign-screen-card-list {
@@ -214,12 +215,12 @@
   }
 
   .assign-screen-card-caption {
-    font-size: clamp(10px, 1.35vh, 13px);
+    font-size: 0.84em;
     margin-bottom: clamp(3px, 0.7vh, 6px);
   }
 
   .assign-screen-card-title {
-    font-size: clamp(16px, 2.8vh, 24px);
+    font-size: 1.62em;
   }
 }
 
@@ -246,10 +247,5 @@
 
   .assign-screen-card-caption {
     margin-bottom: 4px;
-    font-size: clamp(10px, 1.2vh, 12px);
-  }
-
-  .assign-screen-card-title {
-    font-size: clamp(15px, 2.3vh, 22px);
   }
 }

@@ -33,7 +33,7 @@
 .main-container {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100vh;
   margin: 0;
   background-color: #7c5db0;
 }
@@ -47,11 +47,9 @@
 }
 
 .home-container-body {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
+  height: 80vh;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
 }
 
