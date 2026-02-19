@@ -1,8 +1,9 @@
 .assign-screen {
   height: 100%;
   width: 100%;
-  background: #ececec;
-  padding: 20px;
+  background: white !important;
+  background-color: white !important;
+  padding: 35px !important;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
@@ -27,12 +28,13 @@
   font-weight: 700;
   width: 100%;
   max-width: none;
+  margin-bottom: 28px !important;
 }
 
 .assign-screen-card-list {
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 1.6vh, 18px);
+  gap: 30px !important;
   width: 100%;
   flex: 1;
   min-height: 0;
