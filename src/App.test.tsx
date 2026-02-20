@@ -3,8 +3,9 @@ import { render, act, waitFor } from "@testing-library/react";
 import App from "./App";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { GENERIC_POP_UP } from "./common/constants";
+import * as growthbookModule from "@growthbook/growthbook-react";
 
-const growthbookMock = jest.requireMock("@growthbook/growthbook-react") as {
+const growthbookMock = growthbookModule as any as {
   __resetGrowthBookMock: () => void;
   __setGrowthBookMock: (partial: {
     attributes?: Record<string, unknown>;
