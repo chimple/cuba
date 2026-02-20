@@ -1531,7 +1531,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           sx={{
             textTransform: "none",
             borderRadius: "6px",
-            color:"black",
+            color: "black",
             borderColor: "#807c7b5b",
           }}
         >
