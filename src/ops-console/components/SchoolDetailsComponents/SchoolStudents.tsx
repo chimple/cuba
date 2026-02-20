@@ -1479,8 +1479,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       </DialogTitle>
 
       <DialogContent sx={{ pt: 0 , textAlign: "left"}}>
-       <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}> You’re about to permanently delete{" "} <Typography component="span" variant="body2" sx={{ fontWeight: 700, color: "#4B5563" }}> {deleteTargetStudent?.user?.name} </Typography> {"'s record. This action cannot be undone."} </Typography>
-
+        <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}>
+        {t( "You're about to permanently delete {{name}}'s record. This action cannot be undone.", { name: deleteTargetStudent?.user?.name ?? "" }, )}
+        </Typography>
         {deleteTargetStudent && (
           <Box
             sx={{
