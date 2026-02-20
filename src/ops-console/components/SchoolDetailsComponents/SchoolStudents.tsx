@@ -385,8 +385,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           parent: s.parent ?? {
             id: s.parent_id ?? undefined,
             name: s.parent_name ?? "",
-            phone: s.phone ?? undefined,
-            email: s.email ?? undefined,
+            phone: s.parent_phone ?? s.phone ?? undefined,
+            email: s.parent_email ?? s.email ?? undefined,
           },
         };
       }),
@@ -685,6 +685,32 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [baseStudentData]
   );
 
+  const getDeleteTargetStudent = useCallback(
+    (student: DisplayStudent): StudentInfo => {
+      const source = student.original as StudentInfo & {
+        classId?: string;
+        class_id?: string;
+        class_name?: string;
+      };
+
+      const resolvedClassId =
+        source.classWithidname?.id || source.classId || source.class_id || "";
+      const resolvedClassName =
+        source.classWithidname?.class_name || source.class_name || "";
+
+      return {
+        ...source,
+        classWithidname: resolvedClassId
+          ? {
+              id: resolvedClassId,
+              class_name: resolvedClassName,
+            }
+          : source.classWithidname,
+      };
+    },
+    []
+  );
+
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
@@ -818,7 +844,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                     />
                   ),
                   onClick: () => {
-                    setDeleteTargetStudent(s.original);
+                    setDeleteTargetStudent(getDeleteTargetStudent(s));
                     setIsDeleteModalOpen(true);
                   },
                 },
@@ -1353,8 +1379,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     try {
       setIsDeleting(true);
 
-      const studentId = deleteTargetStudent.user.id;
-      const classId = deleteTargetStudent.classWithidname?.id;
+      const studentId =
+        deleteTargetStudent.user?.id ||
+        (deleteTargetStudent as { id?: string }).id ||
+        "";
+      const classId =
+        deleteTargetStudent.classWithidname?.id ||
+        (deleteTargetStudent as { classId?: string }).classId ||
+        (deleteTargetStudent as { class_id?: string }).class_id ||
+        "";
 
       if (!studentId || !classId) {
         console.error("Missing studentId or classId");
