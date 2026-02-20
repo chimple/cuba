@@ -148,9 +148,10 @@ describe("DisplayStudents", () => {
     (Util.loadBackgroundImage as jest.Mock).mockImplementation(() => {});
     (Util.mergeStudentsByUpdatedAt as jest.Mock).mockImplementation((s) => s);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue(undefined);
-    (Util.setPathToBackButton as jest.Mock).mockImplementation(() => {});
     (Util.setCurrentStudent as jest.Mock).mockResolvedValue(undefined);
-    (Util.ensureLidoCommonAudioForStudent as jest.Mock).mockResolvedValue(undefined);
+    (Util.ensureLidoCommonAudioForStudent as jest.Mock).mockResolvedValue(
+      undefined,
+    );
 
     mockApi.getParentStudentProfiles.mockResolvedValue(students);
     mockApi.getStudentClassesAndSchools.mockResolvedValue({
@@ -170,25 +171,17 @@ describe("DisplayStudents", () => {
   });
 
   test("calls mergeStudentsByUpdatedAt with session map string", async () => {
-    sessionStorage.setItem("editStudentsMap", JSON.stringify({ "stu-1": { name: "Edited" } }));
+    sessionStorage.setItem(
+      "editStudentsMap",
+      JSON.stringify({ "stu-1": { name: "Edited" } }),
+    );
     render(<DisplayStudents />);
 
     await waitFor(() => {
       expect(Util.mergeStudentsByUpdatedAt).toHaveBeenCalledWith(
         expect.any(Array),
-        JSON.stringify({ "stu-1": { name: "Edited" } })
+        JSON.stringify({ "stu-1": { name: "Edited" } }),
       );
-    });
-  });
-
-  test("redirects to create student when merged list is empty", async () => {
-    (Util.mergeStudentsByUpdatedAt as jest.Mock).mockReturnValue([]);
-    render(<DisplayStudents />);
-
-    await waitFor(() => {
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.CREATE_STUDENT, {
-        showBackButton: false,
-      });
     });
   });
 
@@ -220,9 +213,11 @@ describe("DisplayStudents", () => {
 
     await waitFor(() => {
       const imgs = Array.from(
-        document.querySelectorAll("img.avatar-img")
+        document.querySelectorAll("img.avatar-img"),
       ) as HTMLImageElement[];
-      expect(imgs.some((n) => n.src.includes("https://cdn/stu-1.png"))).toBe(true);
+      expect(imgs.some((n) => n.src.includes("https://cdn/stu-1.png"))).toBe(
+        true,
+      );
     });
   });
 
@@ -230,7 +225,9 @@ describe("DisplayStudents", () => {
     render(<DisplayStudents />);
 
     await waitFor(() => {
-      expect(updateLocalAttributes).toHaveBeenCalledWith({ count_of_children: 2 });
+      expect(updateLocalAttributes).toHaveBeenCalledWith({
+        count_of_children: 2,
+      });
       expect(mockSetGbUpdated).toHaveBeenCalledWith(true);
     });
   });
@@ -238,7 +235,7 @@ describe("DisplayStudents", () => {
   test("shows skeleton loader with DISPLAY_STUDENT header", async () => {
     render(<DisplayStudents />);
     expect(await screen.findByTestId("skeleton-loading")).toHaveTextContent(
-      PAGES.DISPLAY_STUDENT
+      PAGES.DISPLAY_STUDENT,
     );
   });
 
@@ -259,34 +256,6 @@ describe("DisplayStudents", () => {
 
     await waitFor(() => {
       expect(ScreenOrientation.lock).not.toHaveBeenCalled();
-    });
-  });
-
-  test("shows back button only when current student exists", async () => {
-    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: "current-student" });
-    render(<DisplayStudents />);
-
-    const backIcon = await screen.findByAltText("BackButtonIcon");
-    expect(backIcon).toBeInTheDocument();
-  });
-
-  test("back button click delegates to setPathToBackButton", async () => {
-    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: "current-student" });
-    render(<DisplayStudents />);
-
-    fireEvent.click(await screen.findByAltText("BackButtonIcon"));
-    expect(Util.setPathToBackButton).toHaveBeenCalledWith(
-      PAGES.HOME,
-      expect.objectContaining({ replace: mockHistoryReplace })
-    );
-  });
-
-  test("hides back button when no current student exists", async () => {
-    (Util.getCurrentStudent as jest.Mock).mockReturnValue(undefined);
-    render(<DisplayStudents />);
-
-    await waitFor(() => {
-      expect(screen.queryByAltText("BackButtonIcon")).not.toBeInTheDocument();
     });
   });
 
@@ -326,14 +295,14 @@ describe("DisplayStudents", () => {
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(
         expect.objectContaining({ id: "stu-1" }),
         undefined,
-        true
+        true,
       );
       expect(updateLocalAttributes).toHaveBeenCalledWith(
         expect.objectContaining({
           student_id: "stu-1",
           age: 7,
           grade_id: "grade-1",
-        })
+        }),
       );
       expect(mockSetGbUpdated).toHaveBeenCalledWith(true);
     });
@@ -347,7 +316,7 @@ describe("DisplayStudents", () => {
       expect(mockApi.getStudentClassesAndSchools).toHaveBeenCalledWith("stu-1");
       expect(mockApi.getClassById).toHaveBeenCalledWith("class-1");
       expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "class-1" })
+        expect.objectContaining({ id: "class-1" }),
       );
     });
   });
@@ -375,7 +344,7 @@ describe("DisplayStudents", () => {
 
     await waitFor(() => {
       expect(Util.ensureLidoCommonAudioForStudent).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "stu-1" })
+        expect.objectContaining({ id: "stu-1" }),
       );
     });
   });
@@ -395,13 +364,17 @@ describe("DisplayStudents", () => {
   });
 
   test("navigates to home with current query params when profile is complete", async () => {
-    window.history.replaceState({}, "", "/display-students?tab=ASSIGNMENT&page=/join-class");
+    window.history.replaceState(
+      {},
+      "",
+      "/display-students?tab=ASSIGNMENT&page=/join-class",
+    );
     render(<DisplayStudents />);
 
     fireEvent.click(await screen.findByText("Student One"));
     await waitFor(() => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(
-        `${PAGES.HOME}?tab=ASSIGNMENT&page=/join-class`
+        `${PAGES.HOME}?tab=ASSIGNMENT&page=/join-class`,
       );
     });
   });
@@ -411,7 +384,7 @@ describe("DisplayStudents", () => {
 
     await waitFor(() => {
       const names = Array.from(
-        document.querySelectorAll(".display-student-name")
+        document.querySelectorAll(".display-student-name"),
       ).map((el) => el.textContent);
       expect(names.some((v) => v === "\u00A0")).toBe(true);
     });
