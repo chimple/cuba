@@ -8,6 +8,7 @@ type Props = {
   setInviteInput: (v: string) => void;
   error: string | null;
   loading: boolean;
+  groupId: string | null | undefined;
   onSubmit: () => void;
   onCancel: () => void;
 };
@@ -17,14 +18,12 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
   setInviteInput,
   error,
   loading,
+  groupId,
   onSubmit,
   onCancel,
 }) => {
   return (
-    <div
-      className="wa-info-invite-link-div"
-      id="wa-info-invite-link-id"
-    >
+    <div className="wa-info-invite-link-div" id="wa-info-invite-link-id">
       <input
         className="wa-input"
         autoFocus
@@ -48,13 +47,16 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
           {loading ? t("Checking...") : t("Submit")}
         </button>
 
-        <button
-          className="wa-info-invite-link-cancel-btn"
-          onClick={onCancel}
-          disabled={loading}
-        >
-          {t("Cancel")}
-        </button>
+        {groupId && (
+          <button
+            className="wa-info-invite-link-cancel-btn"
+            id="wa-info-invite-link-cancel-btn-id"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            {t("Cancel")}
+          </button>
+        )}
       </Box>
     </div>
   );

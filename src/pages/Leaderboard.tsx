@@ -79,7 +79,7 @@ const Leaderboard: React.FC = () => {
   const [tabIndex, setTabIndex] = useState<LEADERBOARDHEADERLIST | "debugMode">(
     isRewardPage
       ? LEADERBOARDHEADERLIST.REWARDS
-      : LEADERBOARDHEADERLIST.LEADERBOARD
+      : LEADERBOARDHEADERLIST.LEADERBOARD,
   );
   const clickCount = useRef(0);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -121,7 +121,7 @@ const Leaderboard: React.FC = () => {
       const url = new URL(event.url);
       Util.setPathToBackButton(
         `${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`,
-        history
+        history,
       );
     });
   };
@@ -155,14 +155,14 @@ const Leaderboard: React.FC = () => {
         fetchLeaderBoardData(
           currentStudent,
           LeaderboardDropdownList.WEEKLY,
-          getClass?.classes[0].id
+          getClass?.classes[0].id,
         );
         setCurrentClassAndSchool(getClass);
       } else {
         fetchLeaderBoardData(
           currentStudent,
           LeaderboardDropdownList.WEEKLY,
-          ""
+          "",
         );
       }
       setCurrentStudent(currentStudent);
@@ -173,7 +173,7 @@ const Leaderboard: React.FC = () => {
   async function fetchLeaderBoardData(
     currentStudent: TableTypes<"user">,
     leaderboardDropdownType: LeaderboardDropdownList,
-    classId: string
+    classId: string,
   ) {
     setIsLoading(true);
     const api = ServiceConfig.getI().apiHandler;
@@ -217,15 +217,15 @@ const Leaderboard: React.FC = () => {
     const leaderboardAttributes = {
       leaderboard_position_weekly:
         tempLeaderboardData.weekly.findIndex(
-          (item) => item.userId === currentStudent.id
+          (item) => item.userId === currentStudent.id,
         ) + 1,
       leaderboard_position_monthly:
         tempLeaderboardData.monthly.findIndex(
-          (item) => item.userId === currentStudent.id
+          (item) => item.userId === currentStudent.id,
         ) + 1,
       leaderboard_position_all:
         tempLeaderboardData.allTime.findIndex(
-          (item) => item.userId === currentStudent.id
+          (item) => item.userId === currentStudent.id,
         ) + 1,
     };
     updateLocalAttributes(leaderboardAttributes);
@@ -282,7 +282,7 @@ const Leaderboard: React.FC = () => {
     }
     if (!isCurrentStudentDataFetched && !classId) {
       const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
-        currentStudent.id
+        currentStudent.id,
       );
       if (b2cData) {
         const tempData =
@@ -351,7 +351,7 @@ const Leaderboard: React.FC = () => {
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
                     LeaderboardDropdownList.WEEKLY,
-                  currentClassAndSchool?.classes[0].id || ""
+                  currentClassAndSchool?.classes[0].id || "",
                 );
                 //  }
               }
@@ -525,7 +525,7 @@ const Leaderboard: React.FC = () => {
   }
   const handleChange = (
     event: React.SyntheticEvent,
-    newValue: LEADERBOARDHEADERLIST
+    newValue: LEADERBOARDHEADERLIST,
   ) => {
     // setValue(newValue);
     setTabIndex(newValue);
@@ -535,16 +535,24 @@ const Leaderboard: React.FC = () => {
     <IonPage>
       {!isLoading ? (
         <Box>
-          <div id="LeaderBoard-Header">
-            <div id="back-button-in-LeaderBoard-Header">
-              <img
-                src="/assets/icons/BackButtonIcon.svg"
-                alt="BackButtonIcon"
-                onClick={() => {
-                  Util.setPathToBackButton(PAGES.HOME, history);
-                }}
-              />
-            </div>
+          <div
+            id={
+              tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD
+                ? "LeaderBoard-Header"
+                : "leaderboard-debug-mode"
+            }
+          >
+            {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
+              <div id="back-button-in-LeaderBoard-Header">
+                <img
+                  src="/assets/icons/BackButtonIcon.svg"
+                  alt="BackButtonIcon"
+                  onClick={() => {
+                    Util.setPathToBackButton(PAGES.HOME, history);
+                  }}
+                />
+              </div>
+            )}
             <Box>
               <AppBar id="LeaderBoard-AppBar" position="static">
                 <Box

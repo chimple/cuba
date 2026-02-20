@@ -59,7 +59,7 @@ const DisplayStudents: FC<{}> = () => {
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
     const mergedStudents = Util.mergeStudentsByUpdatedAt(
       tempStudents,
-      storedMapStr
+      storedMapStr,
     );
     if (!mergedStudents || mergedStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
@@ -137,7 +137,7 @@ const DisplayStudents: FC<{}> = () => {
       {/* <IonContent> */}
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon">
-          {Util.getCurrentStudent() && (
+          {/* {Util.getCurrentStudent() && (
             <img
               src="/assets/icons/BackButtonIcon.svg"
               alt="BackButtonIcon"
@@ -145,7 +145,7 @@ const DisplayStudents: FC<{}> = () => {
                 Util.setPathToBackButton(PAGES.HOME, history);
               }}
             />
-          )}
+          )} */}
         </div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}

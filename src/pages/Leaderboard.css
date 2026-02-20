@@ -18,6 +18,13 @@
   margin: var(--margin);
   margin-bottom: 0;
 }
+#leaderboard-debug-mode {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: clamp(10px, 10vh, 20px);
+  margin-bottom: 0;
+}
 #back-button-in-LeaderBoard-Header {
   height: 35px;
   width: 101px;

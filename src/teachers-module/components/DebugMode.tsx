@@ -9,6 +9,7 @@ import { HotUpdateState, Util } from "../../utility/util";
 import { toPng } from "html-to-image";
 import { LiveUpdate } from "@capawesome/capacitor-live-update";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import { t } from "i18next";
 
 const DebugPage: React.FC = () => {
   const history = useHistory();
@@ -383,7 +384,7 @@ const DebugPage: React.FC = () => {
         </div>
         {isHotUpdating && (
           <div className="debug-card">
-            <strong>Hot Update Progress</strong>
+            <strong>{t("Hot Update Progress")}</strong>
             <p>{hotUpdateState.progress}%</p>
 
             <div className="debugmode-progress-bar-container">
@@ -393,7 +394,10 @@ const DebugPage: React.FC = () => {
               />
             </div>
 
-            <p>Status: {hotUpdateState.status}</p>
+            <p>
+              {t("Status") + " "}
+              {hotUpdateState.status}
+            </p>
           </div>
         )}
 

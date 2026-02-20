@@ -372,7 +372,8 @@ const ProfileDetails = () => {
       }
 
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.replace(PAGES.HOME);
+      if (tmpPath) history.replace(tmpPath);
+      else history.replace(PAGES.HOME);
     } catch (err) {
       console.error("Error saving profile:", err);
       setIsCreatingProfile(false);
@@ -435,8 +436,9 @@ const ProfileDetails = () => {
         <button
           className="profiledetails-back-button"
           onClick={() => {
-            const targetPage = PAGES.HOME;
-            Util.setPathToBackButton(targetPage, history);
+            const state = history.location.state as any;
+            const tmpPath = state?.from ?? PAGES.HOME;
+            Util.setPathToBackButton(tmpPath, history);
           }}
           aria-label="Back"
           id="click_on_profile_details_back_button"
