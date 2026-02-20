@@ -186,6 +186,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   setInviteInput={setInviteInput}
                   error={error}
                   loading={loading}
+                  groupId={groupId || classDoc?.group_id}
                   onSubmit={handleInviteSubmit}
                   onCancel={() => {
                     setIsChangingGroup(false);
@@ -263,7 +264,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                 <Typography variant="caption" color="text.secondary">
                   {t("Members Count")}
                 </Typography>
-                <Typography variant="body1" fontWeight={700}>
+                <Typography
+                  variant="body1"
+                  className="wa-value"
+                  fontWeight={700}
+                >
                   {members ? members - 1 : 0} {t("Members")}
                 </Typography>
               </Box>
