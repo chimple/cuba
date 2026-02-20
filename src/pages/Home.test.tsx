@@ -1,5 +1,11 @@
 import React from "react";
-import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+  act,
+} from "@testing-library/react";
 import Home from "./Home";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
@@ -30,19 +36,29 @@ jest.mock("react-router", () => ({
 
 jest.mock("../components/HomeHeader", () => (props: any) => (
   <div>
-    <div data-testid="header-assignment-count">{String(props.pendingAssignmentCount)}</div>
-    <div data-testid="header-livequiz-count">{String(props.pendingLiveQuizCount)}</div>
+    <div data-testid="header-assignment-count">
+      {String(props.pendingAssignmentCount)}
+    </div>
+    <div data-testid="header-livequiz-count">
+      {String(props.pendingLiveQuizCount)}
+    </div>
     <div data-testid="header-current">{String(props.currentHeader)}</div>
     <button onClick={() => props.onHeaderIconClick("HOME")}>go-home</button>
-    <button onClick={() => props.onHeaderIconClick("SUBJECTS")}>go-subjects</button>
+    <button onClick={() => props.onHeaderIconClick("SUBJECTS")}>
+      go-subjects
+    </button>
     <button onClick={() => props.onHeaderIconClick("ASSIGNMENT")}>
       go-assignment
     </button>
-    <button onClick={() => props.onHeaderIconClick("LIVE-QUIZ")}>go-livequiz</button>
+    <button onClick={() => props.onHeaderIconClick("LIVE-QUIZ")}>
+      go-livequiz
+    </button>
     <button onClick={() => props.onHeaderIconClick("HOME")}>stay-home</button>
   </div>
 ));
-jest.mock("../components/LearningPathway", () => () => <div data-testid="learning-pathway" />);
+jest.mock("../components/LearningPathway", () => () => (
+  <div data-testid="learning-pathway" />
+));
 jest.mock("./Subjects", () => () => <div data-testid="subjects-tab" />);
 jest.mock("./Assignment", () => (props: any) => (
   <div data-testid="assignment-tab">
@@ -51,10 +67,13 @@ jest.mock("./Assignment", () => (props: any) => (
 ));
 jest.mock("./LiveQuiz", () => () => <div data-testid="livequiz-tab" />);
 jest.mock("./SearchLesson", () => () => <div data-testid="search-tab" />);
-jest.mock("../components/SkeltonLoading", () => () => <div data-testid="skeleton" />);
-jest.mock("../components/WinterCampaignPopup/WinterCampaignPopupGating", () => () => (
-  <div data-testid="winter-campaign-gating" />
+jest.mock("../components/SkeltonLoading", () => () => (
+  <div data-testid="skeleton" />
 ));
+jest.mock(
+  "../components/WinterCampaignPopup/WinterCampaignPopupGating",
+  () => () => <div data-testid="winter-campaign-gating" />,
+);
 jest.mock("../components/GenericPopUp/GenericPopUpManager", () => ({
   __esModule: true,
   default: {
@@ -104,7 +123,9 @@ describe("Home page (Home tab)", () => {
     mockLocationSearch = "";
     jest.spyOn(ServiceConfig, "getI").mockReturnValue({
       apiHandler: mockApi,
-      authHandler: { getCurrentUser: jest.fn().mockResolvedValue({ id: "parent-1" }) },
+      authHandler: {
+        getCurrentUser: jest.fn().mockResolvedValue({ id: "parent-1" }),
+      },
     } as any);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: "stu-1",
@@ -112,7 +133,9 @@ describe("Home page (Home tab)", () => {
       stars: 2,
     });
     (Util.logDeviceInfo as jest.Mock).mockResolvedValue({});
-    (Util.checkDownloadedLessonsFromLocal as jest.Mock).mockImplementation(() => {});
+    (Util.checkDownloadedLessonsFromLocal as jest.Mock).mockImplementation(
+      () => {},
+    );
     (Util.loadBackgroundImage as jest.Mock).mockImplementation(() => {});
     (Util.getAllUnlockedRewards as jest.Mock).mockResolvedValue([]);
     (Util.updateSchStdAttb as jest.Mock).mockResolvedValue(undefined);
@@ -182,7 +205,9 @@ describe("Home page (Home tab)", () => {
 
   test("renders winter campaign gating component", async () => {
     render(<Home />);
-    expect(await screen.findByTestId("winter-campaign-gating")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("winter-campaign-gating"),
+    ).toBeInTheDocument();
   });
 
   test("renders skeleton component in slider content", () => {
@@ -209,8 +234,14 @@ describe("Home page (Home tab)", () => {
     render(<Home />);
     window.dispatchEvent(new Event("JoinClassListner"));
     await waitFor(() => {
-      expect(mockApi.assignmentListner).toHaveBeenCalledWith("class-1", expect.any(Function));
-      expect(mockApi.assignmentUserListner).toHaveBeenCalledWith("stu-1", expect.any(Function));
+      expect(mockApi.assignmentListner).toHaveBeenCalledWith(
+        "class-1",
+        expect.any(Function),
+      );
+      expect(mockApi.assignmentUserListner).toHaveBeenCalledWith(
+        "stu-1",
+        expect.any(Function),
+      );
     });
   });
 
@@ -289,7 +320,9 @@ describe("Home page (Home tab)", () => {
       classes: [],
       schools: [{ id: "school-1", name: "School One" }],
     });
-    mockApi.getPendingAssignments.mockRejectedValue(new Error("assignments-failed"));
+    mockApi.getPendingAssignments.mockRejectedValue(
+      new Error("assignments-failed"),
+    );
     render(<Home />);
     await waitFor(() => {
       expect(screen.getByTestId("learning-pathway")).toBeInTheDocument();
@@ -358,16 +391,29 @@ describe("Home page (Home tab)", () => {
       ]);
     });
     mockApi.getLesson.mockImplementation((lessonId: string) =>
-      Promise.resolve({ id: lessonId, subject_id: lessonId === "l-3" ? "sub-2" : "sub-1" })
+      Promise.resolve({
+        id: lessonId,
+        subject_id: lessonId === "l-3" ? "sub-2" : "sub-1",
+      }),
     );
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent("2");
-      expect(screen.getByTestId("header-livequiz-count")).toHaveTextContent("1");
-      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith("class-1", "stu-1");
-      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith("class-2", "stu-1");
+      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent(
+        "2",
+      );
+      expect(screen.getByTestId("header-livequiz-count")).toHaveTextContent(
+        "1",
+      );
+      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith(
+        "class-1",
+        "stu-1",
+      );
+      expect(mockApi.getPendingAssignments).toHaveBeenCalledWith(
+        "class-2",
+        "stu-1",
+      );
     });
   });
 
@@ -375,7 +421,9 @@ describe("Home page (Home tab)", () => {
     mockApi.getPendingAssignments.mockResolvedValue([]);
     render(<Home />);
     await waitFor(() => {
-      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent("0");
+      expect(screen.getByTestId("header-assignment-count")).toHaveTextContent(
+        "0",
+      );
     });
   });
 
@@ -389,7 +437,10 @@ describe("Home page (Home tab)", () => {
 
     await waitFor(() => {
       expect(mockApi.assignmentListner).not.toHaveBeenCalled();
-      expect(mockApi.assignmentUserListner).toHaveBeenCalledWith("stu-1", expect.any(Function));
+      expect(mockApi.assignmentUserListner).toHaveBeenCalledWith(
+        "stu-1",
+        expect.any(Function),
+      );
     });
   });
 
@@ -425,7 +476,9 @@ describe("Home page (Home tab)", () => {
     render(<Home />);
     await waitFor(() => {
       expect(screen.getByTestId("assignment-tab")).toBeInTheDocument();
-      expect(screen.getByTestId("header-current")).toHaveTextContent("ASSIGNMENT");
+      expect(screen.getByTestId("header-current")).toHaveTextContent(
+        "ASSIGNMENT",
+      );
     });
   });
 
@@ -452,28 +505,44 @@ describe("Home page (Home tab)", () => {
     });
   });
 
-  test("triggers generic popup handlers when popup screen matches current header", async () => {
+  test("triggers generic popup handlers with specific config when popup screen matches current header", async () => {
+    const mockConfig = { screen_name: "home", id: "gb-popup-123" };
     (useGrowthBook as jest.Mock).mockReturnValue({
-      getFeatureValue: jest.fn(() => ({ screen_name: "home" })),
+      getFeatureValue: jest.fn(() => mockConfig),
     });
 
     render(<Home />);
     await waitFor(() => {
-      expect(PopupManager.onAppOpen).toHaveBeenCalled();
-      expect(PopupManager.onTimeElapsed).toHaveBeenCalled();
+      expect(PopupManager.onAppOpen).toHaveBeenCalledWith(mockConfig);
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(mockConfig);
     });
   });
 
-  test("triggers generic popup handlers after navigating to matching header", async () => {
+  test("does NOT trigger generic popup handlers when growthbook returns null", async () => {
     (useGrowthBook as jest.Mock).mockReturnValue({
-      getFeatureValue: jest.fn(() => ({ screen_name: "subjects" })),
+      getFeatureValue: jest.fn(() => null),
+    });
+
+    render(<Home />);
+
+    // allow effects to run
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
+    expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
+  });
+
+  test("triggers generic popup handlers after navigating to matching header", async () => {
+    const mockConfig = { screen_name: "subjects", id: "gb-popup-456" };
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => mockConfig),
     });
 
     render(<Home />);
     fireEvent.click(await screen.findByText("go-subjects"));
     await waitFor(() => {
-      expect(PopupManager.onAppOpen).toHaveBeenCalled();
-      expect(PopupManager.onTimeElapsed).toHaveBeenCalled();
+      expect(PopupManager.onAppOpen).toHaveBeenCalledWith(mockConfig);
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(mockConfig);
     });
   });
 
@@ -484,5 +553,4 @@ describe("Home page (Home tab)", () => {
       expect(localStorage.getItem("currentHeader")).toBe("ASSIGNMENT");
     });
   });
-
 });
