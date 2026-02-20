@@ -518,6 +518,43 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  test("triggers generic popup handlers with full growthbook popup payload when header matches (positive)", async () => {
+    const fullPopupConfig = {
+      id: "gb-popup-full-1",
+      isActive: true,
+      priority: 1,
+      screen_name: "home",
+      triggers: { type: "APP_OPEN", value: 1 },
+      schedule: {
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+        maxViewsPerDay: 3,
+        startDate: "2026-01-01T00:00:00.000Z",
+        endDate: "2026-12-31T23:59:59.000Z",
+      },
+      content: {
+        en: {
+          thumbnailImageUrl: "/thumb.png",
+          backgroundImageUrl: "/bg.png",
+          heading: "Popup heading",
+          subHeading: "Popup sub heading",
+          details: ["A", "B"],
+          buttonText: "Continue",
+        },
+      },
+      action: { type: "DEEP_LINK", target: "SUBJECTS" },
+    };
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => fullPopupConfig),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(PopupManager.onAppOpen).toHaveBeenCalledWith(fullPopupConfig);
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(fullPopupConfig);
+    });
+  });
+
   test("does NOT trigger generic popup handlers when growthbook returns null", async () => {
     (useGrowthBook as jest.Mock).mockReturnValue({
       getFeatureValue: jest.fn(() => null),
@@ -544,6 +581,41 @@ describe("Home page (Home tab)", () => {
       expect(PopupManager.onAppOpen).toHaveBeenCalledWith(mockConfig);
       expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(mockConfig);
     });
+  });
+
+  test("does NOT trigger popup handlers for non-matching screen_name until header matches (false positive prevention)", async () => {
+    const mockConfig = { screen_name: "subjects", id: "gb-popup-false-positive" };
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => mockConfig),
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
+      expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
+    });
+
+    fireEvent.click(await screen.findByText("go-subjects"));
+
+    await waitFor(() => {
+      expect(PopupManager.onAppOpen).toHaveBeenCalledWith(mockConfig);
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(mockConfig);
+    });
+  });
+
+  test("does NOT trigger popup handlers when growthbook popup payload is malformed (negative)", async () => {
+    const malformedConfig = { id: "gb-popup-malformed-no-screen" };
+    (useGrowthBook as jest.Mock).mockReturnValue({
+      getFeatureValue: jest.fn(() => malformedConfig),
+    });
+
+    render(<Home />);
+
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
+    expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
   });
 
   test("persist current header in localStorage after navigation click", async () => {
