@@ -92,7 +92,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const normalizeInviteLink = (input: string): string | null => {
     const trimmed = input.trim();
     const regex =
-      /^https:\/\/chat\.whatsapp\.com\/(invite\/)?([A-Za-z0-9]{10,})$/;
+      /^https:\/\/chat\.whatsapp\.com\/(invite\/)?([A-Za-z0-9]{10,})(\?.*)?$/;
 
     const match = trimmed.match(regex);
     if (!match) return null;

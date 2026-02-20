@@ -5,6 +5,7 @@ import { Dialog, DialogContentText } from "@mui/material";
 import ScoreCardStarIcons from "./ScoreCardStarIcons";
 import ScoreCardTitle from "./ScoreCardTitle";
 import i18n from "../../i18n";
+import { t } from "i18next";
 
 const ScoreCard: React.FC<{
   showDialogBox: boolean;
@@ -27,11 +28,11 @@ const ScoreCard: React.FC<{
     <div>
       <Dialog
         open={showDialogBox}
-       onClose={(event, reason) => {
-       if (reason === "backdropClick") return; 
-       if (reason === "escapeKeyDown") return;
-    handleClose(event as any);
-  }}
+        onClose={(event, reason) => {
+          if (reason === "backdropClick") return;
+          if (reason === "escapeKeyDown") return;
+          handleClose(event as any);
+        }}
         slotProps={{
           paper: {
             sx: {
@@ -52,11 +53,13 @@ const ScoreCard: React.FC<{
               </div>
             </div>
 
-            <ScoreCardTitle score={score} />
+            {!message && <ScoreCardTitle score={score} />}
 
             <div className="score-card-content">
-              <div className="score-card-content-message">{message}</div>
-              <div className="score-card-content-lesson-name">{lessonName}</div>
+              <div className="score-card-content-message">{t(message)}</div>
+              <div className="score-card-content-lesson-name">
+                {t(lessonName)}
+              </div>
             </div>
           </DialogContentText>
         </div>
