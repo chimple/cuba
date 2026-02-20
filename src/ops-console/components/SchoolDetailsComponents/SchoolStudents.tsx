@@ -53,6 +53,8 @@ import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
+import MergeOutlinedIcon from '@mui/icons-material/MergeOutlined';
+import CardListModal from "./CardListModal";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 type ApiStudentData = StudentInfo;
@@ -62,6 +64,7 @@ type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayStudent {
   id: string;
+  original: StudentInfo;
   studentIdDisplay: string;
   name: string;
   schstudents_interact?: string;
@@ -218,9 +221,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [studentStatus, setStudentStatus] =
     useState<EnumType<"fc_support_level">>();
   const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [isMergeStudentModalOpen, setIsMergeStudentModalOpen] = useState(false);
   const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(
     null
   );
+  const [mergePrimaryStudent, setMergePrimaryStudent] =
+    useState<DisplayStudent | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTargetStudent, setDeleteTargetStudent] = useState<StudentInfo | null>(null);
@@ -495,8 +501,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? data.classData
         : []
       : classDataRef
-      ? [classDataRef]
-      : [];
+        ? [classDataRef]
+        : [];
     const groupTargets = classes.filter(
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== ""
     );
@@ -683,6 +689,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
+        original: s_api,
         studentIdDisplay: s_api.user.student_id ?? "N/A",
         name: s_api.user.name ?? "N/A",
         gender: s_api.user.gender ?? "N/A",
@@ -769,7 +776,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <ChatBubbleOutlineOutlined
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}
+                      sx={{ color: "black" }}
                     />
                   ),
                 },
@@ -778,7 +785,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <BorderColorIcon
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}
+                      sx={{ color: "black" }}
                     />
                   ),
                   onClick: () => {
@@ -789,18 +796,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   },
                 },
                 {
+                  name: t("Merge"),
+                  icon: (
+                    <MergeOutlinedIcon
+                      fontSize="small"
+                      sx={{ color: "black" }}
+                      style={{ transform: "rotate(90deg)" }}
+                    />
+                  ),
+                  onClick: () => {
+                    setMergePrimaryStudent(s);
+                    setIsMergeStudentModalOpen(true);
+                  },
+                },
+                {
                   name: t("Delete"),
                   icon: (
                     <DeleteOutlineIcon
                       fontSize="small"
-                      sx={{ color: "#2563eb" }}  
+                      sx={{ color: "black" }}  
                     />
                   ),
                   onClick: () => {
-                    console.log("Delete clicked for student:", s.id);
-                    const fullStudent = getStudentInfoById(s.id);
-                    if (!fullStudent) return;
-                    setDeleteTargetStudent(fullStudent);
+                    setDeleteTargetStudent(s.original);
                     setIsDeleteModalOpen(true);
                   },
                 },
@@ -1366,6 +1384,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     { key: PerformanceLevel.STILL_LEARNING, label: t("Still Learning") },
     { key: PerformanceLevel.NOT_TRACKED, label: t("Not Tracked") },
   ];
+  async function handleMergeStudents(student: any): Promise<void> {
+    if (!mergePrimaryStudent) return;
+    const oldId = mergePrimaryStudent.id;
+    const newId = student?.user?.id;
+    if (!oldId || !newId) {
+      console.error("Invalid student IDs");
+      return;
+    }
+    if (oldId === newId) {
+      console.error("Cannot merge same student");
+      return;
+    }
+    await api.mergeStudentRequest(oldId, newId);
+    setIsMergeStudentModalOpen(false);
+  }
 
   return (
     <div className="schoolStudents-pageContainer">
@@ -1392,9 +1425,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           gender: editStudentData?.user?.gender ?? "",
           ageGroup: String(editStudentData?.user?.age ?? ""),
           studentID: editStudentData?.user?.student_id ?? "",
-          classAndSection: `${editStudentData?.grade ?? ""}${
-            editStudentData?.classSection ?? ""
-          }`,
+          classAndSection: `${editStudentData?.grade ?? ""}${editStudentData?.classSection ?? ""
+            }`,
           phone: editStudentData?.parent?.phone ?? "",
         }}
         onClose={() => {
@@ -1402,6 +1434,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setEditStudentData(null);
         }}
         onSubmit={handleEditSubmit}
+      />
+      <CardListModal
+        open={isMergeStudentModalOpen}
+        schoolId={schoolId}
+        primaryStudentId={mergePrimaryStudent?.id}
+        onClose={() => setIsMergeStudentModalOpen(false)}
+        onSubmit={handleMergeStudents}
       />
 
       <Dialog
@@ -1441,11 +1480,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
       <DialogContent sx={{ pt: 0 , textAlign: "left"}}>
         <Typography variant="body2" sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}>
-          {t(
-            `You’re about to permanently delete ${deleteTargetStudent?.user?.name}'s record. This action cannot be undone.`
-          )}
+        {t( "You're about to permanently delete {{name}}'s record. This action cannot be undone.", { name: deleteTargetStudent?.user?.name ?? "" }, )}
         </Typography>
-
         {deleteTargetStudent && (
           <Box
             sx={{
@@ -1467,7 +1503,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               {deleteTargetStudent.user.gender}
             </Typography>
             <Typography>
-              {deleteTargetStudent.parent?.phone || "N/A"}
+              {deleteTargetStudent.parent?.phone || deleteTargetStudent.parent?.email || "N/A"}
             </Typography>
           </Box>
         )}
@@ -1489,12 +1525,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
+        <Button 
           variant="outlined"
           onClick={() => setIsDeleteModalOpen(false)}
           sx={{
             textTransform: "none",
             borderRadius: "6px",
+            color: "black",
+            borderColor: "#807c7b5b",
           }}
         >
           {t("Cancel")}
@@ -1648,7 +1686,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
-              onRowClick={() => {}}
+              onRowClick={() => { }}
             />
           </div>
           {pageCount > 1 && (
@@ -1670,12 +1708,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             {performanceFilter !== PerformanceLevel.ALL
               ? t("No student data found for the selected filter")
               : isFilteringOrSearching
-              ? t("No students found matching your criteria.")
-              : !issTotal &&
-                optionalGrade != null &&
-                String(optionalSection ?? "").trim() !== ""
-              ? t("No students found for your class.")
-              : t("No students data found for the selected school")}
+                ? t("No students found matching your criteria.")
+                : !issTotal &&
+                  optionalGrade != null &&
+                  String(optionalSection ?? "").trim() !== ""
+                  ? t("No students found for your class.")
+                  : t("No students data found for the selected school")}
           </Typography>
           {!isFilteringOrSearching &&
             performanceFilter === PerformanceLevel.ALL && (

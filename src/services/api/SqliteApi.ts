@@ -6748,10 +6748,10 @@ order by
   }
 
   async mergeStudentRequest(
-    requestId: string,
     existingStudentId: string,
     newStudentId: string,
-    respondedBy: string,
+    requestId?: string |undefined,
+    respondedBy?:  string |undefined,
   ): Promise<void> {
     if (!this._db) {
       throw new Error("SQLite DB not initialized.");

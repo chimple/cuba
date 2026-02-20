@@ -1341,10 +1341,10 @@ export class OneRosterApi implements ServiceApi {
   }
 
   mergeStudentRequest(
-    requestId: string,
     existingStudentId: string,
     newStudentId: string,
-    respondedBy: string
+    requestId?: string | undefined,
+    respondedBy?: string | undefined
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
