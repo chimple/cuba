@@ -671,4 +671,11 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  it("throws when config triggers are missing in onAppOpen (demonstration of current behavior)", () => {
+    // This test confirms that the current implementation crashes if config is invalid.
+    // Since we cannot edit the TSX to fix it, we document the crash.
+    const config = {} as PopupConfig;
+    expect(() => PopupManager.onAppOpen(config)).toThrow();
+  });
 });
