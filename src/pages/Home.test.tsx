@@ -158,6 +158,8 @@ describe("Home page (Home tab)", () => {
     window.history.replaceState({}, "", "/");
   });
 
+  // Covers: redirects to select mode when no current student
+
   test("redirects to select mode when no current student", async () => {
     (Util.getCurrentStudent as jest.Mock).mockReturnValue(null);
     render(<Home />);
@@ -166,12 +168,16 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: shows learning pathway by default on home tab
+
   test("shows learning pathway by default on home tab", async () => {
     render(<Home />);
     await waitFor(() => {
       expect(screen.getByTestId("learning-pathway")).toBeInTheDocument();
     });
   });
+
+  // Covers: navigates to subjects tab from header icon
 
   test("navigates to subjects tab from header icon", async () => {
     render(<Home />);
@@ -181,6 +187,8 @@ describe("Home page (Home tab)", () => {
       expect(screen.getByTestId("subjects-tab")).toBeInTheDocument();
     });
   });
+
+  // Covers: navigates to assignment tab and back to home via callback
 
   test("navigates to assignment tab and back to home via callback", async () => {
     render(<Home />);
@@ -194,6 +202,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: navigates to live quiz tab from header icon
+
   test("navigates to live quiz tab from header icon", async () => {
     render(<Home />);
     await screen.findByTestId("learning-pathway");
@@ -203,6 +213,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: renders winter campaign gating component
+
   test("renders winter campaign gating component", async () => {
     render(<Home />);
     expect(
@@ -210,10 +222,14 @@ describe("Home page (Home tab)", () => {
     ).toBeInTheDocument();
   });
 
+  // Covers: renders skeleton component in slider content
+
   test("renders skeleton component in slider content", () => {
     render(<Home />);
     expect(screen.getByTestId("skeleton")).toBeInTheDocument();
   });
+
+  // Covers: calls language API with current student language id
 
   test("calls language API with current student language id", async () => {
     render(<Home />);
@@ -222,6 +238,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: calls downloaded-lesson and background initialization helpers
+
   test("calls downloaded-lesson and background initialization helpers", async () => {
     render(<Home />);
     await waitFor(() => {
@@ -229,6 +247,8 @@ describe("Home page (Home tab)", () => {
       expect(Util.loadBackgroundImage).toHaveBeenCalled();
     });
   });
+
+  // Covers: calls assignment listeners for linked class and student after join-class event
 
   test("calls assignment listeners for linked class and student after join-class event", async () => {
     render(<Home />);
@@ -245,12 +265,16 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: invokes updateLocalAttributes during assignment fetch
+
   test("invokes updateLocalAttributes during assignment fetch", async () => {
     render(<Home />);
     await waitFor(() => {
       expect(updateLocalAttributes).toHaveBeenCalled();
     });
   });
+
+  // Covers: handles missing language document without crashing
 
   test("handles missing language document without crashing", async () => {
     mockApi.getLanguageWithId.mockResolvedValue(null);
@@ -260,6 +284,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: handles missing class-school data gracefully
+
   test("handles missing class-school data gracefully", async () => {
     mockApi.getStudentClassesAndSchools.mockResolvedValue(null);
     render(<Home />);
@@ -267,6 +293,8 @@ describe("Home page (Home tab)", () => {
       expect(screen.getByTestId("learning-pathway")).toBeInTheDocument();
     });
   });
+
+  // Covers: returns to home view when home icon clicked from subjects
 
   test("returns to home view when home icon clicked from subjects", async () => {
     render(<Home />);
@@ -278,6 +306,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: stays on home when home icon clicked while already on home
+
   test("stays on home when home icon clicked while already on home", async () => {
     render(<Home />);
     expect(await screen.findByTestId("learning-pathway")).toBeInTheDocument();
@@ -286,6 +316,8 @@ describe("Home page (Home tab)", () => {
       expect(screen.getByTestId("learning-pathway")).toBeInTheDocument();
     });
   });
+
+  // Covers: supports sequence of tab transitions
 
   test("supports sequence of tab transitions", async () => {
     render(<Home />);
@@ -299,6 +331,8 @@ describe("Home page (Home tab)", () => {
     expect(await screen.findByTestId("livequiz-tab")).toBeInTheDocument();
   });
 
+  // Covers: reads tab query param on mount when provided
+
   test("reads tab query param on mount when provided", async () => {
     mockLocationSearch = "?tab=SUBJECTS";
     render(<Home />);
@@ -307,6 +341,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: falls back to home tab for unknown tab query value
+
   test("falls back to home tab for unknown tab query value", async () => {
     mockLocationSearch = "?tab=UNKNOWN_TAB";
     render(<Home />);
@@ -314,6 +350,8 @@ describe("Home page (Home tab)", () => {
       expect(screen.getByTestId("learning-pathway")).toBeInTheDocument();
     });
   });
+
+  // Covers: does not request pending assignments when linked classes are empty
 
   test("does not request pending assignments when linked classes are empty", async () => {
     mockApi.getStudentClassesAndSchools.mockResolvedValue({
@@ -330,12 +368,16 @@ describe("Home page (Home tab)", () => {
     expect(mockApi.getPendingAssignments).not.toHaveBeenCalled();
   });
 
+  // Covers: uses history replace for redirect path only when student missing
+
   test("uses history replace for redirect path only when student missing", async () => {
     render(<Home />);
     await waitFor(() => {
       expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
   });
+
+  // Covers: stores reward feature flag true in localStorage when enabled
 
   test("stores reward feature flag true in localStorage when enabled", async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
@@ -345,6 +387,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: stores reward feature flag false in localStorage when disabled
+
   test("stores reward feature flag false in localStorage when disabled", async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(false);
     render(<Home />);
@@ -352,6 +396,8 @@ describe("Home page (Home tab)", () => {
       expect(localStorage.getItem(IS_REWARD_FEATURE_ON)).toBe("false");
     });
   });
+
+  // Covers: aggregates pending assignment and active live-quiz counts across linked classes
 
   test("aggregates pending assignment and active live-quiz counts across linked classes", async () => {
     const now = Date.now();
@@ -417,6 +463,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: keeps no-homework state visible with zero assignment count
+
   test("keeps no-homework state visible with zero assignment count", async () => {
     mockApi.getPendingAssignments.mockResolvedValue([]);
     render(<Home />);
@@ -426,6 +474,8 @@ describe("Home page (Home tab)", () => {
       );
     });
   });
+
+  // Covers: does not register class listener when class id is missing on join-class event
 
   test("does not register class listener when class id is missing on join-class event", async () => {
     mockApi.getStudentClassesAndSchools.mockResolvedValue({
@@ -444,6 +494,8 @@ describe("Home page (Home tab)", () => {
     });
   });
 
+  // Covers: routes to assignment page for LIVE_QUIZ url page when student is not linked
+
   test("routes to assignment page for LIVE_QUIZ url page when student is not linked", async () => {
     mockLocationSearch = `?page=${PAGES.LIVE_QUIZ}`;
     window.history.replaceState({}, "", `/?page=${PAGES.LIVE_QUIZ}`);
@@ -454,6 +506,8 @@ describe("Home page (Home tab)", () => {
       expect(screen.getByTestId("assignment-tab")).toBeInTheDocument();
     });
   });
+
+  // Covers: routes to assignment page for JOIN_CLASS url page
 
   test("routes to assignment page for JOIN_CLASS url page", async () => {
     jest.useFakeTimers();
@@ -471,6 +525,8 @@ describe("Home page (Home tab)", () => {
     jest.useRealTimers();
   });
 
+  // Covers: starts on assignment tab from url tab param
+
   test("starts on assignment tab from url tab param", async () => {
     mockLocationSearch = "?tab=ASSIGNMENT";
     render(<Home />);
@@ -481,6 +537,8 @@ describe("Home page (Home tab)", () => {
       );
     });
   });
+
+  // Covers: isLinked cache still refreshes from API and rewrites cache
 
   test("isLinked cache still refreshes from API and rewrites cache", async () => {
     localStorage.setItem(IS_CONECTED, JSON.stringify({ "stu-1": false }));
@@ -493,6 +551,8 @@ describe("Home page (Home tab)", () => {
       expect(parsed["stu-1"]).toBe(true);
     });
   });
+
+  // Covers: isLinked writes API value to cache when empty
 
   test("isLinked writes API value to cache when empty", async () => {
     localStorage.removeItem(IS_CONECTED);
@@ -605,6 +665,7 @@ describe("Home page (Home tab)", () => {
     },
   ];
 
+  // Covers: positive matrix for full popup config variations (trigger/screen/content/action payloads) that should trigger popup hooks.
   test.each(fullPopupConfigVariations)(
     "triggers generic popup handlers for fullPopupConfig variation: $name",
     async ({ config }) => {
@@ -620,8 +681,10 @@ describe("Home page (Home tab)", () => {
       await waitFor(() =>
         expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(config),
       );
-    }
+    },
   );
+
+  // Covers: does NOT trigger generic popup handlers when growthbook returns null
 
   test("does NOT trigger generic popup handlers when growthbook returns null", async () => {
     (useGrowthBook as jest.Mock).mockReturnValue({
@@ -637,6 +700,7 @@ describe("Home page (Home tab)", () => {
     expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
   });
 
+  // Covers: false-positive prevention where popup must not trigger until header/screen_name match.
   test.each([
     {
       name: "screen_name mismatch then match on subjects navigation",
@@ -678,12 +742,19 @@ describe("Home page (Home tab)", () => {
       await waitFor(() =>
         expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(config),
       );
-    }
+    },
   );
 
+  // Covers: negative payload variants that must never trigger popup hooks.
   test.each([
-    { name: "missing screen_name", config: { id: "gb-popup-malformed-no-screen" } },
-    { name: "empty screen_name", config: createFullPopupConfig({ screen_name: "" }) },
+    {
+      name: "missing screen_name",
+      config: { id: "gb-popup-malformed-no-screen" },
+    },
+    {
+      name: "empty screen_name",
+      config: createFullPopupConfig({ screen_name: "" }),
+    },
     { name: "null popup payload", config: null },
   ])(
     "negative payload: does NOT trigger popup handlers when growthbook payload is $name",
@@ -698,8 +769,10 @@ describe("Home page (Home tab)", () => {
 
       expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
       expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
-    }
+    },
   );
+
+  // Covers: persist current header in localStorage after navigation click
 
   test("persist current header in localStorage after navigation click", async () => {
     render(<Home />);

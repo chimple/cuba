@@ -1,6 +1,7 @@
 import { PopupConfig, TriggerType } from "./GenericPopUpType";
 
 describe("GenericPopUpType contracts", () => {
+  // Covers: supports all configured trigger type values
   it("supports all configured trigger type values", () => {
     const supported: TriggerType[] = [
       "APP_OPEN",
@@ -13,7 +14,9 @@ describe("GenericPopUpType contracts", () => {
     );
   });
 
-  it("accepts popup config shape consumed by popup manager", () => {
+  // Covers the payload contract shape expected by PopupManager (required top-level and nested fields).
+  // Covers: validates canonical popup config contract consumed by popup manager
+  it("validates canonical popup config contract consumed by popup manager", () => {
     const config: PopupConfig = {
       id: "popup-1",
       isActive: true,

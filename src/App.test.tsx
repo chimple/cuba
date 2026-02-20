@@ -1,19 +1,17 @@
+// Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
 import { render, act, waitFor } from "@testing-library/react";
 import App from "./App";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { GENERIC_POP_UP } from "./common/constants";
 
-const mockGetFeatureValue = jest.fn();
-
-jest.mock("@growthbook/growthbook-react", () => ({
-  useGrowthBook: jest.fn(() => ({
-    getFeatureValue: mockGetFeatureValue,
-    setAttributes: jest.fn(),
-    getAttributes: jest.fn(),
-  })),
-  useFeatureIsOn: jest.fn(() => false),
-  useFeatureValue: jest.fn((_: string, fallback: unknown) => fallback),
-}));
+const growthbookMock = jest.requireMock("@growthbook/growthbook-react") as {
+  __resetGrowthBookMock: () => void;
+  __setGrowthBookMock: (partial: {
+    attributes?: Record<string, unknown>;
+    features?: Record<string, unknown>;
+    flags?: Record<string, boolean>;
+  }) => void;
+};
 
 describe("App Component", () => {
   let onAppOpenSpy: jest.SpyInstance;
@@ -21,8 +19,7 @@ describe("App Component", () => {
 
   beforeEach(() => {
     localStorage.clear();
-    mockGetFeatureValue.mockReset();
-    mockGetFeatureValue.mockReturnValue(null);
+    growthbookMock.__resetGrowthBookMock();
     onAppOpenSpy = jest
       .spyOn(PopupManager, "onAppOpen")
       .mockImplementation(() => {});
@@ -37,6 +34,7 @@ describe("App Component", () => {
     onTimeElapsedSpy?.mockRestore();
   });
 
+  // Covers: renders app shell without crashing.
   it("renders without crashing", () => {
     let unmount: () => void;
 
@@ -45,7 +43,6 @@ describe("App Component", () => {
       unmount = result.unmount;
     });
 
-    // Just ensure it mounted successfully
     expect(document.body).toBeTruthy();
 
     act(() => {
@@ -73,12 +70,9 @@ describe("App Component", () => {
     action: { type: "DEEP_LINK", target: "SUBJECTS" },
   };
 
+  // Covers: positive routing when tab/screen match for APP_OPEN, GAME_COMPLETE, TIME_ELAPSED and APP_CLOSE-like payload variants.
   test.each([
-    {
-      name: "home tab with APP_OPEN trigger",
-      tab: "home",
-      trigger: { type: "APP_OPEN", value: 1 },
-    },
+    { name: "home tab with APP_OPEN trigger", tab: "home", trigger: { type: "APP_OPEN", value: 1 } },
     {
       name: "home tab with GAME_COMPLETE trigger",
       tab: "home",
@@ -94,31 +88,32 @@ describe("App Component", () => {
       tab: "leaderboard",
       trigger: { type: "APP_CLOSE", value: 1 },
     },
-  ])(
-    "routes growthbook popup config to PopupManager for $name",
-    async ({ tab, trigger }) => {
-      const popupConfig = {
-        ...popupConfigBase,
-        id: `gb-popup-${tab}-${trigger.type}`,
-        screen_name: tab,
-        triggers: trigger,
-      };
-      mockGetFeatureValue.mockImplementation((key: string, fallback: any) =>
-        key === GENERIC_POP_UP ? popupConfig : fallback,
-      );
-      window.history.replaceState({}, "", `/?tab=${tab}`);
+  ])("routes growthbook popup config to PopupManager for $name", async ({ tab, trigger }) => {
+    const popupConfig = {
+      ...popupConfigBase,
+      id: `gb-popup-${tab}-${trigger.type}`,
+      screen_name: tab,
+      triggers: trigger,
+    };
 
-      render(<App />);
+    growthbookMock.__setGrowthBookMock({
+      features: {
+        [GENERIC_POP_UP]: popupConfig,
+      },
+    });
+    window.history.replaceState({}, "", `/?tab=${tab}`);
 
-      await waitFor(() =>
-        expect(PopupManager.onAppOpen).toHaveBeenCalledWith(popupConfig),
-      );
-      await waitFor(() =>
-        expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(popupConfig),
-      );
-    },
-  );
+    render(<App />);
 
+    await waitFor(() =>
+      expect(PopupManager.onAppOpen).toHaveBeenCalledWith(popupConfig),
+    );
+    await waitFor(() =>
+      expect(PopupManager.onTimeElapsed).toHaveBeenCalledWith(popupConfig),
+    );
+  });
+
+  // Covers: false-positive prevention when current tab does not match popup screen_name.
   test("does not route popup when current tab does not match screen_name (false positive prevention)", async () => {
     const popupConfig = {
       ...popupConfigBase,
@@ -126,9 +121,12 @@ describe("App Component", () => {
       screen_name: "leaderboard",
       triggers: { type: "APP_OPEN", value: 1 },
     };
-    mockGetFeatureValue.mockImplementation((key: string, fallback: any) =>
-      key === GENERIC_POP_UP ? popupConfig : fallback,
-    );
+
+    growthbookMock.__setGrowthBookMock({
+      features: {
+        [GENERIC_POP_UP]: popupConfig,
+      },
+    });
     window.history.replaceState({}, "", "/?tab=home");
 
     render(<App />);
@@ -138,22 +136,22 @@ describe("App Component", () => {
     expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
   });
 
+  // Covers: negative payload gating for malformed and null GrowthBook popup payloads.
   test.each([
     { name: "missing screen_name", payload: { id: "gb-popup-no-screen" } },
     { name: "null payload", payload: null },
-  ])(
-    "does not route popup when growthbook payload is malformed: $name",
-    async ({ payload }) => {
-      mockGetFeatureValue.mockImplementation((key: string, fallback: any) =>
-        key === GENERIC_POP_UP ? payload : fallback,
-      );
-      window.history.replaceState({}, "", "/?tab=leaderboard");
+  ])("does not route popup when growthbook payload is malformed: $name", async ({ payload }) => {
+    growthbookMock.__setGrowthBookMock({
+      features: {
+        [GENERIC_POP_UP]: payload as any,
+      },
+    });
+    window.history.replaceState({}, "", "/?tab=leaderboard");
 
-      render(<App />);
-      await new Promise((resolve) => setTimeout(resolve, 50));
+    render(<App />);
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
-      expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
-    },
-  );
+    expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
+    expect(PopupManager.onTimeElapsed).not.toHaveBeenCalled();
+  });
 });

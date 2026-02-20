@@ -58,6 +58,8 @@ describe("GenericPopUpManager", () => {
     useRealClock();
   });
 
+  // Covers: shows popup on APP_OPEN when config is eligible and emits analytics
+
   it("shows popup on APP_OPEN when config is eligible and emits analytics", () => {
     const config = createPopupConfig({
       triggers: {
@@ -84,6 +86,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: does nothing on APP_OPEN when trigger type is different
+
   it("does nothing on APP_OPEN when trigger type is different", () => {
     const config = createPopupConfig({
       triggers: {
@@ -101,6 +105,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: ignores unsupported APP_CLOSE-like trigger type without side effects
 
   it("ignores unsupported APP_CLOSE-like trigger type without side effects", () => {
     const config = createPopupConfig({
@@ -121,6 +127,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: fires GAME_COMPLETE only when played count reaches configured threshold
+
   it("fires GAME_COMPLETE only when played count reaches configured threshold", () => {
     const config = createPopupConfig({
       triggers: {
@@ -140,9 +148,13 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: ignores malformed GAME_COMPLETE config with missing trigger
+
   it("ignores malformed GAME_COMPLETE config with missing trigger", () => {
     expect(() => PopupManager.onGameComplete({} as PopupConfig)).not.toThrow();
   });
+
+  // Covers: schedules TIME_ELAPSED popup and shows only after configured delay
 
   it("schedules TIME_ELAPSED popup and shows only after configured delay", () => {
     const config = createPopupConfig({
@@ -163,6 +175,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: does nothing for TIME_ELAPSED entry when trigger type is different
+
   it("does nothing for TIME_ELAPSED entry when trigger type is different", () => {
     const config = createPopupConfig({
       triggers: {
@@ -178,6 +192,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: prevents duplicate popup show when multiple TIME_ELAPSED timers fire together
 
   it("prevents duplicate popup show when multiple TIME_ELAPSED timers fire together", () => {
     const config = createPopupConfig({
@@ -198,6 +214,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: blocks popup when manager already has an active popup
+
   it("blocks popup when manager already has an active popup", () => {
     const config = createPopupConfig();
     const { handler, cleanup } = listenForPopupEvent();
@@ -210,6 +228,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: blocks popup when another global popup lock is active
 
   it("blocks popup when another global popup lock is active", () => {
     const config = createPopupConfig();
@@ -224,6 +244,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: blocks popup when config is not active
+
   it("blocks popup when config is not active", () => {
     const config = createPopupConfig({ isActive: false });
     const { handler, cleanup } = listenForPopupEvent();
@@ -237,6 +259,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: blocks popup when day-of-week is outside schedule
 
   it("blocks popup when day-of-week is outside schedule", () => {
     const today = new Date().getDay();
@@ -253,6 +277,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: allows popup when now equals schedule startDate boundary
 
   it("allows popup when now equals schedule startDate boundary", () => {
     const nowIso = new Date().toISOString();
@@ -271,6 +297,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: allows popup when now equals schedule endDate boundary
+
   it("allows popup when now equals schedule endDate boundary", () => {
     const nowIso = new Date().toISOString();
     const config = createPopupConfig({
@@ -288,6 +316,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: blocks popup when now is before schedule startDate
+
   it("blocks popup when now is before schedule startDate", () => {
     const config = createPopupConfig({
       schedule: {
@@ -302,6 +332,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: blocks popup when now is after schedule endDate
 
   it("blocks popup when now is after schedule endDate", () => {
     const config = createPopupConfig({
@@ -318,6 +350,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: blocks popup when views count equals daily cap boundary
+
   it("blocks popup when views count equals daily cap boundary", () => {
     const config = createPopupConfig({
       schedule: { maxViewsPerDay: 2 },
@@ -333,6 +367,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: blocks popup when current student is missing
+
   it("blocks popup when current student is missing", () => {
     const config = createPopupConfig();
     mockedGetCurrentStudent.mockReturnValue(undefined);
@@ -345,6 +381,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: localizes by LANGUAGE key, then falls back to en
 
   it("localizes by LANGUAGE key, then falls back to en", () => {
     const config = createPopupConfig();
@@ -367,6 +405,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: falls back to first content entry when language and en are missing
+
   it("falls back to first content entry when language and en are missing", () => {
     const config = createPopupConfig({
       content: {
@@ -388,6 +428,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: tracks dismiss analytics and clears active state
+
   it("tracks dismiss analytics and clears active state", () => {
     const config = createPopupConfig();
     const track = (window as any).analytics.track as jest.Mock;
@@ -400,6 +442,8 @@ describe("GenericPopUpManager", () => {
       popup_id: config.id,
     });
   });
+
+  // Covers: routes deep-link tab targets to internal home tabs and keeps active flag (current behavior)
 
   it("routes deep-link tab targets to internal home tabs and keeps active flag (current behavior)", () => {
     const config = createPopupConfig({
@@ -421,6 +465,8 @@ describe("GenericPopUpManager", () => {
     restore();
   });
 
+  // Covers: routes leaderboard/rewards tab targets to leaderboard base route
+
   it("routes leaderboard/rewards tab targets to leaderboard base route", () => {
     const config = createPopupConfig({
       action: { type: "DEEP_LINK", target: "LEADERBOARD" },
@@ -433,6 +479,8 @@ describe("GenericPopUpManager", () => {
     restore();
   });
 
+  // Covers: routes slash-prefixed deep links with direct replace
+
   it("routes slash-prefixed deep links with direct replace", () => {
     const config = createPopupConfig({
       action: { type: "DEEP_LINK", target: "/profile" },
@@ -444,6 +492,8 @@ describe("GenericPopUpManager", () => {
     expect(replaceSpy).toHaveBeenCalledWith("/profile");
     restore();
   });
+
+  // Covers: opens external deep links in browser tab on web and clears active state
 
   it("opens external deep links in browser tab on web and clears active state", () => {
     const config = createPopupConfig({
@@ -464,6 +514,8 @@ describe("GenericPopUpManager", () => {
     restore();
   });
 
+  // Covers: opens external deep links with Capacitor Browser on native
+
   it("opens external deep links with Capacitor Browser on native", () => {
     const config = createPopupConfig({
       action: { type: "DEEP_LINK", target: "https://example.com/native" },
@@ -477,6 +529,8 @@ describe("GenericPopUpManager", () => {
     });
   });
 
+  // Covers: clears active state when action is missing
+
   it("clears active state when action is missing", () => {
     const config = createPopupConfig({ action: undefined });
     (PopupManager as any).isPopupActive = true;
@@ -485,6 +539,8 @@ describe("GenericPopUpManager", () => {
 
     expect((PopupManager as any).isPopupActive).toBe(false);
   });
+
+  // Covers: does not crash when analytics object is missing
 
   it("does not crash when analytics object is missing", () => {
     const config = createPopupConfig();
@@ -496,6 +552,8 @@ describe("GenericPopUpManager", () => {
     expect(() => PopupManager.onAction(config)).not.toThrow();
     restore();
   });
+
+  // Covers: propagates analytics errors during popup show (current behavior)
 
   it("propagates analytics errors during popup show (current behavior)", () => {
     const config = createPopupConfig();
@@ -509,6 +567,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: throws when localStorage getItem fails while checking daily cap
+
   it("throws when localStorage getItem fails while checking daily cap", () => {
     const config = createPopupConfig();
     const getItemSpy = mockLocalStorageFailure("getItem");
@@ -519,6 +579,8 @@ describe("GenericPopUpManager", () => {
 
     getItemSpy.mockRestore();
   });
+
+  // Covers: throws when localStorage setItem fails while incrementing views
 
   it("throws when localStorage setItem fails while incrementing views", () => {
     const config = createPopupConfig();
@@ -534,6 +596,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: routes REWARDS target to /leaderboard base route
+
   it("routes REWARDS target to /leaderboard base route", () => {
     const config = createPopupConfig({
       action: { type: "DEEP_LINK", target: "REWARDS" },
@@ -545,6 +609,8 @@ describe("GenericPopUpManager", () => {
     expect(replaceSpy).toHaveBeenCalledWith("/leaderboard?tab=REWARDS");
     restore();
   });
+
+  // Covers: falls back screen_name to 'unknown' when not provided
 
   it("falls back screen_name to 'unknown' when not provided", () => {
     const config = createPopupConfig({ screen_name: undefined });
@@ -562,6 +628,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: uses navigator.language when LANGUAGE key is absent from localStorage
 
   it("uses navigator.language when LANGUAGE key is absent from localStorage", () => {
     const config = createPopupConfig({
@@ -588,6 +656,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: does not fire popup when GAME_COMPLETE count is below threshold
+
   it("does not fire popup when GAME_COMPLETE count is below threshold", () => {
     const config = createPopupConfig({
       triggers: {
@@ -606,6 +676,8 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  // Covers: allows popup when daily views are below cap (count < maxViewsPerDay)
+
   it("allows popup when daily views are below cap (count < maxViewsPerDay)", () => {
     const config = createPopupConfig({
       schedule: { maxViewsPerDay: 3 },
@@ -620,6 +692,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: emits popup_action analytics with undefined target when action type is not DEEP_LINK
 
   it("emits popup_action analytics with undefined target when action type is not DEEP_LINK", () => {
     const config = createPopupConfig({
@@ -637,6 +711,8 @@ describe("GenericPopUpManager", () => {
     expect((PopupManager as any).isPopupActive).toBe(false);
   });
 
+  // Covers: onDismiss is idempotent when already inactive
+
   it("onDismiss is idempotent when already inactive", () => {
     const config = createPopupConfig();
     const track = (window as any).analytics.track as jest.Mock;
@@ -650,6 +726,8 @@ describe("GenericPopUpManager", () => {
       popup_id: config.id,
     });
   });
+
+  // Covers: blocks TIME_ELAPSED timer scheduling when isPopupActive is already true
 
   it("blocks TIME_ELAPSED timer scheduling when isPopupActive is already true", () => {
     const config = createPopupConfig({
@@ -668,6 +746,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: does not fire GAME_COMPLETE popup again after threshold has been passed
 
   it("does not fire GAME_COMPLETE popup again after threshold has been passed", () => {
     const config = createPopupConfig({
@@ -690,6 +770,8 @@ describe("GenericPopUpManager", () => {
 
     cleanup();
   });
+
+  // Covers: throws when config triggers are missing in onAppOpen (demonstration of current behavior)
 
   it("throws when config triggers are missing in onAppOpen (demonstration of current behavior)", () => {
     // This test confirms that the current implementation crashes if config is invalid.
