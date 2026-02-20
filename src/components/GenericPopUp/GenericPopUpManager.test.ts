@@ -102,6 +102,25 @@ describe("GenericPopUpManager", () => {
     cleanup();
   });
 
+  it("ignores unsupported APP_CLOSE-like trigger type without side effects", () => {
+    const config = createPopupConfig({
+      triggers: { type: "APP_CLOSE", value: 1 } as any,
+    } as any);
+    const { handler, cleanup } = listenForPopupEvent();
+    const track = (window as any).analytics.track as jest.Mock;
+
+    PopupManager.onAppOpen(config);
+    PopupManager.onGameComplete(config);
+    PopupManager.onTimeElapsed(config);
+    jest.runAllTimers();
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(track).not.toHaveBeenCalled();
+    expect(localStorage.getItem(getTodayKey(config))).toBeNull();
+
+    cleanup();
+  });
+
   it("fires GAME_COMPLETE only when played count reaches configured threshold", () => {
     const config = createPopupConfig({
       triggers: {
