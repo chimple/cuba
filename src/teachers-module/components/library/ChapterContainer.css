@@ -140,7 +140,7 @@
   background-color: #f1f1f1 !important;
 }
 
-.collapsable-container .image-container img {
+.collapsable-container .image-container .lesson-image img {
   height: 100%;
   width: 100%;
   object-fit: cover;

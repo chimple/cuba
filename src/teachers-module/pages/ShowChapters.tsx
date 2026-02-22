@@ -38,6 +38,14 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
     new Map()
   );
+  const [isShowAssigned, setIsShowAssigned] = useState<boolean>(false);
+  const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [hasLoadedAssignedLessons, setHasLoadedAssignedLessons] =
+    useState<boolean>(false);
+  const [isLoadingAssignedLessons, setIsLoadingAssignedLessons] =
+    useState<boolean>(false);
 
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]); // Create an array of refs for each chapter
   const auth = ServiceConfig.getI().authHandler;
@@ -53,6 +61,13 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     course.code === COURSES.ENGLISH
       ? `Grade ${isGrade1 ? "1" : "2"}`
       : `${t("Grade")} ${isGrade1 ? "1" : "2"}`;
+
+  const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, "0");
+    const day = `${date.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -225,6 +240,56 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     });
   };
 
+  const loadAssignedLessonsForCourse = async () => {
+    if (hasLoadedAssignedLessons || isLoadingAssignedLessons) return;
+    const userId = currentUser?.id ?? (await auth.getCurrentUser())?.id;
+    const classId = currentClass?.id ?? current_class?.id;
+    if (!userId || !classId || !course?.id) return;
+
+    setIsLoadingAssignedLessons(true);
+    try {
+      const endDate = formatLocalDate(new Date());
+      const startDateObj = new Date();
+      startDateObj.setDate(startDateObj.getDate() - 9);
+      const startDate = formatLocalDate(startDateObj);
+
+      const { classWiseAssignments, individualAssignments } =
+        await api.getAssignmentsByAssignerAndClass(
+          userId,
+          classId,
+          startDate,
+          endDate
+        );
+
+      const assignedIds = new Set<string>();
+      [...classWiseAssignments, ...individualAssignments].forEach(
+        (assignment) => {
+          if (
+            assignment?.lesson_id &&
+            String(assignment.course_id ?? "") === String(course.id)
+          ) {
+            assignedIds.add(String(assignment.lesson_id));
+          }
+        }
+      );
+
+      setAssignedLessonIds(assignedIds);
+      setHasLoadedAssignedLessons(true);
+    } catch (error) {
+      console.error("Failed to load assigned lessons for course:", error);
+    } finally {
+      setIsLoadingAssignedLessons(false);
+    }
+  };
+
+  const handleShowAssignedClick = async () => {
+    const nextShowAssigned = !isShowAssigned;
+    setIsShowAssigned(nextShowAssigned);
+    if (nextShowAssigned) {
+      await loadAssignedLessonsForCourse();
+    }
+  };
+
   return (
     <div className="chapter-container">
       <Header
@@ -241,8 +306,24 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
           <div className="show-chapters-course-name">
             {`${selectedCourseName} ${selectedCourseGrade}`}
           </div>
-          <button type="button" className="show-chapters-assigned-btn">
-            {t("Show Assigned")}
+          <button
+            type="button"
+            className={`show-chapters-assigned-btn${
+              isShowAssigned ? " is-active" : ""
+            }`}
+            onClick={handleShowAssignedClick}
+            disabled={isLoadingAssignedLessons}
+          >
+            {isShowAssigned ? (
+              <>
+                <span className="show-chapters-assigned-icon" aria-hidden="true">
+                  <img src="assets/icons/assignmentSelect.svg" alt="" />
+                </span>
+                {t("Assigned")}
+              </>
+            ) : (
+              t("Show Assigned")
+            )}
           </button>
         </div>
         <div className="lesson-grid">
@@ -270,6 +351,8 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
                   handleOnLessonClick(lesson, chapter);
                 }}
                 courseCode={courseCode}
+                showAssignedBadge={isShowAssigned}
+                assignedLessonIds={assignedLessonIds}
               />
             </div>
           ))}
@@ -277,7 +360,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         <AssigmentCount
           assignments={assignmentCount}
           onClick={() => {
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace(PAGES.TEACHER_ASSIGNMENT);
           }}
         />
       </main>

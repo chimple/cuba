@@ -42,6 +42,8 @@
   width: 14vh;
   margin: auto;
   border-radius: 8px;
+  position: relative;
+  overflow: hidden;
   /* background-color: bisque; */
 }
 @media (orientation: landscape) {
@@ -50,10 +52,31 @@
     width: 14vw;
   }
 }
-.image-container img {
+.lesson-image img {
   height: 75px;
   width: 100px; /* Adjust the size as needed */
   /* height: auto; */
+}
+
+.lesson-assigned-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background-color: #ef404f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px #ffffff;
+  z-index: 2;
+}
+
+.lesson-assigned-badge img {
+  width: 7px;
+  height: 10px;
+  filter: brightness(0) invert(1);
 }
 
 .text-container {

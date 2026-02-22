@@ -11,6 +11,8 @@ interface ChapterContainerProps {
   isOpened: boolean;
   lessonClickCallBack;
   courseCode?: string;
+  showAssignedBadge?: boolean;
+  assignedLessonIds?: Set<string>;
 }
 const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapter,
@@ -19,6 +21,8 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   syncSelectedLessons,
   lessonClickCallBack,
   courseCode,
+  showAssignedBadge,
+  assignedLessonIds,
 }) => {
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
@@ -109,6 +113,12 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }}
                 isSelcted={selectedLessons.includes(lesson.id)}
                 courseCode={courseCode}
+                isAssigned={
+                  !!showAssignedBadge &&
+                  !!lesson.id &&
+                  !!assignedLessonIds?.has(lesson.id)
+                }
+                showAssignedBadge={!!showAssignedBadge}
               />
             </div>
           </div>

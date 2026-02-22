@@ -12,6 +12,8 @@ interface LessonComponentProps {
   isSelcted: boolean;
   isSelButton: boolean;
   courseCode?: String;
+  isAssigned?: boolean;
+  showAssignedBadge?: boolean;
 }
 
 const LessonComponent: React.FC<LessonComponentProps> = ({
@@ -21,16 +23,14 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   isSelcted,
   isSelButton,
   courseCode,
+  isAssigned = false,
+  showAssignedBadge = false,
 }) => {
   const [isTicked, setIsTicked] = useState(isSelcted);
 
   useEffect(() => {
     setIsTicked(isSelcted);
   }, [isSelcted]);
-
-  const handleImageClick = () => {
-    // Add your image click logic here
-  };
 
   const handleTickClick = () => {
     handleSelect();
@@ -49,20 +49,30 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
         ></div>
       </div>
       <div
-        style={{ backgroundColor: "darkorange" }}
         className="image-container"
         onClick={() => {
           handleLessonCLick();
         }}
       >
-        <SelectIconImage
-          localSrc={`courses/en/icons/en00.webp`}
-          defaultSrc={"assets/icons/DefaultIcon.png"}
-          webSrc={`${lesson.image}`}
-          // imageWidth="100%"
-          imageHeight="100%"
-          webImageHeight="0px"
-        />
+        <div className="lesson-image">
+          <SelectIconImage
+            localSrc={`courses/en/icons/en00.webp`}
+            defaultSrc={"assets/icons/DefaultIcon.png"}
+            webSrc={`${lesson.image}`}
+            // imageWidth="100%"
+            imageHeight="100%"
+            webImageHeight="0px"
+          />
+        </div>
+        {showAssignedBadge && isAssigned ? (
+          <span
+            className="lesson-assigned-badge"
+            title={t("Assigned") ?? ""}
+            aria-label={t("Assigned") ?? ""}
+          >
+            <img src="assets/icons/assignmentSelect.svg" alt="" />
+          </span>
+        ) : null}
       </div>
       <div className="text-container">
         <div className="lesson-details">
