@@ -887,7 +887,9 @@ export class SupabaseApi implements ServiceApi {
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
       case MUTATE_TYPES.INSERT:
-        res = await this.supabase.from(tableName).insert(data);
+         res = await this.supabase
+          .from(tableName)
+          .upsert(data, { onConflict: "id" });
         break;
 
       case MUTATE_TYPES.UPDATE:

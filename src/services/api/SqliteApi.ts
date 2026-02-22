@@ -90,6 +90,7 @@ import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
 
 export class SqliteApi implements ServiceApi {
+  private _syncRunning: boolean = false;
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
@@ -747,7 +748,7 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return false;
     const tables = "'" + tableNames.join("', '") + "'";
 
-    const tablePushSync = `SELECT * FROM push_sync_info ORDER BY created_at;`;
+    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at DESC;`;
     let res: any[] = [];
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
@@ -759,8 +760,24 @@ export class SqliteApi implements ServiceApi {
       await this.createSyncTables();
     }
     if (res && res.length) {
+      const seenEntityKeys = new Set<string>();
       for (const data of res) {
         const newData = JSON.parse(data.data);
+        const entityKey =
+          newData?.id != null
+            ? `${data.table_name}:${newData.id}`
+            : `${data.table_name}:queue:${data.id}`;
+
+        if (seenEntityKeys.has(entityKey)) {
+          // Drop stale duplicate queue entries (older rows for same entity).
+          await this.executeQuery(
+            `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
+            [data.id, data.table_name],
+          );
+          continue;
+        }
+        seenEntityKeys.add(entityKey);
+
         const mutate = await this._serverApi.mutate(
           data.change_type,
           data.table_name,
@@ -775,7 +792,18 @@ export class SqliteApi implements ServiceApi {
             ...mutate?.error,
           });
           if (mutate?.error?.code === "23505") {
-          } else {
+            if (data.change_type === MUTATE_TYPES.INSERT && newData?.id) {
+              const retryUpdate = await this._serverApi.mutate(
+                MUTATE_TYPES.UPDATE,
+                data.table_name,
+                newData,
+                newData.id,
+              );
+              if (retryUpdate?.error) return false;
+            } else {
+              console.log("Duplicate row ignored - already synced on server");
+            }
+          } else if (!mutate || mutate.error) {
             return false;
           }
         }
@@ -799,6 +827,13 @@ export class SqliteApi implements ServiceApi {
     is_sync_immediate: boolean = true,
   ) {
     if (!this._db) return;
+    if (this._syncRunning) {
+    console.log("⛔ Sync already running — skipping");
+    return true;
+  }
+
+  this._syncRunning = true;
+    try{
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
     console.log("logs to check synced tables", JSON.stringify(refresh_tables));
     await this.executeQuery(
@@ -827,6 +862,8 @@ export class SqliteApi implements ServiceApi {
         `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
       );
       return res;
+    }}finally{
+      this._syncRunning = false;
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
   }
@@ -848,29 +885,72 @@ export class SqliteApi implements ServiceApi {
     await this.executeQuery(createPushSyncInfoTable);
   }
 
-  private async updatePushChanges(
-    tableName: TABLES,
-    mutateType: MUTATE_TYPES,
-    data: { [key: string]: any },
-    is_sync_immediate?: boolean,
-  ) {
-    if (!this._db) return;
-    data["updated_at"] = new Date().toISOString();
-    const stmt = `INSERT OR REPLACE INTO push_sync_info (id, table_name, change_type, data) VALUES (?, ?, ?, ?)`;
-    const variables = [
-      uuidv4(),
-      tableName.toString(),
-      mutateType,
-      JSON.stringify(data),
-    ];
-    await this.executeQuery(stmt, variables);
-    return await this.syncDbNow(
-      [tableName],
-      undefined,
-      undefined,
-      is_sync_immediate,
+ private async updatePushChanges(
+  tableName: TABLES,
+  mutateType: MUTATE_TYPES,
+  data: { [key: string]: any },
+  is_sync_immediate?: boolean,
+) {
+  if (!this._db) return;
+
+  data["updated_at"] = new Date().toISOString();
+
+  const queueId = data?.id
+    ? `${tableName.toString()}:${data.id}`
+    : uuidv4();
+
+  let nextChangeType = mutateType;
+  let nextData = { ...data };
+
+  if (data?.id) {
+    const existing = await this.executeQuery(
+      `SELECT change_type, data FROM push_sync_info WHERE id = ? AND table_name = ? LIMIT 1`,
+      [queueId, tableName.toString()],
     );
+
+    const existingRow = existing?.values?.[0];
+    if (existingRow?.change_type === MUTATE_TYPES.INSERT) {
+      if (mutateType === MUTATE_TYPES.DELETE) {
+        await this.executeQuery(
+          `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
+          [queueId, tableName.toString()],
+        );
+        return true;
+      }
+
+      // Keep INSERT so server creates once, but carry latest fields.
+      if (mutateType === MUTATE_TYPES.UPDATE) {
+        nextChangeType = MUTATE_TYPES.INSERT;
+        try {
+          const existingData = JSON.parse(existingRow.data ?? "{}");
+          nextData = { ...existingData, ...data };
+        } catch {
+          nextData = { ...data };
+        }
+      }
+    }
   }
+
+  const stmt = `
+    INSERT OR REPLACE INTO push_sync_info 
+    (id, table_name, change_type, data) 
+    VALUES (?, ?, ?, ?)
+  `;
+
+  await this.executeQuery(stmt, [
+    queueId,
+    tableName.toString(),
+    nextChangeType,
+    JSON.stringify(nextData),
+  ]);
+
+  // 🚨 ONLY sync if explicitly asked
+  if (is_sync_immediate) {
+    return await this.syncDbNow([tableName]);
+  }
+
+  return true; // just queue it
+}
 
   async createProfile(
     name: string,
@@ -2531,11 +2611,11 @@ export class SqliteApi implements ServiceApi {
         updatedStudent.stars || 0,
       );
     }
-    this.updatePushChanges(
+    await this.updatePushChanges(
       TABLES.Result,
       MUTATE_TYPES.INSERT,
       newResult,
-      isImediateSync,
+      false,
     );
     const pushData: any = {
       id: student.id,
@@ -2569,12 +2649,14 @@ export class SqliteApi implements ServiceApi {
         stars_earned: starsEarned,
       });
     }
-    this.updatePushChanges(
+    await this.updatePushChanges(
       TABLES.User,
       MUTATE_TYPES.UPDATE,
       pushData,
-      isImediateSync,
+      false,
     );
+    // ⭐ only ONE sync after both are queued
+    await this.syncDbNow([TABLES.Result, TABLES.User]);
     return newResult;
   }
 
