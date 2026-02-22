@@ -885,32 +885,58 @@ export class SqliteApi implements ServiceApi {
     await this.executeQuery(createPushSyncInfoTable);
   }
 
- private async updatePushChanges(
-  tableName: TABLES,
-  mutateType: MUTATE_TYPES,
-  data: { [key: string]: any },
-  is_sync_immediate?: boolean,
-) {
-  if (!this._db) return;
+  private async updatePushChanges(
+    tableName: TABLES,
+    mutateType: MUTATE_TYPES,
+    data: { [key: string]: any },
+    is_sync_immediate?: boolean,
+  ) {
+    if (!this._db) return true;
 
-  data["updated_at"] = new Date().toISOString();
+    // Always bump updated_at so latest change wins
+    data.updated_at = new Date().toISOString();
 
-  const queueId = data?.id
-    ? `${tableName.toString()}:${data.id}`
-    : uuidv4();
+    // one queue row per entity
+    const queueId = data?.id
+      ? `${tableName.toString()}:${data.id}`
+      : uuidv4();
 
-  let nextChangeType = mutateType;
-  let nextData = { ...data };
-
-  if (data?.id) {
-    const existing = await this.executeQuery(
+    // STEP 1: check if entity already exists in queue
+    const existingRes = await this.executeQuery(
       `SELECT change_type, data FROM push_sync_info WHERE id = ? AND table_name = ? LIMIT 1`,
       [queueId, tableName.toString()],
     );
 
-    const existingRow = existing?.values?.[0];
-    if (existingRow?.change_type === MUTATE_TYPES.INSERT) {
-      if (mutateType === MUTATE_TYPES.DELETE) {
+    let finalChangeType = mutateType;
+    let finalData = { ...data };
+
+    const existingRow = existingRes?.values?.[0];
+
+    if (existingRow) {
+      let existingData: any = {};
+      try {
+        existingData = JSON.parse(existingRow.data ?? "{}");
+      } catch {
+        existingData = {};
+      }
+
+      /**
+       * ---------------------------------------------------------
+       * CRITICAL PART — MERGE STATE (ALWAYS)
+       * ---------------------------------------------------------
+       * Queue represents final desired server state,
+       * NOT a history of operations.
+       */
+      finalData = { ...existingData, ...data };
+
+      const previousType = existingRow.change_type;
+
+      /**
+       * Decide final operation type
+       */
+
+      // INSERT -> DELETE  (never existed on server → cancel)
+      if (previousType === MUTATE_TYPES.INSERT && mutateType === MUTATE_TYPES.DELETE) {
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [queueId, tableName.toString()],
@@ -918,39 +944,45 @@ export class SqliteApi implements ServiceApi {
         return true;
       }
 
-      // Keep INSERT so server creates once, but carry latest fields.
-      if (mutateType === MUTATE_TYPES.UPDATE) {
-        nextChangeType = MUTATE_TYPES.INSERT;
-        try {
-          const existingData = JSON.parse(existingRow.data ?? "{}");
-          nextData = { ...existingData, ...data };
-        } catch {
-          nextData = { ...data };
-        }
+      // INSERT -> UPDATE  (still INSERT, just newer fields)
+      if (previousType === MUTATE_TYPES.INSERT && mutateType === MUTATE_TYPES.UPDATE) {
+        finalChangeType = MUTATE_TYPES.INSERT;
+      }
+
+      // UPDATE -> UPDATE  (still UPDATE, merged)
+      if (previousType === MUTATE_TYPES.UPDATE && mutateType === MUTATE_TYPES.UPDATE) {
+        finalChangeType = MUTATE_TYPES.UPDATE;
+      }
+
+      // UPDATE -> DELETE  (real delete)
+      if (mutateType === MUTATE_TYPES.DELETE) {
+        finalChangeType = MUTATE_TYPES.DELETE;
       }
     }
+
+    /**
+     * Replace queue row with merged state
+     */
+    await this.executeQuery(
+      `INSERT OR REPLACE INTO push_sync_info (id, table_name, change_type, data) VALUES (?, ?, ?, ?)`,
+      [
+        queueId,
+        tableName.toString(),
+        finalChangeType,
+        JSON.stringify(finalData),
+      ],
+    );
+
+    /**
+     * Only run sync if explicitly requested
+     * (very important for batching)
+     */
+    if (is_sync_immediate) {
+      return await this.syncDbNow([tableName]);
+    }
+
+    return true;
   }
-
-  const stmt = `
-    INSERT OR REPLACE INTO push_sync_info 
-    (id, table_name, change_type, data) 
-    VALUES (?, ?, ?, ?)
-  `;
-
-  await this.executeQuery(stmt, [
-    queueId,
-    tableName.toString(),
-    nextChangeType,
-    JSON.stringify(nextData),
-  ]);
-
-  // 🚨 ONLY sync if explicitly asked
-  if (is_sync_immediate) {
-    return await this.syncDbNow([tableName]);
-  }
-
-  return true; // just queue it
-}
 
   async createProfile(
     name: string,
