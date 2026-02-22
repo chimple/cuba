@@ -747,8 +747,8 @@ export class SqliteApi implements ServiceApi {
   private async pushChanges(tableNames: TABLES[]) {
     if (!this._db) return false;
     const tables = "'" + tableNames.join("', '") + "'";
-
-    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at DESC;`;
+    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at ASC;`;
+    
     let res: any[] = [];
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
