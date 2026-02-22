@@ -1,17 +1,74 @@
 .lesson-grid {
-    max-height: 90%; 
-    overflow-y: auto; 
+  flex: 1;
+  max-height: none;
+  overflow-y: auto;
+  background-color: white;
+  border-radius: 8px;
+  padding: 6px 8px 96px;
+  box-sizing: border-box;
+}
+
+.container-body {
+  background-color: white !important;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 10px;
+  position: relative;
+}
+
+.chapter-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: #7c5db0;
+}
+
+.show-chapters-course-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 5px;
+  background-color: white;
+}
+
+.show-chapters-course-name {
+  flex: 1 1 180px;
+  min-width: 0;
+  color: #666666;
+  font-size: clamp(18px, 4.8vw, 30px);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.show-chapters-assigned-btn {
+  border: 2px solid #8f72c8;
+  background-color: transparent;
+  color: #676767;
+  border-radius: 8px;
+  height: clamp(28px, 3.5vh, 40px);
+  min-width: clamp(120px, 34vw, 160px);
+  max-width: 100%;
+  padding: 0 clamp(12px, 3vw, 18px);
+  font-size: clamp(14px, 3.6vw, 22px);
+  font-weight: 600;
+  white-space: nowrap;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+@media (max-width: 420px) {
+  .show-chapters-course-row {
+    align-items: flex-start;
   }
-  .container-body {
-    background-color: white;
-    height: 90vh;
-    display: block;
-    padding: 10px;
+
+  .show-chapters-assigned-btn {
+    margin-left: auto;
   }
-  .chapter-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    margin: 0;
-    background-color: #7c5db0;
-  }
+}

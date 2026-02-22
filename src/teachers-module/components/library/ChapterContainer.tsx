@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./ChapterContainer.css";
 import LessonComponent from "./LessonComponent";
-import KeyboardArrowDownTwoToneIcon from "@mui/icons-material/KeyboardArrowDownTwoTone";
-import KeyboardArrowUpTwoToneIcon from "@mui/icons-material/KeyboardArrowUpTwoTone";
-import { COURSES, PAGES, TableTypes } from "../../../common/constants";
-import { string } from "prop-types";
-import { useHistory } from "react-router";
+import { COURSES, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 interface ChapterContainerProps {
   chapter: TableTypes<"chapter">;
@@ -22,19 +18,17 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapterSelectedLessons,
   syncSelectedLessons,
   lessonClickCallBack,
-  isOpened,
   courseCode,
 }) => {
-  const [isOpen, setIsOpen] = useState(isOpened);
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
-  const history = useHistory();
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-  // useEffect(() => {
-  //   chapterSelectedLessons(chapter.id, selectedLessons);
-  // }, [selectedLessons]);
+  const chapterLessonIds = lessons
+    .map((lesson) => lesson.id)
+    .filter((lessonId): lessonId is string => Boolean(lessonId));
+  const isAllSelected =
+    chapterLessonIds.length > 0 &&
+    chapterLessonIds.every((lessonId) => selectedLessons.includes(lessonId));
+
   const handleLessonToggle = (lesson) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lesson)) {
@@ -46,56 +40,80 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
       }
     });
   };
+
+  const handleSelectAll = () => {
+    setSelectedLessons((prevSelectedLessons) => {
+      const prevSet = new Set(prevSelectedLessons);
+      const shouldSelectAll = chapterLessonIds.some(
+        (lessonId) => !prevSet.has(lessonId)
+      );
+
+      if (shouldSelectAll) {
+        chapterLessonIds.forEach((lessonId) => {
+          if (!prevSet.has(lessonId)) {
+            chapterSelectedLessons(chapter.id, lessonId, true);
+          }
+        });
+        return chapterLessonIds;
+      }
+
+      chapterLessonIds.forEach((lessonId) => {
+        if (prevSet.has(lessonId)) {
+          chapterSelectedLessons(chapter.id, lessonId, false);
+        }
+      });
+      return prevSelectedLessons.filter(
+        (lessonId) => !chapterLessonIds.includes(lessonId)
+      );
+    });
+  };
   return (
     <div className="collapsable-container">
-      <button onClick={toggleDropdown} className="toggle-button">
+      <div className="chapter-header-row">
         <div className="colladable-header">
           <div className="chapter-details">
             <div className="chapter-name">
               {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
             </div>
 
-            <div className="selected-count">{selectedLessons.length}</div>
-          </div>
-          <div>
-            {isOpen ? (
-              <img
-                src="assets/icons/iconUp.png"
-                alt="drop_down"
-                className="icon-style"
-              />
-            ) : (
-              <img
-                src="assets/icons/iconDown.png"
-                alt="drop_down"
-                className="icon-style"
-              />
-            )}
-          </div>
-        </div>
-      </button>
-      {isOpen && (
-        <div className="grid-container">
-          {lessons.map((lesson) => (
-            <div key={lesson.id} className="grid-item">
-              <div className="bottom-border">
-                <LessonComponent
-                  lesson={lesson}
-                  isSelButton={true}
-                  handleLessonCLick={() => {
-                    lessonClickCallBack(lesson);
-                  }}
-                  handleSelect={() => {
-                    handleLessonToggle(lesson.id);
-                  }}
-                  isSelcted={selectedLessons.includes(lesson.id)}
-                  courseCode={courseCode}
-                />
-              </div>
+            <div className="selected-count">
+              {selectedLessons.length} / {lessons.length}
             </div>
-          ))}
+          </div>
+          <div
+            className={`chapter-select-all${isAllSelected ? " is-selected" : ""}`}
+            role="button"
+            tabIndex={0}
+            onClick={handleSelectAll}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                handleSelectAll();
+              }
+            }}
+          />
         </div>
-      )}
+      </div>
+      <div className="grid-container">
+        {lessons.map((lesson) => (
+          <div key={lesson.id} className="grid-item">
+            <div className="bottom-border">
+              <LessonComponent
+                lesson={lesson}
+                isSelButton={true}
+                handleLessonCLick={() => {
+                  lessonClickCallBack(lesson);
+                }}
+                handleSelect={() => {
+                  handleLessonToggle(lesson.id);
+                }}
+                isSelcted={selectedLessons.includes(lesson.id)}
+                courseCode={courseCode}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

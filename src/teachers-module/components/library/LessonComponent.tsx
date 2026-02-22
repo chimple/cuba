@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./LessonComponent.css"; // Assuming you have some basic styles
 import { COURSES,TableTypes } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
@@ -23,6 +23,10 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   courseCode,
 }) => {
   const [isTicked, setIsTicked] = useState(isSelcted);
+
+  useEffect(() => {
+    setIsTicked(isSelcted);
+  }, [isSelcted]);
 
   const handleImageClick = () => {
     // Add your image click logic here

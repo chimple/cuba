@@ -2,11 +2,19 @@ import React, { useEffect, useState, useRef } from "react";
 import "./ShowChapters.css";
 import { useHistory } from "react-router";
 import Header from "../components/homePage/Header";
-import { AssignmentSource, PAGES, TableTypes } from "../../common/constants";
+import {
+  AssignmentSource,
+  COURSES,
+  PAGES,
+  TableTypes,
+  belowGrade1,
+  grade1,
+} from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import ChapterContainer from "../components/library/ChapterContainer";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Util } from "../../utility/util";
+import { t } from "i18next";
 
 interface ShowChaptersProps {}
 
@@ -35,6 +43,16 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
+  const isGrade1 =
+    course.grade_id === grade1 || course.grade_id === belowGrade1;
+  const selectedCourseName =
+    course.code === COURSES.ENGLISH
+      ? course.name ?? ""
+      : t(course.name ?? "");
+  const selectedCourseGrade =
+    course.code === COURSES.ENGLISH
+      ? `Grade ${isGrade1 ? "1" : "2"}`
+      : `${t("Grade")} ${isGrade1 ? "1" : "2"}`;
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -160,65 +178,73 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     lessonId: string,
     isSelected: boolean
   ) => {
-    const newClassSelectedLesson = new Map(classSelectedLesson);
-    const existing = { ...newClassSelectedLesson.get(chapterId) };
+    setClassSelectedLesson((prevClassSelectedLesson) => {
+      const newClassSelectedLesson = new Map(prevClassSelectedLesson);
+      const existing = { ...newClassSelectedLesson.get(chapterId) };
 
-    if (isSelected) {
-      // ADD: put into manual
-      const manual = new Set(existing[AssignmentSource.MANUAL] || []);
-      manual.add(lessonId);
-      existing[AssignmentSource.MANUAL] = Array.from(manual);
-    } else {
-      // REMOVE: check manual first, then qr_code
-      const manual = new Set(existing[AssignmentSource.MANUAL] || []);
-      const qr = new Set(existing[AssignmentSource.QR_CODE] || []);
+      if (isSelected) {
+        const manual = new Set(existing[AssignmentSource.MANUAL] || []);
+        manual.add(lessonId);
+        existing[AssignmentSource.MANUAL] = Array.from(manual);
+      } else {
+        const manual = new Set(existing[AssignmentSource.MANUAL] || []);
+        const qr = new Set(existing[AssignmentSource.QR_CODE] || []);
 
-      if (manual.has(lessonId)) {
-        manual.delete(lessonId);
-      } else if (qr.has(lessonId)) {
-        qr.delete(lessonId);
+        if (manual.has(lessonId)) {
+          manual.delete(lessonId);
+        } else if (qr.has(lessonId)) {
+          qr.delete(lessonId);
+        }
+
+        existing[AssignmentSource.MANUAL] = Array.from(manual);
+        existing[AssignmentSource.QR_CODE] = Array.from(qr);
       }
 
-      existing[AssignmentSource.MANUAL] = Array.from(manual);
-      existing[AssignmentSource.QR_CODE] = Array.from(qr);
-    }
+      newClassSelectedLesson.set(chapterId, existing);
 
-    newClassSelectedLesson.set(chapterId, existing);
-    setClassSelectedLesson(newClassSelectedLesson);
+      const _selectedLessonJson = JSON.stringify(
+        Object.fromEntries(newClassSelectedLesson)
+      );
 
-    // Sync with main map
-    const _selectedLessonJson = JSON.stringify(
-      Object.fromEntries(newClassSelectedLesson)
-    );
-    const newSelectedLesson = new Map(selectedLesson);
-    newSelectedLesson.set(current_class?.id ?? "", _selectedLessonJson);
-    setSelectedLesson(newSelectedLesson);
+      setSelectedLesson((prevSelectedLesson) => {
+        const newSelectedLesson = new Map(prevSelectedLesson);
+        newSelectedLesson.set(current_class?.id ?? "", _selectedLessonJson);
+        syncSelectedLesson(JSON.stringify(Object.fromEntries(newSelectedLesson)));
+        return newSelectedLesson;
+      });
 
-    syncSelectedLesson(JSON.stringify(Object.fromEntries(newSelectedLesson)));
+      let _assignmentCount = 0;
+      for (const value of newClassSelectedLesson.values()) {
+        const manual = value[AssignmentSource.MANUAL] || [];
+        const qr = value[AssignmentSource.QR_CODE] || [];
+        _assignmentCount += manual.length + qr.length;
+      }
+      setAssignmentCount(_assignmentCount);
 
-    // Recalculate count
-    let _assignmentCount = 0;
-    for (const value of newClassSelectedLesson.values()) {
-      const manual = value[AssignmentSource.MANUAL] || [];
-      const qr = value[AssignmentSource.QR_CODE] || [];
-      _assignmentCount += manual.length + qr.length;
-    }
-    setAssignmentCount(_assignmentCount);
+      return newClassSelectedLesson;
+    });
   };
 
   return (
     <div className="chapter-container">
       <Header
         isBackButton={true}
-        onButtonClick={() => {
+        onBackButtonClick={() => {
           history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
-        schoolName={currentSchool?.name}
+        customText="Library"
+        showSearchIcon={true}
+        onSearchIconClick={() => history.replace(PAGES.SEARCH_LESSON)}
       />
       <main className="container-body">
+        <div className="show-chapters-course-row">
+          <div className="show-chapters-course-name">
+            {`${selectedCourseName} ${selectedCourseGrade}`}
+          </div>
+          <button type="button" className="show-chapters-assigned-btn">
+            {t("Show Assigned")}
+          </button>
+        </div>
         <div className="lesson-grid">
           {chapters?.map((chapter, index) => (
             <div

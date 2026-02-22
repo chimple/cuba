@@ -1,68 +1,187 @@
 .collapsable-container {
-  text-align: center;
+  text-align: left;
+  margin-bottom: 10px;
 }
-.collapsable-container .toggle-button {
-  margin: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  width: 95%;
-  border: 0px solid #000;
-  border-radius: 10px;
-  background-color: #EFE8F8;
-  height: 6vh;
-  min-height: 50px;
+
+.collapsable-container .chapter-header-row {
+  margin: 0;
+  padding: 0 10px 0 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background-color: #e7e0f0;
+  height: 37px;
+  min-height: 37px;
 }
-.collapsable-container button:hover {
-  background-color: #EFE8F8;
-}
+
 .chapter-details {
   display: flex;
-  width: 90%;
-  text-align: left;
+  align-items: center;
+  width: auto;
+  gap: 8px;
 }
+
 .chapter-name {
-  color: #707070;
+  color: #666666;
+  font-size: clamp(16px, 2.4vh, 22px);
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .selected-count {
-  width: 22px;
-  height: 22px;
-  margin: auto 10px;
-  border-radius: 5px;
-  background-color: #E38F98;
-  font-size: 16px;
+  min-width: 48px;
+  height: 21px;
+  padding: 8px !important;
+  margin: 0;
+  border-radius: 6px;
+  background-color: #db8f99;
+  color: #fff;
+  font-size: clamp(13px, 1.8vh, 18px);
+  font-weight: 700;
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  font-weight: bold;
-  min-width: 22px;
+  justify-content: center !important;
+  align-items: center;
 }
+
 .colladable-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
+
 .icon-style {
-  color: #707070;
+  display: none;
+}
+
+.chapter-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #787878;
+  font-size: clamp(14px, 1.9vh, 18px);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chapter-select-all::before {
+  content: "Select All";
+}
+
+.chapter-select-all::after {
+  content: "";
   width: 18px;
   height: 18px;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #b6b6b6;
+  color: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.chapter-select-all.is-selected::after {
+  content: "\2713";
+  background-color: #c9e468;
+  border: none;
+  color: #fff;
+}
+
 .grid-container {
   display: grid;
-  padding: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(14vh, 1fr));
+  padding: 12px 4px 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 8px;
+  row-gap: 14px;
+  /* border-bottom: 1px solid #e7e2ec; */
 }
+
 @media (orientation: landscape) {
   .grid-container {
-    grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
 .bottom-border {
-  border-bottom: 0.5px solid #838181;
+  border-bottom: none;
 }
+
 .grid-item {
-  /* padding: 20px; */
   text-align: center;
+}
+
+.collapsable-container .lesson-component-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.collapsable-container .lesson-type-logo {
+  display: none;
+}
+
+.collapsable-container .image-container {
+  cursor: pointer;
+  height: 54px;
+  width: 84px;
+  margin: 0 auto;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #f1f1f1 !important;
+}
+
+.collapsable-container .image-container img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.collapsable-container .text-container {
+  gap: 3px;
+  width: 100%;
+}
+
+.collapsable-container .lesson-details {
+  font-size: clamp(11px, 1.7vh, 14px);
+  color: #646464;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.collapsable-container .select-icon-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.collapsable-container .select-Assignmenticon {
+  width: 72px;
+  height: 21px;
+  border: 1px solid #8e6cc6;
+  border-radius: 6px;
+  gap: 3px;
+}
+
+.collapsable-container .select-Assignmenticon img {
+  width: 10px;
+  height: 10px;
+}
+
+.collapsable-container .select-text {
+  font-size: 11px;
+  font-weight: 500;
 }
