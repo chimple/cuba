@@ -1,0 +1,25 @@
+import { ReactComponent as LayoutSvg } from "../../../assets/images/newWhole_layout.svg";
+import ColorTray from "./colorTray";
+import { useSvgColoring } from "./useSvgColoring";
+
+export default function ColoringBoard() {
+  const { selectedColor, setSelectedColor } = useSvgColoring();
+
+  return (
+    <div style={container}>
+      
+      <LayoutSvg id="coloring-svg" style={{ width: 600 }} />
+
+      <ColorTray
+        selected={selectedColor}
+        onSelect={setSelectedColor}
+      />
+    </div>
+  );
+}
+
+const container: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 20,          // space between svg and tray
+};
