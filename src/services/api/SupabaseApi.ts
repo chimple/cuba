@@ -6119,8 +6119,7 @@ export class SupabaseApi implements ServiceApi {
         .select("id")
         .eq("class_id", classId)
         .eq("course_id", courseId)
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: false });
+        .eq("is_deleted", false);
 
       query =
         chapterIds.length === 1

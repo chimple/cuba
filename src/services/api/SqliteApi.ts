@@ -4055,11 +4055,11 @@ export class SqliteApi implements ServiceApi {
   async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
     if (!ids.length) return [];
 
-    const placeholders = ids.map(() => "?").join(", ");
+    const idslst = ids.map(() => "?").join(", ");
     const query = `
       SELECT *
       FROM ${TABLES.Assignment}
-      WHERE id IN (${placeholders})
+      WHERE id IN (${idslst})
         AND is_deleted = 0;
     `;
 
@@ -5487,15 +5487,14 @@ order by
 
     if (!chapterIds.length) return [];
 
-    const placeholders = chapterIds.map(() => "?").join(", ");
+    const idslst = chapterIds.map(() => "?").join(", ");
     const query = `
       SELECT DISTINCT id
       FROM ${TABLES.Assignment}
       WHERE class_id = ?
         AND course_id = ?
-        AND chapter_id IN (${placeholders})
-        AND is_deleted = 0
-      ORDER BY created_at DESC;
+        AND chapter_id IN (${idslst})
+        AND is_deleted = 0; 
     `;
 
     const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
