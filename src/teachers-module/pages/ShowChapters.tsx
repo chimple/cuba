@@ -359,7 +359,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         <AssigmentCount
           assignments={assignmentCount}
           onClick={() => {
-            history.replace(PAGES.TEACHER_ASSIGNMENT);
+            history.push(PAGES.TEACHER_ASSIGNMENT);
           }}
         />
       </main>
