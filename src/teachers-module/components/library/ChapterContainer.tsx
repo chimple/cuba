@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./ChapterContainer.css";
 import LessonComponent from "./LessonComponent";
 import { COURSES, TableTypes } from "../../../common/constants";
@@ -19,6 +19,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   lessons,
   chapterSelectedLessons,
   syncSelectedLessons,
+  isOpened,
   lessonClickCallBack,
   courseCode,
   showAssignedBadge,
@@ -26,6 +27,12 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
 }) => {
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
+  const [isExpanded, setIsExpanded] = useState<boolean>(isOpened);
+
+  useEffect(() => {
+    setIsExpanded(isOpened);
+  }, [isOpened]);
+
   const chapterLessonIds = lessons
     .map((lesson) => lesson.id)
     .filter((lessonId): lessonId is string => Boolean(lessonId));
@@ -71,10 +78,25 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
       );
     });
   };
+
+  const toggleChapter = () => {
+    setIsExpanded((prev) => !prev);
+  };
   return (
     <div className="collapsable-container">
       <div className="chapter-header-row">
-        <div className="colladable-header">
+        <div
+          className="colladable-header"
+          role="button"
+          tabIndex={0}
+          onClick={toggleChapter}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              toggleChapter();
+            }
+          }}
+        >
           <div className="chapter-details">
             <div className="chapter-name">
               {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
@@ -84,46 +106,54 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
               {selectedLessons.length} / {lessons.length}
             </div>
           </div>
-          <div
-            className={`chapter-select-all${isAllSelected ? " is-selected" : ""}`}
-            role="button"
-            tabIndex={0}
-            onClick={handleSelectAll}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
+          <div className="chapter-header-actions">
+            <div
+              className={`chapter-select-all${isAllSelected ? " is-selected" : ""}`}
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation();
                 handleSelectAll();
-              }
-            }}
-          />
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleSelectAll();
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
-      <div className="grid-container">
-        {lessons.map((lesson) => (
-          <div key={lesson.id} className="grid-item">
-            <div className="bottom-border">
-              <LessonComponent
-                lesson={lesson}
-                isSelButton={true}
-                handleLessonCLick={() => {
-                  lessonClickCallBack(lesson);
-                }}
-                handleSelect={() => {
-                  handleLessonToggle(lesson.id);
-                }}
-                isSelcted={selectedLessons.includes(lesson.id)}
-                courseCode={courseCode}
-                isAssigned={
-                  !!showAssignedBadge &&
-                  !!lesson.id &&
-                  !!assignedLessonIds?.has(lesson.id)
-                }
-                showAssignedBadge={!!showAssignedBadge}
-              />
+      {isExpanded ? (
+        <div className="grid-container">
+          {lessons.map((lesson) => (
+            <div key={lesson.id} className="grid-item">
+              <div className="bottom-border">
+                <LessonComponent
+                  lesson={lesson}
+                  isSelButton={true}
+                  handleLessonCLick={() => {
+                    lessonClickCallBack(lesson);
+                  }}
+                  handleSelect={() => {
+                    handleLessonToggle(lesson.id);
+                  }}
+                  isSelcted={selectedLessons.includes(lesson.id)}
+                  courseCode={courseCode}
+                  isAssigned={
+                    !!showAssignedBadge &&
+                    !!lesson.id &&
+                    !!assignedLessonIds?.has(lesson.id)
+                  }
+                  showAssignedBadge={!!showAssignedBadge}
+                />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 };

@@ -1436,6 +1436,18 @@ export interface ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
+   * Get unique assignment IDs for a given class + course(subject) + chapter.
+   * @param classId
+   * @param courseId
+   * @param chapterId
+   */
+  getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterId: string
+  ): Promise<string[]>;
+
+  /**
    * To generate class code for the given class id
    * @param {string } classId - Class Id
    */

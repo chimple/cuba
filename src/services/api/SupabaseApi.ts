@@ -6084,6 +6084,43 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterId: string,
+  ): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Assignment)
+        .select("id")
+        .eq("class_id", classId)
+        .eq("course_id", courseId)
+        .eq("chapter_id", chapterId)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(
+          "Supabase error in getUniqueAssignmentIdsByCourseAndChapter:",
+          error,
+        );
+        return [];
+      }
+
+      return Array.from(
+        new Set((data ?? []).map((row: any) => row.id).filter(Boolean)),
+      ) as string[];
+    } catch (err) {
+      console.error(
+        "Error in getUniqueAssignmentIdsByCourseAndChapter:",
+        err,
+      );
+      return [];
+    }
+  }
+
   async createClassCode(classId: string): Promise<number> {
     try {
       // Validate parameters

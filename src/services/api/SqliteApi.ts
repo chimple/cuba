@@ -5460,6 +5460,29 @@ order by
     return res.values;
   }
 
+  async getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterId: string,
+  ): Promise<string[]> {
+    const query = `
+      SELECT DISTINCT id
+      FROM ${TABLES.Assignment}
+      WHERE class_id = ?
+        AND course_id = ?
+        AND chapter_id = ?
+        AND is_deleted = 0
+      ORDER BY created_at DESC;
+    `;
+
+    const res = await this._db?.query(query, [classId, courseId, chapterId]);
+    if (!res?.values?.length) return [];
+
+    return res.values
+      .map((row: any) => row.id as string | undefined)
+      .filter((id): id is string => Boolean(id));
+  }
+
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
     userId: string,

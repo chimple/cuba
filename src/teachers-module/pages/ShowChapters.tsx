@@ -62,13 +62,6 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       ? `Grade ${isGrade1 ? "1" : "2"}`
       : `${t("Grade")} ${isGrade1 ? "1" : "2"}`;
 
-  const formatLocalDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, "0");
-    const day = `${date.getDate()}`.padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
   useEffect(() => {
     const fetchClassDetails = async () => {
       try {
@@ -242,38 +235,44 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
 
   const loadAssignedLessonsForCourse = async () => {
     if (hasLoadedAssignedLessons || isLoadingAssignedLessons) return;
-    const userId = currentUser?.id ?? (await auth.getCurrentUser())?.id;
     const classId = currentClass?.id ?? current_class?.id;
-    if (!userId || !classId || !course?.id) return;
+    if (!classId || !course?.id) return;
 
     setIsLoadingAssignedLessons(true);
     try {
-      const endDate = formatLocalDate(new Date());
-      const startDateObj = new Date();
-      startDateObj.setDate(startDateObj.getDate() - 9);
-      const startDate = formatLocalDate(startDateObj);
+      const chapterList =
+        chapters && chapters.length > 0
+          ? chapters
+          : await api.getChaptersForCourse(course.id);
 
-      const { classWiseAssignments, individualAssignments } =
-        await api.getAssignmentsByAssignerAndClass(
-          userId,
-          classId,
-          startDate,
-          endDate
-        );
-
-      const assignedIds = new Set<string>();
-      [...classWiseAssignments, ...individualAssignments].forEach(
-        (assignment) => {
-          if (
-            assignment?.lesson_id &&
-            String(assignment.course_id ?? "") === String(course.id)
-          ) {
-            assignedIds.add(String(assignment.lesson_id));
-          }
-        }
+      const allAssignmentIds = new Set<string>();
+      await Promise.all(
+        (chapterList ?? []).map(async (chapter) => {
+          if (!chapter?.id) return;
+          const assignmentIds =
+            await api.getUniqueAssignmentIdsByCourseAndChapter(
+              classId,
+              course.id,
+              chapter.id
+            );
+          assignmentIds.forEach((id) => allAssignmentIds.add(id));
+        })
       );
 
-      setAssignedLessonIds(assignedIds);
+      const assignmentDocs = await Promise.all(
+        Array.from(allAssignmentIds).map((assignmentId) =>
+          api.getAssignmentById(assignmentId)
+        )
+      );
+
+      const assignedLessonSet = new Set<string>();
+      assignmentDocs.forEach((assignmentDoc) => {
+        if (assignmentDoc?.lesson_id) {
+          assignedLessonSet.add(String(assignmentDoc.lesson_id));
+        }
+      });
+
+      setAssignedLessonIds(assignedLessonSet);
       setHasLoadedAssignedLessons(true);
     } catch (error) {
       console.error("Failed to load assigned lessons for course:", error);

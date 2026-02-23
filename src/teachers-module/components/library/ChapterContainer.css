@@ -49,10 +49,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: pointer;
 }
 
-.icon-style {
-  display: none;
+.chapter-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .chapter-select-all {

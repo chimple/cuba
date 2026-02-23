@@ -1184,6 +1184,17 @@ export class ApiHandler implements ServiceApi {
       classId
     );
   }
+  getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterId: string
+  ): Promise<string[]> {
+    return this.s.getUniqueAssignmentIdsByCourseAndChapter(
+      classId,
+      courseId,
+      chapterId
+    );
+  }
   createClassCode(classId: string): Promise<number> {
     return this.s.createClassCode(classId);
   }
