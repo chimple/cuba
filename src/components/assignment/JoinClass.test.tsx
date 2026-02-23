@@ -52,13 +52,6 @@ jest.mock("@capacitor/keyboard", () => ({
   },
 }));
 
-jest.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (k: string) => k,
-    i18n: { changeLanguage: jest.fn() },
-  }),
-}));
-
 /* ======================= API MOCK ======================= */
 
 const mockApi = {
