@@ -201,7 +201,8 @@ const JoinClass: FC<{
             value={fullName}
             setValue={setFullName}
             icon="assets/icons/BusinessCard.svg"
-            readOnly={fullName === currStudent.name}
+            readOnly={!!currStudent && fullName === currStudent.name}
+
             statusIcon={
               fullName.length == 0 ? null : fullName &&
                 (fullName.length >= 3 || fullName === currStudent.name) ? (
