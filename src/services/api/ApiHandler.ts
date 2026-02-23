@@ -82,6 +82,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"assignment"> | undefined> {
     return this.s.getAssignmentById(id);
   }
+  public getAssignmentsByIds(
+    ids: string[]
+  ): Promise<TableTypes<"assignment">[]> {
+    return this.s.getAssignmentsByIds(ids);
+  }
   public getStudentResultsByAssignmentId(assignmentId: string) {
     return this.s.getStudentResultsByAssignmentId(assignmentId);
   }
@@ -1187,12 +1192,12 @@ export class ApiHandler implements ServiceApi {
   getUniqueAssignmentIdsByCourseAndChapter(
     classId: string,
     courseId: string,
-    chapterId: string
+    chapterIdOrIds: string | string[]
   ): Promise<string[]> {
     return this.s.getUniqueAssignmentIdsByCourseAndChapter(
       classId,
       courseId,
-      chapterId
+      chapterIdOrIds
     );
   }
   createClassCode(classId: string): Promise<number> {

@@ -974,6 +974,12 @@ export interface ServiceApi {
    * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
    */
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined>;
+  /**
+   * Gives Assignments for given assignment doc ids
+   * @param {string[]} ids - Assignment doc ids
+   * @returns {Assignment[]} Array of assignments matched by ids
+   */
+  getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]>;
 
   /**
    * Gives Badge for given a Badge firebase doc Id
@@ -1436,15 +1442,15 @@ export interface ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
-   * Get unique assignment IDs for a given class + course(subject) + chapter.
+   * Get unique assignment IDs for a given class + course(subject) + chapter(s).
    * @param classId
    * @param courseId
-   * @param chapterId
+   * @param chapterIdOrIds
    */
   getUniqueAssignmentIdsByCourseAndChapter(
     classId: string,
     courseId: string,
-    chapterId: string
+    chapterIdOrIds: string | string[]
   ): Promise<string[]>;
 
   /**

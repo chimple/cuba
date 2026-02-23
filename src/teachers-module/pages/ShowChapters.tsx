@@ -245,24 +245,20 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
           ? chapters
           : await api.getChaptersForCourse(course.id);
 
-      const allAssignmentIds = new Set<string>();
-      await Promise.all(
-        (chapterList ?? []).map(async (chapter) => {
-          if (!chapter?.id) return;
-          const assignmentIds =
-            await api.getUniqueAssignmentIdsByCourseAndChapter(
-              classId,
-              course.id,
-              chapter.id
-            );
-          assignmentIds.forEach((id) => allAssignmentIds.add(id));
-        })
+      const chapterIds = (chapterList ?? [])
+        .map((chapter) => chapter?.id)
+        .filter((id): id is string => Boolean(id));
+
+      const assignmentIds = await api.getUniqueAssignmentIdsByCourseAndChapter(
+        classId,
+        course.id,
+        chapterIds
       );
 
-      const assignmentDocs = await Promise.all(
-        Array.from(allAssignmentIds).map((assignmentId) =>
-          api.getAssignmentById(assignmentId)
-        )
+      const allAssignmentIds = new Set<string>(assignmentIds);
+
+      const assignmentDocs = await api.getAssignmentsByIds(
+        Array.from(allAssignmentIds)
       );
 
       const assignedLessonSet = new Set<string>();

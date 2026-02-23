@@ -4052,6 +4052,22 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+    if (!ids.length) return [];
+
+    const placeholders = ids.map(() => "?").join(", ");
+    const query = `
+      SELECT *
+      FROM ${TABLES.Assignment}
+      WHERE id IN (${placeholders})
+        AND is_deleted = 0;
+    `;
+
+    const res = await this._db?.query(query, ids);
+    if (!res?.values?.length) return [];
+
+    return res.values as TableTypes<"assignment">[];
+  }
 
   async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     if (ids.length === 0) return [];
@@ -5463,19 +5479,26 @@ order by
   async getUniqueAssignmentIdsByCourseAndChapter(
     classId: string,
     courseId: string,
-    chapterId: string,
+    chapterIdOrIds: string | string[],
   ): Promise<string[]> {
+    const chapterIds = Array.isArray(chapterIdOrIds)
+      ? chapterIdOrIds.filter(Boolean)
+      : [chapterIdOrIds].filter(Boolean);
+
+    if (!chapterIds.length) return [];
+
+    const placeholders = chapterIds.map(() => "?").join(", ");
     const query = `
       SELECT DISTINCT id
       FROM ${TABLES.Assignment}
       WHERE class_id = ?
         AND course_id = ?
-        AND chapter_id = ?
+        AND chapter_id IN (${placeholders})
         AND is_deleted = 0
       ORDER BY created_at DESC;
     `;
 
-    const res = await this._db?.query(query, [classId, courseId, chapterId]);
+    const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
     if (!res?.values?.length) return [];
 
     return res.values

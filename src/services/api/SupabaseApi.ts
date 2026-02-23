@@ -4716,6 +4716,22 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? undefined;
   }
+  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+    if (!this.supabase || ids.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("assignment")
+      .select("*")
+      .in("id", ids)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching assignments by ids:", error);
+      return [];
+    }
+
+    return (data ?? []) as TableTypes<"assignment">[];
+  }
   async createOrUpdateAssignmentCart(
     userId: string,
     lessons: string,
@@ -6087,19 +6103,31 @@ export class SupabaseApi implements ServiceApi {
   async getUniqueAssignmentIdsByCourseAndChapter(
     classId: string,
     courseId: string,
-    chapterId: string,
+    chapterIdOrIds: string | string[],
   ): Promise<string[]> {
     if (!this.supabase) return [];
 
     try {
-      const { data, error } = await this.supabase
+      const chapterIds = Array.isArray(chapterIdOrIds)
+        ? chapterIdOrIds.filter(Boolean)
+        : [chapterIdOrIds].filter(Boolean);
+
+      if (!chapterIds.length) return [];
+
+      let query = this.supabase
         .from(TABLES.Assignment)
         .select("id")
         .eq("class_id", classId)
         .eq("course_id", courseId)
-        .eq("chapter_id", chapterId)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
+
+      query =
+        chapterIds.length === 1
+          ? query.eq("chapter_id", chapterIds[0])
+          : query.in("chapter_id", chapterIds);
+
+      const { data, error } = await query;
 
       if (error) {
         console.error(
