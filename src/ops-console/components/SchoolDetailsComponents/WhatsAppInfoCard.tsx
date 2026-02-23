@@ -77,7 +77,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
     setIsSaving(true);
     const success = await api.updateWhatsAppGroupSettings(
-      classDoc?.group_id!,
+      classDoc?.group_id??"",
       bot,
       editedGroupName,
     );
