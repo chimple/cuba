@@ -46,6 +46,21 @@ jest.mock("../Home/DropdownMenu", () => (props: any) => (
   </button>
 ));
 
+jest.mock("../Home/DropdownMenu", () => (props: any) => (
+  <div>
+    <button
+      data-testid="dropdown"
+      disabled={props.disabled}
+      onClick={() => {
+        // simulate subject change
+        props.onSelect?.({ id: "math" });
+      }}
+    >
+      Dropdown
+    </button>
+  </div>
+));
+
 jest.mock("./HomeworkPathwayStructure", () => (props: any) => (
   <button
     data-testid="pathway-structure"
@@ -214,12 +229,203 @@ describe("HomeworkPathway – dropdown behavior", () => {
 
     expect(await screen.findByTestId("pathway-modal")).toBeInTheDocument();
   });
+  test("clicking dropdown does not reset pathway or assignments", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
 
+    const pathway = {
+      path_id: "p1",
+      lessons: [{ lesson: { id: "l1" } }],
+      currentIndex: 0,
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(pathway));
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId("dropdown"));
+
+    const stored = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY) || "{}");
+
+    expect(stored.path_id).toBe("p1");
+    expect(screen.getByTestId("chapter-box")).toBeInTheDocument();
+  });
 });
 
 /* ======================= COMPLETION FLOW ======================= */
 
+describe("HomeworkPathway – pathway logic", () => {
+  test("creates a new pathway if one doesn't exist", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: "a1", type: "HOMEWORK", lesson_id: "l1", course_id: "s1" },
+      { id: "a2", type: "HOMEWORK", lesson_id: "l2", course_id: "s1" },
+    ]);
+    mockApi.getLesson.mockImplementation((id) =>
+      Promise.resolve({
+        id,
+        subject_id: "s1",
+        name: `Lesson ${id}`,
+        chapter_id: "c1",
+      }),
+    );
+    mockApi.getChapterById.mockResolvedValue({ id: "c1", name: "Chapter 1" });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(
+        localStorage.getItem(HOMEWORK_PATHWAY) || "{}",
+      );
+      expect(pathway.path_id).toBeDefined();
+      expect(pathway.lessons.length).toBe(2);
+      expect(pathway.currentIndex).toBe(0);
+    });
+  });
+
+  test("increments currentIndex when next lesson exists", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const initialPathway = {
+      path_id: "p1",
+      lessons: [
+        { lesson: { id: "l1" }, chapter: { name: "Ch 1" } },
+        { lesson: { id: "l2" }, chapter: { name: "Ch 1" } },
+      ],
+      currentIndex: 0,
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+
+    // Mock APIs that will be called during the re-fetch
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+    mockApi.getLesson.mockResolvedValue({ id: "l2", name: "Lesson 2" });
+    mockApi.getChapterById.mockResolvedValue({ id: "c1", name: "Chapter 1" });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    // Wait for the component to render initially
+    await screen.findByTestId("pathway-structure");
+
+    // Click to complete the lesson, which triggers handleHomeworkComplete
+    await userEvent.click(screen.getByTestId("pathway-structure"));
+
+    // The component now re-fetches and updates its state, so we wait for the result
+    await waitFor(() => {
+      const pathway = JSON.parse(
+        localStorage.getItem(HOMEWORK_PATHWAY) || "{}",
+      );
+      expect(pathway.currentIndex).toBe(1);
+    });
+  });
+
+  test("shows completion modal on last lesson", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const pathway = {
+      path_id: "p1",
+      lessons: [{ lesson: { id: "l1" } }],
+      currentIndex: 0,
+    };
+
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(pathway));
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await screen.findByTestId("pathway-structure");
+    await userEvent.click(screen.getByTestId("pathway-structure"));
+
+    expect(
+      await screen.findByTestId("homework-complete-modal"),
+    ).toBeInTheDocument();
+  });
+
+  test("reuses existing pathway even if assignments change", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const oldPathway = {
+      path_id: "old-path",
+      lessons: [{ lesson: { id: "l1" } }],
+      currentIndex: 0,
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(oldPathway));
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: "a-new", type: "HOMEWORK", lesson_id: "l-new", course_id: "s-new" },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.path_id).toBe("old-path");
+    });
+  });
+
+  test("handles empty pathway gracefully", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(localStorage.getItem(HOMEWORK_PATHWAY)).toBeNull();
+      expect(screen.queryByTestId("pathway-structure")).not.toBeInTheDocument();
+    });
+  });
+});
+
 describe("HomeworkPathway – completion flow", () => {
+  test("shows completion modal when last lesson is finished", async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const initialPathway = {
+      path_id: "p1",
+      lessons: [{ lesson: { id: "l1" }, chapter: { name: "Ch 1" } }],
+      currentIndex: 0,
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId("pathway-structure"));
+
+    expect(
+      await screen.findByTestId("homework-complete-modal"),
+    ).toBeInTheDocument();
+  });
+
   test("completion modal appears when homework completes", async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
 

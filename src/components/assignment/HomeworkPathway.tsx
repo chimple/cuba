@@ -586,6 +586,33 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
   };
 
+  const handleHomeworkComplete = async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) return;
+
+    const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+    if (pathStr) {
+      try {
+        const path = JSON.parse(pathStr) as HomeworkPath;
+        const newIndex = (path.currentIndex || 0) + 1;
+
+        if (newIndex >= path.lessons.length) {
+          setIsHomeworkComplete(true);
+          // Optional: Award stars or do other cleanup on final completion
+        } else {
+          path.currentIndex = newIndex;
+          await saveHomeworkPath(student, path); // Save the updated path
+          await fetchHomeworkPathway(student, selectedSubject || undefined); // Refetch to update UI
+        }
+      } catch (e) {
+        console.error("Failed to update homework progress", e);
+        setIsHomeworkComplete(true); // Failsafe
+      }
+    } else {
+      setIsHomeworkComplete(true); // No path found, assume complete
+    }
+  };
+
   if (loading) return <Loading isLoading={loading} />;
 
   if (isHomeworkComplete) {
@@ -630,7 +657,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         <HomeworkPathwayStructure
           key={refreshKey}
           selectedSubject={selectedSubject}
-          onHomeworkComplete={() => setIsHomeworkComplete(true)}
+          onHomeworkComplete={handleHomeworkComplete}
         />
       </div>
 
