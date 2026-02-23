@@ -90,13 +90,3 @@
 .show-chapters-assigned-btn:disabled {
   opacity: 0.85;
 }
-
-@media (max-width: 420px) {
-  .show-chapters-course-row {
-    align-items: flex-start;
-  }
-
-  .show-chapters-assigned-btn {
-    margin-left: auto;
-  }
-}

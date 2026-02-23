@@ -259,7 +259,7 @@ const TeacherLibraryAssignments: React.FC = () => {
                   <div className="teacher-assignments-group-header">
                     <div className="teacher-assignments-group-name">{subjectTitle}</div>
                     <div className="teacher-assignments-group-count">
-                      {selectedCount}/{group.lessons.length}
+                      {selectedCount} / {group.lessons.length}
                     </div>
                   </div>
 

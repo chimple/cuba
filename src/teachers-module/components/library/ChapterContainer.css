@@ -4,6 +4,8 @@
 }
 
 .collapsable-container .chapter-header-row {
+  display: flex;
+  align-items: center;
   margin: 0;
   padding: 0 10px 0 10px;
   width: 100%;
@@ -49,6 +51,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  height: 100%;
   cursor: pointer;
 }
 
@@ -139,15 +143,31 @@
   width: 84px;
   margin: 0 auto;
   border-radius: 6px;
+  position: relative;
   overflow: hidden;
   background-color: #f1f1f1 !important;
+}
+
+.collapsable-container .image-container .lesson-image,
+.collapsable-container .image-container .lesson-image > div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .collapsable-container .image-container .lesson-image img {
   height: 100%;
   width: 100%;
   object-fit: cover;
+  object-position: center;
   border-radius: 6px;
+}
+
+.collapsable-container .image-container .lesson-assigned-badge {
+  top: 0;
+  right: 0;
 }
 
 .collapsable-container .text-container {

@@ -10,6 +10,11 @@
   transform: translateX(-30px);
   font-size: var(--text-sizeXL);
   padding: 4vh;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100vw - 110px);
 }
 
 .teacher-library-assignments-body {
@@ -17,6 +22,15 @@
   background: #fff;
   overflow-y: auto;
   padding: 10px 12px 110px;
+}
+
+.teacher-library-assignments-page .assign-button {
+  top: auto;
+  bottom: 1vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  margin-top: 0;
 }
 
 .teacher-library-assignments-list {
