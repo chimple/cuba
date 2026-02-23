@@ -16,8 +16,6 @@ import {
   LIVE_QUIZ,
   PAGES,
   TableTypes,
-  belowGrade1,
-  grade1,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
@@ -45,6 +43,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const current_class = Util.getCurrentClass();
   const selectedLesson = state?.["selectedLesson"];
   const chapterName = state?.["chapterName"];
+  const gradeName = state?.["gradeName"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
     null,
   );
@@ -52,19 +51,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     Map<string, string>
   >(new Map(selectedLesson));
 
-  let isGrade1: string | boolean = false;
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
-  if (
-    course &&
-    (course.grade_id === grade1 || course.grade_id === belowGrade1)
-  ) {
-    isGrade1 = true;
-  } else if (!course) {
-    isGrade1 = "";
-  }
+
   const syncSelectedLesson = async (lesson) => {
     var current_user = await auth.getCurrentUser();
     if (current_user?.id)
@@ -278,7 +269,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         isBackButton={true}
         onButtonClick={() => {
           course
-            ? history.replace(state.from, {
+            ? history.replace(state.from || PAGES.SHOW_CHAPTERS, {
                 course: course,
                 chapterId: chapterId,
               })
@@ -318,9 +309,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             </div>
 
             <div className="lesson-right">
-              <div className="meta-line">
-                <strong>{t("Grade")} :</strong>{" "}
-                {course?.grade_id === grade1 ? "1" : "2"}
+              <div className="meta-line" id="lesson-grade-name">
+                <strong>{gradeName??""}</strong>{" "}
+                
               </div>
 
               <div className="meta-line">

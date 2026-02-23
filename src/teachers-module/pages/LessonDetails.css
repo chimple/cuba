@@ -109,6 +109,10 @@
   color: #666;
   line-height: 1.5;
 }
+#lesson-grade-name{
+  font-weight: 700;
+  font-size: 20px;
+}
 
 
 @media (max-width: 900px) {

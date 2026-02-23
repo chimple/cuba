@@ -111,7 +111,15 @@ const SearchLesson: React.FC = () => {
   };
 
   const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
-    const classId = current_class?.id ?? "";
+    if (!current_class?.id) return;
+
+    if (!hasRestoredRef.current) return;
+
+    const user = await auth.getCurrentUser();
+    if (!user?.id) return;
+
+    const classId = current_class.id;
+
     const next = new Map(classSelectedLesson);
     const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
 
@@ -132,7 +140,6 @@ const SearchLesson: React.FC = () => {
     next.set(chapterId, chapterSourceMap);
     setClassSelectedLesson(next);
 
-    // update count
     let total = 0;
     next.forEach((sourceMap) => {
       total +=
@@ -147,7 +154,7 @@ const SearchLesson: React.FC = () => {
     setSelectedLesson(nextSelected);
 
     await api.createOrUpdateAssignmentCart(
-      classId,
+      user.id,
       JSON.stringify(Object.fromEntries(nextSelected)),
     );
   };
@@ -157,12 +164,16 @@ const SearchLesson: React.FC = () => {
     if (!user?.id || !current_class?.id) return;
 
     const cart = await api.getUserAssignmentCart(user.id);
-    if (!cart?.lessons) return;
+    if (!cart?.lessons) {
+      setSelectedLesson(new Map());
+      return;
+    }
 
     const parsed = JSON.parse(cart.lessons);
-    const classMap = parsed[current_class.id];
-    if (!classMap) return;
+    const fullMap = new Map<string, any>(Object.entries(parsed || {}));
 
+    setSelectedLesson(fullMap);
+    const classMap = parsed[current_class.id] || {};
     const map = new Map<string, Partial<Record<AssignmentSource, string[]>>>(
       Object.entries(classMap),
     );
@@ -434,6 +445,7 @@ const SearchLesson: React.FC = () => {
                                 lesson,
                                 chapterId: chapterGroup.chapterId,
                                 chapterName: chapterGroup.chapterName,
+                                gradeName: courseGroup.gradeName,
                                 subjectName:
                                   courseGroup.course?.code?.toUpperCase() ||
                                   courseGroup.course?.name ||
