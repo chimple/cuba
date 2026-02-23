@@ -2,64 +2,153 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  margin: 0;
   background-color: #7c5db0;
 }
+
+/* Body */
 .lesson-details-body {
-  background-color: white;
-  height: 90vh;
-}
-.lesson-card {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 40vw;
-  max-height: 200px;
-  max-width: 200px;
-  height: 40vw;
-  text-align: center;
-  padding: 10px;
-  margin: 20px;
-}
-.play-ion{
+  flex: 1;
+  background-color: #ffffff;
+  padding: 16px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 10px;
+  overflow-y: auto;
 }
-.lesson-info-image{
-  width: calc(40vw - 20px);
-  max-height: 120px;
-  max-width: 180px;
-  height: 25vw;
-  background-color: burlywood;
 
+.lesson-content-wrapper {
+  width: 100%;
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); */
 }
-.learning-outcome-text{
-  color: black;
-  padding: 5%;
-  font-size: 2vh;
-}
-.lesson-card-info {
-  margin-top: 6vh;
+
+/* Top Section Layout */
+.lesson-top-container {
   display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
+  gap: 32px;
+  align-items: flex-start;
+  margin-bottom: 24px;
 }
-.lesson-info {
-  background-color: #fff;
-  border-radius: 10px;
-  width: 40vw;
-  max-height: 200px;
-  max-width: 200px;
-  height: 40vw;
-  margin: 20px;
+
+/* LEFT SIDE */
+.lesson-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 200px;
+}
+
+/* Image card */
+.lesson-thumbnail-card {
+  width: 180px;
+  height: 160px;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-size: 1.9vh;
 }
 
-.lesson-info-text{
-  color: #707070;
+.click-to-play {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+/* Add Button */
+.add-button {
+  margin-top: 14px;
+  width: 100%;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  background-color: #7c5db0;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.add-button:hover {
+  opacity: 0.9;
+}
+
+/* RIGHT SIDE */
+.lesson-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 15px;
+  color: #555;
+}
+
+.meta-line strong {
+  color: #333;
+}
+
+/* Learning Outcome */
+.learning-outcome-section {
+  margin-top: 16px;
+}
+
+.learning-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.learning-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+
+@media (max-width: 900px) {
+  .lesson-content-wrapper {
+    padding: 20px;
+  }
+
+  .lesson-top-container {
+    gap: 20px;
+  }
+
+  .lesson-thumbnail-card {
+    width: 160px;
+    height: 150px;
+  }
+}
+@media (max-width: 420px) {
+
+  .lesson-top-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .lesson-left {
+    width: 100%;
+    align-items: center;
+  }
+
+  .lesson-thumbnail-card {
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .add-button {
+    max-width: 260px;
+  }
+
+  .lesson-right {
+    width: 100%;
+    font-size: 14px;
+    margin-top: 16px;
+  }
 }
