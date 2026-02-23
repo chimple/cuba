@@ -169,6 +169,7 @@ import {
 } from "@mui/material";
 
 import PostSuccess from "./teachers-module/pages/PostSuccess";
+import StickersPOC from "./pages/StickersPOC";
 
 setupIonicReact();
 interface ExtraData {
@@ -763,6 +764,9 @@ useLayoutEffect(() => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
               <ClassUsers />
+            </ProtectedRoute>
+            <ProtectedRoute path="/stickers-poc" exact={true}>
+              <StickersPOC />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
               <EditClass />

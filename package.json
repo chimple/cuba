@@ -115,6 +115,7 @@
     "zip2": "^0.0.4"
   },
   "scripts": {
+    "prestart": "node ./scripts/extractStickers.js",
     "start": "craco start",
     "build": "GENERATE_SOURCEMAP=false craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build && cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
