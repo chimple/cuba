@@ -70,7 +70,7 @@ import {
   SupabaseClient,
   createClient,
 } from "@supabase/supabase-js";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
@@ -11459,5 +11459,97 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data;
+  }
+
+  async getStickerBooks(): Promise<StickerBook[]> {
+    if (!this.supabase) return [];
+    console.log("inside getStickerBooks");
+    const { data, error } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .order("sort_index", { ascending: true });
+
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  async getStickerBookById(id: string): Promise<StickerBook | null> {
+    if (!this.supabase) return null;
+    console.log("inside getStickerBookById");
+    const { data, error } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error;
+    return data ?? null;
+  }
+
+  async getUserProgress(
+    userId: string,
+    stickerBookId: string
+  ): Promise<UserStickerProgress | null> {
+    if (!this.supabase) return null;
+    console.log("inside getUserProgress");
+    const { data, error } = await this.supabase
+      .from("user_sticker_book")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("sticker_book_id", stickerBookId)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error;
+    return data ?? null;
+  }
+
+  async upsertUserProgress(
+    progress: UserStickerProgress
+  ): Promise<UserStickerProgress | null> {
+    if (!this.supabase) return null;
+    console.log("inside upsertUserProgress");
+    const { data, error } = await this.supabase
+      .from("user_sticker_book")
+      .upsert(progress)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("upsertUserProgress error:", error);
+      return null;
+    }
+
+    return data ?? null;
+  }
+
+  async addCollectedSticker(
+    userId: string,
+    stickerBookId: string,
+    stickerId: string
+  ): Promise<UserStickerProgress | null> {
+    if (!this.supabase) return null;
+    console.log("inside addCollectedSticker");
+    const existing = await this.getUserProgress(userId, stickerBookId);
+
+    if (!existing) {
+      const newProgress: UserStickerProgress = {
+        id: crypto.randomUUID(),
+        user_id: userId,
+        sticker_book_id: stickerBookId,
+        stickers_collected: [stickerId],
+        status: "in_progress",
+      };
+
+      return await this.upsertUserProgress(newProgress);
+    }
+
+    if (!existing.stickers_collected.includes(stickerId)) {
+      existing.stickers_collected = [
+        ...existing.stickers_collected,
+        stickerId,
+      ];
+    }
+
+    return await this.upsertUserProgress(existing);
   }
 }

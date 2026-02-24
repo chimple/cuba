@@ -41,7 +41,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse } from "../../interface/modelInterfaces";
+import { PaginatedResponse ,StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2658,4 +2658,22 @@ export interface ServiceApi {
     group_name: string;
     members: number;
   } | null>;
+
+  getStickerBooks(): Promise<StickerBook[]>;
+  getStickerBookById(id: string): Promise<StickerBook | null>;
+
+  getUserProgress(
+    userId: string,
+    stickerBookId: string
+  ): Promise<UserStickerProgress | null>;
+
+  upsertUserProgress(
+  progress: UserStickerProgress
+): Promise<UserStickerProgress | null>;
+
+  addCollectedSticker(
+  userId: string,
+  stickerBookId: string,
+  stickerId: string
+): Promise<UserStickerProgress | null>;
 }

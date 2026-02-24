@@ -171,6 +171,7 @@ import {
 import PostSuccess from "./teachers-module/pages/PostSuccess";
 import StickersPOC from "./pages/StickersPOC";
 import StickersColoringPage from "./pages/StickersColoringPage";
+import StickerBookTest from "./components/stickerBook/dragStickers/StickerBookTest";
 
 setupIonicReact();
 interface ExtraData {
@@ -771,6 +772,9 @@ useLayoutEffect(() => {
             </ProtectedRoute>
              <ProtectedRoute path="/stickers-coloring-poc" exact={true}>
               <StickersColoringPage />
+            </ProtectedRoute>
+            <ProtectedRoute path="/stickers-test" exact={true}>
+              <StickerBookTest />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
               <EditClass />

@@ -87,7 +87,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -8183,5 +8183,34 @@ order by
     members: number;
   } | null> {
     throw new Error("Method not implemented.");
+  }
+
+  async getStickerBooks(): Promise<StickerBook[]> {
+    throw new Error("Not implemented in SQLiteApi");
+  }
+
+  async getStickerBookById(id: string): Promise<StickerBook | null> {
+    throw new Error("Not implemented in SQLiteApi");
+  }
+
+  async getUserProgress(
+    userId: string,
+    stickerBookId: string
+  ): Promise<UserStickerProgress | null> {
+    throw new Error("Not implemented in SQLiteApi");
+  }
+
+  async upsertUserProgress(
+    progress: UserStickerProgress
+  ): Promise<UserStickerProgress> {
+    throw new Error("Not implemented in SQLiteApi");
+  }
+
+  async addCollectedSticker(
+    userId: string,
+    stickerBookId: string,
+    stickerId: string
+  ): Promise<UserStickerProgress> {
+    throw new Error("Not implemented in SQLiteApi");
   }
 }

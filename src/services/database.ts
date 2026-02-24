@@ -91,6 +91,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      sticker_book: {
+  Row: {
+    id: string;
+    title: string;
+    svg_url: string;
+    sort_index: number;
+    stickers_metadata: {
+      id: string;
+      sequence: number;
+    }[];
+    total_stickers: number;
+  };
+  Insert: {
+    id?: string;
+    title: string;
+    svg_url: string;
+    sort_index?: number;
+    stickers_metadata: {
+      id: string;
+      sequence: number;
+    }[];
+    total_stickers: number;
+  };
+  Update: {
+    id?: string;
+    title?: string;
+    svg_url?: string;
+    sort_index?: number;
+    stickers_metadata?: {
+      id: string;
+      sequence: number;
+    }[];
+    total_stickers?: number;
+  };
+  Relationships: [];
+};
+
+user_sticker_book: {
+  Row: {
+    id: string;
+    user_id: string;
+    sticker_book_id: string;
+    stickers_collected: string[];
+    status: "in_progress" | "completed";
+  };
+  Insert: {
+    id?: string;
+    user_id: string;
+    sticker_book_id: string;
+    stickers_collected?: string[];
+    status?: "in_progress" | "completed";
+  };
+  Update: {
+    id?: string;
+    user_id?: string;
+    sticker_book_id?: string;
+    stickers_collected?: string[];
+    status?: "in_progress" | "completed";
+  };
+  Relationships: [
+    {
+      foreignKeyName: "user_sticker_book_user_id_fkey";
+      columns: ["user_id"];
+      isOneToOne: false;
+      referencedRelation: "user";
+      referencedColumns: ["id"];
+    },
+    {
+      foreignKeyName: "user_sticker_book_sticker_book_id_fkey";
+      columns: ["sticker_book_id"];
+      isOneToOne: false;
+      referencedRelation: "sticker_book";
+      referencedColumns: ["id"];
+    }
+  ];
+};
+
       announcement: {
         Row: {
           created_at: string

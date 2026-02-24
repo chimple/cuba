@@ -37,7 +37,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
   createAtSchoolUser(
@@ -2006,5 +2006,34 @@ export class ApiHandler implements ServiceApi {
     classId: string
   ): Promise<{ group_id: string; group_name: string; members: number } | null> {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
+  }
+
+  getStickerBooks(): Promise<StickerBook[]> {
+    return this.s.getStickerBooks();
+  }
+
+  getStickerBookById(id: string): Promise<StickerBook | null> {
+    return this.s.getStickerBookById(id);
+  }
+
+  getUserProgress(
+    userId: string,
+    stickerBookId: string
+  ): Promise<UserStickerProgress | null> {
+    return this.s.getUserProgress(userId, stickerBookId);
+  }
+
+  upsertUserProgress(
+    progress: UserStickerProgress
+  ): Promise<UserStickerProgress | null> {
+    return this.s.upsertUserProgress(progress);
+  }
+
+  addCollectedSticker(
+    userId: string,
+    stickerBookId: string,
+    stickerId: string
+  ): Promise<UserStickerProgress | null> {
+    return this.s.addCollectedSticker(userId, stickerBookId, stickerId);
   }
 }
