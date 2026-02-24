@@ -472,75 +472,70 @@ const SearchLesson: React.FC = () => {
         id="searchlessons-container-body"
         className="searchlessons-container-body"
       >
-    <div
-      id="searchlessons-searchbar-wrapper"
-      className="searchlessons-searchbar-wrapper"
-    >
-      <IonSearchbar
-      ref={inputEl}
-      id="searchlessons-search-bar"
-      className="searchlessons-search-bar"
-      showClearButton="focus"
-      showCancelButton="focus"
-      placeholder={t("Search") ?? ""}
-      value={searchTerm}
-
-      onIonFocus={() => {
-        setIsFocused(true);
-        setShowHistory(true);
-      }}
-
-      onIonBlur={() => {
-        setTimeout(() => {
-          setIsFocused(false);
-          setShowHistory(false);
-        }, 150);
-      }}
-
-      onIonInput={(e) => {
-        const value = e.detail.value ?? "";
-        setSearchTerm(value);
-        setShowHistory(true);
-      }}
-
-      onKeyDown={(ev) => {
-        if (ev.key === "Enter") {
-          onSearch(ev.currentTarget.value ?? "");
-          //@ts-ignore
-          ev.target?.blur();
-          setIsFocused(false);
-        }
-      }}
-
-      onIonClear={() => {
-        setSearchTerm("");
-        setLessons([]);
-        setShowHistory(true);
-      }}
-    />
-
-    {isFocused && searchHistory.length > 0 && (
         <div
-          id="searchlessons-search-history-list"
-          className="searchlessons-search-history-list"
+          id="searchlessons-searchbar-wrapper"
+          className="searchlessons-searchbar-wrapper"
         >
-          {searchHistory.map((term, index) => (
-            <div
-              key={index}
-              id="searchlessons-search-history-item"
-              className="searchlessons-search-history-item"
-              onClick={() => {
-                setSearchTerm(term);
-                onSearch(term);
+          <IonSearchbar
+            ref={inputEl}
+            id="searchlessons-search-bar"
+            className="searchlessons-search-bar"
+            showClearButton="focus"
+            showCancelButton="focus"
+            placeholder={t("Search") ?? ""}
+            value={searchTerm}
+            onIonFocus={() => {
+              setIsFocused(true);
+              setShowHistory(true);
+            }}
+            onIonBlur={() => {
+              setTimeout(() => {
+                setIsFocused(false);
                 setShowHistory(false);
-              }}
+              }, 150);
+            }}
+            onIonInput={(e) => {
+              const value = e.detail.value ?? "";
+              setSearchTerm(value);
+              setShowHistory(true);
+            }}
+            onKeyDown={(ev) => {
+              if (ev.key === "Enter") {
+                onSearch(ev.currentTarget.value ?? "");
+                //@ts-ignore
+                ev.target?.blur();
+                setIsFocused(false);
+              }
+            }}
+            onIonClear={() => {
+              setSearchTerm("");
+              setLessons([]);
+              setShowHistory(true);
+            }}
+          />
+
+          {isFocused && searchHistory.length > 0 && (
+            <div
+              id="searchlessons-search-history-list"
+              className="searchlessons-search-history-list"
             >
-              {term}
+              {searchHistory.map((term, index) => (
+                <div
+                  key={index}
+                  id="searchlessons-search-history-item"
+                  className="searchlessons-search-history-item"
+                  onClick={() => {
+                    setSearchTerm(term);
+                    onSearch(term);
+                    setShowHistory(false);
+                  }}
+                >
+                  {term}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
-    </div>
         <div
           id="searchlessons-grid-container"
           className="searchlessons-grid-container"
@@ -572,6 +567,30 @@ const SearchLesson: React.FC = () => {
             </div>
           ))}
         </div>
+        
+        {!showHistory && searchTerm.trim() && (
+          <div
+            id="search-lesson-result-text"
+            className="search-lesson-result-text"
+          >
+            {t("Showing Results for")} "{searchTerm.trim()}"
+          </div>
+        )}
+
+        {!isLoading && (
+          <div id="search-lesson-results" className="search-lesson-results">
+            <ChapterWiseLessons
+              courseGroups={groupedLessons.courseGroups}
+              otherLessons={groupedLessons.otherLessons}
+              isLessonSelected={isLessonSelected}
+              toggleLessonSelection={toggleLessonSelection}
+              isChapterFullySelected={isChapterFullySelected}
+              toggleChapterSelection={toggleChapterSelection}
+              selectedLesson={selectedLesson}
+            />
+          </div>
+        )}
+
         <AssigmentCount assignments={assignmentCount} onClick={() => {}} />
       </main>
     </div>
