@@ -173,9 +173,24 @@ export async function recommendNextLesson({
    * 4️⃣ NORMAL CHAPTER FLOW (DEFAULT)
    * ----------------------------------- */
   const chapters = await api.getChaptersForCourse(course.id);
-  for (const ch of chapters) {
+  if (!chapters?.length) return null;
+  const lastPlayedLesson = getLastPlayedLesson(coursePath, "normal");
+  let idx = 0;
+
+  // 🔥 Find chapter index of last played lesson
+  if (lastPlayedLesson?.chapter_id) {
+    const foundIndex = chapters.findIndex(
+      (ch: any) => ch.id === lastPlayedLesson.chapter_id,
+    );
+
+    if (foundIndex !== -1) {
+      idx = foundIndex;
+    }
+  }
+
+  for (let i = idx; i < chapters.length; i++) {
+    const ch = chapters[i];
     const lessons = await api.getLessonsForChapter(ch.id);
-    const lastPlayedLesson = getLastPlayedLesson(coursePath, "normal");
     const next = getNextFromList(
       lessons.map((l: any) => ({ ...l, chapter_id: ch.id })),
       lastPlayedLesson,
@@ -185,7 +200,16 @@ export async function recommendNextLesson({
     if (next) return next;
   }
 
-  return null;
+  // If nothing found → loop back to start and recommend first lesson of first chapter
+  const firstLessons = await api.getLessonsForChapter(chapters[0].id);
+  if (!firstLessons?.length) return null;
+
+  return {
+    lesson_id: firstLessons[0].id,
+    chapter_id: chapters[0].id,
+    is_assessment: false,
+    isPlayed: false,
+  };
 }
 
 export function getNextFromList(
