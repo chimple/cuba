@@ -15,6 +15,7 @@ import AssigmentCount from "../components/library/AssignmentCount";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import ChapterWiseLessons from "../components/ChapterWiseLessons";
 
 type LessonMeta = {
   chapterId: string | null;
@@ -109,10 +110,17 @@ const SearchLesson: React.FC = () => {
       classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [];
     return manual.includes(lessonId) || qr.includes(lessonId);
   };
+  const isChapterFullySelected = (
+    chapterId: string,
+    lessons: TableTypes<"lesson">[],
+  ) => {
+    if (!lessons.length) return false;
+
+    return lessons.every((lesson) => isLessonSelected(chapterId, lesson.id));
+  };
 
   const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
     if (!current_class?.id) return;
-
     if (!hasRestoredRef.current) return;
 
     const user = await auth.getCurrentUser();
@@ -148,14 +156,86 @@ const SearchLesson: React.FC = () => {
     });
     setAssignmentCount(total);
 
-    // sync to backend
     const nextSelected = new Map(selectedLesson);
+
+    // update for this class
     nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
+
+    const finalPayload = Object.fromEntries(nextSelected);
+
     setSelectedLesson(nextSelected);
 
     await api.createOrUpdateAssignmentCart(
       user.id,
-      JSON.stringify(Object.fromEntries(nextSelected)),
+      JSON.stringify(finalPayload),
+    );
+  };
+
+  const toggleChapterSelection = async (
+    chapterId: string,
+    lessons: TableTypes<"lesson">[],
+  ) => {
+    if (!current_class?.id) return;
+    if (!hasRestoredRef.current) return;
+
+    const user = await auth.getCurrentUser();
+    if (!user?.id) return;
+
+    const classId = current_class.id;
+
+    const next = new Map(classSelectedLesson);
+    const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
+
+    const manual = new Set(chapterSourceMap[AssignmentSource.MANUAL] ?? []);
+    const qr = new Set(chapterSourceMap[AssignmentSource.QR_CODE] ?? []);
+
+    const allSelected = lessons.every(
+      (lesson) => manual.has(lesson.id) || qr.has(lesson.id),
+    );
+
+    if (allSelected) {
+      // Remove all
+      lessons.forEach((lesson) => {
+        manual.delete(lesson.id);
+        qr.delete(lesson.id);
+      });
+    } else {
+      // Add all to MANUAL
+      lessons.forEach((lesson) => {
+        if (!manual.has(lesson.id) && !qr.has(lesson.id)) {
+          manual.add(lesson.id);
+        }
+      });
+    }
+
+    chapterSourceMap[AssignmentSource.MANUAL] = Array.from(manual);
+    chapterSourceMap[AssignmentSource.QR_CODE] = Array.from(qr);
+
+    next.set(chapterId, chapterSourceMap);
+    setClassSelectedLesson(next);
+
+    // Recalculate count
+    let total = 0;
+    next.forEach((sourceMap) => {
+      total +=
+        (sourceMap[AssignmentSource.MANUAL]?.length || 0) +
+        (sourceMap[AssignmentSource.QR_CODE]?.length || 0);
+    });
+    setAssignmentCount(total);
+
+    // Sync backend
+    const nextSelected = new Map(selectedLesson);
+
+    // update for this class
+    nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
+
+    const finalPayload = Object.fromEntries(nextSelected);
+
+    setSelectedLesson(nextSelected);
+
+    await api.createOrUpdateAssignmentCart(
+      user.id,
+      JSON.stringify(finalPayload),
     );
   };
 
@@ -378,20 +458,24 @@ const SearchLesson: React.FC = () => {
   }, [lessons, lessonMetaMap, searchTerm, isLoading]);
 
   return (
-    <div className="chapter-container-in-search-lesson">
+    <div id="search-lesson-container" className="search-lesson-container">
       <Header
         isBackButton
         onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
         showSchool
         showClass
         schoolName={currentSchool?.name}
+        className={current_class?.name}
       />
 
-      <main className="container-body">
-        <div className="search-lesson-searchbar-wrapper">
+      <main id="search-lesson-body" className="search-lesson-body">
+        <div
+          id="search-lesson-search-wrap"
+          className="search-lesson-search-wrap"
+        >
           <IonSearchbar
             ref={inputEl}
-            className="search-bar"
+            className="search-lesson-bar"
             placeholder={String(t("Search"))}
             value={searchTerm}
             onIonInput={(e) => setSearchTerm(e.detail.value ?? "")}
@@ -402,153 +486,27 @@ const SearchLesson: React.FC = () => {
             }}
           />
         </div>
+
         {!showHistory && searchTerm.trim() && (
-          <div className="search-lessons-result-text">
+          <div
+            id="search-lesson-result-text"
+            className="search-lesson-result-text"
+          >
             {t("Showing Results for")} "{searchTerm.trim()}"
           </div>
         )}
 
         {!isLoading && (
-          <div className="search-lessons-results">
-            {groupedLessons.courseGroups.map((courseGroup) => (
-              <div
-                key={courseGroup.courseId}
-                className="search-lessons-course-group"
-              >
-                <div className="search-lessons-course-title">
-                  {courseGroup.courseTitle}
-                </div>
-
-                {courseGroup.chapters.map((chapterGroup) => {
-                  const chapterId = chapterGroup.chapterId;
-                  const lessonIds = chapterGroup.lessons.map((l) => l.id);
-
-                  return (
-                    <div
-                      key={chapterId}
-                      className="search-lessons-chapter-group"
-                    >
-                      <div className="search-lessons-chapter-title-row">
-                        <div className="search-lessons-chapter-title">
-                          {chapterGroup.chapterName}
-                        </div>
-                      </div>
-
-                      <div className="grid-container">
-                        {chapterGroup.lessons.map((lesson) => (
-                          <div
-                            key={lesson.id}
-                            className="grid-item search-lessons-card"
-                            onClick={() => {
-                              history.replace(PAGES.LESSON_DETAILS, {
-                                course: courseGroup.course ?? null,
-                                lesson,
-                                chapterId: chapterGroup.chapterId,
-                                chapterName: chapterGroup.chapterName,
-                                gradeName: courseGroup.gradeName,
-                                subjectName:
-                                  courseGroup.course?.code?.toUpperCase() ||
-                                  courseGroup.course?.name ||
-                                  lesson.cocos_subject_code ||
-                                  "",
-                                from: PAGES.SEARCH_LESSON,
-                                selectedLesson,
-                              });
-                            }}
-                          >
-                            <div className="search-lessons-image-container">
-                              <SelectIconImage
-                                localSrc=""
-                                defaultSrc="assets/icons/DefaultIcon.png"
-                                webSrc={lesson.image ?? ""}
-                                imageHeight="100%"
-                                webImageHeight="0px"
-                              />
-                            </div>
-
-                            <div className="search-lessons-lesson-name">
-                              {lesson.name}
-                            </div>
-
-                            <button
-                              type="button"
-                              className={`search-lessons-select-button ${
-                                isLessonSelected(
-                                  chapterGroup.chapterId,
-                                  lesson.id,
-                                )
-                                  ? "remove"
-                                  : ""
-                              }`}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                toggleLessonSelection(
-                                  chapterGroup.chapterId,
-                                  lesson.id,
-                                );
-                              }}
-                            >
-                              {isLessonSelected(
-                                chapterGroup.chapterId,
-                                lesson.id,
-                              )
-                                ? t("Remove")
-                                : t("Add")}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-
-            {groupedLessons.otherLessons.length > 0 && (
-              <div className="search-lessons-course-group">
-                <div className="search-lessons-course-title">
-                  {t("Other Lessons")}
-                </div>
-
-                <div className="grid-container">
-                  {groupedLessons.otherLessons.map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="grid-item search-lessons-card"
-                    >
-                      <div className="search-lessons-image-container">
-                        <SelectIconImage
-                          localSrc=""
-                          defaultSrc="assets/icons/DefaultIcon.png"
-                          webSrc={lesson.image ?? ""}
-                          imageHeight="100%"
-                          webImageHeight="0px"
-                        />
-                      </div>
-
-                      <div className="search-lessons-lesson-name">
-                        {lesson.name}
-                      </div>
-
-                      <button
-                        type="button"
-                        className={`search-lessons-select-button ${
-                          isLessonSelected(OTHER_KEY, lesson.id) ? "remove" : ""
-                        }`}
-                        onClick={(event) => {
-                          event.stopPropagation(); // prevent navigation
-                          toggleLessonSelection(OTHER_KEY, lesson.id);
-                        }}
-                      >
-                        {isLessonSelected(OTHER_KEY, lesson.id)
-                          ? t("Remove")
-                          : t("Add")}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div id="search-lesson-results" className="search-lesson-results">
+            <ChapterWiseLessons
+              courseGroups={groupedLessons.courseGroups}
+              otherLessons={groupedLessons.otherLessons}
+              isLessonSelected={isLessonSelected}
+              toggleLessonSelection={toggleLessonSelection}
+              isChapterFullySelected={isChapterFullySelected}
+              toggleChapterSelection={toggleChapterSelection}
+              selectedLesson={selectedLesson}
+            />
           </div>
         )}
 

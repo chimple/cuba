@@ -263,93 +263,141 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     );
     syncSelectedLesson(totalSelectedLesson);
   };
-  return (
-    <div className="lesson-details-container">
-      <Header
-        isBackButton={true}
-        onButtonClick={() => {
-          course
-            ? history.replace(state.from || PAGES.SHOW_CHAPTERS, {
-                course: course,
-                chapterId: chapterId,
-              })
-            : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
-        }}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
-        schoolName={currentSchool?.name}
-      />
-      <div className="lesson-details-body">
-        <div className="lesson-content-wrapper">
-          <div className="lesson-top-container">
-            <div className="lesson-left">
-              <div className="lesson-thumbnail-card" onClick={onPlayClick}>
-                <div className="click-to-play">{t("Click to play")}</div>
+return (
+  <div
+    id="lesson-details-root"
+    className="lesson-details-root"
+  >
+    <Header
+      isBackButton={true}
+      onButtonClick={() => {
+        course
+          ? history.replace(state.from || PAGES.SHOW_CHAPTERS, {
+              course: course,
+              chapterId: chapterId,
+            })
+          : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+      }}
+      showSchool={true}
+      showClass={true}
+      className={currentClass?.name}
+      schoolName={currentSchool?.name}
+    />
 
-                <SelectIconImage
-                  localSrc={""}
-                  defaultSrc={"assets/icons/DefaultIcon.png"}
-                  webSrc={`${lesson.image}`}
-                />
+    <div
+      id="lesson-details-body"
+      className="lesson-details-body"
+    >
+      <div
+        id="lesson-details-wrap"
+        className="lesson-details-wrap"
+      >
+        <div
+          id="lesson-details-top"
+          className="lesson-details-top"
+        >
+          <div
+            id="lesson-details-left"
+            className="lesson-details-left"
+          >
+            <div
+              id="lesson-details-thumb"
+              className="lesson-details-thumb"
+              onClick={onPlayClick}
+            >
+              <div
+                id="lesson-details-play"
+                className="lesson-details-play"
+              >
+                {t("Click to play")}
               </div>
 
-              <button className="add-button" onClick={handleButtonClick}>
-                {[
-                  ...(classSelectedLesson.get(chapterId)?.[
-                    AssignmentSource.MANUAL
-                  ] ?? []),
-                  ...(classSelectedLesson.get(chapterId)?.[
-                    AssignmentSource.QR_CODE
-                  ] ?? []),
-                ].includes(lesson.id)
-                  ? t("Added")
-                  : t("Add")}
-              </button>
+              <SelectIconImage
+                localSrc={""}
+                defaultSrc={"assets/icons/DefaultIcon.png"}
+                webSrc={`${lesson.image}`}
+              />
             </div>
 
-            <div className="lesson-right">
-              <div className="meta-line" id="lesson-grade-name">
-                <strong>{gradeName??""}</strong>{" "}
-                
-              </div>
-
-              <div className="meta-line">
-                <strong>{t("Subject")} :</strong> {course?.name}
-              </div>
-
-              <div className="meta-line">
-                <strong>{t("Chapter")} :</strong> {chapterName ?? ""}
-              </div>
-
-              <div className="meta-line">
-                <strong>{t("Lesson")} :</strong> {lesson?.name}
-              </div>
-
-              <div className="meta-line">
-                <strong>{t("Quiz")} :</strong>{" "}
-                {lesson.plugin_type === LIVE_QUIZ
-                  ? t("Live Quiz")
-                  : t("Assignment")}
-              </div>
-            </div>
+            <button
+              id="lesson-details-btn"
+              className="lesson-details-btn"
+              onClick={handleButtonClick}
+            >
+              {[
+                ...(classSelectedLesson.get(chapterId)?.[
+                  AssignmentSource.MANUAL
+                ] ?? []),
+                ...(classSelectedLesson.get(chapterId)?.[
+                  AssignmentSource.QR_CODE
+                ] ?? []),
+              ].includes(lesson.id)
+                ? t("Remove")
+                : t("Add")}
+            </button>
           </div>
 
-          <div className="learning-outcome-section">
-            <div className="learning-title">{t("Learning Outcome")} :</div>
+          <div
+            id="lesson-details-right"
+            className="lesson-details-right"
+          >
+            <div
+              id="lesson-details-grade"
+              className="lesson-details-meta"
+            >
+              <strong>{gradeName ?? ""}</strong>
+            </div>
 
-            <div className="learning-description">{lesson.outcome}</div>
+            <div className="lesson-details-meta">
+              <strong>{t("Subject")} :</strong> {course?.name}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Chapter")} :</strong> {chapterName ?? ""}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Lesson")} :</strong> {lesson?.name}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Quiz")} :</strong>{" "}
+              {lesson.plugin_type === LIVE_QUIZ
+                ? t("Live Quiz")
+                : t("Assignment")}
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="lesson-details-outcome"
+          className="lesson-details-outcome"
+        >
+          <div
+            id="lesson-details-outcome-title"
+            className="lesson-details-outcome-title"
+          >
+            {t("Learning Outcome")} :
+          </div>
+
+          <div
+            id="lesson-details-outcome-desc"
+            className="lesson-details-outcome-desc"
+          >
+            {lesson.outcome}
           </div>
         </div>
       </div>
-      <AssigmentCount
-        assignments={assignmentCount}
-        onClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
-        }}
-      />
     </div>
-  );
+
+    <AssigmentCount
+      assignments={assignmentCount}
+      onClick={() => {
+        history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+      }}
+    />
+  </div>
+);
 };
 
 export default LessonDetails;
