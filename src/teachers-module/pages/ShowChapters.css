@@ -71,20 +71,30 @@
 }
 
 .showchapters-assigned-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: #ef404f;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
 .showchapters-assigned-icon img {
-  width: 7px;
-  height: 10px;
-  filter: brightness(0) invert(1);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.showchapters-assigned-icon.is-show img {
+  width: 100%;
+  height: 100%;
+}
+
+.showchapters-assigned-icon.is-hide img {
+  width: 100%;
+  height: 100%;
 }
 
 .showchapters-assigned-btn:disabled {

@@ -85,7 +85,13 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
             title={t("Assigned") ?? ""}
             aria-label={t("Assigned") ?? ""}
           >
-            <img src="assets/icons/assignmentSelect.svg" alt="" />
+            <img
+              src="/assets/hideassigned.png"
+              alt=""
+              onError={(event) => {
+                event.currentTarget.src = "assets/icons/assignmentSelect.svg";
+              }}
+            />
           </span>
         ) : null}
       </div>

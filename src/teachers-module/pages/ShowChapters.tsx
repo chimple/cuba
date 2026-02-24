@@ -320,6 +320,10 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     }
   };
 
+  const assignedToggleLabel = isShowAssigned
+    ? t("Hide Assigned")
+    : t("Show Assigned");
+
   return (
     <div id="showchapters-container" className="showchapters-container">
       <Header
@@ -345,20 +349,34 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
             onClick={handleShowAssignedClick}
             disabled={isLoadingAssignedLessons}
           >
-            {isShowAssigned ? (
-              <>
-                <span
-                  id="showchapters-assigned-icon"
-                  className="showchapters-assigned-icon"
-                  aria-hidden="true"
-                >
-                  <img src="assets/icons/assignmentSelect.svg" alt="" />
-                </span>
-                {t("Assigned")}
-              </>
-            ) : (
-              t("Show Assigned")
-            )}
+            <span
+              id="showchapters-assigned-icon"
+              className={`showchapters-assigned-icon${
+                isShowAssigned ? " is-hide" : " is-show"
+              }`}
+              aria-hidden="true"
+            >
+              <img
+                src={
+                  isShowAssigned
+                    ? "assets/hideassigned.png"
+                    : "assets/showassigned.png"
+                }
+                alt=""
+                onError={(event) => {
+                  const absoluteSrc = isShowAssigned
+                    ? "/assets/hideassigned.png"
+                    : "/assets/showassigned.png";
+                  if (!event.currentTarget.dataset.retryAbsolute) {
+                    event.currentTarget.dataset.retryAbsolute = "1";
+                    event.currentTarget.src = absoluteSrc;
+                    return;
+                  }
+                  event.currentTarget.src = "assets/icons/assignmentSelect.svg";
+                }}
+              />
+            </span>
+            {assignedToggleLabel}
           </button>
         </div>
         <div id="showchapters-lesson-grid" className="showchapters-lesson-grid">
