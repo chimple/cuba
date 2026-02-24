@@ -349,53 +349,70 @@ describe("SelectMode page", () => {
     );
   });
 
-  it("renders Teacher mode and handles Teacher click, school dropdown, and class flow", async () => {
-    mockGetCurrMode.mockResolvedValue(undefined);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: "user-1" });
-    mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: "school-1", name: "School 1" }, role: "TEACHER" },
-      { school: { id: "school-2", name: "School 2" }, role: "TEACHER" },
-    ]);
-    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
-      { id: "school-1" }, { id: "school-2" }
-    ]);
-    mockApiHandler.getParentStudentProfiles.mockResolvedValue([]);
-    mockApiHandler.getClassesForSchool.mockResolvedValue([
-      { id: "class-1", name: "Class 1" },
-      { id: "class-2", name: "Class 2" },
-    ]);
-    mockApiHandler.getStudentsForClass.mockResolvedValue([
-      { id: "student-1", name: "Student 1", avatar: "avatar1" },
-      { id: "student-2", name: "Student 2", avatar: "avatar2" },
-    ]);
-    render(<SelectMode />);
-    await waitFor(() =>
-      expect(document.querySelector(".select-school-main")).not.toBeNull()
-    );
-    // Simulate dropdown change
-    const dropdown = document.querySelector('select');
-    if (dropdown) {
-      fireEvent.change(dropdown, { target: { value: 'school-1' } });
-    }
-    // Okay button
-    const okayBtn = document.querySelector('.okay-btn') as HTMLElement;
-    okayBtn && okayBtn.click();
-    await waitFor(() =>
-      expect(document.querySelector('.class-main')).not.toBeNull()
-    );
-    // Click class
-    const classDiv = Array.from(document.querySelectorAll('.class-avatar')).find(div => div.textContent?.includes('Class 1'));
-    classDiv && fireEvent.click(classDiv);
-    await waitFor(() =>
-      expect(document.querySelector('.class-container')).not.toBeNull()
-    );
-    // Click student
-    const studentDiv = Array.from(document.querySelectorAll('.class-avatar')).find(div => div.textContent?.includes('Student 1'));
-    studentDiv && fireEvent.click(studentDiv);
-    // await waitFor(() => expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled());
-    // await waitFor(() => expect(mockSetCurrentStudent).toHaveBeenCalled());
-    // await waitFor(() => expect(mockHistoryReplace).toHaveBeenCalledWith("/home"));
+  it("renders Teacher mode and handles Teacher flow end-to-end", async () => {
+  const user = userEvent.setup();
+
+  mockGetCurrMode.mockResolvedValue(undefined);
+  mockAuthHandler.getCurrentUser.mockResolvedValue({ id: "user-1" });
+
+  mockApiHandler.getSchoolsForUser.mockResolvedValue([
+    { school: { id: "school-1", name: "School 1" }, role: "TEACHER" },
+    { school: { id: "school-2", name: "School 2" }, role: "TEACHER" },
+  ]);
+
+  mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+    { id: "school-1" },
+    { id: "school-2" },
+  ]);
+
+  mockApiHandler.getClassesForSchool.mockResolvedValue([
+    { id: "class-1", name: "Class 1" },
+    { id: "class-2", name: "Class 2" },
+  ]);
+
+  mockApiHandler.getStudentsForClass.mockResolvedValue([
+    { id: "student-1", name: "Student 1", avatar: "avatar1" },
+  ]);
+
+  mockEnsureLidoCommonAudioForStudent.mockResolvedValue(undefined);
+
+  render(<SelectMode />);
+
+  // wait school dropdown
+  const dropdown = await screen.findByLabelText("school-dropdown");
+  await user.selectOptions(dropdown, "school-1");
+
+  // click okay
+  const okayBtn = await screen.findByRole("button", { name: /okay/i });
+  await user.click(okayBtn);
+
+  // ✅ ensure classes api called
+  await waitFor(() =>
+    expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith("school-1", "user-1")
+  );
+
+// wait classes render
+const classNodes = await screen.findAllByText(/Class 1/i);
+expect(classNodes.length).toBeGreaterThan(0);
+await user.click(classNodes[0]);
+
+  // wait students api
+  await waitFor(() =>
+    expect(mockApiHandler.getStudentsForClass).toHaveBeenCalledWith("class-1")
+  );
+
+  // click student
+  const student = await screen.findByText("Student 1");
+  await user.click(student);
+
+  // assert navigation chain
+  await waitFor(() => {
+    expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled();
+    expect(mockSetCurrentStudent).toHaveBeenCalled();
+    expect(mockHistoryReplace).toHaveBeenCalledWith("/home");
   });
+});
+
 
   it("handles back button in student stage", async () => {
     mockGetCurrMode.mockResolvedValue(undefined);
