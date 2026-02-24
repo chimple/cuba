@@ -16,6 +16,7 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import ChapterWiseLessons from "../components/ChapterWiseLessons";
+import LessonComponent from "../components/library/LessonComponent";
 
 type LessonMeta = {
   chapterId: string | null;
