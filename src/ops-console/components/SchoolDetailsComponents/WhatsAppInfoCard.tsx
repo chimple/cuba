@@ -77,7 +77,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
     setIsSaving(true);
     const success = await api.updateWhatsAppGroupSettings(
-      groupId,
+      classDoc?.group_id ?? "",
       bot,
       editedGroupName,
     );
@@ -124,14 +124,18 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
         bot,
         classDoc?.id!,
       );
-      if (!result) {
+      if (result) {
+        setGroupName(result.group_name);
+        setMembers(result.members);
+        setInviteLink(normalized);
+        setClassDoc((prev) =>
+          prev ? { ...prev, group_id: result.group_id } : prev,
+        );
+        setIsChangingGroup(false);
+      } else {
         setError(t("No WhatsApp group found for this invite link"));
         return;
       }
-      setGroupName(result.group_name);
-      setMembers(result.members);
-      setInviteLink(normalized);
-      setIsChangingGroup(false);
     } catch (err) {
       console.error(err);
       setError(t("Something went wrong. Please try again."));

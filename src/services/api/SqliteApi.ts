@@ -118,6 +118,8 @@ export class SqliteApi implements ServiceApi {
     return SqliteApi.i;
   }
 
+  private _syncInProgress: boolean = false;
+  private _syncRequestedAgain: boolean = false;
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -778,10 +780,12 @@ export class SqliteApi implements ServiceApi {
             user_id: _currentUser?.id,
             ...mutate?.error,
           });
-          if (mutate?.error?.code === "23505") {
-          } else {
-            return false;
-          }
+           if (mutate?.error?.code === "23505" || mutate?.status === 409) {
+              console.log("🟢 Duplicate key ignored (already exists on server)");
+            } else {
+              console.log("🔴 Real push error:", mutate?.error);
+              return false;
+            }
         }
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
@@ -803,7 +807,15 @@ export class SqliteApi implements ServiceApi {
     is_sync_immediate: boolean = true,
   ) {
     if (!this._db) return;
-    const refresh_tables = "'" + refreshTables.join("', '") + "'";
+     // 🔒 LOCK
+  if (this._syncInProgress) {
+    console.log("🟡 Sync already running → scheduling another run");
+    this._syncRequestedAgain = true;
+    return true;
+  }
+   this._syncInProgress = true;
+  try{
+      const refresh_tables = "'" + refreshTables.join("', '") + "'";
     console.log("logs to check synced tables", JSON.stringify(refresh_tables));
     await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
@@ -832,6 +844,17 @@ export class SqliteApi implements ServiceApi {
       );
       return res;
     }
+  }finally{
+    this._syncInProgress = false;
+    if (this._syncRequestedAgain) {
+      console.log("🔁 Running sync again because changes happened during sync");
+      this._syncRequestedAgain = false;
+
+      setTimeout(()=>{
+        this.syncDbNow();
+      },0)
+    }
+  }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
   }
 

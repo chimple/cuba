@@ -1,183 +1,471 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./SearchLessons.css";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import Header from "../components/homePage/Header";
 import { IonSearchbar } from "@ionic/react";
 import { useHistory } from "react-router";
-import { PAGES, TableTypes, AssignmentSource, SEARCH_LESSON_HISTORY, SEARCH_LESSON_CACHE_KEY } from "../../common/constants";
+import {
+  PAGES,
+  TableTypes,
+  AssignmentSource,
+  SEARCH_LESSON_HISTORY,
+  SEARCH_LESSON_CACHE_KEY,
+} from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import LessonComponent from "../components/library/LessonComponent";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
+import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import ChapterWiseLessons from "../components/ChapterWiseLessons";
 
-const SearchLesson: React.FC = ({}) => {
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+type LessonMeta = {
+  chapterId: string | null;
+  chapterName: string;
+  courseId: string;
+  courseName: string;
+  gradeName: string;
+  course?: TableTypes<"course">;
+};
+
+type ChapterGroup = {
+  chapterId: string;
+  chapterName: string;
+  lessons: TableTypes<"lesson">[];
+};
+
+type CourseGroup = {
+  courseId: string;
+  courseName: string;
+  gradeName: string;
+  courseTitle: string;
+  course?: TableTypes<"course">;
+  chapters: ChapterGroup[];
+};
+
+const SearchLesson: React.FC = () => {
+  const history = useHistory();
+  const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
+
   const currentSchool = Util.getCurrentSchool();
+  const current_class = Util.getCurrentClass();
+
+  const inputEl = useRef<HTMLIonSearchbarElement>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const [lessonMetaMap, setLessonMetaMap] = useState<
+    Record<string, LessonMeta>
+  >({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [assignmentCount, setAssignmentCount] = useState(0);
+  const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
+    new Map(),
+  );
+  const [classSelectedLesson, setClassSelectedLesson] = useState<
+    Map<string, Partial<Record<AssignmentSource, string[]>>>
+  >(new Map());
+
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const dataToContinue: any = {};
-  const history = useHistory();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
-  const inputEl = useRef<HTMLIonSearchbarElement>(null);
-  const current_class = Util.getCurrentClass();
-  const api = ServiceConfig.getI().apiHandler;
-  const auth = ServiceConfig.getI().authHandler;
-  const [assignmentCount, setAssignmentCount] = useState<number>(0);
-  const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
-    new Map()
-  );
+
   const hasRestoredRef = useRef(false);
+  const OTHER_KEY = "other";
 
   useEffect(() => {
-    const fetchClassDetails = async () => {
-      try {
-        const tempClass = await Util.getCurrentClass();
-        setCurrentClass(tempClass || null);
-      } catch (err) {
-        console.error("ShowChapters → Failed to load current class:", err);
-        setCurrentClass(null);
+    const init = async () => {
+      inputEl.current?.setFocus();
+
+      const stored = JSON.parse(
+        localStorage.getItem(SEARCH_LESSON_HISTORY) || "[]",
+      );
+      setSearchHistory(stored);
+
+      const cached = localStorage.getItem(SEARCH_LESSON_CACHE_KEY);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.searchTerm) {
+            setSearchTerm(parsed.searchTerm);
+            setLessons(parsed.lessons ?? []);
+            setShowHistory(false);
+          }
+        } catch {}
+      } else {
+        setShowHistory(true);
       }
-    };
-    fetchClassDetails();
-  }, []);
 
-  useEffect(() => {
-    const stored = JSON.parse(
-      localStorage.getItem(SEARCH_LESSON_HISTORY) || "[]"
-    );
-    setSearchHistory(stored);
-
-    return () => {};
-  }, []);
-
-  useEffect(() => {
-
-    if (!hasRestoredRef.current) return;
-
-    const cache = {
-      searchTerm,
-      lessons,
+      await loadCart();
+      hasRestoredRef.current = true;
     };
 
-    localStorage.setItem(SEARCH_LESSON_CACHE_KEY, JSON.stringify(cache));
-  }, [searchTerm, lessons]);
-
-  useEffect(() => {
-    if (inputEl.current) {
-      inputEl.current.setFocus();
-    }
-
-    const cached = localStorage.getItem(SEARCH_LESSON_CACHE_KEY);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        const cachedTerm = parsed.searchTerm ?? "";
-        const cachedLessons = parsed.lessons ?? [];
-
-        if (cachedTerm) {
-          setSearchTerm(cachedTerm);
-          setLessons(cachedLessons);
-          setShowHistory(false);
-        } else {
-          setShowHistory(true);
-        }
-      } catch (e) {
-        console.error("Failed to restore search lesson cache", e);
-      }
-    } else {
-      setShowHistory(true);
-    }
-
-    hasRestoredRef.current = true;
     init();
   }, []);
 
-  const saveSearchTerm = (term: string) => {
-    if (!term.trim()) return;
+  const isLessonSelected = (chapterId: string, lessonId: string) => {
+    const manual =
+      classSelectedLesson.get(chapterId)?.[AssignmentSource.MANUAL] ?? [];
+    const qr =
+      classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [];
+    return manual.includes(lessonId) || qr.includes(lessonId);
+  };
+  const isChapterFullySelected = (
+    chapterId: string,
+    lessons: TableTypes<"lesson">[],
+  ) => {
+    if (!lessons.length) return false;
 
-    const updated = [
-      term,
-      ...searchHistory.filter(t => t !== term),
-    ];
+    return lessons.every((lesson) => isLessonSelected(chapterId, lesson.id));
+  };
 
-    setSearchHistory(updated);
-    localStorage.setItem(
-      SEARCH_LESSON_HISTORY,
-      JSON.stringify(updated)
+  const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
+    if (!current_class?.id) return;
+    if (!hasRestoredRef.current) return;
+
+    const user = await auth.getCurrentUser();
+    if (!user?.id) return;
+
+    const classId = current_class.id;
+
+    const next = new Map(classSelectedLesson);
+    const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
+
+    const manual = new Set(chapterSourceMap[AssignmentSource.MANUAL] ?? []);
+    const qr = new Set(chapterSourceMap[AssignmentSource.QR_CODE] ?? []);
+
+    if (manual.has(lessonId)) {
+      manual.delete(lessonId);
+    } else if (qr.has(lessonId)) {
+      qr.delete(lessonId);
+    } else {
+      manual.add(lessonId);
+    }
+
+    chapterSourceMap[AssignmentSource.MANUAL] = Array.from(manual);
+    chapterSourceMap[AssignmentSource.QR_CODE] = Array.from(qr);
+
+    next.set(chapterId, chapterSourceMap);
+    setClassSelectedLesson(next);
+
+    let total = 0;
+    next.forEach((sourceMap) => {
+      total +=
+        (sourceMap[AssignmentSource.MANUAL]?.length || 0) +
+        (sourceMap[AssignmentSource.QR_CODE]?.length || 0);
+    });
+    setAssignmentCount(total);
+
+    const nextSelected = new Map(selectedLesson);
+
+    // update for this class
+    nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
+
+    const finalPayload = Object.fromEntries(nextSelected);
+
+    setSelectedLesson(nextSelected);
+
+    await api.createOrUpdateAssignmentCart(
+      user.id,
+      JSON.stringify(finalPayload),
     );
   };
 
-  const onSearch = async (term: string) => {
-    if (dataToContinue.search === term) return;
+  const toggleChapterSelection = async (
+    chapterId: string,
+    lessons: TableTypes<"lesson">[],
+  ) => {
+    if (!current_class?.id) return;
+    if (!hasRestoredRef.current) return;
 
-    if (!term) {
+    const user = await auth.getCurrentUser();
+    if (!user?.id) return;
+
+    const classId = current_class.id;
+
+    const next = new Map(classSelectedLesson);
+    const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
+
+    const manual = new Set(chapterSourceMap[AssignmentSource.MANUAL] ?? []);
+    const qr = new Set(chapterSourceMap[AssignmentSource.QR_CODE] ?? []);
+
+    const allSelected = lessons.every(
+      (lesson) => manual.has(lesson.id) || qr.has(lesson.id),
+    );
+
+    if (allSelected) {
+      // Remove all
+      lessons.forEach((lesson) => {
+        manual.delete(lesson.id);
+        qr.delete(lesson.id);
+      });
+    } else {
+      // Add all to MANUAL
+      lessons.forEach((lesson) => {
+        if (!manual.has(lesson.id) && !qr.has(lesson.id)) {
+          manual.add(lesson.id);
+        }
+      });
+    }
+
+    chapterSourceMap[AssignmentSource.MANUAL] = Array.from(manual);
+    chapterSourceMap[AssignmentSource.QR_CODE] = Array.from(qr);
+
+    next.set(chapterId, chapterSourceMap);
+    setClassSelectedLesson(next);
+
+    // Recalculate count
+    let total = 0;
+    next.forEach((sourceMap) => {
+      total +=
+        (sourceMap[AssignmentSource.MANUAL]?.length || 0) +
+        (sourceMap[AssignmentSource.QR_CODE]?.length || 0);
+    });
+    setAssignmentCount(total);
+
+    // Sync backend
+    const nextSelected = new Map(selectedLesson);
+
+    // update for this class
+    nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
+
+    const finalPayload = Object.fromEntries(nextSelected);
+
+    setSelectedLesson(nextSelected);
+
+    await api.createOrUpdateAssignmentCart(
+      user.id,
+      JSON.stringify(finalPayload),
+    );
+  };
+
+  const loadCart = async () => {
+    const user = await auth.getCurrentUser();
+    if (!user?.id || !current_class?.id) return;
+
+    const cart = await api.getUserAssignmentCart(user.id);
+    if (!cart?.lessons) {
+      setSelectedLesson(new Map());
+      return;
+    }
+
+    const parsed = JSON.parse(cart.lessons);
+    const fullMap = new Map<string, any>(Object.entries(parsed || {}));
+
+    setSelectedLesson(fullMap);
+    const classMap = parsed[current_class.id] || {};
+    const map = new Map<string, Partial<Record<AssignmentSource, string[]>>>(
+      Object.entries(classMap),
+    );
+
+    setClassSelectedLesson(map);
+
+    let count = 0;
+    map.forEach((sourceMap) => {
+      count +=
+        (sourceMap[AssignmentSource.MANUAL]?.length || 0) +
+        (sourceMap[AssignmentSource.QR_CODE]?.length || 0);
+    });
+
+    setAssignmentCount(count);
+  };
+
+  useEffect(() => {
+    if (!hasRestoredRef.current) return;
+    localStorage.setItem(
+      SEARCH_LESSON_CACHE_KEY,
+      JSON.stringify({ searchTerm, lessons }),
+    );
+  }, [searchTerm, lessons]);
+
+  useEffect(() => {
+    if (!lessons.length) {
+      setLessonMetaMap({});
+      return;
+    }
+
+    let active = true;
+
+    const hydrate = async () => {
+      setIsLoading(true);
+      const meta = await buildMeta(lessons);
+      if (!active) return;
+      setLessonMetaMap(meta);
+      setIsLoading(false);
+    };
+
+    hydrate();
+
+    return () => {
+      active = false;
+    };
+  }, [lessons]);
+
+  const buildMeta = async (
+    lessonList: TableTypes<"lesson">[],
+  ): Promise<Record<string, LessonMeta>> => {
+    const nextMeta: Record<string, LessonMeta> = {};
+    const chapterCache = new Map();
+    const courseCache = new Map();
+    const gradeCache = new Map();
+
+    await Promise.all(
+      lessonList.map(async (lesson) => {
+        const rawChapterId = await api.getChapterByLesson(
+          lesson.id,
+          current_class?.id,
+        );
+        if (!rawChapterId) return;
+
+        const chapterId = String(rawChapterId);
+
+        let chapter = chapterCache.get(chapterId);
+        if (!chapter) {
+          chapter = await api.getChapterById(chapterId);
+          chapterCache.set(chapterId, chapter);
+        }
+
+        if (!chapter?.course_id) return;
+
+        let course = courseCache.get(chapter.course_id);
+        if (!course) {
+          course = await api.getCourse(chapter.course_id);
+          courseCache.set(chapter.course_id, course);
+        }
+
+        let gradeName = "";
+        if (course?.grade_id) {
+          let grade = gradeCache.get(course.grade_id);
+          if (!grade) {
+            grade = await api.getGradeById(course.grade_id);
+            gradeCache.set(course.grade_id, grade);
+          }
+          gradeName = grade?.name ?? "";
+        }
+
+        nextMeta[lesson.id] = {
+          chapterId,
+          chapterName: chapter?.name ?? "",
+          courseId: chapter.course_id,
+          courseName: course?.name ?? "",
+          gradeName,
+          course,
+        };
+      }),
+    );
+
+    return nextMeta;
+  };
+
+  const onSearch = async (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) {
       setLessons([]);
       setSearchTerm("");
       setShowHistory(true);
       return;
     }
 
-    const results = await api.searchLessons(term);
-
-    dataToContinue.lessons = results;
-    dataToContinue.search = term;
-
-    saveSearchTerm(term);
-    setLessons(results);
-    setShowHistory(false);
-  };
-  const init = async () => {
-    const current_user = await auth.getCurrentUser();
-    const previous_selected_lessons = current_user?.id
-      ? await api.getUserAssignmentCart(current_user?.id)
-      : null;
-
-    if (previous_selected_lessons?.lessons && current_class?.id) {
-      const all_sync_lesson: Map<string, string> = new Map(
-        Object.entries(JSON.parse(previous_selected_lessons.lessons))
-      );
-      setSelectedLesson(all_sync_lesson);
-
-      const sync_lesson_data = all_sync_lesson.get(current_class.id);
-      if (!sync_lesson_data) return;
-
-      const chapterLessonMap: Record<
-        string,
-        Partial<Record<AssignmentSource, string[]>> | string[]
-      > = JSON.parse(sync_lesson_data);
-
-      let _assignmentLength = 0;
-
-    for (const chapterId in chapterLessonMap) {
-      const entry = chapterLessonMap[chapterId];
-
-      if (Array.isArray(entry)) {
-        // old format: just an array of lessonIds
-        _assignmentLength += entry.length;
-      } else if (typeof entry === "object" && entry !== null) {
-        // new format: { manual: [], qr_code: [] }
-        const manualLessons = entry[AssignmentSource.MANUAL] || [];
-        const qrLessons = entry[AssignmentSource.QR_CODE] || [];
-        _assignmentLength += manualLessons.length + qrLessons.length;
-      }
+    try {
+      setIsLoading(true);
+      const results = await api.searchLessons(trimmed);
+      setLessons(results ?? []);
+      setSearchTerm(trimmed);
+      saveSearchHistory(trimmed);
+      setShowHistory(false);
+    } finally {
+      setIsLoading(false);
     }
-   setAssignmentCount(_assignmentLength);
- }
   };
+
+  const saveSearchHistory = (term: string) => {
+    const updated = [term, ...searchHistory.filter((t) => t !== term)];
+    setSearchHistory(updated);
+    localStorage.setItem(SEARCH_LESSON_HISTORY, JSON.stringify(updated));
+  };
+
+  const groupedLessons = useMemo(() => {
+    if (isLoading || !Object.keys(lessonMetaMap).length) {
+      return { courseGroups: [], otherLessons: [] };
+    }
+
+    const lowerTerm = searchTerm.trim().toLowerCase();
+    const filtered = lowerTerm
+      ? lessons.filter(
+          (lesson) =>
+            lesson.name?.toLowerCase().includes(lowerTerm) ||
+            lesson.outcome?.toLowerCase().includes(lowerTerm),
+        )
+      : lessons;
+
+    const courseMap = new Map<
+      string,
+      {
+        courseId: string;
+        courseName: string;
+        gradeName: string;
+        course?: TableTypes<"course">;
+        chapters: Map<string, ChapterGroup>;
+      }
+    >();
+
+    const otherLessons: TableTypes<"lesson">[] = [];
+
+    filtered.forEach((lesson) => {
+      const meta = lessonMetaMap[lesson.id];
+      if (!meta || !meta.chapterId) {
+        otherLessons.push(lesson);
+        return;
+      }
+
+      const key = `${meta.courseId}|${meta.courseName}|${meta.gradeName}`;
+
+      if (!courseMap.has(key)) {
+        courseMap.set(key, {
+          courseId: meta.courseId,
+          courseName: meta.courseName,
+          gradeName: meta.gradeName,
+          course: meta.course,
+          chapters: new Map(),
+        });
+      }
+
+      const group = courseMap.get(key)!;
+
+      if (!group.chapters.has(meta.chapterId)) {
+        group.chapters.set(meta.chapterId, {
+          chapterId: meta.chapterId,
+          chapterName: meta.chapterName,
+          lessons: [],
+        });
+      }
+
+      group.chapters.get(meta.chapterId)!.lessons.push(lesson);
+    });
+
+    const courseGroups: CourseGroup[] = Array.from(courseMap.values()).map(
+      (group) => ({
+        courseId: group.courseId,
+        courseName: group.courseName,
+        gradeName: group.gradeName,
+        course: group.course,
+        courseTitle: `${group.courseName} - ${group.gradeName}`.trim(),
+        chapters: Array.from(group.chapters.values()),
+      }),
+    );
+
+    return { courseGroups, otherLessons };
+  }, [lessons, lessonMetaMap, searchTerm, isLoading]);
+
   return (
     <div id="searchlessons-container" className="searchlessons-container">
       <Header
-        isBackButton={true}
-        onButtonClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
-        }}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
+        isBackButton
+        onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
+        showSchool
+        showClass
         schoolName={currentSchool?.name}
+        className={current_class?.name}
       />
       <main
         id="searchlessons-container-body"
