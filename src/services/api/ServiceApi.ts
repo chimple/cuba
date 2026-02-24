@@ -57,6 +57,12 @@ export interface StudentLeaderboardInfo {
   userId: string;
 }
 
+export type AssignmentCartData = {
+  lessons: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -1162,7 +1168,7 @@ export interface ServiceApi {
    */
   getUserAssignmentCart(
     userId: string
-  ): Promise<TableTypes<"assignment_cart"> | undefined>;
+  ): Promise<AssignmentCartData | undefined>;
 
   /**
    * Get the chapter by lessonId

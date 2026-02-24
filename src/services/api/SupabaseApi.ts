@@ -62,7 +62,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import { Database } from "../database";
 import {
   PostgrestSingleResponse,
@@ -75,6 +75,10 @@ import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
 import { SqliteApi } from "./SqliteApi";
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from "../../teachers-module/pages/AssignmentCartStorage";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -907,8 +911,13 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async pushAssignmentCart(data: { [key: string]: any }, id: string) {
-    if (!this.supabase) return;
-    await this.supabase.from(TABLES.Assignment_cart).upsert({ id, ...data });
+    const now = new Date().toISOString();
+    const existing = readAssignmentCartFromStorage(id);
+    writeAssignmentCartToStorage(id, {
+      lessons: data?.lessons ?? existing?.lessons ?? null,
+      created_at: existing?.created_at ?? data?.created_at ?? now,
+      updated_at: data?.updated_at ?? now,
+    });
   }
 
   async updateSchoolLocation(
@@ -4736,23 +4745,13 @@ export class SupabaseApi implements ServiceApi {
     userId: string,
     lessons: string,
   ): Promise<boolean | undefined> {
-    if (!this.supabase) return undefined;
-
     const now = new Date().toISOString();
-
-    const { error } = await this.supabase.from("assignment_cart").upsert(
-      {
-        id: userId,
-        lessons,
-        updated_at: now,
-      },
-      { onConflict: "id" },
-    );
-
-    if (error) {
-      console.error("Error creating/updating assignment cart:", error);
-      return false;
-    }
+    const existing = readAssignmentCartFromStorage(userId);
+    writeAssignmentCartToStorage(userId, {
+      lessons,
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    });
 
     return true;
   }
@@ -5301,19 +5300,9 @@ export class SupabaseApi implements ServiceApi {
 
   async getUserAssignmentCart(
     userId: string,
-  ): Promise<TableTypes<"assignment_cart"> | undefined> {
-    if (!this.supabase) return;
-
-    const { data, error } = await this.supabase
-      .from("assignment_cart")
-      .select("*")
-      .eq("id", userId)
-      .eq("is_deleted", false)
-      .single();
-
-    if (error || !data) return;
-
-    return data;
+  ): Promise<AssignmentCartData | undefined> {
+    const cart = readAssignmentCartFromStorage(userId);
+    return cart;
   }
 
   async getChapterByLesson(

@@ -64,7 +64,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import {
   SQLiteDBConnection,
   SQLiteConnection,
@@ -88,6 +88,10 @@ import {
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from "../../teachers-module/pages/AssignmentCartStorage";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -4345,40 +4349,13 @@ export class SqliteApi implements ServiceApi {
     userId: string,
     lessons: string,
   ): Promise<boolean | undefined> {
-    await this.executeQuery(
-      `
-      INSERT INTO assignment_cart (
-          id,
-          lessons,
-          updated_at
-      ) VALUES (?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-          lessons = excluded.lessons,
-          updated_at = excluded.updated_at;
-      `,
-      [userId, lessons, new Date().toISOString()],
-    );
-    await this._serverApi.pushAssignmentCart(
-      {
-        id: userId,
-        lessons: lessons,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_deleted: false,
-      },
-      userId,
-    );
-    // await this.updatePushChanges(
-    //   TABLES.Assignment_cart,
-    //   MUTATE_TYPES.UPDATE,
-    //   {
-    //     id: userId,
-    //     lessons: lessons,
-    //     created_at: new Date().toISOString(),
-    //     updated_at: new Date().toISOString(),
-    //     is_deleted: false,
-    //   }
-    // )
+    const now = new Date().toISOString();
+    const existing = readAssignmentCartFromStorage(userId);
+    writeAssignmentCartToStorage(userId, {
+      lessons,
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    });
     return true;
   }
 
@@ -4544,12 +4521,9 @@ export class SqliteApi implements ServiceApi {
   }
   async getUserAssignmentCart(
     userId: string,
-  ): Promise<TableTypes<"assignment_cart"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Assignment_cart} where id = "${userId}"`,
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  ): Promise<AssignmentCartData | undefined> {
+    const cart = readAssignmentCartFromStorage(userId);
+    return cart;
   }
   async getStudentProgress(studentId: string): Promise<Map<string, string>> {
     const query = `
@@ -5122,6 +5096,7 @@ order by
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
     FROM ${TABLES.Assignment}
     WHERE class_id = '${classId}'
+      AND is_deleted = 0
     )
     SELECT *
     FROM RankedAssignments

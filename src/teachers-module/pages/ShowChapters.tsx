@@ -15,6 +15,10 @@ import ChapterContainer from "../components/library/ChapterContainer";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
+import {
+  getCartChapterIdsForCourse,
+  resolveInitialChapterId,
+} from "./ShowChaptersLogic";
 
 interface ShowChaptersProps {}
 
@@ -24,9 +28,12 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   );
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
-  const course: TableTypes<"course"> = history.location.state![
-    "course"
-  ] as TableTypes<"course">;
+  const locationState = (history.location.state ?? {}) as {
+    course: TableTypes<"course">;
+    chapterId?: string;
+  };
+  const course: TableTypes<"course"> = locationState.course;
+  const routeChapterId = locationState.chapterId;
   const [lessons, setLessons] = useState<Map<string, TableTypes<"lesson">[]>>();
   const [chapters, setChapters] = useState<TableTypes<"chapter">[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
@@ -41,6 +48,9 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const [isShowAssigned, setIsShowAssigned] = useState<boolean>(false);
   const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
     new Set()
+  );
+  const [activeChapterId, setActiveChapterId] = useState<string | undefined>(
+    routeChapterId
   );
   const [hasLoadedAssignedLessons, setHasLoadedAssignedLessons] =
     useState<boolean>(false);
@@ -80,10 +90,10 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   }, []);
 
   useEffect(() => {
-    // Scroll to the chapterId when chapters are set
+    // Scroll to the resolved active chapter when chapters are set.
     if (chapters) {
       const chapterIndex = chapters.findIndex(
-        (chapter) => chapter.id === chapterId
+        (chapter) => chapter.id === activeChapterId
       );
       if (chapterIndex !== -1 && chapterRefs.current[chapterIndex]) {
         chapterRefs.current[chapterIndex]?.scrollIntoView({
@@ -91,19 +101,20 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         });
       }
     }
-  }, [chapters]);
+  }, [chapters, activeChapterId]);
 
   const syncSelectedLesson = async (lesson) => {
     if (currentUser?.id)
       await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
   };
 
-  const chapterId: string = history.location.state!["chapterId"] as string;
-
   const init = async () => {
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
+    const classId = currentClass?.id ?? current_class?.id ?? "";
     const chapter_res = await api.getChaptersForCourse(course.id);
+    const chapterOrder = chapter_res.map((chapter) => chapter.id);
+    const validChapterIds = new Set(chapterOrder);
     const course_data = await api.getCourse(course.id);
     const lesson_map: Map<string, TableTypes<"lesson">[]> = new Map();
     for (const chapter of chapter_res) {
@@ -134,6 +145,30 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       });
       setAssignmentCount(_assignmentCount);
     }
+
+    const cartChapterIdsForCourse = getCartChapterIdsForCourse(
+      previous_sync_lesson?.lessons,
+      classId,
+      validChapterIds
+    );
+
+    let lastAssignmentForCourse: TableTypes<"assignment"> | undefined;
+    if (classId) {
+      const lastAssignmentsByCourse =
+        await api.getLastAssignmentsForRecommendations(classId);
+      lastAssignmentForCourse = lastAssignmentsByCourse?.find(
+        (assignment) => assignment.course_id === course.id
+      );
+    }
+
+    const resolvedChapterId = resolveInitialChapterId({
+      routeChapterId,
+      chapterOrder,
+      lessonsByChapter: lesson_map,
+      lastAssignmentForCourse,
+      cartChapterIds: cartChapterIdsForCourse,
+    });
+    setActiveChapterId(resolvedChapterId);
 
     setChapters(chapter_res);
     setLessons(lesson_map);
@@ -331,7 +366,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
             >
               <ChapterContainer
                 chapter={chapter}
-                isOpened={chapterId === chapter.id}
+                isOpened={activeChapterId === chapter.id}
                 syncSelectedLessons={[
                   ...(classSelectedLesson.get(chapter.id)?.[
                     AssignmentSource.MANUAL

@@ -1,5 +1,5 @@
 import User from "../../models/user";
-import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import { RESULT_STATUS, SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
@@ -959,7 +959,7 @@ export class ApiHandler implements ServiceApi {
 
   getUserAssignmentCart(
     userId: string
-  ): Promise<TableTypes<"assignment_cart"> | undefined> {
+  ): Promise<AssignmentCartData | undefined> {
     return this.s.getUserAssignmentCart(userId);
   }
 
