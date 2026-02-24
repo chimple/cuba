@@ -11466,9 +11466,9 @@ export class SupabaseApi implements ServiceApi {
     console.log("inside getStickerBooks");
     const { data, error } = await this.supabase
       .from("sticker_book")
-      .select("*")
-      .order("sort_index", { ascending: true });
+      .select("*");
 
+    console.log("anmol", data);
     if (error) throw error;
     return data ?? [];
   }
@@ -11523,12 +11523,21 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async addCollectedSticker(
-    userId: string,
     stickerBookId: string,
     stickerId: string
   ): Promise<UserStickerProgress | null> {
-    if (!this.supabase) return null;
     console.log("inside addCollectedSticker");
+
+    const currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+
+    if (!currentUser?.id) {
+      console.log("No user");
+      return null;
+    }
+
+    const userId = currentUser.id;
+    if (!this.supabase) return null;
     const existing = await this.getUserProgress(userId, stickerBookId);
 
     if (!existing) {

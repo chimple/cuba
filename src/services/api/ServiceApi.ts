@@ -2672,7 +2672,6 @@ export interface ServiceApi {
 ): Promise<UserStickerProgress | null>;
 
   addCollectedSticker(
-  userId: string,
   stickerBookId: string,
   stickerId: string
 ): Promise<UserStickerProgress | null>;

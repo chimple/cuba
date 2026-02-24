@@ -1,38 +1,48 @@
 import { useEffect } from "react";
-import { ServiceConfig } from "../../../services/ServiceConfig";
+import { ServiceConfig, APIMode } from "../../../services/ServiceConfig";
+
 
 export default function StickerBookTest() {
-  const api = ServiceConfig.getI().apiHandler;
-
   useEffect(() => {
     async function runTest() {
       console.log("===== TEST START =====");
 
+      const api = ServiceConfig.getI().apiHandler;
+      console.log("API CLASS:", api.constructor.name);
+
+      // 1️⃣ get books
       const books = await api.getStickerBooks();
       console.log("Books:", books);
 
-      if (!books || books.length === 0) {
-        console.log("No books found in DB");
-        return;
-      }
+      if (!books.length) return;
 
       const bookId = books[0].id;
-      const userId = crypto.randomUUID();
 
-      console.log("Adding sticker...");
-      try{
-      const addRes = await api.addCollectedSticker(
-        userId,
-        bookId,
-        "snail"
-      );
+      // 2️⃣ get book by id
+      const book = await api.getStickerBookById(bookId);
+      console.log("Book by id:", book);
+
+      // 3️⃣ get user
+      const currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+
+      console.log("User:", currentUser);
+
+      if (!currentUser?.id) return;
+
+      const userId = currentUser.id;
+
+      // 4️⃣ progress before
+      const before = await api.getUserProgress(userId, bookId);
+      console.log("Before:", before);
+
+      // 5️⃣ add sticker
+      const addRes = await api.addCollectedSticker(bookId, "snail");
       console.log("Add result:", addRes);
-    } catch (error) {
-        console.error("Error adding sticker:", error);
-    }
-      console.log("Fetching progress...");
-      const progress = await api.getUserProgress(userId, bookId);
-      console.log("Progress:", progress);
+
+      // 6️⃣ progress after
+      const after = await api.getUserProgress(userId, bookId);
+      console.log("After:", after);
 
       console.log("===== TEST END =====");
     }
@@ -40,5 +50,5 @@ export default function StickerBookTest() {
     runTest();
   }, []);
 
-  return <div>Open console → testing sticker APIs</div>;
+  return <div>Testing sticker APIs → open console</div>;
 }

@@ -2030,10 +2030,9 @@ export class ApiHandler implements ServiceApi {
   }
 
   addCollectedSticker(
-    userId: string,
     stickerBookId: string,
     stickerId: string
   ): Promise<UserStickerProgress | null> {
-    return this.s.addCollectedSticker(userId, stickerBookId, stickerId);
+    return this.s.addCollectedSticker(stickerBookId, stickerId);
   }
 }

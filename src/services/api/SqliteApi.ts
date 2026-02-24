@@ -8207,7 +8207,6 @@ order by
   }
 
   async addCollectedSticker(
-    userId: string,
     stickerBookId: string,
     stickerId: string
   ): Promise<UserStickerProgress> {
