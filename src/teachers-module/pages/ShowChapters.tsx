@@ -321,7 +321,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   };
 
   return (
-    <div className="chapter-container">
+    <div id="showchapters-container" className="showchapters-container">
       <Header
         isBackButton={true}
         onBackButtonClick={() => {
@@ -331,14 +331,15 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         showSearchIcon={true}
         onSearchIconClick={() => history.replace(PAGES.SEARCH_LESSON)}
       />
-      <main className="container-body">
-        <div className="show-chapters-course-row">
-          <div className="show-chapters-course-name">
+      <main id="showchapters-container-body" className="showchapters-container-body">
+        <div id="showchapters-course-row" className="showchapters-course-row">
+          <div id="showchapters-course-name" className="showchapters-course-name">
             {`${selectedCourseName} ${selectedCourseGrade}`}
           </div>
           <button
+            id="showchapters-assigned-btn"
             type="button"
-            className={`show-chapters-assigned-btn${
+            className={`showchapters-assigned-btn${
               isShowAssigned ? " is-active" : ""
             }`}
             onClick={handleShowAssignedClick}
@@ -346,7 +347,11 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
           >
             {isShowAssigned ? (
               <>
-                <span className="show-chapters-assigned-icon" aria-hidden="true">
+                <span
+                  id="showchapters-assigned-icon"
+                  className="showchapters-assigned-icon"
+                  aria-hidden="true"
+                >
                   <img src="assets/icons/assignmentSelect.svg" alt="" />
                 </span>
                 {t("Assigned")}
@@ -356,7 +361,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
             )}
           </button>
         </div>
-        <div className="lesson-grid">
+        <div id="showchapters-lesson-grid" className="showchapters-lesson-grid">
           {chapters?.map((chapter, index) => (
             <div
               key={chapter.id}

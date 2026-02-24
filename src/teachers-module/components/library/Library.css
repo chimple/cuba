@@ -23,7 +23,7 @@
   background-color: #d7d7d7;
 }
 
-.course-grid {
+.library-course-grid {
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
@@ -34,7 +34,7 @@
   padding: 0 24px;
 }
 
-.course-grid > * {
+.library-course-grid > * {
   border-bottom: 1px solid #d7d7d7;
 }
 

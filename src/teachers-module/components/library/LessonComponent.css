@@ -1,4 +1,4 @@
-.lesson-component-container {
+.lessoncomponent-lesson-component-container {
   text-align: center;
   font-family: Arial, sans-serif;
   display: flex;
@@ -7,36 +7,36 @@
   flex-wrap: wrap;
 }
 
-.assignment-logo {
+.lessoncomponent-assignment-logo {
   width: 10px;
   height: 10px;
   background-size: contain;
   margin-left: 4px;
   background-image: url("../../assets/icons/assignment_icon.png");
 }
-.quiz-logo {
+.lessoncomponent-quiz-logo {
   width: 10px;
   height: 10px;
   background-size: contain;
   margin-left: 4px;
   background-image: url("../../assets/icons/livequiz_icon.png");
 }
-.lesson-type-logo {
+.lessoncomponent-lesson-type-logo {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: row;
 }
-.lesson-details {
+.lessoncomponent-lesson-details {
   font-size: var(--text-sizeM);
   color: black;
   text-wrap: nowrap;
 }
-.lesson-type {
+.lessoncomponent-lesson-type {
   font-size: var(--text-sizeL);
   color: black;
 }
-.image-container {
+.lessoncomponent-image-container {
   cursor: pointer;
   height: 10vh;
   width: 14vh;
@@ -47,18 +47,18 @@
   /* background-color: bisque; */
 }
 @media (orientation: landscape) {
-  .image-container {
+  .lessoncomponent-image-container {
     height: 10vw;
     width: 14vw;
   }
 }
-.lesson-image img {
+.lessoncomponent-lesson-image img {
   height: 75px;
   width: 100px; /* Adjust the size as needed */
   /* height: auto; */
 }
 
-.lesson-assigned-badge {
+.lessoncomponent-lesson-assigned-badge {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -73,13 +73,13 @@
   z-index: 2;
 }
 
-.lesson-assigned-badge img {
+.lessoncomponent-lesson-assigned-badge img {
   width: 7px;
   height: 10px;
   filter: brightness(0) invert(1);
 }
 
-.text-container {
+.lessoncomponent-text-container {
   display: flex;
   justify-content: center;
   align-items: center;

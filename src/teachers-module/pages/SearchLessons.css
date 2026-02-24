@@ -1,13 +1,13 @@
-.search-bar .searchbar-input {
+.searchlessons-search-bar .searchbar-input {
   box-shadow: none;
 }
-.chapter-container-in-search-lesson .container-body {
+.searchlessons-container .searchlessons-container-body {
   background-color: white;
   height: 90vh;
   display: block;
   padding: 10px;
 }
-.lesson-search {
+.searchlessons-lesson-search {
   display: flex;
   align-items: center;
   padding: 30px;
@@ -18,7 +18,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 15px; /* Optional: to round the corners */
 }
-.search-input-lesson {
+.searchlessons-search-input-lesson {
   flex-grow: 1;
   border: none;
   outline: none;
@@ -27,7 +27,7 @@
   background-color: white;
   color: black;
 }
-.search-bar {
+.searchlessons-search-bar {
   background-color: #f4f5f8;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 15px;
@@ -38,21 +38,21 @@
 .searchbar-input-container .sc-ion-searchbar-ios {
   /* height: 60px; */
 }
-.search-bar .searchbar-input {
+.searchlessons-search-bar .searchbar-input {
   font-size: 16px;
   /* color: var(--color);  */
   box-shadow: none;
 }
-.search-bar .searchbar-input::placeholder {
+.searchlessons-search-bar .searchbar-input::placeholder {
   color: var(--placeholder-color);
 }
-.search-bar .searchbar-clear-icon {
+.searchlessons-search-bar .searchbar-clear-icon {
   color: var(--color);
 }
-.search-input::placeholder {
+.searchlessons-search-input::placeholder {
   color: #aaa;
 }
-.chapter-container-in-search-lesson .grid-container {
+.searchlessons-container .searchlessons-grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(14vh, 1fr));
   max-height: 80%;
@@ -63,18 +63,18 @@
   padding: 10px 10px 70px 10px;
 }
 @media (orientation: landscape) {
-  .chapter-container-in-search-lesson .grid-container {
+  .searchlessons-container .searchlessons-grid-container {
     grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr));
   }
 }
-.chapter-container-in-search-lesson .bottom-border {
+.searchlessons-container .searchlessons-bottom-border {
   border-bottom: 0.5px solid #838181;
 }
-.chapter-container-in-search-lesson .grid-item {
+.searchlessons-container .searchlessons-grid-item {
   /* padding: 20px; */
   text-align: center;
 }
-.chapter-container-in-search-lesson {
+.searchlessons-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -82,16 +82,16 @@
   background-color: #7c5db0;
 }
 
-.search-lesson-searchbar-wrapper {
+.searchlessons-searchbar-wrapper {
   position: relative;
   z-index: 20;
 }
 
-.search-lesson-searchbar-wrapper ion-searchbar {
+.searchlessons-searchbar-wrapper ion-searchbar {
   --background: white;
 }
 
-.search-lesson-search-history-list {
+.searchlessons-search-history-list {
   position: fixed;
   top: 160px;
   left: 16px;
@@ -107,13 +107,13 @@
   z-index: 100;
 }
 
-.search-lesson-search-history-item {
+.searchlessons-search-history-item {
   color: #000;
   padding: 12px 16px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
 
-.search-lesson-search-history-item:hover {
+.searchlessons-search-history-item:hover {
   background-color: #f5f5f5;
 }

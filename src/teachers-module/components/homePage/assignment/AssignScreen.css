@@ -42,13 +42,14 @@
 
 .assign-screen-card {
   --card-accent: #69b44a;
+  --card-bg: rgba(244, 255, 239, 1);
   width: 100%;
   flex: 1 1 0;
   min-height: clamp(100px, 13vh, 156px);
   font-size: clamp(13px, calc(0.7vw + 0.75vh), 20px);
-  border-radius: clamp(18px, 2.5vw, 24px);
-  border: clamp(2px, 0.35vw, 3px) solid var(--card-accent);
-  background-color: #ffffff !important;
+  border-radius: clamp(32px, 2.5vw, 64px);
+  border: clamp(4px, 0.35vw, 8px) solid var(--card-accent);
+  background-color: var(--card-bg) !important;
   background-image: none !important;
   padding: clamp(10px, 1.2vw, 14px) clamp(38px, 5.2vw, 48px)
     clamp(10px, 1.2vw, 14px) clamp(12px, 1.8vw, 16px);
@@ -66,26 +67,26 @@
 
 .assign-screen-card-library {
   --card-accent: #69b44a;
+  --card-bg: rgba(244, 255, 239, 1);
   border-color: #69b44a !important;
-  background-color: #ffffff !important;
 }
 
 .assign-screen-card-scan {
   --card-accent: #27a3d8;
+  --card-bg: rgba(227, 241, 247, 1);
   border-color: #27a3d8 !important;
-  background-color: #ffffff !important;
 }
 
 .assign-screen-card-recommend {
   --card-accent: #e5b51c;
+  --card-bg: rgba(255, 249, 233, 1);
   border-color: #e5b51c !important;
-  background-color: #ffffff !important;
 }
 
 .assign-screen-card:hover,
 .assign-screen-card:active,
 .assign-screen-card:focus {
-  background-color: #ffffff !important;
+  background-color: var(--card-bg) !important;
 }
 
 .assign-screen-card:focus-visible {
@@ -93,39 +94,32 @@
   outline-offset: 2px;
 }
 
-.assign-screen-icon-wrapper {
-  width: clamp(40px, 5vw, 46px);
-  height: clamp(40px, 5vw, 46px);
-  border-radius: clamp(10px, 1.4vw, 11px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .assign-screen-icon-library-bg {
-  background: #f1f8eb;
-  border: 2px solid #8dc96e;
+  background: var(--card-bg);
 }
 
 .assign-screen-icon-scan-bg {
-  background: #e9f6fd;
-  border: 2px solid #65bae0;
+  background: var(--card-bg);
 }
 
 .assign-screen-icon-recommend-bg {
-  background: #fff5d6;
-  border: 2px solid #e0bf48;
+  background: var(--card-bg);
 }
 
 .assign-screen-card-image {
-  width: clamp(24px, 3.1vw, 28px);
-  height: clamp(24px, 3.1vw, 28px);
+  width: clamp(80px, 10vw, 98px);
+  height: clamp(80px, 10vw, 98px);
+  border-radius: clamp(10px, 1.4vw, 11px);
+  flex-shrink: 0;
   object-fit: contain;
 }
 
 .assign-screen-icon {
-  font-size: clamp(24px, 3.3vw, 30px) !important;
+  width: clamp(80px, 10vw, 98px);
+  height: clamp(80px, 10vw, 98px);
+  border-radius: clamp(10px, 1.4vw, 11px);
+  flex-shrink: 0;
+  font-size: inherit !important;
 }
 
 .assign-screen-icon-scan {
@@ -164,6 +158,8 @@
   position: absolute;
   right: clamp(10px, 1.6vw, 14px);
   bottom: clamp(10px, 1.6vw, 14px);
+  transform: scaleX(1.95);
+  transform-origin: right center;
 }
 
 .assign-screen-card-library .assign-screen-arrow {
@@ -251,3 +247,4 @@
     margin-bottom: 4px;
   }
 }
+

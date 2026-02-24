@@ -157,11 +157,7 @@ const Header: React.FC<HeaderProps> = ({
             />
           ) : null}
           {customText ? (
-            <div
-              className={`header-custom-text${
-                customText === "Library" ? " header-custom-text-library" : ""
-              }`}
-            >
+            <div className="header-custom-text">
               {t(customText)}
             </div>
           ) : (
@@ -206,7 +202,8 @@ const Header: React.FC<HeaderProps> = ({
             {onShareClick && (
               <button
                 onClick={onShareClick}
-                className="share-icon-button"
+                id="header-share-icon-button"
+                className="header-share-icon-button"
                 type="button"
                 aria-label={String(t("Share"))}
               >
@@ -225,7 +222,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
             {onSearchChange && (
               <div className="header-search-container">
-                <SearchOutlinedIcon className="search-icon-inside" />
+                <SearchOutlinedIcon id="header-search-icon-inside" className="header-search-icon-inside" />
                 <input
                   type="text"
                   className="header-search-input"

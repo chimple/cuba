@@ -29,12 +29,15 @@ const Library: React.FC = () => {
   };
 
   return (
-    <div className="library-container">
-      <div className="library-subtitle">
+    <div id="library-container" className="library-container">
+      <div id="library-subtitle" className="library-subtitle">
         {t("Choose any subject to view the assignments")}
       </div>
-      <div className="library-subtitle-divider" />
-      <div className="course-grid">
+      <div
+        id="library-subtitle-divider"
+        className="library-subtitle-divider"
+      />
+      <div id="library-course-grid" className="library-course-grid">
         {courses.map((course) => (
           <CourseComponent
             key={course.id}

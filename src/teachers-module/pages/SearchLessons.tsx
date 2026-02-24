@@ -168,7 +168,7 @@ const SearchLesson: React.FC = ({}) => {
  }
   };
   return (
-    <div className="chapter-container-in-search-lesson">
+    <div id="searchlessons-container" className="searchlessons-container">
       <Header
         isBackButton={true}
         onButtonClick={() => {
@@ -179,11 +179,18 @@ const SearchLesson: React.FC = ({}) => {
         className={currentClass?.name}
         schoolName={currentSchool?.name}
       />
-      <main className="container-body">
-    <div className="search-lesson-searchbar-wrapper">
+      <main
+        id="searchlessons-container-body"
+        className="searchlessons-container-body"
+      >
+    <div
+      id="searchlessons-searchbar-wrapper"
+      className="searchlessons-searchbar-wrapper"
+    >
       <IonSearchbar
       ref={inputEl}
-      className="search-bar"
+      id="searchlessons-search-bar"
+      className="searchlessons-search-bar"
       showClearButton="focus"
       showCancelButton="focus"
       placeholder={t("Search") ?? ""}
@@ -224,11 +231,15 @@ const SearchLesson: React.FC = ({}) => {
     />
 
     {isFocused && searchHistory.length > 0 && (
-        <div className="search-lesson-search-history-list">
+        <div
+          id="searchlessons-search-history-list"
+          className="searchlessons-search-history-list"
+        >
           {searchHistory.map((term, index) => (
             <div
               key={index}
-              className="search-lesson-search-history-item"
+              id="searchlessons-search-history-item"
+              className="searchlessons-search-history-item"
               onClick={() => {
                 setSearchTerm(term);
                 onSearch(term);
@@ -241,10 +252,20 @@ const SearchLesson: React.FC = ({}) => {
         </div>
       )}
     </div>
-        <div className="grid-container">
+        <div
+          id="searchlessons-grid-container"
+          className="searchlessons-grid-container"
+        >
           {lessons.map((lesson) => (
-            <div key={lesson.id} className="grid-item">
-              <div className="bottom-border">
+            <div
+              key={lesson.id}
+              id="searchlessons-grid-item"
+              className="searchlessons-grid-item"
+            >
+              <div
+                id="searchlessons-bottom-border"
+                className="searchlessons-bottom-border"
+              >
                 <LessonComponent
                   lesson={lesson}
                   handleLessonCLick={() => {

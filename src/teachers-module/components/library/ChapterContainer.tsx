@@ -83,10 +83,17 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setIsExpanded((prev) => !prev);
   };
   return (
-    <div className="collapsable-container">
-      <div className="chapter-header-row">
+    <div
+      id="chaptercontainer-collapsable-container"
+      className="chaptercontainer-collapsable-container"
+    >
+      <div
+        id="chaptercontainer-chapter-header-row"
+        className="chaptercontainer-chapter-header-row"
+      >
         <div
-          className="colladable-header"
+          id="chaptercontainer-colladable-header"
+          className="chaptercontainer-colladable-header"
           role="button"
           tabIndex={0}
           onClick={toggleChapter}
@@ -97,18 +104,33 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
             }
           }}
         >
-          <div className="chapter-details">
-            <div className="chapter-name">
+          <div
+            id="chaptercontainer-chapter-details"
+            className="chaptercontainer-chapter-details"
+          >
+            <div
+              id="chaptercontainer-chapter-name"
+              className="chaptercontainer-chapter-name"
+            >
               {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
             </div>
 
-            <div className="selected-count">
+            <div
+              id="chaptercontainer-selected-count"
+              className="chaptercontainer-selected-count"
+            >
               {selectedLessons.length} / {lessons.length}
             </div>
           </div>
-          <div className="chapter-header-actions">
+          <div
+            id="chaptercontainer-chapter-header-actions"
+            className="chaptercontainer-chapter-header-actions"
+          >
             <div
-              className={`chapter-select-all${isAllSelected ? " is-selected" : ""}`}
+              id="chaptercontainer-chapter-select-all"
+              className={`chaptercontainer-chapter-select-all${
+                isAllSelected ? " is-selected" : ""
+              }`}
               role="button"
               tabIndex={0}
               onClick={(event) => {
@@ -127,10 +149,20 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         </div>
       </div>
       {isExpanded ? (
-        <div className="grid-container">
+        <div
+          id="chaptercontainer-grid-container"
+          className="chaptercontainer-grid-container"
+        >
           {lessons.map((lesson) => (
-            <div key={lesson.id} className="grid-item">
-              <div className="bottom-border">
+            <div
+              key={lesson.id}
+              id="chaptercontainer-grid-item"
+              className="chaptercontainer-grid-item"
+            >
+              <div
+                id="chaptercontainer-bottom-border"
+                className="chaptercontainer-bottom-border"
+              >
                 <LessonComponent
                   lesson={lesson}
                   isSelButton={true}

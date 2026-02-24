@@ -37,24 +37,38 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
     setIsTicked(!isTicked);
   };
   return (
-    <div className="lesson-component-container">
-      <div className="lesson-type-logo">
-        <div className="lesson-type">
+    <div
+      id="lessoncomponent-lesson-component-container"
+      className="lessoncomponent-lesson-component-container"
+    >
+      <div
+        id="lessoncomponent-lesson-type-logo"
+        className="lessoncomponent-lesson-type-logo"
+      >
+        <div id="lessoncomponent-lesson-type" className="lessoncomponent-lesson-type">
           {lesson.plugin_type === "cocos" ? t("Assignment") : t("Live Quiz")}
         </div>
         <div
+          id={
+            lesson.plugin_type === "cocos"
+              ? "lessoncomponent-assignment-logo"
+              : "lessoncomponent-quiz-logo"
+          }
           className={
-            lesson.plugin_type === "cocos" ? "assignment-logo" : "quiz-logo"
+            lesson.plugin_type === "cocos"
+              ? "lessoncomponent-assignment-logo"
+              : "lessoncomponent-quiz-logo"
           }
         ></div>
       </div>
       <div
-        className="image-container"
+        id="lessoncomponent-image-container"
+        className="lessoncomponent-image-container"
         onClick={() => {
           handleLessonCLick();
         }}
       >
-        <div className="lesson-image">
+        <div id="lessoncomponent-lesson-image" className="lessoncomponent-lesson-image">
           <SelectIconImage
             localSrc={`courses/en/icons/en00.webp`}
             defaultSrc={"assets/icons/DefaultIcon.png"}
@@ -66,7 +80,8 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
         </div>
         {showAssignedBadge && isAssigned ? (
           <span
-            className="lesson-assigned-badge"
+            id="lessoncomponent-lesson-assigned-badge"
+            className="lessoncomponent-lesson-assigned-badge"
             title={t("Assigned") ?? ""}
             aria-label={t("Assigned") ?? ""}
           >
@@ -74,8 +89,8 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           </span>
         ) : null}
       </div>
-      <div className="text-container">
-        <div className="lesson-details">
+      <div id="lessoncomponent-text-container" className="lessoncomponent-text-container">
+        <div id="lessoncomponent-lesson-details" className="lessoncomponent-lesson-details">
           {courseCode === COURSES.ENGLISH
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + "..."
