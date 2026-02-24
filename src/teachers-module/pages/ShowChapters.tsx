@@ -120,6 +120,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       lesson: lesson,
       chapterId: chapter.id,
       selectedLesson: selectedLesson,
+      from: PAGES.SHOW_CHAPTERS,
     });
   };
 
