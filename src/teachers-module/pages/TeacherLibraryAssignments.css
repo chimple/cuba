@@ -1,0 +1,143 @@
+.teacher-library-assignments-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #7c5db0;
+  position: relative;
+}
+
+.teacher-library-assignments-page .header-custom-text {
+  transform: translateX(-30px);
+  font-size: var(--text-sizeXL);
+  padding: 4vh;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100vw - 110px);
+}
+
+.teacher-library-assignments-body {
+  flex: 1;
+  background: #fff;
+  overflow-y: auto;
+  padding: 10px 12px 110px;
+}
+
+.teacher-library-assignments-page .assign-button {
+  top: auto;
+  bottom: 1vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  margin-top: 0;
+}
+
+.teacher-library-assignments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teacher-assignments-group {
+  background: #fff;
+}
+
+.teacher-assignments-group-header {
+  height: 40px;
+  background: #ece6f4;
+  border-radius: 6px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.teacher-assignments-group-name {
+  font-size: clamp(18px, 2.5vh, 24px);
+  font-weight: 700;
+  color: #6b6b6b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teacher-assignments-group-count {
+  min-width: 44px;
+  height: 24px;
+  background: #db8f99;
+  border-radius: 6px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: clamp(16px, 2.1vh, 20px);
+  padding: 0 6px;
+}
+
+.teacher-assignments-group-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-assignments-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  border-bottom: 1px solid #e6e6e6;
+  padding: 6px 10px;
+}
+
+.teacher-assignments-item-thumb {
+  width: 50px;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.teacher-assignments-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teacher-assignments-item-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-assignments-item-title {
+  color: #666666;
+  font-size: clamp(16px, 2.2vh, 24px);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-assignments-item-subtitle {
+  color: #707070;
+  font-size: clamp(13px, 1.8vh, 18px);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-assignments-item-toggle {
+  font-size: 28px;
+  color: #d4d4d4;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.teacher-assignments-item-toggle.is-selected {
+  color: #0b9b49;
+}

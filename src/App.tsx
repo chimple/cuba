@@ -139,6 +139,7 @@ import ClassProfile from "./teachers-module/pages/ClassProfile";
 import ShowChapters from "./teachers-module/pages/ShowChapters";
 import SearchLessons from "./teachers-module/pages/SearchLessons";
 import HomePage from "./teachers-module/pages/HomePage";
+import TeacherLibraryAssignments from "./teachers-module/pages/TeacherLibraryAssignments";
 import ClassUsers from "./teachers-module/pages/ClassUsers";
 import AddTeacher from "./teachers-module/pages/AddTeacher";
 import TeacherProfile from "./teachers-module/pages/TeacherProfile";
@@ -757,6 +758,9 @@ useLayoutEffect(() => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
               <HomePage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_ASSIGNMENT} exact={true}>
+              <TeacherLibraryAssignments />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.POST_SUCCESS} exact={true}>
               <PostSuccess />

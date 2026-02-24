@@ -1,68 +1,210 @@
-.collapsable-container {
-  text-align: center;
-}
-.collapsable-container .toggle-button {
-  margin: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  width: 95%;
-  border: 0px solid #000;
-  border-radius: 10px;
-  background-color: #EFE8F8;
-  height: 6vh;
-  min-height: 50px;
-}
-.collapsable-container button:hover {
-  background-color: #EFE8F8;
-}
-.chapter-details {
-  display: flex;
-  width: 90%;
+.chaptercontainer-collapsable-container {
   text-align: left;
+  margin-bottom: 10px;
 }
-.chapter-name {
-  color: #707070;
+
+.chaptercontainer-chapter-header-row {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 10px 0 10px;
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  background-color: #e7e0f0;
+  height: 37px;
+  min-height: 37px;
+}
+
+.chaptercontainer-chapter-details {
+  display: flex;
+  align-items: center;
+  width: auto;
+  gap: 8px;
+}
+
+.chaptercontainer-chapter-name {
+  color: #666666;
+  font-size: clamp(16px, 2.4vh, 22px);
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.selected-count {
-  width: 22px;
-  height: 22px;
-  margin: auto 10px;
-  border-radius: 5px;
-  background-color: #E38F98;
-  font-size: 16px;
+
+.chaptercontainer-selected-count {
+  min-width: 48px;
+  height: 21px;
+  padding: 8px !important;
+  margin: 0;
+  border-radius: 6px;
+  background-color: #db8f99;
+  color: #fff;
+  font-size: clamp(13px, 1.8vh, 18px);
+  font-weight: 700;
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  font-weight: bold;
-  min-width: 22px;
+  justify-content: center !important;
+  align-items: center;
 }
-.colladable-header {
+
+.chaptercontainer-colladable-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
-.icon-style {
-  color: #707070;
+
+.chaptercontainer-chapter-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chaptercontainer-chapter-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #787878;
+  font-size: clamp(14px, 1.9vh, 18px);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chaptercontainer-chapter-select-all::before {
+  content: "Select All";
+}
+
+.chaptercontainer-chapter-select-all::after {
+  content: "";
   width: 18px;
   height: 18px;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #b6b6b6;
+  color: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.grid-container {
+
+.chaptercontainer-chapter-select-all.is-selected::after {
+  content: "\2713";
+  background-color: #c9e468;
+  border: none;
+  color: #fff;
+}
+
+.chaptercontainer-grid-container {
   display: grid;
-  padding: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(14vh, 1fr));
+  padding: 12px 4px 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 8px;
+  row-gap: 14px;
+  /* border-bottom: 1px solid #e7e2ec; */
 }
+
 @media (orientation: landscape) {
-  .grid-container {
-    grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr));
+  .chaptercontainer-grid-container {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
-.bottom-border {
-  border-bottom: 0.5px solid #838181;
+
+.chaptercontainer-bottom-border {
+  border-bottom: none;
 }
-.grid-item {
-  /* padding: 20px; */
+
+.chaptercontainer-grid-item {
   text-align: center;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-lesson-component-container {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-lesson-type-logo {
+  display: none;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-image-container {
+  cursor: pointer;
+  height: 54px;
+  width: 84px;
+  margin: 0 auto;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  background-color: #f1f1f1 !important;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image,
+.chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image > div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 6px;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-assigned-badge {
+  top: 0;
+  right: 0;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-text-container {
+  gap: 3px;
+  width: 100%;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-lesson-details {
+  font-size: clamp(11px, 1.7vh, 14px);
+  color: #646464;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.chaptercontainer-collapsable-container .select-icon-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.chaptercontainer-collapsable-container .select-Assignmenticon {
+  width: 72px;
+  height: 21px;
+  border: 1px solid #8e6cc6;
+  border-radius: 6px;
+  gap: 3px;
+}
+
+.chaptercontainer-collapsable-container .select-Assignmenticon img {
+  width: 10px;
+  height: 10px;
+}
+
+.chaptercontainer-collapsable-container .select-text {
+  font-size: 11px;
+  font-weight: 500;
 }

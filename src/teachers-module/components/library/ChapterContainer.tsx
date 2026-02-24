@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./ChapterContainer.css";
 import LessonComponent from "./LessonComponent";
-import KeyboardArrowDownTwoToneIcon from "@mui/icons-material/KeyboardArrowDownTwoTone";
-import KeyboardArrowUpTwoToneIcon from "@mui/icons-material/KeyboardArrowUpTwoTone";
-import { COURSES, PAGES, TableTypes } from "../../../common/constants";
-import { string } from "prop-types";
-import { useHistory } from "react-router";
+import { COURSES, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 interface ChapterContainerProps {
   chapter: TableTypes<"chapter">;
@@ -15,26 +11,35 @@ interface ChapterContainerProps {
   isOpened: boolean;
   lessonClickCallBack;
   courseCode?: string;
+  showAssignedBadge?: boolean;
+  assignedLessonIds?: Set<string>;
 }
 const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapter,
   lessons,
   chapterSelectedLessons,
   syncSelectedLessons,
-  lessonClickCallBack,
   isOpened,
+  lessonClickCallBack,
   courseCode,
+  showAssignedBadge,
+  assignedLessonIds,
 }) => {
-  const [isOpen, setIsOpen] = useState(isOpened);
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
-  const history = useHistory();
-  const toggleDropdown = () => {
-    setIsOpen(!isOpen);
-  };
-  // useEffect(() => {
-  //   chapterSelectedLessons(chapter.id, selectedLessons);
-  // }, [selectedLessons]);
+  const [isExpanded, setIsExpanded] = useState<boolean>(isOpened);
+
+  useEffect(() => {
+    setIsExpanded(isOpened);
+  }, [isOpened]);
+
+  const chapterLessonIds = lessons
+    .map((lesson) => lesson.id)
+    .filter((lessonId): lessonId is string => Boolean(lessonId));
+  const isAllSelected =
+    chapterLessonIds.length > 0 &&
+    chapterLessonIds.every((lessonId) => selectedLessons.includes(lessonId));
+
   const handleLessonToggle = (lesson) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lesson)) {
@@ -46,39 +51,118 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
       }
     });
   };
+
+  const handleSelectAll = () => {
+    setSelectedLessons((prevSelectedLessons) => {
+      const prevSet = new Set(prevSelectedLessons);
+      const shouldSelectAll = chapterLessonIds.some(
+        (lessonId) => !prevSet.has(lessonId)
+      );
+
+      if (shouldSelectAll) {
+        chapterLessonIds.forEach((lessonId) => {
+          if (!prevSet.has(lessonId)) {
+            chapterSelectedLessons(chapter.id, lessonId, true);
+          }
+        });
+        return chapterLessonIds;
+      }
+
+      chapterLessonIds.forEach((lessonId) => {
+        if (prevSet.has(lessonId)) {
+          chapterSelectedLessons(chapter.id, lessonId, false);
+        }
+      });
+      return prevSelectedLessons.filter(
+        (lessonId) => !chapterLessonIds.includes(lessonId)
+      );
+    });
+  };
+
+  const toggleChapter = () => {
+    setIsExpanded((prev) => !prev);
+  };
   return (
-    <div className="collapsable-container">
-      <button onClick={toggleDropdown} className="toggle-button">
-        <div className="colladable-header">
-          <div className="chapter-details">
-            <div className="chapter-name">
+    <div
+      id="chaptercontainer-collapsable-container"
+      className="chaptercontainer-collapsable-container"
+    >
+      <div
+        id="chaptercontainer-chapter-header-row"
+        className="chaptercontainer-chapter-header-row"
+      >
+        <div
+          id="chaptercontainer-colladable-header"
+          className="chaptercontainer-colladable-header"
+          role="button"
+          tabIndex={0}
+          onClick={toggleChapter}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              toggleChapter();
+            }
+          }}
+        >
+          <div
+            id="chaptercontainer-chapter-details"
+            className="chaptercontainer-chapter-details"
+          >
+            <div
+              id="chaptercontainer-chapter-name"
+              className="chaptercontainer-chapter-name"
+            >
               {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
             </div>
 
-            <div className="selected-count">{selectedLessons.length}</div>
+            <div
+              id="chaptercontainer-selected-count"
+              className="chaptercontainer-selected-count"
+            >
+              {selectedLessons.length} / {lessons.length}
+            </div>
           </div>
-          <div>
-            {isOpen ? (
-              <img
-                src="assets/icons/iconUp.png"
-                alt="drop_down"
-                className="icon-style"
-              />
-            ) : (
-              <img
-                src="assets/icons/iconDown.png"
-                alt="drop_down"
-                className="icon-style"
-              />
-            )}
+          <div
+            id="chaptercontainer-chapter-header-actions"
+            className="chaptercontainer-chapter-header-actions"
+          >
+            <div
+              id="chaptercontainer-chapter-select-all"
+              className={`chaptercontainer-chapter-select-all${
+                isAllSelected ? " is-selected" : ""
+              }`}
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleSelectAll();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  handleSelectAll();
+                }
+              }}
+            />
           </div>
         </div>
-      </button>
-      {isOpen && (
-        <div className="grid-container">
+      </div>
+      {isExpanded ? (
+        <div
+          id="chaptercontainer-grid-container"
+          className="chaptercontainer-grid-container"
+        >
           {lessons.map((lesson) => (
-            <div key={lesson.id} className="grid-item">
-              <div className="bottom-border">
+            <div
+              key={lesson.id}
+              id="chaptercontainer-grid-item"
+              className="chaptercontainer-grid-item"
+            >
+              <div
+                id="chaptercontainer-bottom-border"
+                className="chaptercontainer-bottom-border"
+              >
                 <LessonComponent
                   lesson={lesson}
                   isSelButton={true}
@@ -90,12 +174,18 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                   }}
                   isSelcted={selectedLessons.includes(lesson.id)}
                   courseCode={courseCode}
+                  isAssigned={
+                    !!showAssignedBadge &&
+                    !!lesson.id &&
+                    !!assignedLessonIds?.has(lesson.id)
+                  }
+                  showAssignedBadge={!!showAssignedBadge}
                 />
               </div>
             </div>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

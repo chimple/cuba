@@ -57,6 +57,12 @@ export interface StudentLeaderboardInfo {
   userId: string;
 }
 
+export type AssignmentCartData = {
+  lessons: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -974,6 +980,12 @@ export interface ServiceApi {
    * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
    */
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined>;
+  /**
+   * Gives Assignments for given assignment doc ids
+   * @param {string[]} ids - Assignment doc ids
+   * @returns {Assignment[]} Array of assignments matched by ids
+   */
+  getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]>;
 
   /**
    * Gives Badge for given a Badge firebase doc Id
@@ -1156,7 +1168,7 @@ export interface ServiceApi {
    */
   getUserAssignmentCart(
     userId: string
-  ): Promise<TableTypes<"assignment_cart"> | undefined>;
+  ): Promise<AssignmentCartData | undefined>;
 
   /**
    * Get the chapter by lessonId
@@ -1434,6 +1446,18 @@ export interface ServiceApi {
     endDate: string,
     classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   * Get unique assignment IDs for a given class + course(subject) + chapter(s).
+   * @param classId
+   * @param courseId
+   * @param chapterIdOrIds
+   */
+  getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterIdOrIds: string | string[]
+  ): Promise<string[]>;
 
   /**
    * To generate class code for the given class id

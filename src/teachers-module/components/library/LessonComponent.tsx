@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./LessonComponent.css"; // Assuming you have some basic styles
 import { COURSES,TableTypes } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
@@ -12,6 +12,8 @@ interface LessonComponentProps {
   isSelcted: boolean;
   isSelButton: boolean;
   courseCode?: String;
+  isAssigned?: boolean;
+  showAssignedBadge?: boolean;
 }
 
 const LessonComponent: React.FC<LessonComponentProps> = ({
@@ -21,47 +23,80 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   isSelcted,
   isSelButton,
   courseCode,
+  isAssigned = false,
+  showAssignedBadge = false,
 }) => {
   const [isTicked, setIsTicked] = useState(isSelcted);
 
-  const handleImageClick = () => {
-    // Add your image click logic here
-  };
+  useEffect(() => {
+    setIsTicked(isSelcted);
+  }, [isSelcted]);
 
   const handleTickClick = () => {
     handleSelect();
     setIsTicked(!isTicked);
   };
   return (
-    <div className="lesson-component-container">
-      <div className="lesson-type-logo">
-        <div className="lesson-type">
+    <div
+      id="lessoncomponent-lesson-component-container"
+      className="lessoncomponent-lesson-component-container"
+    >
+      <div
+        id="lessoncomponent-lesson-type-logo"
+        className="lessoncomponent-lesson-type-logo"
+      >
+        <div id="lessoncomponent-lesson-type" className="lessoncomponent-lesson-type">
           {lesson.plugin_type === "cocos" ? t("Assignment") : t("Live Quiz")}
         </div>
         <div
+          id={
+            lesson.plugin_type === "cocos"
+              ? "lessoncomponent-assignment-logo"
+              : "lessoncomponent-quiz-logo"
+          }
           className={
-            lesson.plugin_type === "cocos" ? "assignment-logo" : "quiz-logo"
+            lesson.plugin_type === "cocos"
+              ? "lessoncomponent-assignment-logo"
+              : "lessoncomponent-quiz-logo"
           }
         ></div>
       </div>
       <div
-        style={{ backgroundColor: "darkorange" }}
-        className="image-container"
+        id="lessoncomponent-image-container"
+        className="lessoncomponent-image-container"
         onClick={() => {
           handleLessonCLick();
         }}
       >
-        <SelectIconImage
-          localSrc={`courses/en/icons/en00.webp`}
-          defaultSrc={"assets/icons/DefaultIcon.png"}
-          webSrc={`${lesson.image}`}
-          // imageWidth="100%"
-          imageHeight="100%"
-          webImageHeight="0px"
-        />
+        <div id="lessoncomponent-lesson-image" className="lessoncomponent-lesson-image">
+          <SelectIconImage
+            localSrc={`courses/en/icons/en00.webp`}
+            defaultSrc={"assets/icons/DefaultIcon.png"}
+            webSrc={`${lesson.image}`}
+            // imageWidth="100%"
+            imageHeight="100%"
+            webImageHeight="0px"
+          />
+        </div>
+        {showAssignedBadge && isAssigned ? (
+          <span
+            id="lessoncomponent-lesson-assigned-badge"
+            className="lessoncomponent-lesson-assigned-badge"
+            title={t("Assigned") ?? ""}
+            aria-label={t("Assigned") ?? ""}
+          >
+            <img
+              src="/assets/hideassigned.png"
+              alt=""
+              onError={(event) => {
+                event.currentTarget.src = "assets/icons/assignmentSelect.svg";
+              }}
+            />
+          </span>
+        ) : null}
       </div>
-      <div className="text-container">
-        <div className="lesson-details">
+      <div id="lessoncomponent-text-container" className="lessoncomponent-text-container">
+        <div id="lessoncomponent-lesson-details" className="lessoncomponent-lesson-details">
           {courseCode === COURSES.ENGLISH
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + "..."

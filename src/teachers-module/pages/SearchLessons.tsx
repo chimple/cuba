@@ -16,6 +16,7 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import ChapterWiseLessons from "../components/ChapterWiseLessons";
+import LessonComponent from "../components/library/LessonComponent";
 
 type LessonMeta = {
   chapterId: string | null;
@@ -458,7 +459,7 @@ const SearchLesson: React.FC = () => {
   }, [lessons, lessonMetaMap, searchTerm, isLoading]);
 
   return (
-    <div id="search-lesson-container" className="search-lesson-container">
+    <div id="searchlessons-container" className="searchlessons-container">
       <Header
         isBackButton
         onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
@@ -467,26 +468,106 @@ const SearchLesson: React.FC = () => {
         schoolName={currentSchool?.name}
         className={current_class?.name}
       />
-
-      <main id="search-lesson-body" className="search-lesson-body">
+      <main
+        id="searchlessons-container-body"
+        className="searchlessons-container-body"
+      >
         <div
-          id="search-lesson-search-wrap"
-          className="search-lesson-search-wrap"
+          id="searchlessons-searchbar-wrapper"
+          className="searchlessons-searchbar-wrapper"
         >
           <IonSearchbar
             ref={inputEl}
-            className="search-lesson-bar"
-            placeholder={String(t("Search"))}
+            id="searchlessons-search-bar"
+            className="searchlessons-search-bar"
+            showClearButton="focus"
+            showCancelButton="focus"
+            placeholder={t("Search") ?? ""}
             value={searchTerm}
-            onIonInput={(e) => setSearchTerm(e.detail.value ?? "")}
+            onIonFocus={() => {
+              setIsFocused(true);
+              setShowHistory(true);
+            }}
+            onIonBlur={() => {
+              setTimeout(() => {
+                setIsFocused(false);
+                setShowHistory(false);
+              }, 150);
+            }}
+            onIonInput={(e) => {
+              const value = e.detail.value ?? "";
+              setSearchTerm(value);
+              setShowHistory(true);
+            }}
             onKeyDown={(ev) => {
               if (ev.key === "Enter") {
                 onSearch(ev.currentTarget.value ?? "");
+                //@ts-ignore
+                ev.target?.blur();
+                setIsFocused(false);
               }
             }}
+            onIonClear={() => {
+              setSearchTerm("");
+              setLessons([]);
+              setShowHistory(true);
+            }}
           />
-        </div>
 
+          {isFocused && searchHistory.length > 0 && (
+            <div
+              id="searchlessons-search-history-list"
+              className="searchlessons-search-history-list"
+            >
+              {searchHistory.map((term, index) => (
+                <div
+                  key={index}
+                  id="searchlessons-search-history-item"
+                  className="searchlessons-search-history-item"
+                  onClick={() => {
+                    setSearchTerm(term);
+                    onSearch(term);
+                    setShowHistory(false);
+                  }}
+                >
+                  {term}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div
+          id="searchlessons-grid-container"
+          className="searchlessons-grid-container"
+        >
+          {lessons.map((lesson) => (
+            <div
+              key={lesson.id}
+              id="searchlessons-grid-item"
+              className="searchlessons-grid-item"
+            >
+              <div
+                id="searchlessons-bottom-border"
+                className="searchlessons-bottom-border"
+              >
+                <LessonComponent
+                  lesson={lesson}
+                  handleLessonCLick={() => {
+                    history.replace(PAGES.LESSON_DETAILS, {
+                      course: null,
+                      lesson: lesson,
+                      selectedLesson: selectedLesson,
+                    });
+                  }}
+                  isSelButton={false}
+                  handleSelect={() => {}}
+                  isSelcted={true}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+        
         {!showHistory && searchTerm.trim() && (
           <div
             id="search-lesson-result-text"
