@@ -2659,20 +2659,27 @@ export interface ServiceApi {
     members: number;
   } | null>;
 
-  getStickerBooks(): Promise<StickerBook[]>;
-  getStickerBookById(id: string): Promise<StickerBook | null>;
+  // ================================
+// STICKER BOOK APIS
+// ================================
 
-  getUserProgress(
-    userId: string,
-    stickerBookId: string
-  ): Promise<UserStickerProgress | null>;
+getAllStickerBooks(): Promise<StickerBook[]>;
 
-  upsertUserProgress(
-  progress: UserStickerProgress
-): Promise<UserStickerProgress | null>;
+getCurrentStickerBookWithProgress(
+  userId: string
+): Promise<{
+  book: StickerBook;
+  progress: UserStickerProgress | null;
+} | null>;
 
-  addCollectedSticker(
+getUserWonStickerBooks(userId: string): Promise<StickerBook[]>;
+
+getNextWinnableSticker(
+  stickerBookId: string
+): Promise<string | null>;
+
+updateStickerWon(
   stickerBookId: string,
   stickerId: string
-): Promise<UserStickerProgress | null>;
+): Promise<void>;
 }

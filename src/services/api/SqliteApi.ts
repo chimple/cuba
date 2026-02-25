@@ -8185,31 +8185,42 @@ order by
     throw new Error("Method not implemented.");
   }
 
-  async getStickerBooks(): Promise<StickerBook[]> {
-    throw new Error("Not implemented in SQLiteApi");
-  }
+  // ================================
+// STICKER BOOK (Server Delegation)
+// ================================
 
-  async getStickerBookById(id: string): Promise<StickerBook | null> {
-    throw new Error("Not implemented in SQLiteApi");
-  }
+async getAllStickerBooks(): Promise<StickerBook[]> {
+  return await this._serverApi.getAllStickerBooks();
+}
 
-  async getUserProgress(
-    userId: string,
-    stickerBookId: string
-  ): Promise<UserStickerProgress | null> {
-    throw new Error("Not implemented in SQLiteApi");
-  }
+async getCurrentStickerBookWithProgress(
+  userId: string
+): Promise<{
+  book: StickerBook;
+  progress: UserStickerProgress | null;
+} | null> {
+  return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+}
 
-  async upsertUserProgress(
-    progress: UserStickerProgress
-  ): Promise<UserStickerProgress> {
-    throw new Error("Not implemented in SQLiteApi");
-  }
+async getUserWonStickerBooks(
+  userId: string
+): Promise<StickerBook[]> {
+  return await this._serverApi.getUserWonStickerBooks(userId);
+}
 
-  async addCollectedSticker(
-    stickerBookId: string,
-    stickerId: string
-  ): Promise<UserStickerProgress> {
-    throw new Error("Not implemented in SQLiteApi");
-  }
+async getNextWinnableSticker(
+  stickerBookId: string
+): Promise<string | null> {
+  return await this._serverApi.getNextWinnableSticker(stickerBookId);
+}
+
+async updateStickerWon(
+  stickerBookId: string,
+  stickerId: string
+): Promise<void> {
+  return await this._serverApi.updateStickerWon(
+    stickerBookId,
+    stickerId
+  );
+}
 }

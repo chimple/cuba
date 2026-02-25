@@ -1,48 +1,82 @@
 import { useEffect } from "react";
-import { ServiceConfig, APIMode } from "../../../services/ServiceConfig";
-
+import { ServiceConfig } from "../../../services/ServiceConfig";
 
 export default function StickerBookTest() {
   useEffect(() => {
     async function runTest() {
-      console.log("===== TEST START =====");
+      console.log("===== STICKER BOOK TEST START =====");
 
       const api = ServiceConfig.getI().apiHandler;
-      console.log("API CLASS:", api.constructor.name);
 
-      // 1️⃣ get books
-      const books = await api.getStickerBooks();
-      console.log("Books:", books);
-
-      if (!books.length) return;
-
-      const bookId = books[0].id;
-
-      // 2️⃣ get book by id
-      const book = await api.getStickerBookById(bookId);
-      console.log("Book by id:", book);
-
-      // 3️⃣ get user
+      // 🔑 get current user
       const currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
 
-      console.log("User:", currentUser);
+      console.log("USER:", currentUser);
 
-      if (!currentUser?.id) return;
+      if (!currentUser?.id) {
+        console.log("❌ No user logged in");
+        return;
+      }
 
       const userId = currentUser.id;
 
-      // 4️⃣ progress before
-      const before = await api.getUserProgress(userId, bookId);
-      console.log("Before:", before);
+      // =============================
+      // 1️⃣ get all books
+      // =============================
+      const books = await api.getAllStickerBooks();
+      console.log("ALL BOOKS:", books);
 
-      // 5️⃣ add sticker
-      const addRes = await api.addCollectedSticker(bookId, "snail");
-      console.log("Add result:", addRes);
+      if (!books.length) {
+        console.log("❌ No sticker books in DB");
+        return;
+      }
 
-      // 6️⃣ progress after
-      const after = await api.getUserProgress(userId, bookId);
-      console.log("After:", after);
+      const firstBookId = books[0].id;
+
+      // =============================
+      // 2️⃣ get current book + progress
+      // =============================
+      const current =
+        await api.getCurrentStickerBookWithProgress(userId);
+
+      console.log("CURRENT BOOK + PROGRESS:", current);
+
+      // =============================
+      // 3️⃣ next winnable sticker
+      // =============================
+      const nextSticker =
+        await api.getNextWinnableSticker(firstBookId);
+
+      console.log("NEXT WINNABLE STICKER:", nextSticker);
+
+      if (!nextSticker) {
+        console.log("No sticker left to win");
+        return;
+      }
+
+      // =============================
+      // 4️⃣ update sticker won
+      // =============================
+      await api.updateStickerWon(firstBookId, nextSticker);
+
+      console.log("Sticker added:", nextSticker);
+
+      // =============================
+      // 5️⃣ check again
+      // =============================
+      const after =
+        await api.getCurrentStickerBookWithProgress(userId);
+
+      console.log("AFTER UPDATE:", after);
+
+      // =============================
+      // 6️⃣ completed books
+      // =============================
+      const completed =
+        await api.getUserWonStickerBooks(userId);
+
+      console.log("COMPLETED BOOKS:", completed);
 
       console.log("===== TEST END =====");
     }
@@ -50,5 +84,5 @@ export default function StickerBookTest() {
     runTest();
   }, []);
 
-  return <div>Testing sticker APIs → open console</div>;
+  return <div>StickerBook API Test → open console</div>;
 }

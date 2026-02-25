@@ -2008,31 +2008,39 @@ export class ApiHandler implements ServiceApi {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
 
-  getStickerBooks(): Promise<StickerBook[]> {
-    return this.s.getStickerBooks();
-  }
+  // ================================
+// STICKER BOOK SERVICE FORWARDERS
+// ================================
 
-  getStickerBookById(id: string): Promise<StickerBook | null> {
-    return this.s.getStickerBookById(id);
-  }
+public async getAllStickerBooks(): Promise<StickerBook[]> {
+  return await this.s.getAllStickerBooks();
+}
 
-  getUserProgress(
-    userId: string,
-    stickerBookId: string
-  ): Promise<UserStickerProgress | null> {
-    return this.s.getUserProgress(userId, stickerBookId);
-  }
+public async getCurrentStickerBookWithProgress(
+  userId: string
+): Promise<{
+  book: StickerBook;
+  progress: UserStickerProgress | null;
+} | null> {
+  return await this.s.getCurrentStickerBookWithProgress(userId);
+}
 
-  upsertUserProgress(
-    progress: UserStickerProgress
-  ): Promise<UserStickerProgress | null> {
-    return this.s.upsertUserProgress(progress);
-  }
+public async getUserWonStickerBooks(
+  userId: string
+): Promise<StickerBook[]> {
+  return await this.s.getUserWonStickerBooks(userId);
+}
 
-  addCollectedSticker(
-    stickerBookId: string,
-    stickerId: string
-  ): Promise<UserStickerProgress | null> {
-    return this.s.addCollectedSticker(stickerBookId, stickerId);
-  }
+public async getNextWinnableSticker(
+  stickerBookId: string
+): Promise<string | null> {
+  return await this.s.getNextWinnableSticker(stickerBookId);
+}
+
+public async updateStickerWon(
+  stickerBookId: string,
+  stickerId: string
+): Promise<void> {
+  return await this.s.updateStickerWon(stickerBookId, stickerId);
+}
 }
