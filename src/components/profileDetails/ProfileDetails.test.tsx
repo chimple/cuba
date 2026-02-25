@@ -22,6 +22,15 @@ jest.mock("../../utility/util");
 jest.mock("../../services/Firebase", () => ({
   initializeFireBase: jest.fn(),
 }));
+jest.mock("i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      changeLanguage: jest.fn(),
+      language: "en",
+    },
+  }),
+}));
 jest.mock("@capacitor/core", () => ({
   Capacitor: {
     isNativePlatform: jest.fn(() => false),
