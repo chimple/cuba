@@ -142,23 +142,6 @@ const ProfileDetails = () => {
       languageId !== initial.languageId;
     setHasChanges(changed);
   }, [fullName, age, gender, languageId]);
-
-  useEffect(() => {
-    if (isEdit && currentStudent?.language_id && languages.length > 0) {
-      const studentLang = languages.find(
-        (lang) => lang.id === currentStudent.language_id,
-      );
-      if (
-        studentLang &&
-        studentLang.code &&
-        i18n.language !== studentLang.code
-      ) {
-        i18n.changeLanguage(studentLang.code);
-        localStorage.setItem(LANGUAGE, studentLang.code);
-      }
-    }
-  }, [isEdit, currentStudent, languages]);
-
   useEffect(() => {
     initializeFireBase();
     lockOrientation();
@@ -438,6 +421,10 @@ const ProfileDetails = () => {
           onClick={() => {
             const state = history.location.state as any;
             const tmpPath = state?.from ?? PAGES.HOME;
+            if (tmpPath === PAGES.HOME) {
+              if (currentStudent)
+                Util.setCurrentStudent(currentStudent, undefined, false, true);
+            }
             Util.setPathToBackButton(tmpPath, history);
           }}
           aria-label="Back"
