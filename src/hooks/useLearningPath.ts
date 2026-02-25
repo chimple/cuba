@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
@@ -20,6 +19,7 @@ export type LearningPath = {
   };
   type: RECOMMENDATION_TYPE;
   pathMode: string;
+  updated_at: string;
 };
 
 export type CoursePath = {
@@ -93,6 +93,7 @@ export async function buildPath({
       ? RECOMMENDATION_TYPE.FRAMEWORK
       : RECOMMENDATION_TYPE.CHAPTER,
     pathMode: mode,
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -342,9 +343,10 @@ export const useLearningPath = (opts?: {
     classId?: string;
   }) {
     let currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) return;
-    let learningPath = currentStudent?.learning_path
-      ? JSON.parse(currentStudent.learning_path)
+    if (!currentStudent ) return;
+    const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+    let learningPath = pathToParse
+      ? JSON.parse(pathToParse)
       : null;
 
     // check if learning path is empty, if empty build it
@@ -438,6 +440,7 @@ export const useLearningPath = (opts?: {
           (coursePath: any) => migrate(coursePath),
         );
         learningPath.pathMode = mode;
+        learningPath.updated_at = new Date().toISOString();
         await saveLearningPath(currentStudent, learningPath);
         return;
       }
@@ -578,6 +581,7 @@ export const useLearningPath = (opts?: {
 
     learningPath.courses.courseList = newCourseList;
     learningPath.courses.currentCourseIndex = newCurrentIndex;
+    learningPath.updated_at = new Date().toISOString();
     await saveLearningPath(student, learningPath);
 
     return { updated: true, learningPath };

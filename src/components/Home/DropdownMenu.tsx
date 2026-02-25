@@ -146,7 +146,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         return;
       }
 
-      const learningPath = JSON.parse(currentStudent.learning_path);
+      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       const { courseList } = learningPath.courses;
       const currentIndex = learningPath.courses.currentCourseIndex ?? 0;
 
@@ -232,7 +233,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
 
-      const learningPath = JSON.parse(currentStudent.learning_path);
+      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       const { courseList, currentCourseIndex } = learningPath.courses;
 
       const prevCourse = courseList[currentCourseIndex];
@@ -244,6 +246,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       const prevPathId = prevCourse?.path_id;
 
       learningPath.courses.currentCourseIndex = index;
+      learningPath.updated_at = new Date().toISOString();
 
       Util.setCurrentStudent(
         { ...currentStudent, learning_path: JSON.stringify(learningPath) },

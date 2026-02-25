@@ -1298,3 +1298,4 @@ export enum RESULT_STATUS {
   USER_EXIT = "user_exit",
   SYSTEM_EXIT = "system_exit",
 }
+export const LATEST_LEARNING_PATH = "latest_learning_path"

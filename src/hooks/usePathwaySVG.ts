@@ -143,7 +143,10 @@ export function usePathwaySVG({
       if (rewardLearningPath) {
         learningPath = JSON.parse(rewardLearningPath);
       } else if (currentStudent.learning_path) {
-        learningPath = JSON.parse(currentStudent.learning_path);
+        const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+        learningPath = pathToParse
+          ? JSON.parse(pathToParse)
+          : null;
       } else {
         console.warn("No learning path found for current student");
         return;

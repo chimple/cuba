@@ -54,6 +54,9 @@ describe("chapterLessonBox", () => {
       id: "stu-1",
       learning_path: buildLearningPath(),
     });
+    (Util.getLatestLearningPathByUpdatedAt as jest.Mock).mockImplementation(
+      (student: any) => student?.learning_path
+    );
     mockApi.getLesson.mockResolvedValue({ id: "l-active", name: "Lesson Active" });
     mockApi.getChapterById.mockResolvedValue({ id: "ch-active", name: "Chapter Active" });
   });

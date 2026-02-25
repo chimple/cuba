@@ -251,8 +251,10 @@ export const usePathwayData = () => {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
-
-      const learningPath = JSON.parse(currentStudent.learning_path);
+      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+      let learningPath = pathToParse
+            ? JSON.parse(pathToParse)
+            : null;
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const pathItem = course.path.find((p : LessonNode) => p.isPlayed === false);
