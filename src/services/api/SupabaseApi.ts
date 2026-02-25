@@ -11474,74 +11474,74 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getCurrentStickerBookWithProgress(
-  userId: string
-): Promise<{
-  book: StickerBook;
-  progress: UserStickerProgress | null;
-} | null> {
-  if (!this.supabase) return null;
+    userId: string
+  ): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    if (!this.supabase) return null;
 
-  // 1️⃣ Try existing in_progress row
-  const { data: progress } = await this.supabase
-    .from("user_sticker_book")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "in_progress")
-    .maybeSingle();
+    // 1️⃣ Try existing in_progress row
+    const { data: progress } = await this.supabase
+      .from("user_sticker_book")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "in_progress")
+      .maybeSingle();
 
-  // 2️⃣ If user already has active progress
-  if (progress) {
-    const { data: book } = await this.supabase
+    // 2️⃣ If user already has active progress
+    if (progress) {
+      const { data: book } = await this.supabase
+        .from("sticker_book")
+        .select("*")
+        .eq("id", progress.sticker_book_id)
+        .single();
+
+      if (!book) return null;
+
+      return {
+        book: book as StickerBook,
+        progress: progress as UserStickerProgress,
+      };
+    }
+
+    // 3️⃣ Fallback → first sticker book
+    const { data: firstBook } = await this.supabase
       .from("sticker_book")
       .select("*")
-      .eq("id", progress.sticker_book_id)
+      .order("sort_index", { ascending: true })
+      .limit(1)
       .single();
 
-    if (!book) return null;
+    if (!firstBook) return null;
 
     return {
-      book: book as StickerBook,
-      progress: progress as UserStickerProgress,
+      book: firstBook as StickerBook,
+      progress: null,
     };
   }
 
-  // 3️⃣ Fallback → first sticker book
-  const { data: firstBook } = await this.supabase
-    .from("sticker_book")
-    .select("*")
-    .order("sort_index", { ascending: true })
-    .limit(1)
-    .single();
-
-  if (!firstBook) return null;
-
-  return {
-    book: firstBook as StickerBook,
-    progress: null,
-  };
-}
-
   async getUserWonStickerBooks(
-  userId: string
-): Promise<StickerBook[]> {
-  if (!this.supabase) return [];
+    userId: string
+  ): Promise<StickerBook[]> {
+    if (!this.supabase) return [];
 
-  const { data, error } = await this.supabase
-    .from("user_sticker_book")
-    .select(`
+    const { data, error } = await this.supabase
+      .from("user_sticker_book")
+      .select(`
       *,
       sticker_book (*)
     `)
-    .eq("user_id", userId)
-    .eq("status", "completed");
+      .eq("user_id", userId)
+      .eq("status", "completed");
 
-  if (error) {
-    console.error("getUserWonStickerBooks error:", error);
-    return [];
+    if (error) {
+      console.error("getUserWonStickerBooks error:", error);
+      return [];
+    }
+
+    return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
   }
-
-  return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
-}
 
   async getNextWinnableSticker(
     stickerBookId: string
