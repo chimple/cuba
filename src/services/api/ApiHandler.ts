@@ -1,5 +1,5 @@
 import User from "../../models/user";
-import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import { RESULT_STATUS, SchoolVisitAction, SchoolVisitType } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
@@ -81,6 +81,11 @@ export class ApiHandler implements ServiceApi {
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
     return this.s.getAssignmentById(id);
+  }
+  public getAssignmentsByIds(
+    ids: string[]
+  ): Promise<TableTypes<"assignment">[]> {
+    return this.s.getAssignmentsByIds(ids);
   }
   public getStudentResultsByAssignmentId(assignmentId: string) {
     return this.s.getStudentResultsByAssignmentId(assignmentId);
@@ -954,7 +959,7 @@ export class ApiHandler implements ServiceApi {
 
   getUserAssignmentCart(
     userId: string
-  ): Promise<TableTypes<"assignment_cart"> | undefined> {
+  ): Promise<AssignmentCartData | undefined> {
     return this.s.getUserAssignmentCart(userId);
   }
 
@@ -1182,6 +1187,17 @@ export class ApiHandler implements ServiceApi {
       startDate,
       endDate,
       classId
+    );
+  }
+  getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterIdOrIds: string | string[]
+  ): Promise<string[]> {
+    return this.s.getUniqueAssignmentIdsByCourseAndChapter(
+      classId,
+      courseId,
+      chapterIdOrIds
     );
   }
   createClassCode(classId: string): Promise<number> {
