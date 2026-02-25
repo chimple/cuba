@@ -1,13 +1,11 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProfileDetails from "./ProfileDetails";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { MemoryRouter } from "react-router";
-import { createMemoryHistory } from "history";
-import { Router } from "react-router-dom";
 import { logProfileClick } from "../../analytics/profileClickUtil";
 import {
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
@@ -22,24 +20,32 @@ jest.mock("../../utility/util");
 jest.mock("../../services/Firebase", () => ({
   initializeFireBase: jest.fn(),
 }));
-jest.mock("i18next", () => ({
+
+// Comprehensive i18next mock
+jest.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key) => key,
     i18n: {
-      changeLanguage: jest.fn(),
+      changeLanguage: jest.fn().mockResolvedValue(true),
       language: "en",
     },
   }),
+  initReactI18next: { type: "3rdParty", init: jest.fn() },
+}));
+
+// Mock the global i18n instance if imported directly
+jest.mock("i18next", () => ({
+  changeLanguage: jest.fn().mockResolvedValue(true),
+  language: "en",
+  t: (key) => key,
+  use: jest.fn().mockReturnThis(),
+  init: jest.fn(),
 }));
 jest.mock("@capacitor/core", () => ({
-  Capacitor: {
-    isNativePlatform: jest.fn(() => false),
-  },
+  Capacitor: { isNativePlatform: jest.fn(() => false) },
 }));
 jest.mock("@capacitor/screen-orientation", () => ({
-  ScreenOrientation: {
-    lock: jest.fn(),
-  },
+  ScreenOrientation: { lock: jest.fn() },
 }));
 jest.mock("../../analytics/profileClickUtil", () => ({
   logProfileClick: jest.fn(() => Promise.resolve()),
@@ -59,8 +65,27 @@ const mockAuth = {
   getCurrentUser: jest.fn(),
 };
 
+// LocalStorage Mock
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+  };
+})();
+Object.defineProperty(window, "localStorage", { value: localStorageMock });
+
 beforeEach(() => {
   jest.clearAllMocks();
+  localStorageMock.clear();
 
   jest.spyOn(ServiceConfig, "getI").mockReturnValue({
     apiHandler: mockApi,
@@ -72,7 +97,6 @@ beforeEach(() => {
   ]);
 
   mockApi.getParentStudentProfiles.mockResolvedValue([]);
-
   mockAuth.getCurrentUser.mockResolvedValue({ id: "user-1" });
 
   (Util.getCurrentStudent as jest.Mock).mockReturnValue(null);
@@ -87,88 +111,88 @@ beforeEach(() => {
 });
 
 describe("ProfileDetails Component", () => {
+  // Helper to handle the common text queries which might be keys or strings
+  const getSaveBtn = () => screen.getByText(/SAVE/i);
+  const getFullNameLabel = () => screen.findByText(/Full Name/i);
+
   test("renders full name input", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
     );
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(await screen.findByText("Full Name")).toBeInTheDocument();
+    expect(await getFullNameLabel()).toBeInTheDocument();
   });
 
   test("save button disabled initially", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
     );
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const saveBtn = await screen.findByText("SAVE");
+    const saveBtn = await screen.findByText(/SAVE/i);
     expect(saveBtn).toBeDisabled();
   });
 
   test("save enabled when name entered in NAME_REQUIRED mode", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
     );
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const input = screen.getByPlaceholderText("Name Surname");
+    const input = screen.getByPlaceholderText(/Name Surname/i);
     await userEvent.type(input, "John");
 
-    const saveBtn = screen.getByText("SAVE");
     await waitFor(() => {
-      expect(saveBtn).not.toBeDisabled();
+      expect(getSaveBtn()).not.toBeDisabled();
     });
   });
 
   test("skip button visible in ALL_OPTIONAL mode", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3,
     );
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    expect(await screen.findByText("SKIP FOR NOW")).toBeInTheDocument();
+    expect(await screen.findByText(/SKIP FOR NOW/i)).toBeInTheDocument();
   });
 
   test("createProfile called on save (create mode)", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
     );
-
     mockApi.createProfile.mockResolvedValue({ id: "student-1" });
 
-    const history = createMemoryHistory();
-
     render(
-      <Router history={history}>
+      <MemoryRouter>
         <ProfileDetails />
-      </Router>
+      </MemoryRouter>,
     );
 
-    const input = screen.getByPlaceholderText("Name Surname");
+    const input = screen.getByPlaceholderText(/Name Surname/i);
     await userEvent.type(input, "Alice");
 
-    const saveBtn = screen.getByText("SAVE");
+    const saveBtn = getSaveBtn();
     await userEvent.click(saveBtn);
 
     await waitFor(() => {
@@ -178,7 +202,7 @@ describe("ProfileDetails Component", () => {
 
   test("updateStudent called in edit mode", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
     );
 
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
@@ -192,22 +216,17 @@ describe("ProfileDetails Component", () => {
 
     mockApi.updateStudent.mockResolvedValue({ id: "student-1" });
 
-    const history = createMemoryHistory({
-      initialEntries: [PAGES.EDIT_STUDENT],
-    });
-
     render(
-      <Router history={history}>
+      <MemoryRouter initialEntries={[PAGES.EDIT_STUDENT]}>
         <ProfileDetails />
-      </Router>
+      </MemoryRouter>,
     );
 
-    const input = screen.getByDisplayValue("Old Name");
+    const input = await screen.findByDisplayValue("Old Name");
     await userEvent.clear(input);
     await userEvent.type(input, "New Name");
 
-    const saveBtn = screen.getByText("SAVE");
-    await userEvent.click(saveBtn);
+    await userEvent.click(getSaveBtn());
 
     await waitFor(() => {
       expect(mockApi.updateStudent).toHaveBeenCalled();
@@ -216,18 +235,17 @@ describe("ProfileDetails Component", () => {
 
   test("skip creates auto profile when no student exists", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3,
     );
-
     mockApi.createAutoProfile.mockResolvedValue({ id: "auto-1" });
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const skipBtn = await screen.findByText("SKIP FOR NOW");
+    const skipBtn = await screen.findByText(/SKIP FOR NOW/i);
     await userEvent.click(skipBtn);
 
     await waitFor(() => {
@@ -237,26 +255,20 @@ describe("ProfileDetails Component", () => {
 
   test("loading spinner visible while saving", async () => {
     (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
     );
-
-    mockApi.createProfile.mockImplementation(
-      () => new Promise(() => {}) // never resolves
-    );
+    mockApi.createProfile.mockImplementation(() => new Promise(() => {}));
 
     render(
       <MemoryRouter>
         <ProfileDetails />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
 
-    const input = screen.getByPlaceholderText("Name Surname");
-    await userEvent.type(input, "John");
+    await userEvent.type(screen.getByPlaceholderText(/Name Surname/i), "John");
+    await userEvent.click(getSaveBtn());
 
-    const saveBtn = screen.getByText("SAVE");
-    await userEvent.click(saveBtn);
-
-    expect(await screen.findByAltText("loading")).toBeInTheDocument();
+    expect(await screen.findByAltText(/loading/i)).toBeInTheDocument();
   });
 });
 
@@ -288,22 +300,22 @@ describe("ProfileDetails Component - additional coverage", () => {
     "NAME_REQUIRED enables save for name: %s",
     async (name) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, name);
 
       await waitFor(() => {
         expect(screen.getByText("SAVE")).not.toBeDisabled();
       });
-    }
+    },
   );
 
   const controlStillDisabledCases = [
@@ -328,22 +340,22 @@ describe("ProfileDetails Component - additional coverage", () => {
     "ALL_REQUIRED keeps save disabled with only name: %s",
     async (name) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
       );
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, name);
 
       await waitFor(() => {
         expect(screen.getByText("SAVE")).toBeDisabled();
       });
-    }
+    },
   );
 
   const trimCases = [
@@ -365,20 +377,20 @@ describe("ProfileDetails Component - additional coverage", () => {
   ];
 
   test.each(trimCases)(
-    "createProfile gets trimmed name for input \"$typed\"",
+    'createProfile gets trimmed name for input "$typed"',
     async ({ typed, expected }) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
       mockApi.createProfile.mockResolvedValue({ id: "student-1" });
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, typed);
       await userEvent.click(screen.getByText("SAVE"));
 
@@ -394,9 +406,9 @@ describe("ProfileDetails Component - additional coverage", () => {
         undefined,
         undefined,
         undefined,
-        DEFAULT_LANGUAGE_ID_EN
+        DEFAULT_LANGUAGE_ID_EN,
       );
-    }
+    },
   );
 });
 
@@ -443,22 +455,22 @@ describe("ProfileDetails Component - 50 more test cases", () => {
     "NAME_REQUIRED enables save for additional name: %s",
     async (name) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, name);
 
       await waitFor(() => {
         expect(screen.getByText("SAVE")).not.toBeDisabled();
       });
-    }
+    },
   );
 
   const additionalTrimmedCreateCases = [
@@ -500,20 +512,20 @@ describe("ProfileDetails Component - 50 more test cases", () => {
   ];
 
   test.each(additionalTrimmedCreateCases)(
-    "createProfile receives trimmed additional name for input \"$typed\"",
+    'createProfile receives trimmed additional name for input "$typed"',
     async ({ typed, expected }) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
       mockApi.createProfile.mockResolvedValue({ id: "student-1" });
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, typed);
       await userEvent.click(screen.getByText("SAVE"));
 
@@ -529,9 +541,9 @@ describe("ProfileDetails Component - 50 more test cases", () => {
         undefined,
         undefined,
         undefined,
-        DEFAULT_LANGUAGE_ID_EN
+        DEFAULT_LANGUAGE_ID_EN,
       );
-    }
+    },
   );
 });
 
@@ -557,22 +569,22 @@ describe("ProfileDetails Component - add 27 more cases", () => {
     "NAME_REQUIRED enables save for extra name: %s",
     async (name) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, name);
 
       await waitFor(() => {
         expect(screen.getByText("SAVE")).not.toBeDisabled();
       });
-    }
+    },
   );
 
   const extraTrimCases = [
@@ -592,20 +604,20 @@ describe("ProfileDetails Component - add 27 more cases", () => {
   ];
 
   test.each(extraTrimCases)(
-    "createProfile receives trimmed extra name for input \"$typed\"",
+    'createProfile receives trimmed extra name for input "$typed"',
     async ({ typed, expected }) => {
       (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2
+        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
       );
       mockApi.createProfile.mockResolvedValue({ id: "student-1" });
 
       render(
         <MemoryRouter>
           <ProfileDetails />
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
-      const input = screen.getByPlaceholderText("Name Surname");
+      const input = screen.getByPlaceholderText(/Name Surname/i);
       await userEvent.type(input, typed);
       await userEvent.click(screen.getByText("SAVE"));
 
@@ -621,11 +633,8 @@ describe("ProfileDetails Component - add 27 more cases", () => {
         undefined,
         undefined,
         undefined,
-        DEFAULT_LANGUAGE_ID_EN
+        DEFAULT_LANGUAGE_ID_EN,
       );
-    }
+    },
   );
-
 });
-
-
