@@ -248,6 +248,8 @@ describe("LearningPathway", () => {
       stars: 12,
       language_id: "en",
     });
+    // Ensure the refresh API returns the newer DB value for this test
+    mockApi.getUserByDocId.mockResolvedValue({ id: "stu-1", stars: 12 });
     localStorage.setItem(STARS_COUNT, JSON.stringify({ "stu-1": 3 }));
     localStorage.setItem(LATEST_STARS("stu-1"), "2");
 

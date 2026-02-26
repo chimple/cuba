@@ -75,6 +75,7 @@ import {
   HOT_UPDATE_STATE_KEY,
   GrowthBookAttributes,
   LIDO_ASSESSMENT,
+  LATEST_LEARNING_PATH,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -2949,11 +2950,13 @@ export class Util {
   ) {
     if (!currentStudent) return;
     const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
-    const learningPath = currentStudent.learning_path
-      ? JSON.parse(currentStudent.learning_path)
+    const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+    const learningPath = pathToParse
+      ? JSON.parse(pathToParse)
       : null;
 
     if (!learningPath) return;
+    learningPath.updated_at = new Date().toISOString();
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
     if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
@@ -3127,6 +3130,45 @@ export class Util {
       }
     } catch (error) {
       console.error("Error updating learning path:", error);
+    }
+  }
+  
+  // this function is created because local sqlite database was updating after UI rendering,
+  // so it was showing old learning path until we refresh the page, 
+  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one 
+  public static getLatestLearningPathByUpdatedAt(
+    student: TableTypes<"user">
+  ): string | null {
+    try {
+      const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
+  
+      // If nothing in session storage, return DB value
+      if (!sessionData) {
+        return student?.learning_path ?? null;
+      }
+      const studentLearningPath = student.learning_path ? JSON.parse(student.learning_path) : null;
+      const parsed = JSON.parse(sessionData);
+  
+      // If session data belongs to different student, ignore it
+      if (parsed.studentId !== student.id) {
+        return student?.learning_path ?? null;
+      }
+  
+      const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
+      const dbUpdatedAt = studentLearningPath?.updated_at
+        ? new Date(studentLearningPath.updated_at).getTime()
+        : 0;
+  
+      
+      // Compare timestamps
+      if (sessionUpdatedAt > dbUpdatedAt) {
+        return parsed.learningPath;
+      }
+  
+      return student?.learning_path ?? null;
+    } catch (error) {
+      console.error("Error resolving latest learning path:", error);
+      return student?.learning_path ?? null;
     }
   }
 

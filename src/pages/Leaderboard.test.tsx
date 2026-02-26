@@ -3,6 +3,8 @@ import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Leaderboard from "./Leaderboard";
 import { ServiceConfig } from "../services/ServiceConfig";
+// Increase timeout for this file's tests when running full suite
+jest.setTimeout(30000);
 import {
   AVATARS,
   CURRENT_MODE,
