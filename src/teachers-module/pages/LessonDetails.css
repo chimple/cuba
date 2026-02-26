@@ -55,14 +55,18 @@
 }
 
 .lesson-details-play {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: clamp(11px, 1.5vw, 13px);
   color: #777;
   margin-bottom: 8px;
+  gap: 10px;
 }
 
 .lesson-details-btn {
   margin-top: 14px;
-  width: 100%;
+  width: 90%;
   padding: 10px 0;
   border-radius: 8px;
   border: none;
@@ -70,7 +74,9 @@
   color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.1s ease;
 }
 
 .lesson-details-btn:hover {
@@ -93,6 +99,17 @@
 .lesson-details-meta strong {
   color: #333;
 }
+#lesson-details-assignment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lesson-details-bulb {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
 
 #lesson-details-grade {
   font-weight: 700;
@@ -114,6 +131,10 @@
   font-size: clamp(13px, 1.8vw, 14px);
   color: #666;
   line-height: 1.6;
+}
+
+.lesson-details-root .header-custom-text{
+  padding: 4vh 0;
 }
 
 @media (max-width: 480px) {
