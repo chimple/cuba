@@ -1,7 +1,5 @@
 import React from "react";
 import "./SelectIcon.css";
-import { useHistory } from "react-router";
-import AssignmentRoundedIcon from "@mui/icons-material/AssignmentRounded";
 import { t } from "i18next";
 interface SelectIconProps {
   isSelected: boolean;
@@ -12,11 +10,18 @@ const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
     <div className="select-icon-container" onClick={onClick}>
       <div
         className="select-Assignmenticon"
-        style={{ backgroundColor: isSelected ? "#7c5db0" : "#fff" }}
+        style={{ backgroundColor: "transparent" }}
       >
-        <img src="assets/icons/assignmentSelect.svg" alt="Assignment_Icon" />
+        <img
+          src={
+            isSelected
+              ? "assets/icons/assignmentSelectGreen.svg"
+              : "assets/icons/assignmentSelect.svg"
+          }
+          alt="Assignment_Icon"
+        />
         <span
-          style={{ color: isSelected ? "white" : "#4A4949" }}
+          style={{ color: "#4A4949" }}
           className="select-text"
         >
           {isSelected ? t("Remove") : t("Add")}

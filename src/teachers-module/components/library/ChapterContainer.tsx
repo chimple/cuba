@@ -145,6 +145,12 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }
               }}
             />
+            <span
+              className={`chaptercontainer-expand-arrow${
+                isExpanded ? " is-open" : ""
+              }`}
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>

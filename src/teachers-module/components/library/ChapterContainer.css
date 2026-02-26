@@ -1,25 +1,30 @@
 .chaptercontainer-collapsable-container {
   text-align: left;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .chaptercontainer-chapter-header-row {
   display: flex;
   align-items: center;
   margin: 0;
-  padding: 0 10px 0 10px;
+  padding: 0 20px 0 20px;
   width: 100%;
+  max-width: 100%;
   border: 0;
   border-radius: 6px;
   background-color: #e7e0f0;
   height: 37px;
   min-height: 37px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .chaptercontainer-chapter-details {
   display: flex;
   align-items: center;
   width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 8px;
 }
 
@@ -27,6 +32,8 @@
   color: #666666;
   font-size: clamp(16px, 2.4vh, 22px);
   font-weight: 700;
+  min-width: 0;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -45,6 +52,7 @@
   display: flex;
   justify-content: center !important;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .chaptercontainer-colladable-header {
@@ -53,13 +61,37 @@
   justify-content: space-between;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .chaptercontainer-chapter-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding-right: 2px;
+}
+
+.chaptercontainer-expand-arrow {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #666666;
+  border-bottom: 2px solid #666666;
+  transform: rotate(45deg);
+  transform-origin: center;
+  transition: transform 0.16s ease;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: inline-block;
+  margin-right: 1px;
+}
+
+.chaptercontainer-expand-arrow.is-open {
+  transform: rotate(-135deg);
 }
 
 .chaptercontainer-chapter-select-all {
@@ -105,7 +137,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   column-gap: 8px;
   row-gap: 14px;
-  /* border-bottom: 1px solid #e7e2ec; */
 }
 
 @media (orientation: landscape) {
@@ -116,10 +147,43 @@
 
 .chaptercontainer-bottom-border {
   border-bottom: none;
+  padding-bottom: 0;
+  height: auto;
 }
 
 .chaptercontainer-grid-item {
   text-align: center;
+  position: relative;
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+
+.chaptercontainer-grid-item:nth-child(3n)::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: calc(-200% - 16px);
+  width: calc(300% + 16px);
+  height: 1px;
+  background-color: #e7e2ec;
+  pointer-events: none;
+}
+
+@media (orientation: landscape) {
+  .chaptercontainer-grid-item:nth-child(3n)::after {
+    content: none;
+  }
+
+  .chaptercontainer-grid-item:nth-child(4n)::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: calc(-300% - 24px);
+    width: calc(400% + 24px);
+    height: 1px;
+    background-color: #e7e2ec;
+    pointer-events: none;
+  }
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-lesson-component-container {
@@ -144,7 +208,7 @@
   margin: 0 auto;
   border-radius: 6px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background-color: #f1f1f1 !important;
 }
 
@@ -155,6 +219,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image img {
@@ -168,6 +234,8 @@
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-assigned-badge {
   top: 0;
   right: 0;
+  transform: translate(50%, -50%);
+  transform-origin: center;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-text-container {
@@ -207,4 +275,30 @@
 .chaptercontainer-collapsable-container .select-text {
   font-size: 11px;
   font-weight: 500;
+}
+
+@media (max-width: 480px) {
+  .chaptercontainer-chapter-header-actions {
+    margin-left: 4px;
+    padding-right: 1px;
+  }
+
+  .chaptercontainer-chapter-select-all {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chaptercontainer-expand-arrow {
+    width: 9px;
+    height: 9px;
+  }
+
+  .chaptercontainer-chapter-select-all::before {
+    content: "";
+  }
+
+  .chaptercontainer-chapter-select-all {
+    gap: 0;
+  }
 }
