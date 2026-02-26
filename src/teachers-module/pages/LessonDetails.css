@@ -60,6 +60,13 @@
   margin-bottom: 8px;
 }
 
+.lesson-details-play{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
 .lesson-details-btn {
   margin-top: 14px;
   width: 100%;

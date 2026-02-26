@@ -272,16 +272,14 @@ return (
       isBackButton={true}
       onButtonClick={() => {
         course
-          ? history.replace(state.from || PAGES.SHOW_CHAPTERS, {
+          ? history.replace(state.from || PAGES.SEARCH_LESSON, {
               course: course,
               chapterId: chapterId,
             })
           : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
       }}
-      showSchool={true}
-      showClass={true}
-      className={currentClass?.name}
-      schoolName={currentSchool?.name}
+      showSideMenu={false}
+      customText="Learning Outcome"
     />
 
     <div
@@ -309,7 +307,10 @@ return (
                 id="lesson-details-play"
                 className="lesson-details-play"
               >
-                {t("Click to play")}
+                <div className="lesson-details-play-text">
+                  {t("Click to play")}
+                </div>
+                <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
               </div>
 
               <SelectIconImage
@@ -349,22 +350,21 @@ return (
             </div>
 
             <div className="lesson-details-meta">
+              <strong>{t("Lesson")} :</strong> {lesson?.name}
+            </div>
+            <div className="lesson-details-meta">
+              <strong>{t("Chapter")} :</strong> {chapterName ?? ""}
+            </div>
+            <div className="lesson-details-meta">
               <strong>{t("Subject")} :</strong> {course?.name}
             </div>
 
             <div className="lesson-details-meta">
-              <strong>{t("Chapter")} :</strong> {chapterName ?? ""}
-            </div>
-
-            <div className="lesson-details-meta">
-              <strong>{t("Lesson")} :</strong> {lesson?.name}
-            </div>
-
-            <div className="lesson-details-meta">
-              <strong>{t("Quiz")} :</strong>{" "}
+              <strong>
               {lesson.plugin_type === LIVE_QUIZ
-                ? t("Live Quiz")
+                ? t("Quiz")
                 : t("Assignment")}
+                </strong>
             </div>
           </div>
         </div>

@@ -66,10 +66,14 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 </div>
 
                 <div id="chapter-wise-select" className="chapter-wise-select">
-                  <label>
+                  <label className="chapter-wise-select-label">
+                    <span className="chapter-wise-select-text">
+                      {t("Select All")}
+                    </span>
+
                     <input
-                      id="chapter-wise-checkbox"
                       type="checkbox"
+                      className="chapter-wise-checkbox"
                       checked={isChapterFullySelected(
                         chapterGroup.chapterId,
                         chapterGroup.lessons,
@@ -81,7 +85,19 @@ const ChapterWiseLessons: React.FC<Props> = ({
                         )
                       }
                     />
-                    {t("Select All")}
+
+                    {isChapterFullySelected(
+                      chapterGroup.chapterId,
+                      chapterGroup.lessons,
+                    ) ? (
+                      <img
+                        src="/assets/icons/checkbox.png"
+                        alt="checked"
+                        className="chapter-wise-checkbox-img"
+                      />
+                    ) : (
+                      <div className="chapter-wise-checkbox-empty" />
+                    )}
                   </label>
                 </div>
               </div>
@@ -124,25 +140,36 @@ const ChapterWiseLessons: React.FC<Props> = ({
                     </div>
 
                     <button
-                      id="chapter-wise-btn"
-                      type="button"
-                      className={`chapter-wise-btn ${
-                        isLessonSelected(chapterGroup.chapterId, lesson.id)
-                          ? "remove"
-                          : ""
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleLessonSelection(
-                          chapterGroup.chapterId,
-                          lesson.id,
-                        );
-                      }}
-                    >
-                      {isLessonSelected(chapterGroup.chapterId, lesson.id)
-                        ? t("Remove")
-                        : t("Add")}
-                    </button>
+  type="button"
+  className={`chapter-wise-btn ${
+    isLessonSelected(chapterGroup.chapterId, lesson.id)
+      ? "remove"
+      : "add"
+  }`}
+  onClick={(e) => {
+    e.stopPropagation();
+    toggleLessonSelection(
+      chapterGroup.chapterId,
+      lesson.id,
+    );
+  }}
+>
+  <img
+    src={
+      isLessonSelected(chapterGroup.chapterId, lesson.id)
+        ? "/assets/icons/assignmentSelectGreen.svg"
+        : "/assets/icons/assignmentSelect.svg"
+    }
+    alt="icon"
+    className="chapter-wise-btn-icon"
+  />
+
+  <span className="chapter-wise-btn-text">
+    {isLessonSelected(chapterGroup.chapterId, lesson.id)
+      ? t("Remove")
+      : t("Add")}
+  </span>
+</button>
                   </div>
                 ))}
               </div>
