@@ -16,6 +16,7 @@ import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
+  IS_OPS_USER,
   LANGUAGE,
   PAGES,
   STATUS,
@@ -57,6 +58,7 @@ const HomePage: React.FC = () => {
   const [renderKey, setRenderKey] = useState(0);
   const PortPlugin = registerPlugin<any>("Port");
   const { setGbUpdated } = useGbContext();
+  const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
   useEffect(() => {
     init();
 
@@ -246,7 +248,7 @@ const HomePage: React.FC = () => {
         showSideMenu={!isLibraryTab}
         customText={isLibraryTab ? "Library" : ""}
         onBackButtonClick={isLibraryTab ? handleLibraryBack : undefined}
-        showSearchIcon={isLibraryTab}
+        showSearchIcon={isLibraryTab && !isOpsUser} 
         onSearchIconClick={
           isLibraryTab
             ? () => history.replace(PAGES.SEARCH_LESSON)

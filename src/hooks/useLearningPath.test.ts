@@ -46,6 +46,9 @@ describe("useLearningPath features used by Home tab", () => {
       id: "stu-1",
       learning_path: null,
     });
+    (Util.getLatestLearningPathByUpdatedAt as jest.Mock).mockImplementation(
+      (student: any) => student?.learning_path
+    );
     mockApi.isStudentLinked.mockResolvedValue(false);
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(false);
     mockApi.getLatestAssessmentGroup.mockResolvedValue([]);

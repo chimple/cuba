@@ -57,6 +57,7 @@ import {
   CLASS,
   RESULT_STATUS,
   LIDO_ASSESSMENT,
+  LATEST_LEARNING_PATH,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -6061,6 +6062,12 @@ order by
         },
         is_immediate_sync,
       );
+      const latestPathToSave = {
+        studentId: student.id,
+        learningPath,
+        updated_at:  new Date(Date.now() + 10000).toISOString()
+      }
+      sessionStorage.setItem(LATEST_LEARNING_PATH, JSON.stringify(latestPathToSave))
     } catch (error) {
       console.error("Error updating learning path:", error);
     }

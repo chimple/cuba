@@ -9,6 +9,7 @@ import {
   AssignmentSource,
   SEARCH_LESSON_HISTORY,
   SEARCH_LESSON_CACHE_KEY,
+  IS_OPS_USER,
 } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import AssigmentCount from "../components/library/AssignmentCount";
@@ -16,6 +17,10 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import ChapterWiseLessons from "../components/ChapterWiseLessons";
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from "./AssignmentCartStorage";
 
 type LessonMeta = {
   chapterId: string | null;
@@ -47,10 +52,11 @@ const SearchLesson: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
 
   const currentSchool = Util.getCurrentSchool();
-  const current_class = Util.getCurrentClass();
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
 
   const inputEl = useRef<HTMLIonSearchbarElement>(null);
 
+  const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
   const [lessonMetaMap, setLessonMetaMap] = useState<
@@ -65,6 +71,9 @@ const SearchLesson: React.FC = () => {
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
+  const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -72,10 +81,14 @@ const SearchLesson: React.FC = () => {
 
   const hasRestoredRef = useRef(false);
   const OTHER_KEY = "other";
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const init = async () => {
       inputEl.current?.setFocus();
+      const resolvedClass = await Util.getCurrentClass();
+      setCurrentClass(resolvedClass);
 
       const stored = JSON.parse(
         localStorage.getItem(SEARCH_LESSON_HISTORY) || "[]",
@@ -88,19 +101,27 @@ const SearchLesson: React.FC = () => {
           const parsed = JSON.parse(cached);
           if (parsed.searchTerm) {
             setSearchTerm(parsed.searchTerm);
+            setInputValue(parsed.searchTerm);
             setLessons(parsed.lessons ?? []);
             setShowHistory(false);
+          } else {
+            setShowHistory(true);
           }
         } catch {}
       } else {
         setShowHistory(true);
       }
 
-      await loadCart();
+      await loadCart(resolvedClass?.id);
       hasRestoredRef.current = true;
     };
 
     init();
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
   }, []);
 
   const isLessonSelected = (chapterId: string, lessonId: string) => {
@@ -119,14 +140,85 @@ const SearchLesson: React.FC = () => {
     return lessons.every((lesson) => isLessonSelected(chapterId, lesson.id));
   };
 
+  const triggerDebouncedSearch = (value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      onSearch(value);
+    }, 500);
+  };
+
+  const normalizeClassSelection = (
+    rawClassMap: unknown,
+  ): Map<string, Partial<Record<AssignmentSource, string[]>>> => {
+    const normalized = new Map<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    >();
+    if (!rawClassMap || typeof rawClassMap !== "object") {
+      return normalized;
+    }
+
+    Object.entries(rawClassMap as Record<string, unknown>).forEach(
+      ([chapterId, value]) => {
+        if (Array.isArray(value)) {
+          normalized.set(chapterId, {
+            [AssignmentSource.MANUAL]: [...value],
+            [AssignmentSource.QR_CODE]: [],
+          });
+          return;
+        }
+
+        if (value && typeof value === "object") {
+          const sourceMap = value as Partial<
+            Record<AssignmentSource, string[]>
+          >;
+          normalized.set(chapterId, {
+            [AssignmentSource.MANUAL]: sourceMap[AssignmentSource.MANUAL] ?? [],
+            [AssignmentSource.QR_CODE]:
+              sourceMap[AssignmentSource.QR_CODE] ?? [],
+          });
+        }
+      },
+    );
+
+    return normalized;
+  };
+
+  const persistAssignmentCart = async (
+    userId: string,
+    classId: string,
+    nextClassSelection: Map<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    >,
+  ) => {
+    const nextSelected = new Map(selectedLesson);
+    nextSelected.set(
+      classId,
+      JSON.stringify(Object.fromEntries(nextClassSelection)),
+    );
+    setSelectedLesson(nextSelected);
+
+    const existing = readAssignmentCartFromStorage(userId);
+    const now = new Date().toISOString();
+    writeAssignmentCartToStorage(userId, {
+      lessons: JSON.stringify(Object.fromEntries(nextSelected)),
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    });
+  };
+
   const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
-    if (!current_class?.id) return;
+    if (!currentClass?.id) return;
     if (!hasRestoredRef.current) return;
 
     const user = await auth.getCurrentUser();
     if (!user?.id) return;
 
-    const classId = current_class.id;
+    const classId = currentClass.id;
 
     const next = new Map(classSelectedLesson);
     const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
@@ -156,32 +248,20 @@ const SearchLesson: React.FC = () => {
     });
     setAssignmentCount(total);
 
-    const nextSelected = new Map(selectedLesson);
-
-    // update for this class
-    nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
-
-    const finalPayload = Object.fromEntries(nextSelected);
-
-    setSelectedLesson(nextSelected);
-
-    await api.createOrUpdateAssignmentCart(
-      user.id,
-      JSON.stringify(finalPayload),
-    );
+    await persistAssignmentCart(user.id, classId, next);
   };
 
   const toggleChapterSelection = async (
     chapterId: string,
     lessons: TableTypes<"lesson">[],
   ) => {
-    if (!current_class?.id) return;
+    if (!currentClass?.id) return;
     if (!hasRestoredRef.current) return;
 
     const user = await auth.getCurrentUser();
     if (!user?.id) return;
 
-    const classId = current_class.id;
+    const classId = currentClass.id;
 
     const next = new Map(classSelectedLesson);
     const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
@@ -223,40 +303,38 @@ const SearchLesson: React.FC = () => {
     });
     setAssignmentCount(total);
 
-    // Sync backend
-    const nextSelected = new Map(selectedLesson);
-
-    // update for this class
-    nextSelected.set(classId, JSON.stringify(Object.fromEntries(next)));
-
-    const finalPayload = Object.fromEntries(nextSelected);
-
-    setSelectedLesson(nextSelected);
-
-    await api.createOrUpdateAssignmentCart(
-      user.id,
-      JSON.stringify(finalPayload),
-    );
+    await persistAssignmentCart(user.id, classId, next);
   };
 
-  const loadCart = async () => {
+  const loadCart = async (classIdArg?: string) => {
     const user = await auth.getCurrentUser();
-    if (!user?.id || !current_class?.id) return;
+    const classId = classIdArg ?? currentClass?.id;
+    if (!user?.id || !classId) return;
 
-    const cart = await api.getUserAssignmentCart(user.id);
+    const cart = readAssignmentCartFromStorage(user.id);
     if (!cart?.lessons) {
       setSelectedLesson(new Map());
+      setClassSelectedLesson(new Map());
+      setAssignmentCount(0);
       return;
     }
 
-    const parsed = JSON.parse(cart.lessons);
-    const fullMap = new Map<string, any>(Object.entries(parsed || {}));
+    const parsed = JSON.parse(cart.lessons || "{}") as Record<string, unknown>;
+
+    const fullMap = new Map<string, string>(
+      Object.entries(parsed || {}).map(([classId, value]) => [
+        classId,
+        typeof value === "string" ? value : JSON.stringify(value),
+      ]),
+    );
 
     setSelectedLesson(fullMap);
-    const classMap = parsed[current_class.id] || {};
-    const map = new Map<string, Partial<Record<AssignmentSource, string[]>>>(
-      Object.entries(classMap),
-    );
+    const classMapRaw = parsed[classId];
+    const classMap =
+      typeof classMapRaw === "string"
+        ? JSON.parse(classMapRaw || "{}")
+        : classMapRaw || {};
+    const map = normalizeClassSelection(classMap);
 
     setClassSelectedLesson(map);
 
@@ -299,7 +377,70 @@ const SearchLesson: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [lessons]);
+  }, [lessons, currentClass?.id]);
+  useEffect(() => {
+    const loadAssignedLessons = async () => {
+      const classId = currentClass?.id;
+      if (!classId || lessons.length === 0) {
+        setAssignedLessonIds(new Set());
+        return;
+      }
+
+      const courseChapterMap = new Map<string, Set<string>>();
+      lessons.forEach((lesson) => {
+        const meta = lessonMetaMap[lesson.id];
+        if (!meta?.courseId || !meta?.chapterId) return;
+
+        if (!courseChapterMap.has(meta.courseId)) {
+          courseChapterMap.set(meta.courseId, new Set());
+        }
+        courseChapterMap.get(meta.courseId)!.add(meta.chapterId);
+      });
+
+      if (courseChapterMap.size === 0) {
+        setAssignedLessonIds(new Set());
+        return;
+      }
+
+      try {
+        const assignmentIdSet = new Set<string>();
+        await Promise.all(
+          Array.from(courseChapterMap.entries()).map(
+            async ([courseId, chapterIdsSet]) => {
+              const assignmentIds =
+                await api.getUniqueAssignmentIdsByCourseAndChapter(
+                  classId,
+                  courseId,
+                  Array.from(chapterIdsSet),
+                );
+              assignmentIds.forEach((id) => assignmentIdSet.add(id));
+            },
+          ),
+        );
+
+        if (assignmentIdSet.size === 0) {
+          setAssignedLessonIds(new Set());
+          return;
+        }
+
+        const assignmentDocs = await api.getAssignmentsByIds(
+          Array.from(assignmentIdSet),
+        );
+        const nextAssignedLessonIds = new Set<string>();
+        assignmentDocs.forEach((assignment) => {
+          if (assignment?.lesson_id) {
+            nextAssignedLessonIds.add(String(assignment.lesson_id));
+          }
+        });
+        setAssignedLessonIds(nextAssignedLessonIds);
+      } catch (error) {
+        console.error("Failed to load assigned lessons in search:", error);
+        setAssignedLessonIds(new Set());
+      }
+    };
+
+    loadAssignedLessons();
+  }, [api, currentClass?.id, lessons, lessonMetaMap]);
 
   const buildMeta = async (
     lessonList: TableTypes<"lesson">[],
@@ -313,7 +454,7 @@ const SearchLesson: React.FC = () => {
       lessonList.map(async (lesson) => {
         const rawChapterId = await api.getChapterByLesson(
           lesson.id,
-          current_class?.id,
+          currentClass?.id,
         );
         if (!rawChapterId) return;
 
@@ -359,22 +500,28 @@ const SearchLesson: React.FC = () => {
 
   const onSearch = async (term: string) => {
     const trimmed = term.trim();
+
     if (!trimmed) {
       setLessons([]);
       setSearchTerm("");
       setShowHistory(true);
       return;
     }
+    const currentRequestId = ++requestIdRef.current;
 
     try {
       setIsLoading(true);
       const results = await api.searchLessons(trimmed);
+      if (currentRequestId !== requestIdRef.current) return;
+
       setLessons(results ?? []);
       setSearchTerm(trimmed);
       saveSearchHistory(trimmed);
       setShowHistory(false);
     } finally {
-      setIsLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -462,10 +609,9 @@ const SearchLesson: React.FC = () => {
       <Header
         isBackButton
         onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
-        showSchool
-        showClass
+        customText={t("Search") ?? "Search"}
         schoolName={currentSchool?.name}
-        className={current_class?.name}
+        className={currentClass?.name}
       />
 
       <main id="search-lesson-body" className="search-lesson-body">
@@ -475,16 +621,61 @@ const SearchLesson: React.FC = () => {
         >
           <IonSearchbar
             ref={inputEl}
+            id="search-lesson-bar"
             className="search-lesson-bar"
             placeholder={String(t("Search"))}
-            value={searchTerm}
-            onIonInput={(e) => setSearchTerm(e.detail.value ?? "")}
-            onKeyDown={(ev) => {
-              if (ev.key === "Enter") {
-                onSearch(ev.currentTarget.value ?? "");
+            value={inputValue}
+            onIonFocus={() => {
+              setIsFocused(true);
+              if (!inputValue.trim()) {
+                setShowHistory(true);
               }
             }}
+            onIonInput={(e) => {
+              const value = e.detail.value ?? "";
+              setInputValue(value);
+
+              if (!value.trim()) {
+                setLessons([]);
+                setSearchTerm("");
+                setShowHistory(true);
+                return;
+              }
+
+              setShowHistory(false);
+              triggerDebouncedSearch(value);
+            }}
+            onIonClear={() => {
+              setInputValue("");
+              setSearchTerm("");
+              setLessons([]);
+              setShowHistory(true);
+            }}
           />
+          {isFocused &&
+            showHistory &&
+            !inputValue.trim() &&
+            searchHistory.length > 0 && (
+              <div
+                id="search-lesson-search-history"
+                className="search-lesson-search-history-list"
+              >
+                {searchHistory.map((term, index) => (
+                  <div
+                    key={index}
+                    id="search-lesson-history-item"
+                    className="search-lesson-search-history-item"
+                    onClick={() => {
+                      setInputValue(term);
+                      onSearch(term);
+                      setShowHistory(false);
+                    }}
+                  >
+                    {term}
+                  </div>
+                ))}
+              </div>
+            )}
         </div>
 
         {!showHistory && searchTerm.trim() && (
@@ -498,6 +689,17 @@ const SearchLesson: React.FC = () => {
 
         {!isLoading && (
           <div id="search-lesson-results" className="search-lesson-results">
+            {groupedLessons.courseGroups.length === 0 &&
+              groupedLessons.otherLessons.length === 0 &&
+              searchTerm && (
+                <div
+                  id="search-lessons-no-results"
+                  className="search-lessons-no-results"
+                >
+                  {t("No results found")}
+                </div>
+              )}
+
             <ChapterWiseLessons
               courseGroups={groupedLessons.courseGroups}
               otherLessons={groupedLessons.otherLessons}
@@ -506,6 +708,8 @@ const SearchLesson: React.FC = () => {
               isChapterFullySelected={isChapterFullySelected}
               toggleChapterSelection={toggleChapterSelection}
               selectedLesson={selectedLesson}
+              showAssignedBadge={true}
+              assignedLessonIds={assignedLessonIds}
             />
           </div>
         )}

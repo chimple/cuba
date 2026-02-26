@@ -52,9 +52,7 @@ const ScoreCard: React.FC<{
                 <ScoreCardStarIcons score={score} />
               </div>
             </div>
-
-            {!message && <ScoreCardTitle score={score} />}
-
+            <ScoreCardTitle score={score} />
             <div className="score-card-content">
               <div className="score-card-content-message">{t(message)}</div>
               <div className="score-card-content-lesson-name">
