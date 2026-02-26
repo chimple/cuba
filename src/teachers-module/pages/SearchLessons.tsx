@@ -71,6 +71,9 @@ const SearchLesson: React.FC = () => {
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
+  const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -375,6 +378,69 @@ const SearchLesson: React.FC = () => {
       active = false;
     };
   }, [lessons, currentClass?.id]);
+  useEffect(() => {
+    const loadAssignedLessons = async () => {
+      const classId = currentClass?.id;
+      if (!classId || lessons.length === 0) {
+        setAssignedLessonIds(new Set());
+        return;
+      }
+
+      const courseChapterMap = new Map<string, Set<string>>();
+      lessons.forEach((lesson) => {
+        const meta = lessonMetaMap[lesson.id];
+        if (!meta?.courseId || !meta?.chapterId) return;
+
+        if (!courseChapterMap.has(meta.courseId)) {
+          courseChapterMap.set(meta.courseId, new Set());
+        }
+        courseChapterMap.get(meta.courseId)!.add(meta.chapterId);
+      });
+
+      if (courseChapterMap.size === 0) {
+        setAssignedLessonIds(new Set());
+        return;
+      }
+
+      try {
+        const assignmentIdSet = new Set<string>();
+        await Promise.all(
+          Array.from(courseChapterMap.entries()).map(
+            async ([courseId, chapterIdsSet]) => {
+              const assignmentIds =
+                await api.getUniqueAssignmentIdsByCourseAndChapter(
+                  classId,
+                  courseId,
+                  Array.from(chapterIdsSet),
+                );
+              assignmentIds.forEach((id) => assignmentIdSet.add(id));
+            },
+          ),
+        );
+
+        if (assignmentIdSet.size === 0) {
+          setAssignedLessonIds(new Set());
+          return;
+        }
+
+        const assignmentDocs = await api.getAssignmentsByIds(
+          Array.from(assignmentIdSet),
+        );
+        const nextAssignedLessonIds = new Set<string>();
+        assignmentDocs.forEach((assignment) => {
+          if (assignment?.lesson_id) {
+            nextAssignedLessonIds.add(String(assignment.lesson_id));
+          }
+        });
+        setAssignedLessonIds(nextAssignedLessonIds);
+      } catch (error) {
+        console.error("Failed to load assigned lessons in search:", error);
+        setAssignedLessonIds(new Set());
+      }
+    };
+
+    loadAssignedLessons();
+  }, [api, currentClass?.id, lessons, lessonMetaMap]);
 
   const buildMeta = async (
     lessonList: TableTypes<"lesson">[],
@@ -642,6 +708,8 @@ const SearchLesson: React.FC = () => {
               isChapterFullySelected={isChapterFullySelected}
               toggleChapterSelection={toggleChapterSelection}
               selectedLesson={selectedLesson}
+              showAssignedBadge={true}
+              assignedLessonIds={assignedLessonIds}
             />
           </div>
         )}
