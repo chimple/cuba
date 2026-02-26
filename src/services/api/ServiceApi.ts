@@ -2008,12 +2008,14 @@ export interface ServiceApi {
    * @param {string} schoolId - The ID of the school to fetch.
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
+   * @param {string} classId -The Id of the class
    * @returns Promise resolving to an object with student data and a total count.
    */
   getStudentInfoBySchoolId(
     schoolId: string,
     page: number,
-    limit: number
+    limit: number,
+    classId?: string, 
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2265,7 +2267,8 @@ export interface ServiceApi {
     schoolId: string,
     searchTerm: string,
     page?: number,
-    limit?: number
+    limit?: number,
+    classId?:string
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(

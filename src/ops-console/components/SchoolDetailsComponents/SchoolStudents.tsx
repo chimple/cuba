@@ -265,7 +265,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             schoolId,
             search,
             currentPage,
-            ROWS_PER_PAGE
+            ROWS_PER_PAGE,
+            currentClass?.id
           );
           setStudents(response.data);
           setTotalCount(response.total);
@@ -1471,6 +1472,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       <CardListModal
         open={isMergeStudentModalOpen}
         schoolId={schoolId}
+        classId={currentClass?.id}  
         primaryStudentId={mergePrimaryStudent?.id}
         onClose={() => setIsMergeStudentModalOpen(false)}
         onSubmit={handleMergeStudents}

@@ -21,6 +21,7 @@ interface StudentItem {
 interface CardListModalProps {
   open: boolean;
   schoolId: string;
+  classId: string;
   primaryStudentId?: string;
   onClose: () => void;
   onSubmit: (student: StudentItem) => void;
@@ -31,6 +32,7 @@ const ROWS_PER_PAGE = 20;
 const CardListModal: React.FC<CardListModalProps> = ({
   open,
   schoolId,
+  classId,
   primaryStudentId,
   onClose,
   onSubmit,
@@ -54,12 +56,14 @@ const CardListModal: React.FC<CardListModalProps> = ({
           searchText,
           currentPage,
           ROWS_PER_PAGE,
+          classId
         );
       } else {
         res = await api.getStudentInfoBySchoolId(
           schoolId,
           currentPage,
           ROWS_PER_PAGE,
+          classId
         );
       }
       setStudents(res.data || []);
@@ -111,6 +115,15 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const pageCount = Math.ceil(total / ROWS_PER_PAGE);
   if (!open) return null;
 
+  const primaryStudent = students.find(
+    (s) => s.user?.id === primaryStudentId
+  );
+  const primaryName = primaryStudent?.user?.name || "";
+  const primaryContact =
+    primaryStudent?.parent?.phone ||
+    primaryStudent?.user?.phone ||
+    primaryStudent?.user?.email ||
+    "";
   return (
     <div className="cardlist-modal-backdrop">
       <div className="cardlist-modal">
@@ -118,7 +131,11 @@ const CardListModal: React.FC<CardListModalProps> = ({
           <div>
             <h2 className="cardlist-title">{t("Merge Student")}</h2>
             <p className="cardlist-subtitle">
-              {t("Select which student profile to merge into")}
+              {t("Select which student profile to merge into")}{" "}
+              <strong>
+                {primaryName}
+                {primaryContact ? ` (${primaryContact})` : ""}
+              </strong>
             </p>
           </div>
 
@@ -144,7 +161,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
           )}
         </div>
 
-        <div className="cardlist-container">
+        <div className="cardlist-model-container">
           {loading ? (
             <div className="cardlist-loading">{t("Loading...")}</div>
           ) : processedStudents.length === 0 ? (
@@ -152,13 +169,11 @@ const CardListModal: React.FC<CardListModalProps> = ({
           ) : (
             processedStudents.map((s) => {
               const selected = selectedId === s.user?.id;
-
               return (
                 <label
                   key={s.user?.id}
-                  className={`cardlist-card ${
-                    selected ? "cardlist-card-selected" : ""
-                  }`}
+                  className={`cardlist-card ${selected ? "cardlist-card-selected" : ""
+                    }`}
                 >
                   <input
                     type="radio"
@@ -167,14 +182,27 @@ const CardListModal: React.FC<CardListModalProps> = ({
                   />
 
                   <div className="cardlist-row">
-                    <span className="col-id">{s.user?.student_id}</span>
+                    <span className="col-id">
+                      {s.user?.student_id || "N/A"}
+                    </span>
 
-                    <span className="col-name">{s.user?.name}</span>
-
-                    <span className="col-gender">{s.user?.gender}</span>
-
+                    <span className="col-name">
+                      {s.user?.name || "N/A"}
+                    </span>
+                    <span className="col-gender">
+                      {s.user?.gender
+                        ? s.user.gender.toLowerCase() === "male"
+                          ? "Male"
+                          : s.user.gender.toLowerCase() === "female"
+                            ? "Female"
+                            : s.user.gender
+                        : "N/A"}
+                    </span>
                     <span className="col-phone">
-                      {s.parent?.phone || "N/A"}
+                      {s.parent?.phone ||
+                        s.user?.phone ||
+                        s.user?.email ||
+                        "N/A"}
                     </span>
                   </div>
                 </label>
@@ -183,25 +211,26 @@ const CardListModal: React.FC<CardListModalProps> = ({
           )}
         </div>
 
-        <div className="cardlist-footer">
-          {pageCount > 1 && (
+        <div className="cardlist-merge-footer">
+          {pageCount > 1 ? (
             <DataTablePagination
               page={page}
               pageCount={pageCount}
               onPageChange={setPage}
             />
+          ) : (
+            <div className="cardlist-pagination-placeholder" />
           )}
-
           <div>
             <button
-              className="cardlist-btn cardlist-btn-text"
+              className="cardlist-merge-cancel-btn"
               onClick={onClose}
             >
               {t("Cancel")}
             </button>
 
             <button
-              className="cardlist-btn cardlist-btn-primary"
+              className="cardlist-merge-btn"
               disabled={!selectedStudent}
               onClick={() => selectedStudent && onSubmit(selectedStudent)}
             >
