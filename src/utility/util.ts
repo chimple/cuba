@@ -3155,7 +3155,7 @@ export class Util {
       }
   
       const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
-      const dbUpdatedAt = studentLearningPath.updated_at
+      const dbUpdatedAt = studentLearningPath?.updated_at
         ? new Date(studentLearningPath.updated_at).getTime()
         : 0;
   

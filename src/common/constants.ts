@@ -1298,4 +1298,5 @@ export enum RESULT_STATUS {
   USER_EXIT = "user_exit",
   SYSTEM_EXIT = "system_exit",
 }
+// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
 export const LATEST_LEARNING_PATH = "latest_learning_path"

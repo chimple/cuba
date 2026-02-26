@@ -257,7 +257,8 @@ export const usePathwayData = () => {
             : null;
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const pathItem = course.path.find((p : LessonNode) => p.isPlayed === false);
+      const pathItem = course?.path.find((p : LessonNode) => p.isPlayed === false);
+      if(!course || !pathItem) return;
       const isAssessment = pathItem?.is_assessment
 
       const lesson = await api.getLesson(
