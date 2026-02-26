@@ -57,6 +57,7 @@ import {
   CLASS,
   RESULT_STATUS,
   LIDO_ASSESSMENT,
+  LATEST_LEARNING_PATH,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -64,7 +65,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import {
   SQLiteDBConnection,
   SQLiteConnection,
@@ -88,6 +89,10 @@ import {
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from "../../teachers-module/pages/AssignmentCartStorage";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -4075,6 +4080,22 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+    if (!ids.length) return [];
+
+    const idslst = ids.map(() => "?").join(", ");
+    const query = `
+      SELECT *
+      FROM ${TABLES.Assignment}
+      WHERE id IN (${idslst})
+        AND is_deleted = 0;
+    `;
+
+    const res = await this._db?.query(query, ids);
+    if (!res?.values?.length) return [];
+
+    return res.values as TableTypes<"assignment">[];
+  }
 
   async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     if (ids.length === 0) return [];
@@ -4352,40 +4373,13 @@ export class SqliteApi implements ServiceApi {
     userId: string,
     lessons: string,
   ): Promise<boolean | undefined> {
-    await this.executeQuery(
-      `
-      INSERT INTO assignment_cart (
-          id,
-          lessons,
-          updated_at
-      ) VALUES (?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-          lessons = excluded.lessons,
-          updated_at = excluded.updated_at;
-      `,
-      [userId, lessons, new Date().toISOString()],
-    );
-    await this._serverApi.pushAssignmentCart(
-      {
-        id: userId,
-        lessons: lessons,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_deleted: false,
-      },
-      userId,
-    );
-    // await this.updatePushChanges(
-    //   TABLES.Assignment_cart,
-    //   MUTATE_TYPES.UPDATE,
-    //   {
-    //     id: userId,
-    //     lessons: lessons,
-    //     created_at: new Date().toISOString(),
-    //     updated_at: new Date().toISOString(),
-    //     is_deleted: false,
-    //   }
-    // )
+    const now = new Date().toISOString();
+    const existing = readAssignmentCartFromStorage(userId);
+    writeAssignmentCartToStorage(userId, {
+      lessons,
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+    });
     return true;
   }
 
@@ -4551,12 +4545,9 @@ export class SqliteApi implements ServiceApi {
   }
   async getUserAssignmentCart(
     userId: string,
-  ): Promise<TableTypes<"assignment_cart"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Assignment_cart} where id = "${userId}"`,
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  ): Promise<AssignmentCartData | undefined> {
+    const cart = readAssignmentCartFromStorage(userId);
+    return cart;
   }
   async getStudentProgress(studentId: string): Promise<Map<string, string>> {
     const query = `
@@ -5129,6 +5120,7 @@ order by
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
     FROM ${TABLES.Assignment}
     WHERE class_id = '${classId}'
+      AND is_deleted = 0
     )
     SELECT *
     FROM RankedAssignments
@@ -5481,6 +5473,35 @@ order by
 
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
+  }
+
+  async getUniqueAssignmentIdsByCourseAndChapter(
+    classId: string,
+    courseId: string,
+    chapterIdOrIds: string | string[],
+  ): Promise<string[]> {
+    const chapterIds = Array.isArray(chapterIdOrIds)
+      ? chapterIdOrIds.filter(Boolean)
+      : [chapterIdOrIds].filter(Boolean);
+
+    if (!chapterIds.length) return [];
+
+    const idslst = chapterIds.map(() => "?").join(", ");
+    const query = `
+      SELECT DISTINCT id
+      FROM ${TABLES.Assignment}
+      WHERE class_id = ?
+        AND course_id = ?
+        AND chapter_id IN (${idslst})
+        AND is_deleted = 0; 
+    `;
+
+    const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
+    if (!res?.values?.length) return [];
+
+    return res.values
+      .map((row: any) => row.id as string | undefined)
+      .filter((id): id is string => Boolean(id));
   }
 
   async getSchoolsWithRoleAutouser(
@@ -6041,6 +6062,12 @@ order by
         },
         is_immediate_sync,
       );
+      const latestPathToSave = {
+        studentId: student.id,
+        learningPath,
+        updated_at:  new Date(Date.now() + 10000).toISOString()
+      }
+      sessionStorage.setItem(LATEST_LEARNING_PATH, JSON.stringify(latestPathToSave))
     } catch (error) {
       console.error("Error updating learning path:", error);
     }

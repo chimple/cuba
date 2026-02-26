@@ -46,6 +46,9 @@ describe("useLearningPath features used by Home tab", () => {
       id: "stu-1",
       learning_path: null,
     });
+    (Util.getLatestLearningPathByUpdatedAt as jest.Mock).mockImplementation(
+      (student: any) => student?.learning_path
+    );
     mockApi.isStudentLinked.mockResolvedValue(false);
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(false);
     mockApi.getLatestAssessmentGroup.mockResolvedValue([]);
@@ -192,6 +195,9 @@ describe("useLearningPath features used by Home tab", () => {
       language_id: "en",
     });
     mockApi.isStudentLinked.mockResolvedValue(false);
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([]);
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(false);
+
     mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
       id: "assessment-doc",
       lesson_id: "assessment-lesson-77",
@@ -205,12 +211,55 @@ describe("useLearningPath features used by Home tab", () => {
       });
     });
 
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.PATHWAY_CREATED,
-      expect.objectContaining({
-        current_lesson_id: "assessment-lesson-77",
-        is_assessment_active: true,
-      })
-    );
+    expect(Util.logEvent).toHaveBeenCalledTimes(1);
+
+    const [eventName, payload] = (Util.logEvent as jest.Mock).mock.calls[0];
+
+    expect(eventName).toBe(EVENTS.PATHWAY_CREATED);
+    expect(payload).toMatchObject({
+      user_id: "stu-1",
+      current_course_id: "c1",
+      current_lesson_id: "assessment-lesson-77",
+      is_assessment_active: true,
+    });
   });
+test("wraps to first chapter first lesson when last chapter last lesson is completed", async () => {
+  mockApi.getChaptersForCourse.mockResolvedValue([
+    { id: "ch1" },
+    { id: "ch2" },
+  ]);
+
+  mockApi.getLessonsForChapter.mockImplementation((chapterId: string) => {
+    if (chapterId === "ch1") {
+      return Promise.resolve([{ id: "l1" }, { id: "l2" }]);
+    }
+    if (chapterId === "ch2") {
+      return Promise.resolve([{ id: "l3" }, { id: "l4" }]);
+    }
+    return Promise.resolve([]);
+  });
+
+  const next = await recommendNextLesson({
+    student: { id: "stu-1" },
+    course: { id: "c1", subject_id: "s1" },
+    mode: LEARNING_PATHWAY_MODE.DISABLED,
+    coursePath: {
+      path: [
+        {
+          lesson_id: "l4",
+          chapter_id: "ch2",
+          is_assessment: false,
+          isPlayed: true,
+        },
+      ],
+    },
+  });
+
+  expect(next).toEqual({
+    lesson_id: "l1",
+    chapter_id: "ch1",
+    is_assessment: false,
+    isPlayed: false,
+  });
+});
 });

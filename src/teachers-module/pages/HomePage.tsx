@@ -228,15 +228,29 @@ const HomePage: React.FC = () => {
       el.style.marginTop = prevMargin;
     }
   };
+  const handleLibraryBack = () => {
+    setShowAssignOptionsScreen(true);
+    setTabValue(2);
+    history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+  };
+  const isLibraryTab = tabValue === 1;
   return (
     <div className="main-container" key={renderKey}>
       <Header
-        showSchool
-        showClass
+        isBackButton={isLibraryTab}
+        showSchool={!isLibraryTab}
+        showClass={!isLibraryTab}
         className={currentClass?.name}
         schoolName={currentSchool?.name}
-        isBackButton={false}
-        showSideMenu
+        showSideMenu={!isLibraryTab}
+        customText={isLibraryTab ? "Library" : ""}
+        onBackButtonClick={isLibraryTab ? handleLibraryBack : undefined}
+        showSearchIcon={isLibraryTab}
+        onSearchIconClick={
+          isLibraryTab
+            ? () => history.replace(PAGES.SEARCH_LESSON)
+            : undefined
+        }
         onShareClick={tabValue === 3 ? handleShare : undefined}
       />
       <main className="home-container-body">{renderComponent()}</main>

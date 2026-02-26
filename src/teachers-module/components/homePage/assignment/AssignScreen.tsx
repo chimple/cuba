@@ -1,8 +1,6 @@
 import { FC } from "react";
 import { t } from "i18next";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import QrCode2RoundedIcon from "@mui/icons-material/QrCode2Rounded";
-import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
 import "./AssignScreen.css";
 
 interface AssignScreenProps {
@@ -29,13 +27,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
             className="assign-screen-card assign-screen-card-library"
             onClick={onLibraryClick}
           >
-            <div className="assign-screen-icon-wrapper assign-screen-icon-library-bg">
-              <img
-                src="assets/icons/bookSelected.png"
-                alt={t("Library") || "Library"}
-                className="assign-screen-card-image"
-              />
-            </div>
+            <img
+              src="assets/books.png"
+              alt={t("Library") || "Library"}
+              className="assign-screen-card-image assign-screen-icon-library-bg"
+            />
             <div className="assign-screen-text">
               <p className="assign-screen-card-caption">
                 {t(
@@ -52,9 +48,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
             className="assign-screen-card assign-screen-card-scan"
             onClick={onScanQrClick}
           >
-            <div className="assign-screen-icon-wrapper assign-screen-icon-scan-bg">
-              <QrCode2RoundedIcon className="assign-screen-icon assign-screen-icon-scan" />
-            </div>
+            <img
+              src="assets/qr.png"
+              alt={t("Scan QR") || "Scan QR"}
+              className="assign-screen-card-image assign-screen-icon-scan-bg"
+            />
             <div className="assign-screen-text">
               <p className="assign-screen-card-caption">
                 {t("Scan chapters from your textbook to instantly assign homework")}
@@ -69,9 +67,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
             className="assign-screen-card assign-screen-card-recommend"
             onClick={onRecommendedClick}
           >
-            <div className="assign-screen-icon-wrapper assign-screen-icon-recommend-bg">
-              <ThumbUpAltRoundedIcon className="assign-screen-icon assign-screen-icon-recommend" />
-            </div>
+            <img
+              src="assets/thumb.png"
+              alt={t("Recommended") || "Recommended"}
+              className="assign-screen-card-image assign-screen-icon-recommend-bg"
+            />
             <div className="assign-screen-text">
               <p className="assign-screen-card-caption">
                 {t("Pre-selected assignments aligned for academic growth")}
@@ -87,3 +87,4 @@ const AssignScreen: FC<AssignScreenProps> = ({
 };
 
 export default AssignScreen;
+

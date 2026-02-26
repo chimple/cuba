@@ -7,15 +7,24 @@ import "./LessonDetails.css";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, COCOS, CONTINUE, CocosCourseIdentifier, LIDO, LIVE_QUIZ, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
+import {
+  AssignmentSource,
+  COCOS,
+  CONTINUE,
+  CocosCourseIdentifier,
+  LIDO,
+  LIVE_QUIZ,
+  PAGES,
+  TableTypes,
+} from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
-interface LessonDetailsProps { }
-const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
+interface LessonDetailsProps {}
+const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -33,22 +42,20 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
   const selectedLesson = state?.["selectedLesson"];
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
-  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
+  const chapterName = state?.["chapterName"];
+  const gradeName = state?.["gradeName"];
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
+    null,
+  );
+  const [selectedLessonMap, setSelectedLessonMap] = useState<
+    Map<string, string>
+  >(new Map(selectedLesson));
 
-  let isGrade1: string | boolean = false;
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
-  if (
-    course &&
-    (course.grade_id === grade1 || course.grade_id === belowGrade1)
-  ) {
-    isGrade1 = true;
-  } else if (!course) {
-    isGrade1 = "";
-  }
+
   const syncSelectedLesson = async (lesson) => {
     var current_user = await auth.getCurrentUser();
     if (current_user?.id)
@@ -56,12 +63,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   };
   const COURSE_VALUES_SET = new Set(
     (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
-      v.toLowerCase()
-    )
+      v.toLowerCase(),
+    ),
   );
   const getCourseIdFromCocosLesson = (
     rawLessonId: string | null,
-    subjectCode: string | null
+    subjectCode: string | null,
   ): string | null => {
     if (!rawLessonId) {
       return subjectCode;
@@ -91,17 +98,16 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
     if (lesson.plugin_type === COCOS) {
       const courseId = getCourseIdFromCocosLesson(
         lesson.cocos_lesson_id,
-        lesson.cocos_subject_code
+        lesson.cocos_subject_code,
       );
       const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      setTimeout(()=>{
+      setTimeout(() => {
         Util.launchCocosGame();
-      },1000)
+      }, 1000);
       history.push(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: lesson.cocos_lesson_id,
-        courseDocId:
-          course?.id,
+        courseDocId: course?.id,
         course: JSON.stringify(course),
         lesson: JSON.stringify(lesson),
         chapterId: chapterId,
@@ -134,9 +140,8 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
           lesson: JSON.stringify(lesson),
           selectedLesson: selectedLessonMap,
           from: history.location.pathname + `?${CONTINUE}=true`,
-        }
+        },
       );
-
     } else if (lesson.plugin_type === LIDO) {
       const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.push(PAGES.LIDO_PLAYER + parmas, {
@@ -152,7 +157,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   useEffect(() => {
     const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? "");
     const parsed = sync_lesson_data ? JSON.parse(sync_lesson_data) : {};
-    const class_sync_lesson: Map<string, Partial<Record<AssignmentSource, string[]>>> = new Map();
+    const class_sync_lesson: Map<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    > = new Map();
     Object.entries(parsed).forEach(([chapterId, value]) => {
       if (Array.isArray(value)) {
         // Old format: convert to new format
@@ -162,7 +170,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
       } else if (typeof value === "object" && value !== null) {
         // New format
         Object.keys(value).forEach((key) => {
-          if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+          if (
+            key !== AssignmentSource.MANUAL &&
+            key !== AssignmentSource.QR_CODE
+          ) {
             delete value[key];
           }
         });
@@ -190,16 +201,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
       setTimeout(() => {
         Util.killCocosGame();
       }, 1000);
-
     }
 
     const current_class = Util.getCurrentClass();
     setCurrentClass(current_class ?? null);
     if (!chapterId && current_class) {
-      const fetched = await api.getChapterByLesson(
-        lesson.id,
-        current_class.id
-      );
+      const fetched = await api.getChapterByLesson(lesson.id, current_class.id);
       if (typeof fetched === "string") {
         setChapterId(fetched);
       }
@@ -223,12 +230,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
     // Get both manual and qr_code arrays
     const manualArr = updatedChapterData[AssignmentSource.MANUAL] ?? [];
     const qrArr = updatedChapterData[AssignmentSource.QR_CODE] ?? [];
-    const isSelected = manualArr.includes(lesson.id) || qrArr.includes(lesson.id);
+    const isSelected =
+      manualArr.includes(lesson.id) || qrArr.includes(lesson.id);
 
     if (isSelected) {
       // Remove from both manual and qr_code
-      updatedChapterData[AssignmentSource.MANUAL] = manualArr.filter((id: string) => id !== lesson.id);
-      updatedChapterData[AssignmentSource.QR_CODE] = qrArr.filter((id: string) => id !== lesson.id);
+      updatedChapterData[AssignmentSource.MANUAL] = manualArr.filter(
+        (id: string) => id !== lesson.id,
+      );
+      updatedChapterData[AssignmentSource.QR_CODE] = qrArr.filter(
+        (id: string) => id !== lesson.id,
+      );
     } else {
       // Add to manual
       updatedChapterData[AssignmentSource.MANUAL] = [...manualArr, lesson.id];
@@ -239,88 +251,153 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
 
     // Convert to map for state update
     const updatedClassSelectedLesson = new Map(classSelectedLesson);
-    updatedClassSelectedLesson.set(
-      chapterId,
-      updatedChapterData
-    );
+    updatedClassSelectedLesson.set(chapterId, updatedChapterData);
     setClassSelectedLesson(updatedClassSelectedLesson);
 
     // Serialize and store
     tmpselectedLesson.set(classId, JSON.stringify(parsed));
     setSelectedLessonMap(tmpselectedLesson);
 
-    const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
+    const totalSelectedLesson = JSON.stringify(
+      Object.fromEntries(tmpselectedLesson),
+    );
     syncSelectedLesson(totalSelectedLesson);
   };
-  return (
-    <div className="lesson-details-container">
-      <Header
-        isBackButton={true}
-        onButtonClick={() => {
-          course
-            ? history.replace(PAGES.SHOW_CHAPTERS, {
+return (
+  <div
+    id="lesson-details-root"
+    className="lesson-details-root"
+  >
+    <Header
+      isBackButton={true}
+      onButtonClick={() => {
+        course
+          ? history.replace(state.from || PAGES.SHOW_CHAPTERS, {
               course: course,
               chapterId: chapterId,
             })
-            : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
-        }}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
-        schoolName={currentSchool?.name}
-      />
-      <div className="lesson-details-body">
-        <div className="lesson-card-info">
-          <div className="lesson-card" onClick={onPlayClick}>
-            <div className="play-ion">
-              <div className="lesson-info-text">{t("Click to play")}</div>
-              <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
-            </div>
-            <div className="lesson-info-image">
+          : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+      }}
+      showSchool={true}
+      showClass={true}
+      className={currentClass?.name}
+      schoolName={currentSchool?.name}
+    />
+
+    <div
+      id="lesson-details-body"
+      className="lesson-details-body"
+    >
+      <div
+        id="lesson-details-wrap"
+        className="lesson-details-wrap"
+      >
+        <div
+          id="lesson-details-top"
+          className="lesson-details-top"
+        >
+          <div
+            id="lesson-details-left"
+            className="lesson-details-left"
+          >
+            <div
+              id="lesson-details-thumb"
+              className="lesson-details-thumb"
+              onClick={onPlayClick}
+            >
+              <div
+                id="lesson-details-play"
+                className="lesson-details-play"
+              >
+                {t("Click to play")}
+              </div>
+
               <SelectIconImage
                 localSrc={""}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={`${lesson.image}`}
               />
             </div>
-          </div>
-          <div className="lesson-info">
-            <div className="lesson-info-text">
-              {course ? course.name : ""}{" "}
-              {isGrade1 ? `${t("Grade")} ${isGrade1 === true ? "1" : "2"}` : ""}
-            </div>
-            <div className="lesson-info-text">
-              {course && course.name === "ENGLISH"
-                ? lesson.name  // don’t translate
-                : t(lesson.name ?? "")}  {/* translate */}
-            </div>
-            <div className="lesson-info-text">
-              {" "}
-              {lesson.plugin_type === "cocos"
-                ? t("Assignment")
-                : t("Live Quiz")}
-            </div>
-            <SelectIcon
-              isSelected={
-                ([
-                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.MANUAL] ?? []),
-                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [])
-                ].includes(lesson.id) ?? false)
-              }
+
+            <button
+              id="lesson-details-btn"
+              className="lesson-details-btn"
               onClick={handleButtonClick}
-            />
+            >
+              {[
+                ...(classSelectedLesson.get(chapterId)?.[
+                  AssignmentSource.MANUAL
+                ] ?? []),
+                ...(classSelectedLesson.get(chapterId)?.[
+                  AssignmentSource.QR_CODE
+                ] ?? []),
+              ].includes(lesson.id)
+                ? t("Remove")
+                : t("Add")}
+            </button>
+          </div>
+
+          <div
+            id="lesson-details-right"
+            className="lesson-details-right"
+          >
+            <div
+              id="lesson-details-grade"
+              className="lesson-details-meta"
+            >
+              <strong>{gradeName ?? ""}</strong>
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Subject")} :</strong> {course?.name}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Chapter")} :</strong> {chapterName ?? ""}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Lesson")} :</strong> {lesson?.name}
+            </div>
+
+            <div className="lesson-details-meta">
+              <strong>{t("Quiz")} :</strong>{" "}
+              {lesson.plugin_type === LIVE_QUIZ
+                ? t("Live Quiz")
+                : t("Assignment")}
+            </div>
           </div>
         </div>
-        <div className="learning-outcome-text">{lesson.outcome}</div>
+
+        <div
+          id="lesson-details-outcome"
+          className="lesson-details-outcome"
+        >
+          <div
+            id="lesson-details-outcome-title"
+            className="lesson-details-outcome-title"
+          >
+            {t("Learning Outcome")} :
+          </div>
+
+          <div
+            id="lesson-details-outcome-desc"
+            className="lesson-details-outcome-desc"
+          >
+            {lesson.outcome}
+          </div>
+        </div>
       </div>
-      <AssigmentCount
-        assignments={assignmentCount}
-        onClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
-        }}
-      />
     </div>
-  );
+
+    <AssigmentCount
+      assignments={assignmentCount}
+      onClick={() => {
+        history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+      }}
+    />
+  </div>
+);
 };
 
 export default LessonDetails;

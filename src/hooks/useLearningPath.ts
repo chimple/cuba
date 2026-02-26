@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
@@ -20,6 +19,7 @@ export type LearningPath = {
   };
   type: RECOMMENDATION_TYPE;
   pathMode: string;
+  updated_at: string;
 };
 
 export type CoursePath = {
@@ -93,6 +93,7 @@ export async function buildPath({
       ? RECOMMENDATION_TYPE.FRAMEWORK
       : RECOMMENDATION_TYPE.CHAPTER,
     pathMode: mode,
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -173,9 +174,24 @@ export async function recommendNextLesson({
    * 4️⃣ NORMAL CHAPTER FLOW (DEFAULT)
    * ----------------------------------- */
   const chapters = await api.getChaptersForCourse(course.id);
-  for (const ch of chapters) {
+  if (!chapters?.length) return null;
+  const lastPlayedLesson = getLastPlayedLesson(coursePath, "normal");
+  let idx = 0;
+
+  // 🔥 Find chapter index of last played lesson
+  if (lastPlayedLesson?.chapter_id) {
+    const foundIndex = chapters.findIndex(
+      (ch: any) => ch.id === lastPlayedLesson.chapter_id,
+    );
+
+    if (foundIndex !== -1) {
+      idx = foundIndex;
+    }
+  }
+
+  for (let i = idx; i < chapters.length; i++) {
+    const ch = chapters[i];
     const lessons = await api.getLessonsForChapter(ch.id);
-    const lastPlayedLesson = getLastPlayedLesson(coursePath, "normal");
     const next = getNextFromList(
       lessons.map((l: any) => ({ ...l, chapter_id: ch.id })),
       lastPlayedLesson,
@@ -185,7 +201,16 @@ export async function recommendNextLesson({
     if (next) return next;
   }
 
-  return null;
+  // If nothing found → loop back to start and recommend first lesson of first chapter
+  const firstLessons = await api.getLessonsForChapter(chapters[0].id);
+  if (!firstLessons?.length) return null;
+
+  return {
+    lesson_id: firstLessons[0].id,
+    chapter_id: chapters[0].id,
+    is_assessment: false,
+    isPlayed: false,
+  };
 }
 
 export function getNextFromList(
@@ -318,9 +343,10 @@ export const useLearningPath = (opts?: {
     classId?: string;
   }) {
     let currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) return;
-    let learningPath = currentStudent?.learning_path
-      ? JSON.parse(currentStudent.learning_path)
+    if (!currentStudent ) return;
+    const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+    let learningPath = pathToParse
+      ? JSON.parse(pathToParse)
       : null;
 
     // check if learning path is empty, if empty build it
@@ -414,6 +440,7 @@ export const useLearningPath = (opts?: {
           (coursePath: any) => migrate(coursePath),
         );
         learningPath.pathMode = mode;
+        learningPath.updated_at = new Date().toISOString();
         await saveLearningPath(currentStudent, learningPath);
         return;
       }
@@ -554,6 +581,7 @@ export const useLearningPath = (opts?: {
 
     learningPath.courses.courseList = newCourseList;
     learningPath.courses.currentCourseIndex = newCurrentIndex;
+    learningPath.updated_at = new Date().toISOString();
     await saveLearningPath(student, learningPath);
 
     return { updated: true, learningPath };

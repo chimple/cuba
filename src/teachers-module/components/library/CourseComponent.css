@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column; /* Stack elements vertically */
   align-items: center; /* Center content horizontally */
-  margin: min(20px, 3vh);
+  padding: min(20px, 3vh);
+  margin: 0;
   cursor: pointer;
   color: var(--text-color);
   text-align: center;

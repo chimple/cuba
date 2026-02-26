@@ -40,7 +40,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
     (history.location.state!["recommendedAssignments"] as {}) ?? {};
 
   const onBackButtonClick = () => {
-    history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+    history.replace(PAGES.TEACHER_ASSIGNMENT);
   };
 
   return (

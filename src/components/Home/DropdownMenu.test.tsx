@@ -47,6 +47,9 @@ describe("DropdownMenu", () => {
         },
       }),
     });
+    (Util.getLatestLearningPathByUpdatedAt as jest.Mock).mockImplementation(
+      (student: any) => student?.learning_path
+    );
     (Util.getCurrentClass as jest.Mock).mockReturnValue({ id: "class-1" });
     (Util.setCurrentStudent as jest.Mock).mockResolvedValue(undefined);
     (Util.logEvent as jest.Mock).mockImplementation(() => {});

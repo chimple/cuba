@@ -10,6 +10,7 @@ import {
   MODES,
   PAGES,
   TableTypes,
+  USER_DATA,
 } from "../../common/constants";
 import { useHistory } from "react-router";
 import { Util } from "../../utility/util";
@@ -22,6 +23,7 @@ import {
   useGbContext,
 } from "../../growthbook/Growthbook";
 import { schoolUtil } from "../../utility/schoolUtil";
+import i18n from "../../i18n";
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -35,6 +37,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
   const { setGbUpdated } = useGbContext();
+  const api = ServiceConfig.getI().apiHandler;
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
 
@@ -47,8 +50,22 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     setClassName(className);
     setSchoolName(schoolName);
   };
-
+  // Handles Edit action:
+  // 1. Fetches all available languages
+  // 2. Reads the logged-in user from localStorage
+  // 3. Finds the user's preferred language
+  // 4. Updates i18n language if different from current
+  // 5. Navigates to the Edit Student page
   const onEdit = async () => {
+    const languages = await api.getAllLanguages();
+    const userData = localStorage.getItem(USER_DATA);
+    if (!userData) return;
+    const user = JSON.parse(userData) as TableTypes<"user">;
+
+    const userLang = languages.find((lang) => lang.id === user.language_id);
+    if (userLang?.code && i18n.language !== userLang.code) {
+      i18n.changeLanguage(userLang.code);
+    }
     history.replace(PAGES.EDIT_STUDENT, { from: history.location.pathname });
   };
 
@@ -60,7 +77,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     let avatarObj = AvatarObj.getInstance();
     history.push(
       PAGES.LEADERBOARD +
-        `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
+        `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`,
     );
   };
 
@@ -68,7 +85,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
     schoolUtil.setCurrentClass(undefined);
-    localStorage.removeItem(CURRENT_PATHWAY_MODE)
+    localStorage.removeItem(CURRENT_PATHWAY_MODE);
     localStorage.removeItem(HOMEWORK_PATHWAY);
     // Also tell GrowthBook attributes are now cleared (or set to parent-level)
     updateLocalAttributes({
@@ -112,7 +129,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const menuItems = allMenuItems
     .filter(
       (item) =>
-        !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label))
+        !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label)),
     )
     .map((item) =>
       currentMode === MODES.SCHOOL && item.label === "Switch Profile"
@@ -123,7 +140,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                 from: history.location.pathname,
               }),
           }
-        : item
+        : item,
     );
   const hasDetails = !!(className || schoolName);
 

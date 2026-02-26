@@ -537,7 +537,7 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_ability,
         activitiesScoresStr,
         _currentUser?.id,
-        RESULT_STATUS.COMPLETED
+        RESULT_STATUS.COMPLETED,
       );
 
       // Update the learning path
@@ -787,11 +787,7 @@ const LidoPlayer: FC = () => {
               ? 100
               : Math.round(gameResult?.score ?? 0)
           }
-          message={
-            lessonDetail?.plugin_type === "lido_assessment"
-              ? t("Well Done!")
-              : t("You Completed the Lesson:")
-          }
+          message={t("You Completed the Lesson:")}
           showDialogBox={showDialogBox}
           lessonName={lessonDetail?.name ?? ""}
           noText={t("Continue Playing")}
