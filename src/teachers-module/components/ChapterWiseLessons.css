@@ -7,6 +7,7 @@
   font-size: 22px;
   font-weight: 700;
   padding: 4px 2px;
+  margin-left: 15px;
 }
 
 .chapter-wise-row {
@@ -67,14 +68,16 @@
 
 .chapter-wise-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 18vw, 220px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(clamp(130px, 18vw, 220px), 1fr));
   grid-auto-rows: minmax(100px, auto);
   padding: 10px 0;
   gap: 12px;
+  margin-left:20px;
+  margin-right: 20px; 
 }
 
 .chapter-wise-card {
-  border: 1px solid #e0d8ef;
+  /* border: 1px solid #e0d8ef; */
   border-radius: 8px;
   padding: 8px;
   background: #fff;
@@ -86,7 +89,8 @@
 }
 
 .chapter-wise-img {
-  height: 86px;
+  height: 75px;
+  width: 100px;
   border-radius: 8px;
   overflow: hidden;
   background: #f3f3f3;
@@ -105,7 +109,6 @@
   justify-content: center;
   gap: 6px;
 
-  /* width: clamp(80px, 10vw, 110px);   responsive width */
   width: 70%;
   height: 32px;
 

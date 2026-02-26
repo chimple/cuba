@@ -56,7 +56,7 @@ const SearchLesson: React.FC = () => {
 
   const inputEl = useRef<HTMLIonSearchbarElement>(null);
 
-  const [inputValue, setInputValue] = useState(""); 
+  const [inputValue, setInputValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
   const [lessonMetaMap, setLessonMetaMap] = useState<
@@ -78,7 +78,8 @@ const SearchLesson: React.FC = () => {
 
   const hasRestoredRef = useRef(false);
   const OTHER_KEY = "other";
-  const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const init = async () => {
@@ -113,6 +114,11 @@ const SearchLesson: React.FC = () => {
     };
 
     init();
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
   }, []);
 
   const isLessonSelected = (chapterId: string, lessonId: string) => {
@@ -122,11 +128,32 @@ const SearchLesson: React.FC = () => {
       classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [];
     return manual.includes(lessonId) || qr.includes(lessonId);
   };
+  const isChapterFullySelected = (
+    chapterId: string,
+    lessons: TableTypes<"lesson">[],
+  ) => {
+    if (!lessons.length) return false;
+
+    return lessons.every((lesson) => isLessonSelected(chapterId, lesson.id));
+  };
+
+  const triggerDebouncedSearch = (value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      onSearch(value);
+    }, 500);
+  };
 
   const normalizeClassSelection = (
     rawClassMap: unknown,
   ): Map<string, Partial<Record<AssignmentSource, string[]>>> => {
-    const normalized = new Map<string, Partial<Record<AssignmentSource, string[]>>>();
+    const normalized = new Map<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    >();
     if (!rawClassMap || typeof rawClassMap !== "object") {
       return normalized;
     }
@@ -142,10 +169,13 @@ const SearchLesson: React.FC = () => {
         }
 
         if (value && typeof value === "object") {
-          const sourceMap = value as Partial<Record<AssignmentSource, string[]>>;
+          const sourceMap = value as Partial<
+            Record<AssignmentSource, string[]>
+          >;
           normalized.set(chapterId, {
             [AssignmentSource.MANUAL]: sourceMap[AssignmentSource.MANUAL] ?? [],
-            [AssignmentSource.QR_CODE]: sourceMap[AssignmentSource.QR_CODE] ?? [],
+            [AssignmentSource.QR_CODE]:
+              sourceMap[AssignmentSource.QR_CODE] ?? [],
           });
         }
       },
@@ -157,10 +187,16 @@ const SearchLesson: React.FC = () => {
   const persistAssignmentCart = async (
     userId: string,
     classId: string,
-    nextClassSelection: Map<string, Partial<Record<AssignmentSource, string[]>>>,
+    nextClassSelection: Map<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    >,
   ) => {
     const nextSelected = new Map(selectedLesson);
-    nextSelected.set(classId, JSON.stringify(Object.fromEntries(nextClassSelection)));
+    nextSelected.set(
+      classId,
+      JSON.stringify(Object.fromEntries(nextClassSelection)),
+    );
     setSelectedLesson(nextSelected);
 
     const existing = readAssignmentCartFromStorage(userId);
@@ -170,14 +206,6 @@ const SearchLesson: React.FC = () => {
       created_at: existing?.created_at ?? now,
       updated_at: now,
     });
-  };
-  const isChapterFullySelected = (
-    chapterId: string,
-    lessons: TableTypes<"lesson">[],
-  ) => {
-    if (!lessons.length) return false;
-
-    return lessons.every((lesson) => isLessonSelected(chapterId, lesson.id));
   };
 
   const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
@@ -405,27 +433,29 @@ const SearchLesson: React.FC = () => {
   };
 
   const onSearch = async (term: string) => {
-    if(isOpsUser){
-      console.error("Search is not available for Ops Console users.");
-      return;
-    }
     const trimmed = term.trim();
+
     if (!trimmed) {
       setLessons([]);
       setSearchTerm("");
       setShowHistory(true);
       return;
     }
+    const currentRequestId = ++requestIdRef.current;
 
     try {
       setIsLoading(true);
       const results = await api.searchLessons(trimmed);
+      if (currentRequestId !== requestIdRef.current) return;
+
       setLessons(results ?? []);
-      setSearchTerm(trimmed); 
+      setSearchTerm(trimmed);
       saveSearchHistory(trimmed);
       setShowHistory(false);
     } finally {
-      setIsLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -513,7 +543,7 @@ const SearchLesson: React.FC = () => {
       <Header
         isBackButton
         onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
-        customText="Serarch"
+        customText={t("Search") ?? "Search"}
         schoolName={currentSchool?.name}
         className={currentClass?.name}
       />
@@ -523,57 +553,63 @@ const SearchLesson: React.FC = () => {
           id="search-lesson-search-wrap"
           className="search-lesson-search-wrap"
         >
-        <IonSearchbar
-          ref={inputEl}
-          className="search-lesson-bar"
-          placeholder={String(t("Search"))}
-          value={inputValue}
-          onIonFocus={() => {
-            setIsFocused(true);
-            if (!inputValue.trim()) {
-              setShowHistory(true);
-            }
-          }}
-          onIonInput={(e) => {
-            const value = e.detail.value ?? "";
-            setInputValue(value);
-            if (!value.trim()) {
-              setShowHistory(true);
-            }
-          }}
-          onIonClear={() => {
-            setInputValue("");
-            setSearchTerm("");
-            setLessons([]);
-            setShowHistory(true);
-          }}
-          onKeyUp={(ev: any) => {
-            if (ev.key === "Enter") {
-              const value = inputValue.trim();
-              onSearch(value);
-              //@ts-ignore
-              ev.target?.blur();
+          <IonSearchbar
+            ref={inputEl}
+            id="search-lesson-bar"
+            className="search-lesson-bar"
+            placeholder={String(t("Search"))}
+            value={inputValue}
+            onIonFocus={() => {
+              setIsFocused(true);
+              if (!inputValue.trim()) {
+                setShowHistory(true);
+              }
+            }}
+            onIonInput={(e) => {
+              const value = e.detail.value ?? "";
+              setInputValue(value);
+
+              if (!value.trim()) {
+                setLessons([]);
+                setSearchTerm("");
+                setShowHistory(true);
+                return;
+              }
+
               setShowHistory(false);
-            }
-          }}
-        />
-        {isFocused && showHistory && !inputValue.trim() && searchHistory.length > 0 && (
-          <div className="search-lesson-search-history-list">
-            {searchHistory.map((term, index) => (
+              triggerDebouncedSearch(value);
+            }}
+            onIonClear={() => {
+              setInputValue("");
+              setSearchTerm("");
+              setLessons([]);
+              setShowHistory(true);
+            }}
+          />
+          {isFocused &&
+            showHistory &&
+            !inputValue.trim() &&
+            searchHistory.length > 0 && (
               <div
-                key={index}
-                className="search-lesson-search-history-item"
-                onClick={() => {
-                  setInputValue(term);
-                  onSearch(term);
-                  setShowHistory(false);
-                }}
+                id="search-lesson-search-history"
+                className="search-lesson-search-history-list"
               >
-                {term}
+                {searchHistory.map((term, index) => (
+                  <div
+                    key={index}
+                    id="search-lesson-history-item"
+                    className="search-lesson-search-history-item"
+                    onClick={() => {
+                      setInputValue(term);
+                      onSearch(term);
+                      setShowHistory(false);
+                    }}
+                  >
+                    {term}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
         </div>
 
         {!showHistory && searchTerm.trim() && (
@@ -588,17 +624,15 @@ const SearchLesson: React.FC = () => {
         {!isLoading && (
           <div id="search-lesson-results" className="search-lesson-results">
             {groupedLessons.courseGroups.length === 0 &&
-            groupedLessons.otherLessons.length === 0 &&
-            searchTerm && (
-              <div className="search-lessons-no-results">
-                {t("No results found")}
-              </div>
-            )}
-            {isOpsUser && (
-              <div className="search-lessons-no-results">
-                {t("Search is restricted for OPS users")}
-              </div>
-            )}
+              groupedLessons.otherLessons.length === 0 &&
+              searchTerm && (
+                <div
+                  id="search-lessons-no-results"
+                  className="search-lessons-no-results"
+                >
+                  {t("No results found")}
+                </div>
+              )}
 
             <ChapterWiseLessons
               courseGroups={groupedLessons.courseGroups}
