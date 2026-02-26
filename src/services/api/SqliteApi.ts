@@ -7206,6 +7206,7 @@ order by
     searchTerm: string,
     page: number,
     limit: number,
+    classId?:string
   ): Promise<{ data: any[]; total: number }> {
     if (!this._db) return { data: [], total: 0 };
     // Build query for multi-field search

@@ -54,10 +54,19 @@
 .cardlist-search {
   padding: 0 22px 12px;
 }
+.search-input-SearchAndFilter {
+  width: -webkit-fill-available;
+  border: 1px solid black;
+}
+.cardlist-search .MuiInputBase-root {
+  background: transparent;          /* remove background */
+  border: 1.5px solid #d1d5db;        /* use old bg color as border */
+  border-radius: 8px;
+  padding: 0px 10px;
+}
 .cardlist-search input {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
@@ -68,15 +77,15 @@
 }
 .cardlist-warning {
   margin: 0 22px 14px;
-  padding: 12px 14px;
+  padding: 20px 14px;
   background: #eef4ff;
   border: 1px solid #dbe6ff;
   border-radius: 10px;
-  font-size: 13px;
+  font-size: 13px;  
   color: #2f5cff;
 }
 
-.cardlist-container {
+.cardlist-model-container {
   max-height: 260px;
   overflow-y: auto;
   padding: 0 22px 14px;
@@ -172,13 +181,13 @@
   color: white;
 }
 
-.cardlist-footer {
+/* .cardlist-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 22px;
   border-top: 1px solid #e5e7eb;
-}
+} */
 
 .cardlist-btn {
   padding: 8px 18px;
@@ -189,11 +198,62 @@
 }
 
 /* Cancel */
-.cardlist-btn-text {
-  background: #f3f4f6;
+.cardlist-merge-cancel-btn {
+  padding: 8px 18px;
+  border: 1px solid #d1d5db;      /* gray border */
+  background: #ffffff;
   color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+/* Footer Container */
+.cardlist-merge-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 22px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+.cardlist-merge-btn {
+  padding: 8px 18px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+.cardlist-merge-btn:hover {
+  background: #1d4ed8;
+}
+
+.cardlist-merge-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Right side buttons container */
+.cardlist-merge-footer > div:last-child {
+  display: flex;
+  gap: 12px;
+}
+/* Hover */
+.cardlist-cancel-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Active click */
+.cardlist-cancel-btn:active {
+  transform: scale(0.97);
+}
 .cardlist-btn-text:hover {
   background: #e5e7eb;
 }
@@ -216,71 +276,9 @@
   background: none;
 }
 /* Container full width */
-.force-search-open .search-filter-container-SearchAndFilter {
-  width: 100%;
-}
 
-/* Input always visible */
-.force-search-open .search-input-SearchAndFilter {
-  display: block !important;
-  width: 100% !important;
-}
-
-/* Hide mobile search icon button */
-.force-search-open button[aria-label="Open search"] {
-  display: none !important;
-}
-
-/* Hide close icon */
-.force-search-open button[aria-label="Close search"] {
-  display: none !important;
-}
-
-/* Hide filter icon */
-.force-search-open .filter-button-SearchAndFilter,
-.force-search-open button[aria-label="Open Filters"] {
-  display: none !important;
-}
-
-/* Input styling match modal */
-.force-search-open .MuiTextField-root {
-  width: 100%;
-}
 /* -------------------------------------------------------
    FIX MUI Search Border inside Modal
 ------------------------------------------------------- */
 
 /* Remove outer border */
-.cardlist-search .MuiOutlinedInput-root {
-  border-radius: 8px !important;
-  background: #f9fafb !important;
-}
-
-/* Remove default outline */
-.cardlist-search .MuiOutlinedInput-notchedOutline {
-  border: 1px solid #e5e7eb !important;
-}
-
-/* Hover */
-.cardlist-search .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-  border-color: #d1d5db !important;
-}
-
-/* Focus */
-.cardlist-search
-  .MuiOutlinedInput-root.Mui-focused
-  .MuiOutlinedInput-notchedOutline {
-  border-color: #3b82f6 !important;
-  border-width: 1px !important;
-}
-
-/* Remove shadow glow */
-.cardlist-search .MuiOutlinedInput-root.Mui-focused {
-  box-shadow: none !important;
-}
-
-/* Input padding */
-.cardlist-search .MuiOutlinedInput-input {
-  padding: 10px 12px !important;
-  font-size: 14px !important;
-}
