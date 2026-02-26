@@ -11513,4 +11513,56 @@ export class SupabaseApi implements ServiceApi {
 
     return data;
   }
+  async getAssignedLessonIdsByCourseAndChapter(
+  classId: string,
+  courseId: string,
+  chapterIdOrIds: string | string[],
+): Promise<string[]> {
+  if (!this.supabase) return [];
+
+  try {
+    const chapterIds = Array.isArray(chapterIdOrIds)
+      ? chapterIdOrIds.filter(Boolean)
+      : [chapterIdOrIds].filter(Boolean);
+
+    if (!chapterIds.length) return [];
+
+    let query = this.supabase
+      .from(TABLES.Assignment)
+      .select("lesson_id")
+      .eq("class_id", classId)
+      .eq("course_id", courseId)
+      .eq("is_deleted", false);
+
+    query =
+      chapterIds.length === 1
+        ? query.eq("chapter_id", chapterIds[0])
+        : query.in("chapter_id", chapterIds);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(
+        "Supabase error in getAssignedLessonIdsByCourseAndChapter:",
+        error,
+      );
+      return [];
+    }
+
+    // DISTINCT lesson IDs
+    return Array.from(
+      new Set(
+        (data ?? [])
+          .map((row: any) => row.lesson_id)
+          .filter(Boolean),
+      ),
+    ) as string[];
+  } catch (err) {
+    console.error(
+      "Error in getAssignedLessonIdsByCourseAndChapter:",
+      err,
+    );
+    return [];
+  }
+}
 }
