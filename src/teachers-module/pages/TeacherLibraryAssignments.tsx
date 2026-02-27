@@ -5,6 +5,7 @@ import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import Loading from "../../components/Loading";
 import { useTeacherLibraryAssignmentsLogic } from "./TeacherLibraryAssignmentsLogic";
 import "./TeacherLibraryAssignments.css";
+import { t } from "i18next";
 
 const TeacherLibraryAssignments: React.FC = () => {
   const {
@@ -99,7 +100,7 @@ const TeacherLibraryAssignments: React.FC = () => {
               })}
             </div>
             {assignmentCount <= 0 ? (
-              <div id="teacher-library-no-lessons-center" className="teacher-library-no-lessons-center">No Lessons Selected</div>
+              <div id="teacher-library-no-lessons-center" className="teacher-library-no-lessons-center">{t("No Lessons Selected")}</div>
             ) : null}
           </>
         )}
