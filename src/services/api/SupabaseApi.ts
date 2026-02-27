@@ -11520,6 +11520,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("sticker_book")
       .select("*")
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (error) throw error;
@@ -11540,6 +11541,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", userId)
       .eq("status", "in_progress")
+      .eq("is_deleted", false)
       .maybeSingle();
 
     // 2️⃣ If user already has active progress
@@ -11548,6 +11550,7 @@ export class SupabaseApi implements ServiceApi {
         .from("sticker_book")
         .select("*")
         .eq("id", progress.sticker_book_id)
+        .eq("is_deleted", false)
         .single();
 
       if (!book) return null;
@@ -11562,6 +11565,7 @@ export class SupabaseApi implements ServiceApi {
     const { data: firstBook } = await this.supabase
       .from("sticker_book")
       .select("*")
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true })
       .limit(1)
       .single();
@@ -11587,7 +11591,9 @@ export class SupabaseApi implements ServiceApi {
       sticker_book (*)
     `)
       .eq("user_id", userId)
-      .eq("status", "completed");
+      .eq("status", "completed")
+      .eq("is_deleted", false)
+      .eq("sticker_book.is_deleted", false);
 
     if (error) {
       console.error("getUserWonStickerBooks error:", error);
@@ -11613,6 +11619,7 @@ export class SupabaseApi implements ServiceApi {
       .from("sticker_book")
       .select("*")
       .eq("id", stickerBookId)
+      .eq("is_deleted", false)
       .single();
 
     if (!book) return null;
@@ -11622,6 +11629,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", userId)
       .eq("sticker_book_id", stickerBookId)
+      .eq("is_deleted", false)
       .maybeSingle();
 
     const collected = progress?.stickers_collected ?? [];
@@ -11654,6 +11662,7 @@ export class SupabaseApi implements ServiceApi {
       .from("sticker_book")
       .select("*")
       .eq("id", stickerBookId)
+      .eq("is_deleted", false)
       .single();
 
     if (!book) return;
@@ -11665,6 +11674,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", userId)
       .eq("sticker_book_id", stickerBookId)
+      .eq("is_deleted", false)
       .maybeSingle();
 
     // create
@@ -11702,7 +11712,8 @@ export class SupabaseApi implements ServiceApi {
         stickers_collected: updated,
         status
       })
-      .eq("id", progress.id);
+      .eq("id", progress.id)
+      .eq("is_deleted", false);
   }
 
 }
