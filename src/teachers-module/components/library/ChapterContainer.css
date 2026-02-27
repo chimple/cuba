@@ -88,10 +88,12 @@
   box-sizing: border-box;
   display: inline-block;
   margin-right: 1px;
+  margin-top: -4px;
 }
 
 .chaptercontainer-expand-arrow.is-open {
   transform: rotate(-135deg);
+  margin-top: 4px;
 }
 
 .chaptercontainer-chapter-select-all {
@@ -294,11 +296,12 @@
     height: 9px;
   }
 
-  .chaptercontainer-chapter-select-all::before {
-    content: "";
+  .chaptercontainer-chapter-header-actions {
+    margin-left: 4px;
+    padding-right: 1px;
   }
 
   .chaptercontainer-chapter-select-all {
-    gap: 0;
+    gap: 4px;
   }
 }
