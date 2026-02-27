@@ -840,7 +840,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   icon: (
                     <DeleteOutlineIcon
                       fontSize="small"
-                      sx={{ color: "black" }}  
+                      sx={{ color: "black" }}
                     />
                   ),
                   onClick: () => {
@@ -1525,7 +1525,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               gridTemplateColumns: "1fr 1fr 1fr 1fr",
               gap: 1,
               fontSize: 14,
-              border: "1px solid #E5E7EB", 
+              border: "1px solid #E5E7EB",
             }}
           >
             <Typography>
@@ -1558,7 +1558,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button 
+        <Button
           variant="outlined"
           onClick={() => setIsDeleteModalOpen(false)}
           sx={{
@@ -1609,28 +1609,26 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           )}
         </Box>
 
-        {/* Hide New Student + Search/Filter when there are NO students overall */}
-        {!hideHeaderActions && (
-          <Box className="schoolStudents-actionsGroup">
-            <MuiButton
-              variant="outlined"
-              onClick={handleAddNewStudent}
-              className="schoolStudents-newStudentButton-outlined"
-            >
-              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-              {!isSmallScreen && t("New Student")}
-            </MuiButton>
+        {/* Always show New Student + Search/Filter, even if no students match search/filter */}
+        <Box className="schoolStudents-actionsGroup">
+          <MuiButton
+            variant="outlined"
+            onClick={handleAddNewStudent}
+            className="schoolStudents-newStudentButton-outlined"
+          >
+            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+            {!isSmallScreen && t("New Student")}
+          </MuiButton>
 
-            <SearchAndFilter
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              filters={filters}
-              onFilterClick={handleFilterIconClick}
-              onClearFilters={handleClearFilters}
-              isFilter={issFilter}
-            />
-          </Box>
-        )}
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
+            isFilter={issFilter}
+          />
+        </Box>
       </Box>
 
       {/* Keep as-is, but hide when no students overall */}
