@@ -2682,4 +2682,16 @@ export interface ServiceApi {
     group_name: string;
     members: number;
   } | null>;
-}
+
+  /**
+ * Get assigned lesson IDs for a given class + lessonids.
+ * Used to mark lessons as already assigned (QR / Manual).
+ *
+ * @param classId
+ * @param lessonIds
+ */
+  getAssignedLessonIdsForClass(
+  classId: string,
+  lessonIds: string[],
+  ): Promise<string[]>;
+  }

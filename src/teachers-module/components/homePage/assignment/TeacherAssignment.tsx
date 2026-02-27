@@ -566,7 +566,10 @@ const processScannedData = async (scannedText: string) => {
 
     await api.createOrUpdateAssignmentCart(currentUser?.id!, finalLessonsJson);
 
-    history.push(PAGES.SCAN_REDIRECT);
+    history.push(PAGES.QR_ASSIGNMENTS, {
+        chapterId: result.chapter_id,
+        courseId: result.course_id,
+      });
     // await init();
   } catch (error) {
     Toast.show({ text: t("Something Went wrong") });

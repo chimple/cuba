@@ -8211,4 +8211,32 @@ order by
   } | null> {
     throw new Error("Method not implemented.");
   }
+
+async getAssignedLessonIdsForClass(
+  classId: string,
+  lessonIds: string[],
+): Promise<string[]> {
+  if (!lessonIds?.length) return [];
+
+  const placeholders = lessonIds.map(() => "?").join(", ");
+
+  const query = `
+    SELECT DISTINCT lesson_id
+    FROM ${TABLES.Assignment}
+    WHERE class_id = ?
+      AND lesson_id IN (${placeholders})
+      AND is_deleted = 0;
+  `;
+
+  const res = await this._db?.query(query, [
+    classId,
+    ...lessonIds,
+  ]);
+
+  if (!res?.values?.length) return [];
+
+  return res.values
+    .map((row: any) => row.lesson_id as string | undefined)
+    .filter((id): id is string => Boolean(id));
+}
 }
