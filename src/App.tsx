@@ -170,6 +170,7 @@ import {
 } from "@mui/material";
 
 import PostSuccess from "./teachers-module/pages/PostSuccess";
+import QRAssignments from "./teachers-module/components/homePage/assignment/QRAssignments";
 
 setupIonicReact();
 interface ExtraData {
@@ -614,6 +615,9 @@ useLayoutEffect(() => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.PARENT} exact={true}>
               <Parent />
+            </ProtectedRoute>
+              <ProtectedRoute path={PAGES.QR_ASSIGNMENTS} exact={true}>
+              <QRAssignments />
             </ProtectedRoute>
             {/* <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
               <AppLangSelection />

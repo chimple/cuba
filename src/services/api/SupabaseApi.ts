@@ -474,7 +474,7 @@ export class SupabaseApi implements ServiceApi {
                   "🔄 [Fallback] Realtime update:",
                   status,
                   "ID:",
-                id
+                  id,
                 );
                 if (
                   (status === "success" || status === "failed") &&
@@ -8943,7 +8943,6 @@ export class SupabaseApi implements ServiceApi {
             .or(parentFilter, {
               foreignTable: "user",
             });
-
           const parentIds = (parentRows ?? []).map((p: any) => p.user.id);
 
           let parentLinkedStudents: any[] = [];
@@ -11512,5 +11511,34 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data;
+  }
+  async getAssignedLessonIdsForClass(
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    try {
+      if (!lessonIds?.length) return [];
+
+      const { data, error } = await this.supabase
+        .from(TABLES.Assignment)
+        .select("lesson_id")
+        .eq("class_id", classId)
+        .eq("is_deleted", false)
+        .in("lesson_id", lessonIds);
+
+      if (error) {
+        console.error("Supabase error in getAssignedLessonIdsForClass:", error);
+        return [];
+      }
+
+      return Array.from(
+        new Set((data ?? []).map((row: any) => row.lesson_id).filter(Boolean)),
+      ) as string[];
+    } catch (err) {
+      console.error("Error in getAssignedLessonIdsForClass:", err);
+      return [];
+    }
   }
 }
