@@ -56,7 +56,7 @@ const QRAssignments: React.FC = () => {
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
       const lessonIds = lessonList.map((l: any) => l.lesson_id ?? l.id);
-      const assignedLessonIdsArr = await api.getAssignedLessonIdsForClass(
+      const assignedLessonIdsArr = await api.getAssignmentInfoForLessonsPerClass(
         currentClass.id,
         lessonIds,
       );

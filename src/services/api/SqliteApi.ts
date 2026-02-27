@@ -8245,7 +8245,7 @@ order by
     throw new Error("Method not implemented.");
   }
 
-async getAssignedLessonIdsForClass(
+async getAssignmentInfoForLessonsPerClass(
   classId: string,
   lessonIds: string[],
 ): Promise<string[]> {

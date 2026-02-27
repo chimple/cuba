@@ -11512,7 +11512,7 @@ export class SupabaseApi implements ServiceApi {
 
     return data;
   }
-  async getAssignedLessonIdsForClass(
+  async getAssignmentInfoForLessonsPerClass(
     classId: string,
     lessonIds: string[],
   ): Promise<string[]> {
@@ -11529,7 +11529,7 @@ export class SupabaseApi implements ServiceApi {
         .in("lesson_id", lessonIds);
 
       if (error) {
-        console.error("Supabase error in getAssignedLessonIdsForClass:", error);
+        console.error("Supabase error in getAssignmentInfoForLessonsPerClass:", error);
         return [];
       }
 
@@ -11537,7 +11537,7 @@ export class SupabaseApi implements ServiceApi {
         new Set((data ?? []).map((row: any) => row.lesson_id).filter(Boolean)),
       ) as string[];
     } catch (err) {
-      console.error("Error in getAssignedLessonIdsForClass:", err);
+      console.error("Error in getAssignmentInfoForLessonsPerClass:", err);
       return [];
     }
   }
