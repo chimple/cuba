@@ -92,70 +92,76 @@ export type Database = {
   public: {
     Tables: {
       sticker_book: {
-        Row: {
-          id: string
-          title: string
-          svg_url: string
-          sort_index: number
-          stickers_metadata: any
-          total_stickers: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          title: string
-          svg_url: string
-          sort_index: number
-          stickers_metadata: any
-          total_stickers: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          title?: string
-          svg_url?: string
-          sort_index?: number
-          stickers_metadata?: any
-          total_stickers?: number
-          created_at?: string
-        }
-        Relationships: []
-      }
+  Row: {
+    id: string
+    title: string
+    svg_url: string
+    sort_index: number
+    stickers_metadata: any
+    total_stickers: number
+    created_at: string
+    is_deleted: boolean
+  }
+  Insert: {
+    id?: string
+    title: string
+    svg_url: string
+    sort_index: number
+    stickers_metadata: any
+    total_stickers: number
+    created_at?: string
+    is_deleted?: boolean
+  }
+  Update: {
+    id?: string
+    title?: string
+    svg_url?: string
+    sort_index?: number
+    stickers_metadata?: any
+    total_stickers?: number
+    created_at?: string
+    is_deleted?: boolean
+  }
+  Relationships: []
+}
 
       user_sticker_book: {
-        Row: {
-          id: string
-          user_id: string
-          sticker_book_id: string
-          stickers_collected: string[]
-          status: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          sticker_book_id: string
-          stickers_collected?: string[]
-          status?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          sticker_book_id?: string
-          stickers_collected?: string[]
-          status?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_sticker_book_sticker_book_id_fkey"
-            columns: ["sticker_book_id"]
-            referencedRelation: "sticker_book"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
+  Row: {
+    id: string
+    user_id: string
+    sticker_book_id: string
+    stickers_collected: string[]
+    status: string
+    created_at: string
+    is_deleted: boolean
+  }
+  Insert: {
+    id?: string
+    user_id: string
+    sticker_book_id: string
+    stickers_collected?: string[]
+    status?: string
+    created_at?: string
+    is_deleted?: boolean
+  }
+  Update: {
+    id?: string
+    user_id?: string
+    sticker_book_id?: string
+    stickers_collected?: string[]
+    status?: string
+    created_at?: string
+    is_deleted?: boolean
+  }
+  Relationships: [
+    {
+      foreignKeyName: "user_sticker_book_sticker_book_id_fkey"
+      columns: ["sticker_book_id"]
+      referencedRelation: "sticker_book"
+      referencedColumns: ["id"]
+    }
+  ]
+}
 
       announcement: {
         Row: {

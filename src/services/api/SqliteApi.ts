@@ -93,13 +93,12 @@ import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
-
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 11;
+  private DB_VERSION = 12;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;

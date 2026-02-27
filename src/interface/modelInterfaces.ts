@@ -148,24 +148,85 @@ export interface Note {
   media_links?: string;
 }
 
+/**
+ * Represents metadata for a single sticker inside a sticker book.
+ *
+ * This does NOT represent user progress.
+ * It defines what stickers exist in the book and their display order.
+ *
+ * Used inside `StickerBook.stickers_metadata`.
+ */
 export type StickerMeta = {
+  /** Unique identifier of the sticker */
   id: string;
+
+  /** Order in which the sticker appears within the book */
   sequence: number;
 };
 
+
+/**
+ * Represents public metadata of a sticker book.
+ *
+ * Maps to the `sticker_book` table.
+ * Contains book-level information but does NOT include user progress.
+ *
+ * Used for:
+ * - Rendering sticker books
+ * - Loading SVG layouts
+ * - Determining total required stickers
+ */
 export type StickerBook = {
   id: string;
+
+  /** Display title of the sticker book */
   title: string;
+
+  /** URL of the SVG layout used to visually render the book */
   svg_url: string;
+
+  /** Sorting index used to order books in the UI */
   sort_index: number;
+
+  /**
+   * List of all stickers that exist in this book.
+   * Used to determine rendering order and completion logic.
+   */
   stickers_metadata: StickerMeta[];
+
+  /** Total number of stickers required to complete the book */
   total_stickers: number;
 };
 
+
+/**
+ * Represents a user's progress for a specific sticker book.
+ *
+ * Maps to the `user_sticker_book` table.
+ * Stores which stickers the user has collected
+ * and whether the book is completed.
+ *
+ * Used for:
+ * - Tracking collected stickers
+ * - Determining completion status
+ * - Rendering user progress in UI
+ */
 export type UserStickerProgress = {
+  /** Unique identifier of this progress entry */
   id: string;
+
+  /** ID of the user who owns this progress */
   user_id: string;
+
+  /** ID of the associated sticker book */
   sticker_book_id: string;
+
+  /**
+   * List of sticker IDs collected by the user.
+   * Must match IDs defined in `StickerMeta`.
+   */
   stickers_collected: string[];
+
+  /** Current completion state of the sticker book */
   status: "in_progress" | "completed";
 };

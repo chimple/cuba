@@ -41,7 +41,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse ,StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
+import { PaginatedResponse, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2684,26 +2684,97 @@ export interface ServiceApi {
   } | null>;
 
   // ================================
-// STICKER BOOK APIS
-// ================================
+  // STICKER BOOK APIS
+  // ================================
 
-getAllStickerBooks(): Promise<StickerBook[]>;
+  /**
+ * Retrieves all publicly available sticker books.
+ *
+ * Fetches metadata from the `sticker_book` table such as title,
+ * description, total stickers, and sort order.
+ * This API does NOT include user progress.
+ *
+ * @returns {Promise<StickerBook[]>} 
+ * A promise resolving to a list of sticker books ordered by sort_index.
+ */
 
-getCurrentStickerBookWithProgress(
-  userId: string
-): Promise<{
-  book: StickerBook;
-  progress: UserStickerProgress | null;
-} | null>;
+  getAllStickerBooks(): Promise<StickerBook[]>;
 
-getUserWonStickerBooks(userId: string): Promise<StickerBook[]>;
+  /**
+ * Retrieves the current active sticker book along with the user's progress.
+ *
+ * Combines:
+ * - Public sticker book metadata (from `sticker_book`)
+ * - User-specific progress (from `user_sticker_book`)
+ *
+ * Used when rendering the main sticker book screen for a user.
+ *
+ * @param {string} userId - The authenticated user's ID.
+ * @returns {Promise<{ book: StickerBook; progress: UserStickerProgress | null } | null>}
+ * A promise resolving to:
+ * - The current sticker book and its associated user progress (if exists)
+ * - null if no active book is available.
+ */
+  getCurrentStickerBookWithProgress(
+    userId: string
+  ): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null>;
 
-getNextWinnableSticker(
-  stickerBookId: string
-): Promise<string | null>;
+  /**
+ * Retrieves all sticker books completed by the user.
+ *
+ * Filters the `user_sticker_book` table by:
+ * - user_id
+ * - status = "completed"
+ *
+ * Returns the corresponding sticker book metadata.
+ *
+ * @param {string} userId - The authenticated user's ID.
+ * @returns {Promise<StickerBook[]>}
+ * A promise resolving to a list of sticker books that the user has completed.
+ * */
+  getUserWonStickerBooks(userId: string): Promise<StickerBook[]>;
 
-updateStickerWon(
-  stickerBookId: string,
-  stickerId: string
-): Promise<void>;
+  /**
+ * Determines the next winnable sticker for a given sticker book.
+ *
+ * Compares:
+ * - All possible stickers defined for the book
+ * - Stickers already collected by the user
+ *
+ * Returns the next available sticker ID that the user has not yet collected.
+ *
+ * @param {string} stickerBookId - The ID of the sticker book.
+ * @returns {Promise<string | null>}
+ * A promise resolving to:
+ * - The next sticker ID that can be won
+ * - null if all stickers have already been collected.
+ */
+  getNextWinnableSticker(
+    stickerBookId: string
+  ): Promise<string | null>;
+
+  /**
+ * Updates the user's progress when a sticker is won.
+ *
+ * Performs the following:
+ * 1. Validates authenticated user.
+ * 2. Fetches sticker book metadata.
+ * 3. Creates progress entry if none exists.
+ * 4. Adds the sticker to `stickers_collected` (avoiding duplicates).
+ * 5. Marks the book as "completed" if all stickers are collected.
+ *
+ * This method modifies the `user_sticker_book` table.
+ *
+ * @param {string} stickerBookId - The ID of the sticker book.
+ * @param {string} stickerId - The ID of the sticker won.
+ * @returns {Promise<void>}
+ * A promise resolving once the progress update is complete.
+ */
+  updateStickerWon(
+    stickerBookId: string,
+    stickerId: string
+  ): Promise<void>;
 }
