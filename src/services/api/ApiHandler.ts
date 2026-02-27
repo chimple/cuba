@@ -1524,8 +1524,9 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
+    classId?: string, 
   ): Promise<StudentAPIResponse> {
-    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit);
+    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit,classId);
   }
   public async getStudentsAndParentsByClassId(
     classId: string,
@@ -1682,12 +1683,14 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    classId?:string
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
+      classId
     );
   }
 

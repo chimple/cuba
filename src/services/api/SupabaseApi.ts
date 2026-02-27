@@ -3486,6 +3486,7 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classId?: string,
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
       console.warn("Supabase not initialized.");
@@ -3503,23 +3504,23 @@ export class SupabaseApi implements ServiceApi {
         class_name:name
       ),
       user:user_id!inner (
-          age,
-          avatar,
-          created_at,
-          curriculum_id,
-          fcm_token,
-          firebase_id,
+        age,
+        avatar,
+        created_at,
+        curriculum_id,
+        fcm_token,
+        firebase_id,
         grade_id,
-      image,
-      is_deleted,
-      is_firebase,
-      is_ops,
-     language_id,
-     is_tc_accepted,
-     student_id,
-     reward,
-     updated_at,
-      learning_path,
+        image,
+        is_deleted,
+        is_firebase,
+        is_ops,
+        language_id,
+        is_tc_accepted,
+        student_id,
+        reward,
+        updated_at,
+        learning_path,
         id,
         name,
         phone,
@@ -3542,6 +3543,9 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .eq("class.school_id", schoolId);
 
+    if (classId) {
+      query = query.eq("class_id", classId);
+    }
     const { data, error, count } = await query
       .order("user(name)", { ascending: true })
       .range(offset, offset + limit - 1);
@@ -3553,14 +3557,16 @@ export class SupabaseApi implements ServiceApi {
 
     const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
       const { user, class: cls } = row;
-
       const className = cls?.class_name || "";
       const { grade, section } = this.parseClassName(className);
-
       const parent = user?.parent_links?.[0]?.parent || null;
-
+      const updatedUser = {
+        ...user,
+        phone: user?.phone || parent?.phone || "",
+        email: user?.email || parent?.email || "",
+      };
       return {
-        user,
+        user: updatedUser,
         grade,
         classSection: section,
         parent,
@@ -8859,22 +8865,32 @@ export class SupabaseApi implements ServiceApi {
     searchTerm: string,
     page: number,
     limit: number,
+    classId?: string,
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) {
       return { data: [], total: 0 };
     }
+
     const supabase = this.supabase;
+
     return new Promise((resolve) => {
       if (this.searchStudentsTimer) {
         clearTimeout(this.searchStudentsTimer);
       }
+
       this.searchStudentsTimer = setTimeout(async () => {
         try {
-          const { data: classData } = await supabase
+          let classQuery = supabase
             .from("class")
             .select("id, name")
             .eq("school_id", schoolId)
             .eq("is_deleted", false);
+
+          if (classId) {
+            classQuery = classQuery.eq("id", classId);
+          }
+
+          const { data: classData } = await classQuery;
 
           const classIds = (classData ?? []).map((c: any) => c.id);
 
@@ -8882,7 +8898,10 @@ export class SupabaseApi implements ServiceApi {
             resolve({ data: [], total: 0 });
             return;
           }
+
           const studentFilter = `name.ilike.%${searchTerm}%,student_id.ilike.%${searchTerm}%`;
+
+          // ✅ ADDED phone IN SELECT
           const { data: studentRows } = await supabase
             .from("class_user")
             .select(
@@ -8892,6 +8911,7 @@ export class SupabaseApi implements ServiceApi {
                 id,
                 name,
                 email,
+                phone,
                 gender,
                 student_id
               )
@@ -8903,7 +8923,9 @@ export class SupabaseApi implements ServiceApi {
             .or(studentFilter, {
               foreignTable: "user",
             });
+
           const parentFilter = `phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`;
+
           const { data: parentRows } = await supabase
             .from("class_user")
             .select(
@@ -8963,6 +8985,7 @@ export class SupabaseApi implements ServiceApi {
                     id,
                     name,
                     email,
+                    phone,
                     gender,
                     student_id
                   )
@@ -8976,6 +8999,7 @@ export class SupabaseApi implements ServiceApi {
               parentLinkedStudents = data ?? [];
             }
           }
+
           const allRows = [...(studentRows ?? []), ...parentLinkedStudents];
 
           const uniqueMap = new Map<string, any>();
@@ -8985,6 +9009,32 @@ export class SupabaseApi implements ServiceApi {
           });
 
           const mergedRows = Array.from(uniqueMap.values());
+          // ✅ GET ALL STUDENT IDS
+          const allStudentIds = mergedRows.map((r: any) => r.user.id);
+
+          // ✅ FETCH THEIR PARENTS
+          if (allStudentIds.length > 0) {
+            const { data: allParentLinks } = await supabase
+              .from("parent_user")
+              .select(
+                `
+        student_id,
+        parent:parent_id (
+          phone,
+          email
+        )
+      `,
+              )
+              .in("student_id", allStudentIds)
+              .eq("is_deleted", false);
+
+            (allParentLinks ?? []).forEach((link: any) => {
+              parentContactMap.set(link.student_id, {
+                phone: link.parent?.phone ?? null,
+                email: link.parent?.email ?? null,
+              });
+            });
+          }
           const offset = (page - 1) * limit;
 
           const pagedRows = mergedRows.slice(offset, offset + limit);
@@ -8999,13 +9049,18 @@ export class SupabaseApi implements ServiceApi {
 
             const parentContact = parentContactMap.get(row.user.id) ?? {};
 
+            // ✅ FALLBACK FLATTEN LOGIC (ONLY ADDITION)
+            const phone = row.user.phone || parentContact.phone || "";
+
+            const email = row.user.email || parentContact.email || "";
             return {
               user: {
                 id: row.user.id,
                 name: row.user.name,
                 student_id: row.user.student_id,
                 gender: row.user.gender,
-                email: row.user.email,
+                phone,
+                email,
               },
 
               parent: {
