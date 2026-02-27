@@ -141,21 +141,21 @@
   gap: 10px;
 }
 
-.col-id {
+.cardlist-col-id {
   font-weight: 600;
   color: #374151;
 }
 
-.col-name {
+.cardlist-col-name {
   font-weight: 500;
   color: #111827;
 }
 
-.col-gender {
+.cardlist-col-gender {
   color: #6b7280;
 }
 
-.col-phone {
+.cardlist-col-phone {
   text-align: right;
   color: #6b7280;
 }

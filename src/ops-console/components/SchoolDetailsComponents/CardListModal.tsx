@@ -182,14 +182,14 @@ const CardListModal: React.FC<CardListModalProps> = ({
                   />
 
                   <div className="cardlist-row">
-                    <span className="col-id">
+                    <span className="cardlist-col-id">
                       {s.user?.student_id || "N/A"}
                     </span>
 
-                    <span className="col-name">
+                    <span className="cardlist-col-name">
                       {s.user?.name || "N/A"}
                     </span>
-                    <span className="col-gender">
+                    <span className="cardlist-col-gender">
                       {s.user?.gender
                         ? s.user.gender.toLowerCase() === "male"
                           ? "Male"
@@ -198,7 +198,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                             : s.user.gender
                         : "N/A"}
                     </span>
-                    <span className="col-phone">
+                    <span className="cardlist-col-phone">
                       {s.parent?.phone ||
                         s.user?.phone ||
                         s.user?.email ||
