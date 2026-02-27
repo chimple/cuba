@@ -523,6 +523,7 @@ export enum PAGES {
   ADD_SCHOOL_PAGE = "/add-school-page",
   ACTIVITIES_PAGE = "/activities-page",
   SCHOOL_ACTIVITIES = "/school-activities",
+  QR_ASSIGNMENTS = "/qr_assignments",
 }
 
 export const enum ASSIGNMENT_TYPE {

@@ -1086,26 +1086,22 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          {!hideHeaderActions && (
-            <>
-              <MuiButton
-                variant="outlined"
-                onClick={handleAddNewTeacher}
-                className="schoolTeachers-newTeacherButton-outlined"
-              >
-                <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-                {!isSmallScreen && t("New Teacher")}
-              </MuiButton>
+          <MuiButton
+            variant="outlined"
+            onClick={handleAddNewTeacher}
+            className="schoolTeachers-newTeacherButton-outlined"
+          >
+            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+            {!isSmallScreen && t("New Teacher")}
+          </MuiButton>
 
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                filters={filters}
-                onFilterClick={handleFilterIconClick}
-                onClearFilters={handleClearFilters}
-              />
-            </>
-          )}
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
+          />
         </Box>
       </Box>
 
