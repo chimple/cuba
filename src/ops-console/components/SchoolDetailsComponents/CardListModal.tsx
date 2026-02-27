@@ -124,122 +124,192 @@ const CardListModal: React.FC<CardListModalProps> = ({
     primaryStudent?.user?.phone ||
     primaryStudent?.user?.email ||
     "";
-  return (
-    <div className="cardlist-modal-backdrop">
-      <div className="cardlist-modal">
-        <div className="cardlist-header">
-          <div>
-            <h2 className="cardlist-title">{t("Merge Student")}</h2>
-            <p className="cardlist-subtitle">
-              {t("Select which student profile to merge into")}{" "}
-              <strong>
-                {primaryName}
-                {primaryContact ? ` (${primaryContact})` : ""}
-              </strong>
-            </p>
-          </div>
+return (
+  <div
+    id="cardlist-backdrop"
+    className="cardlist-modal-backdrop"
+  >
+    <div
+      id="cardlist-modal"
+      className="cardlist-modal"
+    >
+      <div
+        id="cardlist-header"
+        className="cardlist-header"
+      >
+        <div id="cardlist-header-content">
+          <h2
+            id="cardlist-title"
+            className="cardlist-title"
+          >
+            {t("Merge Student")}
+          </h2>
 
-          <button className="cardlist-close-button" onClick={onClose}>
-            ✕
-          </button>
+          <p
+            id="cardlist-subtitle"
+            className="cardlist-subtitle"
+          >
+            {t("Select which student profile to merge into")}{" "}
+            <strong id="cardlist-primary-student">
+              {primaryName}
+              {primaryContact ? ` (${primaryContact})` : ""}
+            </strong>
+          </p>
         </div>
 
-        <div className="cardlist-search">
-          <SearchAndFilter
-            searchTerm={search}
-            onSearchChange={(e) => setSearch(e.target.value)}
-            isFilter={false}
-            forceOpenSearch
-            variantType="standard"
+        <button
+          id="cardlist-close-button"
+          className="cardlist-close-button"
+          onClick={onClose}
+        >
+          ✕
+        </button>
+      </div>
+
+      <div
+        id="cardlist-search"
+        className="cardlist-search"
+      >
+        <SearchAndFilter
+          searchTerm={search}
+          onSearchChange={(e) => setSearch(e.target.value)}
+          isFilter={false}
+          forceOpenSearch
+          variantType="standard"
+        />
+      </div>
+
+      <div
+        id="cardlist-warning"
+        className="cardlist-warning"
+      >
+        ⚠️
+        {t(
+          "This will combine both student records permanently. This action cannot be undone.",
+        )}
+      </div>
+
+      <div
+        id="cardlist-container"
+        className="cardlist-model-container"
+      >
+        {loading ? (
+          <div
+            id="cardlist-loading"
+            className="cardlist-loading"
+          >
+            {t("Loading...")}
+          </div>
+        ) : processedStudents.length === 0 ? (
+          <div
+            id="cardlist-empty"
+            className="cardlist-empty"
+          >
+            {t("No students found")}
+          </div>
+        ) : (
+          processedStudents.map((s) => {
+            const selected = selectedId === s.user?.id;
+            return (
+              <label
+                id="cardlist-label"
+                key={s.user?.id}
+                className={`cardlist-card ${
+                  selected ? "cardlist-card-selected" : ""
+                }`}
+              >
+                <input
+                  id="cardlist-input"
+                  type="radio"
+                  checked={selected}
+                  onChange={() => setSelectedId(s.user?.id!)}
+                />
+
+                <div
+                  id="cardlist-row"
+                  className="cardlist-row"
+                > 
+                  <span
+                    id="cardlist-col-id"
+                    className="cardlist-col-id"
+                  >
+                    {s.user?.student_id || "N/A"}
+                  </span>
+
+                  <span
+                    id="cardlist-col-name"
+                    className="cardlist-col-name"
+                  >
+                    {s.user?.name || "N/A"}
+                  </span>
+
+                  <span
+                    id="cardlist-col-gender"
+                    className="cardlist-col-gender"
+                  >
+                    {s.user?.gender
+                      ? s.user.gender.toLowerCase() === "male"
+                        ? "Male"
+                        : s.user.gender.toLowerCase() === "female"
+                        ? "Female"
+                        : s.user.gender
+                      : "N/A"}
+                  </span>
+                  <span
+                    id="cardlist-col-phone"
+                    className="cardlist-col-phone"
+                  >
+                    {s.parent?.phone ||
+                      s.user?.phone ||
+                      s.user?.email ||
+                      "N/A"}
+                  </span>
+                </div>
+              </label>
+            );
+          })
+        )}
+      </div>
+      <div
+        id="cardlist-footer"
+        className="cardlist-merge-footer"
+      >
+        {pageCount > 1 ? (
+          <DataTablePagination
+            page={page}
+            pageCount={pageCount}
+            onPageChange={setPage}
           />
-        </div>
+        ) : (
+          <div
+            id="cardlist-pagination-placeholder"
+            className="cardlist-pagination-placeholder"
+          />
+        )}
 
-        <div className="cardlist-warning">
-          ⚠️
-          {t(
-            "This will combine both student records permanently. This action cannot be undone.",
-          )}
-        </div>
+        <div id="cardlist-footer-actions">
+          <button
+            id="cardlist-cancel-button"
+            className="cardlist-merge-cancel-btn"
+            onClick={onClose}
+          >
+            {t("Cancel")}
+          </button>
 
-        <div className="cardlist-model-container">
-          {loading ? (
-            <div className="cardlist-loading">{t("Loading...")}</div>
-          ) : processedStudents.length === 0 ? (
-            <div className="cardlist-empty">{t("No students found")}</div>
-          ) : (
-            processedStudents.map((s) => {
-              const selected = selectedId === s.user?.id;
-              return (
-                <label
-                  key={s.user?.id}
-                  className={`cardlist-card ${selected ? "cardlist-card-selected" : ""
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    checked={selected}
-                    onChange={() => setSelectedId(s.user?.id!)}
-                  />
-
-                  <div className="cardlist-row">
-                    <span className="cardlist-col-id">
-                      {s.user?.student_id || "N/A"}
-                    </span>
-
-                    <span className="cardlist-col-name">
-                      {s.user?.name || "N/A"}
-                    </span>
-                    <span className="cardlist-col-gender">
-                      {s.user?.gender
-                        ? s.user.gender.toLowerCase() === "male"
-                          ? "Male"
-                          : s.user.gender.toLowerCase() === "female"
-                            ? "Female"
-                            : s.user.gender
-                        : "N/A"}
-                    </span>
-                    <span className="cardlist-col-phone">
-                      {s.parent?.phone ||
-                        s.user?.phone ||
-                        s.user?.email ||
-                        "N/A"}
-                    </span>
-                  </div>
-                </label>
-              );
-            })
-          )}
-        </div>
-
-        <div className="cardlist-merge-footer">
-          {pageCount > 1 ? (
-            <DataTablePagination
-              page={page}
-              pageCount={pageCount}
-              onPageChange={setPage}
-            />
-          ) : (
-            <div className="cardlist-pagination-placeholder" />
-          )}
-          <div>
-            <button
-              className="cardlist-merge-cancel-btn"
-              onClick={onClose}
-            >
-              {t("Cancel")}
-            </button>
-
-            <button
-              className="cardlist-merge-btn"
-              disabled={!selectedStudent}
-              onClick={() => selectedStudent && onSubmit(selectedStudent)}
-            >
-              {t("Merge")}
-            </button>
-          </div>
+          <button
+            id="cardlist-merge-button"
+            className="cardlist-merge-btn"
+            disabled={!selectedStudent}
+            onClick={() =>
+              selectedStudent && onSubmit(selectedStudent)
+            }
+          >
+            {t("Merge")}
+          </button>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 export default CardListModal;
