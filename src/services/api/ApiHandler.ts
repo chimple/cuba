@@ -37,7 +37,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
   createAtSchoolUser(
@@ -2023,4 +2023,40 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ group_id: string; group_name: string; members: number } | null> {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
+
+  // ================================
+// STICKER BOOK SERVICE FORWARDERS
+// ================================
+
+public async getAllStickerBooks(): Promise<StickerBook[]> {
+  return await this.s.getAllStickerBooks();
+}
+
+public async getCurrentStickerBookWithProgress(
+  userId: string
+): Promise<{
+  book: StickerBook;
+  progress: UserStickerProgress | null;
+} | null> {
+  return await this.s.getCurrentStickerBookWithProgress(userId);
+}
+
+public async getUserWonStickerBooks(
+  userId: string
+): Promise<StickerBook[]> {
+  return await this.s.getUserWonStickerBooks(userId);
+}
+
+public async getNextWinnableSticker(
+  stickerBookId: string
+): Promise<string | null> {
+  return await this.s.getNextWinnableSticker(stickerBookId);
+}
+
+public async updateStickerWon(
+  stickerBookId: string,
+  stickerId: string
+): Promise<void> {
+  return await this.s.updateStickerWon(stickerBookId, stickerId);
+}
 }

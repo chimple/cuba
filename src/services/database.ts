@@ -91,6 +91,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      sticker_book: {
+        Row: {
+          id: string
+          title: string
+          svg_url: string
+          sort_index: number
+          stickers_metadata: any
+          total_stickers: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          svg_url: string
+          sort_index: number
+          stickers_metadata: any
+          total_stickers: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          svg_url?: string
+          sort_index?: number
+          stickers_metadata?: any
+          total_stickers?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+
+      user_sticker_book: {
+        Row: {
+          id: string
+          user_id: string
+          sticker_book_id: string
+          stickers_collected: string[]
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sticker_book_id: string
+          stickers_collected?: string[]
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sticker_book_id?: string
+          stickers_collected?: string[]
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sticker_book_sticker_book_id_fkey"
+            columns: ["sticker_book_id"]
+            referencedRelation: "sticker_book"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+
       announcement: {
         Row: {
           created_at: string
@@ -2258,8 +2324,8 @@ export type Database = {
           request_ends_at: string | null
           request_id: string | null
           request_status:
-            | Database["public"]["Enums"]["ops_request_status"]
-            | null
+          | Database["public"]["Enums"]["ops_request_status"]
+          | null
           request_type: Database["public"]["Enums"]["ops_request_type"] | null
           requested_by: string | null
           requested_to: string | null
@@ -2277,8 +2343,8 @@ export type Database = {
           request_ends_at?: string | null
           request_id?: string | null
           request_status?:
-            | Database["public"]["Enums"]["ops_request_status"]
-            | null
+          | Database["public"]["Enums"]["ops_request_status"]
+          | null
           request_type?: Database["public"]["Enums"]["ops_request_type"] | null
           requested_by?: string | null
           requested_to?: string | null
@@ -2296,8 +2362,8 @@ export type Database = {
           request_ends_at?: string | null
           request_id?: string | null
           request_status?:
-            | Database["public"]["Enums"]["ops_request_status"]
-            | null
+          | Database["public"]["Enums"]["ops_request_status"]
+          | null
           request_type?: Database["public"]["Enums"]["ops_request_type"] | null
           requested_by?: string | null
           requested_to?: string | null
@@ -2876,7 +2942,7 @@ export type Database = {
           },
         ]
       }
-       result: {
+      result: {
         Row: {
           activities_scores: string | null
           assignment_id: string | null
@@ -2973,99 +3039,99 @@ export type Database = {
           user_id?: string | null
           wrong_moves?: number | null
         }
-         Relationships: [
-  {
-    foreignKeyName: "public_result_assignment_id_fkey"
-    columns: ["assignment_id"]
-    isOneToOne: false
-    referencedRelation: "assignment"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "public_result_lesson_fkey"
-    columns: ["lesson_id"]
-    isOneToOne: false
-    referencedRelation: "lesson"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "public_result_school_id_fkey"
-    columns: ["school_id"]
-    isOneToOne: false
-    referencedRelation: "school"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_chapter_id_fkey"
-    columns: ["chapter_id"]
-    isOneToOne: false
-    referencedRelation: "chapter"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_class_id_fkey"
-    columns: ["class_id"]
-    isOneToOne: false
-    referencedRelation: "class"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_competency_id_fkey"
-    columns: ["competency_id"]
-    isOneToOne: false
-    referencedRelation: "competency"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_course_id_fkey"
-    columns: ["course_id"]
-    isOneToOne: false
-    referencedRelation: "course"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_domain_id_fkey"
-    columns: ["domain_id"]
-    isOneToOne: false
-    referencedRelation: "domain"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_outcome_id_fkey"
-    columns: ["outcome_id"]
-    isOneToOne: false
-    referencedRelation: "outcome"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_skill_id_fkey"
-    columns: ["skill_id"]
-    isOneToOne: false
-    referencedRelation: "skill"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_student_id_fkey"
-    columns: ["student_id"]
-    isOneToOne: false
-    referencedRelation: "user"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_subject_id_fkey"
-    columns: ["subject_id"]
-    isOneToOne: false
-    referencedRelation: "subject"
-    referencedColumns: ["id"]
-  },
-  {
-    foreignKeyName: "result_user_id_fkey"
-    columns: ["user_id"]
-    isOneToOne: false
-    referencedRelation: "user"
-    referencedColumns: ["id"]
-  }
-]
+        Relationships: [
+          {
+            foreignKeyName: "public_result_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_result_lesson_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "public_result_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competency"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_outcome_id_fkey"
+            columns: ["outcome_id"]
+            isOneToOne: false
+            referencedRelation: "outcome"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subject"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       reward: {
         Row: {
@@ -4946,7 +5012,7 @@ export type Database = {
           time_spent: number | null
           updated_at: string | null
           wrong_moves: number | null
-          user_id:string | null
+          user_id: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -5344,8 +5410,8 @@ export type Database = {
         Returns: boolean
       }
       is_program_manager_or_field_coordinator:
-        | { Args: never; Returns: boolean }
-        | { Args: { p_user_id: string }; Returns: boolean }
+      | { Args: never; Returns: boolean }
+      | { Args: { p_user_id: string }; Returns: boolean }
       is_special_or_program_user: { Args: never; Returns: boolean }
       is_special_user_privileged: { Args: never; Returns: boolean }
       is_student_already_in_class: {
@@ -5871,8 +5937,8 @@ export type Database = {
           request_ends_at: string | null
           request_id: string | null
           request_status:
-            | Database["public"]["Enums"]["ops_request_status"]
-            | null
+          | Database["public"]["Enums"]["ops_request_status"]
+          | null
           request_type: Database["public"]["Enums"]["ops_request_type"] | null
           requested_by: string | null
           requested_to: string | null
@@ -6347,22 +6413,22 @@ export type Database = {
       fc_call_result: "call_picked" | "call_later" | "call_not_reachable"
       fc_contact_method: "call" | "in_person"
       fc_engagement_target:
-        | "student"
-        | "teacher"
-        | "principal"
-        | "parent"
-        | "school"
-        | "class"
+      | "student"
+      | "teacher"
+      | "principal"
+      | "parent"
+      | "school"
+      | "class"
       fc_questions_status: "active" | "in_active"
       fc_support_level:
-        | "need_help"
-        | "still_learning"
-        | "doing_good"
-        | "not_tracked"
-        | "not_assigning"
-        | "once_to_two"
-        | "three_to_four"
-        | "four_plus"
+      | "need_help"
+      | "still_learning"
+      | "doing_good"
+      | "not_tracked"
+      | "not_assigning"
+      | "once_to_two"
+      | "three_to_four"
+      | "four_plus"
       login_type: "student_id" | "parent_phone_number"
       ops_request_status: "requested" | "rejected" | "approved" | "flagged"
       ops_request_type: "student" | "teacher" | "principal" | "school"
@@ -6371,26 +6437,26 @@ export type Database = {
       result_status: "user_exit" | "system_exit" | "completed"
       rive_type: "idle" | "normal" | "celebrating"
       role:
-        | "coordinator"
-        | "principal"
-        | "sponsor"
-        | "teacher"
-        | "parent"
-        | "student"
-        | "autouser"
-        | "program_manager"
-        | "operational_director"
-        | "field_coordinator"
-        | "super_admin"
+      | "coordinator"
+      | "principal"
+      | "sponsor"
+      | "teacher"
+      | "parent"
+      | "student"
+      | "autouser"
+      | "program_manager"
+      | "operational_director"
+      | "field_coordinator"
+      | "super_admin"
       school_visit_type:
-        | "teacher_training_meeting"
-        | "parents_teacher_meeting"
-        | "regular_visit"
+      | "teacher_training_meeting"
+      | "parents_teacher_meeting"
+      | "regular_visit"
       special_roles:
-        | "super_admin"
-        | "operational_director"
-        | "program_manager"
-        | "field_coordinator"
+      | "super_admin"
+      | "operational_director"
+      | "program_manager"
+      | "field_coordinator"
       status: "active" | "rejected" | "requested" | "migrated"
     }
     CompositeTypes: {
@@ -6405,116 +6471,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   graphql_public: {

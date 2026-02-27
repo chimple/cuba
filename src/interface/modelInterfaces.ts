@@ -147,3 +147,25 @@ export interface Note {
   text: string;
   media_links?: string;
 }
+
+export type StickerMeta = {
+  id: string;
+  sequence: number;
+};
+
+export type StickerBook = {
+  id: string;
+  title: string;
+  svg_url: string;
+  sort_index: number;
+  stickers_metadata: StickerMeta[];
+  total_stickers: number;
+};
+
+export type UserStickerProgress = {
+  id: string;
+  user_id: string;
+  sticker_book_id: string;
+  stickers_collected: string[];
+  status: "in_progress" | "completed";
+};

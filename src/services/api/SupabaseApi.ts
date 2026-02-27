@@ -70,7 +70,7 @@ import {
   SupabaseClient,
   createClient,
 } from "@supabase/supabase-js";
-import { RoleType } from "../../interface/modelInterfaces";
+import { RoleType, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
@@ -11513,4 +11513,196 @@ export class SupabaseApi implements ServiceApi {
 
     return data;
   }
+
+  async getAllStickerBooks(): Promise<StickerBook[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .order("sort_index", { ascending: true });
+
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  async getCurrentStickerBookWithProgress(
+    userId: string
+  ): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    if (!this.supabase) return null;
+
+    // 1️⃣ Try existing in_progress row
+    const { data: progress } = await this.supabase
+      .from("user_sticker_book")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "in_progress")
+      .maybeSingle();
+
+    // 2️⃣ If user already has active progress
+    if (progress) {
+      const { data: book } = await this.supabase
+        .from("sticker_book")
+        .select("*")
+        .eq("id", progress.sticker_book_id)
+        .single();
+
+      if (!book) return null;
+
+      return {
+        book: book as StickerBook,
+        progress: progress as UserStickerProgress,
+      };
+    }
+
+    // 3️⃣ Fallback → first sticker book
+    const { data: firstBook } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .order("sort_index", { ascending: true })
+      .limit(1)
+      .single();
+
+    if (!firstBook) return null;
+
+    return {
+      book: firstBook as StickerBook,
+      progress: null,
+    };
+  }
+
+
+  async getUserWonStickerBooks(
+    userId: string
+  ): Promise<StickerBook[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("user_sticker_book")
+      .select(`
+      *,
+      sticker_book (*)
+    `)
+      .eq("user_id", userId)
+      .eq("status", "completed");
+
+    if (error) {
+      console.error("getUserWonStickerBooks error:", error);
+      return [];
+    }
+
+    return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
+  }
+
+  async getNextWinnableSticker(
+    stickerBookId: string
+  ): Promise<string | null> {
+
+    if (!this.supabase) return null;
+
+    const user =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!user?.id) return null;
+
+    const userId = user.id;
+
+    const { data: book } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .eq("id", stickerBookId)
+      .single();
+
+    if (!book) return null;
+
+    const { data: progress } = await this.supabase
+      .from("user_sticker_book")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("sticker_book_id", stickerBookId)
+      .maybeSingle();
+
+    const collected = progress?.stickers_collected ?? [];
+
+    const sorted = [...book.stickers_metadata]
+      .sort((a: any, b: any) => a.sequence - b.sequence);
+
+    const next = sorted.find(
+      (s: any) => !collected.includes(s.id)
+    );
+
+    return next?.id ?? null;
+  }
+
+  async updateStickerWon(
+    stickerBookId: string,
+    stickerId: string
+  ): Promise<void> {
+
+    const user =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+
+    if (!user?.id) return;
+    if (!this.supabase) return;
+
+    const userId = user.id;
+
+    // get book
+    const { data: book } = await this.supabase
+      .from("sticker_book")
+      .select("*")
+      .eq("id", stickerBookId)
+      .single();
+
+    if (!book) return;
+
+    const total = book.total_stickers;
+
+    const { data: progress } = await this.supabase
+      .from("user_sticker_book")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("sticker_book_id", stickerBookId)
+      .maybeSingle();
+
+    // create
+    if (!progress) {
+      const status =
+        total === 1 ? "completed" : "in_progress";
+
+      await this.supabase
+        .from("user_sticker_book")
+        .insert({
+          user_id: userId,
+          sticker_book_id: stickerBookId,
+          stickers_collected: [stickerId],
+          status
+        });
+
+      return;
+    }
+
+    let updated = progress.stickers_collected ?? [];
+
+    if (!updated.includes(stickerId)) {
+      updated.push(stickerId);
+    }
+
+    let status = progress.status;
+
+    if (updated.length === total) {
+      status = "completed";
+    }
+
+    await this.supabase
+      .from("user_sticker_book")
+      .update({
+        stickers_collected: updated,
+        status
+      })
+      .eq("id", progress.id);
+  }
+
 }

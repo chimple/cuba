@@ -88,7 +88,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -8211,4 +8211,43 @@ order by
   } | null> {
     throw new Error("Method not implemented.");
   }
+
+  // ================================
+// STICKER BOOK (Server Delegation)
+// ================================
+
+async getAllStickerBooks(): Promise<StickerBook[]> {
+  return await this._serverApi.getAllStickerBooks();
+}
+
+async getCurrentStickerBookWithProgress(
+  userId: string
+): Promise<{
+  book: StickerBook;
+  progress: UserStickerProgress | null;
+} | null> {
+  return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+}
+
+async getUserWonStickerBooks(
+  userId: string
+): Promise<StickerBook[]> {
+  return await this._serverApi.getUserWonStickerBooks(userId);
+}
+
+async getNextWinnableSticker(
+  stickerBookId: string
+): Promise<string | null> {
+  return await this._serverApi.getNextWinnableSticker(stickerBookId);
+}
+
+async updateStickerWon(
+  stickerBookId: string,
+  stickerId: string
+): Promise<void> {
+  return await this._serverApi.updateStickerWon(
+    stickerBookId,
+    stickerId
+  );
+}
 }
