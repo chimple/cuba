@@ -10,6 +10,7 @@
   justify-content: center;
   gap: 3px;
   align-items: center;
+  background-color: transparent;
 }
 .select-Assignmenticon img {
   width: 13px;
@@ -19,4 +20,5 @@
   font-size: 12px;
   display: flex;
   align-items: center;
+  color: #4A4949 !important;
 }

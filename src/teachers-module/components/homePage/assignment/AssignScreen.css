@@ -47,20 +47,22 @@
   flex: 1 1 0;
   min-height: clamp(100px, 13vh, 156px);
   font-size: clamp(13px, calc(0.7vw + 0.75vh), 20px);
-  border-radius: clamp(32px, 2.5vw, 64px);
+  font-size: clamp(12px, 2.8cqi, 20px);
+  border-radius: clamp(28px, 2.5vw, 64px);
   border: clamp(4px, 0.35vw, 8px) solid var(--card-accent);
   background-color: var(--card-bg) !important;
   background-image: none !important;
-  padding: clamp(10px, 1.2vw, 14px) clamp(38px, 5.2vw, 48px)
-    clamp(10px, 1.2vw, 14px) clamp(12px, 1.8vw, 16px);
+  padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.8vw, 16px);
   display: flex;
   align-items: center;
-  gap: clamp(10px, 1.5vw, 14px);
+  gap: clamp(10px, 1.4vw, 16px);
   text-align: left;
   cursor: pointer;
   font: inherit;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   position: relative;
+  overflow: hidden;
+  container-type: inline-size;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -107,17 +109,21 @@
 }
 
 .assign-screen-card-image {
-  width: clamp(80px, 10vw, 98px);
-  height: clamp(80px, 10vw, 98px);
-  border-radius: clamp(10px, 1.4vw, 11px);
+  width: clamp(52px, 8vw, 78px);
+  width: clamp(48px, 17cqi, 78px);
+  height: clamp(52px, 8vw, 78px);
+  height: clamp(48px, 17cqi, 78px);
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
   object-fit: contain;
 }
 
 .assign-screen-icon {
-  width: clamp(80px, 10vw, 98px);
-  height: clamp(80px, 10vw, 98px);
-  border-radius: clamp(10px, 1.4vw, 11px);
+  width: clamp(52px, 8vw, 78px);
+  width: clamp(48px, 17cqi, 78px);
+  height: clamp(52px, 8vw, 78px);
+  height: clamp(48px, 17cqi, 78px);
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
   font-size: inherit !important;
 }
@@ -133,45 +139,80 @@
 .assign-screen-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 10px);
 }
 
 .assign-screen-card-caption {
-  margin: 0 0 clamp(6px, 1vw, 10px);
+  margin: 0;
   color: #646464;
-  font-size: 0.88em;
+  font-size: clamp(12px, 3.8cqi, 20px);
   line-height: 1.25;
   font-weight: 500;
   text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  padding: clamp(6px, 0.9vw, 10px) clamp(10px, 1.4vw, 14px);
+}
+
+.assign-screen-card-bottom {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(8px, 1.2vw, 12px);
+  min-width: 0;
 }
 
 .assign-screen-card-title {
   margin: 0;
+  flex: 1;
   color: #2a2a2a;
-  font-size: 1.8em;
+  font-size: clamp(14px, 5.6cqi, 31px);
   line-height: 1.05;
   font-weight: 700;
   text-align: center;
+  padding: clamp(5px, 0.95vw, 11px) clamp(10px, 1.4vw, 14px);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assign-screen-arrow-wrap {
+  width: clamp(38px, 9.5cqi, 44px);
+  min-width: clamp(30px, 9.5cqi, 44px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .assign-screen-arrow {
-  font-size: clamp(22px, 3vw, 26px) !important;
-  position: absolute;
-  right: clamp(10px, 1.6vw, 14px);
-  bottom: clamp(10px, 1.6vw, 14px);
-  transform: scaleX(1.95);
-  transform-origin: right center;
+  width: clamp(22px, 9.5cqi, 40px);
+  height: auto;
+  display: block;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.assign-screen-arrow path {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(1.25);
+  stroke: currentColor;
+  stroke-width: 0.9px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
 }
 
 .assign-screen-card-library .assign-screen-arrow {
-  color: var(--card-accent);
+  color: rgba(98, 175, 67, 1);
 }
 
 .assign-screen-card-scan .assign-screen-arrow {
-  color: var(--card-accent);
+  color: rgba(4, 150, 210, 1);
 }
 
 .assign-screen-card-recommend .assign-screen-arrow {
-  color: var(--card-accent);
+  color: rgba(254, 189, 0, 1);
 }
 
 @media (min-width: 768px) {
@@ -197,7 +238,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 600px) {
   .assign-screen {
     padding: clamp(8px, 1.2vh, 14px) 10px;
   }
@@ -209,16 +250,69 @@
 
   .assign-screen-card {
     min-height: clamp(92px, 12.5vh, 132px);
-    padding: 10px 40px 10px 12px;
+    padding: 10px 12px;
   }
 
   .assign-screen-card-caption {
-    font-size: 0.84em;
-    margin-bottom: clamp(3px, 0.7vh, 6px);
+    font-size: clamp(14px, 3.6vw, 18px) !important;
+    line-height: 1.3;
   }
 
   .assign-screen-card-title {
-    font-size: 1.62em;
+    font-size: clamp(20px, 5.4vw, 26px) !important;
+    line-height: 1.1;
+  }
+
+}
+
+@media (max-width: 430px) {
+  .assign-screen-card-caption {
+    font-size: 16px !important;
+    line-height: 1.32;
+  }
+
+  .assign-screen-card-title {
+    font-size: 24px !important;
+    line-height: 1.12;
+  }
+}
+
+@media (max-width: 360px) {
+  .assign-screen-card {
+    min-height: clamp(94px, 13.2vh, 122px);
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .assign-screen-card-image,
+  .assign-screen-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .assign-screen-text {
+    gap: 4px;
+  }
+
+  .assign-screen-card-caption {
+    font-size: 14px !important;
+    line-height: 1.28;
+    padding: 4px 6px;
+  }
+
+  .assign-screen-card-title {
+    font-size: 20px !important;
+    line-height: 1.08;
+    padding: 5px 7px;
+  }
+
+  .assign-screen-arrow-wrap {
+    width: 28px;
+    min-width: 28px;
+  }
+
+  .assign-screen-arrow {
+    width: 24px;
   }
 }
 
@@ -244,7 +338,7 @@
   }
 
   .assign-screen-card-caption {
-    margin-bottom: 4px;
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
 }
-
