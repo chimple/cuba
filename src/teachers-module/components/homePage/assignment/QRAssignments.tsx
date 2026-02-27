@@ -60,18 +60,20 @@ const QRAssignments: React.FC = () => {
         currentClass.id,
         lessonIds,
       );
+
       const assignedLessonIds = new Set<string>(assignedLessonIdsArr);
       // 3️⃣ Auto-select next 5 unassigned
-      const unassignedLessons = lessonList.filter((l: TableTypes<"lesson">) => {
-        return !assignedLessonIds.has(l.id);
+      const unassignedLessons = lessonList.filter((l: any) => {
+        const lessonId = l.lesson_id ?? l.id;
+        return !assignedLessonIds.has(lessonId);
       });
       const autoSelectIds = unassignedLessons
         .slice(0, 5)
-        .map((l: TableTypes<"lesson">) => l.id);
+        .map((l: any) => l.lesson_id ?? l.id);
       // 4️⃣ Build UI state
       const uiLessons: LessonUI[] = lessonList.map(
-        (lesson: TableTypes<"lesson">, index: number) => {
-          const lessonId = lesson.id;
+        (lesson: any, index: number) => {
+          const lessonId = lesson.lesson_id ?? lesson.id;
           const isAssigned = assignedLessonIds.has(lessonId);
           return {
             id: lessonId,
