@@ -63,7 +63,7 @@ const replaceMock = jest.fn();
 
 const mockApi = {
   getLessonsForChapter: jest.fn(),
-  getAssignedLessonIdsForClass: jest.fn(), // ✅ updated API
+  getAssignmentInfoForLessonsPerClass: jest.fn(), // ✅ updated API
   getCourse: jest.fn(),
 };
 
@@ -94,7 +94,7 @@ beforeEach(() => {
   mockApi.getLessonsForChapter.mockResolvedValue(mockLessons);
 
   // ✅ updated mock
-  mockApi.getAssignedLessonIdsForClass.mockResolvedValue([
+  mockApi.getAssignmentInfoForLessonsPerClass.mockResolvedValue([
     "lesson-0",
     "lesson-1",
   ]);

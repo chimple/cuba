@@ -2690,7 +2690,7 @@ export interface ServiceApi {
  * @param classId
  * @param lessonIds
  */
-  getAssignedLessonIdsForClass(
+  getAssignmentInfoForLessonsPerClass(
   classId: string,
   lessonIds: string[],
   ): Promise<string[]>;
