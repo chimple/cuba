@@ -94,6 +94,8 @@ export enum TABLES {
   Locale = "locale",
   LanguageLocale = "language_locale",
   SubjectLesson = "subject_lesson",
+  StickerBook = "sticker_book",
+  UserStickerBook = "user_sticker_book"
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",

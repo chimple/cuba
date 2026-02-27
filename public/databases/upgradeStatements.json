@@ -206,5 +206,14 @@
     "statements": [
       "ALTER TABLE class ADD COLUMN whatsapp_invite_link TEXT;"
     ]
+  },
+  "12": {
+    "toVersion": 12,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS sticker_book (id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT, total_stickers INTEGER NOT NULL, sort_index INTEGER DEFAULT 0, is_deleted BOOLEAN DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));",
+      "CREATE TABLE IF NOT EXISTS user_sticker_book (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, sticker_book_id TEXT NOT NULL, stickers_collected TEXT, status TEXT NOT NULL, is_deleted BOOLEAN DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')));",
+      "CREATE INDEX IF NOT EXISTS idx_user_sticker_book_user_id ON user_sticker_book(user_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_sticker_book_book_id ON user_sticker_book(sticker_book_id);"
+    ]
   }
 }
