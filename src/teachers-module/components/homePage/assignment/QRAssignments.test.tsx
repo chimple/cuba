@@ -43,9 +43,7 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("../../../../utility/util");
 
-jest.mock("../../../../components/Loading", () => () => (
-  <div>Loading...</div>
-));
+jest.mock("../../../../components/Loading", () => () => <div>Loading...</div>);
 
 jest.mock("../../homePage/Header", () => () => <div>Header</div>);
 
@@ -65,7 +63,7 @@ const replaceMock = jest.fn();
 
 const mockApi = {
   getLessonsForChapter: jest.fn(),
-  getAssignedLessonIdsByCourseAndChapter: jest.fn(),
+  getAssignedLessonIdsForClass: jest.fn(), // ✅ updated API
   getCourse: jest.fn(),
 };
 
@@ -95,7 +93,8 @@ beforeEach(() => {
 
   mockApi.getLessonsForChapter.mockResolvedValue(mockLessons);
 
-  mockApi.getAssignedLessonIdsByCourseAndChapter.mockResolvedValue([
+  // ✅ updated mock
+  mockApi.getAssignedLessonIdsForClass.mockResolvedValue([
     "lesson-0",
     "lesson-1",
   ]);
@@ -168,7 +167,7 @@ describe("QRAssignments – full coverage", () => {
     await screen.findByText("Lesson 2");
 
     const icons = screen.getAllByTestId("ion-icon");
-    await userEvent.click(icons[2]); // toggle Lesson 2
+    await userEvent.click(icons[2]);
 
     expect(screen.getByRole("button")).toHaveTextContent("4");
   });
@@ -179,7 +178,6 @@ describe("QRAssignments – full coverage", () => {
 
     const icons = screen.getAllByTestId("ion-icon");
 
-    // Deselect all initially selected (first 5)
     for (let i = 0; i < 5; i++) {
       await userEvent.click(icons[i]);
     }
@@ -249,9 +247,7 @@ describe("QRAssignments – full coverage", () => {
   /* ---------- API Error ---------- */
   test("handles API failure gracefully", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    mockApi.getLessonsForChapter.mockRejectedValue(
-      new Error("API Failure"),
-    );
+    mockApi.getLessonsForChapter.mockRejectedValue(new Error("API Failure"));
 
     renderPage();
 

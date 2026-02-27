@@ -2028,15 +2028,13 @@ export class ApiHandler implements ServiceApi {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
 
-  getAssignedLessonIdsByCourseAndChapter(
-    classId: string,
-    courseId: string,
-    chapterIdOrIds: string | string[],
-  ): Promise<string[]> {
-    return this.s.getAssignedLessonIdsByCourseAndChapter(
-      classId,
-      courseId,
-      chapterIdOrIds,
-    );
-  }
+  getAssignedLessonIdsForClass(
+  classId: string,
+  lessonIds: string[],
+): Promise<string[]> {
+  return this.s.getAssignedLessonIdsForClass(
+    classId,
+    lessonIds,
+  );
+}
 }

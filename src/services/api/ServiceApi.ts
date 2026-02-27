@@ -2684,16 +2684,14 @@ export interface ServiceApi {
   } | null>;
 
   /**
- * Get assigned lesson IDs for a given class + course(subject) + chapter(s).
+ * Get assigned lesson IDs for a given class + lessonids.
  * Used to mark lessons as already assigned (QR / Manual).
  *
  * @param classId
- * @param courseId
- * @param chapterIdOrIds
+ * @param lessonIds
  */
-getAssignedLessonIdsByCourseAndChapter(
+  getAssignedLessonIdsForClass(
   classId: string,
-  courseId: string,
-  chapterIdOrIds: string | string[],
-): Promise<string[]>;
-}
+  lessonIds: string[],
+  ): Promise<string[]>;
+  }

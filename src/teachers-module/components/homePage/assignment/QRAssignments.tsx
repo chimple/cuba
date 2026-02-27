@@ -35,6 +35,7 @@ const QRAssignments: React.FC = () => {
   const [showAssigned, setShowAssigned] = useState(true);
   const [toggleCourseName, setToggleCourseName] = useState("");
   const chapterId = location.state?.chapterId;
+  const ID_PREFIX = "qrAssignments";
 
   useEffect(() => {
     if (!chapterId) {
@@ -54,12 +55,11 @@ const QRAssignments: React.FC = () => {
       const lessonList = await api.getLessonsForChapter(chapterId);
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
-      const assignedLessonIdsArr =
-        await api.getAssignedLessonIdsByCourseAndChapter(
-          currentClass.id,
-          location.state.courseId,
-          chapterId,
-        );
+      const lessonIds = lessonList.map((l: any) => l.lesson_id ?? l.id);
+      const assignedLessonIdsArr = await api.getAssignedLessonIdsForClass(
+        currentClass.id,
+        lessonIds,
+      );
       const assignedLessonIds = new Set<string>(assignedLessonIdsArr);
       // 3️⃣ Auto-select next 5 unassigned
       const unassignedLessons = lessonList.filter((l: any) => {
@@ -111,7 +111,10 @@ const QRAssignments: React.FC = () => {
       {loading ? (
         <Loading isLoading />
       ) : (
-        <div className="qrAssignments-assignments-page">
+        <div
+          id={`${ID_PREFIX}-page`}
+          className="qrAssignments-assignments-page"
+        >
           <Header
             isBackButton={true}
             onBackButtonClick={() => history.goBack()}
@@ -119,12 +122,15 @@ const QRAssignments: React.FC = () => {
             customText="QR Assignments"
             showSearchIcon={false}
           />
+
           {/* Toggle row */}
           <div
+            id={`${ID_PREFIX}-toggle-row`}
             className="qrAssignments-toggle-row"
             onClick={() => setShowAssigned(!showAssigned)}
           >
             <img
+              id={`${ID_PREFIX}-toggle-icon`}
               src={
                 showAssigned
                   ? "/assets/hideassigned.png"
@@ -133,78 +139,119 @@ const QRAssignments: React.FC = () => {
               className="qrAssignments-toggle-icon"
               alt=""
             />
-            <span className="qrAssignments-toggle-text">
+            <span
+              id={`${ID_PREFIX}-toggle-text`}
+              className="qrAssignments-toggle-text"
+            >
               {showAssigned ? t("Hide Assigned") : t("Show Assigned")}
             </span>
           </div>
+
           {/* Subject + Count row */}
-          <div className="qrAssignments-subject-count-row">
-            <span className="qrAssignments-subject-name">
+          <div
+            id={`${ID_PREFIX}-subject-count-row`}
+            className="qrAssignments-subject-count-row"
+          >
+            <span
+              id={`${ID_PREFIX}-subject-name`}
+              className="qrAssignments-subject-name"
+            >
               {toggleCourseName}
             </span>
-            <span className="qrAssignments-count-inline">
+
+            <span
+              id={`${ID_PREFIX}-count`}
+              className="qrAssignments-count-inline"
+            >
               {selectedCount}/{lessons.length}
             </span>
           </div>
+
           {/* Lesson List */}
-          <div className="qrAssignments-lesson-list">
+          <div
+            id={`${ID_PREFIX}-lesson-list`}
+            className="qrAssignments-lesson-list"
+          >
             {lessons
               .filter((l) => showAssigned || !l.isAssigned)
               .map((lesson) => (
-                <div key={lesson.id} className="qrAssignments-lesson-row">
-                  <div className="qrAssignments-lesson-image-wrapper">
+                <div
+                  key={lesson.id}
+                  id={`${ID_PREFIX}-lesson-row-${lesson.id}`}
+                  className="qrAssignments-lesson-row"
+                >
+                  <div
+                    id={`${ID_PREFIX}-lesson-image-wrapper-${lesson.id}`}
+                    className="qrAssignments-lesson-image-wrapper"
+                  >
                     <SelectIconImage
                       defaultSrc="assets/icons/DefaultIcon.png"
                       webSrc={lesson.image}
                       imageWidth="80px"
                       imageHeight="80px"
                     />
+
                     {lesson.isAssigned && (
                       <img
+                        id={`${ID_PREFIX}-assigned-badge-${lesson.id}`}
                         src="assets/hideassigned.png"
                         className="qrAssignments-assigned-badge"
                         alt="assigned"
                       />
                     )}
                   </div>
-                  <span className="qrAssignments-lesson-name">
+
+                  <span
+                    id={`${ID_PREFIX}-lesson-name-${lesson.id}`}
+                    className="qrAssignments-lesson-name"
+                  >
                     {t(lesson.name)}
                   </span>
+
                   <IonIcon
+                    id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
                     icon={lesson.isSelected ? checkmarkCircle : ellipseOutline}
-                    className={`qrAssignments-icon ${lesson.isSelected ? "selected" : ""}`}
+                    className={`qrAssignments-icon ${
+                      lesson.isSelected ? "selected" : ""
+                    }`}
                     onClick={() => toggleLesson(lesson.id)}
                   />
                 </div>
               ))}
           </div>
-          <AssigmentCount
-            assignments={selectedCount}
-            onClick={() => {
-              if (selectedCount === 0) return;
-              const selectedLessonIds = lessons
-                .filter((l) => l.isSelected)
-                .map((l) => l.id);
-              const selectedAssignments = {
-                [TeacherAssignmentPageType.MANUAL]: {
-                  [location.state.courseId]: {
-                    count: selectedLessonIds,
+
+          <div id={`${ID_PREFIX}-assignment-count`}>
+            <AssigmentCount
+              assignments={selectedCount}
+              onClick={() => {
+                if (selectedCount === 0) return;
+
+                const selectedLessonIds = lessons
+                  .filter((l) => l.isSelected)
+                  .map((l) => l.id);
+
+                const selectedAssignments = {
+                  [TeacherAssignmentPageType.MANUAL]: {
+                    [location.state.courseId]: {
+                      count: selectedLessonIds,
+                    },
                   },
-                },
-              };
-              history.push(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                selectedAssignments,
-                manualAssignments: {
-                  [location.state.courseId]: {
-                    lessons: lessons.filter((l) =>
-                      selectedLessonIds.includes(l.id),
-                    ),
+                };
+
+                history.push(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
+                  selectedAssignments,
+                  manualAssignments: {
+                    [location.state.courseId]: {
+                      lessons: lessons.filter((l) =>
+                        selectedLessonIds.includes(l.id),
+                      ),
+                    },
                   },
-                },
-                recommendedAssignments: {},
-              });
-            }}
-          />
+                  recommendedAssignments: {},
+                });
+              }}
+            />
+          </div>
         </div>
       )}
     </>

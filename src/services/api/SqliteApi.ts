@@ -8211,31 +8211,26 @@ order by
   } | null> {
     throw new Error("Method not implemented.");
   }
-  async getAssignedLessonIdsByCourseAndChapter(
+
+async getAssignedLessonIdsForClass(
   classId: string,
-  courseId: string,
-  chapterIdOrIds: string | string[],
+  lessonIds: string[],
 ): Promise<string[]> {
-  const chapterIds = Array.isArray(chapterIdOrIds)
-    ? chapterIdOrIds.filter(Boolean)
-    : [chapterIdOrIds].filter(Boolean);
+  if (!lessonIds?.length) return [];
 
-  if (!chapterIds.length) return [];
+  const placeholders = lessonIds.map(() => "?").join(", ");
 
-  const idslst = chapterIds.map(() => "?").join(", ");
   const query = `
     SELECT DISTINCT lesson_id
     FROM ${TABLES.Assignment}
     WHERE class_id = ?
-      AND course_id = ?
-      AND chapter_id IN (${idslst})
+      AND lesson_id IN (${placeholders})
       AND is_deleted = 0;
   `;
 
   const res = await this._db?.query(query, [
     classId,
-    courseId,
-    ...chapterIds,
+    ...lessonIds,
   ]);
 
   if (!res?.values?.length) return [];
