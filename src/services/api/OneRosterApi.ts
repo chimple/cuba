@@ -586,7 +586,8 @@ export class OneRosterApi implements ServiceApi {
     schoolId: string,
     searchTerm: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    classId?:string
   ): Promise<StudentAPIResponse> {
     return Promise.resolve({ data: [], total: 0 });
   }
@@ -1316,7 +1317,8 @@ export class OneRosterApi implements ServiceApi {
   getStudentInfoBySchoolId(
     schoolId: string,
     page: number,
-    limit: number
+    limit: number,
+    classId?: string, 
   ): Promise<StudentAPIResponse> {
     throw new Error("Method not implemented.");
   }

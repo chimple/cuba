@@ -1,0 +1,2 @@
+id,title,svg_url,sort_index,stickers_metadata,total_stickers,created_at,updated_at,is_deleted
+8bc5d41f-0d6b-4f45-ae61-c8092e27c32c,Animals Book,https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg,1,"[{""id"": ""snail"", ""sequence"": 1}, {""id"": ""butterfly"", ""sequence"": 2}, {""id"": ""ant"", ""sequence"": 3}, {""id"": ""beetle"", ""sequence"": 4}, {""id"": ""fly"", ""sequence"": 5}, {""id"": ""flea"", ""sequence"": 6}]",6,2026-02-25 05:40:54.727392+00,2026-02-26 07:01:21.465341,false
