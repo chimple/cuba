@@ -51,9 +51,12 @@ export const getRecommendedLessons = async (
   courseList: TableTypes<"course">[],
   lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined,
 ): Promise<RecommendedAssignmentsState> => {
+  // Object that will store recommended lessons for each course
   const recommended: RecommendedAssignmentsState = {};
 
+  // Loop through each course
   for (const course of courseList) {
+    // Initialize course structure
     recommended[course.id] = {
       name: course.name,
       courseCode: course.code!,
@@ -63,18 +66,22 @@ export const getRecommendedLessons = async (
       isCollapsed: false,
     };
 
+    // Find last assigned lesson for this course (if any)
     const lastAssignment = lastAssignmentsCourseWise?.find(
       (assignment) => assignment.course_id === course.id,
     );
 
+    // Get all chapters for the course
     const allChapters = await api.getChaptersForCourse(course.id);
     if (!allChapters?.length) continue;
 
     const allLessons: Lesson[] = [];
 
+    // Fetch lessons from each chapter
     for (const chapter of allChapters) {
       const lessons = await api.getLessonsForChapter(chapter.id);
 
+      // Add lessons to allLessons list
       if (lessons?.length) {
         allLessons.push(
           ...lessons.map((lesson) => ({
@@ -87,8 +94,10 @@ export const getRecommendedLessons = async (
       }
     }
 
+    // If no lessons exist, skip this course
     if (!allLessons.length) continue;
 
+    // Store all lessons for reference
     recommended[course.id].allLessons = allLessons;
 
     let startIndex = 0;
@@ -98,15 +107,19 @@ export const getRecommendedLessons = async (
         (lesson) => lesson.id === lastAssignment.lesson_id,
       );
 
-      startIndex = lessonIndex >= 0 ? lessonIndex + 1 : 0;
+      if (lessonIndex >= 0) {
+        startIndex = (lessonIndex + 1) % allLessons.length;
+      }
     }
 
     const nextLessons: Lesson[] = [];
 
-    for (let i = startIndex; i < allLessons.length; i++) {
-      if (nextLessons.length === 5) break;
+    let i = startIndex;
+    let checkedCount = 0;
 
+    while (nextLessons.length < 5 && checkedCount < allLessons.length) {
       const lesson = allLessons[i];
+      if (!lesson) break; // extra safety
 
       const alreadyAssigned = await api.isAssignmentAlreadyAssigned(
         currentClass.school_id,
@@ -123,8 +136,11 @@ export const getRecommendedLessons = async (
           source: AssignmentSource.RECOMMENDED,
         });
       }
-    }
 
+      i = (i + 1) % allLessons.length;
+      checkedCount++;
+    }
+    // Save recommended lessons for this course
     recommended[course.id].lessons = nextLessons;
   }
 
