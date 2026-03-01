@@ -11529,7 +11529,10 @@ export class SupabaseApi implements ServiceApi {
         .in("lesson_id", lessonIds);
 
       if (error) {
-        console.error("Supabase error in getAssignmentInfoForLessonsPerClass:", error);
+        console.error(
+          "Supabase error in getAssignmentInfoForLessonsPerClass:",
+          error,
+        );
         return [];
       }
 
@@ -11540,5 +11543,32 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error in getAssignmentInfoForLessonsPerClass:", err);
       return [];
     }
+  }
+  async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("class_id", classId)
+      .eq("course_id", courseId)
+      .eq("chapter_id", chapterId)
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking existing assignment:", error);
+      return false;
+    }
+
+    return !!data;
   }
 }

@@ -815,9 +815,12 @@ export class SqliteApi implements ServiceApi {
       return true;
     }
     this._syncInProgress = true;
-  try{
+    try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
+      console.log(
+        "logs to check synced tables",
+        JSON.stringify(refresh_tables),
+      );
       await this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
       );
@@ -845,15 +848,17 @@ export class SqliteApi implements ServiceApi {
         );
         return res;
       }
-  }finally{
+    } finally {
       this._syncInProgress = false;
       if (this._syncRequestedAgain) {
-      console.log("🔁 Running sync again because changes happened during sync");
+        console.log(
+          "🔁 Running sync again because changes happened during sync",
+        );
         this._syncRequestedAgain = false;
 
-      setTimeout(()=>{
+        setTimeout(() => {
           this.syncDbNow();
-      },0)
+        }, 0);
       }
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
@@ -2388,7 +2393,6 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
-
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2523,7 +2527,7 @@ export class SqliteApi implements ServiceApi {
     if (starsEarned > 0) {
       const latestStarsKey = LATEST_STARS(student.id);
       const currentLocalStars = parseInt(
-          localStorage.getItem(latestStarsKey) || "0"
+        localStorage.getItem(latestStarsKey) || "0",
       );
       localStorage.setItem(
         latestStarsKey,
@@ -2541,12 +2545,11 @@ export class SqliteApi implements ServiceApi {
     const latestUserForStars = await this.getUserByDocId(student.id);
     const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
     const latestLocalStarsForStudent = parseInt(
-        localStorage.getItem(LATEST_STARS(student.id)) || "0"
+      localStorage.getItem(LATEST_STARS(student.id)) || "0",
     );
     const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
     query += `stars =  ? WHERE id = ?;`;
     params.push(finalStarsToSet, student.id);
-
 
     await this.executeQuery(query, params);
 
@@ -2860,7 +2863,6 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string,
   ): Promise<TableTypes<"user">> {
-
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
 
@@ -4080,7 +4082,9 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+  async getAssignmentsByIds(
+    ids: string[],
+  ): Promise<TableTypes<"assignment">[]> {
     if (!ids.length) return [];
 
     const idslst = ids.map(() => "?").join(", ");
@@ -5496,7 +5500,11 @@ order by
         AND is_deleted = 0; 
     `;
 
-    const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
+    const res = await this._db?.query(query, [
+      classId,
+      courseId,
+      ...chapterIds,
+    ]);
     if (!res?.values?.length) return [];
 
     return res.values
@@ -6051,7 +6059,7 @@ order by
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
@@ -6065,9 +6073,12 @@ order by
       const latestPathToSave = {
         studentId: student.id,
         learningPath,
-        updated_at:  new Date(Date.now() + 10000).toISOString()
-      }
-      sessionStorage.setItem(LATEST_LEARNING_PATH, JSON.stringify(latestPathToSave))
+        updated_at: new Date(Date.now() + 10000).toISOString(),
+      };
+      sessionStorage.setItem(
+        LATEST_LEARNING_PATH,
+        JSON.stringify(latestPathToSave),
+      );
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
@@ -6800,8 +6811,8 @@ order by
   async mergeStudentRequest(
     existingStudentId: string,
     newStudentId: string,
-    requestId?: string |undefined,
-    respondedBy?:  string |undefined,
+    requestId?: string | undefined,
+    respondedBy?: string | undefined,
   ): Promise<void> {
     if (!this._db) {
       throw new Error("SQLite DB not initialized.");
@@ -7874,7 +7885,7 @@ order by
   }
   async getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">
+    student?: TableTypes<"user">,
   ): Promise<TableTypes<"subject_lesson">> {
     if (!student) return {} as TableTypes<"subject_lesson">;
     const studentId = student.id;
@@ -7971,7 +7982,9 @@ order by
       ]);
 
       const pendingLessons = (lessonRes as any)?.values ?? [];
-      return pendingLessons.length ? pendingLessons[0] : {} as TableTypes<"subject_lesson">;
+      return pendingLessons.length
+        ? pendingLessons[0]
+        : ({} as TableTypes<"subject_lesson">);
     } catch (error) {
       console.error(
         "❌ Error fetching subject lessons by subject (SQL):",
@@ -8052,7 +8065,7 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId?: string
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
@@ -8139,7 +8152,6 @@ order by
       return [];
     }
 
-
     /* ==========================================
      * Get only INCOMPLETE assignments
      * from that latest batch
@@ -8209,8 +8221,8 @@ order by
     `;
 
     const res = await this._db?.query(assignmentsQuery);
-    const pendingAssignments =
-      (res?.values ?? []) as TableTypes<"assignment">[];
+    const pendingAssignments = (res?.values ??
+      []) as TableTypes<"assignment">[];
 
     return pendingAssignments.length ? pendingAssignments : [];
   }
@@ -8245,15 +8257,15 @@ order by
     throw new Error("Method not implemented.");
   }
 
-async getAssignmentInfoForLessonsPerClass(
-  classId: string,
-  lessonIds: string[],
-): Promise<string[]> {
-  if (!lessonIds?.length) return [];
+  async getAssignmentInfoForLessonsPerClass(
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    if (!lessonIds?.length) return [];
 
-  const placeholders = lessonIds.map(() => "?").join(", ");
+    const placeholders = lessonIds.map(() => "?").join(", ");
 
-  const query = `
+    const query = `
     SELECT DISTINCT lesson_id
     FROM ${TABLES.Assignment}
     WHERE class_id = ?
@@ -8261,15 +8273,41 @@ async getAssignmentInfoForLessonsPerClass(
       AND is_deleted = 0;
   `;
 
-  const res = await this._db?.query(query, [
-    classId,
-    ...lessonIds,
-  ]);
+    const res = await this._db?.query(query, [classId, ...lessonIds]);
 
-  if (!res?.values?.length) return [];
+    if (!res?.values?.length) return [];
 
-  return res.values
-    .map((row: any) => row.lesson_id as string | undefined)
-    .filter((id): id is string => Boolean(id));
-}
+    return res.values
+      .map((row: any) => row.lesson_id as string | undefined)
+      .filter((id): id is string => Boolean(id));
+  }
+  async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    try {
+      const res = await this._db?.query(
+        `
+      SELECT id
+      FROM ${TABLES.Assignment}
+      WHERE school_id = ?
+        AND class_id = ?
+        AND course_id = ?
+        AND chapter_id = ?
+        AND lesson_id = ?
+        AND is_deleted = 0
+      LIMIT 1
+      `,
+        [schoolId, classId, courseId, chapterId, lessonId],
+      );
+
+      return !!(res?.values && res.values.length > 0);
+    } catch (error) {
+      console.error("Error checking existing assignment:", error);
+      return false;
+    }
+  }
 }

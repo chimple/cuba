@@ -568,11 +568,11 @@ const CreateSelectedAssignment = ({
           leftButtonText={t("Cancel") ?? ""}
           leftButtonHandler={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
           }}
           onDidDismiss={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
           }}
           rightButtonText={t("Share") ?? ""}
           rightButtonHandler={async () => {
@@ -582,7 +582,7 @@ const CreateSelectedAssignment = ({
               text,
               "Assignment Assigned"
             );
-            history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
           }}
         ></CommonDialogBox>
       </div>

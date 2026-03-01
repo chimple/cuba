@@ -1524,9 +1524,14 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
-    classId?: string, 
+    classId?: string,
   ): Promise<StudentAPIResponse> {
-    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit,classId);
+    return await this.s.getStudentInfoBySchoolId(
+      schoolId,
+      page,
+      limit,
+      classId,
+    );
   }
   public async getStudentsAndParentsByClassId(
     classId: string,
@@ -1683,14 +1688,14 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
-    classId?:string
+    classId?: string,
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
-      classId
+      classId,
     );
   }
 
@@ -2032,12 +2037,24 @@ export class ApiHandler implements ServiceApi {
   }
 
   getAssignmentInfoForLessonsPerClass(
-  classId: string,
-  lessonIds: string[],
-): Promise<string[]> {
-  return this.s.getAssignmentInfoForLessonsPerClass(
-    classId,
-    lessonIds,
-  );
-}
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    return this.s.getAssignmentInfoForLessonsPerClass(classId, lessonIds);
+  }
+  public async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    return this.s.isAssignmentAlreadyAssigned(
+      schoolId,
+      classId,
+      courseId,
+      chapterId,
+      lessonId,
+    );
+  }
 }
