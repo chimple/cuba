@@ -131,8 +131,15 @@ const LidoPlayer: FC = () => {
         result: 0 | 1;
         correctMoves?: number;
         wrongMoves?: number;
+        timeSpent?: number;
       }> = JSON.parse(storedData);
       if (!Array.isArray(scoresList) || scoresList.length === 0) return;
+      // 🔥 Calculate total lesson time (sum of all activities)
+      let totalLessonTime = 0;
+
+      scoresList.forEach((record) => {
+        totalLessonTime += record.timeSpent ?? 0;
+      });
       let dbMetaData: any = {};
       try {
         const lessonRow = await api.getLesson(lesson.id);
@@ -155,6 +162,7 @@ const LidoPlayer: FC = () => {
           resultsList: number[];
           correctMoves: number;
           wrongMoves: number;
+          totalTimeSpent: number;
         }
       >();
 
@@ -177,6 +185,7 @@ const LidoPlayer: FC = () => {
             resultsList: [],
             correctMoves: 0,
             wrongMoves: 0,
+            totalTimeSpent: 0,
           });
         }
         const group = skillAggregator.get(skillId)!;
@@ -185,6 +194,7 @@ const LidoPlayer: FC = () => {
         group.resultsList.push(resultBin);
         group.correctMoves += record.correctMoves ?? 0;
         group.wrongMoves += record.wrongMoves ?? 0;
+        group.totalTimeSpent += record.timeSpent ?? 0;
       });
       for (const [skillId, group] of skillAggregator.entries()) {
         const averageScore = group.totalScore / group.count;
@@ -232,7 +242,7 @@ const LidoPlayer: FC = () => {
           Math.round(averageScore),
           group.correctMoves,
           group.wrongMoves,
-          0,
+          group.totalTimeSpent,
           assignment ?? null,
           null,
           classId,
@@ -261,6 +271,16 @@ const LidoPlayer: FC = () => {
         is_assessment: isAssessmentLesson,
         is_aborted: isAborted,
       });
+      if (isAssessmentLesson) {
+        Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
+          user_id: currentStudent.id,
+          lesson_id: lesson.id,
+          course_id: courseDetail?.id ?? courseDocId ?? "",
+          is_assessment: true,
+          played_from: playedFrom,
+          time_spent: totalLessonTime, // ✅ correct total
+        });
+      }
 
       const learning_path: boolean = state?.learning_path ?? false;
       const isReward: boolean = state?.reward ?? false;
@@ -292,7 +312,10 @@ const LidoPlayer: FC = () => {
   };
 
   const onActivityEnd = async (e: any) => {
-    const { score } = e.detail;
+    const { score, timeSpentForActivity } = e.detail;
+    console.log("e data", e.detail);
+    console.log("e data 121", JSON.stringify(e.detail));
+
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
     const existingData = localStorage.getItem(LIDO_SCORES_KEY);
@@ -301,11 +324,13 @@ const LidoPlayer: FC = () => {
       const parsed = JSON.parse(existingData);
       scoresList = Array.isArray(parsed) ? parsed : [];
     }
+    console.log("uhjj", timeSpentForActivity);
     scoresList.push({
       score,
       result: binaryScore,
       correctMoves: e.detail.rightMoves ?? 0,
       wrongMoves: e.detail.wrongMoves ?? 0,
+      timeSpent: timeSpentForActivity ?? 0,
     });
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
     if (isAssessmentLesson) {
@@ -381,13 +406,6 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-        Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
-          user_id: currentStudent.id,
-          lesson_id: lessonData.id,
-          course_id: courseDocId,
-          is_assessment: isAssessmentLesson,
-          played_from: playedFrom,
-        }); // aborted
         const courseKey = courseDetail?.id ?? courseDocId ?? "";
         Util.removeCourseScopedKey(
           FAIL_STREAK_KEY,
@@ -492,7 +510,7 @@ const LidoPlayer: FC = () => {
       let finalProgressTimeSpent =
         avatarObj.weeklyTimeSpent["min"] * 60 +
         avatarObj.weeklyTimeSpent["sec"];
-      finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpent;
+      finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpendForLesson;
       let computeMinutes = Math.floor(finalProgressTimeSpent / 60);
       let computeSec = finalProgressTimeSpent % 60;
       avatarObj.weeklyTimeSpent["min"] = computeMinutes;
@@ -518,7 +536,7 @@ const LidoPlayer: FC = () => {
         Math.round(data.score ?? 0),
         data.correctMoves ?? 0,
         data.wrongMoves ?? 0,
-        data.timeSpent ?? 0,
+        data.timeSpendForLesson ?? 0,
         assignmentId,
         chapterDetail?.id ?? chapter_id?.toString() ?? "",
         classId,
@@ -591,7 +609,7 @@ const LidoPlayer: FC = () => {
         ml_student_id: data.mlStudentId,
         course_id: data.courseId,
         course_name: courseDetail.name,
-        time_spent: data.timeSpent,
+        time_spent: data.timeSpendForLesson,
         total_moves: data.totalMoves,
         total_games: data.totalGames,
         correct_moves: data.correctMoves,
@@ -803,7 +821,7 @@ const LidoPlayer: FC = () => {
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
             "base-url": basePath,
-            "canplay": true,
+            canplay: true,
             "code-folder-path": "/Lido-player-code-versions",
             "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
           })
