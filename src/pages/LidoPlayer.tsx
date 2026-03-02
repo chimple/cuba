@@ -313,8 +313,6 @@ const LidoPlayer: FC = () => {
 
   const onActivityEnd = async (e: any) => {
     const { score, timeSpentForActivity } = e.detail;
-    console.log("e data", e.detail);
-    console.log("e data 121", JSON.stringify(e.detail));
 
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
@@ -324,7 +322,6 @@ const LidoPlayer: FC = () => {
       const parsed = JSON.parse(existingData);
       scoresList = Array.isArray(parsed) ? parsed : [];
     }
-    console.log("uhjj", timeSpentForActivity);
     scoresList.push({
       score,
       result: binaryScore,
