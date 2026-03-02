@@ -1479,5 +1479,20 @@
     "Please set the school address.": "कृपया विद्यालय का पता सेट करें।",
     "Provide at least one contact method (phone number or email address) for the teacher": "शिक्षक से संपर्क करने के लिए कम से कम एक संपर्क विधि (फोन नंबर या ईमेल पता) प्रदान करें",
     "Regular Visit": "नियमित दौरा",
-    "Retry Location": "स्थान पुनः प्रयास करें"
+    "Retry Location": "स्थान पुनः प्रयास करें",
+    "Role": "भूमिका",
+    "School Location": "स्कूल का स्थान",
+    "School notes table": "स्कूल नोट्स तालिका",
+    "Select call outcome": "कॉल परिणाम चुनें",
+    "Teacher Training Meeting": "शिक्षक प्रशिक्षण बैठक",
+    "Too Far": "बहुत दूर",
+    "Type your answer...": "अपना उत्तर लिखें..।",
+    "Type your note here": "अपना नोट यहां टाइप करें",
+    "Unable to fetch location. Please try again.": "स्थान प्राप्त करने में असमर्थ। कृपया पुनः प्रयास करें।",
+    "Unknown School": "अज्ञात विद्यालय",
+    "User Coordinates": "उपयोगकर्ता निर्देशांक",
+    "WhatsApp Group Connected": "व्हाट्सएप ग्रुप कनेक्टेड",
+    "WhatsApp Information": "व्हाट्सएप सूचना",
+    "Who did you speak with?": "आपने किससे बात की?",
+    "Your Location": "आपका स्थान"
 }
