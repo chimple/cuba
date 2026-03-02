@@ -1,0 +1,3 @@
+id,user_id,sticker_book_id,stickers_collected,status,created_at,updated_at,is_deleted
+4a087c1a-de3d-4b65-9c10-46f8344df37e,25882032-fd06-4796-a43f-7aafc62f86a9,8bc5d41f-0d6b-4f45-ae61-c8092e27c32c,"[""snail""]",in_progress,2026-02-25 06:34:35.963246+00,2026-02-26 07:00:38.274553+00,
+f8b33ee9-ed7a-4569-9b1d-d8ed49a20236,4a824bd4-6739-4830-a7cd-d18bd2f2c15f,8bc5d41f-0d6b-4f45-ae61-c8092e27c32c,"[""snail"",""butterfly"",""ant"",""beetle"",""fly"",""flea""]",completed,2026-02-25 10:34:21.315324+00,2026-02-26 07:00:38.274553+00,

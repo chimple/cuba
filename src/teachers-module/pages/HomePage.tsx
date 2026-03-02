@@ -239,6 +239,7 @@ const HomePage: React.FC = () => {
     history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
   };
   const isLibraryTab = tabValue === 1;
+  const footerTabValue = tabValue === 1 ? 2 : tabValue;
   return (
     <div className="main-container" key={renderKey}>
       <Header
@@ -259,7 +260,7 @@ const HomePage: React.FC = () => {
       <main className="home-container-body">{renderComponent()}</main>
       <footer className="container-footer">
         <BottomNavigation
-          value={tabValue}
+          value={footerTabValue}
           onChange={handleChange}
           className="homepage-bottom-nav"
           showLabels
@@ -272,7 +273,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 0
+                  footerTabValue === 0
                     ? "assets/icons/homeSelected.png"
                     : "assets/icons/home.png"
                 }
@@ -301,7 +302,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 2
+                  footerTabValue === 2
                     ? "assets/icons/assignmentSelected.png"
                     : "assets/icons/assignmentfooter.png"
                 }
@@ -317,7 +318,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 3
+                  footerTabValue === 3
                     ? "assets/icons/reportSelected.png"
                     : "assets/icons/report.png"
                 }
@@ -332,7 +333,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 4
+                  footerTabValue === 4
                     ? "assets/icons/aiSelected.png"
                     : "assets/icons/ai.png"
                 }

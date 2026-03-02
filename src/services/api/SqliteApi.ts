@@ -88,18 +88,22 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  PaginatedResponse,
+  SchoolNote,
+  StickerBook,
+  UserStickerProgress,
+} from "../../interface/modelInterfaces";
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
-
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 11;
+  private DB_VERSION = 12;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -8280,6 +8284,36 @@ order by
     return res.values
       .map((row: any) => row.lesson_id as string | undefined)
       .filter((id): id is string => Boolean(id));
+  }
+
+  // ================================
+  // STICKER BOOK (Server Delegation)
+  // ================================
+
+  async getAllStickerBooks(): Promise<StickerBook[]> {
+    return await this._serverApi.getAllStickerBooks();
+  }
+
+  async getCurrentStickerBookWithProgress(userId: string): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+  }
+
+  async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
+    return await this._serverApi.getUserWonStickerBooks(userId);
+  }
+
+  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
+    return await this._serverApi.getNextWinnableSticker(stickerBookId);
+  }
+
+  async updateStickerWon(
+    stickerBookId: string,
+    stickerId: string,
+  ): Promise<void> {
+    return await this._serverApi.updateStickerWon(stickerBookId, stickerId);
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,
