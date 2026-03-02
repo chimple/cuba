@@ -665,7 +665,7 @@ const LidoPlayer: FC = () => {
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
       course_name: courseDetail?.name ?? "",
-      time_spent: data.timeSpent,
+      time_spent: data.timeSpendForLesson,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
       correct_moves: data.correctMoves,
