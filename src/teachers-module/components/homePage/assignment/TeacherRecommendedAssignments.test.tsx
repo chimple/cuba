@@ -268,3 +268,214 @@ test("does not navigate when assign count is zero", async () => {
     expect.anything(),
   );
 });
+test("calls getLastAssignmentsForRecommendations on mount", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.getLastAssignmentsForRecommendations).toHaveBeenCalledWith(
+      "class-1",
+    );
+  });
+});
+
+test("calls getChaptersForCourse with correct course id", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.getChaptersForCourse).toHaveBeenCalledWith("course-1");
+  });
+});
+
+test("calls isAssignmentAlreadyAssigned for lessons", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.isAssignmentAlreadyAssigned).toHaveBeenCalled();
+  });
+});
+
+test("handles multiple courses", async () => {
+  mockApi.getCoursesForClassStudent.mockResolvedValue([
+    { id: "course-1", name: "Math", code: "MATH", sort_index: 1 },
+    { id: "course-2", name: "Science", code: "SCI", sort_index: 2 },
+  ]);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.getChaptersForCourse).toHaveBeenCalledTimes(2);
+  });
+});
+
+test("handles empty chapters", async () => {
+  mockApi.getChaptersForCourse.mockResolvedValue([]);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByTestId("assign-btn");
+
+  expect(screen.getByTestId("assign-btn")).toHaveTextContent("Assign 0");
+});
+
+test("handles already assigned lessons", async () => {
+  mockApi.isAssignmentAlreadyAssigned.mockResolvedValue(true);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByTestId("assign-btn");
+
+  expect(screen.getByTestId("assign-btn")).toHaveTextContent("Assign 0");
+});
+
+test("toggle updates without crashing when lessons exist", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByText("RecommendedAssignments");
+
+  await userEvent.click(screen.getByTestId("toggle-lesson"));
+
+  expect(screen.getByTestId("assign-btn")).toBeInTheDocument();
+});
+
+test("assign button remains when chapters empty", async () => {
+  mockApi.getChaptersForCourse.mockResolvedValue([]);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByTestId("assign-btn")).toBeInTheDocument();
+});
+
+test("assign button remains when lessons empty", async () => {
+  mockApi.getLessonsForChapter.mockResolvedValue([]);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByTestId("assign-btn")).toBeInTheDocument();
+});
+
+test("replace not called on valid mount", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByText("RecommendedAssignments");
+
+  expect(replaceMock).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+});
+
+test("renders component multiple times without crash", async () => {
+  const { rerender } = render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByText("RecommendedAssignments");
+
+  rerender(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  expect(screen.getByTestId("assign-btn")).toBeInTheDocument();
+});
+
+test("handles undefined lastAssignments response", async () => {
+  mockApi.getLastAssignmentsForRecommendations.mockResolvedValue(undefined);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByTestId("assign-btn");
+
+  expect(screen.getByTestId("assign-btn")).toBeInTheDocument();
+});
+
+test("handles multiple chapters", async () => {
+  mockApi.getChaptersForCourse.mockResolvedValue([
+    { id: "chapter-1" },
+    { id: "chapter-2" },
+  ]);
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.getLessonsForChapter).toHaveBeenCalledTimes(2);
+  });
+});
+
+test("assign button text updates correctly after toggle", async () => {
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await screen.findByText("RecommendedAssignments");
+
+  await userEvent.click(screen.getByTestId("toggle-lesson"));
+
+  expect(screen.getByTestId("assign-btn").textContent).toContain("Assign");
+});
+
+test("component loads even if API resolves slowly", async () => {
+  mockApi.getCoursesForClassStudent.mockImplementation(
+    () => new Promise((resolve) => setTimeout(() => resolve([]), 10)),
+  );
+
+  render(
+    <MemoryRouter>
+      <TeacherRecommendedAssignments />
+    </MemoryRouter>,
+  );
+
+  await waitFor(() => {
+    expect(mockApi.getCoursesForClassStudent).toHaveBeenCalled();
+  });
+});
