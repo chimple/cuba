@@ -9,7 +9,7 @@ import { Util } from "../../utility/util";
 
 const ShowStudentsInAssignmentPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+    null,
   );
   const [currentSchool, setCurrentSchool] = useState<
     TableTypes<"school"> | undefined
@@ -38,9 +38,11 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
     (history.location?.state!["manualAssignments"] as {}) ?? {};
   const recommendedAssignments =
     (history.location.state!["recommendedAssignments"] as {}) ?? {};
+  const fromPage = history.location.state!["fromPage"];
 
   const onBackButtonClick = () => {
-    history.replace(PAGES.TEACHER_ASSIGNMENT);
+    if (fromPage) history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
+    else history.replace(PAGES.TEACHER_ASSIGNMENT);
   };
 
   return (

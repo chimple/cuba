@@ -70,7 +70,11 @@ import {
   SupabaseClient,
   createClient,
 } from "@supabase/supabase-js";
-import { RoleType, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
+import {
+  RoleType,
+  StickerBook,
+  UserStickerProgress,
+} from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
@@ -11529,7 +11533,10 @@ export class SupabaseApi implements ServiceApi {
         .in("lesson_id", lessonIds);
 
       if (error) {
-        console.error("Supabase error in getAssignmentInfoForLessonsPerClass:", error);
+        console.error(
+          "Supabase error in getAssignmentInfoForLessonsPerClass:",
+          error,
+        );
         return [];
       }
 
@@ -11555,9 +11562,7 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
 
-  async getCurrentStickerBookWithProgress(
-    userId: string
-  ): Promise<{
+  async getCurrentStickerBookWithProgress(userId: string): Promise<{
     book: StickerBook;
     progress: UserStickerProgress | null;
   } | null> {
@@ -11606,18 +11611,17 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
-
-  async getUserWonStickerBooks(
-    userId: string
-  ): Promise<StickerBook[]> {
+  async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
     if (!this.supabase) return [];
 
     const { data, error } = await this.supabase
       .from("user_sticker_book")
-      .select(`
+      .select(
+        `
       *,
       sticker_book (*)
-    `)
+    `,
+      )
       .eq("user_id", userId)
       .eq("status", "completed")
       .eq("is_deleted", false)
@@ -11631,14 +11635,10 @@ export class SupabaseApi implements ServiceApi {
     return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
   }
 
-  async getNextWinnableSticker(
-    stickerBookId: string
-  ): Promise<string | null> {
-
+  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
     if (!this.supabase) return null;
 
-    const user =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!user?.id) return null;
 
     const userId = user.id;
@@ -11662,23 +11662,20 @@ export class SupabaseApi implements ServiceApi {
 
     const collected = progress?.stickers_collected ?? [];
 
-    const sorted = [...book.stickers_metadata]
-      .sort((a: any, b: any) => a.sequence - b.sequence);
-
-    const next = sorted.find(
-      (s: any) => !collected.includes(s.id)
+    const sorted = [...book.stickers_metadata].sort(
+      (a: any, b: any) => a.sequence - b.sequence,
     );
+
+    const next = sorted.find((s: any) => !collected.includes(s.id));
 
     return next?.id ?? null;
   }
 
   async updateStickerWon(
     stickerBookId: string,
-    stickerId: string
+    stickerId: string,
   ): Promise<void> {
-
-    const user =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
 
     if (!user?.id) return;
     if (!this.supabase) return;
@@ -11707,17 +11704,14 @@ export class SupabaseApi implements ServiceApi {
 
     // create
     if (!progress) {
-      const status =
-        total === 1 ? "completed" : "in_progress";
+      const status = total === 1 ? "completed" : "in_progress";
 
-      await this.supabase
-        .from("user_sticker_book")
-        .insert({
-          user_id: userId,
-          sticker_book_id: stickerBookId,
-          stickers_collected: [stickerId],
-          status
-        });
+      await this.supabase.from("user_sticker_book").insert({
+        user_id: userId,
+        sticker_book_id: stickerBookId,
+        stickers_collected: [stickerId],
+        status,
+      });
 
       return;
     }
@@ -11738,10 +11732,36 @@ export class SupabaseApi implements ServiceApi {
       .from("user_sticker_book")
       .update({
         stickers_collected: updated,
-        status
+        status,
       })
       .eq("id", progress.id)
       .eq("is_deleted", false);
   }
+  async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
 
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("class_id", classId)
+      .eq("course_id", courseId)
+      .eq("chapter_id", chapterId)
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking existing assignment:", error);
+      return false;
+    }
+
+    return !!data;
+  }
 }

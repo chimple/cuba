@@ -146,7 +146,10 @@ const HomePage: React.FC = () => {
                 setTabValue(1);
               }}
               onScanQrClick={() => setShowAssignOptionsScreen(false)}
-              onRecommendedClick={() => setShowAssignOptionsScreen(false)}
+              onRecommendedClick={() => {
+                history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
+                setShowAssignOptionsScreen(false);
+              }}
             />
           );
         }
@@ -248,11 +251,9 @@ const HomePage: React.FC = () => {
         showSideMenu={!isLibraryTab}
         customText={isLibraryTab ? "Library" : ""}
         onBackButtonClick={isLibraryTab ? handleLibraryBack : undefined}
-        showSearchIcon={isLibraryTab && !isOpsUser} 
+        showSearchIcon={isLibraryTab && !isOpsUser}
         onSearchIconClick={
-          isLibraryTab
-            ? () => history.replace(PAGES.SEARCH_LESSON)
-            : undefined
+          isLibraryTab ? () => history.replace(PAGES.SEARCH_LESSON) : undefined
         }
         onShareClick={tabValue === 3 ? handleShare : undefined}
       />

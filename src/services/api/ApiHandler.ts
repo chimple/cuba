@@ -41,7 +41,12 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote, StickerBook, UserStickerProgress } from "../../interface/modelInterfaces";
+import {
+  PaginatedResponse,
+  SchoolNote,
+  StickerBook,
+  UserStickerProgress,
+} from "../../interface/modelInterfaces";
 
 export class ApiHandler implements ServiceApi {
   createAtSchoolUser(
@@ -1524,9 +1529,14 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
-    classId?: string, 
+    classId?: string,
   ): Promise<StudentAPIResponse> {
-    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit,classId);
+    return await this.s.getStudentInfoBySchoolId(
+      schoolId,
+      page,
+      limit,
+      classId,
+    );
   }
   public async getStudentsAndParentsByClassId(
     classId: string,
@@ -1683,14 +1693,14 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
-    classId?:string
+    classId?: string,
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
-      classId
+      classId,
     );
   }
 
@@ -2032,48 +2042,56 @@ export class ApiHandler implements ServiceApi {
   }
 
   getAssignmentInfoForLessonsPerClass(
-  classId: string,
-  lessonIds: string[],
-): Promise<string[]> {
-  return this.s.getAssignmentInfoForLessonsPerClass(
-    classId,
-    lessonIds,
-  );
-}
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    return this.s.getAssignmentInfoForLessonsPerClass(classId, lessonIds);
+  }
 
   // ================================
-// STICKER BOOK SERVICE FORWARDERS
-// ================================
+  // STICKER BOOK SERVICE FORWARDERS
+  // ================================
 
-public async getAllStickerBooks(): Promise<StickerBook[]> {
-  return await this.s.getAllStickerBooks();
-}
+  public async getAllStickerBooks(): Promise<StickerBook[]> {
+    return await this.s.getAllStickerBooks();
+  }
 
-public async getCurrentStickerBookWithProgress(
-  userId: string
-): Promise<{
-  book: StickerBook;
-  progress: UserStickerProgress | null;
-} | null> {
-  return await this.s.getCurrentStickerBookWithProgress(userId);
-}
+  public async getCurrentStickerBookWithProgress(userId: string): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    return await this.s.getCurrentStickerBookWithProgress(userId);
+  }
 
-public async getUserWonStickerBooks(
-  userId: string
-): Promise<StickerBook[]> {
-  return await this.s.getUserWonStickerBooks(userId);
-}
+  public async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
+    return await this.s.getUserWonStickerBooks(userId);
+  }
 
-public async getNextWinnableSticker(
-  stickerBookId: string
-): Promise<string | null> {
-  return await this.s.getNextWinnableSticker(stickerBookId);
-}
+  public async getNextWinnableSticker(
+    stickerBookId: string,
+  ): Promise<string | null> {
+    return await this.s.getNextWinnableSticker(stickerBookId);
+  }
 
-public async updateStickerWon(
-  stickerBookId: string,
-  stickerId: string
-): Promise<void> {
-  return await this.s.updateStickerWon(stickerBookId, stickerId);
-}
+  public async updateStickerWon(
+    stickerBookId: string,
+    stickerId: string,
+  ): Promise<void> {
+    return await this.s.updateStickerWon(stickerBookId, stickerId);
+  }
+  public async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    return this.s.isAssignmentAlreadyAssigned(
+      schoolId,
+      classId,
+      courseId,
+      chapterId,
+      lessonId,
+    );
+  }
 }
