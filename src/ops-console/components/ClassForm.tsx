@@ -174,16 +174,10 @@ const ClassForm: React.FC<{
             formValues.whatsapp_invite_link
           );
 
-          if (!normalizedInviteLink) {
-            setErrorMessage("Invalid WhatsApp Invite Link.");
-            setSaving(false);
-            return;
-          }
-
           let groupIdToStore = resolvedGroupId; // 👈 default = reuse old
 
           // 🔁 Only re-resolve if link actually changed
-          if (didInviteLinkChange) {
+          if (didInviteLinkChange && normalizedInviteLink) {
             try {
               const gId = await api.getGroupIdByInvite(
                 normalizedInviteLink,
@@ -217,26 +211,28 @@ const ClassForm: React.FC<{
         } else {
               const normalizedInviteLink = normalizeWhatsAppInviteLink( formValues.whatsapp_invite_link);
               let groupIdToStore = "";
-              try {
-                const gId = await api.getGroupIdByInvite(
-                  normalizedInviteLink,
-                  whatspAppBotNumber || ""
-                );
+              if (normalizedInviteLink) {
+                try {
+                  const gId = await api.getGroupIdByInvite(
+                    normalizedInviteLink,
+                    whatspAppBotNumber || ""
+                  );
 
-                if (!gId?.group_id) {
-                  setErrorMessage("Invalid WhatsApp Invite Link.");
+                  if (!gId?.group_id) {
+                    setErrorMessage("Invalid WhatsApp Invite Link.");
+                    setSaving(false);
+                    return;
+                  }
+
+                  groupIdToStore = gId.group_id;
+                  setResolvedGroupId(gId.group_id);
+
+                } catch (e) {
+                  console.error("getGroupIdByInvite failed", e);
+                  setErrorMessage("Failed to resolve WhatsApp group.");
                   setSaving(false);
                   return;
                 }
-
-                groupIdToStore = gId.group_id;
-                setResolvedGroupId(gId.group_id);
-
-              } catch (e) {
-                console.error("getGroupIdByInvite failed", e);
-                setErrorMessage("Failed to resolve WhatsApp group.");
-                setSaving(false);
-                return;
               }
 
               const newClass = await api.createClass(
