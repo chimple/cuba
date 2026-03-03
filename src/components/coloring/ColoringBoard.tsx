@@ -1,21 +1,23 @@
 import "./coloring.css";
-import ColoringCanvas from "./ColoringCanvas";
+import { useRef } from "react";
+import { useSvgColoring } from "./useSvgColoring";
+import { SVGScene } from "./SVGScene";
 import ColorTray from "./ColorTray";
 import PaintTopBar from "./PaintTopBar";
-import { useSvgColoring } from "./useSvgColoring";
 import pathwayBg from "../../assets/images/pathwayBackground1.svg";
+import { ReactComponent as SceneSvg } from "../../assets/images/TinyFriends.svg";
 
 export default function ColoringBoard() {
-  const coloring = useSvgColoring("coloring-svg");
+  const svgRef = useRef<SVGSVGElement>(null);
+  const coloring = useSvgColoring(svgRef);
 
   return (
     <div className="paint-root">
-
       {/* Background */}
-      <div className="paint-background"
-      style={{
-    backgroundImage: `url(${pathwayBg})`,
-  }} />
+      <div
+        className="paint-background"
+        style={{ backgroundImage: `url(${pathwayBg})` }}
+      />
 
       {/* Top Buttons */}
       <PaintTopBar
@@ -25,13 +27,17 @@ export default function ColoringBoard() {
 
       {/* Center Layout */}
       <div className="paint-layout">
-        <ColoringCanvas svgId="coloring-svg" />
+        <div className="svg-frame">
+          <SVGScene mode="color" svgRefExternal={svgRef}>
+            <SceneSvg />
+          </SVGScene>
+        </div>
+
         <ColorTray
           selected={coloring.selectedColor}
           onSelect={coloring.setSelectedColor}
         />
       </div>
-
     </div>
   );
 }
