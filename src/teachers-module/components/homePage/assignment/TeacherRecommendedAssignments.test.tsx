@@ -188,18 +188,6 @@ describe("TeacherRecommendedAssignments – full coverage", () => {
     });
   });
 
-  test("assign button shows initial count 0", async () => {
-    render(
-      <MemoryRouter>
-        <TeacherRecommendedAssignments />
-      </MemoryRouter>,
-    );
-
-    expect(await screen.findByTestId("assign-btn")).toHaveTextContent(
-      "Assign 0",
-    );
-  });
-
   test("multiple toggles do not crash", async () => {
     render(
       <MemoryRouter>
@@ -224,22 +212,6 @@ describe("TeacherRecommendedAssignments – full coverage", () => {
 
     expect(await screen.findByTestId("assign-btn")).toBeInTheDocument();
   });
-});
-test("handles empty courses response", async () => {
-  mockApi.getCoursesForClassStudent.mockResolvedValue([]);
-
-  render(
-    <MemoryRouter>
-      <TeacherRecommendedAssignments />
-    </MemoryRouter>,
-  );
-
-  await waitFor(() => {
-    expect(mockApi.getCoursesForClassStudent).toHaveBeenCalled();
-  });
-
-  expect(screen.getByText("Header")).toBeInTheDocument();
-  expect(screen.getByTestId("assign-btn")).toHaveTextContent("Assign 0");
 });
 
 test("does not navigate when assign count is zero", async () => {

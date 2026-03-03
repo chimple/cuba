@@ -14,6 +14,7 @@ import {
   buildRecommendedPayload,
   getRecommendedLessons,
 } from "./AssignmentUtil";
+import Loading from "../../../../components/Loading";
 
 export enum TeacherRecommendedAssignmentsType {
   RECOMMENDED = "recommended",
@@ -33,7 +34,7 @@ const TeacherRecommendedAssignments: FC = () => {
   });
 
   const current_class = Util.getCurrentClass();
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     init();
   }, []);
@@ -46,29 +47,32 @@ const TeacherRecommendedAssignments: FC = () => {
       return;
     }
 
-    // Fetch all courses for the selected class
-    const courseList = await api.getCoursesForClassStudent(current_class.id);
+    setLoading(true);
 
-    // Fetch recently assigned lessons (to avoid duplicates)
-    const lastAssignments = await api.getLastAssignmentsForRecommendations(
-      current_class.id,
-    );
-
-    // Generate recommended lessons based on courses and past assignments
-    const recommended = await getRecommendedLessons(
-      api,
-      current_class,
-      courseList,
-      lastAssignments,
-    );
-
-    // Save recommended lessons in state
-    setRecommendedAssignments(recommended);
-
-    // Update the selected lessons count
-    updateSelectedLesson(recommended);
+    try {
+      // Fetch all courses for the selected class
+      const courseList = await api.getCoursesForClassStudent(current_class.id);
+      // Fetch recently assigned lessons (to avoid duplicates)
+      const lastAssignments = await api.getLastAssignmentsForRecommendations(
+        current_class.id,
+      );
+      // Generate recommended lessons based on courses and past assignments
+      const recommended = await getRecommendedLessons(
+        api,
+        current_class,
+        courseList,
+        lastAssignments,
+      );
+      // Save recommended lessons in state
+      setRecommendedAssignments(recommended);
+      // Update the selected lessons count
+      updateSelectedLesson(recommended);
+    } catch (error) {
+      console.error("Error loading recommended lessons", error);
+    } finally {
+      setLoading(false);
+    }
   };
-
   // Calculates total number of selected lessons
   const updateSelectedLesson = (
     updatedAssignments: RecommendedAssignmentsState,
@@ -114,45 +118,55 @@ const TeacherRecommendedAssignments: FC = () => {
     >
       <Header
         customText={t("Recommended Assignments") ?? ""}
+        customTextClassName="header-recommended-text"
         onBackButtonClick={handleRecommendedBack}
         isBackButton
       />
 
-      <RecommendedAssignments
-        recommendedAssignments={recommendedAssignments}
-        setRecommendedAssignments={setRecommendedAssignments}
-        updateSelectedLesson={updateSelectedLesson}
-        toggleSubjectCollapse={() => {}}
-        toggleAssignmentSelection={(
-          _type,
-          _category,
-          _setCategory,
-          subjectId,
-          index,
-        ) => toggleAssignmentSelection(subjectId, index)}
-      />
+      {loading ? (
+        <div className="recommended-loader-wrapper">
+          <Loading isLoading={loading} />
+        </div>
+      ) : (
+        <>
+          <RecommendedAssignments
+            recommendedAssignments={recommendedAssignments}
+            setRecommendedAssignments={setRecommendedAssignments}
+            updateSelectedLesson={updateSelectedLesson}
+            toggleSubjectCollapse={() => {}}
+            toggleAssignmentSelection={(
+              _type,
+              _category,
+              _setCategory,
+              subjectId,
+              index,
+            ) => toggleAssignmentSelection(subjectId, index)}
+          />
 
-      <AssigmentCount
-        assignments={
-          selectedLessonsCount[TeacherRecommendedAssignmentsType.RECOMMENDED]
-            .count
-        }
-        onClick={async () => {
-          const { selectedAssignments, formattedRecommended } =
-            buildRecommendedPayload(recommendedAssignments);
+          <AssigmentCount
+            assignments={
+              selectedLessonsCount[
+                TeacherRecommendedAssignmentsType.RECOMMENDED
+              ].count
+            }
+            onClick={async () => {
+              const { selectedAssignments, formattedRecommended } =
+                buildRecommendedPayload(recommendedAssignments);
 
-          if (Object.keys(selectedAssignments).length > 0) {
-            history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-              fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
-              selectedAssignments: {
-                recommended: formattedRecommended,
-              },
-              manualAssignments: {},
-              recommendedAssignments,
-            });
-          }
-        }}
-      />
+              if (Object.keys(selectedAssignments).length > 0) {
+                history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
+                  fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
+                  selectedAssignments: {
+                    recommended: formattedRecommended,
+                  },
+                  manualAssignments: {},
+                  recommendedAssignments,
+                });
+              }
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };

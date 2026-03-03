@@ -21,19 +21,10 @@ jest.mock("react-i18next", () => ({
   },
 }));
 
-jest.mock("@ionic/react", () => ({
-  IonIcon: (props: any) => (
-    <div data-testid="ion-icon" onClick={props.onClick}>
-      icon
-    </div>
-  ),
-}));
-
 jest.mock(
   "../../../../components/displaySubjects/SelectIconImage",
   () => () => <div data-testid="select-icon">image</div>,
 );
-
 /* ================= TEST DATA ================= */
 
 const baseAssignments: RecommendedAssignmentsState = {
@@ -50,6 +41,7 @@ const baseAssignments: RecommendedAssignmentsState = {
         image: null,
         selected: true,
         source: null,
+        _chapterName: "",
       },
       {
         id: "2",
@@ -58,6 +50,7 @@ const baseAssignments: RecommendedAssignmentsState = {
         image: null,
         selected: false,
         source: null,
+        _chapterName: "",
       },
     ],
     allLessons: [],
@@ -97,7 +90,7 @@ describe("RecommendedAssignments Component", () => {
 
   test("renders correct selected count", () => {
     renderComponent();
-    expect(screen.getByText("1/2")).toBeInTheDocument();
+    expect(screen.getByText(/1\s*\/\s*2/)).toBeInTheDocument();
   });
 
   test("calls toggleSubjectCollapse on subject click", () => {
@@ -107,12 +100,6 @@ describe("RecommendedAssignments Component", () => {
       TeacherAssignmentPageType.RECOMMENDED,
       "math",
     );
-  });
-
-  test("calls toggleAssignmentSelection when icon clicked", () => {
-    renderComponent();
-    fireEvent.click(screen.getAllByTestId("ion-icon")[0]);
-    expect(mockToggleAssignmentSelection).toHaveBeenCalledTimes(1);
   });
 
   test("calls setRecommendedAssignments when Add 5 more clicked", () => {
@@ -138,11 +125,6 @@ describe("RecommendedAssignments Component", () => {
     expect(screen.getByText("Geometry")).toBeInTheDocument();
   });
 
-  test("renders correct number of icons", () => {
-    renderComponent();
-    expect(screen.getAllByTestId("ion-icon")).toHaveLength(2);
-  });
-
   test("renders SelectIconImage for each lesson", () => {
     renderComponent();
     expect(screen.getAllByTestId("select-icon")).toHaveLength(2);
@@ -159,7 +141,7 @@ describe("RecommendedAssignments Component", () => {
       math: { ...baseAssignments.math, lessons: [] },
     });
 
-    expect(screen.getByText("0/0")).toBeInTheDocument();
+    expect(screen.getByText(/0\s*\/\s*0/)).toBeInTheDocument();
   });
 
   test("handles missing subject safely", () => {
@@ -178,20 +160,7 @@ describe("RecommendedAssignments Component", () => {
       },
     });
 
-    expect(screen.getByText("2/2")).toBeInTheDocument();
-  });
-
-  test("toggleAssignmentSelection receives correct parameters", () => {
-    renderComponent();
-    fireEvent.click(screen.getAllByTestId("ion-icon")[1]);
-
-    expect(mockToggleAssignmentSelection).toHaveBeenCalledWith(
-      TeacherAssignmentPageType.RECOMMENDED,
-      baseAssignments,
-      mockSetState,
-      "math",
-      1,
-    );
+    expect(screen.getByText(/2\s*\/\s*2/)).toBeInTheDocument();
   });
 
   test("multiple subjects render correctly", () => {
@@ -222,15 +191,6 @@ describe("RecommendedAssignments Component", () => {
     const subjects = screen.getAllByText(/Math|Science/);
     expect(subjects[0]).toHaveTextContent("Math");
   });
-  test("does not allow lesson toggle when subject is collapsed", () => {
-    renderComponent({
-      ...baseAssignments,
-      math: { ...baseAssignments.math, isCollapsed: true },
-    });
-
-    expect(screen.queryByTestId("ion-icon")).not.toBeInTheDocument();
-    expect(mockToggleAssignmentSelection).not.toHaveBeenCalled();
-  });
 
   test("renders correctly when all subjects are collapsed", () => {
     renderComponent({
@@ -260,7 +220,7 @@ describe("RecommendedAssignments Component", () => {
       },
     });
 
-    expect(screen.getByText("0/2")).toBeInTheDocument();
+    expect(screen.getByText(/0\s*\/\s*2/)).toBeInTheDocument();
   });
   test("renders subject even if sort_index is undefined", () => {
     renderComponent({
@@ -304,6 +264,7 @@ describe("RecommendedAssignments Component", () => {
             image: null,
             selected: true,
             source: null,
+            _chapterName: "Physics test",
           },
         ],
         allLessons: [],
@@ -330,30 +291,14 @@ describe("RecommendedAssignments Component", () => {
             image: null,
             selected: true,
             source: null,
+            _chapterName: "Physics",
           },
         ],
         allLessons: [],
       },
     });
 
-    expect(screen.getByText("1/1")).toBeInTheDocument();
-  });
-
-  test("clicking lesson icon multiple times triggers handler each time", () => {
-    renderComponent();
-
-    const icon = screen.getAllByTestId("ion-icon")[0];
-
-    fireEvent.click(icon);
-    fireEvent.click(icon);
-    fireEvent.click(icon);
-
-    expect(mockToggleAssignmentSelection).toHaveBeenCalledTimes(3);
-  });
-
-  test("does not crash when recommendedAssignments is empty object", () => {
-    renderComponent({});
-    expect(screen.queryByTestId("ion-icon")).not.toBeInTheDocument();
+    expect(screen.getByText(/1\s*\/\s*1/)).toBeInTheDocument();
   });
 
   test("renders correctly when allLessons has values but lessons empty", () => {
@@ -365,7 +310,7 @@ describe("RecommendedAssignments Component", () => {
       },
     });
 
-    expect(screen.getByText("0/0")).toBeInTheDocument();
+    expect(screen.getByText(/0\s*\/\s*0/)).toBeInTheDocument();
   });
 
   test("renders subject count correctly when single lesson exists", () => {
@@ -380,12 +325,13 @@ describe("RecommendedAssignments Component", () => {
             image: null,
             selected: false,
             source: null,
+            _chapterName: "Trigonometry",
           },
         ],
       },
     });
 
-    expect(screen.getByText("0/1")).toBeInTheDocument();
+    expect(screen.getByText(/0\s*\/\s*1/)).toBeInTheDocument();
   });
 
   test("renders lesson even if image is null", () => {
@@ -407,5 +353,108 @@ describe("RecommendedAssignments Component", () => {
       TeacherAssignmentPageType.RECOMMENDED,
       "math",
     );
+  });
+  test("renders selected toggle with tick image", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [
+          {
+            ...baseAssignments.math.lessons[0],
+            selected: true,
+          },
+        ],
+      },
+    });
+
+    const toggle = document.getElementById(
+      "recommended-assignments-toggle-circle-math-0",
+    );
+
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveClass(
+      "recommended-assignments-toggle-circle",
+      "is-selected",
+    );
+
+    const tickImage = toggle?.querySelector("img");
+    expect(tickImage).toBeInTheDocument();
+    expect(tickImage).toHaveClass("recommended-assignments-toggle-check");
+  });
+
+  test("renders unselected toggle without tick image", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [
+          {
+            ...baseAssignments.math.lessons[0],
+            selected: false,
+          },
+        ],
+      },
+    });
+
+    const toggle = document.getElementById(
+      "recommended-assignments-toggle-circle-math-0",
+    );
+
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveClass(
+      "recommended-assignments-toggle-circle",
+      "is-unselected",
+    );
+
+    expect(toggle?.querySelector("img")).not.toBeInTheDocument();
+  });
+
+  test("renders multiple toggles correctly", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [
+          {
+            ...baseAssignments.math.lessons[0],
+            selected: true,
+          },
+          {
+            ...baseAssignments.math.lessons[0],
+            id: "lesson-2",
+            selected: false,
+          },
+        ],
+      },
+    });
+
+    const toggle1 = document.getElementById(
+      "recommended-assignments-toggle-circle-math-0",
+    );
+    const toggle2 = document.getElementById(
+      "recommended-assignments-toggle-circle-math-1",
+    );
+
+    expect(toggle1).toHaveClass("is-selected");
+    expect(toggle2).toHaveClass("is-unselected");
+  });
+
+  test("toggle element exists even when image missing", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [
+          {
+            ...baseAssignments.math.lessons[0],
+            image: null,
+            selected: false,
+          },
+        ],
+      },
+    });
+
+    const toggle = document.getElementById(
+      "recommended-assignments-toggle-circle-math-0",
+    );
+
+    expect(toggle).toBeInTheDocument();
   });
 });

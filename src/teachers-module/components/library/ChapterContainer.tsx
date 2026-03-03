@@ -144,7 +144,25 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                   handleSelectAll();
                 }
               }}
-            />
+            >
+              <span id="chaptercontainer-chapter-select-all-text" className="chaptercontainer-chapter-select-all-text">
+                {t("Select All")}
+              </span>
+              <span
+                id="chaptercontainer-chapter-select-all-icon"
+                className="chaptercontainer-chapter-select-all-icon"
+                aria-hidden="true"
+              >
+                {isAllSelected ? (
+                  <img
+                    src="/assets/icons/checkbox.png"
+                    alt=""
+                    id="chaptercontainer-chapter-select-all-icon-image"
+                    className="chaptercontainer-chapter-select-all-icon-image"
+                  />
+                ) : null}
+              </span>
+            </div>
             <span
               id="chaptercontainer-expand-arrow"
               className={`chaptercontainer-expand-arrow${
@@ -166,29 +184,24 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
               id="chaptercontainer-grid-item"
               className="chaptercontainer-grid-item"
             >
-              <div
-                id="chaptercontainer-bottom-border"
-                className="chaptercontainer-bottom-border"
-              >
-                <LessonComponent
-                  lesson={lesson}
-                  isSelButton={true}
-                  handleLessonCLick={() => {
-                    lessonClickCallBack(lesson);
-                  }}
-                  handleSelect={() => {
-                    handleLessonToggle(lesson.id);
-                  }}
-                  isSelcted={selectedLessons.includes(lesson.id)}
-                  courseCode={courseCode}
-                  isAssigned={
-                    !!showAssignedBadge &&
-                    !!lesson.id &&
-                    !!assignedLessonIds?.has(lesson.id)
-                  }
-                  showAssignedBadge={!!showAssignedBadge}
-                />
-              </div>
+              <LessonComponent
+                lesson={lesson}
+                isSelButton={true}
+                handleLessonCLick={() => {
+                  lessonClickCallBack(lesson);
+                }}
+                handleSelect={() => {
+                  handleLessonToggle(lesson.id);
+                }}
+                isSelcted={selectedLessons.includes(lesson.id)}
+                courseCode={courseCode}
+                isAssigned={
+                  !!showAssignedBadge &&
+                  !!lesson.id &&
+                  !!assignedLessonIds?.has(lesson.id)
+                }
+                showAssignedBadge={!!showAssignedBadge}
+              />
             </div>
           ))}
         </div>

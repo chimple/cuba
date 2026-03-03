@@ -33,6 +33,7 @@
   font-size: 18px;
   margin-top: 8px; /* Space above course name */
   line-height: 1.2;
+  white-space: normal; /* Allow text to wrap */
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 19vw; /* Adjust line-height for better spacing */
