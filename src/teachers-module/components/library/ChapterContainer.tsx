@@ -145,10 +145,11 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }
               }}
             >
-              <span className="chaptercontainer-chapter-select-all-text">
+              <span id="chaptercontainer-chapter-select-all-text" className="chaptercontainer-chapter-select-all-text">
                 {t("Select All")}
               </span>
               <span
+                id="chaptercontainer-chapter-select-all-icon"
                 className="chaptercontainer-chapter-select-all-icon"
                 aria-hidden="true"
               >
@@ -156,6 +157,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                   <img
                     src="/assets/icons/checkbox.png"
                     alt=""
+                    id="chaptercontainer-chapter-select-all-icon-image"
                     className="chaptercontainer-chapter-select-all-icon-image"
                   />
                 ) : null}
