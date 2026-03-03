@@ -35,6 +35,7 @@
 .qrAssignments-lesson-list {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 15vh;
 }
 
 /* Lesson Row */
