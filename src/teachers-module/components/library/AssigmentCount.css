@@ -10,6 +10,8 @@
   font-size: 22px;
   font-weight: bold;
   border-radius: 10px;
+  z-index: 20;
+  overflow: hidden;
 }
 .assignment-count-body {
   display: flex;

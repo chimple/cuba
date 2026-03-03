@@ -1,0 +1,8 @@
+.teacher-recommended-assignments-page {
+  height: 100%;
+  padding: 0px 0px 120px 0px;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background-color: white;
+  overflow-y: scroll;
+}

@@ -1,0 +1,98 @@
+.recommended-assignments-add-more-btn {
+  background: white;
+  color: grey;
+  border: 1px solid rgb(124, 93, 176);
+  border-radius: 5px;
+  padding: 6px;
+  font-weight: bold;
+}
+.recommended-assignments-selected-count {
+  background: #e38f98;
+  border-radius: 5px;
+  padding: 0px 8px;
+  color: white;
+}
+.recommended-assignments-subject-header-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2vw;
+  font-weight: bold;
+}
+.recommended-assignments-render-subject {
+  margin-bottom: 20px;
+}
+.recommended-assignments-subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0px 5px;
+  background-color: #f3edff;
+  border-radius: 10px;
+  padding: 5px 5px;
+  gap: 5px;
+  margin-top: 25px;
+}
+.recommended-assignments-list-item-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 16px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
+}
+.recommended-assignments-list-item-checkbox:checked {
+  background-color: #4caf50; /* Green fill when checked */
+}
+.recommended-assignments-list-item-checkbox {
+  -webkit-appearance: none; /* Remove default styles */
+  -moz-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 27px;
+  border: 2px solid #4caf50;
+  border-radius: 50%; /* Circular shape */
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+.recommended-assignments-list-item-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 60vw;
+  color: #707070;
+  text-align: center;
+}
+.recommended-assignments-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0vw 5vw;
+  border-bottom: 2px solid #eff2f4;
+}
+.recommended-assignments-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  padding: 0;
+  box-sizing: border-box;
+  font-size: 24px;
+  color: #ccc;
+}
+
+.recommended-assignments-checkbox.selected {
+  color: #019541;
+}
+.recommended-assignments-subject-name {
+  color: #707070;
+}

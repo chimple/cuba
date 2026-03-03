@@ -88,20 +88,24 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse, SchoolNote } from "../../interface/modelInterfaces";
+import {
+  PaginatedResponse,
+  SchoolNote,
+  StickerBook,
+  UserStickerProgress,
+} from "../../interface/modelInterfaces";
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
 import { runBackgroundWorkerTask } from "../../workers/backgroundWorkerClient";
 import { PrepareSyncBatchesResult } from "../../workers/background.worker.types";
-
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 11;
+  private DB_VERSION = 12;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -822,12 +826,12 @@ export class SqliteApi implements ServiceApi {
             user_id: _currentUser?.id,
             ...mutate?.error,
           });
-           if (mutate?.error?.code === "23505" || mutate?.status === 409) {
-              console.log("🟢 Duplicate key ignored (already exists on server)");
-            } else {
-              console.log("🔴 Real push error:", mutate?.error);
-              return false;
-            }
+          if (mutate?.error?.code === "23505" || mutate?.status === 409) {
+            console.log("🟢 Duplicate key ignored (already exists on server)");
+          } else {
+            console.log("🔴 Real push error:", mutate?.error);
+            return false;
+          }
         }
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
@@ -849,54 +853,59 @@ export class SqliteApi implements ServiceApi {
     is_sync_immediate: boolean = true,
   ) {
     if (!this._db) return;
-     // 🔒 LOCK
-  if (this._syncInProgress) {
-    console.log("🟡 Sync already running → scheduling another run");
-    this._syncRequestedAgain = true;
-    return true;
-  }
-   this._syncInProgress = true;
-  try{
+    // 🔒 LOCK
+    if (this._syncInProgress) {
+      console.log("🟡 Sync already running → scheduling another run");
+      this._syncRequestedAgain = true;
+      return true;
+    }
+    this._syncInProgress = true;
+    try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
-    await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
-    );
-    const tablePullSync = await this.executeQuery(
-      `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`,
-    );
-    const lastUserUpdatedStr =
-      tablePullSync?.values?.[0]?.last_pulled ?? "2024-01-01 00:00:00";
-
-    const lastUserUpdated = new Date(lastUserUpdatedStr);
-    const now = new Date();
-    const diffMs = now.getTime() - lastUserUpdated.getTime();
-    const diffMinutes = diffMs / (1000 * 60);
-    if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
-      await this.pullChanges(tableNames, isFirstSync);
-      const res = await this.pushChanges(Object.values(TABLES));
-      const tables = "'" + tableNames.join("', '") + "'";
-      // console.log("logs to check synced tables1", JSON.stringify(tables));
-      const currentTimestamp = new Date();
-      const reducedTimestamp = new Date(currentTimestamp); // clone it
-      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-      const formattedTimestamp = reducedTimestamp.toISOString();
-      this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
+      console.log(
+        "logs to check synced tables",
+        JSON.stringify(refresh_tables),
       );
-      return res;
-    }
-  }finally{
-    this._syncInProgress = false;
-    if (this._syncRequestedAgain) {
-      console.log("🔁 Running sync again because changes happened during sync");
-      this._syncRequestedAgain = false;
+      await this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
+      );
+      const tablePullSync = await this.executeQuery(
+        `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`,
+      );
+      const lastUserUpdatedStr =
+        tablePullSync?.values?.[0]?.last_pulled ?? "2024-01-01 00:00:00";
 
-      setTimeout(()=>{
-        this.syncDbNow();
-      },0)
+      const lastUserUpdated = new Date(lastUserUpdatedStr);
+      const now = new Date();
+      const diffMs = now.getTime() - lastUserUpdated.getTime();
+      const diffMinutes = diffMs / (1000 * 60);
+      if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
+        await this.pullChanges(tableNames, isFirstSync);
+        const res = await this.pushChanges(Object.values(TABLES));
+        const tables = "'" + tableNames.join("', '") + "'";
+        // console.log("logs to check synced tables1", JSON.stringify(tables));
+        const currentTimestamp = new Date();
+        const reducedTimestamp = new Date(currentTimestamp); // clone it
+        reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+        const formattedTimestamp = reducedTimestamp.toISOString();
+        this.executeQuery(
+          `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
+        );
+        return res;
+      }
+    } finally {
+      this._syncInProgress = false;
+      if (this._syncRequestedAgain) {
+        console.log(
+          "🔁 Running sync again because changes happened during sync",
+        );
+        this._syncRequestedAgain = false;
+
+        setTimeout(() => {
+          this.syncDbNow();
+        }, 0);
+      }
     }
-  }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
   }
 
@@ -2429,7 +2438,6 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
-
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2549,28 +2557,28 @@ export class SqliteApi implements ServiceApi {
 
     let starsEarned = 0;
     if (isAssessment) {
-    const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
-    const awarded = sessionStorage.getItem(assessmentKey) === "true";
-    if (!awarded) {
-      starsEarned = 3;
-      sessionStorage.setItem(assessmentKey, "true");
-    }
+      const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
+      const awarded = sessionStorage.getItem(assessmentKey) === "true";
+      if (!awarded) {
+        starsEarned = 3;
+        sessionStorage.setItem(assessmentKey, "true");
+      }
     } else {
       if (score > 25) starsEarned++;
       if (score > 50) starsEarned++;
       if (score > 75) starsEarned++;
     }
 
-      if (starsEarned > 0) {
-        const latestStarsKey = LATEST_STARS(student.id);
-        const currentLocalStars = parseInt(
-          localStorage.getItem(latestStarsKey) || "0"
-        );
-        localStorage.setItem(
-          latestStarsKey,
-          (currentLocalStars + starsEarned).toString(),
-        );
-      }
+    if (starsEarned > 0) {
+      const latestStarsKey = LATEST_STARS(student.id);
+      const currentLocalStars = parseInt(
+        localStorage.getItem(latestStarsKey) || "0",
+      );
+      localStorage.setItem(
+        latestStarsKey,
+        (currentLocalStars + starsEarned).toString(),
+      );
+    }
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
 
@@ -2581,13 +2589,12 @@ export class SqliteApi implements ServiceApi {
     // Fetch fresh value only for star calculation
     const latestUserForStars = await this.getUserByDocId(student.id);
     const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
-      const latestLocalStarsForStudent = parseInt(
-        localStorage.getItem(LATEST_STARS(student.id)) || "0"
-      );
+    const latestLocalStarsForStudent = parseInt(
+      localStorage.getItem(LATEST_STARS(student.id)) || "0",
+    );
     const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
     query += `stars =  ? WHERE id = ?;`;
     params.push(finalStarsToSet, student.id);
-
 
     await this.executeQuery(query, params);
 
@@ -2901,7 +2908,6 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string,
   ): Promise<TableTypes<"user">> {
-
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
 
@@ -4121,7 +4127,9 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+  async getAssignmentsByIds(
+    ids: string[],
+  ): Promise<TableTypes<"assignment">[]> {
     if (!ids.length) return [];
 
     const idslst = ids.map(() => "?").join(", ");
@@ -5537,7 +5545,11 @@ order by
         AND is_deleted = 0; 
     `;
 
-    const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
+    const res = await this._db?.query(query, [
+      classId,
+      courseId,
+      ...chapterIds,
+    ]);
     if (!res?.values?.length) return [];
 
     return res.values
@@ -6036,19 +6048,19 @@ order by
     starsCount: number,
     is_immediate_sync?: boolean,
   ): Promise<void> {
-      if (!studentId) return;
-      try {
-        const be = await this.getUserByDocId(studentId);
-        const latestStarsKey = LATEST_STARS(studentId);
-        const currentLocalStars = parseInt(
-          localStorage.getItem(latestStarsKey) || "0",
-          10,
-        );
+    if (!studentId) return;
+    try {
+      const be = await this.getUserByDocId(studentId);
+      const latestStarsKey = LATEST_STARS(studentId);
+      const currentLocalStars = parseInt(
+        localStorage.getItem(latestStarsKey) || "0",
+        10,
+      );
 
-        const nextLocalStars = currentLocalStars + starsCount;
-        console.log("zuzu 2", { studentId, stars: nextLocalStars });
+      const nextLocalStars = currentLocalStars + starsCount;
+      console.log("zuzu 2", { studentId, stars: nextLocalStars });
 
-        localStorage.setItem(latestStarsKey, nextLocalStars.toString());
+      localStorage.setItem(latestStarsKey, nextLocalStars.toString());
 
       await this.executeQuery(
         `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
@@ -6092,7 +6104,7 @@ order by
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
@@ -6106,9 +6118,12 @@ order by
       const latestPathToSave = {
         studentId: student.id,
         learningPath,
-        updated_at:  new Date(Date.now() + 10000).toISOString()
-      }
-      sessionStorage.setItem(LATEST_LEARNING_PATH, JSON.stringify(latestPathToSave))
+        updated_at: new Date(Date.now() + 10000).toISOString(),
+      };
+      sessionStorage.setItem(
+        LATEST_LEARNING_PATH,
+        JSON.stringify(latestPathToSave),
+      );
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
@@ -6841,8 +6856,8 @@ order by
   async mergeStudentRequest(
     existingStudentId: string,
     newStudentId: string,
-    requestId?: string |undefined,
-    respondedBy?:  string |undefined,
+    requestId?: string | undefined,
+    respondedBy?: string | undefined,
   ): Promise<void> {
     if (!this._db) {
       throw new Error("SQLite DB not initialized.");
@@ -7247,33 +7262,66 @@ order by
     searchTerm: string,
     page: number,
     limit: number,
+    classId?: string,
   ): Promise<{ data: any[]; total: number }> {
     if (!this._db) return { data: [], total: 0 };
-    // Build query for multi-field search
-    let whereClause = `cu.role = 'student' AND cu.is_deleted = 0 AND c.school_id = ?`;
+    let whereClause = `
+    cu.role = 'student'
+    AND cu.is_deleted = 0
+    AND c.school_id = ?
+  `;
     let params: any[] = [schoolId];
+    // ✅ ADD CLASS FILTER ONLY IF classId EXISTS
+    if (classId) {
+      whereClause += ` AND cu.class_id = ?`;
+      params.push(classId);
+    }
+    // ✅ SEARCH FILTER
     if (searchTerm && searchTerm.trim() !== "") {
-      whereClause += ` AND (u.name LIKE ? OR u.student_id LIKE ? OR u.phone LIKE ?)`;
+      whereClause += `
+      AND (
+        u.name LIKE ?
+        OR u.student_id LIKE ?
+        OR u.phone LIKE ?
+      )
+    `;
       const likeTerm = `%${searchTerm}%`;
       params.push(likeTerm, likeTerm, likeTerm);
     }
     const offset = (page - 1) * limit;
-    // Get total count
-    const countQuery = `SELECT COUNT(*) as total FROM class_user cu JOIN user u ON cu.user_id = u.id JOIN class c ON cu.class_id = c.id WHERE ${whereClause}`;
+    // ✅ COUNT QUERY
+    const countQuery = `
+    SELECT COUNT(*) as total
+    FROM class_user cu
+    JOIN user u ON cu.user_id = u.id
+    JOIN class c ON cu.class_id = c.id
+    WHERE ${whereClause}
+  `;
     const countResult = await this._db.query(countQuery, params);
     const total = countResult?.values?.[0]?.total ?? 0;
-    // Get paginated data
+    // ✅ DATA QUERY
     const query = `
-      SELECT u.id, u.name, u.student_id, u.phone, cu.class_id, c.name as class_name, pu.parent_id, p.name as parent_name
-      FROM class_user cu
-      JOIN user u ON cu.user_id = u.id
-      JOIN class c ON cu.class_id = c.id
-      LEFT JOIN parent_user pu ON pu.student_id = u.id AND pu.is_deleted = 0
-      LEFT JOIN user p ON pu.parent_id = p.id
-      WHERE ${whereClause}
-      ORDER BY u.name
-      LIMIT ? OFFSET ?
-    `;
+    SELECT 
+      u.id,
+      u.name,
+      u.student_id,
+      u.phone,
+      cu.class_id,
+      c.name as class_name,
+      pu.parent_id,
+      p.name as parent_name
+    FROM class_user cu
+    JOIN user u ON cu.user_id = u.id
+    JOIN class c ON cu.class_id = c.id
+    LEFT JOIN parent_user pu 
+      ON pu.student_id = u.id 
+      AND pu.is_deleted = 0
+    LEFT JOIN user p 
+      ON pu.parent_id = p.id
+    WHERE ${whereClause}
+    ORDER BY u.name
+    LIMIT ? OFFSET ?
+  `;
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
   }
@@ -7882,7 +7930,7 @@ order by
   }
   async getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">
+    student?: TableTypes<"user">,
   ): Promise<TableTypes<"subject_lesson">> {
     if (!student) return {} as TableTypes<"subject_lesson">;
     const studentId = student.id;
@@ -7909,8 +7957,8 @@ order by
       const setNumber = setRows[randomIndex].set_number;
 
       /* ==========================================
-      * 3️⃣ Abort Check (with assignment_id IS NULL)
-      * ========================================== */
+       * 3️⃣ Abort Check (with assignment_id IS NULL)
+       * ========================================== */
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -7946,8 +7994,8 @@ order by
       }
 
       /* ==========================================
-      * 4️⃣ Fetch ONLY pending lessons from set
-      * ========================================== */
+       * 4️⃣ Fetch ONLY pending lessons from set
+       * ========================================== */
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
@@ -7979,7 +8027,9 @@ order by
       ]);
 
       const pendingLessons = (lessonRes as any)?.values ?? [];
-      return pendingLessons.length ? pendingLessons[0] : {} as TableTypes<"subject_lesson">;
+      return pendingLessons.length
+        ? pendingLessons[0]
+        : ({} as TableTypes<"subject_lesson">);
     } catch (error) {
       console.error(
         "❌ Error fetching subject lessons by subject (SQL):",
@@ -8060,15 +8110,15 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId?: string
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
     const langId = student.language_id;
 
     /* ==========================================
-    * Get latest valid assessment batch
-    * ========================================== */
+     * Get latest valid assessment batch
+     * ========================================== */
     const latestBatchQuery = `
       SELECT a.batch_id
       FROM assignment a
@@ -8109,9 +8159,9 @@ order by
     if (!latestBatchId) return [];
 
     /* ==========================================
-    * Check if batch is ABORTED
-    * (2 consecutive system_exit results)
-    * ========================================== */
+     * Check if batch is ABORTED
+     * (2 consecutive system_exit results)
+     * ========================================== */
     const abortCheckQuery = `
     SELECT assignment_id, status
     FROM (
@@ -8147,11 +8197,10 @@ order by
       return [];
     }
 
-
     /* ==========================================
-    * Get only INCOMPLETE assignments
-    * from that latest batch
-    * ========================================== */
+     * Get only INCOMPLETE assignments
+     * from that latest batch
+     * ========================================== */
     const assignmentsQuery = `
       SELECT a.*
       FROM assignment a
@@ -8217,8 +8266,8 @@ order by
     `;
 
     const res = await this._db?.query(assignmentsQuery);
-    const pendingAssignments =
-      (res?.values ?? []) as TableTypes<"assignment">[];
+    const pendingAssignments = (res?.values ??
+      []) as TableTypes<"assignment">[];
 
     return pendingAssignments.length ? pendingAssignments : [];
   }
@@ -8251,5 +8300,89 @@ order by
     members: number;
   } | null> {
     throw new Error("Method not implemented.");
+  }
+
+  async getAssignmentInfoForLessonsPerClass(
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    if (!lessonIds?.length) return [];
+
+    const placeholders = lessonIds.map(() => "?").join(", ");
+
+    const query = `
+    SELECT DISTINCT lesson_id
+    FROM ${TABLES.Assignment}
+    WHERE class_id = ?
+      AND lesson_id IN (${placeholders})
+      AND is_deleted = 0;
+  `;
+
+    const res = await this._db?.query(query, [classId, ...lessonIds]);
+
+    if (!res?.values?.length) return [];
+
+    return res.values
+      .map((row: any) => row.lesson_id as string | undefined)
+      .filter((id): id is string => Boolean(id));
+  }
+
+  // ================================
+  // STICKER BOOK (Server Delegation)
+  // ================================
+
+  async getAllStickerBooks(): Promise<StickerBook[]> {
+    return await this._serverApi.getAllStickerBooks();
+  }
+
+  async getCurrentStickerBookWithProgress(userId: string): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+  }
+
+  async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
+    return await this._serverApi.getUserWonStickerBooks(userId);
+  }
+
+  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
+    return await this._serverApi.getNextWinnableSticker(stickerBookId);
+  }
+
+  async updateStickerWon(
+    stickerBookId: string,
+    stickerId: string,
+  ): Promise<void> {
+    return await this._serverApi.updateStickerWon(stickerBookId, stickerId);
+  }
+  async isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean> {
+    try {
+      const res = await this._db?.query(
+        `
+      SELECT id
+      FROM ${TABLES.Assignment}
+      WHERE school_id = ?
+        AND class_id = ?
+        AND course_id = ?
+        AND chapter_id = ?
+        AND lesson_id = ?
+        AND is_deleted = 0
+      LIMIT 1
+      `,
+        [schoolId, classId, courseId, chapterId, lessonId],
+      );
+
+      return !!(res?.values && res.values.length > 0);
+    } catch (error) {
+      console.error("Error checking existing assignment:", error);
+      return false;
+    }
   }
 }

@@ -15,6 +15,8 @@ def save_json(path, data):
         json.dump(data, f, ensure_ascii=False)
 
 def parse_csv_value(value, column_name):
+    if value is None:
+        return None
     # Handle booleans for integer columns (like is_deleted)
     if column_name == 'is_deleted':
         if value.lower() == 'true': return 1

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2015 Chimple
  *
@@ -75,9 +74,9 @@ import {
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
- GENERIC_POP_UP,
- SEARCH_LESSON_CACHE_KEY,
- SEARCH_LESSON_HISTORY,
+  GENERIC_POP_UP,
+  SEARCH_LESSON_CACHE_KEY,
+  SEARCH_LESSON_HISTORY,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -170,6 +169,8 @@ import {
 } from "@mui/material";
 
 import PostSuccess from "./teachers-module/pages/PostSuccess";
+import QRAssignments from "./teachers-module/components/homePage/assignment/QRAssignments";
+import TeacherRecommendedAssignments from "./teachers-module/components/homePage/assignment/TeacherRecommendedAssignments";
 
 setupIonicReact();
 interface ExtraData {
@@ -207,7 +208,7 @@ const App: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
-    HOMEWORK_REMOTE_ASSETS_ENABLED
+    HOMEWORK_REMOTE_ASSETS_ENABLED,
   );
 
   const popupDataRef = useRef<any>(null);
@@ -224,32 +225,31 @@ const App: React.FC = () => {
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
   const homeworkPathwayAssets: any = useFeatureValue(
     HOMEWORK_PATHWAY_ASSETS,
-    {}
+    {},
   );
 
-const OpsConsoleRouteWatcher = () => {
-  const location = useLocation();
+  const OpsConsoleRouteWatcher = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+      const isOpsConsoleRoute = location.pathname.includes(PAGES.SIDEBAR_PAGE);
+
+      if (isOpsConsoleRoute) {
+        document.body.classList.add("ops-console");
+      } else {
+        document.body.classList.remove("ops-console");
+      }
+
+      return () => {
+        document.body.classList.remove("ops-console");
+      };
+    }, [location.pathname]);
+
+    return null;
+  };
 
   useEffect(() => {
-    const isOpsConsoleRoute =
-      location.pathname.includes(PAGES.SIDEBAR_PAGE);
-
-    if (isOpsConsoleRoute) {
-      document.body.classList.add("ops-console");
-    } else {
-      document.body.classList.remove("ops-console");
-    }
-
-    return () => {
-      document.body.classList.remove("ops-console");
-    };
-  }, [location.pathname]);
-
-  return null;
-};
-
-useEffect(() => {
-  // this event listener is to remove the highlighted text(if exists) on a click
+    // this event listener is to remove the highlighted text(if exists) on a click
     const handleClick = () => {
       const sel = window.getSelection();
       if (sel && !sel.isCollapsed) {
@@ -262,58 +262,54 @@ useEffect(() => {
     return () => {
       document.removeEventListener("click", handleClick);
     };
-}, []);
-
-useEffect(() => {
-  if (!growthbook) return;
-
-  const popupConfig = growthbook.getFeatureValue(
-    GENERIC_POP_UP,
-    null
-  ) as any;
-
-  if (!popupConfig) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const currentTab = params.get("tab");
-
-  // console.log("POPUP CHECK");
-  // console.log("tab from URL:", currentTab);
-  // console.log("screen_name from GB:", popupConfig.screen_name);
-
-  if (
-    currentTab &&
-    popupConfig.screen_name &&
-    currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
-  ) {
-    PopupManager.onAppOpen(popupConfig);
-    PopupManager.onTimeElapsed(popupConfig);
-  }
-}, [growthbook, window.location.search]);
-
-useLayoutEffect(() => {
-  const handler = (e: any) => {
-    console.log("POPUP EVENT RECEIVED:", e.detail);
-    setPopupData(e.detail);
-  };
-
-  window.addEventListener(SHOW_GENERIC_POPUP, handler);
-
-  return () => {
-    window.removeEventListener(SHOW_GENERIC_POPUP, handler);
-  };
-}, []);
+  }, []);
 
   useEffect(() => {
-  const handler = (e: any) => {
-    console.log("POPUP EVENT:", e.detail);
-    setPopupData(e.detail);
-  };
+    if (!growthbook) return;
 
-  window.addEventListener(SHOW_GENERIC_POPUP, handler);
-  return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
-}, []);
+    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
 
+    if (!popupConfig) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const currentTab = params.get("tab");
+
+    // console.log("POPUP CHECK");
+    // console.log("tab from URL:", currentTab);
+    // console.log("screen_name from GB:", popupConfig.screen_name);
+
+    if (
+      currentTab &&
+      popupConfig.screen_name &&
+      currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
+    ) {
+      PopupManager.onAppOpen(popupConfig);
+      PopupManager.onTimeElapsed(popupConfig);
+    }
+  }, [growthbook, window.location.search]);
+
+  useLayoutEffect(() => {
+    const handler = (e: any) => {
+      console.log("POPUP EVENT RECEIVED:", e.detail);
+      setPopupData(e.detail);
+    };
+
+    window.addEventListener(SHOW_GENERIC_POPUP, handler);
+
+    return () => {
+      window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      console.log("POPUP EVENT:", e.detail);
+      setPopupData(e.detail);
+    };
+
+    window.addEventListener(SHOW_GENERIC_POPUP, handler);
+    return () => window.removeEventListener(SHOW_GENERIC_POPUP, handler);
+  }, []);
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -386,12 +382,12 @@ useLayoutEffect(() => {
         learningPathAssets?.asset_repo_url,
         learningPathAssets?.uniqueId,
         "remoteAsset", // The destination folder
-        "Learning Path" // The asset type for logging
+        "Learning Path", // The asset type for logging
       );
     }
     localStorage.setItem(
       SHOULD_SHOW_REMOTE_ASSETS,
-      JSON.stringify(shouldShowRemoteAssets)
+      JSON.stringify(shouldShowRemoteAssets),
     );
 
     if (shouldShowHomeworkRemoteAssets) {
@@ -399,20 +395,24 @@ useLayoutEffect(() => {
         homeworkPathwayAssets?.asset_repo_url,
         homeworkPathwayAssets?.uniqueId,
         "homeworkRemoteAsset", // The DIFFERENT destination folder
-        "Homework" // The asset type for logging
+        "Homework", // The asset type for logging
       );
     }
     localStorage.setItem(
       SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
-      JSON.stringify(shouldShowHomeworkRemoteAssets)
+      JSON.stringify(shouldShowHomeworkRemoteAssets),
     );
 
     try {
       Filesystem.mkdir({
         path: CACHE_IMAGE,
         directory: Directory.Cache,
-      }).catch((e) => {throw new Error("Error in creating directory for cache");});
-    } catch (e) { console.log("Error in creating directory for cache"); }
+      }).catch((e) => {
+        throw new Error("Error in creating directory for cache");
+      });
+    } catch (e) {
+      console.log("Error in creating directory for cache");
+    }
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -455,7 +455,7 @@ useLayoutEffect(() => {
   const calculateUsedTime = () => {
     const currentTime = Date.now();
     const startTime = Number(
-      localStorage.getItem(START_TIME_KEY) || currentTime
+      localStorage.getItem(START_TIME_KEY) || currentTime,
     ); // Use current time if startTime is missing
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
@@ -614,6 +614,9 @@ useLayoutEffect(() => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.PARENT} exact={true}>
               <Parent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.QR_ASSIGNMENTS} exact={true}>
+              <QRAssignments />
             </ProtectedRoute>
             {/* <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
               <AppLangSelection />
@@ -775,6 +778,12 @@ useLayoutEffect(() => {
               <SchoolList />
             </ProtectedRoute>
             <ProtectedRoute
+              path={PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS}
+              exact={true}
+            >
+              <TeacherRecommendedAssignments />
+            </ProtectedRoute>
+            <ProtectedRoute
               path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
               exact={true}
             >
@@ -835,7 +844,7 @@ useLayoutEffect(() => {
           </DialogTitle>
           <DialogContent sx={{ textAlign: "center" }}>
             {t(
-              "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+              "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!",
             ) || ""}
           </DialogContent>
           <DialogActions sx={{ justifyContent: "center" }}>
@@ -864,25 +873,23 @@ useLayoutEffect(() => {
         />
       </IonReactRouter>
       {popupData && (
-  <GenericPopup
-    thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
-    backgroundImageUrl={popupData.localized.backgroundImageUrl}
-    heading={popupData.localized.heading}
-    subHeading={popupData.localized.subHeading}
-    details={popupData.localized.details}
-    buttonText={popupData.localized.buttonText}
-    onClose={() => {
-      PopupManager.onDismiss(popupData.config);
-      setPopupData(null);
-    }}
-    onAction={() => {
-      PopupManager.onAction(popupData.config);
-      setPopupData(null);
-    }}
-  />
-)}
-
-
+        <GenericPopup
+          thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
+          backgroundImageUrl={popupData.localized.backgroundImageUrl}
+          heading={popupData.localized.heading}
+          subHeading={popupData.localized.subHeading}
+          details={popupData.localized.details}
+          buttonText={popupData.localized.buttonText}
+          onClose={() => {
+            PopupManager.onDismiss(popupData.config);
+            setPopupData(null);
+          }}
+          onAction={() => {
+            PopupManager.onAction(popupData.config);
+            setPopupData(null);
+          }}
+        />
+      )}
     </IonApp>
   );
 };

@@ -48,6 +48,7 @@ const HomePage: React.FC = () => {
   const initialTab = location.state?.tabValue ?? 0;
   const [tabValue, setTabValue] = useState<number>(initialTab);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
+  const [autoStartScan, setAutoStartScan] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
     null,
   );
@@ -145,14 +146,22 @@ const HomePage: React.FC = () => {
                 setShowAssignOptionsScreen(true);
                 setTabValue(1);
               }}
-              onScanQrClick={() => setShowAssignOptionsScreen(false)}
-              onRecommendedClick={() => setShowAssignOptionsScreen(false)}
+              onScanQrClick={() => {
+                setShowAssignOptionsScreen(false);
+                setAutoStartScan(true);
+              }}
+              onRecommendedClick={() => {
+                history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
+                setShowAssignOptionsScreen(false);
+              }}
             />
           );
         }
         return (
           <TeacherAssignment
             key={key}
+            autoStartScan={autoStartScan}
+            onScanHandled={() => setAutoStartScan(false)}
             onLibraryClick={() => {
               setShowAssignOptionsScreen(true);
               setTabValue(1);
@@ -236,6 +245,7 @@ const HomePage: React.FC = () => {
     history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
   };
   const isLibraryTab = tabValue === 1;
+  const footerTabValue = tabValue === 1 ? 2 : tabValue;
   return (
     <div className="main-container" key={renderKey}>
       <Header
@@ -247,18 +257,16 @@ const HomePage: React.FC = () => {
         showSideMenu={!isLibraryTab}
         customText={isLibraryTab ? "Library" : ""}
         onBackButtonClick={isLibraryTab ? handleLibraryBack : undefined}
-        showSearchIcon={isLibraryTab && !isOpsUser} 
+        showSearchIcon={isLibraryTab && !isOpsUser}
         onSearchIconClick={
-          isLibraryTab
-            ? () => history.replace(PAGES.SEARCH_LESSON)
-            : undefined
+          isLibraryTab ? () => history.replace(PAGES.SEARCH_LESSON) : undefined
         }
         onShareClick={tabValue === 3 ? handleShare : undefined}
       />
       <main className="home-container-body">{renderComponent()}</main>
       <footer className="container-footer">
         <BottomNavigation
-          value={tabValue}
+          value={footerTabValue}
           onChange={handleChange}
           className="homepage-bottom-nav"
           showLabels
@@ -271,7 +279,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 0
+                  footerTabValue === 0
                     ? "assets/icons/homeSelected.png"
                     : "assets/icons/home.png"
                 }
@@ -300,7 +308,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 2
+                  footerTabValue === 2
                     ? "assets/icons/assignmentSelected.png"
                     : "assets/icons/assignmentfooter.png"
                 }
@@ -316,7 +324,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 3
+                  footerTabValue === 3
                     ? "assets/icons/reportSelected.png"
                     : "assets/icons/report.png"
                 }
@@ -331,7 +339,7 @@ const HomePage: React.FC = () => {
               <img
                 className="footerIcons"
                 src={
-                  tabValue === 4
+                  footerTabValue === 4
                     ? "assets/icons/aiSelected.png"
                     : "assets/icons/ai.png"
                 }
