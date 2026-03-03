@@ -98,6 +98,8 @@ import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
+import { runBackgroundWorkerTask } from "../../workers/backgroundWorkerClient";
+import { PrepareSyncBatchesResult } from "../../workers/background.worker.types";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -576,43 +578,95 @@ export class SqliteApi implements ServiceApi {
       );
     }
     const lastPulled = new Date().toISOString();
-    // let batchQueries: { statement: string; values: any[] }[] = [];
+    const tablesForWorker: Record<string, any[]> = {};
+    const tableColumnsByName: Record<string, string[]> = {};
     for (const tableName of orderedTableNames) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
-
       const existingColumns = await this.getTableColumns(tableName);
       if (!existingColumns || existingColumns.length === 0) continue;
+      tablesForWorker[tableName] = tableData;
+      tableColumnsByName[tableName] = existingColumns;
+    }
 
-      const isUserTable = tableName === TABLES.User;
-      const BATCH_SIZE = isUserTable ? tableData.length : 100;
-      let batchQueries: { statement: string; values: any[] }[] = [];
+    let preparedBatches: PrepareSyncBatchesResult | undefined;
+    try {
+      preparedBatches = await runBackgroundWorkerTask("PREPARE_SYNC_BATCHES", {
+        tables: tablesForWorker,
+        tableColumns: tableColumnsByName,
+        defaultBatchSize: 100,
+        userTableName: TABLES.User,
+        userTableBatchSize: Number.MAX_SAFE_INTEGER,
+      });
+    } catch (workerError) {
+      console.warn(
+        "Falling back to main-thread sync batch generation after worker failure:",
+        workerError,
+      );
+    }
 
-      for (const row of tableData) {
-        const fieldNames = Object.keys(row).filter((f) =>
-          existingColumns.includes(f),
-        );
-        if (fieldNames.length === 0) continue;
+    for (const tableName of orderedTableNames) {
+      const tableData = data.get(tableName) ?? [];
+      if (tableData.length === 0) continue;
+      const existingColumns = tableColumnsByName[tableName] ?? [];
+      if (!existingColumns.length) continue;
 
-        const fieldValues = fieldNames.map((f) => row[f]);
-        const placeholders = fieldNames.map(() => "?").join(", ");
-        const updateSetClause = fieldNames
-          .filter((f) => f !== "id")
-          .map((f) => `${f} = excluded.${f}`)
-          .join(", ");
+      const workerTableBatches =
+        preparedBatches?.tableBatches?.[tableName] ?? undefined;
 
-        const stmt = `
-          INSERT INTO ${tableName} (${fieldNames.join(", ")})
-          VALUES (${placeholders})
-          ON CONFLICT(id) DO UPDATE SET
-          ${updateSetClause}
-          WHERE excluded.updated_at > ${tableName}.updated_at;
-          `;
+      if (workerTableBatches && workerTableBatches.length > 0) {
+        for (const queryBatch of workerTableBatches) {
+          if (Capacitor.getPlatform() === "web") {
+            for (const q of queryBatch) {
+              await this._db.run(q.statement, q.values);
+            }
+            await this._sqlite?.saveToStore(this.DB_NAME);
+          } else {
+            await this._db.executeSet(queryBatch);
+          }
+        }
+      } else {
+        const isUserTable = tableName === TABLES.User;
+        const BATCH_SIZE = isUserTable ? tableData.length : 100;
+        let batchQueries: { statement: string; values: any[] }[] = [];
 
-        batchQueries.push({ statement: stmt, values: fieldValues });
+        for (const row of tableData) {
+          const fieldNames = Object.keys(row).filter((f) =>
+            existingColumns.includes(f),
+          );
+          if (fieldNames.length === 0) continue;
 
-        // flush early
-        if (batchQueries.length >= BATCH_SIZE) {
+          const fieldValues = fieldNames.map((f) => row[f]);
+          const placeholders = fieldNames.map(() => "?").join(", ");
+          const updateSetClause = fieldNames
+            .filter((f) => f !== "id")
+            .map((f) => `${f} = excluded.${f}`)
+            .join(", ");
+
+          const stmt = `
+            INSERT INTO ${tableName} (${fieldNames.join(", ")})
+            VALUES (${placeholders})
+            ON CONFLICT(id) DO UPDATE SET
+            ${updateSetClause}
+            WHERE excluded.updated_at > ${tableName}.updated_at;
+            `;
+
+          batchQueries.push({ statement: stmt, values: fieldValues });
+
+          if (batchQueries.length >= BATCH_SIZE) {
+            if (Capacitor.getPlatform() === "web") {
+              for (const q of batchQueries) {
+                await this._db.run(q.statement, q.values);
+              }
+              await this._sqlite?.saveToStore(this.DB_NAME);
+            } else {
+              await this._db.executeSet(batchQueries);
+            }
+            batchQueries = [];
+          }
+        }
+
+        if (batchQueries.length > 0) {
           if (Capacitor.getPlatform() === "web") {
             for (const q of batchQueries) {
               await this._db.run(q.statement, q.values);
@@ -621,23 +675,9 @@ export class SqliteApi implements ServiceApi {
           } else {
             await this._db.executeSet(batchQueries);
           }
-          batchQueries = [];
         }
       }
 
-      // flush leftovers
-      if (batchQueries.length > 0) {
-        if (Capacitor.getPlatform() === "web") {
-          for (const q of batchQueries) {
-            await this._db.run(q.statement, q.values);
-          }
-          await this._sqlite?.saveToStore(this.DB_NAME);
-        } else {
-          await this._db.executeSet(batchQueries);
-        }
-      }
-
-      // update sync timestamp per table
       await this.executeQuery(
         `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         [tableName, lastPulled],
@@ -653,8 +693,9 @@ export class SqliteApi implements ServiceApi {
         filteredObject[key] = value; // include only non-empty arrays
       }
     }
-    const jsonString = JSON.stringify(filteredObject);
-    const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
+    const pulledRowsSizeInBytes =
+      preparedBatches?.payloadSizeBytes ??
+      new TextEncoder().encode(JSON.stringify(filteredObject)).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
     // if (batchQueries.length > 0) {
     //   try {

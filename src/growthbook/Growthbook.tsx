@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
+import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -24,18 +25,17 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
   const [gbUpdated, setGbUpdated] = useState(true);
 
   useEffect(() => {
-    if (gbUpdated) {
-      const storedAttributes = localStorage.getItem(GrowthBookAttributes);
-      if (storedAttributes) {
-        const attributes = JSON.parse(storedAttributes);
-        setGrowthbookAttributes(attributes);
-      } else {
-        setGbUpdated(false);
-      }
+    if (!gbUpdated) return;
+    const storedAttributes = localStorage.getItem(GrowthBookAttributes);
+    if (!storedAttributes) {
+      setGbUpdated(false);
+      return;
     }
+    const attributes = JSON.parse(storedAttributes);
+    setGrowthbookAttributes(attributes);
   }, [gbUpdated])
 
-  const setGrowthbookAttributes = (attributes: any) => {
+  const buildAttributesOnMainThread = (attributes: any) => {
     const {
       studentDetails,
       schools,
@@ -74,7 +74,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
 
     const totalAssignments = count_of_assignment_played + assignmentCount;
 
-    growthbook.setAttributes({
+    return {
       id: studentDetails?.id,
       age: studentDetails?.age,
       curriculum_id: studentDetails?.curriculum_id,
@@ -120,7 +120,22 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       teacher_class_ids,
       ...roleMap,
       ...courseCounts,
+    };
+  };
+
+  const setGrowthbookAttributes = async (attributes: any) => {
+    const language = localStorage.getItem(LANGUAGE) || "en";
+    const preparedAttributes = await runBackgroundWorkerTask(
+      "PREPARE_GROWTHBOOK_ATTRIBUTES",
+      { attributes, language },
+    ).catch((error) => {
+      console.error(
+        "GrowthBook worker attribute prep failed, falling back to main thread.",
+        error,
+      );
+      return buildAttributesOnMainThread(attributes);
     });
+    growthbook.setAttributes(preparedAttributes);
     setGbUpdated(false);
   };
 
