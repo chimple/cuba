@@ -1,6 +1,7 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { COPIED_BUNDLE_FILES_INDEX } from "../common/constants";
+import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
 
 // --------------
 // INTERNAL TYPES
@@ -94,6 +95,7 @@ export const AppUpdater = {
         return false;
       }
       localStorage.removeItem(COPIED_BUNDLE_FILES_INDEX);
+      const currentRelease = activeRelease;
 
       // Check that enough time has elapsed before we can check for an update again.
       const lastUpdated = activeRelease.updated;
@@ -150,32 +152,54 @@ export const AppUpdater = {
       // Download the new release files from the web server.
       const downloadTasks: Promise<any>[] = [];
 
-      for (const serverFile of serverChecksum.files) {
-        if (
-          activeRelease.checksum.files.find(
-            (activeFile) =>
-              activeFile.path === serverFile.path &&
-              activeFile.hash === serverFile.hash
+      const filePlan = await runBackgroundWorkerTask("PLAN_HOT_UPDATE_FILES", {
+        activeFiles: currentRelease.checksum.files,
+        serverFiles: serverChecksum.files,
+      }).catch((error) => {
+        console.warn(
+          "AppUpdater: Worker planning failed, falling back to in-thread checksum comparison.",
+          error
+        );
+        return {
+          copyFromPreviousPaths: serverChecksum.files
+            .filter((serverFile) =>
+              currentRelease.checksum.files.find(
+                (activeFile) =>
+                  activeFile.path === serverFile.path &&
+                  activeFile.hash === serverFile.hash
+              )
+            )
+            .map((file) => file.path),
+          downloadFromServerPaths: serverChecksum.files
+            .filter(
+              (serverFile) =>
+                !currentRelease.checksum.files.find(
+                  (activeFile) =>
+                    activeFile.path === serverFile.path &&
+                    activeFile.hash === serverFile.hash
+                )
+            )
+            .map((file) => file.path),
+        };
+      });
+
+      for (const path of filePlan.copyFromPreviousPaths) {
+        downloadTasks.push(
+          copyFromPreviousRelease(
+            `releases/${currentRelease.checksum.id}/${path}`,
+            `releases/next/${path}`,
+            Directory.Data
           )
-        ) {
-          // Copy the file from the previous release if an exact checksum hash match exists for the server file.
-          downloadTasks.push(
-            copyFromPreviousRelease(
-              `releases/${activeRelease.checksum.id}/${serverFile.path}`,
-              `releases/next/${serverFile.path}`,
-              Directory.Data
-            )
-          );
-        } else {
-          // Otherwise just download the file fresh from the web server.
-          downloadTasks.push(
-            downloadFileFromWebServer(
-              `${webServerURL}/${serverFile.path}`,
-              `releases/next/${serverFile.path}`,
-              Directory.Data
-            )
-          );
-        }
+        );
+      }
+      for (const path of filePlan.downloadFromServerPaths) {
+        downloadTasks.push(
+          downloadFileFromWebServer(
+            `${webServerURL}/${path}`,
+            `releases/next/${path}`,
+            Directory.Data
+          )
+        );
       }
 
       await Promise.all(downloadTasks);

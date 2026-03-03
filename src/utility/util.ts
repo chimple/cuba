@@ -117,6 +117,7 @@ import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 import { updateLocalAttributes } from "../growthbook/Growthbook";
 import { recommendNextLesson } from "../hooks/useLearningPath";
+import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
 
 declare global {
   interface Window {
@@ -554,9 +555,32 @@ export class Util {
                 typeof zip.data === "string"
                   ? zip.data
                   : await this.blobToString(zip.data as Blob);
-              const buffer = Uint8Array.from(atob(zipDataStr), (c) =>
-                c.charCodeAt(0),
-              );
+
+              const preparedZip = await runBackgroundWorkerTask(
+                "PREPARE_BINARY_FROM_BASE64",
+                {
+                  base64: zipDataStr,
+                },
+              ).catch((error) => {
+                console.warn(
+                  `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
+                  error,
+                );
+                const fallbackBuffer = Uint8Array.from(atob(zipDataStr), (c) =>
+                  c.charCodeAt(0),
+                );
+                return {
+                  byteLength: fallbackBuffer.byteLength,
+                  sha256Hex: "",
+                  arrayBuffer: fallbackBuffer.buffer,
+                };
+              });
+              const buffer = new Uint8Array(preparedZip.arrayBuffer);
+              if (preparedZip.sha256Hex) {
+                console.log(
+                  `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
+                );
+              }
 
               await unzip({
                 fs,
@@ -576,7 +600,10 @@ export class Util {
               const lessonData = JSON.parse(
                 localStorage.getItem("downloaded_lessons_size") || "{}",
               );
-              lessonData[lessonId] = { size: buffer.byteLength };
+              lessonData[lessonId] = {
+                size: preparedZip.byteLength,
+                sha256: preparedZip.sha256Hex || undefined,
+              };
               localStorage.setItem(
                 "downloaded_lessons_size",
                 JSON.stringify(lessonData),
@@ -701,9 +728,25 @@ export class Util {
       });
 
       if (!response?.data || response.status !== 200) return false;
-      const buffer = Uint8Array.from(atob(response.data), (c) =>
-        c.charCodeAt(0),
-      );
+      let buffer: Uint8Array;
+      try {
+        const prepared = await runBackgroundWorkerTask(
+          "PREPARE_BINARY_FROM_BASE64",
+          {
+            base64: response.data,
+            algorithm: "SHA-256",
+          },
+        );
+        buffer = new Uint8Array(prepared.arrayBuffer);
+      } catch (workerError) {
+        console.warn(
+          `[${assetType}] Worker decode failed, falling back to main thread decode.`,
+          workerError,
+        );
+        buffer = Uint8Array.from(atob(response.data), (c) =>
+          c.charCodeAt(0),
+        );
+      }
       await unzip({
         fs,
         extractTo: "", // The zip file itself should contain the destination folder
@@ -3534,7 +3577,23 @@ export class Util {
           ? download.data
           : await this.blobToString(download.data as Blob);
 
-      const buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
+      let buffer: Uint8Array;
+      try {
+        const prepared = await runBackgroundWorkerTask(
+          "PREPARE_BINARY_FROM_BASE64",
+          {
+            base64: zipDataStr,
+            algorithm: "SHA-256",
+          },
+        );
+        buffer = new Uint8Array(prepared.arrayBuffer);
+      } catch (workerError) {
+        console.warn(
+          "[LidoCommonAudio] Worker decode failed, falling back to main thread decode.",
+          workerError,
+        );
+        buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
+      }
 
       // 📦 Unzip to /Lido-CommonAudios/{languageId}
       await unzip({
