@@ -56,16 +56,26 @@ function applyColorMode(svg: SVGSVGElement) {
     }
 
     // 2️⃣ Mark overlays (follow region, but faded)
-    if (hasMarkId) {
-      el.setAttribute("fill", "#FFFFFF");
-      el.setAttribute("fill-opacity", "0.3");
+    // 2️⃣ Mark overlays (follow region, but faded)
+if (hasMarkId) {
 
-      if (el.hasAttribute("stroke")) {
-        el.setAttribute("stroke", "#FFFFFF");
-        el.setAttribute("stroke-opacity", "0.3");
-      }
-      return;
-    }
+  const hasFill = el.hasAttribute("fill") && el.getAttribute("fill") !== "none";
+  const hasStroke = el.hasAttribute("stroke");
+
+  // If it has stroke → treat as line highlight
+  if (hasStroke) {
+    el.setAttribute("stroke", "#FFFFFF");
+    el.setAttribute("stroke-opacity", "0.3");
+  }
+
+  // If it has real fill → treat as fill highlight
+  if (hasFill) {
+    el.setAttribute("fill", "#FFFFFF");
+    el.setAttribute("fill-opacity", "0.3");
+  }
+
+  return;
+}
 
     // 3️⃣ Decorative strokes
     if (isSpecial) {
