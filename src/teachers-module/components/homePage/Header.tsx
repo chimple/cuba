@@ -42,6 +42,7 @@ interface HeaderProps {
   disableBackButton?: boolean;
   showSideMenu?: boolean;
   customText?: string;
+  customTextClassName?: string;
   onSearchChange?: (value: string) => void; // New prop for search input changes
   showSearchIcon?: boolean;
   onSearchIconClick?: () => void;
@@ -59,6 +60,7 @@ const Header: React.FC<HeaderProps> = ({
   disableBackButton = false,
   showSideMenu = false,
   customText = "",
+  customTextClassName = "",
   onSearchChange,
   showSearchIcon = false,
   onSearchIconClick,
@@ -157,7 +159,7 @@ const Header: React.FC<HeaderProps> = ({
             />
           ) : null}
           {customText ? (
-            <div className="header-custom-text">
+            <div className={customTextClassName || "header-custom-text"}>
               {t(customText)}
             </div>
           ) : (
@@ -222,7 +224,10 @@ const Header: React.FC<HeaderProps> = ({
             )}
             {onSearchChange && (
               <div className="header-search-container">
-                <SearchOutlinedIcon id="header-search-icon-inside" className="header-search-icon-inside" />
+                <SearchOutlinedIcon
+                  id="header-search-icon-inside"
+                  className="header-search-icon-inside"
+                />
                 <input
                   type="text"
                   className="header-search-input"
