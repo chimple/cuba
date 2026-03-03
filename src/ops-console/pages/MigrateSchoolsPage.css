@@ -37,6 +37,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 15px;
 }
 
 .migrate-schools-tabs {
@@ -98,13 +99,35 @@
   padding: 0 18px;
   min-height: 0;
   overflow: hidden;
+  padding-bottom: 10px;
 }
 
 .migrate-schools-table-wrap .data-tablebody-container {
-  border-top: none;
-  margin-top: 6px;
-  background: transparent;
-  margin-bottom: 0;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container .MuiTable-root {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar-thumb {
+  background: #a9afb8;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  min-height: 22px;
 }
 
 .migrate-schools-table-wrap table {
