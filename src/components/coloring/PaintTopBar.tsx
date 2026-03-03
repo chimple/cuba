@@ -1,20 +1,15 @@
 import closeIcon from "../../assets/images/close.png";
+import cameraIcon from "../../assets/images/tick.png";
 
 type Props = {
   onExit: () => void;
-  onSave: () => void;
-};
-
-export default function PaintTopBar({ onExit, onSave }: Props) {
+}
+export default function PaintTopBar({ onExit }: Props) {
   return (
-    <>
+    <div className="paint-topbar">
       <button className="exit-btn" onClick={onExit}>
-        <img src={closeIcon} alt="close" width={40} />
+        <img src={closeIcon} alt="close" />
       </button>
-
-      <button className="save-btn" onClick={onSave}>
-        Save
-      </button>
-    </>
+    </div>
   );
 }
