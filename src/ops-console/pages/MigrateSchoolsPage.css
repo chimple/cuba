@@ -1,0 +1,314 @@
+.migrate-schools-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  color: #1f2937;
+}
+
+.migrate-schools-header {
+  padding: 18px 18px 6px;
+  flex: 0 0 auto;
+}
+
+.migrate-schools-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.migrate-schools-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1f2937;
+}
+
+.migrate-schools-bell-icon {
+  color: #111827 !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.migrate-schools-controls-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.migrate-schools-tabs {
+  min-height: 34px !important;
+}
+
+.migrate-schools-tab {
+  text-transform: none !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  min-height: 34px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  color: #111827 !important;
+}
+
+.migrate-schools-tabs .MuiTab-root.Mui-selected {
+  color: #1a71f6 !important;
+  font-weight: 600 !important;
+}
+
+.migrate-schools-tabs .MuiTabs-indicator {
+  height: 2px !important;
+  background-color: #1a71f6 !important;
+}
+
+.migrate-schools-top-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.migrate-schools-top-right .search-filter-container-SearchAndFilter {
+  justify-content: flex-end;
+}
+
+.migrate-schools-top-right .search-input-SearchAndFilter {
+  width: 235px;
+}
+
+.migrate-schools-top-right .filter-button-SearchAndFilter {
+  min-width: 90px;
+  justify-content: center;
+}
+
+.migrate-schools-top-right
+  .filter-button-SearchAndFilter
+  .MuiButton-startIcon
+  img {
+  width: 14px !important;
+  height: 13px !important;
+  filter: saturate(1.25) contrast(1.2);
+}
+
+.migrate-schools-table-wrap {
+  flex: 1 1 auto;
+  padding: 0 18px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container {
+  border-top: none;
+  margin-top: 6px;
+  background: transparent;
+  margin-bottom: 0;
+}
+
+.migrate-schools-table-wrap table {
+  background: transparent;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.migrate-schools-table-wrap .MuiTable-root {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+}
+
+.migrate-schools-table-wrap .MuiTableCell-root {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid #d2d6dc !important;
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
+  font-size: 11.5px !important;
+  padding: 9px 12px !important;
+}
+
+.migrate-schools-table-wrap .MuiTableHead-root .MuiTableCell-root {
+  background-color: #e3e6ea !important;
+  color: #111827 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  border-bottom: 1px solid #d4d8dd !important;
+}
+
+.migrate-schools-table-wrap .MuiTableBody-root .MuiTableCell-root {
+  height: 44px !important;
+  vertical-align: middle !important;
+}
+
+.migrate-schools-table-wrap
+  .MuiTableBody-root
+  .MuiTableRow-root
+  .MuiTableCell-root:nth-child(n + 3) {
+  font-size: 13.5px !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-head-cell {
+  background-color: #e3e6ea !important;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 600;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  height: 38px;
+  border-bottom: 1px solid #d4d8dd;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell {
+  font-size: 11px;
+  color: #1f2937;
+  border-bottom: 1px solid #d2d6dc;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  height: 44px;
+  background: #f3f4f6 !important;
+  vertical-align: middle;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell:first-child,
+.migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding-left: 10px !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+  background-color: #e3e6ea !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell:first-child {
+  background: #f3f4f6 !important;
+}
+
+.migrate-schools-table-wrap .MuiTableRow-root:hover {
+  background: transparent !important;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root {
+  color: #b4bac3;
+  padding: 4px;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root .MuiSvgIcon-root {
+  font-size: 21px;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root.Mui-checked {
+  color: #1a71f6;
+}
+
+.migrate-schools-name {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.25;
+  color: #111827;
+}
+
+.migrate-schools-subname {
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+}
+
+.migrate-schools-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 18px;
+}
+
+.migrate-schools-footer {
+  flex: 0 0 auto;
+  background: white;
+  padding-bottom: 10px;
+}
+
+.migrate-schools-footer .MuiPagination-root {
+  padding-top: 4px;
+}
+
+.migrate-schools-footer .MuiPagination-ul {
+  gap: 4px;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a71f6;
+  margin: 0;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root.Mui-selected {
+  background: #b9d4ff !important;
+  color: #1a71f6 !important;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root.MuiPaginationItem-ellipsis {
+  color: #1a71f6;
+}
+
+.migrate-schools-footer .MuiPaginationItem-previousNext {
+  color: #6b7280 !important;
+  min-width: auto;
+  width: auto;
+  padding: 0 4px;
+}
+
+.migrate-schools-footer
+  .MuiPaginationItem-previousNext[aria-label="Go to previous page"]::after {
+  content: "Previous";
+  font-size: 11px;
+  margin-left: 4px;
+  color: #6b7280;
+}
+
+.migrate-schools-footer
+  .MuiPaginationItem-previousNext[aria-label="Go to next page"]::before {
+  content: "Next";
+  font-size: 11px;
+  margin-right: 4px;
+  color: #1a71f6;
+}
+
+.migrate-schools-header .selected-filters-container-SelectedFilters:empty {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .migrate-schools-top-right .search-input-SearchAndFilter {
+    width: 260px;
+  }
+}
+
+@media (max-width: 900px) {
+  .migrate-schools-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .migrate-schools-top-right {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .migrate-schools-top-right .search-input-SearchAndFilter {
+    width: 100%;
+  }
+}

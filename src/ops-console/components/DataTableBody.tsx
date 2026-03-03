@@ -3,6 +3,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  Checkbox,
   TableContainer,
   TableHead,
   TableRow,
@@ -31,19 +32,47 @@ interface Props {
   detailPageRouteBase?: string;
   onRowClick?: (id: string | number, row: any) => void;
   loading?: boolean;
+  selectableRows?: boolean;
+  selectedRowIds?: Array<string | number>;
+  onToggleRowSelection?: (id: string | number, row: any) => void;
+  onToggleSelectAll?: (checked: boolean, visibleRows: any[]) => void;
+  getRowId?: (row: any) => string | number;
+  isRowSelectable?: (row: any) => boolean;
+  disableRowNavigation?: boolean;
 }
 
 function TableSkeleton({
   columns,
   rows = 10,
+  showSelectionColumn = false,
 }: {
   columns: Record<string, any>[];
   rows?: number;
+  showSelectionColumn?: boolean;
 }) {
   return (
     <TableBody>
       {Array.from({ length: rows }).map((_, i) => (
         <TableRow key={i}>
+          {showSelectionColumn && (
+            <TableCell
+              align="center"
+              sx={{
+                py: 0.25,
+                px: 1,
+                height: 32,
+                transform: "none",
+                width: 56,
+              }}
+            >
+              <Skeleton
+                variant="circular"
+                width={18}
+                height={18}
+                sx={{ mx: "auto", transform: "none" }}
+              />
+            </TableCell>
+          )}
           {columns.map((col) => (
             <TableCell
               key={col.key}
@@ -82,11 +111,26 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
       detailPageRouteBase,
       onRowClick,
       loading,
+      selectableRows = false,
+      selectedRowIds = [],
+      onToggleRowSelection,
+      onToggleSelectAll,
+      getRowId,
+      isRowSelectable,
+      disableRowNavigation = false,
     },
     ref
   ) => {
     const history = useHistory();
+    const resolveRowId = (row: any): string | number =>
+      getRowId ? getRowId(row) : row.request_id || row.id;
+
+    const isRowCurrentlySelected = (rowId: string | number): boolean =>
+      selectedRowIds.some((id) => String(id) === String(rowId));
+
     const handleRowClick = (row: any) => {
+      if (disableRowNavigation) return;
+
       if (onRowClick) {
         const id = row.request_id || row.id;
         onRowClick(id, row);
@@ -116,14 +160,71 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
       }
     };
 
+    const handleRowAction = (row: any) => {
+      if (selectableRows) {
+        const rowId = resolveRowId(row);
+        const canSelect = isRowSelectable ? isRowSelectable(row) : true;
+        if (!canSelect) return;
+        onToggleRowSelection?.(rowId, row);
+        return;
+      }
+
+      handleRowClick(row);
+    };
+
+    const selectableRowIds = rows
+      .filter((row) => (isRowSelectable ? isRowSelectable(row) : true))
+      .map((row) => resolveRowId(row));
+
+    const allRowsSelected =
+      selectableRowIds.length > 0 &&
+      selectableRowIds.every((id) => isRowCurrentlySelected(id));
+
+    const someRowsSelected =
+      selectableRowIds.some((id) => isRowCurrentlySelected(id)) &&
+      !allRowsSelected;
+
     return (
       <TableContainer ref={ref} className="data-tablebody-container">
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
+              {selectableRows && (
+                <TableCell
+                  align="center"
+                  className="data-tablebody-head-cell"
+                  sx={{
+                    width: 56,
+                    maxWidth: 56,
+                    minWidth: 56,
+                    transform: "none",
+                    height: "auto",
+                    paddingTop: {
+                      xs: "4px !important",
+                      sm: "6px !important",
+                      md: "8px !important",
+                    },
+                    paddingBottom: {
+                      xs: "4px !important",
+                      sm: "6px !important",
+                      md: "8px !important",
+                    },
+                  }}
+                >
+                  <Checkbox
+                    size="small"
+                    indeterminate={someRowsSelected}
+                    checked={allRowsSelected}
+                    onChange={(event) =>
+                      onToggleSelectAll?.(event.target.checked, rows)
+                    }
+                    inputProps={{ "aria-label": "Select all rows" }}
+                  />
+                </TableCell>
+              )}
               {columns.map((col) => (
                 <TableCell
-                  key={col.key}
+                  key={String(col.key)}
                   align={col.align || "left"}
                   className="data-tablebody-head-cell"
                   sx={{
@@ -146,9 +247,9 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                     col.label
                   ) : (
                     <TableSortLabel
-                      active={orderBy === col.key}
-                      direction={orderBy === col.key ? order : "asc"}
-                      onClick={() => onSort(col.key)}
+                      active={orderBy === String(col.key)}
+                      direction={orderBy === String(col.key) ? order : "asc"}
+                      onClick={() => onSort(String(col.key))}
                       sx={{
                         "& .MuiTableSortLabel-icon": {
                           opacity: 1,
@@ -164,39 +265,80 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           </TableHead>
           {/* Show skeleton or actual rows */}
           {loading ? (
-            <TableSkeleton columns={columns} rows={10} />
+            <TableSkeleton
+              columns={columns}
+              rows={10}
+              showSelectionColumn={selectableRows}
+            />
           ) : (
             <TableBody>
-              {rows.map((row, idx) => (
-                <TableRow
-                  key={idx}
-                  hover
-                  onClick={() => {
-                    handleRowClick(row);
-                  }}
-                  sx={{ cursor: "pointer", height: "48px" }}
-                >
+              {rows.map((row, idx) => {
+                const rowId = resolveRowId(row);
+                const canSelect = isRowSelectable ? isRowSelectable(row) : true;
+                const selected = selectableRows
+                  ? isRowCurrentlySelected(rowId)
+                  : false;
 
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.key}
-                      align={col.align || "left"}
-                      className="data-tablebody-cell"
-                      sx={{
-                        width: col.width ?? "auto",
-                        maxWidth: col.width,
-                      }}
-                    >
-                      {col.render
-                        ? col.render(row)
-                        : typeof row[col.key] === "object" &&
-                          row[col.key]?.render !== undefined
-                        ? row[col.key].render
-                        : row[col.key]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
+                return (
+                  <TableRow
+                    key={idx}
+                    hover
+                    onClick={() => {
+                      handleRowAction(row);
+                    }}
+                    sx={{
+                      cursor:
+                        selectableRows && !canSelect
+                          ? "not-allowed"
+                          : "pointer",
+                      height: "48px",
+                    }}
+                    selected={selected}
+                  >
+                    {selectableRows && (
+                      <TableCell
+                        align="center"
+                        className="data-tablebody-cell"
+                        sx={{
+                          width: 56,
+                          maxWidth: 56,
+                          minWidth: 56,
+                        }}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <Checkbox
+                          size="small"
+                          checked={selected}
+                          disabled={!canSelect}
+                          onChange={() =>
+                            onToggleRowSelection?.(rowId, row)
+                          }
+                          inputProps={{ "aria-label": "Select row" }}
+                        />
+                      </TableCell>
+                    )}
+
+                    {columns.map((col) => (
+                      <TableCell
+                        key={String(col.key)}
+                        align={col.align || "left"}
+                        className="data-tablebody-cell"
+                        sx={{
+                          width: col.width ?? "auto",
+                          maxWidth: col.width,
+                        }}
+                      >
+                        {col.render
+                          ? col.render(row)
+                          : typeof row[col.key] === "object" &&
+                            row[col.key]?.render !== undefined
+                          ? row[col.key].render
+                          : row[col.key]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           )}
         </Table>
