@@ -5,7 +5,7 @@ import { SVGScene } from "./SVGScene";
 import ColorTray from "./ColorTray";
 import PaintTopBar from "./PaintTopBar";
 import pathwayBg from "../../assets/images/pathwayBackground1.svg";
-import { ReactComponent as SceneSvg } from "../../assets/images/TinyFriends.svg";
+import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
 
 export default function ColoringBoard() {
   const svgRef = useRef<SVGSVGElement>(null);
