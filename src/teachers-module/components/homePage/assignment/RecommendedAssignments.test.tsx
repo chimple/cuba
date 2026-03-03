@@ -272,4 +272,140 @@ describe("RecommendedAssignments Component", () => {
 
     expect(screen.getByText("Math")).toBeInTheDocument();
   });
+  test("calls toggleSubjectCollapse only once per click", () => {
+    renderComponent();
+    fireEvent.click(screen.getByText("Math"));
+    expect(mockToggleSubjectCollapse).toHaveBeenCalledTimes(1);
+  });
+
+  test("Add 5 more works even when lessons are empty", () => {
+    renderComponent({
+      ...baseAssignments,
+      math: { ...baseAssignments.math, lessons: [] },
+    });
+
+    fireEvent.click(screen.getByText("Add 5 more"));
+    expect(mockSetState).toHaveBeenCalledTimes(1);
+  });
+
+  test("renders multiple subjects with lessons correctly", () => {
+    renderComponent({
+      ...baseAssignments,
+      science: {
+        name: "Science",
+        courseCode: "SCI",
+        sort_index: 2,
+        isCollapsed: false,
+        lessons: [
+          {
+            id: "3",
+            _chapterId: "c3",
+            name: "Physics",
+            image: null,
+            selected: true,
+            source: null,
+          },
+        ],
+        allLessons: [],
+      },
+    });
+
+    expect(screen.getByText("Science")).toBeInTheDocument();
+    expect(screen.getByText("Physics")).toBeInTheDocument();
+  });
+
+  test("renders correct selected count for multiple subjects", () => {
+    renderComponent({
+      ...baseAssignments,
+      science: {
+        name: "Science",
+        courseCode: "SCI",
+        sort_index: 2,
+        isCollapsed: false,
+        lessons: [
+          {
+            id: "3",
+            _chapterId: "c3",
+            name: "Physics",
+            image: null,
+            selected: true,
+            source: null,
+          },
+        ],
+        allLessons: [],
+      },
+    });
+
+    expect(screen.getByText("1/1")).toBeInTheDocument();
+  });
+
+  test("clicking lesson icon multiple times triggers handler each time", () => {
+    renderComponent();
+
+    const icon = screen.getAllByTestId("ion-icon")[0];
+
+    fireEvent.click(icon);
+    fireEvent.click(icon);
+    fireEvent.click(icon);
+
+    expect(mockToggleAssignmentSelection).toHaveBeenCalledTimes(3);
+  });
+
+  test("does not crash when recommendedAssignments is empty object", () => {
+    renderComponent({});
+    expect(screen.queryByTestId("ion-icon")).not.toBeInTheDocument();
+  });
+
+  test("renders correctly when allLessons has values but lessons empty", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [],
+        allLessons: baseAssignments.math.lessons,
+      },
+    });
+
+    expect(screen.getByText("0/0")).toBeInTheDocument();
+  });
+
+  test("renders subject count correctly when single lesson exists", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [
+          {
+            id: "10",
+            _chapterId: "c10",
+            name: "Trigonometry",
+            image: null,
+            selected: false,
+            source: null,
+          },
+        ],
+      },
+    });
+
+    expect(screen.getByText("0/1")).toBeInTheDocument();
+  });
+
+  test("renders lesson even if image is null", () => {
+    renderComponent();
+    expect(screen.getByText("Algebra")).toBeInTheDocument();
+  });
+
+  test("subject click works even when no lessons", () => {
+    renderComponent({
+      math: {
+        ...baseAssignments.math,
+        lessons: [],
+      },
+    });
+
+    fireEvent.click(screen.getByText("Math"));
+
+    expect(mockToggleSubjectCollapse).toHaveBeenCalledWith(
+      TeacherAssignmentPageType.RECOMMENDED,
+      "math",
+    );
+  });
 });
