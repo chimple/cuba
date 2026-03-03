@@ -1,7 +1,5 @@
 import React from "react";
 import { t } from "i18next";
-import { IonIcon } from "@ionic/react";
-import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
 import { TeacherAssignmentPageType } from "./TeacherAssignment";
 import { AssignmentSource } from "../../../../common/constants";
@@ -12,6 +10,7 @@ export type Lesson = {
   _chapterId: string;
   name: string | null;
   image: string | null;
+  _chapterName: string;
   selected: boolean;
   source: string | null;
 };
@@ -147,7 +146,7 @@ const RecommendedAssignments: React.FC<Props> = ({
                 id={`recommended-assignments-selected-count-${subjectId}`}
                 className="recommended-assignments-selected-count"
               >
-                {subject.lessons.filter((lesson) => lesson.selected).length}/
+                {subject.lessons.filter((lesson) => lesson.selected).length} /{" "}
                 {subject.lessons.length}
               </div>
             </div>
@@ -179,31 +178,57 @@ const RecommendedAssignments: React.FC<Props> = ({
                       imageWidth="100px"
                       imageHeight="100px"
                     />
-
-                    <span
-                      id={`recommended-assignments-lesson-name-${subjectId}-${index}`}
-                      className="recommended-assignments-list-item-name"
+                    <div
+                      className="recommended-assignments-list-item-info"
+                      id={`recommended-assignments-lesson-info-${subjectId}-${index}`}
                     >
-                      {courseCode === "ENGLISH"
-                        ? (assignment.name ?? "")
-                        : t(assignment.name ?? "")}
-                    </span>
-
-                    <IonIcon
-                      icon={isSelected ? checkmarkCircle : ellipseOutline}
-                      className={`recommended-assignments-checkbox ${
-                        isSelected ? "selected" : ""
-                      }`}
-                      onClick={() =>
-                        toggleAssignmentSelection(
-                          type,
-                          assignments,
-                          setRecommendedAssignments,
-                          subjectId,
-                          index,
-                        )
-                      }
-                    />
+                      <div
+                        id={`recommended-assignments-lesson-name-${subjectId}-${index}`}
+                        className="recommended-assignments-list-item-name"
+                      >
+                        {courseCode === "ENGLISH"
+                          ? (assignment.name ?? "")
+                          : t(assignment.name ?? "")}
+                      </div>
+                      <div id="recommended-assignments-chapter-name-id">
+                        {t(assignment._chapterName)}
+                      </div>
+                    </div>
+                    {isSelected ? (
+                      <span
+                        id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
+                        className="recommended-assignments-toggle-circle is-selected"
+                        onClick={() =>
+                          toggleAssignmentSelection(
+                            type,
+                            assignments,
+                            setRecommendedAssignments,
+                            subjectId,
+                            index,
+                          )
+                        }
+                      >
+                        <img
+                          src="assets/tick.png"
+                          alt=""
+                          className="recommended-assignments-toggle-check"
+                        />
+                      </span>
+                    ) : (
+                      <span
+                        id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
+                        className="recommended-assignments-toggle-circle is-unselected"
+                        onClick={() =>
+                          toggleAssignmentSelection(
+                            type,
+                            assignments,
+                            setRecommendedAssignments,
+                            subjectId,
+                            index,
+                          )
+                        }
+                      />
+                    )}
                   </div>
                 );
               })}

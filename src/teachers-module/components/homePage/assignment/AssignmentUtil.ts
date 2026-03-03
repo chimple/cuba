@@ -87,6 +87,7 @@ export const getRecommendedLessons = async (
           ...lessons.map((lesson) => ({
             ...lesson,
             _chapterId: chapter.id,
+            _chapterName: chapter.name ?? "",
             selected: false,
             source: null,
           })),

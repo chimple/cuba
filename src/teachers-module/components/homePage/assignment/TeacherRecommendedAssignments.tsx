@@ -114,6 +114,7 @@ const TeacherRecommendedAssignments: FC = () => {
     >
       <Header
         customText={t("Recommended Assignments") ?? ""}
+        customTextClassName="header-recommended-text"
         onBackButtonClick={handleRecommendedBack}
         isBackButton
       />

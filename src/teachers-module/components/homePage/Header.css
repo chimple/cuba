@@ -166,3 +166,13 @@
   padding: 0;
   margin-top: 4px;
 }
+.header-recommended-text {
+  padding: 12px 5px;
+  line-height: 1;
+  font-size: var(--text-sizeXL);
+}
+@media (max-width: 480px) {
+  .header-recommended-text {
+    width: 215px;
+  }
+}
