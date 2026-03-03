@@ -159,11 +159,7 @@ const Header: React.FC<HeaderProps> = ({
             />
           ) : null}
           {customText ? (
-            <div
-              className={
-                customTextClassName ? customTextClassName : "header-custom-text"
-              }
-            >
+            <div className={customTextClassName || "header-custom-text"}>
               {t(customText)}
             </div>
           ) : (

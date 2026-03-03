@@ -190,45 +190,36 @@ const RecommendedAssignments: React.FC<Props> = ({
                           ? (assignment.name ?? "")
                           : t(assignment.name ?? "")}
                       </div>
-                      <div id="recommended-assignments-chapter-name-id">
+                      <div
+                        className="recommended-assignments-chapter-name"
+                        id="recommended-assignments-chapter-name-id"
+                      >
                         {t(assignment._chapterName)}
                       </div>
                     </div>
-                    {isSelected ? (
-                      <span
-                        id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
-                        className="recommended-assignments-toggle-circle is-selected"
-                        onClick={() =>
-                          toggleAssignmentSelection(
-                            type,
-                            assignments,
-                            setRecommendedAssignments,
-                            subjectId,
-                            index,
-                          )
-                        }
-                      >
+                    <span
+                      id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
+                      className={`recommended-assignments-toggle-circle ${
+                        isSelected ? "is-selected" : "is-unselected"
+                      }`}
+                      onClick={() =>
+                        toggleAssignmentSelection(
+                          type,
+                          assignments,
+                          setRecommendedAssignments,
+                          subjectId,
+                          index,
+                        )
+                      }
+                    >
+                      {isSelected && (
                         <img
                           src="assets/tick.png"
                           alt=""
                           className="recommended-assignments-toggle-check"
                         />
-                      </span>
-                    ) : (
-                      <span
-                        id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
-                        className="recommended-assignments-toggle-circle is-unselected"
-                        onClick={() =>
-                          toggleAssignmentSelection(
-                            type,
-                            assignments,
-                            setRecommendedAssignments,
-                            subjectId,
-                            index,
-                          )
-                        }
-                      />
-                    )}
+                      )}
+                    </span>
                   </div>
                 );
               })}
