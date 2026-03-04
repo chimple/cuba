@@ -54,7 +54,6 @@ import { Preferences } from "@capacitor/preferences";
 import { Browser } from "@capacitor/browser";
 import { BrowserRouter } from "react-router-dom";
 
-Util.migrateSupabaseSession(); 
 
 Sentry.init(
   {

@@ -58,13 +58,13 @@ const LoginScreen: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState("");
   // Separate error states for each login component
   const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(
-    null
+    null,
   );
   const [studentErrorMessage, setStudentErrorMessage] = useState<string | null>(
-    null
+    null,
   );
   const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(
-    null
+    null,
   );
   const [otpErrorMessage, setOtpErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +80,7 @@ const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [currentLang, setCurrentLang] = useState<string>(
-    Object.keys(APP_LANGUAGES)[0]
+    Object.keys(APP_LANGUAGES)[0],
   );
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
@@ -119,10 +119,10 @@ const LoginScreen: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentMessageIndex(
-        (prevIndex) => (prevIndex + 1) % loadingMessages.length
+        (prevIndex) => (prevIndex + 1) % loadingMessages.length,
       );
       setLoadingAnimationsIndex(
-        (prevIndex) => (prevIndex + 1) % loadingAnimations.length
+        (prevIndex) => (prevIndex + 1) % loadingAnimations.length,
       );
     }, 5000);
 
@@ -148,9 +148,20 @@ const LoginScreen: React.FC = () => {
           await i18n.changeLanguage(appLang);
         }
 
-        // if already logged in, jump straight to select‐mode
         const authHandler = ServiceConfig.getI().authHandler;
-        if (await authHandler.isUserLoggedIn()) {
+
+        let isLoggedIn = await authHandler.isUserLoggedIn();
+
+        if (!isLoggedIn) {
+          Util.migrateSupabaseSession();
+          isLoggedIn = await authHandler.isUserLoggedIn();
+        }
+
+        if (isLoggedIn) {
+          if (Capacitor.isNativePlatform()) {
+            await ScreenOrientation.lock({ orientation: "landscape" });
+          }
+
           history.replace(PAGES.SELECT_MODE);
           return;
         }
@@ -164,7 +175,7 @@ const LoginScreen: React.FC = () => {
       if (Capacitor.isNativePlatform()) {
         document.removeEventListener(
           "visibilitychange",
-          handleVisibilityChange
+          handleVisibilityChange,
         );
       }
     };
@@ -258,7 +269,7 @@ const LoginScreen: React.FC = () => {
       initSmsListner();
       let result = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
-        "Chimple"
+        "Chimple",
       );
 
       if (result.success) {
@@ -277,11 +288,11 @@ const LoginScreen: React.FC = () => {
         const errorMessage = result.error;
         if (errorMessage) {
           setPhoneErrorMessage(
-            t("Kindly wait for 1 minute and then try logging in again.")
+            t("Kindly wait for 1 minute and then try logging in again."),
           );
         } else {
           setPhoneErrorMessage(
-            t("Phone Number signin Failed. Please try again later.")
+            t("Phone Number signin Failed. Please try again later."),
           );
         }
       }
@@ -290,7 +301,7 @@ const LoginScreen: React.FC = () => {
       setSpinnerLoading(false);
       // This catch block handles unexpected exceptions from generateOtp, not errors returned in the 'result' object.
       let displayErrorMessage = t(
-        "Phone Number signin Failed. Please try again later."
+        "Phone Number signin Failed. Please try again later.",
       );
       if (error && typeof error === "string") {
         displayErrorMessage = error;
@@ -325,10 +336,10 @@ const LoginScreen: React.FC = () => {
       setOtpErrorMessage(null); // Clear any previous errors
 
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-      
+
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
-        otp.trim()
+        otp.trim(),
       );
 
       if (!res?.user) {
@@ -371,7 +382,7 @@ const LoginScreen: React.FC = () => {
         // Set appropriate error message
         if (typeof error === "string" && error.includes("code-expired")) {
           setOtpErrorMessage(
-            "Verification code has expired. Please request a new one."
+            "Verification code has expired. Please request a new one.",
           );
         } else {
           setOtpErrorMessage("Incorrect OTP - Please check & try again!");
@@ -397,7 +408,7 @@ const LoginScreen: React.FC = () => {
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
 
       let response = await authInstance.resendOtpMsg91(
-        phoneNumberWithCountryCode
+        phoneNumberWithCountryCode,
       );
 
       if (response) {
@@ -413,7 +424,7 @@ const LoginScreen: React.FC = () => {
     } catch (error) {
       setSentOtpLoading(false);
       setOtpErrorMessage(
-        "Resend Otp Failed!! Please try again after some time."
+        "Resend Otp Failed!! Please try again after some time.",
       );
     }
   };
@@ -479,7 +490,7 @@ const LoginScreen: React.FC = () => {
 
   const redirectUser = async (
     schools: { role: RoleType }[],
-    isOpsUser: boolean
+    isOpsUser: boolean,
   ) => {
     if (isOpsUser) {
       localStorage.setItem(IS_OPS_USER, "true");
@@ -509,7 +520,7 @@ const LoginScreen: React.FC = () => {
 
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
-      if(!currentUser?.name || currentUser.name.trim() === ""){
+      if (!currentUser?.name || currentUser.name.trim() === "") {
         return history.replace(PAGES.ADD_TEACHER_NAME);
       }
       return history.replace(PAGES.DISPLAY_SCHOOLS);
@@ -518,7 +529,7 @@ const LoginScreen: React.FC = () => {
 
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
-    ([id, displayName]) => ({ id, displayName })
+    ([id, displayName]) => ({ id, displayName }),
   );
 
   // Handle language change
@@ -536,7 +547,7 @@ const LoginScreen: React.FC = () => {
       if (!online) {
         presentToast({
           message: t(
-            "Device is offline. Login requires an internet connection"
+            "Device is offline. Login requires an internet connection",
           ),
           color: "danger",
           duration: 3000,
@@ -548,17 +559,20 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const { success: result, isSpl: isOps, userData } =
-        await authInstance.loginWithEmailAndPassword(
-          schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
-          studentPassword.trimEnd()
-        );
+      const {
+        success: result,
+        isSpl: isOps,
+        userData,
+      } = await authInstance.loginWithEmailAndPassword(
+        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+        studentPassword.trimEnd(),
+      );
       if (!result) {
         setStudentCredentialLogin(true);
         setAnimatedLoading(false);
         setIsLoading(false);
         setStudentErrorMessage(
-          "Incorrect credentials - Please check & try again!"
+          "Incorrect credentials - Please check & try again!",
         );
       }
       setAnimatedLoading(false);
@@ -603,7 +617,7 @@ const LoginScreen: React.FC = () => {
       if (!online) {
         presentToast({
           message: t(
-            "Device is offline. Login requires an internet connection"
+            "Device is offline. Login requires an internet connection",
           ),
           color: "danger",
           duration: 3000,
@@ -628,8 +642,11 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const { success: result, isSpl: isOpsUser, userData } =
-        await authInstance.signInWithEmail(email, password);
+      const {
+        success: result,
+        isSpl: isOpsUser,
+        userData,
+      } = await authInstance.signInWithEmail(email, password);
 
       if (result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
@@ -663,7 +680,7 @@ const LoginScreen: React.FC = () => {
         setAnimatedLoading(false);
         setIsLoading(false);
         setEmailErrorMessage(
-          "Incorrect credentials - Please check & try again!"
+          "Incorrect credentials - Please check & try again!",
         );
         // Abort the email login process
         setEmail("");
@@ -696,7 +713,7 @@ const LoginScreen: React.FC = () => {
 
   const otpEventListener = async (event: Event) => {
     const data = await PortPlugin.otpRetrieve();
-    if (data?.otp) {  
+    if (data?.otp) {
       setVerificationCode(data.otp.toString());
       // Auto verify when OTP is received
       handleOtpVerification(data.otp.toString());
@@ -708,7 +725,7 @@ const LoginScreen: React.FC = () => {
     await retriewPhoneNumber();
     document.removeEventListener(
       "isPhoneNumberSelected",
-      isPhoneNumberEventListener
+      isPhoneNumberEventListener,
     );
   };
 
@@ -718,7 +735,7 @@ const LoginScreen: React.FC = () => {
       isPhoneNumberEventListener,
       {
         once: true,
-      }
+      },
     );
   };
 
@@ -749,11 +766,11 @@ const LoginScreen: React.FC = () => {
       allowSubmittingOtpCounter > 0 &&
       setTimeout(
         () => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1),
-        1000
+        1000,
       );
     let str = t(`Send OTP button will be enabled in x seconds`).replace(
       `x`,
-      allowSubmittingOtpCounter.toString()
+      allowSubmittingOtpCounter.toString(),
     );
     setTitle(str);
   }, [allowSubmittingOtpCounter]);
@@ -809,7 +826,7 @@ const LoginScreen: React.FC = () => {
           </div>
           <div className="Loginscreen-login-header">
             {loginType === LOGIN_TYPES.OTP ||
-              loginType === LOGIN_TYPES.FORGET_PASS ? (
+            loginType === LOGIN_TYPES.FORGET_PASS ? (
               <button
                 className="Loginscreen-otp-back-button"
                 onClick={handleOtpBack}
@@ -838,11 +855,11 @@ const LoginScreen: React.FC = () => {
               style={
                 (loginType as string) !== LOGIN_TYPES.PHONE
                   ? {
-                    maxWidth: window.matchMedia("(orientation: landscape)")
-                      .matches
-                      ? "120px"
-                      : "138px",
-                  }
+                      maxWidth: window.matchMedia("(orientation: landscape)")
+                        .matches
+                        ? "120px"
+                        : "138px",
+                    }
                   : undefined
               }
             />
@@ -927,7 +944,7 @@ const LoginScreen: React.FC = () => {
             checkbox={checkbox}
             onCheckboxChange={setCheckbox}
             onResend={
-              loginType === LOGIN_TYPES.OTP ? handleResendOtp : () => { }
+              loginType === LOGIN_TYPES.OTP ? handleResendOtp : () => {}
             }
             showResendOtp={showResendOtp}
             counter={counter}
