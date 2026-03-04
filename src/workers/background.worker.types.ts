@@ -11,6 +11,7 @@ export type PrepareSyncBatchesPayload = {
   defaultBatchSize: number;
   userTableName: string;
   userTableBatchSize: number;
+  includePayloadSizeBytes?: boolean;
 };
 
 export type PrepareSyncBatchesResult = {
@@ -79,6 +80,15 @@ export type BuildXlsxFileResult = {
   fileBuffer: ArrayBuffer;
 };
 
+export type StreamSyncBatchesPayload = {
+  tables: Record<string, SyncRow[]>;
+  tableColumns: Record<string, string[]>;
+  defaultBatchSize: number;
+  userTableName: string;
+  userTableBatchSize: number;
+  rowsPerChunk?: number;
+};
+
 export type WorkerTaskPayloadMap = {
   PREPARE_SYNC_BATCHES: PrepareSyncBatchesPayload;
   PREPARE_BINARY_FROM_BASE64: PrepareBinaryFromBase64Payload;
@@ -101,10 +111,40 @@ export type WorkerTaskResultMap = {
 
 export type BackgroundWorkerTask = keyof WorkerTaskPayloadMap;
 
+export type WorkerStreamTask = "STREAM_SYNC_BATCHES";
+
 export type WorkerRequest<T extends BackgroundWorkerTask = BackgroundWorkerTask> = {
   id: string;
   type: T;
   payload: WorkerTaskPayloadMap[T];
+};
+
+export type WorkerStreamRequest = {
+  id: string;
+  type: WorkerStreamTask;
+  payload: StreamSyncBatchesPayload;
+};
+
+export type WorkerAckMessage = {
+  id: string;
+  type: "ACK";
+};
+
+export type WorkerBatchReadyMessage = {
+  id: string;
+  type: "BATCH_READY";
+  batch: SqlStatement[];
+};
+
+export type WorkerDoneMessage = {
+  id: string;
+  type: "DONE";
+};
+
+export type WorkerStreamErrorMessage = {
+  id: string;
+  type: "ERROR";
+  error: string;
 };
 
 export type WorkerSuccessResponse<
@@ -123,3 +163,8 @@ export type WorkerErrorResponse = {
 };
 
 export type WorkerResponse = WorkerSuccessResponse | WorkerErrorResponse;
+export type WorkerStreamEventMessage =
+  | WorkerBatchReadyMessage
+  | WorkerDoneMessage
+  | WorkerStreamErrorMessage;
+export type WorkerIncomingMessage = WorkerResponse | WorkerStreamEventMessage;
