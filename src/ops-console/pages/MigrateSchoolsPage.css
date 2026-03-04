@@ -468,7 +468,7 @@
   text-transform: none !important;
   min-width: 80px !important;
   height: 36px !important;
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   background: #1a71f6 !important;
   color: #ffffff !important;
   font-size: 15px !important;
@@ -480,6 +480,13 @@
 .migrate-schools-confirm-migrate:hover {
   background: #0f5fd9 !important;
   box-shadow: none !important;
+}
+
+.migrate-schools-success-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+  object-fit: contain;
 }
 
 @media (max-width: 1200px) {

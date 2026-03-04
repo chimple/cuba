@@ -18,6 +18,7 @@ import DataTablePagination from "../components/DataTablePagination";
 import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
+import CommonPopup from "../components/CommonPopup";
 import { BsFillBellFill } from "react-icons/bs";
 import "./MigrateSchoolsPage.css";
 
@@ -115,6 +116,7 @@ const MigrateSchoolsPage: React.FC = () => {
   });
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<string[]>([]);
   const [isMigrateDialogOpen, setIsMigrateDialogOpen] = useState(false);
+  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
 
   const isLoading = isFilterLoading || isDataLoading;
   const currentAcademicYear = useMemo(() => {
@@ -469,9 +471,28 @@ const MigrateSchoolsPage: React.FC = () => {
     setIsMigrateDialogOpen(false);
   };
 
+  const handleCloseSuccessPopup = useCallback(() => {
+    setIsSuccessPopupOpen(false);
+    setActiveTab("migrated");
+    setPage(1);
+  }, []);
+
   const handleConfirmMigrate = () => {
     setIsMigrateDialogOpen(false);
+    setIsSuccessPopupOpen(true);
   };
+
+  useEffect(() => {
+    if (!isSuccessPopupOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      handleCloseSuccessPopup();
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isSuccessPopupOpen, handleCloseSuccessPopup]);
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
   const isSelectionActionVisible =
@@ -657,6 +678,23 @@ const MigrateSchoolsPage: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CommonPopup
+        open={isSuccessPopupOpen}
+        onClose={handleCloseSuccessPopup}
+        icon={
+          <img
+            src="assets/icons/migratesuccess.svg"
+            alt={String(t("Migration success"))}
+            className="migrate-schools-success-icon"
+          />
+        }
+        title={t("Successfully Migrated")}
+        subtitle={t(
+          "Selected {{count}} schools have migrated to the next academic year.",
+          { count: selectedSchoolIds.length },
+        )}
+      />
     </div>
   );
 };
