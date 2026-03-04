@@ -62,7 +62,14 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  SchoolProgramAccessRow,
+  ServiceApi,
+} from "./ServiceApi";
 import { Database } from "../database";
 import {
   PostgrestSingleResponse,
@@ -7939,6 +7946,116 @@ export class SupabaseApi implements ServiceApi {
         err,
       );
       return { data: [], total: 0 };
+    }
+  }
+
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    const safeParams = params ?? ({} as GetSchoolsWithProgramAccessParams);
+    const normalizedPage = safeParams.page ?? 1;
+    const normalizedPageSize = safeParams.pageSize ?? 20;
+    const fallbackResponse: SchoolProgramAccessResponse = {
+      data: [],
+      total: 0,
+      page: normalizedPage,
+      page_size: normalizedPageSize,
+      total_pages: 0,
+    };
+
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return fallbackResponse;
+    }
+
+    const academicYears = Array.isArray(safeParams.academicYears)
+      ? safeParams.academicYears
+      : [];
+    const allowedFilterKeys: Array<
+      "program" | "programType" | "state" | "district" | "block" | "cluster"
+    > = ["program", "programType", "state", "district", "block", "cluster"];
+    const normalizedFilters = allowedFilterKeys.reduce<Record<string, string[]>>(
+      (acc, key) => {
+        const value = safeParams.filters?.[key];
+        if (Array.isArray(value) && value.length > 0) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {},
+    );
+
+    try {
+      const { data, error } = await (this.supabase as any).rpc(
+        "get_schools_with_program_access",
+        {
+          _academic_years: academicYears,
+          _filters: normalizedFilters,
+          _page: normalizedPage,
+          _page_size: normalizedPageSize,
+          _order_by: safeParams.orderBy ?? "school_name",
+          _order_dir: safeParams.orderDir ?? "asc",
+          _search: safeParams.search?.trim() || null,
+        },
+      );
+
+      if (error) {
+        console.error("RPC error in get_schools_with_program_access:", error);
+        return fallbackResponse;
+      }
+
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        return fallbackResponse;
+      }
+
+      const rawResponse = data as Record<string, any>;
+      const rawRows = Array.isArray(rawResponse.data) ? rawResponse.data : [];
+      const normalizedRows: SchoolProgramAccessRow[] = rawRows.map(
+        (item: any) => ({
+          school:
+            item?.school &&
+            typeof item.school === "object" &&
+            !Array.isArray(item.school)
+              ? item.school
+              : {},
+          program:
+            item?.program &&
+            typeof item.program === "object" &&
+            !Array.isArray(item.program)
+              ? item.program
+              : {},
+          program_users: Array.isArray(item?.program_users)
+            ? item.program_users.filter(
+                (user: any) =>
+                  user && typeof user === "object" && !Array.isArray(user),
+              )
+            : [],
+        }),
+      );
+
+      return {
+        data: normalizedRows,
+        total:
+          typeof rawResponse.total === "number" ? rawResponse.total : 0,
+        page:
+          typeof rawResponse.page === "number"
+            ? rawResponse.page
+            : normalizedPage,
+        page_size:
+          typeof rawResponse.page_size === "number"
+            ? rawResponse.page_size
+            : normalizedPageSize,
+        total_pages:
+          typeof rawResponse.total_pages === "number"
+            ? rawResponse.total_pages
+            : 0,
+      };
+    } catch (err) {
+      console.error(
+        "Unexpected error in get_schools_with_program_access:",
+        err,
+      );
+      return fallbackResponse;
     }
   }
 

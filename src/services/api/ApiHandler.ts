@@ -1,5 +1,11 @@
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  ServiceApi,
+} from "./ServiceApi";
 import {
   RESULT_STATUS,
   SchoolVisitAction,
@@ -1502,6 +1508,12 @@ export class ApiHandler implements ServiceApi {
     search?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    return await this.s.getSchoolsWithProgramAccess(params);
   }
 
   public async createOrAddUserOps(payload: {

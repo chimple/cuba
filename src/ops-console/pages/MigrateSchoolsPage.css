@@ -69,7 +69,9 @@
 
 .migrate-schools-top-right {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 10px;
 }
 
 .migrate-schools-top-right .search-filter-container-SearchAndFilter {
@@ -167,6 +169,9 @@
 .migrate-schools-table-wrap .MuiTableBody-root .MuiTableCell-root {
   height: 44px !important;
   vertical-align: middle !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 .migrate-schools-table-wrap
@@ -196,6 +201,13 @@
   height: 44px;
   background: #f3f4f6 !important;
   vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell > * {
+  min-width: 0;
 }
 
 .migrate-schools-table-wrap .data-tablebody-cell:first-child,
@@ -232,6 +244,11 @@
 }
 
 .migrate-schools-name {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 14px !important;
   font-weight: 700 !important;
   line-height: 1.25;
@@ -239,6 +256,11 @@
 }
 
 .migrate-schools-subname {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 11.5px !important;
   font-weight: 500 !important;
   color: #6b7280 !important;
@@ -255,30 +277,53 @@
 
 .migrate-schools-footer {
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  box-sizing: border-box;
   background: white;
-  padding-bottom: 10px;
+  padding: 0 18px 10px;
+  margin-top: 10px !important;
+  margin-bottom: 15px;
+}
+
+.migrate-schools-footer .migrate-schools-footer-pagination {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.migrate-schools-footer:not(.migrate-schools-footer-with-action)
+  .migrate-schools-footer-pagination {
+  justify-content: center;
+}
+
+.migrate-schools-footer .migrate-schools-footer-pagination > div {
+  width: 100%;
+  margin: 0 !important;
 }
 
 .migrate-schools-footer-with-action {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: nowrap;
   gap: 10px;
-  padding: 0 18px 10px;
-}
-
-.migrate-schools-footer-pagination {
-  width: 100%;
 }
 
 .migrate-schools-footer-with-action .migrate-schools-footer-pagination {
   width: 60%;
+  justify-content: flex-start;
 }
 
 .migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
   justify-content: flex-start !important;
-  margin-top: 8px !important;
+  margin-top: 0 !important;
   margin-bottom: 0 !important;
+}
+
+.migrate-schools-footer-with-action .MuiPagination-root {
+  padding-top: 0 !important;
 }
 
 .migrate-schools-footer-action {
@@ -286,26 +331,32 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 20px;
   min-width: 0;
 }
 
 .migrate-schools-selected-count {
   color: #1f2937;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   white-space: nowrap;
 }
 
+.migrate-schools-selected-count-number {
+  color: #000000;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .migrate-schools-action-button {
   text-transform: none !important;
-  min-width: 72px !important;
-  height: 28px !important;
+  width: 90px !important;
+  height: 32px !important;
   border-radius: 4px !important;
   background-color: #1a71f6 !important;
   color: #ffffff !important;
   box-shadow: none !important;
-  font-size: 12px !important;
+  font-size: 13px !important;
   font-weight: 600 !important;
   padding: 0 14px !important;
 }
@@ -316,7 +367,7 @@
 }
 
 .migrate-schools-footer .MuiPagination-root {
-  padding-top: 4px;
+  padding-top: 0;
 }
 
 .migrate-schools-footer .MuiPagination-ul {
@@ -325,12 +376,13 @@
 
 .migrate-schools-footer .MuiPaginationItem-root {
   min-width: 22px;
-  height: 22px;
+  height: 27px;
   border-radius: 2px;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 600;
   color: #1a71f6;
   margin: 0;
+  justify-content: center !important;
 }
 
 .migrate-schools-footer .MuiPaginationItem-root.Mui-selected {
@@ -352,7 +404,7 @@
 .migrate-schools-footer
   .MuiPaginationItem-previousNext[aria-label="Go to previous page"]::after {
   content: "Previous";
-  font-size: 11px;
+  font-size: 14px;
   margin-left: 4px;
   color: #6b7280;
 }
@@ -360,13 +412,74 @@
 .migrate-schools-footer
   .MuiPaginationItem-previousNext[aria-label="Go to next page"]::before {
   content: "Next";
-  font-size: 11px;
+  font-size: 14px;
   margin-right: 4px;
   color: #1a71f6;
 }
 
 .migrate-schools-header .selected-filters-container-SelectedFilters:empty {
   display: none;
+}
+
+.migrate-schools-confirm-dialog .MuiPaper-root {
+  border-radius: 8px !important;
+  max-width: 500px !important;
+}
+
+.migrate-schools-confirm-content {
+  padding: 25px !important;
+}
+
+.migrate-schools-confirm-text {
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px !important;
+}
+
+.migrate-schools-confirm-warning {
+  border: 1px solid #f5b5b5;
+  background: #fff5f5;
+  color: #d42828;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.migrate-schools-confirm-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+}
+
+.migrate-schools-confirm-cancel {
+  text-transform: none !important;
+  color: #1a71f6 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  min-width: 88px !important;
+}
+
+.migrate-schools-confirm-migrate {
+  text-transform: none !important;
+  min-width: 80px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  background: #1a71f6 !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  padding: 0 16px !important;
+}
+
+.migrate-schools-confirm-migrate:hover {
+  background: #0f5fd9 !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 1200px) {
@@ -376,6 +489,29 @@
 }
 
 @media (max-width: 900px) {
+  .migrate-schools-table-wrap .MuiTableHead-root .MuiTableCell-root,
+  .migrate-schools-table-wrap .MuiTableBody-root .MuiTableCell-root,
+  .migrate-schools-table-wrap .data-tablebody-head-cell,
+  .migrate-schools-table-wrap .data-tablebody-cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-cell .MuiBox-root {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .migrate-schools-name,
+  .migrate-schools-subname {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .migrate-schools-controls-row {
     flex-direction: column;
     align-items: stretch;
@@ -385,6 +521,8 @@
   .migrate-schools-top-right {
     min-width: 0;
     width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .migrate-schools-top-right .search-input-SearchAndFilter {
@@ -392,21 +530,25 @@
   }
 
   .migrate-schools-footer-with-action {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
     gap: 8px;
   }
 
-  .migrate-schools-footer-with-action .migrate-schools-footer-pagination,
+  .migrate-schools-footer-with-action .migrate-schools-footer-pagination {
+    width: 60%;
+  }
+
   .migrate-schools-footer-action {
-    width: 100%;
+    width: 40%;
   }
 
   .migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
-    justify-content: center !important;
+    justify-content: flex-start !important;
   }
 
   .migrate-schools-footer-action {
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 }

@@ -67,6 +67,39 @@ export type AssignmentCartData = {
   updated_at: string;
 };
 
+export type SchoolProgramAccessFilters = {
+  program?: string[];
+  programType?: string[];
+  state?: string[];
+  district?: string[];
+  block?: string[];
+  cluster?: string[];
+};
+
+export type GetSchoolsWithProgramAccessParams = {
+  academicYears: string[];
+  filters?: SchoolProgramAccessFilters;
+  page?: number;
+  pageSize?: number;
+  orderBy?: string;
+  orderDir?: "asc" | "desc";
+  search?: string;
+};
+
+export type SchoolProgramAccessRow = {
+  school: Record<string, any>;
+  program: Record<string, any>;
+  program_users: Record<string, any>[];
+};
+
+export type SchoolProgramAccessResponse = {
+  data: SchoolProgramAccessRow[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -1972,6 +2005,14 @@ export interface ServiceApi {
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }>;
+
+  /**
+   * Fetch schools with linked program access details using academic years and optional filters.
+   * Calls the `get_schools_with_program_access` RPC and returns normalized paginated output.
+   */
+  getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse>;
 
   /**
    * Creates or gets a user based on the provided payload.

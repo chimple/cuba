@@ -1,8 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Button, IconButton, Tab, Tabs, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  IconButton,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB } from "../../common/constants";
+import { useHistory, useLocation } from "react-router";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
 import SearchAndFilter from "../components/SearchAndFilter";
@@ -34,25 +44,104 @@ const filterConfigsForSchool = [
   { key: "block", label: t("Select Block") },
 ];
 
+const FILTER_KEYS = [
+  "program",
+  "programType",
+  "state",
+  "district",
+  "cluster",
+  "block",
+] as const;
+
+const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
+  try {
+    return param ? (JSON.parse(param) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const normalizeFiltersFromQuery = (value: unknown): Filters => {
+  if (!value || typeof value !== "object") return INITIAL_FILTERS;
+  const source = value as Record<string, unknown>;
+  return FILTER_KEYS.reduce<Filters>((acc, key) => {
+    acc[key] = Array.isArray(source[key])
+      ? (source[key] as unknown[]).filter(
+          (item): item is string =>
+            typeof item === "string" && item.trim().length > 0,
+        )
+      : [];
+    return acc;
+  }, { ...INITIAL_FILTERS });
+};
+
 const MigrateSchoolsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
+  const location = useLocation();
+  const history = useHistory();
+  const qs = new URLSearchParams(location.search);
 
-  const [activeTab, setActiveTab] = useState<MigrationTab>("migrate");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
+  const [activeTab, setActiveTab] = useState<MigrationTab>(() => {
+    const tab = qs.get("tab");
+    return tab === "migrated" ? "migrated" : "migrate";
+  });
+  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const initialFilters = useMemo(
+    () =>
+      normalizeFiltersFromQuery(
+        parseJSONParam<Record<string, unknown> | null>(
+          qs.get("filters"),
+          INITIAL_FILTERS,
+        ),
+      ),
+    [],
+  );
+  const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [tempFilters, setTempFilters] = useState<Filters>(initialFilters);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState("");
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(() => {
+    const parsed = Number(qs.get("page"));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  });
+  const [orderBy, setOrderBy] = useState(() => qs.get("orderBy") || "");
+  const [orderDir, setOrderDir] = useState<"asc" | "desc">(() => {
+    const direction = qs.get("orderDir");
+    return direction === "desc" ? "desc" : "asc";
+  });
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<string[]>([]);
+  const [isMigrateDialogOpen, setIsMigrateDialogOpen] = useState(false);
 
   const isLoading = isFilterLoading || isDataLoading;
+  const currentAcademicYear = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return `${currentYear - 1}-${String(currentYear).slice(-2)}`;
+  }, []);
+  const academicYears = useMemo(() => [currentAcademicYear], [currentAcademicYear]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeTab !== "migrate") params.set("tab", activeTab);
+    if (searchTerm.trim()) params.set("search", searchTerm);
+    if (page !== 1) params.set("page", String(page));
+    if (orderBy) params.set("orderBy", orderBy);
+    if (orderDir !== "asc") params.set("orderDir", orderDir);
+
+    const cleanedFilters = Object.fromEntries(
+      Object.entries(filters).filter(
+        ([, value]) => Array.isArray(value) && value.length > 0,
+      ),
+    );
+    if (Object.keys(cleanedFilters).length > 0) {
+      params.set("filters", JSON.stringify(cleanedFilters));
+    }
+
+    history.replace({ search: params.toString() });
+  }, [activeTab, searchTerm, page, orderBy, orderDir, filters, history]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -60,14 +149,17 @@ const MigrateSchoolsPage: React.FC = () => {
       try {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
-          setFilterOptions({
-            program: data.program || data.partner || [],
+          setFilterOptions((prev) => ({
+            program:
+              Array.isArray(data.program) && data.program.length > 0
+                ? data.program
+                : prev.program || [],
             programType: data.programType || [],
             state: data.state || [],
             district: data.district || [],
             cluster: data.cluster || [],
             block: data.block || [],
-          });
+          }));
         }
       } catch (error) {
         console.error("Failed to fetch filter options", error);
@@ -82,18 +174,8 @@ const MigrateSchoolsPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     setIsDataLoading(true);
     try {
-      const modelFilter =
-        activeTab === "migrate"
-          ? [PROGRAM_TAB.AT_HOME, PROGRAM_TAB.HYBRID]
-          : [PROGRAM_TAB.AT_SCHOOL];
-
-      const { program = [], ...remainingFilters } = filters;
       const cleanedFilters = Object.fromEntries(
-        Object.entries({
-          ...remainingFilters,
-          partner: program,
-          model: modelFilter,
-        }).filter(
+        Object.entries(filters).filter(
           ([, value]) => Array.isArray(value) && value.length > 0,
         ),
       );
@@ -101,56 +183,180 @@ const MigrateSchoolsPage: React.FC = () => {
       let backendOrderBy = orderBy;
       if (backendOrderBy === "name") backendOrderBy = "school_name";
       if (backendOrderBy === "district") backendOrderBy = "district";
+      if (backendOrderBy === "academicYear") backendOrderBy = "academic_year";
 
-      const response = await api.getFilteredSchoolsForSchoolListing({
-        filters: cleanedFilters,
-        page,
-        page_size: DEFAULT_PAGE_SIZE,
-        order_by: backendOrderBy,
-        order_dir: orderDir,
-        search: searchTerm,
-      });
+      const normalizeAcademicYear = (value: any): string => {
+        if (Array.isArray(value)) {
+          const years = value
+            .map((item) => String(item ?? "").trim())
+            .filter((item) => item.length > 0);
+          return years.join(", ");
+        }
 
-      const data = response?.data || [];
-      setTotal(response?.total || 0);
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (!trimmed) return "";
 
-      const formatted = data.map((school: any) => ({
-        ...school,
-        id: school.sch_id,
-        name: {
-          value: school.school_name || "--",
-          render: (
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
-              <Typography className="migrate-schools-name">
-                {school.school_name || "--"}
-              </Typography>
-              <Typography className="migrate-schools-subname">
-                {school.udise_code || school.state
-                  ? `${school.udise_code ?? ""} - ${school.state ?? ""}`.trim()
-                  : "--"}
-              </Typography>
-            </Box>
+          if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (Array.isArray(parsed)) {
+                return parsed
+                  .map((item) => String(item ?? "").trim())
+                  .filter((item) => item.length > 0)
+                  .join(", ");
+              }
+            } catch (_err) {
+              return trimmed;
+            }
+          }
+
+          return trimmed;
+        }
+
+        return "";
+      };
+
+      const normalizeProgramModel = (value: any): string => {
+        const toLabel = (model: string): string => {
+          const normalized = model.trim().toLowerCase();
+          if (normalized === "at_home") return "At-Home";
+          if (normalized === "at_school") return "At-School";
+          if (normalized === "hybrid") return "Hybrid";
+          return model;
+        };
+
+        if (Array.isArray(value)) {
+          const models = value
+            .map((item) => String(item ?? "").trim())
+            .filter((item) => item.length > 0)
+            .map(toLabel);
+          return models.join(", ");
+        }
+
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (!trimmed) return "";
+
+          if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (Array.isArray(parsed)) {
+                return parsed
+                  .map((item) => String(item ?? "").trim())
+                  .filter((item) => item.length > 0)
+                  .map(toLabel)
+                  .join(", ");
+              }
+            } catch (_err) {
+              return toLabel(trimmed);
+            }
+          }
+
+          return toLabel(trimmed);
+        }
+
+        return "";
+      };
+
+      if (activeTab === "migrate") {
+        const response = await api.getSchoolsWithProgramAccess({
+          academicYears,
+          filters: cleanedFilters,
+          page,
+          pageSize: DEFAULT_PAGE_SIZE,
+          orderBy: backendOrderBy || undefined,
+          orderDir,
+          search: searchTerm,
+        });
+
+        const data = response?.data || [];
+        setTotal(response?.total || 0);
+        const fetchedProgramNames = Array.from(
+          new Set(
+            data
+              .map((item: any) => item?.program?.name)
+              .filter(
+                (value: unknown): value is string =>
+                  typeof value === "string" && value.trim().length > 0,
+              ),
           ),
-        },
-        programName: school.program_name || school.program || "--",
-        programType:
-          school.program_type ||
-          school.programType ||
-          (school.model === PROGRAM_TAB.AT_HOME
-            ? "At-Home"
-            : school.model === PROGRAM_TAB.AT_SCHOOL
-              ? "At-School"
-              : school.model === PROGRAM_TAB.HYBRID
-                ? "Hybrid"
-                : "--"),
-        academicYear:
-          school.academic_year || school.academicYear || "2024-2025",
-        district: school.district || "--",
-        cluster: school.cluster || "--",
-        block: school.block || "--",
-      }));
+        );
+        if (fetchedProgramNames.length > 0) {
+          setFilterOptions((prev) => ({
+            ...prev,
+            program: Array.from(
+              new Set([...(prev.program || []), ...fetchedProgramNames]),
+            ),
+          }));
+        }
 
-      setRows(formatted);
+        const formatted = data.map((row: any, index: number) => {
+          const school =
+            row?.school && typeof row.school === "object" ? row.school : {};
+          const program =
+            row?.program && typeof row.program === "object" ? row.program : {};
+          const schoolName = school.school_name || school.name || "--";
+          const schoolUdise = school.udise_code || school.udise || "--";
+          const schoolState = school.state || school.group1 || "--";
+          const schoolDistrict = school.district || school.group2 || "--";
+          const schoolBlock = school.block || school.group3 || "--";
+          const schoolCluster = school.cluster || school.group4 || "--";
+          const resolvedAcademicYear =
+            normalizeAcademicYear(
+              school.academic_year ?? program.academic_year ?? school.academicYear,
+            ) ||
+            academicYears[0] ||
+            "";
+          const resolvedId =
+            school.sch_id ||
+            school.id ||
+            school.school_id ||
+            program.school_id ||
+            `school-${index}`;
+
+          return {
+            ...school,
+            id: resolvedId,
+            sch_id: resolvedId,
+            program_users: Array.isArray(row?.program_users)
+              ? row.program_users
+              : [],
+            name: {
+              value: schoolName,
+              render: (
+                <Box display="flex" flexDirection="column" alignItems="flex-start">
+                  <Typography className="migrate-schools-name">
+                    {schoolName}
+                  </Typography>
+                  <Typography className="migrate-schools-subname">
+                    {schoolUdise || schoolState
+                      ? `${schoolUdise ?? ""} - ${schoolState ?? ""}`.trim()
+                      : "--"}
+                  </Typography>
+                </Box>
+              ),
+            },
+            programName:
+              program.program_name ||
+              program.name ||
+              school.program_name ||
+              school.program ||
+              "--",
+            programModel:
+              normalizeProgramModel(program.model ?? school.model) || "--",
+            academicYear: resolvedAcademicYear,
+            district: schoolDistrict,
+            cluster: schoolCluster,
+            block: schoolBlock,
+          };
+        });
+
+        setRows(formatted);
+      } else {
+        setRows([]);
+        setTotal(0);
+      }
     } catch (error) {
       console.error("Failed to fetch migrate schools list", error);
       setRows([]);
@@ -158,7 +364,7 @@ const MigrateSchoolsPage: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [activeTab, api, filters, orderBy, orderDir, page, searchTerm]);
+  }, [academicYears, activeTab, api, filters, orderBy, orderDir, page, searchTerm]);
 
   useEffect(() => {
     fetchData();
@@ -166,7 +372,7 @@ const MigrateSchoolsPage: React.FC = () => {
 
   useEffect(() => {
     setSelectedSchoolIds([]);
-  }, [activeTab, filters, searchTerm, page]);
+  }, [activeTab, academicYears]);
 
   const columns: Column<Record<string, any>>[] = useMemo(
     () => [
@@ -183,8 +389,8 @@ const MigrateSchoolsPage: React.FC = () => {
         sortable: false,
       },
       {
-        key: "programType",
-        label: t("Program Type"),
+        key: "programModel",
+        label: t("Program Model"),
         width: "14%",
         sortable: false,
       },
@@ -217,7 +423,7 @@ const MigrateSchoolsPage: React.FC = () => {
   );
 
   const handleSort = (columnKey: string) => {
-    const sortableKeys = ["name", "district"];
+    const sortableKeys = ["name", "academicYear", "district"];
     if (!sortableKeys.includes(columnKey)) return;
 
     if (orderBy === columnKey) {
@@ -252,6 +458,19 @@ const MigrateSchoolsPage: React.FC = () => {
     setTempFilters(INITIAL_FILTERS);
     setPage(1);
     setIsFilterOpen(false);
+  };
+
+  const handleOpenMigrateDialog = () => {
+    if (selectedSchoolIds.length === 0) return;
+    setIsMigrateDialogOpen(true);
+  };
+
+  const handleCloseMigrateDialog = () => {
+    setIsMigrateDialogOpen(false);
+  };
+
+  const handleConfirmMigrate = () => {
+    setIsMigrateDialogOpen(false);
   };
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
@@ -384,11 +603,15 @@ const MigrateSchoolsPage: React.FC = () => {
           {isSelectionActionVisible && (
             <div className="migrate-schools-footer-action">
               <span className="migrate-schools-selected-count">
-                ({selectedSchoolIds.length}) {t("Schools Selected")}
+                <span className="migrate-schools-selected-count-number">
+                  ({selectedSchoolIds.length})
+                </span>{" "}
+                {t("Schools Selected")}
               </span>
               <Button
                 variant="contained"
                 className="migrate-schools-action-button"
+                onClick={handleOpenMigrateDialog}
               >
                 {t("Migrate")}
               </Button>
@@ -396,6 +619,44 @@ const MigrateSchoolsPage: React.FC = () => {
           )}
         </div>
       )}
+
+      <Dialog
+        open={isMigrateDialogOpen}
+        onClose={handleCloseMigrateDialog}
+        className="migrate-schools-confirm-dialog"
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogContent className="migrate-schools-confirm-content">
+          <Typography className="migrate-schools-confirm-text">
+            {t(
+              "Are you sure you want to migrate the selected {{count}} schools to the next academic year?",
+              { count: selectedSchoolIds.length },
+            )}
+          </Typography>
+
+          <div className="migrate-schools-confirm-warning">
+            {t("This cannot be reversed. Please be certain.")}
+          </div>
+
+          <div className="migrate-schools-confirm-actions">
+            <Button
+              variant="text"
+              className="migrate-schools-confirm-cancel"
+              onClick={handleCloseMigrateDialog}
+            >
+              {t("Cancel")}
+            </Button>
+            <Button
+              variant="contained"
+              className="migrate-schools-confirm-migrate"
+              onClick={handleConfirmMigrate}
+            >
+              {t("Migrate")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
