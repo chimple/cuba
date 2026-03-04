@@ -3771,4 +3771,27 @@ export class Util {
     };
     return device;
   }
+  public static migrateSupabaseSession() {
+  try {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const projectRef = supabaseUrl?.split("//")[1]?.split(".")[0];
+
+    const newKey = `sb-${projectRef}-auth-token`;
+
+    const oldKey = Object.keys(localStorage).find((key) =>
+      key.endsWith("auth-token")
+    );
+
+    if (oldKey && oldKey !== newKey) {
+      const oldSession = localStorage.getItem(oldKey);
+
+      if (oldSession && !localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, oldSession);
+        localStorage.removeItem(oldKey);
+      }
+    }
+  } catch (err) {
+    console.error("Session migration failed", err);
+  }
+}
 }
