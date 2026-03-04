@@ -7986,7 +7986,7 @@ export class SupabaseApi implements ServiceApi {
     );
 
     try {
-      const { data, error } = await (this.supabase as any).rpc(
+      const { data, error } = await this.supabase.rpc(
         "get_schools_with_program_access",
         {
           _academic_years: academicYears,
