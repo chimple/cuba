@@ -6,7 +6,9 @@ import ColorTray from "./ColorTray";
 import PaintTopBar from "./PaintTopBar";
 import pathwayBg from "../../assets/images/pathwayBackground1.svg";
 import cameraIcon from "../../assets/images/tick.png";
-import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
+// import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
+import { ReactComponent as SceneSvg } from "../../assets/images/Sea.svg";
+
 
 export default function ColoringBoard() {
   const svgRef = useRef<SVGSVGElement>(null);
