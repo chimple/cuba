@@ -499,22 +499,23 @@ const MigrateSchoolsPage: React.FC = () => {
     activeTab === "migrate" && selectedSchoolIds.length > 0;
 
   return (
-    <div className="migrate-schools-page">
-      <div className="migrate-schools-header">
-        <div className="migrate-schools-title-row">
-          <h1 className="migrate-schools-title">{t("Migrate Schools")}</h1>
+    <div  id="migrate-schools-page" className="migrate-schools-page">
+      <div id="migrate-schools-header" className="migrate-schools-header">
+        <div id="migrate-schools-title-row" className="migrate-schools-title-row">
+          <h1 id="migrate-schools-title" className="migrate-schools-title">{t("Migrate Schools")}</h1>
           <IconButton className="migrate-schools-bell-icon">
             <BsFillBellFill />
           </IconButton>
         </div>
 
-        <div className="migrate-schools-controls-row">
+        <div id="migrate-schools-controls-row" className="migrate-schools-controls-row">
           <Tabs
             value={activeTab}
             onChange={(_, value) => {
               setActiveTab(value as MigrationTab);
               setPage(1);
             }}
+            id="migrate-schools-tabs"
             className="migrate-schools-tabs"
             indicatorColor="primary"
             textColor="primary"
@@ -522,16 +523,18 @@ const MigrateSchoolsPage: React.FC = () => {
             <Tab
               label={t("Migrate")}
               value="migrate"
+              id="migrate-schools-migrate-tab"
               className="migrate-schools-tab"
             />
             <Tab
               label={t("Migrated")}
               value="migrated"
+              id="migrate-schools-migrated-tab"
               className="migrate-schools-tab"
             />
           </Tabs>
 
-          <div className="migrate-schools-top-right">
+          <div id="migrate-schools-top-right" className="migrate-schools-top-right">
             <SearchAndFilter
               searchTerm={searchTerm}
               onSearchChange={(event) => {
@@ -584,7 +587,7 @@ const MigrateSchoolsPage: React.FC = () => {
         />
       </div>
 
-      <div className="migrate-schools-table-wrap">
+      <div id="migrate-schools-table-wrap" className="migrate-schools-table-wrap">
         {!isLoading && rows.length > 0 && (
           <DataTableBody
             columns={columns}
@@ -603,17 +606,18 @@ const MigrateSchoolsPage: React.FC = () => {
         )}
 
         {!isLoading && rows.length === 0 && (
-          <div className="migrate-schools-empty">{t("No schools found.")}</div>
+          <div id="migrate-schools-empty" className="migrate-schools-empty">{t("No schools found.")}</div>
         )}
       </div>
 
       {!isLoading && rows.length > 0 && (
         <div
+          id="migrate-schools-footer"
           className={`migrate-schools-footer${
             isSelectionActionVisible ? " migrate-schools-footer-with-action" : ""
           }`}
         >
-          <div className="migrate-schools-footer-pagination">
+          <div id="migrate-schools-footer-pagination" className="migrate-schools-footer-pagination">
             <DataTablePagination
               pageCount={pageCount}
               page={page}
@@ -622,15 +626,16 @@ const MigrateSchoolsPage: React.FC = () => {
           </div>
 
           {isSelectionActionVisible && (
-            <div className="migrate-schools-footer-action">
-              <span className="migrate-schools-selected-count">
-                <span className="migrate-schools-selected-count-number">
+            <div id="migrate-schools-footer-action" className="migrate-schools-footer-action">
+              <span id="migrate-schools-selected-count" className="migrate-schools-selected-count">
+                <span id="migrate-schools-selected-count-number" className="migrate-schools-selected-count-number">
                   ({selectedSchoolIds.length})
                 </span>{" "}
                 {t("Schools Selected")}
               </span>
               <Button
                 variant="contained"
+                id="migrate-schools-migrate-button"
                 className="migrate-schools-action-button"
                 onClick={handleOpenMigrateDialog}
               >
@@ -644,25 +649,27 @@ const MigrateSchoolsPage: React.FC = () => {
       <Dialog
         open={isMigrateDialogOpen}
         onClose={handleCloseMigrateDialog}
+        id="migrate-schools-confirm-dialog"
         className="migrate-schools-confirm-dialog"
         maxWidth="sm"
         fullWidth
       >
-        <DialogContent className="migrate-schools-confirm-content">
-          <Typography className="migrate-schools-confirm-text">
+        <DialogContent id="migrate-schools-confirm-content" className="migrate-schools-confirm-content">
+          <Typography id="migrate-schools-confirm-text" className="migrate-schools-confirm-text">
             {t(
               "Are you sure you want to migrate the selected {{count}} schools to the next academic year?",
               { count: selectedSchoolIds.length },
             )}
           </Typography>
 
-          <div className="migrate-schools-confirm-warning">
+          <div id="migrate-schools-confirm-warning" className="migrate-schools-confirm-warning">
             {t("This cannot be reversed. Please be certain.")}
           </div>
 
-          <div className="migrate-schools-confirm-actions">
+          <div id="migrate-schools-confirm-actions" className="migrate-schools-confirm-actions">
             <Button
               variant="text"
+              id="migrate-schools-cancel-button"
               className="migrate-schools-confirm-cancel"
               onClick={handleCloseMigrateDialog}
             >
@@ -670,6 +677,7 @@ const MigrateSchoolsPage: React.FC = () => {
             </Button>
             <Button
               variant="contained"
+              id="migrate-schools-confirm-button"
               className="migrate-schools-confirm-migrate"
               onClick={handleConfirmMigrate}
             >
@@ -686,6 +694,7 @@ const MigrateSchoolsPage: React.FC = () => {
           <img
             src="assets/icons/migratesuccess.svg"
             alt={String(t("Migration success"))}
+            id="migrate-schools-success-icon"
             className="migrate-schools-success-icon"
           />
         }
