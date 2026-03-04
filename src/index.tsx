@@ -54,6 +54,23 @@ import { Preferences } from "@capacitor/preferences";
 import { Browser } from "@capacitor/browser";
 import { BrowserRouter } from "react-router-dom";
 
+try {
+  const oldKey = "sb-ywkczxwdxbxlftbtwued-auth-token";
+
+  const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+  const projectRef = supabaseUrl?.split("//")[1]?.split(".")[0];
+
+  const newKey = `sb-${projectRef}-auth-token`;
+
+  const oldSession = localStorage.getItem(oldKey);
+
+  if (oldSession && !localStorage.getItem(newKey)) {
+    localStorage.setItem(newKey, oldSession);
+  }
+} catch (err) {
+  console.error("Session migration failed", err);
+}
+
 Sentry.init(
   {
     dsn: process.env.REACT_APP_SENTRY_DSN,
@@ -219,10 +236,7 @@ async function checkForUpdate() {
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
   console.log("🚀 Started for updates...");
   try {
-    if (
-      isNativePlatform &&
-      canHotUpdate
-    ) {
+    if (isNativePlatform && canHotUpdate) {
       console.log("🚀 Checking for updates...");
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
