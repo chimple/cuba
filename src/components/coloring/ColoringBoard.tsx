@@ -5,7 +5,7 @@ import { SVGScene } from "./SVGScene";
 import ColorTray from "./ColorTray";
 import PaintTopBar from "./PaintTopBar";
 import pathwayBg from "../../assets/images/pathwayBackground1.svg";
-import cameraIcon from "../../assets/images/tick.png";
+import cameraIcon from "../../assets/images/camera.svg";
 // import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
 import { ReactComponent as SceneSvg } from "../../assets/images/Sea.svg";
 
