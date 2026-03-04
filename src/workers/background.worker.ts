@@ -1,4 +1,5 @@
 import {
+  WorkerAckMessage,
   BackgroundWorkerTask,
   BuildXlsxFilePayload,
   ChecksumFile,
@@ -7,18 +8,66 @@ import {
   PlanHotUpdatePayload,
   PrepareBinaryFromBase64Payload,
   PrepareSyncBatchesPayload,
+  StreamSyncBatchesPayload,
   SqlStatement,
+  WorkerBatchReadyMessage,
+  WorkerDoneMessage,
   WorkerRequest,
   WorkerResponse,
+  WorkerStreamErrorMessage,
+  WorkerStreamRequest,
 } from "./background.worker.types";
-import * as XLSX from "xlsx-js-style";
 
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope;
+let xlsxModulePromise: Promise<typeof import("xlsx-js-style")> | null = null;
+const getXlsx = async (): Promise<typeof import("xlsx-js-style")> => {
+  if (!xlsxModulePromise) {
+    xlsxModulePromise = import("xlsx-js-style");
+  }
+  return xlsxModulePromise;
+};
+const pendingAckResolvers = new Map<string, () => void>();
 const safeTableName = (tableName: string): string => {
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(tableName)) {
     throw new Error(`Invalid table name received in worker: ${tableName}`);
   }
   return tableName;
+};
+const buildStatementsForRows = (
+  tableName: string,
+  rows: Record<string, unknown>[],
+  existingColumns: string[],
+): SqlStatement[] => {
+  const resolvedTableName = safeTableName(tableName);
+  const statementsForTable: SqlStatement[] = [];
+  for (const row of rows) {
+    const fieldNames = Object.keys(row).filter((key) =>
+      existingColumns.includes(key),
+    );
+    if (!fieldNames.length) {
+      continue;
+    }
+    const placeholders = fieldNames.map(() => "?").join(", ");
+    const values = fieldNames.map((name) => row[name]);
+    const updateColumns = fieldNames.filter((name) => name !== "id");
+    const updateSetClause = updateColumns
+      .map((name) => `${name} = excluded.${name}`)
+      .join(", ");
+
+    const onConflictClause = updateSetClause
+      ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${resolvedTableName}.updated_at`
+      : "ON CONFLICT(id) DO NOTHING";
+
+    statementsForTable.push({
+      statement: `
+          INSERT INTO ${resolvedTableName} (${fieldNames.join(", ")})
+          VALUES (${placeholders})
+          ${onConflictClause};
+        `,
+      values,
+    });
+  }
+  return statementsForTable;
 };
 
 const buildSyncBatches = (
@@ -40,35 +89,11 @@ const buildSyncBatches = (
       continue;
     }
 
-    const statementsForTable: SqlStatement[] = [];
-    for (const row of rows) {
-      const fieldNames = Object.keys(row).filter((key) =>
-        existingColumns.includes(key),
-      );
-      if (!fieldNames.length) {
-        continue;
-      }
-      const placeholders = fieldNames.map(() => "?").join(", ");
-      const values = fieldNames.map((name) => row[name]);
-      const updateColumns = fieldNames.filter((name) => name !== "id");
-      const updateSetClause = updateColumns
-        .map((name) => `${name} = excluded.${name}`)
-        .join(", ");
-
-      const onConflictClause = updateSetClause
-        ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${resolvedTableName}.updated_at`
-        : "ON CONFLICT(id) DO NOTHING";
-
-      statementsForTable.push({
-        statement: `
-          INSERT INTO ${resolvedTableName} (${fieldNames.join(", ")})
-          VALUES (${placeholders})
-          ${onConflictClause};
-        `,
-        values,
-      });
-    }
-
+    const statementsForTable = buildStatementsForRows(
+      resolvedTableName,
+      rows,
+      existingColumns,
+    );
     if (!statementsForTable.length) {
       continue;
     }
@@ -86,7 +111,9 @@ const buildSyncBatches = (
     rowCountByTable[resolvedTableName] = statementsForTable.length;
   }
 
-  const payloadSizeBytes = new TextEncoder().encode(JSON.stringify(tables)).length;
+  const payloadSizeBytes = payload.includePayloadSizeBytes
+    ? new TextEncoder().encode(JSON.stringify(tables)).length
+    : 0;
 
   return {
     tableBatches,
@@ -394,12 +421,13 @@ const buildBulkUploadPayload = (payload: {
   return Array.from(map.values());
 };
 
-const parseXlsxSheets = (
+const parseXlsxSheets = async (
   payload: ParseXlsxSheetsPayload,
-): {
+): Promise<{
   sheetNames: string[];
   sheets: Record<string, Record<string, any>[]>;
-} => {
+}> => {
+  const XLSX = await getXlsx();
   const workbook = XLSX.read(payload.fileBuffer, { type: "array" });
   const sheets: Record<string, Record<string, any>[]> = {};
   for (const sheetName of workbook.SheetNames) {
@@ -435,11 +463,12 @@ const toArrayBuffer = (value: unknown): ArrayBuffer => {
   throw new Error("Unsupported XLSX write output type");
 };
 
-const buildXlsxFile = (
+const buildXlsxFile = async (
   payload: BuildXlsxFilePayload,
-): {
+): Promise<{
   fileBuffer: ArrayBuffer;
-} => {
+}> => {
+  const XLSX = await getXlsx();
   const workbook = XLSX.utils.book_new();
   for (const sheetName of payload.sheetNames) {
     const rows = payload.sheets[sheetName] ?? [];
@@ -469,9 +498,76 @@ const handlers: {
   BUILD_XLSX_FILE: (payload) => buildXlsxFile(payload),
 };
 
-workerScope.onmessage = async (event: MessageEvent<WorkerRequest>) => {
+const waitForAck = (id: string): Promise<void> =>
+  new Promise((resolve) => {
+    pendingAckResolvers.set(id, resolve);
+  });
+
+const emitBatchReady = (id: string, batch: SqlStatement[]) => {
+  const message: WorkerBatchReadyMessage = {
+    id,
+    type: "BATCH_READY",
+    batch,
+  };
+  workerScope.postMessage(message);
+};
+
+const streamSyncBatches = async (request: WorkerStreamRequest) => {
+  const payload: StreamSyncBatchesPayload = request.payload;
+  const rowsPerChunk = Math.max(payload.rowsPerChunk ?? 200, 1);
+  const { tables, tableColumns, defaultBatchSize, userTableBatchSize, userTableName } =
+    payload;
+
+  for (const [tableName, rows] of Object.entries(tables)) {
+    const resolvedTableName = safeTableName(tableName);
+    const existingColumns = tableColumns[resolvedTableName] ?? [];
+    if (!rows?.length || !existingColumns.length) continue;
+
+    const batchSize =
+      resolvedTableName === userTableName
+        ? Math.max(userTableBatchSize, 1)
+        : Math.max(defaultBatchSize, 1);
+
+    for (let i = 0; i < rows.length; i += rowsPerChunk) {
+      const rowChunk = rows.slice(i, i + rowsPerChunk);
+      const statements = buildStatementsForRows(
+        resolvedTableName,
+        rowChunk,
+        existingColumns,
+      );
+      if (!statements.length) continue;
+
+      for (let j = 0; j < statements.length; j += batchSize) {
+        const batch = statements.slice(j, j + batchSize);
+        emitBatchReady(request.id, batch);
+        await waitForAck(request.id);
+      }
+    }
+  }
+};
+
+workerScope.onmessage = async (
+  event: MessageEvent<WorkerRequest | WorkerStreamRequest | WorkerAckMessage>,
+) => {
   const request = event.data;
+  if (request.type === "ACK") {
+    const resolver = pendingAckResolvers.get(request.id);
+    if (resolver) {
+      pendingAckResolvers.delete(request.id);
+      resolver();
+    }
+    return;
+  }
   try {
+    if (request.type === "STREAM_SYNC_BATCHES") {
+      await streamSyncBatches(request);
+      const doneMessage: WorkerDoneMessage = {
+        id: request.id,
+        type: "DONE",
+      };
+      workerScope.postMessage(doneMessage);
+      return;
+    }
     const handler = handlers[request.type];
     if (!handler) {
       throw new Error(`Unsupported worker task: ${request.type}`);
@@ -520,6 +616,16 @@ workerScope.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     workerScope.postMessage(response);
 
   } catch (error) {
+    if (request.type === "STREAM_SYNC_BATCHES") {
+      const response: WorkerStreamErrorMessage = {
+        id: request.id,
+        type: "ERROR",
+        error: error instanceof Error ? error.message : String(error),
+      };
+      workerScope.postMessage(response);
+      pendingAckResolvers.delete(request.id);
+      return;
+    }
     const response: WorkerResponse = {
       id: request.id,
       ok: false,
