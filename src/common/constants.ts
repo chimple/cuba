@@ -525,6 +525,7 @@ export enum PAGES {
   SCHOOL_ACTIVITIES = "/school-activities",
   QR_ASSIGNMENTS = "/qr_assignments",
   TEACHER_RECOMMENDED_ASSIGNMENTS = "/teacher-recommended-assignments",
+  COLORING_BOARD = "/coloring-board",
 }
 
 export const enum ASSIGNMENT_TYPE {

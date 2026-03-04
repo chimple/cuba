@@ -718,7 +718,7 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
               <SchoolProfile />
             </ProtectedRoute>
-            <ProtectedRoute path="/stickers-coloring-poc" exact>
+            <ProtectedRoute path={PAGES.COLORING_BOARD} exact>={true}
   <ColoringBoard />
 </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>

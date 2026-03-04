@@ -1,5 +1,4 @@
 import closeIcon from "../../assets/images/close.png";
-import cameraIcon from "../../assets/images/tick.png";
 
 type Props = {
   onExit: () => void;
