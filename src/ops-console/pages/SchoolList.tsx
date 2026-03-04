@@ -345,6 +345,28 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
+              {haveAccess && (
+                <Button
+                  variant="outlined"
+                  id="school-list-migrate-button"
+                  className="school-list-migrate-button"
+                  onClick={() =>
+                    history.push(
+                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`
+                    )
+                  }
+                  startIcon={
+                    <img
+                      id="school-list-migrate-icon"
+                      src="assets/icons/migrateArrow.svg"
+                      alt="migrate"
+                      className="school-list-migrate-icon"
+                    />
+                  }
+                >
+                  {t("Migrate")}
+                </Button>
+              )}
               {haveAccess &&
               <Button
                 variant="outlined"
@@ -372,28 +394,6 @@ const SchoolList: React.FC = () => {
                   )}
                 </Button>
               }
-              {haveAccess && (
-                <Button
-                  variant="outlined"
-                  id="school-list-migrate-button"
-                  className="school-list-migrate-button"
-                  onClick={() =>
-                    history.push(
-                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`
-                    )
-                  }
-                  startIcon={
-                    <img
-                      id="school-list-migrate-icon"
-                      src="assets/icons/migrateArrow.svg"
-                      alt="migrate"
-                      className="school-list-migrate-icon"
-                    />
-                  }
-                >
-                  {t("Migrate")}
-                </Button>
-              )}
               <Button
                 variant="outlined"
                 onClick={() => setShowUploadPage(true)}
