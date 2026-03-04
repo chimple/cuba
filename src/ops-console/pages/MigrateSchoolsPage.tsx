@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, IconButton, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Button, IconButton, Tab, Tabs, Typography } from "@mui/material";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB } from "../../common/constants";
@@ -17,25 +17,21 @@ type MigrationTab = "migrate" | "migrated";
 const DEFAULT_PAGE_SIZE = 20;
 
 const INITIAL_FILTERS: Filters = {
+  program: [],
   programType: [],
-  partner: [],
-  programManager: [],
-  fieldCoordinator: [],
   state: [],
   district: [],
-  block: [],
   cluster: [],
+  block: [],
 };
 
 const filterConfigsForSchool = [
-  { key: "partner", label: t("Select Partner") },
-  { key: "programManager", label: t("Select Program Manager") },
-  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
+  { key: "program", label: t("Select Program") },
   { key: "programType", label: t("Select Program Type") },
   { key: "state", label: t("Select State") },
   { key: "district", label: t("Select District") },
-  { key: "block", label: t("Select Block") },
   { key: "cluster", label: t("Select Cluster") },
+  { key: "block", label: t("Select Block") },
 ];
 
 const MigrateSchoolsPage: React.FC = () => {
@@ -65,14 +61,12 @@ const MigrateSchoolsPage: React.FC = () => {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
+            program: data.program || data.partner || [],
             programType: data.programType || [],
-            partner: data.partner || [],
-            programManager: data.programManager || [],
-            fieldCoordinator: data.fieldCoordinator || [],
             state: data.state || [],
             district: data.district || [],
-            block: data.block || [],
             cluster: data.cluster || [],
+            block: data.block || [],
           });
         }
       } catch (error) {
@@ -93,8 +87,13 @@ const MigrateSchoolsPage: React.FC = () => {
           ? [PROGRAM_TAB.AT_HOME, PROGRAM_TAB.HYBRID]
           : [PROGRAM_TAB.AT_SCHOOL];
 
+      const { program = [], ...remainingFilters } = filters;
       const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters, model: modelFilter }).filter(
+        Object.entries({
+          ...remainingFilters,
+          partner: program,
+          model: modelFilter,
+        }).filter(
           ([, value]) => Array.isArray(value) && value.length > 0,
         ),
       );
@@ -256,6 +255,8 @@ const MigrateSchoolsPage: React.FC = () => {
   };
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
+  const isSelectionActionVisible =
+    activeTab === "migrate" && selectedSchoolIds.length > 0;
 
   return (
     <div className="migrate-schools-page">
@@ -367,12 +368,32 @@ const MigrateSchoolsPage: React.FC = () => {
       </div>
 
       {!isLoading && rows.length > 0 && (
-        <div className="migrate-schools-footer">
-          <DataTablePagination
-            pageCount={pageCount}
-            page={page}
-            onPageChange={(value) => setPage(value)}
-          />
+        <div
+          className={`migrate-schools-footer${
+            isSelectionActionVisible ? " migrate-schools-footer-with-action" : ""
+          }`}
+        >
+          <div className="migrate-schools-footer-pagination">
+            <DataTablePagination
+              pageCount={pageCount}
+              page={page}
+              onPageChange={(value) => setPage(value)}
+            />
+          </div>
+
+          {isSelectionActionVisible && (
+            <div className="migrate-schools-footer-action">
+              <span className="migrate-schools-selected-count">
+                ({selectedSchoolIds.length}) {t("Schools Selected")}
+              </span>
+              <Button
+                variant="contained"
+                className="migrate-schools-action-button"
+              >
+                {t("Migrate")}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

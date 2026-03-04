@@ -259,6 +259,62 @@
   padding-bottom: 10px;
 }
 
+.migrate-schools-footer-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 18px 10px;
+}
+
+.migrate-schools-footer-pagination {
+  width: 100%;
+}
+
+.migrate-schools-footer-with-action .migrate-schools-footer-pagination {
+  width: 60%;
+}
+
+.migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
+  justify-content: flex-start !important;
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+.migrate-schools-footer-action {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+}
+
+.migrate-schools-selected-count {
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.migrate-schools-action-button {
+  text-transform: none !important;
+  min-width: 72px !important;
+  height: 28px !important;
+  border-radius: 4px !important;
+  background-color: #1a71f6 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 0 14px !important;
+}
+
+.migrate-schools-action-button:hover {
+  background-color: #0f5fd9 !important;
+  box-shadow: none !important;
+}
+
 .migrate-schools-footer .MuiPagination-root {
   padding-top: 4px;
 }
@@ -333,5 +389,24 @@
 
   .migrate-schools-top-right .search-input-SearchAndFilter {
     width: 100%;
+  }
+
+  .migrate-schools-footer-with-action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .migrate-schools-footer-with-action .migrate-schools-footer-pagination,
+  .migrate-schools-footer-action {
+    width: 100%;
+  }
+
+  .migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
+    justify-content: center !important;
+  }
+
+  .migrate-schools-footer-action {
+    justify-content: space-between;
   }
 }
