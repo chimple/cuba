@@ -79,7 +79,7 @@
   gap: 12px;
   min-height: 76px;
   border-bottom: 1px solid #e6e6e6;
-  padding: 6px 10px;
+  padding: 6px 21px;
 }
 
 .teacher-assignments-item-thumb {
@@ -116,6 +116,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .teacher-assignments-item-subtitle {
@@ -126,6 +127,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 }
 
 .teacher-assignments-item-toggle-circle {
