@@ -9,7 +9,7 @@ import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
-import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
+import { runBackgroundWorkerTask } from "../../workers/backgroundWorkerClient";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
@@ -38,7 +38,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
   const [isReupload, setIsReupload] = useState(false);
-  const processedDataRef = useRef(null);
+  const processedDataRef = useRef<ArrayBuffer | null>(null);
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
@@ -158,7 +158,29 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     if (!fileBuffer) return;
     progressRef.current = 40;
     setVerifyingProgressState(progressRef.current);
-    const workbook = XLSX.read(fileBuffer, { type: "array" });
+    let workbookSheetNames: string[] = [];
+    let workbookSheets: Record<string, Record<string, any>[]> = {};
+    try {
+      const parsedWorkbook = await runBackgroundWorkerTask("PARSE_XLSX_SHEETS", {
+        fileBuffer,
+      });
+      workbookSheetNames = parsedWorkbook.sheetNames;
+      workbookSheets = parsedWorkbook.sheets;
+    } catch (workerError) {
+      console.warn(
+        "XLSX parsing failed in worker, falling back to main thread parsing.",
+        workerError,
+      );
+      const workbook = XLSX.read(fileBuffer, { type: "array" });
+      workbookSheetNames = workbook.SheetNames;
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        workbookSheets[sheetName] = XLSX.utils.sheet_to_json(worksheet, {
+          raw: false,
+          defval: "",
+        }) as Record<string, any>[];
+      }
+    }
 
     let validatedSchoolIds: Set<string> = new Set();
     let studentLoginTypeMap = new Map<string, string>();
@@ -173,12 +195,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       teacher: [] as any[],
       student: [] as any[],
     };
-    for (const sheet of workbook.SheetNames) {
-      const worksheet = workbook.Sheets[sheet];
-      let rawData: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, {
-        raw: false,
-        defval: "",
-      });
+    const processedSheetsForExport: Record<string, Record<string, any>[]> = {};
+    for (const sheet of workbookSheetNames) {
+      let rawData: Record<string, any>[] = workbookSheets[sheet] ?? [];
       let processedData = rawData.map((row) =>
         Object.fromEntries(
           Object.entries(row).map(([key, value]) => [
@@ -1056,8 +1075,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         }
       }
 
-      const updatedSheet = XLSX.utils.json_to_sheet(processedData);
-      workbook.Sheets[sheet] = updatedSheet;
+      processedSheetsForExport[sheet] = processedData as Record<string, any>[];
 
       if (sheet === "School") validatedSheets.school = processedData;
       else if (sheet === "Class") validatedSheets.class = processedData;
@@ -1065,10 +1083,29 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       else if (sheet === "Student") validatedSheets.student = processedData;
     }
 
-    const output = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
+    let output: ArrayBuffer;
+    try {
+      const builtWorkbook = await runBackgroundWorkerTask("BUILD_XLSX_FILE", {
+        sheetNames: workbookSheetNames,
+        sheets: processedSheetsForExport,
+      });
+      output = builtWorkbook.fileBuffer;
+    } catch (workerError) {
+      console.warn(
+        "XLSX generation failed in worker, falling back to main thread generation.",
+        workerError,
+      );
+      const fallbackWorkbook = XLSX.utils.book_new();
+      for (const sheetName of workbookSheetNames) {
+        const rows = processedSheetsForExport[sheetName] ?? [];
+        const sheetData = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(fallbackWorkbook, sheetData, sheetName);
+      }
+      output = XLSX.write(fallbackWorkbook, {
+        bookType: "xlsx",
+        type: "array",
+      }) as ArrayBuffer;
+    }
     processedDataRef.current = output;
     progressRef.current = 80;
     setVerifyingProgressState(progressRef.current);
@@ -1080,12 +1117,27 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       validSheetCountRef.current = 0;
     }
     // When validations are complete
-    let payload = generateFinalPayload(
-      validatedSheets.school,
-      validatedSheets.class,
-      validatedSheets.teacher,
-      validatedSheets.student
-    );
+    let payload: any[];
+    try {
+      payload = await runBackgroundWorkerTask("PREPARE_BULK_UPLOAD_PAYLOAD", {
+        schoolData: validatedSheets.school,
+        classData: validatedSheets.class,
+        teacherData: validatedSheets.teacher,
+        studentData: validatedSheets.student,
+      });
+    } catch (error) {
+      console.error(
+        "Bulk upload payload generation failed in worker, falling back to main thread payload mapper.",
+        error,
+      );
+      const { generateFinalPayload } = await import("../OpsUtility/OpsDataMapper");
+      payload = generateFinalPayload(
+        validatedSheets.school,
+        validatedSheets.class,
+        validatedSheets.teacher,
+        validatedSheets.student,
+      );
+    }
     setFinalPayload(payload);
 
     setIsProcessing(false);

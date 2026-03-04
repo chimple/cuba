@@ -48,6 +48,7 @@ const HomePage: React.FC = () => {
   const initialTab = location.state?.tabValue ?? 0;
   const [tabValue, setTabValue] = useState<number>(initialTab);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
+  const [autoStartScan, setAutoStartScan] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
     null,
   );
@@ -145,7 +146,10 @@ const HomePage: React.FC = () => {
                 setShowAssignOptionsScreen(true);
                 setTabValue(1);
               }}
-              onScanQrClick={() => setShowAssignOptionsScreen(false)}
+              onScanQrClick={() => {
+                setShowAssignOptionsScreen(false);
+                setAutoStartScan(true);
+              }}
               onRecommendedClick={() => {
                 history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
                 setShowAssignOptionsScreen(false);
@@ -156,6 +160,8 @@ const HomePage: React.FC = () => {
         return (
           <TeacherAssignment
             key={key}
+            autoStartScan={autoStartScan}
+            onScanHandled={() => setAutoStartScan(false)}
             onLibraryClick={() => {
               setShowAssignOptionsScreen(true);
               setTabValue(1);
