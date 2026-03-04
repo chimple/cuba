@@ -3774,15 +3774,24 @@ export class Util {
   public static migrateSupabaseSession() {
   try {
     const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-    const projectRef = supabaseUrl?.split("//")[1]?.split(".")[0];
+
+    if (!supabaseUrl) {
+      console.warn("Supabase URL missing, skipping session migration");
+      return;
+    }
+    const projectRef = supabaseUrl.split("//")[1]?.split(".")[0];
+    if (!projectRef) {
+      console.warn("Invalid Supabase URL format, skipping session migration");
+      return;
+    }
 
     const newKey = `sb-${projectRef}-auth-token`;
 
-    const oldKey = Object.keys(localStorage).find((key) =>
-      key.endsWith("auth-token")
+    const oldKey = Object.keys(localStorage).find(
+      (key) => key.endsWith("auth-token") && key !== newKey
     );
 
-    if (oldKey && oldKey !== newKey) {
+    if (oldKey) {
       const oldSession = localStorage.getItem(oldKey);
 
       if (oldSession && !localStorage.getItem(newKey)) {
