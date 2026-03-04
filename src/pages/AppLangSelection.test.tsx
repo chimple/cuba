@@ -114,7 +114,7 @@ describe("AppLangSelection", function () {
     });
 
     await waitFor(function () {
-      var dropdown = screen.getByTestId("dropdown");
+      var dropdown = screen.getByTestId("dropdown") as HTMLSelectElement;
       expect(dropdown.value).toBe(LANG.HINDI);
     });
   });
