@@ -98,8 +98,7 @@ import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
-import { runBackgroundWorkerTask } from "../../workers/backgroundWorkerClient";
-import { PrepareSyncBatchesResult } from "../../workers/background.worker.types";
+import { runBackgroundWorkerStreamingSync } from "../../workers/backgroundWorkerClient";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -529,20 +528,24 @@ export class SqliteApi implements ServiceApi {
     let data = new Map<string, any[]>();
     if (isInitialFetch === true) {
       let attempt = 1;
-      try {
-        data = await this._serverApi.getTablesData(
-          orderedTableNames,
-          lastPullTables,
-          isInitialFetch,
-        );
-      } catch (err) {
-        console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
-        if (attempt < 5) {
-          const delay = 500 * Math.pow(2, attempt);
-          await new Promise((res) => setTimeout(res, delay));
-          return this.pullChanges(tableNames, isFirstSync);
-        } else {
-          console.warn("❌ All 5 retries failed. Truncating local tables...");
+      const maxAttempts = 5;
+      while (true) {
+        try {
+          data = await this._serverApi.getTablesData(
+            orderedTableNames,
+            lastPullTables,
+            isInitialFetch,
+          );
+          break;
+        } catch (err) {
+          console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+          if (attempt < maxAttempts) {
+            const delay = 500 * Math.pow(2, attempt);
+            await new Promise((res) => setTimeout(res, delay));
+            attempt += 1;
+            continue;
+          }
+          console.warn("❌ All retries failed. Truncating local tables...");
           if (!this._db) return;
           const query = `PRAGMA foreign_keys=OFF;`;
           const result = await this._db?.query(query);
@@ -563,11 +566,11 @@ export class SqliteApi implements ServiceApi {
           );
           if (userWantsRetry) {
             console.warn("🔁 Final retry triggered by user.");
-            return this.pullChanges(tableNames, isFirstSync); // restart pullChanges
-          } else {
-            console.warn("⛔ User canceled final retry.");
-            return; // do nothing
+            attempt = 1;
+            continue;
           }
+          console.warn("⛔ User canceled final retry.");
+          return;
         }
       }
     } else {
@@ -578,8 +581,12 @@ export class SqliteApi implements ServiceApi {
       );
     }
     const lastPulled = new Date().toISOString();
+    const DEFAULT_DB_BATCH_SIZE = 100;
+    const SAFE_USER_BATCH_SIZE = 250;
+    const STREAM_ROWS_CHUNK = 200;
     const tablesForWorker: Record<string, any[]> = {};
     const tableColumnsByName: Record<string, string[]> = {};
+    const tablesWritten = new Set<string>();
     for (const tableName of orderedTableNames) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
@@ -587,62 +594,54 @@ export class SqliteApi implements ServiceApi {
       if (!existingColumns || existingColumns.length === 0) continue;
       tablesForWorker[tableName] = tableData;
       tableColumnsByName[tableName] = existingColumns;
+      tablesWritten.add(tableName);
     }
 
-    let preparedBatches: PrepareSyncBatchesResult | undefined;
     try {
-      preparedBatches = await runBackgroundWorkerTask("PREPARE_SYNC_BATCHES", {
-        tables: tablesForWorker,
-        tableColumns: tableColumnsByName,
-        defaultBatchSize: 100,
-        userTableName: TABLES.User,
-        userTableBatchSize: Number.MAX_SAFE_INTEGER,
-      });
+      await runBackgroundWorkerStreamingSync(
+        {
+          tables: tablesForWorker,
+          tableColumns: tableColumnsByName,
+          defaultBatchSize: DEFAULT_DB_BATCH_SIZE,
+          userTableName: TABLES.User,
+          userTableBatchSize: SAFE_USER_BATCH_SIZE,
+          rowsPerChunk: STREAM_ROWS_CHUNK,
+        },
+        async (batch) => {
+          if (!batch.length) return;
+          if (Capacitor.getPlatform() === "web") {
+            for (const q of batch) {
+              await this._db!.run(q.statement, q.values);
+            }
+            await this._sqlite?.saveToStore(this.DB_NAME);
+          } else {
+            await this._db!.executeSet(batch);
+          }
+        },
+      );
     } catch (workerError) {
       console.warn(
         "Falling back to main-thread sync batch generation after worker failure:",
         workerError,
       );
-    }
-
-    for (const tableName of orderedTableNames) {
-      const tableData = data.get(tableName) ?? [];
-      if (tableData.length === 0) continue;
-      const existingColumns = tableColumnsByName[tableName] ?? [];
-      if (!existingColumns.length) continue;
-
-      const workerTableBatches =
-        preparedBatches?.tableBatches?.[tableName] ?? undefined;
-
-      if (workerTableBatches && workerTableBatches.length > 0) {
-        for (const queryBatch of workerTableBatches) {
-          if (Capacitor.getPlatform() === "web") {
-            for (const q of queryBatch) {
-              await this._db.run(q.statement, q.values);
-            }
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } else {
-            await this._db.executeSet(queryBatch);
-          }
-        }
-      } else {
+      for (const tableName of Object.keys(tablesForWorker)) {
+        const existingColumns = tableColumnsByName[tableName] ?? [];
+        const tableData = tablesForWorker[tableName] ?? [];
+        if (!existingColumns.length || !tableData.length) continue;
         const isUserTable = tableName === TABLES.User;
-        const BATCH_SIZE = isUserTable ? tableData.length : 100;
+        const batchSize = isUserTable ? SAFE_USER_BATCH_SIZE : DEFAULT_DB_BATCH_SIZE;
         let batchQueries: { statement: string; values: any[] }[] = [];
-
         for (const row of tableData) {
           const fieldNames = Object.keys(row).filter((f) =>
             existingColumns.includes(f),
           );
           if (fieldNames.length === 0) continue;
-
           const fieldValues = fieldNames.map((f) => row[f]);
           const placeholders = fieldNames.map(() => "?").join(", ");
           const updateSetClause = fieldNames
             .filter((f) => f !== "id")
             .map((f) => `${f} = excluded.${f}`)
             .join(", ");
-
           const stmt = `
             INSERT INTO ${tableName} (${fieldNames.join(", ")})
             VALUES (${placeholders})
@@ -650,52 +649,47 @@ export class SqliteApi implements ServiceApi {
             ${updateSetClause}
             WHERE excluded.updated_at > ${tableName}.updated_at;
             `;
-
           batchQueries.push({ statement: stmt, values: fieldValues });
-
-          if (batchQueries.length >= BATCH_SIZE) {
+          if (batchQueries.length >= batchSize) {
             if (Capacitor.getPlatform() === "web") {
               for (const q of batchQueries) {
-                await this._db.run(q.statement, q.values);
+                await this._db!.run(q.statement, q.values);
               }
               await this._sqlite?.saveToStore(this.DB_NAME);
             } else {
-              await this._db.executeSet(batchQueries);
+              await this._db!.executeSet(batchQueries);
             }
             batchQueries = [];
           }
         }
-
         if (batchQueries.length > 0) {
           if (Capacitor.getPlatform() === "web") {
             for (const q of batchQueries) {
-              await this._db.run(q.statement, q.values);
+              await this._db!.run(q.statement, q.values);
             }
             await this._sqlite?.saveToStore(this.DB_NAME);
           } else {
-            await this._db.executeSet(batchQueries);
+            await this._db!.executeSet(batchQueries);
           }
         }
       }
+    }
 
+    for (const tableName of tablesWritten) {
       await this.executeQuery(
         `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         [tableName, lastPulled],
       );
     }
 
-    // Update debug info
+    // Update debug info (avoid expensive full JSON serialization on hot path).
     let totalpulledRows = 0;
-    let filteredObject = {};
-    for (const [key, value] of data.entries()) {
+    for (const value of data.values()) {
       if (Array.isArray(value) && value.length > 0) {
         totalpulledRows += value.length;
-        filteredObject[key] = value; // include only non-empty arrays
       }
     }
-    const pulledRowsSizeInBytes =
-      preparedBatches?.payloadSizeBytes ??
-      new TextEncoder().encode(JSON.stringify(filteredObject)).length;
+    const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
     // if (batchQueries.length > 0) {
     //   try {
