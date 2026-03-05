@@ -534,6 +534,153 @@ export class SupabaseApi implements ServiceApi {
     });
   }
 
+  async migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const supabase = this.supabase;
+    const schoolIds = Array.isArray(payload?.school_ids)
+      ? payload.school_ids
+          .map((id) => String(id ?? "").trim())
+          .filter((id) => id.length > 0)
+      : [];
+    if (schoolIds.length === 0) return false;
+
+    let resolved = false;
+    const currentUserData = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const uploadingUser = currentUserData?.id;
+
+    return new Promise(async (resolve) => {
+      let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
+      let fallbackChannel: RealtimeChannel | null = null;
+      let subscriptionFailCount = 0;
+
+      const resolveOnce = async (isSuccess: boolean) => {
+        if (resolved) return;
+        resolved = true;
+        if (directChannel) {
+          await directChannel.unsubscribe();
+        }
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+        }
+        resolve(isSuccess);
+      };
+
+      const subscribeToDirectChannel = (): RealtimeChannel => {
+        const channel = supabase
+          .channel(`school-migrate-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (realtimePayload) => {
+              const status = realtimePayload.new?.status;
+              if ((status === "success" || status === "failed") && !resolved) {
+                await resolveOnce(status === "success");
+              }
+            },
+          )
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              subscriptionFailCount = 0;
+            } else {
+              subscriptionFailCount++;
+              if (subscriptionFailCount > 2) {
+                await channel.unsubscribe();
+                directChannel = subscribeToDirectChannel();
+              }
+            }
+          });
+        return channel;
+      };
+
+      fallbackChannel = uploadingUser
+        ? supabase
+            .channel(`school-migrate-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (realtimePayload) => {
+                const status = realtimePayload.new?.status;
+                const id = realtimePayload.new?.id;
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved &&
+                  (!uploadId || id === uploadId)
+                ) {
+                  await resolveOnce(status === "success");
+                }
+              },
+            )
+            .subscribe()
+        : null;
+
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "school-data-migrate",
+        {
+          body: {
+            school_ids: schoolIds,
+          },
+        },
+      );
+
+      if (functionError) {
+        console.error("Edge function error in school-data-migrate:", functionError);
+        await resolveOnce(false);
+        return;
+      }
+
+      uploadId = data?.upload_id || data?.migration_id || data?.id;
+      if (uploadId) {
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+          fallbackChannel = null;
+        }
+
+        const { data: row } = await supabase
+          .from("upload_queue")
+          .select("status")
+          .eq("id", uploadId)
+          .single();
+
+        if (row?.status === "success") {
+          await resolveOnce(true);
+          return;
+        }
+        if (row?.status === "failed") {
+          await resolveOnce(false);
+          return;
+        }
+
+        directChannel = subscribeToDirectChannel();
+        return;
+      }
+
+      if (
+        data &&
+        typeof data === "object" &&
+        "success" in (data as Record<string, unknown>)
+      ) {
+        await resolveOnce(Boolean((data as Record<string, unknown>).success));
+        return;
+      }
+
+      if (!fallbackChannel) {
+        await resolveOnce(false);
+      }
+    });
+  }
+
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map(),

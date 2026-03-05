@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Button,
+  CircularProgress,
   Dialog,
   DialogContent,
   IconButton,
@@ -8,6 +9,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
+import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import { t } from "i18next";
 import DataTableBody from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
@@ -19,7 +21,7 @@ import { BsFillBellFill } from "react-icons/bs";
 import {
   MigrationTab,
   useMigrateSchoolsPageLogic,
-} from "./MigrateSchoolsPage.logic";
+} from "./MigrateSchoolsPageLogic";
 import "./MigrateSchoolsPage.css";
 
 const MigrateSchoolsPage: React.FC = () => {
@@ -37,6 +39,8 @@ const MigrateSchoolsPage: React.FC = () => {
     selectedSchoolIds,
     isMigrateDialogOpen,
     isSuccessPopupOpen,
+    isFailurePopupOpen,
+    isMigrating,
     page,
     pageCount,
     columns,
@@ -57,6 +61,7 @@ const MigrateSchoolsPage: React.FC = () => {
     handleOpenMigrateDialog,
     handleCloseMigrateDialog,
     handleCloseSuccessPopup,
+    handleCloseFailurePopup,
     handleConfirmMigrate,
   } = useMigrateSchoolsPageLogic();
 
@@ -185,6 +190,7 @@ const MigrateSchoolsPage: React.FC = () => {
                 id="migrate-schools-migrate-button"
                 className="migrate-schools-action-button"
                 onClick={handleOpenMigrateDialog}
+                disabled={isMigrating}
               >
                 {t("Migrate")}
               </Button>
@@ -225,6 +231,7 @@ const MigrateSchoolsPage: React.FC = () => {
               id="migrate-schools-cancel-button"
               className="migrate-schools-confirm-cancel"
               onClick={handleCloseMigrateDialog}
+              disabled={isMigrating}
             >
               {t("Cancel")}
             </Button>
@@ -233,8 +240,14 @@ const MigrateSchoolsPage: React.FC = () => {
               id="migrate-schools-confirm-button"
               className="migrate-schools-confirm-migrate"
               onClick={handleConfirmMigrate}
+              disabled={isMigrating}
+              startIcon={
+                isMigrating ? (
+                  <CircularProgress size={14} color="inherit" />
+                ) : undefined
+              }
             >
-              {t("Migrate")}
+              {isMigrating ? t("Migrating...") : t("Migrate")}
             </Button>
           </div>
         </DialogContent>
@@ -256,6 +269,19 @@ const MigrateSchoolsPage: React.FC = () => {
           "Selected {{count}} schools have migrated to the next academic year.",
           { count: selectedSchoolIds.length },
         )}
+      />
+
+      <CommonPopup
+        open={isFailurePopupOpen}
+        onClose={handleCloseFailurePopup}
+        icon={
+          <ErrorOutlineRoundedIcon
+            id="migrate-schools-failure-icon"
+            className="migrate-schools-failure-icon"
+          />
+        }
+        title={t("Migration Failed")}
+        subtitle={t("Unable to migrate selected schools. Please try again.")}
       />
     </div>
   );

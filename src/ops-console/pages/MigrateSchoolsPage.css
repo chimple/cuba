@@ -489,6 +489,12 @@
   object-fit: contain;
 }
 
+.migrate-schools-failure-icon {
+  width: 52px !important;
+  height: 52px !important;
+  color: #d32f2f;
+}
+
 @media (max-width: 1200px) {
   .migrate-schools-top-right .search-input-SearchAndFilter {
     width: 260px;

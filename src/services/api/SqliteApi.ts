@@ -1069,6 +1069,10 @@ export class SqliteApi implements ServiceApi {
     return await this._serverApi.uploadData(payload);
   }
 
+  async migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean> {
+    return await this._serverApi.migrateSchoolData(payload);
+  }
+
   async createSchool(
     name: string,
     group1: string,

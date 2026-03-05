@@ -222,6 +222,11 @@ export class ApiHandler implements ServiceApi {
   public async uploadData(payload: any): Promise<boolean | null> {
     return await this.s.uploadData(payload);
   }
+  public async migrateSchoolData(payload: {
+    school_ids: string[];
+  }): Promise<boolean> {
+    return await this.s.migrateSchoolData(payload);
+  }
   public async createSchool(
     name: string,
     group1: string,

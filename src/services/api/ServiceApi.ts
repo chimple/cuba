@@ -289,6 +289,13 @@ export interface ServiceApi {
    */
   uploadData(payload: any): Promise<boolean | null>;
 
+  /**
+   * Calls the school migration edge function with selected school ids.
+   * @param payload - School ids to migrate in shape: { school_ids: string[] }.
+   * @returns Promise resolving true when migration request succeeds.
+   */
+  migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean>;
+
   createStudentProfile(
     name: string,
     age: number | undefined,

@@ -12,7 +12,7 @@ type RowData = Record<string, any>;
 
 const DEFAULT_PAGE_SIZE = 20;
 
-const INITIAL_FILTERS: Filters = {
+export const INITIAL_FILTERS: Filters = {
   program: [],
   programType: [],
   state: [],
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: Filters = {
   block: [],
 };
 
-const FILTER_KEYS = [
+export const FILTER_KEYS = [
   "program",
   "programType",
   "state",
@@ -30,7 +30,7 @@ const FILTER_KEYS = [
   "block",
 ] as const;
 
-const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
+export const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
   try {
     return param ? (JSON.parse(param) as T) : fallback;
   } catch {
@@ -38,7 +38,7 @@ const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
   }
 };
 
-const normalizeFiltersFromQuery = (value: unknown): Filters => {
+export const normalizeFiltersFromQuery = (value: unknown): Filters => {
   if (!value || typeof value !== "object") return INITIAL_FILTERS;
   const source = value as Record<string, unknown>;
   return FILTER_KEYS.reduce<Filters>((acc, key) => {
@@ -52,7 +52,7 @@ const normalizeFiltersFromQuery = (value: unknown): Filters => {
   }, { ...INITIAL_FILTERS });
 };
 
-const normalizeAcademicYear = (value: any): string => {
+export const normalizeAcademicYear = (value: any): string => {
   if (Array.isArray(value)) {
     const years = value
       .map((item) => String(item ?? "").trim())
@@ -84,7 +84,7 @@ const normalizeAcademicYear = (value: any): string => {
   return "";
 };
 
-const normalizeProgramModel = (value: any): string => {
+export const normalizeProgramModel = (value: any): string => {
   const toLabel = (model: string): string => {
     const normalized = model.trim().toLowerCase();
     if (normalized === PROGRAM_TAB.AT_HOME) {
@@ -132,7 +132,7 @@ const normalizeProgramModel = (value: any): string => {
   return "";
 };
 
-const buildNameCell = (
+export const buildNameCell = (
   schoolName: string,
   schoolUdise: string,
   schoolState: string,
@@ -206,6 +206,8 @@ export const useMigrateSchoolsPageLogic = () => {
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<string[]>([]);
   const [isMigrateDialogOpen, setIsMigrateDialogOpen] = useState(false);
   const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
+  const [isFailurePopupOpen, setIsFailurePopupOpen] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   const isLoading = isFilterLoading || isDataLoading;
   const currentAcademicYear = useMemo(() => {
@@ -525,8 +527,9 @@ export const useMigrateSchoolsPageLogic = () => {
   }, [selectedSchoolIds.length]);
 
   const handleCloseMigrateDialog = useCallback(() => {
+    if (isMigrating) return;
     setIsMigrateDialogOpen(false);
-  }, []);
+  }, [isMigrating]);
 
   const handleCloseSuccessPopup = useCallback(() => {
     setIsSuccessPopupOpen(false);
@@ -534,22 +537,63 @@ export const useMigrateSchoolsPageLogic = () => {
     setPage(1);
   }, []);
 
-  const handleConfirmMigrate = useCallback(() => {
-    setIsMigrateDialogOpen(false);
-    setIsSuccessPopupOpen(true);
+  const handleCloseFailurePopup = useCallback(() => {
+    setIsFailurePopupOpen(false);
   }, []);
 
+  const handleConfirmMigrate = useCallback(async () => {
+    if (isMigrating) return;
+
+    const schoolIds = selectedSchoolIds
+      .map((id) => String(id ?? "").trim())
+      .filter((id) => id.length > 0);
+
+    if (schoolIds.length === 0) return;
+
+    setIsMigrating(true);
+    setIsSuccessPopupOpen(false);
+    setIsFailurePopupOpen(false);
+
+    try {
+      const isMigrated = await api.migrateSchoolData({
+        school_ids: schoolIds,
+      });
+      if (isMigrated) {
+        setIsMigrateDialogOpen(false);
+        setIsSuccessPopupOpen(true);
+        return;
+      }
+      setIsMigrateDialogOpen(false);
+      setIsFailurePopupOpen(true);
+    } catch (error) {
+      console.error("Failed to migrate selected schools", error);
+      setIsMigrateDialogOpen(false);
+      setIsFailurePopupOpen(true);
+    } finally {
+      setIsMigrating(false);
+    }
+  }, [api, isMigrating, selectedSchoolIds]);
+
   useEffect(() => {
-    if (!isSuccessPopupOpen) return;
+    if (!isSuccessPopupOpen && !isFailurePopupOpen) return;
 
     const timeoutId = window.setTimeout(() => {
-      handleCloseSuccessPopup();
+      if (isSuccessPopupOpen) {
+        handleCloseSuccessPopup();
+      } else {
+        handleCloseFailurePopup();
+      }
     }, 2000);
 
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [isSuccessPopupOpen, handleCloseSuccessPopup]);
+  }, [
+    isFailurePopupOpen,
+    isSuccessPopupOpen,
+    handleCloseFailurePopup,
+    handleCloseSuccessPopup,
+  ]);
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
   const isSelectionActionVisible =
@@ -569,6 +613,8 @@ export const useMigrateSchoolsPageLogic = () => {
     selectedSchoolIds,
     isMigrateDialogOpen,
     isSuccessPopupOpen,
+    isFailurePopupOpen,
+    isMigrating,
     page,
     pageCount,
     columns,
@@ -589,6 +635,7 @@ export const useMigrateSchoolsPageLogic = () => {
     handleOpenMigrateDialog,
     handleCloseMigrateDialog,
     handleCloseSuccessPopup,
+    handleCloseFailurePopup,
     handleConfirmMigrate,
   };
 };
