@@ -743,9 +743,7 @@ export class Util {
           `[${assetType}] Worker decode failed, falling back to main thread decode.`,
           workerError,
         );
-        buffer = Uint8Array.from(atob(response.data), (c) =>
-          c.charCodeAt(0),
-        );
+        buffer = Uint8Array.from(atob(response.data), (c) => c.charCodeAt(0));
       }
       await unzip({
         fs,
@@ -2994,9 +2992,7 @@ export class Util {
     if (!currentStudent) return;
     const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-    const learningPath = pathToParse
-      ? JSON.parse(pathToParse)
-      : null;
+    const learningPath = pathToParse ? JSON.parse(pathToParse) : null;
 
     if (!learningPath) return;
     learningPath.updated_at = new Date().toISOString();
@@ -3119,7 +3115,7 @@ export class Util {
         const newpathId = uuidv4();
         course.path_id = newpathId;
         prevData.pathId = newpathId;
-        course.completedPath +=1;
+        course.completedPath += 1;
         courseIndex += 1;
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
@@ -3175,39 +3171,40 @@ export class Util {
       console.error("Error updating learning path:", error);
     }
   }
-  
+
   // this function is created because local sqlite database was updating after UI rendering,
-  // so it was showing old learning path until we refresh the page, 
-  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one 
+  // so it was showing old learning path until we refresh the page,
+  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one
   public static getLatestLearningPathByUpdatedAt(
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
   ): string | null {
     try {
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
-  
+
       // If nothing in session storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }
-      const studentLearningPath = student.learning_path ? JSON.parse(student.learning_path) : null;
+      const studentLearningPath = student.learning_path
+        ? JSON.parse(student.learning_path)
+        : null;
       const parsed = JSON.parse(sessionData);
-  
+
       // If session data belongs to different student, ignore it
       if (parsed.studentId !== student.id) {
         return student?.learning_path ?? null;
       }
-  
+
       const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
       const dbUpdatedAt = studentLearningPath?.updated_at
         ? new Date(studentLearningPath.updated_at).getTime()
         : 0;
-  
-      
+
       // Compare timestamps
       if (sessionUpdatedAt > dbUpdatedAt) {
         return parsed.learningPath;
       }
-  
+
       return student?.learning_path ?? null;
     } catch (error) {
       console.error("Error resolving latest learning path:", error);
@@ -3754,5 +3751,37 @@ export class Util {
       device_language: device_language.value,
     };
     return device;
+  }
+  public static migrateSupabaseSession() {
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+
+      if (!supabaseUrl) {
+        console.warn("Supabase URL missing, skipping session migration");
+        return;
+      }
+      const projectRef = supabaseUrl.split("//")[1]?.split(".")[0];
+      if (!projectRef) {
+        console.warn("Invalid Supabase URL format, skipping session migration");
+        return;
+      }
+
+      const newKey = `sb-${projectRef}-auth-token`;
+
+      const oldKey = Object.keys(localStorage).find(
+        (key) => key.endsWith("auth-token") && key !== newKey,
+      );
+
+      if (oldKey) {
+        const oldSession = localStorage.getItem(oldKey);
+
+        if (oldSession && !localStorage.getItem(newKey)) {
+          localStorage.setItem(newKey, oldSession);
+          localStorage.removeItem(oldKey);
+        }
+      }
+    } catch (err) {
+      console.error("Session migration failed", err);
+    }
   }
 }
