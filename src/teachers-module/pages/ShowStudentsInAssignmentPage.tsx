@@ -32,38 +32,17 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
   };
 
   const history = useHistory();
-  const navigationState = history.location?.state as
-    | {
-        selectedAssignments?: {};
-        manualAssignments?: {};
-        recommendedAssignments?: {};
-        fromPage?: string;
-        qrAssignmentNavigationState?: {
-          chapterId: string;
-          courseId: string;
-          fromPage?: string;
-        };
-      }
-    | undefined;
   const selectedAssignments =
-    (navigationState?.selectedAssignments as {}) ?? {};
-  const manualAssignments = (navigationState?.manualAssignments as {}) ?? {};
+    (history?.location?.state!["selectedAssignments"] as {}) ?? {};
+  const manualAssignments =
+    (history.location?.state!["manualAssignments"] as {}) ?? {};
   const recommendedAssignments =
-    (navigationState?.recommendedAssignments as {}) ?? {};
-  const fromPage = navigationState?.fromPage;
-  const qrAssignmentNavigationState =
-    navigationState?.qrAssignmentNavigationState;
+    (history.location.state!["recommendedAssignments"] as {}) ?? {};
+  const fromPage = history.location.state!["fromPage"];
 
   const onBackButtonClick = () => {
-    if (fromPage === PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS) {
-      history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
-      return;
-    }
-    if (fromPage === PAGES.QR_ASSIGNMENTS && qrAssignmentNavigationState) {
-      history.replace(PAGES.QR_ASSIGNMENTS, qrAssignmentNavigationState);
-      return;
-    }
-    history.replace(PAGES.TEACHER_ASSIGNMENT);
+    if (fromPage) history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
+    else history.replace(PAGES.TEACHER_ASSIGNMENT);
   };
 
   return (

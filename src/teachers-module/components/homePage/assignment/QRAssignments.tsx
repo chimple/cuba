@@ -20,7 +20,6 @@ type LessonUI = {
   order: number;
   isAssigned: boolean;
   isSelected: boolean;
-  chapterName: string;
 };
 
 const QRAssignments: React.FC = () => {
@@ -28,7 +27,6 @@ const QRAssignments: React.FC = () => {
   const location = useLocation<{
     chapterId: string;
     courseId: string;
-    fromPage?: string;
   }>();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
@@ -55,16 +53,13 @@ const QRAssignments: React.FC = () => {
       if (!currentUser || !currentClass) return;
       // 1️⃣ Fetch lessons
       const lessonList = await api.getLessonsForChapter(chapterId);
-      const chapter = await api.getChapterById(chapterId);
-      const chapterName = chapter?.name ?? "";
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
       const lessonIds = lessonList.map((l: any) => l.lesson_id ?? l.id);
-      const assignedLessonIdsArr =
-        await api.getAssignmentInfoForLessonsPerClass(
-          currentClass.id,
-          lessonIds,
-        );
+      const assignedLessonIdsArr = await api.getAssignmentInfoForLessonsPerClass(
+        currentClass.id,
+        lessonIds,
+      );
 
       const assignedLessonIds = new Set<string>(assignedLessonIdsArr);
       // 3️⃣ Auto-select next 5 unassigned
@@ -87,7 +82,6 @@ const QRAssignments: React.FC = () => {
             order: index,
             isAssigned,
             isSelected: !isAssigned && autoSelectIds.includes(lessonId),
-            chapterName: chapterName,
           };
         },
       );
@@ -124,13 +118,7 @@ const QRAssignments: React.FC = () => {
         >
           <Header
             isBackButton={true}
-            onBackButtonClick={() => {
-              if (location.state?.fromPage === PAGES.HOME_PAGE) {
-                history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
-                return;
-              }
-              history.goBack();
-            }}
+            onBackButtonClick={() => history.goBack()}
             showSideMenu={false}
             customText="QR Assignments"
             showSearchIcon={false}
@@ -214,44 +202,21 @@ const QRAssignments: React.FC = () => {
                     )}
                   </div>
 
-                  <div
-                    id={`${ID_PREFIX}-lesson-copy-${lesson.id}`}
-                    className="qrAssignments-lesson-copy"
+                  <span
+                    id={`${ID_PREFIX}-lesson-name-${lesson.id}`}
+                    className="qrAssignments-lesson-name"
                   >
-                    <div
-                      id={`${ID_PREFIX}-lesson-title-${lesson.id}`}
-                      className="qrAssignments-lesson-title"
-                    >
-                      {t(lesson.name)}
-                    </div>
+                    {t(lesson.name)}
+                  </span>
 
-                    <div
-                      id={`${ID_PREFIX}-lesson-subtitle-${lesson.id}`}
-                      className="qrAssignments-lesson-subtitle"
-                    >
-                      {t(lesson.chapterName ?? "")}
-                    </div>
-                  </div>
-
-                  {lesson.isSelected ? (
-                    <span
-                      id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
-                      className="qrAssignments-toggle-circle is-selected"
-                      onClick={() => toggleLesson(lesson.id)}
-                    >
-                      <img
-                        src="assets/tick.png"
-                        alt=""
-                        className="qrAssignments-toggle-check"
-                      />
-                    </span>
-                  ) : (
-                    <span
-                      id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
-                      className="qrAssignments-toggle-circle is-unselected"
-                      onClick={() => toggleLesson(lesson.id)}
-                    />
-                  )}
+                  <IonIcon
+                    id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
+                    icon={lesson.isSelected ? checkmarkCircle : ellipseOutline}
+                    className={`qrAssignments-icon ${
+                      lesson.isSelected ? "selected" : ""
+                    }`}
+                    onClick={() => toggleLesson(lesson.id)}
+                  />
                 </div>
               ))}
           </div>
@@ -275,7 +240,6 @@ const QRAssignments: React.FC = () => {
                 };
 
                 history.push(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                  fromPage: PAGES.QR_ASSIGNMENTS,
                   selectedAssignments,
                   manualAssignments: {
                     [location.state.courseId]: {
@@ -285,11 +249,6 @@ const QRAssignments: React.FC = () => {
                     },
                   },
                   recommendedAssignments: {},
-                  qrAssignmentNavigationState: {
-                    chapterId: location.state.chapterId,
-                    courseId: location.state.courseId,
-                    fromPage: location.state.fromPage,
-                  },
                 });
               }}
             />
