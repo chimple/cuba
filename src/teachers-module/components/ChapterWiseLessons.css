@@ -21,7 +21,7 @@
 
 .chapter-wise-chapter-title {
   color: #6b6b6b;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -40,7 +40,7 @@
 .chapter-wise-select-text {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 16px;
   color: #7a708a;
   font-weight: 500;
 }
@@ -82,6 +82,7 @@
 .chapter-wise-card {
   /* border: 1px solid #e0d8ef; */
   width: 100%;
+  height: 100%;
   border-radius: 8px;
   padding: 8px;
   background: #fff;
@@ -147,42 +148,19 @@
 }
 
 .chapter-wise-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  width: 70%;
-  height: 32px;
-
-  border: 1px solid #7c5db0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #7c5db0;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-
-  padding: 0 12px;
-  white-space: nowrap;
   margin-top: auto;
+  padding-top: 0px;
+  width: 70%;
+  max-width: calc(clamp(110px, 28vw, 200px) * 0.9);
+  display: flex;
+  justify-content: center;
 }
 
-.chapter-wise-btn-icon {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
+.chapter-wise-btn .select-icon-container {
+  width: 100% !important;
 }
 
-/* background: #A1C84F; */
-.chapter-wise-btn.remove {
-  background: #f3eefb;
-  border-color: #7c5db0;
-  color: #7c5db0;
-}
-
-.chapter-wise-btn:disabled {
-  border-color: #c5c5c5;
-  color: #9a9a9a;
-  cursor: not-allowed;
+.chapter-wise-btn .select-Assignmenticon {
+  width: 100% !important;
+  max-width: 100% !important;
 }

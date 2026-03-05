@@ -8,7 +8,7 @@
 .lesson-details-body {
   flex: 1;
   background-color: #ffffff;
-  padding: clamp(16px, 3vw, 24px);
+  padding: clamp(12px, 3vw, 24px);
   display: flex;
   justify-content: center;
   overflow-y: auto;
@@ -19,11 +19,12 @@
   max-width: 900px;
   background: #ffffff;
   border-radius: 16px;
-  padding: clamp(18px, 3vw, 24px);
+  padding: clamp(16px, 3vw, 24px);
 }
+
 .lesson-details-top {
   display: flex;
-  gap: clamp(20px, 4vw, 32px);
+  gap: clamp(20px, 3vw, 32px);
   align-items: flex-start;
   margin-bottom: clamp(16px, 3vw, 24px);
 }
@@ -32,18 +33,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 180px;
+  flex: 0 0 clamp(110px, 28%, 180px);
 }
 
 .lesson-details-thumb {
-  width: clamp(150px, 25vw, 180px);
-  height: clamp(140px, 22vw, 160px);
-  background: #fafafa;
+  width: clamp(110px, 28vw, 200px);
+  height: clamp(100px, 26vw, 180px);
+  background: #f3f3f3;
   border-radius: 12px;
-  padding: 12px;
+  padding: clamp(6px, 1vw, 12px);
   text-align: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 4px 1px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -58,47 +59,66 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: clamp(11px, 1.5vw, 13px);
+  font-size: clamp(10px, 1.8vw, 14px);
   color: #777;
-  margin-bottom: 8px;
-  gap: 10px;
+  margin-top: 10px;
+  gap: clamp(6px, 1vw, 10px);
 }
 
 .lesson-details-btn {
-  margin-top: 14px;
-  width: 90%;
-  padding: 10px 0;
-  border-radius: 8px;
-  border: none;
-  background-color: #7c5db0;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    opacity 0.2s ease,
-    transform 0.1s ease;
+  margin-top: clamp(20px, 3vw, 30px);
+  width: 70%;
+  max-width: calc(clamp(110px, 28vw, 200px) * 0.9);
+  display: flex;
+  justify-content: center;
 }
 
-.lesson-details-btn:hover {
-  opacity: 0.9;
+.lesson-details-btn .select-icon-container {
+  width: 100% !important;
 }
 
-.lesson-details-btn:active {
-  transform: scale(0.98);
+.lesson-details-btn .select-Assignmenticon {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .lesson-details-right {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.5vw, 12px);
-  font-size: clamp(14px, 1.8vw, 15px);
+  gap: clamp(6px, 1.2vw, 12px);
+  font-size: clamp(12px, 2.7vmin, 20px);
   color: #555;
+}
+
+.lesson-details-meta {
+  line-height: 1.35;
+}
+
+.lesson-details-row {
+  display: grid;
+  grid-template-columns: clamp(56px, 8vw, 74px) auto 1fr;
+  align-items: start;
+  column-gap: 3px;
+}
+
+.lesson-details-label {
+  white-space: nowrap;
+}
+
+.lesson-details-separator {
+  white-space: nowrap;
+}
+
+.lesson-details-value {
+  min-width: 0;
+  word-break: break-word;
 }
 
 .lesson-details-meta strong {
   color: #333;
 }
+
 #lesson-details-assignment {
   display: flex;
   align-items: center;
@@ -106,53 +126,44 @@
 }
 
 .lesson-details-bulb {
-  width: 16px;
-  height: 16px;
+  width: clamp(12px, 1.5vw, 16px);
+  height: clamp(12px, 1.5vw, 16px);
   object-fit: contain;
 }
 
 #lesson-details-grade {
   font-weight: 700;
-  font-size: clamp(20px, 2.8vw, 22px);
+  font-size: clamp(20px, 2.5vmin, 24px);
+  padding-left: 40px;
 }
 
 .lesson-details-outcome {
-  margin-top: clamp(14px, 2.5vw, 20px);
+  margin-top: clamp(32px, 5vh, 60px);
+  /* padding-left: clamp(0px, 2vw, 8px); */
 }
 
 .lesson-details-outcome-title {
   font-weight: 600;
   margin-bottom: 8px;
   color: #333;
-  font-size: clamp(14px, 2vw, 16px);
+  font-size: clamp(14px, 1.8vw, 16px);
 }
 
 .lesson-details-outcome-desc {
-  font-size: clamp(13px, 1.8vw, 14px);
+  font-size: clamp(13px, 1.5vmin, 15px);
   color: #666;
   line-height: 1.6;
 }
 
-.lesson-details-root .header-custom-text{
-  padding: 4vh 0;
+@media (max-width: 480px) {
+  .lesson-details-root .header-custom-text {
+    padding: 4vh 0;
+  }
 }
 
-@media (max-width: 480px) {
-  .lesson-details-top {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .lesson-details-left {
-    width: 100%;
-  }
-
-  .lesson-details-right {
-    width: 100%;
-    margin-top: 16px;
-  }
-
-  .lesson-details-btn {
-    max-width: 170px;
+@media (min-width: 600px) and (max-width: 1024px) {
+  .lesson-details-row {
+    grid-template-columns: clamp(62px, 10vw, 86px) auto 1fr;
+    column-gap: 6px;
   }
 }

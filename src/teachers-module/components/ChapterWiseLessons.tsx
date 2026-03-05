@@ -4,6 +4,7 @@ import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import { t } from "i18next";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import SelectIcon from "./SelectIcon";
 import "./ChapterWiseLessons.css";
 
 type ChapterGroup = {
@@ -182,37 +183,25 @@ const ChapterWiseLessons: React.FC<Props> = ({
                       {lesson.name}
                     </div>
 
-                    <button
-                      type="button"
-                      className={`chapter-wise-btn ${
-                        isLessonSelected(chapterGroup.chapterId, lesson.id)
-                          ? "remove"
-                          : "add"
-                      }`}
+                    <div className="chapter-wise-btn" id="chapter-wise-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleLessonSelection(
-                          chapterGroup.chapterId,
-                          lesson.id,
-                        );
                       }}
                     >
-                      <img
-                        src={
-                          isLessonSelected(chapterGroup.chapterId, lesson.id)
-                            ? "/assets/icons/assignmentSelectGreen.svg"
-                            : "/assets/icons/assignmentSelect.svg"
-                        }
-                        alt="icon"
-                        className="chapter-wise-btn-icon"
+                      <SelectIcon
+                        isSelected={isLessonSelected(
+                          chapterGroup.chapterId,
+                          lesson.id,
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLessonSelection(
+                            chapterGroup.chapterId,
+                            lesson.id,
+                          );
+                        }}
                       />
-
-                      <span className="chapter-wise-btn-text">
-                        {isLessonSelected(chapterGroup.chapterId, lesson.id)
-                          ? t("Remove")
-                          : t("Add")}
-                      </span>
-                    </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -274,21 +263,21 @@ const ChapterWiseLessons: React.FC<Props> = ({
                   {lesson.name}
                 </div>
 
-                <button
+                <div
                   id="chapter-wise-other-btn"
-                  type="button"
-                  className={`chapter-wise-btn ${
-                    isLessonSelected(OTHER_KEY, lesson.id) ? "remove" : ""
-                  }`}
+                  className="chapter-wise-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleLessonSelection(OTHER_KEY, lesson.id);
                   }}
                 >
-                  {isLessonSelected(OTHER_KEY, lesson.id)
-                    ? t("Remove")
-                    : t("Add")}
-                </button>
+                  <SelectIcon
+                    isSelected={isLessonSelected(OTHER_KEY, lesson.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleLessonSelection(OTHER_KEY, lesson.id);
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>
