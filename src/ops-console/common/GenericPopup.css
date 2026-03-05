@@ -1,0 +1,37 @@
+.generic-popup-overlay {
+  --width: 320px;
+  --height: auto;
+  --border-radius: 12px;
+}
+
+.generic-popup-container {
+  padding: 24px;
+  text-align: center;
+}
+
+.generic-popup-close-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.generic-popup-close-btn {
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.generic-popup-icon {
+  font-size: 48px;
+  margin: 20px 0;
+}
+
+.generic-popup-heading {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.generic-popup-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}

@@ -1264,7 +1264,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return this.s.deleteUserFromSchool(schoolId, userId, role);
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -1524,9 +1524,14 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
-    classId?: string, 
+    classId?: string,
   ): Promise<StudentAPIResponse> {
-    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit,classId);
+    return await this.s.getStudentInfoBySchoolId(
+      schoolId,
+      page,
+      limit,
+      classId,
+    );
   }
   public async getStudentsAndParentsByClassId(
     classId: string,
@@ -1550,13 +1555,20 @@ export class ApiHandler implements ServiceApi {
     newStudentId: string,
     requestId?: string | undefined,
     respondedBy?: string | undefined,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return await this.s.mergeStudentRequest(
       existingStudentId,
       newStudentId,
       requestId,
       respondedBy,
     );
+  }
+
+  public async mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return await this.s.mergeUserPathway(existingStudentId, newStudentId);
   }
 
   public async getClassesBySchoolId(
@@ -1683,14 +1695,14 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
-    classId?:string
+    classId?: string,
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
-      classId
+      classId,
     );
   }
 
@@ -2032,12 +2044,9 @@ export class ApiHandler implements ServiceApi {
   }
 
   getAssignedLessonIdsForClass(
-  classId: string,
-  lessonIds: string[],
-): Promise<string[]> {
-  return this.s.getAssignedLessonIdsForClass(
-    classId,
-    lessonIds,
-  );
-}
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    return this.s.getAssignedLessonIdsForClass(classId, lessonIds);
+  }
 }

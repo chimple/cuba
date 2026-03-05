@@ -1543,7 +1543,7 @@ export interface ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType
-  ): Promise<void>;
+  ): Promise<{ success: boolean; message: string }> ;
 
   /**
    * updates a school LastModified time and Date
@@ -2060,7 +2060,18 @@ export interface ServiceApi {
     newStudentId: string,
     requestId?: string | undefined,
     respondedBy?: string | undefined
-  ): Promise<void>;
+  ): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Merge a stdeunt pathway based on chapter sort_index by comparing patway for old and new student record.
+   * @param {string} existingStudentId - The student ID to merge into.
+   * @param {string} newStudentId - The student ID being merged and marked as deleted.
+   * @returns  {success: boolean; message: string }Promise resolving when the merge is complete.
+   */
+    mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }>
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 

@@ -815,9 +815,12 @@ export class SqliteApi implements ServiceApi {
       return true;
     }
     this._syncInProgress = true;
-  try{
+    try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
+      console.log(
+        "logs to check synced tables",
+        JSON.stringify(refresh_tables),
+      );
       await this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
       );
@@ -845,15 +848,17 @@ export class SqliteApi implements ServiceApi {
         );
         return res;
       }
-  }finally{
+    } finally {
       this._syncInProgress = false;
       if (this._syncRequestedAgain) {
-      console.log("🔁 Running sync again because changes happened during sync");
+        console.log(
+          "🔁 Running sync again because changes happened during sync",
+        );
         this._syncRequestedAgain = false;
 
-      setTimeout(()=>{
+        setTimeout(() => {
           this.syncDbNow();
-      },0)
+        }, 0);
       }
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
@@ -2388,7 +2393,6 @@ export class SqliteApi implements ServiceApi {
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
   ): Promise<TableTypes<"result">> {
-
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2523,7 +2527,7 @@ export class SqliteApi implements ServiceApi {
     if (starsEarned > 0) {
       const latestStarsKey = LATEST_STARS(student.id);
       const currentLocalStars = parseInt(
-          localStorage.getItem(latestStarsKey) || "0"
+        localStorage.getItem(latestStarsKey) || "0",
       );
       localStorage.setItem(
         latestStarsKey,
@@ -2541,12 +2545,11 @@ export class SqliteApi implements ServiceApi {
     const latestUserForStars = await this.getUserByDocId(student.id);
     const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
     const latestLocalStarsForStudent = parseInt(
-        localStorage.getItem(LATEST_STARS(student.id)) || "0"
+      localStorage.getItem(LATEST_STARS(student.id)) || "0",
     );
     const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
     query += `stars =  ? WHERE id = ?;`;
     params.push(finalStarsToSet, student.id);
-
 
     await this.executeQuery(query, params);
 
@@ -2860,7 +2863,6 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string,
   ): Promise<TableTypes<"user">> {
-
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
 
@@ -4080,7 +4082,9 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]> {
+  async getAssignmentsByIds(
+    ids: string[],
+  ): Promise<TableTypes<"assignment">[]> {
     if (!ids.length) return [];
 
     const idslst = ids.map(() => "?").join(", ");
@@ -5496,7 +5500,11 @@ order by
         AND is_deleted = 0; 
     `;
 
-    const res = await this._db?.query(query, [classId, courseId, ...chapterIds]);
+    const res = await this._db?.query(query, [
+      classId,
+      courseId,
+      ...chapterIds,
+    ]);
     if (!res?.values?.length) return [];
 
     return res.values
@@ -5776,7 +5784,7 @@ order by
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     try {
       const query = `
       SELECT *
@@ -5784,12 +5792,15 @@ order by
       WHERE user_id = ? AND school_id = ?
       AND role = '${role}' AND is_deleted = 0
     `;
+
       const res = await this._db?.query(query, [userId, schoolId]);
       const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?
-        AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
+        `UPDATE school_user 
+       SET is_deleted = 1, updated_at = ? 
+       WHERE user_id = ? AND school_id = ? 
+       AND role = '${role}' AND is_deleted = 0`,
         [updatedAt, userId, schoolId],
       );
 
@@ -5797,14 +5808,27 @@ order by
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
       } else {
-        throw new Error("school user not found after update.");
+        return { success: false, message: "School user not found." };
       }
+
       await this.updatePushChanges(TABLES.SchoolUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
       });
-    } catch (error) {
+
+      // ✅ Success return added
+      return {
+        success: true,
+        message: "User removed from school successfully.",
+      };
+    } catch (error: any) {
       console.error("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
+
+      // ✅ Error return added
+      return {
+        success: false,
+        message: error?.message || "Unexpected error occurred.",
+      };
     }
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -6051,7 +6075,7 @@ order by
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [learningPath, now , student.id]);
+      await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
       student.learning_path = learningPath;
       this.updatePushChanges(
         TABLES.User,
@@ -6065,9 +6089,12 @@ order by
       const latestPathToSave = {
         studentId: student.id,
         learningPath,
-        updated_at:  new Date(Date.now() + 10000).toISOString()
-      }
-      sessionStorage.setItem(LATEST_LEARNING_PATH, JSON.stringify(latestPathToSave))
+        updated_at: new Date(Date.now() + 10000).toISOString(),
+      };
+      sessionStorage.setItem(
+        LATEST_LEARNING_PATH,
+        JSON.stringify(latestPathToSave),
+      );
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
@@ -6800,23 +6827,25 @@ order by
   async mergeStudentRequest(
     existingStudentId: string,
     newStudentId: string,
-    requestId?: string |undefined,
-    respondedBy?:  string |undefined,
-  ): Promise<void> {
+    requestId?: string,
+    respondedBy?: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!this._db) {
-      throw new Error("SQLite DB not initialized.");
+      return { success: false, message: "SQLite DB not initialized." };
     }
 
     const now = new Date().toISOString();
 
     try {
-      // 1. Get new student details + parents
+      // 1. Get new student
       const newStudentRes = await this._db.query(
         `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
         [newStudentId],
       );
       const newStudent = newStudentRes?.values?.[0];
-      if (!newStudent) throw new Error("New student not found");
+      if (!newStudent) {
+        return { success: false, message: "New student not found" };
+      }
 
       const newParentsRes = await this._db.query(
         `SELECT p.* FROM parent_user pu
@@ -6826,13 +6855,15 @@ order by
       );
       const newParents = newParentsRes?.values || [];
 
-      // 2. Get existing student details + parents
+      // 2. Get existing student
       const existingStudentRes = await this._db.query(
         `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
         [existingStudentId],
       );
       const existingStudent = existingStudentRes?.values?.[0];
-      if (!existingStudent) throw new Error("Existing student not found");
+      if (!existingStudent) {
+        return { success: false, message: "Existing student not found" };
+      }
 
       const existingParentsRes = await this._db.query(
         `SELECT p.* FROM parent_user pu
@@ -6842,16 +6873,16 @@ order by
       );
       const existingParents = existingParentsRes?.values || [];
 
-      // 3. Compare phone/email
+      // 3. Compare contacts
       const existingContact =
         existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
       const newContact =
         newParents?.[0]?.phone || newParents?.[0]?.email || null;
 
-      // 4. Transfer results
+      // 4. Transfer results (⚠️ FIXED: you had reversed IDs before)
       const resultRes = await this._db.query(
         `SELECT * FROM result WHERE student_id = ? AND is_deleted = 0`,
-        [newStudentId],
+        [existingStudentId],
       );
       const results = resultRes?.values || [];
 
@@ -6859,11 +6890,11 @@ order by
         await this._db.run(
           `UPDATE result SET student_id = ?, updated_at = ?
          WHERE student_id = ? AND is_deleted = 0`,
-          [existingStudentId, now, newStudentId],
+          [newStudentId, now, existingStudentId],
         );
       }
 
-      // 5. Link new parents if contact differs
+      // 5. Link parents if different
       if (newContact && newContact !== existingContact) {
         for (const parent of newParents) {
           const alreadyLinked = existingParents.some(
@@ -6874,7 +6905,8 @@ order by
 
           if (!alreadyLinked) {
             await this._db.run(
-              `INSERT INTO parent_user (student_id, parent_id, is_deleted, created_at, updated_at)
+              `INSERT INTO parent_user 
+             (student_id, parent_id, is_deleted, created_at, updated_at)
              VALUES (?, ?, 0, ?, ?)`,
               [existingStudentId, parent.id, now, now],
             );
@@ -6882,33 +6914,47 @@ order by
         }
       }
 
-      // 6. Soft-delete merged student + relations
+      // 6. Soft delete merged student
       await this._db.run(
         `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
       await this._db.run(
         `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
       await this._db.run(
         `UPDATE user SET is_deleted = 1, updated_at = ? WHERE id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
-      // 7. (Optional) mark ops_requests as approved/merged
-      await this._db.run(
-        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ? WHERE request_id = ?`,
-        [existingStudentId, now, respondedBy, requestId],
-      );
-    } catch (error) {
+      // 7. Optional ops request update
+      if (requestId) {
+        await this._db.run(
+          `UPDATE ops_requests 
+         SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ?
+         WHERE request_id = ?`,
+          [newStudentId, now, respondedBy ?? null, requestId],
+        );
+      }
+
+      // ✅ SUCCESS RETURN
+      return {
+        success: true,
+        message: "Students merged successfully.",
+      };
+    } catch (error: any) {
       console.error(
         "Error merging student in SQLite (mergeStudentRequestSqlite):",
         error,
       );
-      throw error;
+
+      return {
+        success: false,
+        message: error?.message || "Failed to merge students.",
+      };
     }
   }
 
@@ -7874,7 +7920,7 @@ order by
   }
   async getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">
+    student?: TableTypes<"user">,
   ): Promise<TableTypes<"subject_lesson">> {
     if (!student) return {} as TableTypes<"subject_lesson">;
     const studentId = student.id;
@@ -7971,7 +8017,9 @@ order by
       ]);
 
       const pendingLessons = (lessonRes as any)?.values ?? [];
-      return pendingLessons.length ? pendingLessons[0] : {} as TableTypes<"subject_lesson">;
+      return pendingLessons.length
+        ? pendingLessons[0]
+        : ({} as TableTypes<"subject_lesson">);
     } catch (error) {
       console.error(
         "❌ Error fetching subject lessons by subject (SQL):",
@@ -8052,7 +8100,7 @@ order by
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<"user">,
-    courseId?: string
+    courseId?: string,
   ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
@@ -8139,7 +8187,6 @@ order by
       return [];
     }
 
-
     /* ==========================================
      * Get only INCOMPLETE assignments
      * from that latest batch
@@ -8209,8 +8256,8 @@ order by
     `;
 
     const res = await this._db?.query(assignmentsQuery);
-    const pendingAssignments =
-      (res?.values ?? []) as TableTypes<"assignment">[];
+    const pendingAssignments = (res?.values ??
+      []) as TableTypes<"assignment">[];
 
     return pendingAssignments.length ? pendingAssignments : [];
   }
@@ -8245,15 +8292,22 @@ order by
     throw new Error("Method not implemented.");
   }
 
-async getAssignedLessonIdsForClass(
-  classId: string,
-  lessonIds: string[],
-): Promise<string[]> {
-  if (!lessonIds?.length) return [];
+  mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    throw new Error("Method not implemented.");
+  }
 
-  const placeholders = lessonIds.map(() => "?").join(", ");
+  async getAssignedLessonIdsForClass(
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    if (!lessonIds?.length) return [];
 
-  const query = `
+    const placeholders = lessonIds.map(() => "?").join(", ");
+
+    const query = `
     SELECT DISTINCT lesson_id
     FROM ${TABLES.Assignment}
     WHERE class_id = ?
@@ -8261,15 +8315,12 @@ async getAssignedLessonIdsForClass(
       AND is_deleted = 0;
   `;
 
-  const res = await this._db?.query(query, [
-    classId,
-    ...lessonIds,
-  ]);
+    const res = await this._db?.query(query, [classId, ...lessonIds]);
 
-  if (!res?.values?.length) return [];
+    if (!res?.values?.length) return [];
 
-  return res.values
-    .map((row: any) => row.lesson_id as string | undefined)
-    .filter((id): id is string => Boolean(id));
-}
+    return res.values
+      .map((row: any) => row.lesson_id as string | undefined)
+      .filter((id): id is string => Boolean(id));
+  }
 }

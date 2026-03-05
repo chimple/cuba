@@ -49,7 +49,6 @@ const CardListModal: React.FC<CardListModalProps> = ({
     setLoading(true);
     try {
       let res;
-
       if (searchText.trim()) {
         res = await api.searchStudentsInSchool(
           schoolId,
