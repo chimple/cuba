@@ -168,6 +168,7 @@ import {
   Button,
 } from "@mui/material";
 
+import ColoringBoard from "./components/coloring/ColoringBoard";
 import PostSuccess from "./teachers-module/pages/PostSuccess";
 import QRAssignments from "./teachers-module/components/homePage/assignment/QRAssignments";
 import TeacherRecommendedAssignments from "./teachers-module/components/homePage/assignment/TeacherRecommendedAssignments";
@@ -717,6 +718,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
               <SchoolProfile />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.COLORING_BOARD} exact>={true}
+  <ColoringBoard />
+</ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
 
                 <EditSchool />
