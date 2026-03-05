@@ -174,8 +174,8 @@
   width: clamp(4rem, 10vw, 5.5rem);
   height: clamp(4rem, 10vw, 5.5rem);
 
-  background-color: #f1f1f1; /* ✅ grey background */
-  border-radius: 10px; /* ✅ rounded like Teacher page */
+  background-color: #f1f1f1;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,8 +246,8 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start; /* ✅ left align inside block */
-  text-align: left; /* ✅ text left aligned */
+  align-items: flex-start;
+  text-align: left;
   min-width: 0;
 
   max-width: 60%;

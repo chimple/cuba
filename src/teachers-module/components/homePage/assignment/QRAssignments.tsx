@@ -54,8 +54,10 @@ const QRAssignments: React.FC = () => {
       const currentClass = await Util.getCurrentClass();
       if (!currentUser || !currentClass) return;
       // 1️⃣ Fetch lessons
-      const lessonList = await api.getLessonsForChapter(chapterId);
-      const chapter = await api.getChapterById(chapterId);
+      const [lessonList, chapter] = await Promise.all([
+        api.getLessonsForChapter(chapterId),
+        api.getChapterById(chapterId),
+      ]);
       const chapterName = chapter?.name ?? "";
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
@@ -232,7 +234,7 @@ const QRAssignments: React.FC = () => {
                       {t(lesson.chapterName ?? "")}
                     </div>
                   </div>
-
+                  {/* 
                   {lesson.isSelected ? (
                     <span
                       id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
@@ -251,7 +253,31 @@ const QRAssignments: React.FC = () => {
                       className="qrAssignments-toggle-circle is-unselected"
                       onClick={() => toggleLesson(lesson.id)}
                     />
-                  )}
+                  )} */}
+                  <button
+                    type="button"
+                    id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
+                    className={`qrAssignments-toggle-circle ${
+                      lesson.isSelected ? "is-selected" : "is-unselected"
+                    }`}
+                    onClick={() => toggleLesson(lesson.id)}
+                    aria-pressed={lesson.isSelected}
+                    aria-label={
+                      t(
+                        lesson.isSelected ? "Deselect lesson" : "Select lesson",
+                      ) +
+                      " " +
+                      t(lesson.name)
+                    }
+                  >
+                    {lesson.isSelected && (
+                      <img
+                        src="assets/tick.png"
+                        alt=""
+                        className="qrAssignments-toggle-check"
+                      />
+                    )}
+                  </button>
                 </div>
               ))}
           </div>
