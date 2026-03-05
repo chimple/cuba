@@ -725,7 +725,6 @@
   "Migrate Schools": "Migrate Schools",
   "Migrated": "Migrated",
   "Migrating...": "Migrating...",
-  "Migration Failed": "Migration Failed",
   "Migration success": "Migration success",
   "min": "min",
   "minutes": "minutes",
@@ -1377,7 +1376,6 @@
   "Type your note here": "Type your note here",
   "Unable to assign role to the user. Contact support.": "Unable to assign role to the user. Contact support.",
   "Unable to fetch location. Please try again.": "Unable to fetch location. Please try again.",
-  "Unable to migrate selected schools. Please try again.": "Unable to migrate selected schools. Please try again.",
   "Unable to Upload File": "Unable to Upload File",
   "Unable to verify provided information": "Unable to verify provided information",
   "Units of Measurement": "Units of Measurement",
@@ -1421,6 +1419,7 @@
   "Visit Website": "Visit Website",
   "Watermelon": "Watermelon",
   "We are checking your uploaded data for any errors. Please wait a moment.": "We are checking your uploaded data for any errors. Please wait a moment.",
+  "We couldn't complete the migration. Please try again later": "We couldn't complete the migration. Please try again later",
   "We found issues in your file. A revised version with error details has been generated—please review and fix them before re-uploading.": "We found issues in your file. A revised version with error details has been generated—please review and fix them before re-uploading.",
   "We will send a password reset link": "We will send a password reset link",
   "Wednesday": "Wednesday",
@@ -1490,3 +1489,4 @@
   "Zebra": "Zebra",
   "Zoo Manners": "Zoo Manners"
 }
+

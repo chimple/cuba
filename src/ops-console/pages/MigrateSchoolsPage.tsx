@@ -9,7 +9,6 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import { t } from "i18next";
 import DataTableBody from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
@@ -68,7 +67,10 @@ const MigrateSchoolsPage: React.FC = () => {
   return (
     <div id="migrate-schools-page" className="migrate-schools-page">
       <div id="migrate-schools-header" className="migrate-schools-header">
-        <div id="migrate-schools-title-row" className="migrate-schools-title-row">
+        <div
+          id="migrate-schools-title-row"
+          className="migrate-schools-title-row"
+        >
           <h1 id="migrate-schools-title" className="migrate-schools-title">
             {t("Migrate Schools")}
           </h1>
@@ -103,7 +105,10 @@ const MigrateSchoolsPage: React.FC = () => {
             />
           </Tabs>
 
-          <div id="migrate-schools-top-right" className="migrate-schools-top-right">
+          <div
+            id="migrate-schools-top-right"
+            className="migrate-schools-top-right"
+          >
             <SearchAndFilter
               searchTerm={searchTerm}
               onSearchChange={(event) => handleSearchChange(event.target.value)}
@@ -116,7 +121,10 @@ const MigrateSchoolsPage: React.FC = () => {
           </div>
         </div>
 
-        <SelectedFilters filters={filters} onDeleteFilter={handleDeleteFilter} />
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteFilter}
+        />
 
         <FilterSlider
           isOpen={isFilterOpen}
@@ -131,7 +139,10 @@ const MigrateSchoolsPage: React.FC = () => {
         />
       </div>
 
-      <div id="migrate-schools-table-wrap" className="migrate-schools-table-wrap">
+      <div
+        id="migrate-schools-table-wrap"
+        className="migrate-schools-table-wrap"
+      >
         {!isLoading && rows.length > 0 && (
           <DataTableBody
             columns={columns}
@@ -160,7 +171,9 @@ const MigrateSchoolsPage: React.FC = () => {
         <div
           id="migrate-schools-footer"
           className={`migrate-schools-footer${
-            isSelectionActionVisible ? " migrate-schools-footer-with-action" : ""
+            isSelectionActionVisible
+              ? " migrate-schools-footer-with-action"
+              : ""
           }`}
         >
           <div
@@ -175,8 +188,14 @@ const MigrateSchoolsPage: React.FC = () => {
           </div>
 
           {isSelectionActionVisible && (
-            <div id="migrate-schools-footer-action" className="migrate-schools-footer-action">
-              <span id="migrate-schools-selected-count" className="migrate-schools-selected-count">
+            <div
+              id="migrate-schools-footer-action"
+              className="migrate-schools-footer-action"
+            >
+              <span
+                id="migrate-schools-selected-count"
+                className="migrate-schools-selected-count"
+              >
                 <span
                   id="migrate-schools-selected-count-number"
                   className="migrate-schools-selected-count-number"
@@ -221,11 +240,17 @@ const MigrateSchoolsPage: React.FC = () => {
             )}
           </Typography>
 
-          <div id="migrate-schools-confirm-warning" className="migrate-schools-confirm-warning">
+          <div
+            id="migrate-schools-confirm-warning"
+            className="migrate-schools-confirm-warning"
+          >
             {t("This cannot be reversed. Please be certain.")}
           </div>
 
-          <div id="migrate-schools-confirm-actions" className="migrate-schools-confirm-actions">
+          <div
+            id="migrate-schools-confirm-actions"
+            className="migrate-schools-confirm-actions"
+          >
             <Button
               variant="text"
               id="migrate-schools-cancel-button"
@@ -275,16 +300,19 @@ const MigrateSchoolsPage: React.FC = () => {
         open={isFailurePopupOpen}
         onClose={handleCloseFailurePopup}
         icon={
-          <ErrorOutlineRoundedIcon
+          <img
+            src="assets/icons/migratefailure.svg"
+            alt={String(t("Something went wrong"))}
             id="migrate-schools-failure-icon"
             className="migrate-schools-failure-icon"
           />
         }
-        title={t("Migration Failed")}
-        subtitle={t("Unable to migrate selected schools. Please try again.")}
+        title={t("Something went wrong")}
+        subtitle={t("We couldn't complete the migration. Please try again later")}
       />
     </div>
   );
 };
 
 export default MigrateSchoolsPage;
+

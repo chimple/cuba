@@ -63,7 +63,7 @@ jest.mock("../components/CommonPopup", () => (props: any) =>
   props.open ? (
     <div
       data-testid={
-        props.title === "Migration Failed" ? "failure-popup" : "success-popup"
+        props.title === "Something went wrong" ? "failure-popup" : "success-popup"
       }
     >
       <div>{props.title}</div>
@@ -399,9 +399,11 @@ describe("MigrateSchoolsPage component", () => {
 
     render(<MigrateSchoolsPage />);
     expect(screen.getByTestId("failure-popup")).toBeInTheDocument();
-    expect(screen.getByText("Migration Failed")).toBeInTheDocument();
+    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
     expect(
-      screen.getByText("Unable to migrate selected schools. Please try again."),
+      screen.getByText(
+        "We couldn't complete the migration. Please try again later",
+      ),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("close-popup"));

@@ -490,9 +490,10 @@
 }
 
 .migrate-schools-failure-icon {
-  width: 52px !important;
-  height: 52px !important;
-  color: #d32f2f;
+  width: 52px;
+  height: 52px;
+  display: block;
+  object-fit: contain;
 }
 
 @media (max-width: 1200px) {
