@@ -155,7 +155,7 @@ describe("useMigrateSchoolsPageLogic", () => {
     mockLocationSearch =
       "?tab=migrated&page=3&orderDir=desc&search=abc&filters=%7B%22state%22%3A%5B%22Karnataka%22%5D%7D";
     const { result } = renderHook(() => useMigrateSchoolsPageLogic());
-    await waitForInitialLoad(false);
+    await waitForInitialLoad();
 
     expect(result.current.activeTab).toBe("migrated");
     expect(result.current.page).toBe(3);
@@ -271,13 +271,20 @@ describe("useMigrateSchoolsPageLogic", () => {
     });
   });
 
-  // TC 2.1-2.4: Skip schools fetch and clear rows/pageCount on migrated tab.
-  it("should not fetch schools api on migrated tab and should clear rows", async () => {
+  // TC 2.1-2.4: Fetch schools on migrated tab with next academic year payload.
+  it("should fetch schools api on migrated tab with next academic year", async () => {
     mockLocationSearch = "?tab=migrated";
     const { result } = renderHook(() => useMigrateSchoolsPageLogic());
-    await waitForInitialLoad(false);
+    await waitForInitialLoad();
 
-    expect(mockApiHandler.getSchoolsWithProgramAccess).not.toHaveBeenCalled();
+    const currentYear = new Date().getFullYear();
+    const expectedMigratedYear = `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+    const request =
+      mockApiHandler.getSchoolsWithProgramAccess.mock.calls[
+        mockApiHandler.getSchoolsWithProgramAccess.mock.calls.length - 1
+      ][0];
+    expect(mockApiHandler.getSchoolsWithProgramAccess).toHaveBeenCalled();
+    expect(request.academicYears).toEqual([expectedMigratedYear]);
     expect(result.current.rows).toEqual([]);
     expect(result.current.pageCount).toBe(0);
   });

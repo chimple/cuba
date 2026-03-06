@@ -214,7 +214,15 @@ export const useMigrateSchoolsPageLogic = () => {
     const currentYear = new Date().getFullYear();
     return `${currentYear - 1}-${String(currentYear).slice(-2)}`;
   }, []);
+  const migratedAcademicYear = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+  }, []);
   const academicYears = useMemo(() => [currentAcademicYear], [currentAcademicYear]);
+  const migratedAcademicYears = useMemo(
+    () => [migratedAcademicYear],
+    [migratedAcademicYear],
+  );
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -278,90 +286,85 @@ export const useMigrateSchoolsPageLogic = () => {
       if (backendOrderBy === "district") backendOrderBy = "district";
       if (backendOrderBy === "academicYear") backendOrderBy = "academic_year";
 
-      if (activeTab === "migrate") {
-        const response = await api.getSchoolsWithProgramAccess({
-          academicYears,
-          filters: cleanedFilters,
-          page,
-          pageSize: DEFAULT_PAGE_SIZE,
-          orderBy: backendOrderBy || undefined,
-          orderDir,
-          search: searchTerm,
-        });
+      const requestedAcademicYears =
+        activeTab === "migrated" ? migratedAcademicYears : academicYears;
+      const response = await api.getSchoolsWithProgramAccess({
+        academicYears: requestedAcademicYears,
+        filters: cleanedFilters,
+        page,
+        pageSize: DEFAULT_PAGE_SIZE,
+        orderBy: backendOrderBy || undefined,
+        orderDir,
+        search: searchTerm,
+      });
 
-        const data = response?.data || [];
-        setTotal(response?.total || 0);
-        const fetchedProgramNames = Array.from(
-          new Set(
-            data
-              .map((item: any) => item?.program?.name)
-              .filter(
-                (value: unknown): value is string =>
-                  typeof value === "string" && value.trim().length > 0,
-              ),
-          ),
-        );
-        if (fetchedProgramNames.length > 0) {
-          setFilterOptions((prev) => ({
-            ...prev,
-            program: Array.from(
-              new Set([...(prev.program || []), ...fetchedProgramNames]),
+      const data = response?.data || [];
+      setTotal(response?.total || 0);
+      const fetchedProgramNames = Array.from(
+        new Set(
+          data
+            .map((item: any) => item?.program?.name)
+            .filter(
+              (value: unknown): value is string =>
+                typeof value === "string" && value.trim().length > 0,
             ),
-          }));
-        }
-
-        const formatted = data.map((row: any, index: number) => {
-          const school =
-            row?.school && typeof row.school === "object" ? row.school : {};
-          const program =
-            row?.program && typeof row.program === "object" ? row.program : {};
-          const schoolName = school.school_name || school.name || "--";
-          const schoolUdise = school.udise_code || school.udise || "--";
-          const schoolState = school.state || school.group1 || "--";
-          const schoolDistrict = school.district || school.group2 || "--";
-          const schoolBlock = school.block || school.group3 || "--";
-          const schoolCluster = school.cluster || school.group4 || "--";
-          const resolvedAcademicYear =
-            normalizeAcademicYear(
-              school.academic_year ?? program.academic_year ?? school.academicYear,
-            ) ||
-            academicYears[0] ||
-            "";
-          const resolvedId =
-            school.sch_id ||
-            school.id ||
-            school.school_id ||
-            program.school_id ||
-            `school-${index}`;
-
-          return {
-            ...school,
-            id: resolvedId,
-            sch_id: resolvedId,
-            program_users: Array.isArray(row?.program_users)
-              ? row.program_users
-              : [],
-            name: buildNameCell(schoolName, schoolUdise, schoolState),
-            programName:
-              program.program_name ||
-              program.name ||
-              school.program_name ||
-              school.program ||
-              "--",
-            programModel:
-              normalizeProgramModel(program.model ?? school.model) || "--",
-            academicYear: resolvedAcademicYear,
-            district: schoolDistrict,
-            cluster: schoolCluster,
-            block: schoolBlock,
-          };
-        });
-
-        setRows(formatted);
-      } else {
-        setRows([]);
-        setTotal(0);
+        ),
+      );
+      if (fetchedProgramNames.length > 0) {
+        setFilterOptions((prev) => ({
+          ...prev,
+          program: Array.from(
+            new Set([...(prev.program || []), ...fetchedProgramNames]),
+          ),
+        }));
       }
+
+      const formatted = data.map((row: any, index: number) => {
+        const school = row?.school && typeof row.school === "object" ? row.school : {};
+        const program =
+          row?.program && typeof row.program === "object" ? row.program : {};
+        const schoolName = school.school_name || school.name || "--";
+        const schoolUdise = school.udise_code || school.udise || "--";
+        const schoolState = school.state || school.group1 || "--";
+        const schoolDistrict = school.district || school.group2 || "--";
+        const schoolBlock = school.block || school.group3 || "--";
+        const schoolCluster = school.cluster || school.group4 || "--";
+        const resolvedAcademicYear =
+          normalizeAcademicYear(
+            school.academic_year ?? program.academic_year ?? school.academicYear,
+          ) ||
+          requestedAcademicYears[0] ||
+          "";
+        const resolvedId =
+          school.sch_id ||
+          school.id ||
+          school.school_id ||
+          program.school_id ||
+          `school-${index}`;
+
+        return {
+          ...school,
+          id: resolvedId,
+          sch_id: resolvedId,
+          program_users: Array.isArray(row?.program_users)
+            ? row.program_users
+            : [],
+          name: buildNameCell(schoolName, schoolUdise, schoolState),
+          programName:
+            program.program_name ||
+            program.name ||
+            school.program_name ||
+            school.program ||
+            "--",
+          programModel: normalizeProgramModel(program.model ?? school.model) || "--",
+          academicYear: resolvedAcademicYear,
+          district: schoolDistrict,
+          cluster: schoolCluster,
+          block: schoolBlock,
+        };
+      });
+
+      setRows(formatted);
     } catch (error) {
       console.error("Failed to fetch migrate schools list", error);
       setRows([]);
@@ -369,7 +372,17 @@ export const useMigrateSchoolsPageLogic = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [academicYears, activeTab, api, filters, orderBy, orderDir, page, searchTerm]);
+  }, [
+    academicYears,
+    activeTab,
+    api,
+    filters,
+    migratedAcademicYears,
+    orderBy,
+    orderDir,
+    page,
+    searchTerm,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -377,7 +390,7 @@ export const useMigrateSchoolsPageLogic = () => {
 
   useEffect(() => {
     setSelectedSchoolIds([]);
-  }, [activeTab, academicYears]);
+  }, [activeTab, academicYears, migratedAcademicYears]);
 
   const columns: Column<Record<string, any>>[] = useMemo(
     () => [
