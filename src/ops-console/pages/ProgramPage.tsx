@@ -23,10 +23,12 @@ import {
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
   TabType,
-  USER_ROLE,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import { BsFillBellFill } from "react-icons/bs";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 type ProgramRow = {
   programName: any;
@@ -81,6 +83,8 @@ const ProgramsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
+  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const userRole = roles || [];
 
   const location = useLocation();
   const qs = new URLSearchParams(location.search);
@@ -142,8 +146,6 @@ const ProgramsPage: React.FC = () => {
       } finally {
         setLoadingFilters(false);
       }
-
-      const userRole = localStorage.getItem(USER_ROLE);
 
       const isOps =
         userRole?.includes(RoleType.SUPER_ADMIN) ||

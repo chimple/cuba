@@ -3,26 +3,19 @@ import { SupabaseApi } from "../api/SupabaseApi";
 import { ServiceAuth } from "./ServiceAuth";
 import { Database } from "../database";
 import {
-  CURRENT_USER,
-  REFRESH_TOKEN,
   REFRESH_TABLES_ON_LOGIN,
   TABLES,
   TableTypes,
-  USER_DATA,
-  CURRENT_SCHOOL,
-  MODES,
-  SCHOOL_LOGIN,
-  PAGES,
-  USER_ROLE,
   IS_OPS_USER,
 } from "../../common/constants";
-import { SupabaseClient, UserAttributes, Session } from "@supabase/supabase-js";
+import { SupabaseClient, UserAttributes, Session, AuthSession, User } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import { Util } from "../../utility/util";
-import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Capacitor } from "@capacitor/core";
+import { store } from "../../redux/store";
+import { logout, setRoles } from "../../redux/slices/auth/authSlice";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -41,7 +34,7 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
         if (event === "TOKEN_REFRESHED") {
           if (session?.refresh_token)
-            Util.addRefreshTokenToLocalStorage(session?.refresh_token);
+            Util.addRefreshTokenToStore(session?.refresh_token);
         }
       });
     }
@@ -51,7 +44,12 @@ export class SupabaseAuth implements ServiceAuth {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<"user"> | null;
+  }> {
     let isSpl = false;
     try {
       if (!this._auth) return { success: false, isSpl };
@@ -66,10 +64,10 @@ export class SupabaseAuth implements ServiceAuth {
       if (error) {
         throw new Error(error.message || "Authentication failed.");
       }
-      if (data.session?.refresh_token)
-        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+      if (data.session?.refresh_token) {
+        Util.addRefreshTokenToStore(data.session?.refresh_token);
+      }
       if (this._supabaseDb) {
-        let isSpl = false;
         try {
           isSpl = await this.rpcRetry<boolean>(async () => {
             const { data, error } = await this._supabaseDb!.rpc(
@@ -106,19 +104,25 @@ export class SupabaseAuth implements ServiceAuth {
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
-      return { success: true, isSpl, userData: data.user };
+      const userData = await api.getUserByDocId(data.user.id);
+      return { user: data.user, success: true, isSpl, userData };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error,
       );
-      return { success: false, isSpl };
+      return { success: false, isSpl, userData: null };
     }
   }
   async signInWithEmail(
     email: string,
     password: string,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<"user"> | null;
+  }> {
     let isSplValue = false;
     try {
       if (!this._auth) return { success: false, isSpl: isSplValue };
@@ -131,7 +135,7 @@ export class SupabaseAuth implements ServiceAuth {
         throw new Error(error.message || "Authentication failed.");
       }
       if (data.session?.refresh_token) {
-        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+        Util.addRefreshTokenToStore(data.session?.refresh_token);
       }
       const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
       isSplValue = isSpl?.data === true;
@@ -145,13 +149,19 @@ export class SupabaseAuth implements ServiceAuth {
       }
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
-      return { success: true, isSpl: isSplValue, userData: data.user };
+      const userData = await api.getUserByDocId(data?.user?.id ?? "");
+      return {
+        user: data.user,
+        success: true,
+        isSpl: isSplValue,
+        userData,
+      };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error,
       );
-      return { success: false, isSpl: isSplValue };
+      return { success: false, isSpl: isSplValue, userData: undefined };
     }
   }
   async sendResetPasswordEmail(email: string): Promise<boolean> {
@@ -183,9 +193,10 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async googleSign(): Promise<{
+    user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: any;
+    userData?: TableTypes<"user"> | null;
   }> {
     try {
       if (!this._auth) return { success: false, isSpl: false };
@@ -227,8 +238,9 @@ export class SupabaseAuth implements ServiceAuth {
         authentication.idToken === null ||
         authUser.email === null ||
         authUser.id === null
-      )
+      ) {
         return { success: false, isSpl: false, userData: null };
+      }
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
         token: authentication.idToken,
@@ -236,17 +248,19 @@ export class SupabaseAuth implements ServiceAuth {
       });
 
       if (data.session?.refresh_token) {
-        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+        Util.addRefreshTokenToStore(data.session?.refresh_token);
       }
 
       if (!data.session)
         return { success: false, isSpl: false, userData: null };
 
       const initResult = await this.initializeUserRecord(data.session);
+      const userData = await api.getUserByDocId(data.user?.id ?? "");
       return {
+        user: data.user,
         success: !!initResult,
         isSpl: initResult?.isSpl ?? false,
-        userData: data.user,
+        userData,
       };
     } catch (error: any) {
       console.error(
@@ -261,8 +275,8 @@ export class SupabaseAuth implements ServiceAuth {
     if (this._currentUser) return this._currentUser;
     if (!navigator.onLine) {
       const api = ServiceConfig.getI().apiHandler;
-      let user = localStorage.getItem(USER_DATA);
-      if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
+      let user = store.getState()?.auth?.user as TableTypes<"user">;
+      if (user) this._currentUser = user;
       return this._currentUser;
     } else {
       // await this.doRefreshSession();
@@ -271,15 +285,17 @@ export class SupabaseAuth implements ServiceAuth {
       const session = authData.data.session;
 
       const api = ServiceConfig.getI().apiHandler;
-      const userRole = await api.getUserSpecialRoles(
-        authData.data.session?.user.id,
-      );
-      if (userRole.length > 0) {
-        localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
+      const roles = store.getState()?.auth?.roles;
+      if (!roles || roles.length === 0) {
+        const userRole = await api.getUserSpecialRoles(
+          authData.data.session?.user.id,
+        );
+        if (userRole.length > 0) {
+          store.dispatch(setRoles(userRole));
+        }
       }
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       if (user) {
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
         this._currentUser = user;
         return this._currentUser;
       } else {
@@ -300,16 +316,15 @@ export class SupabaseAuth implements ServiceAuth {
       console.log("Device is offline. Skipping session refresh.");
       return;
     }
-
-    const item = localStorage.getItem(REFRESH_TOKEN);
-    if (!item) {
-      return;
-    }
+    // Read refresh token from Redux (preferred) with localStorage fallback
+    const stored = Util.getRefreshTokenFromStore();
+    if (!stored || !stored.token) return;
 
     try {
-      const data = JSON.parse(item);
-      const refreshToken = data.token?.replace(/"/g, "");
-      const savedAt = new Date(data.savedAt.toString());
+      const refreshToken = String(stored.token).replace(/"/g, "");
+      const savedAt = new Date(
+        stored.savedAt?.toString() ?? new Date().toISOString(),
+      );
       const now = new Date();
 
       const daysDiff = Math.floor(
@@ -332,7 +347,7 @@ export class SupabaseAuth implements ServiceAuth {
         } else if (data?.session) {
           const { access_token, refresh_token } = data.session;
           this._auth?.setSession({ access_token, refresh_token });
-          Util.addRefreshTokenToLocalStorage(refresh_token);
+          Util.addRefreshTokenToStore(refresh_token);
         }
       }
     } catch (error) {
@@ -354,15 +369,19 @@ export class SupabaseAuth implements ServiceAuth {
     if (this._currentUser) return true;
     if (navigator.onLine) {
       await this.doRefreshSession();
-      // const authData = await this._auth?.getUser();
-      // const authData = await this._auth?.getSession();
       const user = await this.getCurrentUser();
 
-      // return !!authData?.data?.session?.user;
       return !!user;
     } else {
-      const isUser = localStorage.getItem(CURRENT_USER);
-      return !!isUser;
+      try {
+        const state = store.getState();
+        const reduxUser = state?.auth?.authUser;
+        return !!reduxUser;
+      } catch (e) {
+        console.error("Error accessing Redux store for auth state:", e);
+        await this.logOut();
+        return false;
+      }
     }
   }
 
@@ -452,7 +471,10 @@ export class SupabaseAuth implements ServiceAuth {
   async proceedWithVerificationCode(
     phoneNumber: string,
     verificationCode: string,
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean; userData?: any } | undefined> {
+  ): Promise<
+    | { user: User | null; isUserExist: boolean; isSpl: boolean; userData?: TableTypes<"user"> | null }
+    | undefined
+  > {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
@@ -464,12 +486,8 @@ export class SupabaseAuth implements ServiceAuth {
       });
       if (error) throw new Error("OTP verification failed");
 
-      localStorage.setItem(
-        REFRESH_TOKEN,
-        JSON.stringify(user.session?.refresh_token),
-      );
       if (user.session?.refresh_token)
-        Util.addRefreshTokenToLocalStorage(user.session.refresh_token);
+        Util.addRefreshTokenToStore(user.session.refresh_token);
 
       // ✅ RETRY: isUserExists
       const isUserExist = await this.rpcRetry<boolean>(async () => {
@@ -521,7 +539,11 @@ export class SupabaseAuth implements ServiceAuth {
           "is_special_or_program_user",
         ).maybeSingle();
 
-        return { data: !!data, error, userData: data } as { data: boolean; error: any; userData: any };
+        return { data: !!data, error, userData: data } as {
+          data: boolean;
+          error: any;
+          userData: any;
+        };
       });
 
       if (isSpl) {
@@ -539,7 +561,8 @@ export class SupabaseAuth implements ServiceAuth {
       } catch (err) {}
       if (isUserExist) await api.subscribeToClassTopic();
 
-      return { user, isUserExist: !!isUserExist, isSpl, userData: user.user };
+      const userData = await api.getUserByDocId(user.user?.id ?? "");
+      return { user: user.user ?? null, isUserExist: !!isUserExist, isSpl, userData };
     } catch (_err) {
       return { user: null, isUserExist: false, isSpl: false, userData: null };
     }
@@ -647,9 +670,25 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
 
+  async getSession(): Promise<{
+    data: { session: AuthSession | null };
+    error: any;
+  }> {
+    if (!this._auth)
+      return { data: { session: null }, error: "Auth not initialized" };
+    return await this._auth.getSession();
+  }
+
+  async getUser(): Promise<{ data: { user: User | null }; error: any }> {
+    if (!this._auth)
+      return { data: { user: null }, error: "Auth not initialized" };
+    return await this._auth.getUser();
+  }
+
   async logOut(): Promise<void> {
-    // throw new Error("Method not implemented.");
     await this._auth?.signOut();
+    // Clear redux store items related to auth and user data
+    store.dispatch(logout());
     this._currentUser = undefined;
   }
 }

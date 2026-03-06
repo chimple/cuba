@@ -5,6 +5,34 @@
 import "@testing-library/jest-dom";
 import { mockAuthHandler } from "./tests/__mocks__/serviceConfigMock"
 
+jest.mock("@testing-library/react", () => {
+  const originalModule = jest.requireActual("@testing-library/react");
+  const React = require("react");
+  const { Provider } = require("react-redux");
+  const { configureStore } = require("@reduxjs/toolkit");
+  const authreducer = require("./redux/slices/auth/authSlice").default;
+
+  return {
+    ...originalModule,
+    render: (ui: any, options: any = {}) => {
+      const store = options?.store ?? configureStore({
+        reducer: { auth: authreducer },
+        middleware: (getDefaultMiddleware: any) =>
+          getDefaultMiddleware({ serializableCheck: false }),
+      });
+      const OriginalWrapper = options?.wrapper;
+      const Wrapper = ({ children }: any) => {
+        const providerContent = React.createElement(Provider, { store }, children);
+        return OriginalWrapper
+          ? React.createElement(OriginalWrapper, null, providerContent)
+          : providerContent;
+      };
+
+      return originalModule.render(ui, { ...options, wrapper: Wrapper });
+    },
+  };
+});
+
 /* -----------------------------
    Browser API mocks
 ----------------------------- */

@@ -13,12 +13,10 @@ import { Util } from "../../../utility/util";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  CURRENT_USER,
   IS_OPS_USER,
   MODES,
   PAGES,
   SCHOOL,
-  USER_ROLE,
 } from "../../../common/constants";
 import ProfileSection from "./ProfileDetail";
 import SchoolSection from "./SchoolSection";
@@ -313,7 +311,6 @@ const SideMenu: React.FC<{
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
     history.replace(PAGES.LOGIN);

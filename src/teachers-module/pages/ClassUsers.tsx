@@ -7,12 +7,14 @@ import {
   CLASS_USERS,
   PAGES,
   TableTypes,
-  USER_ROLE,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { useHistory, useLocation } from "react-router-dom";
 import UserList from "../components/studentProfile/UserList";
 import { RoleType } from "../../interface/modelInterfaces";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 const ClassUsers: React.FC = () => {
   const history = useHistory();
@@ -21,7 +23,10 @@ const ClassUsers: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const classData = (location.state as TableTypes<"class">) || {};
   const currentSchool = Util.getCurrentSchool();
-  const currentRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const currentRoles = roles || [];
   useEffect(() => {
     init();
   }, []);

@@ -1,6 +1,6 @@
 import { ServiceAuth } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
-import { UserAttributes } from "@supabase/supabase-js";
+import { Session, User, UserAttributes } from "@supabase/supabase-js";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -17,7 +17,12 @@ export class AuthHandler implements ServiceAuth {
     return AuthHandler.i;
   }
 
-  async googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
+  async googleSign(): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<"user"> | null;
+  }> {
     return await this.s.googleSign();
   }
 
@@ -38,30 +43,43 @@ export class AuthHandler implements ServiceAuth {
   }
   public async generateOtp(
     phoneNumber: string,
-    appName: string
+    appName: string,
   ): Promise<{ success: boolean; error?: any }> {
     return await this.s.generateOtp(phoneNumber, appName);
   }
   public async resendOtpMsg91(
-    phoneNumber: string
+    phoneNumber: string,
   ): Promise<boolean | undefined> {
     return await this.s.resendOtpMsg91(phoneNumber);
   }
 
   public async loginWithEmailAndPassword(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
+    password: string,
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<"user"> | null;
+  }> {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
 
   public async proceedWithVerificationCode(
     verificationId,
-    verificationCode
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean; userData?: any } | undefined> {
+    verificationCode,
+  ): Promise<
+    | {
+        user: User | null;
+        isUserExist: boolean;
+        isSpl: boolean;
+        userData?: TableTypes<"user"> | null;
+      }
+    | undefined
+  > {
     return await this.s.proceedWithVerificationCode(
       verificationId,
-      verificationCode
+      verificationCode,
     );
   }
 
@@ -74,8 +92,13 @@ export class AuthHandler implements ServiceAuth {
   }
   public async signInWithEmail(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }> {
+    password: string,
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<"user">;
+  }> {
     return await this.s.signInWithEmail(email, password);
   }
   public async sendResetPasswordEmail(email: string): Promise<boolean> {
@@ -83,5 +106,14 @@ export class AuthHandler implements ServiceAuth {
   }
   public async updateUser(attributes: UserAttributes): Promise<boolean> {
     return await this.s.updateUser(attributes);
+  }
+  public async getUser(): Promise<{ data: { user: User | null }; error: any }> {
+    return await this.s.getUser();
+  }
+  public async getSession(): Promise<{
+    data: { session: Session | null };
+    error: any;
+  }> {
+    return this.s.getSession();
   }
 }

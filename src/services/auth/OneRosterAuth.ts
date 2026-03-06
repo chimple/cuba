@@ -11,6 +11,12 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
   private constructor() {}
+  getUser(): Promise<{ data: { user: any; }; error: any; }> {
+    throw new Error("Method not implemented.");
+  }
+  getSession(): Promise<{ data: { session: any; }; error: any; }> {
+    throw new Error("Method not implemented.");
+  }
   loginWithEmailAndPassword(
     email: string,
     password: string
