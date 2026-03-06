@@ -65,7 +65,13 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  ServiceApi,
+} from "./ServiceApi";
 import {
   SQLiteDBConnection,
   SQLiteConnection,
@@ -1061,6 +1067,10 @@ export class SqliteApi implements ServiceApi {
 
   async uploadData(payload: any): Promise<boolean | null> {
     return await this._serverApi.uploadData(payload);
+  }
+
+  async migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean> {
+    return await this._serverApi.migrateSchoolData(payload);
   }
 
   async createSchool(
@@ -6428,6 +6438,12 @@ order by
     search?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    return await this._serverApi.getSchoolsWithProgramAccess(params);
   }
 
   async createOrAddUserOps(payload: {

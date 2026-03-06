@@ -23,6 +23,7 @@ interface SearchAndFilterProps {
   isFilter?: boolean;
   forceOpenSearch?: boolean;
   variantType?: "outlined" | "standard";
+  filterIconSrc?: string;
 }
 
 const DEBOUNCE_MS = 400;
@@ -35,7 +36,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   onClearFilters,
   isFilter,
   forceOpenSearch = false,
-  variantType
+  variantType,
+  filterIconSrc,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -157,12 +159,30 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             onClick={onFilterClick}
             sx={{ marginLeft: "0px" }}
           >
-            <FilterListIcon />
+            {filterIconSrc ? (
+              <img
+                src={filterIconSrc}
+                alt="Filter"
+                style={{ width: 13, height: 12, display: "block" }}
+              />
+            ) : (
+              <FilterListIcon />
+            )}
           </IconButton>
         ) : (
           <Button
             // variant="outlined"
-            startIcon={<FilterListIcon />}
+            startIcon={
+              filterIconSrc ? (
+                <img
+                  src={filterIconSrc}
+                  alt="Filter"
+                  style={{ width: 13, height: 12, display: "block" }}
+                />
+              ) : (
+                <FilterListIcon />
+              )
+            }
             className="filter-button-SearchAndFilter"
             onClick={onFilterClick}
           >

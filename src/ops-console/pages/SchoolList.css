@@ -156,6 +156,30 @@
   color: black;
 }
 
+.school-list-migrate-button {
+  border-color: #1976d2 !important;
+  border: 1px solid #1976d2 !important;
+  background: white !important;
+  border-radius: 20px !important;
+  text-transform: none !important;
+  color: black !important;
+  height: 36px !important;
+  padding: 6px 16px !important;
+  font-weight: 500 !important;
+}
+
+.school-list-migrate-button:hover {
+  border-color: #1976d2 !important;
+  background-color: rgba(25, 118, 210, 0.04) !important;
+}
+
+.school-list-migrate-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  filter: brightness(0.9);
+}
+
 .school-list-upload-text {
   font-weight: bolder;
   color: #121619;
