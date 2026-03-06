@@ -1,19 +1,17 @@
-import React, { act } from "react";
-import { render } from "@testing-library/react";
+import { act } from "react";
 import userEvent from "@testing-library/user-event";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Toast } from "@capacitor/toast";
+import { createTestStore, renderWithProviders } from "../tests/test-utils";
 
 import LoginScreen from "./LoginScreen";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  CURRENT_USER,
   LANGUAGE,
   LOGIN_TYPES,
   MODES,
   PAGES,
-  USER_DATA,
 } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
@@ -253,6 +251,9 @@ jest.mock("../components/signup/LoginSwitch", () => ({
 const mockApiHandler = { getSchoolsForUser: jest.fn() };
 const mockOnlineOfflineHandler = useOnlineOfflineErrorMessageHandler as jest.Mock;
 
+// Helper function to create a mock Redux store for testing
+// Using shared test utils for Redux store and provider
+
 const delay = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const eventually = async (assertion: () => void, timeoutMs = 2500) => {
@@ -271,9 +272,10 @@ const eventually = async (assertion: () => void, timeoutMs = 2500) => {
 };
 
 const renderReady = async () => {
-  const view = render(<LoginScreen />);
+  const mockStore = createTestStore();
+  const view = renderWithProviders(<LoginScreen />, { store: mockStore });
   await view.findByTestId("phone-login");
-  return view;
+  return { view, store: mockStore };
 };
 
 describe("LoginScreen", () => {
@@ -323,7 +325,8 @@ describe("LoginScreen", () => {
 
   describe("Initialization", () => {
     it("shows loading and renders phone login", async () => {
-      const view = render(<LoginScreen />);
+      const mockStore = createTestStore();
+      const view = renderWithProviders(<LoginScreen />, { store: mockStore });
       expect(view.getByTestId("loading-indicator")).toBeInTheDocument();
       await view.findByTestId("phone-login");
     });
@@ -342,7 +345,8 @@ describe("LoginScreen", () => {
 
     it("applies stored language", async () => {
       localStorage.setItem(LANGUAGE, "hi");
-      const view = render(<LoginScreen />);
+      const mockStore = createTestStore();
+      const view = renderWithProviders(<LoginScreen />, { store: mockStore });
       const lang = await view.findByLabelText("language-dropdown");
       expect(lang).toHaveValue("hi");
       expect(mockChangeLanguage).toHaveBeenCalledWith("hi");
@@ -361,7 +365,7 @@ describe("LoginScreen", () => {
     // 3. Login type switching + header UI
     it("switches between phone/email/student and handles forgot password back", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "switch-email" }));
       await view.findByTestId("email-login");
@@ -382,7 +386,7 @@ describe("LoginScreen", () => {
     // 2. LANGUAGE and dropdownand language change
     it("changes language from dropdown", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.selectOptions(view.getByLabelText("language-dropdown"), "hi");
       expect(localStorage.getItem(LANGUAGE)).toBe("hi");
@@ -392,7 +396,7 @@ describe("LoginScreen", () => {
     // Terms & Conditions: when clicked should open the page
     it("opens Terms & Conditions page when clicked", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       expect(view.queryByRole("button", { name: /close/i })).not.toBeInTheDocument();
       await user.click(view.getByRole("button", { name: "open-terms" }));
@@ -402,7 +406,7 @@ describe("LoginScreen", () => {
     // Terms & Conditions: when clicked cross button should close the page
     it("closes Terms & Conditions page when close button is clicked", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "open-terms" }));
       await view.findByRole("button", { name: /close/i });
@@ -412,7 +416,7 @@ describe("LoginScreen", () => {
 
     it("updates language selection even when changed during OTP flow", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -428,7 +432,7 @@ describe("LoginScreen", () => {
 
     it("updates language while staying on phone login state", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.selectOptions(view.getByLabelText("language-dropdown"), "hi");
@@ -442,7 +446,7 @@ describe("LoginScreen", () => {
 
     it("updates language while staying on email login state", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "switch-email" }));
       await view.findByTestId("email-login");
@@ -460,7 +464,7 @@ describe("LoginScreen", () => {
 
     it("updates language while staying on student login state", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "switch-student" }));
       await view.findByTestId("student-login");
@@ -481,7 +485,7 @@ describe("LoginScreen", () => {
     // Language: check if we change the language every text and buttons should be updated in the UI
     it("changes language on OTP page and keeps OTP actions working", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -500,7 +504,7 @@ describe("LoginScreen", () => {
     // Language: in any page otp or student login if we change the language language is changed or not
     it("keeps changed language while moving from OTP page to student login page", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -524,7 +528,7 @@ describe("LoginScreen", () => {
         presentToast: mockPresentToast,
       });
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "switch-student" }));
       await view.findByTestId("student-login");
@@ -552,7 +556,7 @@ describe("LoginScreen", () => {
     // Language: check if we change the language dynamically it gets updated anywhere and everywhere in login screen
     it("updates language dynamically across all login screen states", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       expect(view.getByTestId("phone-login")).toBeInTheDocument();
       await user.selectOptions(view.getByLabelText("language-dropdown"), "hi");
@@ -601,7 +605,7 @@ describe("LoginScreen", () => {
   describe("Phone + OTP", () => {
     it("allows only digits and blocks letters/special characters in phone input", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "12ab@#34");
       expect(view.getByLabelText("phone-input")).toHaveValue("1234");
@@ -609,7 +613,7 @@ describe("LoginScreen", () => {
 
     it("enables START button only for exactly 10 digits", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       const startBtn = view.getByRole("button", { name: "phone-next" });
 
       await user.type(view.getByLabelText("phone-input"), "123456789");
@@ -625,7 +629,7 @@ describe("LoginScreen", () => {
 
     it("does not submit for less than 10 digits and submits for valid 10-digit input", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       const startBtn = view.getByRole("button", { name: "phone-next" });
 
       await user.type(view.getByLabelText("phone-input"), "123456789");
@@ -642,7 +646,7 @@ describe("LoginScreen", () => {
     it("auto picks up phone number from plugin event", async () => {
       mockPortPlugin.numberRetrieve.mockResolvedValueOnce({ number: "9998887776" });
       const addListenerSpy = jest.spyOn(document, "addEventListener");
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       const listenerEntry = addListenerSpy.mock.calls.find(
         (call) => call[0] === "isPhoneNumberSelected"
@@ -662,7 +666,7 @@ describe("LoginScreen", () => {
     // 4. Phone -> OTP generation flow
     it("validates phone and handles OTP generation error states", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       const startBtn = view.getByRole("button", { name: "phone-next" });
 
       await user.type(view.getByLabelText("phone-input"), "12345");
@@ -685,7 +689,7 @@ describe("LoginScreen", () => {
     // 13. Start and Send Buttons
     it("moves to OTP mode and back, then blocks duplicate OTP call for same number", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -703,7 +707,7 @@ describe("LoginScreen", () => {
 
     it("shows entered phone number on OTP screen and back returns to phone input", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -716,7 +720,7 @@ describe("LoginScreen", () => {
 
     it("allows only 6 OTP digits and blocks chars/special chars", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -728,7 +732,7 @@ describe("LoginScreen", () => {
 
     it("enables OTP verify button only for valid 6-digit OTP", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -749,7 +753,7 @@ describe("LoginScreen", () => {
 
     it("does not verify for less than 6 digits and verifies for exactly 6 digits", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -770,7 +774,7 @@ describe("LoginScreen", () => {
       mockPortPlugin.otpRetrieve.mockResolvedValueOnce({ otp: "654321" });
       const addListenerSpy = jest.spyOn(document, "addEventListener");
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -793,20 +797,25 @@ describe("LoginScreen", () => {
 
     // 5. OTP verification flow
     it("runs OTP verify success path and redirects", async () => {
-      (mockAuthHandler.proceedWithVerificationCode as jest.Mock).mockResolvedValue({
+      (
+        mockAuthHandler.proceedWithVerificationCode as jest.Mock
+      ).mockResolvedValue({
         user: {
-          uid: "parent-1",
-          id: "parent-1",
-          name: "Parent",
+          uid: "student-1",
+          id: "student-1",
+          name: "Student",
           username: "9876543210",
           last_login_at: "2026-01-01T00:00:00Z",
-          user: { id: "student-1" },
+        },
+        userData: {
+          id: "student-1",
+          name: "Student",
         },
         isSpl: false,
       });
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view, store: mockStore } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -820,7 +829,8 @@ describe("LoginScreen", () => {
       });
       expect(mockAuthHandler.proceedWithVerificationCode).toHaveBeenCalledWith("9876543210", "123456");
       expect(mockApiHandler.getSchoolsForUser).toHaveBeenCalledWith("student-1");
-      expect(localStorage.getItem(CURRENT_USER)).toContain("parent-1");
+      // redux should also be updated with the nested user object (res.user.user)
+      expect(mockStore.getState().auth.user?.id).toBe("student-1");
       expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.PARENT);
     });
 
@@ -830,7 +840,7 @@ describe("LoginScreen", () => {
       (mockAuthHandler.resendOtpMsg91 as jest.Mock).mockRejectedValue(new Error("resend failed"));
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -849,7 +859,7 @@ describe("LoginScreen", () => {
     it("shows wrong OTP message for invalid OTP", async () => {
       (mockAuthHandler.proceedWithVerificationCode as jest.Mock).mockRejectedValue("invalid-otp");
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -865,7 +875,7 @@ describe("LoginScreen", () => {
       (mockAuthHandler.resendOtpMsg91 as jest.Mock).mockResolvedValue(true);
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.type(view.getByLabelText("phone-input"), "9876543210");
       await user.click(view.getByRole("button", { name: "phone-next" }));
@@ -884,7 +894,7 @@ describe("LoginScreen", () => {
     it("requests phone permission once on android focus", async () => {
       jest.spyOn(Capacitor, "getPlatform").mockReturnValue("android");
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "phone-focus" }));
       await user.click(view.getByRole("button", { name: "phone-focus" }));
@@ -898,7 +908,7 @@ describe("LoginScreen", () => {
     it("shows offline toast and skips google sign", async () => {
       mockOnlineOfflineHandler.mockReturnValue({ online: false, presentToast: mockPresentToast });
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "google-signin" }));
       expect(mockPresentToast).toHaveBeenCalled();
@@ -908,7 +918,7 @@ describe("LoginScreen", () => {
     // 11. Terms & Conditions checkbox
     it("does not trigger google sign-in when terms checkbox is unchecked", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "toggle-checkbox" }));
       await user.click(view.getByRole("button", { name: "google-signin" }));
@@ -918,7 +928,21 @@ describe("LoginScreen", () => {
 
     it("handles successful native google sign in and redirects", async () => {
       jest.spyOn(Capacitor, "isNativePlatform").mockReturnValue(true);
-      (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({ success: true, isSpl: false });
+      (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({
+        success: true,
+        isSpl: false,
+        user: {
+          id: "parent-2",
+          uid: "parent-2",
+          name: "Google Parent",
+          username: "google@example.com",
+          last_login_at: "2026-01-01T00:00:00Z",
+        },
+        userData: {
+          id: "parent-2",
+          name: "Google Parent",
+        },
+      });
       (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValue({
         id: "parent-2",
         uid: "parent-2",
@@ -929,7 +953,7 @@ describe("LoginScreen", () => {
       mockApiHandler.getSchoolsForUser.mockResolvedValue([{ role: RoleType.AUTOUSER }]);
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "google-signin" }));
 
       await eventually(() => {
@@ -943,7 +967,7 @@ describe("LoginScreen", () => {
       (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({ success: false });
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
       await user.click(view.getByRole("button", { name: "google-signin" }));
 
@@ -959,7 +983,7 @@ describe("LoginScreen", () => {
     // Email Login: start button enable only valid input
     it("enables email START button only for valid email format and valid password", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
 
       const startBtn = view.getByRole("button", { name: "email-login" });
@@ -982,7 +1006,7 @@ describe("LoginScreen", () => {
     // Email Login: valid email format
     it("accepts valid email format and triggers email login", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
 
       (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({
@@ -1006,7 +1030,7 @@ describe("LoginScreen", () => {
     // Email Login: invalid inputs should not submit
     it("does not submit when email or password format is invalid", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
       const startBtn = view.getByRole("button", { name: "email-login" });
 
@@ -1029,7 +1053,7 @@ describe("LoginScreen", () => {
     // Email Login: wrong password
     it("shows proper error message for wrong password", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
 
       (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({
@@ -1052,7 +1076,7 @@ describe("LoginScreen", () => {
     // Email Login: proper error message
     it("shows proper generic error message when email login throws", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
 
       (mockAuthHandler.signInWithEmail as jest.Mock).mockRejectedValueOnce(
@@ -1080,19 +1104,24 @@ describe("LoginScreen", () => {
       };
 
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view, store: mockStore } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-email" }));
       await user.type(view.getByLabelText("email-input"), "user@example.com");
       await user.type(view.getByLabelText("password-input"), "123456");
 
-      (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({ success: true, isSpl: false, userData: parent });
+      (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({
+        success: true,
+        isSpl: false,
+        user: parent,
+        userData: parent,
+      });
       (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValueOnce(parent);
       await user.click(view.getByRole("button", { name: "email-login" }));
 
       await eventually(() => {
         expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT);
       });
-      expect(localStorage.getItem(CURRENT_USER)).toContain("parent-3");
+      expect(mockStore.getState().auth.user?.id).toBe("parent-3");
 
       (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({ success: false, isSpl: false, userData: null });
       await user.clear(view.getByLabelText("email-input"));
@@ -1111,7 +1140,7 @@ describe("LoginScreen", () => {
   describe("Student Login", () => {
     it("enables student START button only for valid input", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-student" }));
 
       const startBtn = view.getByRole("button", { name: "student-login" });
@@ -1129,7 +1158,7 @@ describe("LoginScreen", () => {
     it("shows offline toast for student login", async () => {
       mockOnlineOfflineHandler.mockReturnValue({ online: false, presentToast: mockPresentToast });
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
 
       await user.click(view.getByRole("button", { name: "switch-student" }));
       await user.type(view.getByLabelText("school-code-input"), "SCH");
@@ -1141,10 +1170,9 @@ describe("LoginScreen", () => {
 
     it("submits student credentials format", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-student" }));
 
-      localStorage.setItem(USER_DATA, JSON.stringify({ id: "s1", uid: "s1", name: "S1", username: "sch001", last_login_at: "2026-01-01" }));
       (mockAuthHandler.loginWithEmailAndPassword as jest.Mock).mockResolvedValue({ success: true, isSpl: false, userData: {} });
 
       await user.type(view.getByLabelText("school-code-input"), "SCH");
@@ -1159,10 +1187,9 @@ describe("LoginScreen", () => {
 
     it("shows student credential error on failed response", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-student" }));
 
-      localStorage.setItem(USER_DATA, JSON.stringify({ id: "s1", uid: "s1", name: "S1", username: "sch001", last_login_at: "2026-01-01" }));
       (mockAuthHandler.loginWithEmailAndPassword as jest.Mock).mockResolvedValue({ success: false, isSpl: false, userData: {} });
 
       await user.type(view.getByLabelText("school-code-input"), "SCH");
@@ -1175,10 +1202,9 @@ describe("LoginScreen", () => {
 
     it("shows wrong password error for student login", async () => {
       const user = userEvent.setup();
-      const view = await renderReady();
+      const { view } = await renderReady();
       await user.click(view.getByRole("button", { name: "switch-student" }));
 
-      localStorage.setItem(USER_DATA, JSON.stringify({ id: "s1", uid: "s1", name: "S1", username: "sch001", last_login_at: "2026-01-01" }));
       (mockAuthHandler.loginWithEmailAndPassword as jest.Mock).mockResolvedValue({ success: false, isSpl: false, userData: {} });
 
       await user.type(view.getByLabelText("school-code-input"), "SCH");

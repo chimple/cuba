@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import "./RejectRequestPopup.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS, STATUS, USER_ROLE } from "../../../common/constants";
+import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
 import { RoleType } from "../../../interface/modelInterfaces";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
+import { AuthState } from "../../../redux/slices/auth/authSlice";
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -23,6 +26,8 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
   const [error, setError] = useState<string>("");
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const userRoles = roles || [];
 
 
   const VERIFICATION_FAILED = t("Verification Failed");
@@ -66,14 +71,6 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       }
       const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
       const finalReason = getFinalReason();
-      let userRoles: string[] = [];
-      try {
-        userRoles = JSON.parse(
-          localStorage.getItem(USER_ROLE) || "[]"
-        );
-      } catch (error) {
-        console.error("Failed to parse user roles from localStorage:", error);
-      }
       // Only Super Admin and Operational Director can see the Flagged tab
       const canSeeFlaggedTab =
         userRoles.includes(RoleType.SUPER_ADMIN) ||

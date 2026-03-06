@@ -2,7 +2,6 @@ import {
   CURRENT_CLASS,
   CURRENT_MODE,
   CURRENT_SCHOOL,
-  CURRENT_USER,
   LAST_MODE,
   MODES,
   PAGES,
@@ -13,6 +12,8 @@ import {
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "./util";
 import { reinitializeHardwareBackButton } from "../common/backButtonRegistry";
+import { store } from "../redux/store";
+import { setAuthUser, setUser } from "../redux/slices/auth/authSlice";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -187,8 +188,9 @@ export class schoolUtil {
         credentials.email,
         credentials.password,
       );
-      if (result) {
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+      if (result && result.userData) {
+        store.dispatch(setAuthUser(result?.user));
+        store.dispatch(setUser(result?.userData));
         window.history.replaceState(
           window.history.state,
           "",

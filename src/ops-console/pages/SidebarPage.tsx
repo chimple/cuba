@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
@@ -44,7 +44,6 @@ const SidebarPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const userRole = localStorage.getItem(USER_ROLE) || "[]";
 
   useEffect(() => {
     fetchData();

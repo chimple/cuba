@@ -16,12 +16,7 @@ import {
   TableTypes,
   SCHOOL,
   MODES,
-  USER_ROLE,
   CLASS,
-  CURRENT_USER,
-  CURRENT_MODE,
-  IS_OPS_USER,
-  USER_DATA,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import ToggleButton from "../../components/parent/ToggleButton";
@@ -37,6 +32,9 @@ import {
 } from "react-icons/io5";
 import { t } from "i18next";
 import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 interface SidebarProps {
   name: string;
@@ -103,6 +101,8 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
       role: RoleType;
     }[]
   >();
+  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const userRoles = roles || [];
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   const switchUserToTeacher = async () => {
@@ -194,9 +194,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
         <ul className="sidebar-nav-list">
           {navItems.map((item) => {
-            const userRoles = JSON.parse(
-              localStorage.getItem(USER_ROLE) || "[]"
-            );
+ 
             const rolesWithAccess = [
               RoleType.SUPER_ADMIN,
               RoleType.OPERATIONAL_DIRECTOR,

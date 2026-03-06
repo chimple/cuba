@@ -6,7 +6,6 @@ import {
   PAGES,
   SCHOOL,
   TableTypes,
-  USER_ROLE,
   OPS_ROLES
 } from "../../common/constants";
 import { useHistory } from "react-router-dom";
@@ -19,6 +18,9 @@ import { RoleType } from "../../interface/modelInterfaces";
 import "./ManageClass.css";
 import { Util } from "../../utility/util";
 import DetailListHeader from "../components/schoolComponent/DetailListHeader";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 const ManageClass: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
@@ -35,6 +37,11 @@ const ManageClass: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const tempClass = Util.getCurrentClass();
+
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const storedRoles = roles || [];
 
   const init = async () => {
     try {
@@ -57,9 +64,6 @@ const ManageClass: React.FC = () => {
       console.error("Error initializing data:", error);
     }
   };
-  const storedRoles: string[] = JSON.parse(
-    localStorage.getItem(USER_ROLE) ?? "[]"
-  );
 
   const canCreate = useMemo(
     () => OPS_ROLES.some((role) => storedRoles.includes(role)),

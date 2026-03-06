@@ -19,7 +19,6 @@ import {
   CLASS,
   SCHOOL,
   School_Creation_Stages,
-  USER_ROLE,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
@@ -27,6 +26,9 @@ import SubjectSelectionComponent from "../components/SubjectSelectionComponent";
 import AddButton from "../../common/AddButton";
 import { RoleType } from "../../interface/modelInterfaces";
 import { useHistory, useLocation } from "react-router-dom";
+import { useAppSelector } from "../../redux/hooks";
+import { AuthState } from "../../redux/slices/auth/authSlice";
+import { RootState } from "../../redux/store";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -84,6 +86,11 @@ const SubjectSelection: React.FC = () => {
   });
   const navigationState = Util.getNavigationState();
   const [canModify, setCanModify] = useState(true);
+
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
 
   useEffect(() => {
     const init = async () => {
@@ -413,12 +420,8 @@ const SubjectSelection: React.FC = () => {
         await api.updateSchoolCourseSelection(paramSchoolId, selectedCourseIds);
       }
       let userRole: RoleType | null = null;
-      const storedRoleData = localStorage.getItem(USER_ROLE);
-      if (storedRoleData) {
-        const parsed = JSON.parse(storedRoleData);
-        const flat = Array.isArray(parsed[0]) ? parsed[0] : parsed;
-        userRole = flat[0] ?? null;
-      }
+      const flat = Array.isArray(userRoles[0]) ? userRoles[0] : userRoles;
+      userRole = flat[0] ?? null;
       if (!userRole) {
         const auth = ServiceConfig.getI().authHandler;
         const currentUser = await auth.getCurrentUser();

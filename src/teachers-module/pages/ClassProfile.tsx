@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import Header from "../components/homePage/Header";
 import { Util } from "../../utility/util";
 import "./ClassProfile.css";
@@ -12,7 +12,6 @@ const ClassProfile: FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const { school: localSchool, classDoc: classData } = location.state as any;
   const currentSchool = localSchool ?? Util.getCurrentSchool();
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
 
   useEffect(() => {
     fetchClassDetails();
