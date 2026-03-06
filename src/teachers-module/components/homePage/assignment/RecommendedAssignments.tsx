@@ -172,12 +172,17 @@ const RecommendedAssignments: React.FC<Props> = ({
                     id={`recommended-assignments-lesson-${subjectId}-${index}`}
                     className="recommended-assignments-list-item"
                   >
-                    <SelectIconImage
-                      defaultSrc="assets/icons/DefaultIcon.png"
-                      webSrc={assignment.image ?? ""}
-                      imageWidth="100px"
-                      imageHeight="100px"
-                    />
+                    <div
+                      className="recommended-assignments-list-item-thumb"
+                      id="recommended-assignments-list-item-thumb-id"
+                    >
+                      <SelectIconImage
+                        defaultSrc="assets/icons/DefaultIcon.png"
+                        webSrc={assignment.image ?? ""}
+                        imageWidth="100%"
+                        imageHeight="100%"
+                      />
+                    </div>
                     <div
                       className="recommended-assignments-list-item-info"
                       id={`recommended-assignments-lesson-info-${subjectId}-${index}`}
