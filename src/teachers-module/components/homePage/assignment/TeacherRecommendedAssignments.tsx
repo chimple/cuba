@@ -123,50 +123,58 @@ const TeacherRecommendedAssignments: FC = () => {
         isBackButton
       />
 
-      {loading ? (
-        <div className="recommended-loader-wrapper">
-          <Loading isLoading={loading} />
-        </div>
-      ) : (
-        <>
-          <RecommendedAssignments
-            recommendedAssignments={recommendedAssignments}
-            setRecommendedAssignments={setRecommendedAssignments}
-            updateSelectedLesson={updateSelectedLesson}
-            toggleSubjectCollapse={() => {}}
-            toggleAssignmentSelection={(
-              _type,
-              _category,
-              _setCategory,
-              subjectId,
-              index,
-            ) => toggleAssignmentSelection(subjectId, index)}
-          />
+      <div
+        className="teacher-recommended-content-scroll"
+        id="teacher-recommended-content-scroll-id"
+      >
+        {loading ? (
+          <div
+            className="teacher-recommended-loader-wrapper"
+            id="teacher-recommended-loader-wrapper-id"
+          >
+            <Loading isLoading={loading} />
+          </div>
+        ) : (
+          <>
+            <RecommendedAssignments
+              recommendedAssignments={recommendedAssignments}
+              setRecommendedAssignments={setRecommendedAssignments}
+              updateSelectedLesson={updateSelectedLesson}
+              toggleSubjectCollapse={() => {}}
+              toggleAssignmentSelection={(
+                _type,
+                _category,
+                _setCategory,
+                subjectId,
+                index,
+              ) => toggleAssignmentSelection(subjectId, index)}
+            />
 
-          <AssigmentCount
-            assignments={
-              selectedLessonsCount[
-                TeacherRecommendedAssignmentsType.RECOMMENDED
-              ].count
-            }
-            onClick={async () => {
-              const { selectedAssignments, formattedRecommended } =
-                buildRecommendedPayload(recommendedAssignments);
-
-              if (Object.keys(selectedAssignments).length > 0) {
-                history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                  fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
-                  selectedAssignments: {
-                    recommended: formattedRecommended,
-                  },
-                  manualAssignments: {},
-                  recommendedAssignments,
-                });
+            <AssigmentCount
+              assignments={
+                selectedLessonsCount[
+                  TeacherRecommendedAssignmentsType.RECOMMENDED
+                ].count
               }
-            }}
-          />
-        </>
-      )}
+              onClick={async () => {
+                const { selectedAssignments, formattedRecommended } =
+                  buildRecommendedPayload(recommendedAssignments);
+
+                if (Object.keys(selectedAssignments).length > 0) {
+                  history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
+                    fromPage: PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS,
+                    selectedAssignments: {
+                      recommended: formattedRecommended,
+                    },
+                    manualAssignments: {},
+                    recommendedAssignments,
+                  });
+                }
+              }}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 };
