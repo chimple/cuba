@@ -9,17 +9,6 @@ import { PAGES } from "../../../../common/constants";
 
 /* ======================= GLOBAL MOCKS ======================= */
 
-jest.mock("@ionic/react", () => ({
-  IonIcon: (props: any) => (
-    <div data-testid="ion-icon" onClick={props.onClick} />
-  ),
-}));
-
-jest.mock("ionicons/icons", () => ({
-  checkmarkCircle: "checkmarkCircle",
-  ellipseOutline: "ellipseOutline",
-}));
-
 jest.mock("i18next", () => {
   const i18n = {
     use: jest.fn().mockReturnThis(),
@@ -45,7 +34,9 @@ jest.mock("../../../../utility/util");
 
 jest.mock("../../../../components/Loading", () => () => <div>Loading...</div>);
 
-jest.mock("../../homePage/Header", () => () => <div>Header</div>);
+jest.mock("../../homePage/Header", () => (props: any) => (
+  <button onClick={props.onBackButtonClick}>Header</button>
+));
 
 jest.mock(
   "../../../../components/displaySubjects/SelectIconImage",
@@ -63,6 +54,7 @@ const replaceMock = jest.fn();
 
 const mockApi = {
   getLessonsForChapter: jest.fn(),
+  getChapterById: jest.fn(),
   getAssignmentInfoForLessonsPerClass: jest.fn(), // ✅ updated API
   getCourse: jest.fn(),
 };
@@ -92,6 +84,7 @@ beforeEach(() => {
   });
 
   mockApi.getLessonsForChapter.mockResolvedValue(mockLessons);
+  mockApi.getChapterById.mockResolvedValue({ name: "Chapter 1" });
 
   // ✅ updated mock
   mockApi.getAssignmentInfoForLessonsPerClass.mockResolvedValue([
@@ -100,6 +93,9 @@ beforeEach(() => {
   ]);
 
   mockApi.getCourse.mockResolvedValue({ name: "Math" });
+});
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 /* ======================= HELPERS ======================= */
@@ -143,6 +139,7 @@ describe("QRAssignments – full coverage", () => {
     renderPage();
     expect(await screen.findByText("Lesson 2")).toBeInTheDocument();
     expect(screen.getByText("Math")).toBeInTheDocument();
+    expect(screen.getAllByText("Chapter 1").length).toBeGreaterThan(0);
   });
 
   test("auto selects next 5 unassigned lessons", async () => {
@@ -166,23 +163,30 @@ describe("QRAssignments – full coverage", () => {
     renderPage();
     await screen.findByText("Lesson 2");
 
-    const icons = screen.getAllByTestId("ion-icon");
-    await userEvent.click(icons[2]);
+    const lessonToggle = document.getElementById(
+      "qrAssignments-lesson-toggle-lesson-2",
+    );
+    expect(lessonToggle).toBeInTheDocument();
+    await userEvent.click(lessonToggle!);
 
-    expect(screen.getByRole("button")).toHaveTextContent("4");
+    expect(screen.getByRole("button", { name: /Assign/i })).toHaveTextContent(
+      "4",
+    );
   });
 
   test("prevents navigation when selectedCount is 0", async () => {
     renderPage();
     await screen.findByText("Lesson 2");
 
-    const icons = screen.getAllByTestId("ion-icon");
-
-    for (let i = 0; i < 5; i++) {
-      await userEvent.click(icons[i]);
+    for (let i = 2; i <= 6; i++) {
+      const lessonToggle = document.getElementById(
+        `qrAssignments-lesson-toggle-lesson-${i}`,
+      );
+      expect(lessonToggle).toBeInTheDocument();
+      await userEvent.click(lessonToggle!);
     }
 
-    const button = screen.getByRole("button");
+    const button = screen.getByRole("button", { name: /Assign/i });
     await userEvent.click(button);
 
     expect(pushMock).not.toHaveBeenCalled();
@@ -201,16 +205,129 @@ describe("QRAssignments – full coverage", () => {
     renderPage();
     await screen.findByText("Lesson 2");
 
-    const button = screen.getByRole("button");
+    const button = screen.getByRole("button", { name: /Assign/i });
     await userEvent.click(button);
 
     expect(historyPush).toHaveBeenCalledWith(
       PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
       expect.objectContaining({
+        fromPage: PAGES.QR_ASSIGNMENTS,
         selectedAssignments: expect.any(Object),
         manualAssignments: expect.any(Object),
         recommendedAssignments: {},
+        qrAssignmentNavigationState: expect.objectContaining({
+          chapterId: "chapter-1",
+          courseId: "course-1",
+        }),
       }),
+    );
+  });
+
+  test("back goes to assign tab when opened from home page", async () => {
+    const historyReplace = jest.fn();
+    jest.spyOn(require("react-router"), "useHistory").mockReturnValue({
+      push: jest.fn(),
+      replace: historyReplace,
+      goBack: jest.fn(),
+      location: {
+        state: {
+          chapterId: "chapter-1",
+          courseId: "course-1",
+          fromPage: PAGES.HOME_PAGE,
+        },
+      },
+    });
+
+    renderPage({
+      chapterId: "chapter-1",
+      courseId: "course-1",
+      fromPage: PAGES.HOME_PAGE,
+    });
+    await screen.findByText("Lesson 2");
+    await userEvent.click(screen.getByRole("button", { name: "Header" }));
+
+    expect(historyReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE, {
+      tabValue: 2,
+    });
+  });
+
+  test("back uses history.goBack when not opened from home page", async () => {
+    const historyGoBack = jest.fn();
+    const historyReplace = jest.fn();
+
+    jest.spyOn(require("react-router"), "useHistory").mockReturnValue({
+      push: jest.fn(),
+      replace: historyReplace,
+      goBack: historyGoBack,
+      location: {
+        state: { chapterId: "chapter-1", courseId: "course-1" },
+      },
+    });
+
+    renderPage({
+      chapterId: "chapter-1",
+      courseId: "course-1",
+    });
+    await screen.findByText("Lesson 2");
+    await userEvent.click(screen.getByRole("button", { name: "Header" }));
+
+    expect(historyGoBack).toHaveBeenCalled();
+    expect(historyReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE, {
+      tabValue: 2,
+    });
+  });
+
+  test("shows assigned badge only for assigned lessons", async () => {
+    renderPage();
+    await screen.findByText("Lesson 2");
+
+    expect(
+      document.getElementById("qrAssignments-assigned-badge-lesson-0"),
+    ).toBeInTheDocument();
+    expect(
+      document.getElementById("qrAssignments-assigned-badge-lesson-1"),
+    ).toBeInTheDocument();
+    expect(
+      document.getElementById("qrAssignments-assigned-badge-lesson-2"),
+    ).not.toBeInTheDocument();
+  });
+
+  test("assign navigation payload keeps only currently selected lessons", async () => {
+    const historyPush = jest.fn();
+    jest.spyOn(require("react-router"), "useHistory").mockReturnValue({
+      push: historyPush,
+      replace: replaceMock,
+      goBack: jest.fn(),
+      location: {
+        state: { chapterId: "chapter-1", courseId: "course-1" },
+      },
+    });
+
+    renderPage({
+      chapterId: "chapter-1",
+      courseId: "course-1",
+    });
+    await screen.findByText("Lesson 2");
+
+    // Initial selected lessons are 2..6; deselect lesson-6 so 2..5 remain.
+    const lessonToggle = document.getElementById(
+      "qrAssignments-lesson-toggle-lesson-6",
+    );
+    await userEvent.click(lessonToggle!);
+
+    await userEvent.click(screen.getByRole("button", { name: /Assign/i }));
+
+    const payload = historyPush.mock.calls[0][1];
+    const selectedIds = payload.selectedAssignments.manual["course-1"]
+      .count as string[];
+    const manualLessons = payload.manualAssignments["course-1"]
+      .lessons as Array<{ id: string }>;
+
+    expect(selectedIds.sort()).toEqual(
+      ["lesson-2", "lesson-3", "lesson-4", "lesson-5"].sort(),
+    );
+    expect(manualLessons.map((l) => l.id).sort()).toEqual(
+      ["lesson-2", "lesson-3", "lesson-4", "lesson-5"].sort(),
     );
   });
 
