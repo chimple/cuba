@@ -9,12 +9,7 @@
 }
 @media (max-width: 768px) {
   .recommended-assignments-add-more-btn {
-    background: white;
-    color: grey;
-    border: 1px solid rgb(124, 93, 176);
-    border-radius: 5px;
     padding: 8px 3px;
-    font-weight: bold;
     font-size: large;
   }
 }
@@ -68,7 +63,7 @@
   align-items: center;
   justify-content: space-between;
   position: relative;
-  margin: 0vw 7vw 1vw 7vw;
+  padding: 6px 25px;
   border-bottom: 2px solid #eff2f4;
 }
 .recommended-assignments-checkbox {
@@ -139,5 +134,5 @@
   height: 40px;
   border-radius: 4px;
   cursor: pointer;
-  background-color: #f1f1f1 !important;
+  background-color: #f1f1f1;
 }

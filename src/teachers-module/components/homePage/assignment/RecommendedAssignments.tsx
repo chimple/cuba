@@ -174,7 +174,7 @@ const RecommendedAssignments: React.FC<Props> = ({
                   >
                     <div
                       className="recommended-assignments-list-item-thumb"
-                      id="recommended-assignments-list-item-thumb-id"
+                      id={`recommended-assignments-list-item-thumb-${subjectId}-${index}`}
                     >
                       <SelectIconImage
                         defaultSrc="assets/icons/DefaultIcon.png"
