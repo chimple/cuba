@@ -22,6 +22,7 @@ import {
   useMigrateSchoolsPageLogic,
 } from "./MigrateSchoolsPageLogic";
 import "./MigrateSchoolsPage.css";
+import "./MigrateSchoolsPageMobile.css";
 
 const MigrateSchoolsPage: React.FC = () => {
   const {
