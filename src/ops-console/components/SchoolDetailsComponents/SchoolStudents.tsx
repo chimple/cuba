@@ -1511,7 +1511,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         imageSrc={popup.image}
         heading={popup.heading}
         text={popup.text}
-        autoCloseSeconds={50}
+        autoCloseSeconds={5}
       />
       <FormCard
         open={isAddStudentModalOpen}

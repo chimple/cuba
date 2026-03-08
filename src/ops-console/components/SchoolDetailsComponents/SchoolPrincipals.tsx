@@ -454,7 +454,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         imageSrc={popup.image}
         heading={popup.heading}
         text={popup.text}
-        autoCloseSeconds={50}
+        autoCloseSeconds={5}
       />
       <Dialog
         open={isDeleteModalOpen}

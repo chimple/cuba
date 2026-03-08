@@ -1029,7 +1029,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         imageSrc={popup.image}
         heading={popup.heading}
         text={popup.text}
-        autoCloseSeconds={50}
+        autoCloseSeconds={5}
       />
       <Dialog
         open={isDeleteModalOpen}
