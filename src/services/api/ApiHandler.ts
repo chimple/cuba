@@ -2048,6 +2048,12 @@ export class ApiHandler implements ServiceApi {
     return this.s.getWhatsAppGroupByInviteLink(inviteLink, bot, classId);
   }
 
+  getAssignmentInfoForLessonsPerClass(
+    classId: string,
+    lessonIds: string[],
+  ): Promise<string[]> {
+    return this.s.getAssignmentInfoForLessonsPerClass(classId, lessonIds);
+  }
 
   // ================================
   // STICKER BOOK SERVICE FORWARDERS
