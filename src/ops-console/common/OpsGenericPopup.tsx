@@ -8,16 +8,17 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import "./OpsGenericPopup.css";
+import { t } from "i18next";
 
 interface OpsGenericPopupProps {
   isOpen: boolean;
-   // MUI icon support
+  // MUI icon support
   imageSrc?: string;          // Image support
   heading: string;
   text: string;
   primaryButtonText?: string;
   autoCloseSeconds?: number;
-  icon?: React.ReactNode;  
+  icon?: React.ReactNode;
 }
 
 const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
@@ -37,15 +38,15 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
   }, [isOpen]);
 
   // Auto close logic
-  // useEffect(() => {
-  //   if (open && autoCloseSeconds) {
-  //     const timer = setTimeout(() => {
-  //       setOpen(false);
-  //     }, autoCloseSeconds * 1000);
+  useEffect(() => {
+    if (open && autoCloseSeconds) {
+      const timer = setTimeout(() => {
+        setOpen(false);
+      }, autoCloseSeconds * 1000);
 
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [open, autoCloseSeconds]);
+      return () => clearTimeout(timer);
+    }
+  }, [open, autoCloseSeconds]);
 
   const handleClose = () => {
     setOpen(false);
@@ -98,7 +99,7 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           id="ops-generic-popup-heading"
           className="ops-generic-popup-heading"
         >
-          {heading}
+          {typeof heading === "string" ? t(heading) || heading : ""}
         </Typography>
 
         {/* Text */}
@@ -106,7 +107,7 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           id="ops-generic-popup-text"
           className="ops-generic-popup-text"
         >
-          {text}
+          {typeof text === "string" ? t(text) || text : ""}
         </Typography>
 
         {/* Optional Button */}
@@ -118,7 +119,9 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
             fullWidth
             onClick={handleClose}
           >
-            {primaryButtonText}
+            {typeof primaryButtonText === "string"
+              ? t(primaryButtonText) || primaryButtonText
+              : ""}
           </Button>
         )}
       </DialogContent>

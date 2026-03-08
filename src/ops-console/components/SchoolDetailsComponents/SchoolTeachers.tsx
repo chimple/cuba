@@ -983,22 +983,25 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         (deleteTargetTeacher as { classId?: string }).classId ||
         (deleteTargetTeacher as { class_id?: string }).class_id ||
         "";
-const teacherName=deleteTargetTeacher.user.name
+      const teacherName = deleteTargetTeacher.user.name;
       if (!teacherId || !classId) {
         console.error("Missing teacherId or classId");
         return;
       }
 
-      const res=await api.deleteUserFromClass(teacherId, classId);
-      if(res){
-        const message = `${teacherName}'s profile has been deleted and is no longer available.`;
-      setPopup({
-        open: true,
-        image: DeleteIcon,
-        heading: "Profile Deleted Successfully",
-        text: message, // dynamic
-        autoCloseSeconds: 10,
-      });
+      const res = await api.deleteUserFromClass(teacherId, classId);
+      if (res) {
+        const message = t(
+          "{{teacherName}}'s profile has been deleted and is no longer available.",
+          { teacherName: teacherName ?? "" },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: "Profile Deleted Successfully",
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
       }
       setIsDeleteModalOpen(false);
       setDeleteTargetTeacher(null);

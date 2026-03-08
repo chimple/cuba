@@ -409,18 +409,26 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       if (!principalId) {
         console.error("Missing principalId");
         return;
-      }const principalName=deleteTargetPrincipal.name
-     const res= await api.deleteUserFromSchool(schoolId, principalId, RoleType.PRINCIPAL);
-     if(res.success){
-       const message = `${principalName}'s profile has been deleted and is no longer available.`;
-      setPopup({
-        open: true,
-        image: DeleteIcon,
-        heading: "Profile Deleted Successfully",
-        text: message, // dynamic
-        autoCloseSeconds: 10,
-      });
-     }
+      }
+      const principalName = deleteTargetPrincipal.name;
+      const res = await api.deleteUserFromSchool(
+        schoolId,
+        principalId,
+        RoleType.PRINCIPAL,
+      );
+      if (res.success) {
+        const message = t(
+          "{{principalName}}'s profile has been deleted and is no longer available.",
+          { principalName: principalName ?? "" },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: "Profile Deleted Successfully",
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
+      }
       setIsDeleteModalOpen(false);
       setDeleteTargetPrincipal(null);
       fetchPrincipals(page);
@@ -441,7 +449,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   return (
     <div className="school-principals-page-container">
-       <OpsGenericPopup
+      <OpsGenericPopup
         isOpen={popup.open}
         imageSrc={popup.image}
         heading={popup.heading}

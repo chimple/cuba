@@ -1405,7 +1405,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return;
       }
       const studentName = deleteTargetStudent?.user?.name;
-      const message = `${studentName}'s profile has been deleted and is no longer available.`;
+      const message = t(
+        "{{studentName}}'s profile has been deleted and is no longer available.",
+        { studentName: studentName ?? "" },
+      );
       const res = await api.deleteUserFromClass(studentId, classId);
       if (res) {
         setPopup({
@@ -1413,7 +1416,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           image: DeleteIcon,
           heading: "Profile Deleted Successfully",
           text: message, // dynamic
-          autoCloseSeconds: 10,
+          autoCloseSeconds: 5,
         });
       } else {
       }
@@ -1441,10 +1444,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   async function handleMergeStudents(student: any): Promise<void> {
     try {
       if (!mergePrimaryStudent) return;
-      const oldId = mergePrimaryStudent.id;
-      const newId = student?.user?.id;
-      const fromName = mergePrimaryStudent.name || mergePrimaryStudent.name;
-      const toName = student?.user?.fullName || student?.user?.name;
+      // Selected student is merged into the primary student (kept profile).
+      const oldId = student?.user?.id;
+      const newId = mergePrimaryStudent.id;
+      const fromName = student?.user?.fullName || student?.user?.name;
+      const toName = mergePrimaryStudent.name;
       if (!oldId || !newId) {
         console.error("Invalid student IDs");
         return;
@@ -1454,63 +1458,49 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return;
       }
 
-      const pathwayResult = await api.mergeUserPathway(oldId, newId);
-      if (!pathwayResult.success) {
+      const mergeResult = await api.mergeStudentRequest(oldId, newId);
+      if (mergeResult.success) {
+        const mergeMessage = t(
+          "{{fromName}}\nhas been merged into {{toName}}'s profile",
+          {
+            fromName: fromName ?? "",
+            toName: toName ?? "",
+          },
+        );
+        setPopup({
+          open: true,
+          image: verifiedIcon,
+          heading: "Successfully Merged",
+          text: mergeMessage, // dynamic
+          autoCloseSeconds: 5,
+        });
+      } else {
         setPopup({
           open: true,
           image: ErrorIcon,
           heading: "Something went wrong",
-          text: pathwayResult.message || "Failed to merge learning pathway.",
-          autoCloseSeconds: 10,
+          text:
+            mergeResult.message || t("Failed to merge student profile."),
+          autoCloseSeconds: 5,
         });
-        setShowSuccessPopup(true);
-        setIsMergeStudentModalOpen(false);
-        return;
       }
-
-      setPopup({
-        open: true,
-        image: verifiedIcon,
-        heading: "Pathway Merged",
-        text: `${fromName}\npathway has been merged into ${toName}'s profile`,
-        autoCloseSeconds: 10,
-      });
+      // Keep UI in sync with backend after merge attempts.
+      await fetchStudents(page, debouncedSearchTerm, true);
       setShowSuccessPopup(true);
       setIsMergeStudentModalOpen(false);
-      return;
-
-      // const mergeResult = await api.mergeStudentRequest(oldId, newId);
-      // if (mergeResult.success) {
-      //   const mergeMessage = `${fromName}\nhas been merged into ${toName}'s profile`;
-      //   setPopup({
-      //     open: true,
-      //     image: verifiedIcon,
-      //     heading: "Successfully Merged",
-      //     text: mergeMessage, // dynamic
-      //     autoCloseSeconds: 10,
-      //   });
-      // } else {
-      //   setPopup({
-      //     open: true,
-      //     image: ErrorIcon,
-      //     heading: "Something went wrong",
-      //     text: mergeResult.message || "Failed to merge student profile.",
-      //     autoCloseSeconds: 10,
-      //   });
-      // }
-      // setShowSuccessPopup(true);
-      // setIsMergeStudentModalOpen(false);
+      setMergePrimaryStudent(null);
     } catch (error: any) {
       console.error("Merge failed:", error);
       setPopup({
         open: true,
         image: ErrorIcon,
         heading: "Something went wrong",
-        text: error?.message || "Unexpected error while merging.",
-        autoCloseSeconds: 10,
+        text: error?.message || t("Unexpected error while merging."),
+        autoCloseSeconds: 5,
       });
       setShowSuccessPopup(true);
       setIsMergeStudentModalOpen(false);
+      setMergePrimaryStudent(null);
     }
   }
 

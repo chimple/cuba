@@ -3716,7 +3716,7 @@ export class SupabaseApi implements ServiceApi {
 
     const now = new Date().toISOString();
 
-    // 1. Get NEW student
+    // 1. Get destination student (record to keep)
     const { data: newStudentData, error: newStudentError } = await this.supabase
       .from("user")
       .select(
@@ -3739,7 +3739,7 @@ export class SupabaseApi implements ServiceApi {
       (link: any) => link.parent,
     );
 
-    // 2. Get OLD student
+    // 2. Get source student (record to merge and delete)
     const { data: existingStudentData, error: existingStudentError } =
       await this.supabase
         .from("user")
@@ -3754,7 +3754,6 @@ export class SupabaseApi implements ServiceApi {
         .eq("id", existingStudentId)
         .eq("is_deleted", false)
         .single();
-    console.log("AAAAAAAAAAAAAAAAAAAAAAA", existingStudentId);
     if (existingStudentError || !existingStudentData) {
       throw new Error("Existing student not found");
     }
@@ -3771,7 +3770,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false);
 
     if (results && results.length > 0) {
-      await this.supabase
+      const { error: resultTransferError } = await this.supabase
         .from("result")
         .update({
           student_id: newStudentId,
@@ -3779,9 +3778,15 @@ export class SupabaseApi implements ServiceApi {
         })
         .eq("student_id", existingStudentId)
         .eq("is_deleted", false);
+
+      if (resultTransferError) {
+        throw new Error(
+          `Failed to transfer results: ${resultTransferError.message}`,
+        );
+      }
     }
 
-    // 4. Merge parents
+    // 5. Merge parents
     const allParents = [...existingParents, ...newParents];
     const uniqueParents: any[] = [];
 
@@ -3807,14 +3812,26 @@ export class SupabaseApi implements ServiceApi {
 
       if (!existingLink) {
         await this.supabase.from("parent_user").insert({
-          student_id: newStudentId,
-          parent_id: parent.id,
-          is_deleted: false,
-          updated_at: now,
-        });
+            student_id: newStudentId,
+            parent_id: parent.id,
+            is_deleted: false,
+            updated_at: now,
+          });
       }
     }
-    // 5. Merge stars from users table
+
+    // 6. Merge learning pathway before soft deleting source student.
+    const pathwayMergeResult = await this.mergeUserPathway(
+      existingStudentId,
+      newStudentId,
+    );
+    if (!pathwayMergeResult.success) {
+      throw new Error(
+        pathwayMergeResult.message || "Failed to merge learning pathway.",
+      );
+    }
+
+    // 7. Merge stars from users table
 
     // Get OLD student stars
     const { data: oldUser, error: oldError } = await this.supabase
@@ -3841,7 +3858,7 @@ export class SupabaseApi implements ServiceApi {
     const totalStars = oldStars + newStars;
 
     // Update NEW student with merged stars
-    await this.supabase
+    const { error: starUpdateError } = await this.supabase
       .from("user")
       .update({
         stars: totalStars,
@@ -3849,17 +3866,12 @@ export class SupabaseApi implements ServiceApi {
       })
       .eq("id", newStudentId);
 
-    // (Optional but recommended) Reset OLD student stars to 0
-    await this.supabase
-      .from("user")
-      .update({
-        stars: 0,
-        updated_at: now,
-      })
-      .eq("id", existingStudentId);
+    if (starUpdateError) {
+      throw new Error(`Failed to update merged stars: ${starUpdateError.message}`);
+    }
 
-    // 6. Soft delete old student
-    await this.supabase
+    // 8. Soft delete source student records
+    const { error: classDeleteError } = await this.supabase
       .from("class_user")
       .update({ is_deleted: true, updated_at: now })
       .eq("user_id", existingStudentId);
@@ -3874,9 +3886,9 @@ export class SupabaseApi implements ServiceApi {
       .update({ is_deleted: true, updated_at: now })
       .eq("id", existingStudentId);
 
-    // 6. Update request
+    // 9. Update request
     if (requestId && respondedBy) {
-      await this.supabase
+      const { error: requestUpdateError } = await this.supabase
         .from("ops_requests")
         .update({
           request_status: "approved",
@@ -3884,6 +3896,12 @@ export class SupabaseApi implements ServiceApi {
           responded_by: respondedBy,
         })
         .eq("request_id", requestId);
+
+      if (requestUpdateError) {
+        throw new Error(
+          `Failed to update merge request: ${requestUpdateError.message}`,
+        );
+      }
     }
 
     return {
@@ -4056,17 +4074,65 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const mergedCourses = Array.from(mergedByCourseId.values());
-      const requestedIndex = Number(newPathway?.courses?.currentCourseIndex ?? 0);
+
+      const getSafeIndex = (value: unknown): number | undefined => {
+        const parsed = Number(value);
+        return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+      };
+
+      const oldRequestedIndex = getSafeIndex(
+        oldPathway?.courses?.currentCourseIndex,
+      );
+      const newRequestedIndex = getSafeIndex(
+        newPathway?.courses?.currentCourseIndex,
+      );
+
+      const oldCurrentCourse =
+        oldRequestedIndex !== undefined ? oldCourses[oldRequestedIndex] : undefined;
+      const newCurrentCourse =
+        newRequestedIndex !== undefined ? newCourses[newRequestedIndex] : undefined;
+
+      const preferredCurrentCourseId = (() => {
+        if (oldCurrentCourse && newCurrentCourse) {
+          const preferred = pickMoreProgressedCourse(
+            oldCurrentCourse,
+            newCurrentCourse,
+          );
+          return getCourseId(preferred);
+        }
+        return getCourseId(newCurrentCourse) ?? getCourseId(oldCurrentCourse);
+      })();
+
+      const mergedCurrentIndex =
+        preferredCurrentCourseId !== undefined
+          ? mergedCourses.findIndex(
+              (course) => getCourseId(course) === preferredCurrentCourseId,
+            )
+          : -1;
+      const fallbackRequestedIndex = newRequestedIndex ?? oldRequestedIndex ?? 0;
       const safeCurrentCourseIndex =
         mergedCourses.length === 0
           ? 0
-          : Math.max(0, Math.min(requestedIndex, mergedCourses.length - 1));
+          : mergedCurrentIndex >= 0
+            ? mergedCurrentIndex
+            : Math.max(
+                0,
+                Math.min(fallbackRequestedIndex, mergedCourses.length - 1),
+              );
 
+      const oldPathwayBase =
+        typeof oldPathway === "object" && oldPathway ? oldPathway : {};
+      const newPathwayBase =
+        typeof newPathway === "object" && newPathway ? newPathway : {};
       const updatedPathway = {
-        ...(typeof newPathway === "object" && newPathway ? newPathway : {}),
+        ...oldPathwayBase,
+        ...newPathwayBase,
+        type: newPathwayBase?.type ?? oldPathwayBase?.type,
+        pathMode: newPathwayBase?.pathMode ?? oldPathwayBase?.pathMode,
         updated_at: now,
         courses: {
-          ...(newPathway?.courses || {}),
+          ...(oldPathwayBase?.courses || {}),
+          ...(newPathwayBase?.courses || {}),
           courseList: mergedCourses,
           currentCourseIndex: safeCurrentCourseIndex,
         },
