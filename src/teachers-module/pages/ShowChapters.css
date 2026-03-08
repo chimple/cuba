@@ -32,7 +32,10 @@
   flex-wrap: wrap;
   gap: 8px 10px;
   padding: 5px;
+  padding-right: 14px;
+  padding-left: 14px;
   background-color: white;
+  margin-bottom: 8px;
 }
 
 .showchapters-course-name {
@@ -45,6 +48,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 10px;
+  padding-left: 14px;
 }
 
 .showchapters-assigned-btn {
@@ -99,4 +103,47 @@
 
 .showchapters-assigned-btn:disabled {
   opacity: 0.85;
+}
+
+@media (max-width: 600px) {
+  .showchapters-course-row {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .showchapters-course-name {
+    flex: 1 1 auto;
+    padding-right: 6px;
+  }
+
+  .showchapters-assigned-btn {
+    flex: 0 1 auto;
+    min-width: auto;
+    width: auto;
+    height: 32px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .showchapters-course-row {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .showchapters-course-name {
+    padding-right: 4px;
+  }
+
+  .showchapters-assigned-btn {
+    height: 30px;
+    padding: 0 8px;
+    gap: 4px;
+  }
+
+  .showchapters-assigned-icon {
+    width: 16px;
+    height: 16px;
+  }
 }

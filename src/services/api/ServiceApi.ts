@@ -41,7 +41,11 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
-import { PaginatedResponse } from "../../interface/modelInterfaces";
+import {
+  PaginatedResponse,
+  StickerBook,
+  UserStickerProgress,
+} from "../../interface/modelInterfaces";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -77,7 +81,7 @@ export interface ServiceApi {
     schoolName: string,
     udise: string,
     role: RoleType,
-    isEmailVerified: boolean
+    isEmailVerified: boolean,
   ): Promise<void>;
 
   /**
@@ -99,7 +103,7 @@ export interface ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
   ): Promise<TableTypes<"user">>;
   /**
    * Creates a new school and returns the created school object.
@@ -127,7 +131,7 @@ export interface ServiceApi {
     address: string | null,
     country: string | null,
     onlySchool?: boolean,
-    onlySchoolUser?: boolean
+    onlySchoolUser?: boolean,
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -153,7 +157,7 @@ export interface ServiceApi {
     group4: string | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
   ): Promise<TableTypes<"school">>;
 
   /**
@@ -166,7 +170,7 @@ export interface ServiceApi {
   updateSchoolLocation(
     schoolId: string,
     lat: number,
-    lng: number
+    lng: number,
   ): Promise<void>;
 
   /**
@@ -183,11 +187,11 @@ export interface ServiceApi {
     lng: number,
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
-    distanceFromSchool?: number
+    distanceFromSchool?: number,
   ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   getLastSchoolVisit(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"fc_school_visit"> | null>;
 
   /**
@@ -206,7 +210,7 @@ export interface ServiceApi {
     district: string,
     city: string,
     image: File | null,
-    udise_id?: string
+    udise_id?: string,
   ): Promise<TableTypes<"req_new_school"> | null>;
 
   /**
@@ -226,11 +230,11 @@ export interface ServiceApi {
   deleteApprovedOpsRequestsForUser(
     requested_by: string,
     schoolId?: string,
-    classId?: string
+    classId?: string,
   ): Promise<void>;
 
   getExistingSchoolRequest(
-    requested_by: string
+    requested_by: string,
   ): Promise<TableTypes<"ops_requests"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
@@ -242,7 +246,7 @@ export interface ServiceApi {
   addProfileImages(
     id: string,
     file: File,
-    profileType: PROFILETYPE
+    profileType: PROFILETYPE,
   ): Promise<string | null>;
 
   /**
@@ -263,23 +267,23 @@ export interface ServiceApi {
     languageDocId: string | null,
     classId: string,
     role: string,
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"user">>;
 
   updateClassCourseSelection(
     classId: string,
-    selectedCourseIds: string[]
+    selectedCourseIds: string[],
   ): Promise<void>;
 
   updateSchoolCourseSelection(
     schoolId: string,
-    selectedCourseIds: string[]
+    selectedCourseIds: string[],
   ): Promise<void>;
 
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
   getCoursesBySchoolId(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"school_course">[]>;
 
   /**
@@ -309,7 +313,7 @@ export interface ServiceApi {
   // ServiceApi.ts
   deleteUserFromClass(
     userId: string,
-    class_id: string
+    class_id: string,
   ): Promise<Boolean | void>;
 
   /**
@@ -364,7 +368,7 @@ export interface ServiceApi {
   getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
   getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
-    boardDocId: string | null | undefined
+    boardDocId: string | null | undefined,
   ): Promise<TableTypes<"course">[]>;
 
   get currentStudent(): TableTypes<"user"> | undefined;
@@ -376,7 +380,7 @@ export interface ServiceApi {
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
   set currentCourse(
-    value: Map<string, TableTypes<"course"> | undefined> | undefined
+    value: Map<string, TableTypes<"course"> | undefined> | undefined,
   );
   get currentSchool(): TableTypes<"school"> | undefined;
   set currentSchool(value: TableTypes<"school"> | undefined);
@@ -399,7 +403,7 @@ export interface ServiceApi {
    * Here lessonId is - In Firebase we have Lesson collection in that collection each doc is one lesson in that lesson we have ID
    */
   getLessonWithCocosLessonId(
-    lessonId: string
+    lessonId: string,
   ): Promise<TableTypes<"lesson"> | null>;
 
   /**
@@ -408,7 +412,7 @@ export interface ServiceApi {
    * @returns {Course[]} Array of `Course` objects
    */
   getCoursesForParentsStudent(
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"course">[]>;
 
   /**
@@ -425,7 +429,7 @@ export interface ServiceApi {
    */
   addCourseForParentsStudent(
     courses: TableTypes<"course">[],
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
   );
 
   /**
@@ -478,7 +482,7 @@ export interface ServiceApi {
    * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
   getLessonResultsForStudent(
-    studentId: string
+    studentId: string,
   ): Promise<Map<string, StudentLessonResult> | undefined>;
 
   /**
@@ -490,7 +494,7 @@ export interface ServiceApi {
    */
   getLiveQuizLessons(
     classId: string,
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"assignment">[]>;
   /**
    * This function gets the document of the live quiz room
@@ -498,7 +502,7 @@ export interface ServiceApi {
    * @return {DocumentData} A promise that returns the document of live quiz room
    */
   getLiveQuizRoomDoc(
-    liveQuizRoomDocId: string
+    liveQuizRoomDocId: string,
   ): Promise<TableTypes<"live_quiz_room"> | undefined>;
 
   /**
@@ -508,7 +512,7 @@ export interface ServiceApi {
    */
   updateFavoriteLesson(
     studentId: string,
-    lessonId: string
+    lessonId: string,
   ): Promise<TableTypes<"favorite_lesson">>;
   /**
    * Creates a Document in Result collection with the given params
@@ -550,7 +554,7 @@ export interface ServiceApi {
     subject_ability?: number | undefined,
     activities_scores?: string | undefined,
     user_id?: string | undefined,
-    status?: RESULT_STATUS | undefined
+    status?: RESULT_STATUS | undefined,
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -573,7 +577,7 @@ export interface ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string
+    languageDocId: string,
   ): Promise<TableTypes<"user">>;
 
   updateStudentFromSchoolMode(
@@ -587,7 +591,7 @@ export interface ServiceApi {
     gradeDocId: string,
     languageDocId: string,
     student_id: string,
-    newClassId: string
+    newClassId: string,
   ): Promise<TableTypes<"user">>;
 
   updateUserProfile(
@@ -600,7 +604,7 @@ export interface ServiceApi {
     options?: {
       age?: string;
       gender?: string;
-    }
+    },
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -629,21 +633,21 @@ export interface ServiceApi {
    */
   getDomainsBySubjectAndFramework(
     subjectId: string,
-    frameworkId: string
+    frameworkId: string,
   ): Promise<TableTypes<"domain">[]>;
 
   /**
    * Fetches competencies linked to the given domain ids.
    */
   getCompetenciesByDomainIds(
-    domainIds: string[]
+    domainIds: string[],
   ): Promise<TableTypes<"competency">[]>;
 
   /**
    * Fetches outcomes linked to the given competency ids.
    */
   getOutcomesByCompetencyIds(
-    competencyIds: string[]
+    competencyIds: string[],
   ): Promise<TableTypes<"outcome">[]>;
 
   /**
@@ -656,21 +660,21 @@ export interface ServiceApi {
    */
   getResultsBySkillIds(
     studentId: string,
-    skillIds: string[]
+    skillIds: string[],
   ): Promise<TableTypes<"result">[]>;
 
   /**
    * Fetches prerequisite relations where target skill is in the provided list.
    */
   getSkillRelationsByTargetIds(
-    targetSkillIds: string[]
+    targetSkillIds: string[],
   ): Promise<TableTypes<"skill_relation">[]>;
 
   /**
    * Fetches skill-lesson mapping rows for the given skills.
    */
   getSkillLessonsBySkillIds(
-    skillIds: string[]
+    skillIds: string[],
   ): Promise<TableTypes<"skill_lesson">[]>;
 
   /**
@@ -681,7 +685,7 @@ export interface ServiceApi {
    */
   getStudentResult(
     studentId: string,
-    fromCache?: boolean
+    fromCache?: boolean,
   ): Promise<TableTypes<"result">[]>;
 
   /**
@@ -696,7 +700,7 @@ export interface ServiceApi {
    * Gives StudentProgress for given a Student
    */
   getStudentResultInMap(
-    studentId: string
+    studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }>;
 
   /**
@@ -730,7 +734,7 @@ export interface ServiceApi {
    */
   getPendingAssignments(
     classId: string,
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"assignment">[]>;
   /**
    * Gets schools for a user (teacher, principal, or ops user).
@@ -741,7 +745,7 @@ export interface ServiceApi {
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number; search?: string }
+    options?: { page?: number; page_size?: number; search?: string },
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**
@@ -752,7 +756,7 @@ export interface ServiceApi {
    */
   getUserRoleForSchool(
     userId: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<RoleType | undefined>;
 
   /**
@@ -781,7 +785,7 @@ export interface ServiceApi {
    */
   getClassesForSchool(
     schoolId: string,
-    userId: string
+    userId: string,
   ): Promise<TableTypes<"class">[]>;
 
   /**
@@ -817,7 +821,7 @@ export interface ServiceApi {
    */
   getLeaderboardResults(
     sectionId: string,
-    leaderboardDropdownType: LeaderboardDropdownList
+    leaderboardDropdownType: LeaderboardDropdownList,
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
@@ -827,7 +831,7 @@ export interface ServiceApi {
    * @returns A promise that resolves to the student.
    */
   getLeaderboardStudentResultFromB2CCollection(
-    studentId: string
+    studentId: string,
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
@@ -847,7 +851,7 @@ export interface ServiceApi {
    */
   getLessonFromCourse(
     course: Course,
-    lessonId: string
+    lessonId: string,
   ): Promise<Lesson | undefined>;
 
   /**
@@ -859,7 +863,7 @@ export interface ServiceApi {
    */
   getLessonFromChapter(
     chapterId: string,
-    lessonId: string
+    lessonId: string,
   ): Promise<{
     lesson: TableTypes<"lesson">[];
     course: TableTypes<"course">[];
@@ -893,7 +897,7 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void,
   ): void;
   /**
    * Removes LiveQuizChannel after live quiz completion;
@@ -909,7 +913,7 @@ export interface ServiceApi {
 
   assignmentUserListner(
     studentId: string,
-    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void
+    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void,
   ): void;
 
   /**
@@ -924,7 +928,7 @@ export interface ServiceApi {
 
   assignmentListner(
     classId: string,
-    onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void
+    onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void,
   ): void;
 
   /**
@@ -947,7 +951,7 @@ export interface ServiceApi {
     studentId: string,
     questionId: string,
     timeSpent: number,
-    score: number
+    score: number,
   ): Promise<void>;
 
   /**
@@ -960,7 +964,7 @@ export interface ServiceApi {
    */
   joinLiveQuiz(
     assignmentId: string,
-    studentId: string
+    studentId: string,
   ): Promise<string | undefined>;
   /**
    * getting the results based on assignmentId.
@@ -1007,7 +1011,7 @@ export interface ServiceApi {
    */
   getRewardsById(
     id: number,
-    periodType: string
+    periodType: string,
   ): Promise<TableTypes<"reward"> | undefined>;
 
   /**
@@ -1079,7 +1083,7 @@ export interface ServiceApi {
   getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"assignment"> | undefined>;
 
   /**
@@ -1104,7 +1108,7 @@ export interface ServiceApi {
    * @returns A promise containing the created user object or undefined.
    */
   createUserDoc(
-    user: TableTypes<"user">
+    user: TableTypes<"user">,
   ): Promise<TableTypes<"user"> | undefined>;
 
   /* Synchronizes the local database with an external data source asynchronously.
@@ -1118,7 +1122,7 @@ export interface ServiceApi {
   syncDB(
     tableNames: TABLES[],
     refreshTables: TABLES[],
-    isFirstSync?: boolean
+    isFirstSync?: boolean,
   ): Promise<boolean>;
 
   /**
@@ -1130,7 +1134,7 @@ export interface ServiceApi {
    */
   getRecommendedLessons(
     studentId: string,
-    classId?: string
+    classId?: string,
   ): Promise<TableTypes<"lesson">[]>;
 
   /**
@@ -1159,7 +1163,7 @@ export interface ServiceApi {
    */
   createOrUpdateAssignmentCart(
     userId: string,
-    lessons: string
+    lessons: string,
   ): Promise<boolean | undefined>;
 
   /**
@@ -1167,7 +1171,7 @@ export interface ServiceApi {
    * @param userId
    */
   getUserAssignmentCart(
-    userId: string
+    userId: string,
   ): Promise<AssignmentCartData | undefined>;
 
   /**
@@ -1177,7 +1181,7 @@ export interface ServiceApi {
   getChapterByLesson(
     lessonId: string,
     classId?: string,
-    userId?: string
+    userId?: string,
   ): Promise<String | undefined>;
 
   /**
@@ -1193,7 +1197,7 @@ export interface ServiceApi {
     endDate: string,
     isClassWise: boolean,
     isLiveQuiz: boolean,
-    allAssignments: boolean
+    allAssignments: boolean,
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -1205,7 +1209,7 @@ export interface ServiceApi {
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId
+    classId,
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1218,7 +1222,7 @@ export interface ServiceApi {
     schoolId: string,
     className: string,
     groupId?: string,
-    whatsapp_invite_link?: string
+    whatsapp_invite_link?: string,
   ): Promise<TableTypes<"class">>;
   /**
    * Updates a class name for given classId
@@ -1230,7 +1234,7 @@ export interface ServiceApi {
     classId: string,
     className: string,
     groupId?: string,
-    whatsapp_invite_link?: string
+    whatsapp_invite_link?: string,
   );
   /**
    * Deletes a class
@@ -1243,7 +1247,7 @@ export interface ServiceApi {
    * @param assignmentIds
    */
   getResultByAssignmentIds(
-    assignmentIds: string[]
+    assignmentIds: string[],
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1253,7 +1257,7 @@ export interface ServiceApi {
    */
   getResultByAssignmentIdsForCurrentClassMembers(
     assignmentIds: string[],
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1261,11 +1265,11 @@ export interface ServiceApi {
    * @param classId
    */
   getLastAssignmentsForRecommendations(
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   getAssignmentUserByAssignmentIds(
-    assignmentIds: string[]
+    assignmentIds: string[],
   ): Promise<TableTypes<"assignment_user">[]>;
 
   /**
@@ -1293,7 +1297,7 @@ export interface ServiceApi {
     type: string,
     batch_id: string,
     source: string | null,
-    created_at?: string
+    created_at?: string,
   ): Promise<void>;
 
   /**
@@ -1302,7 +1306,7 @@ export interface ServiceApi {
    * @return A promise to an array of teachers.
    */
   getTeachersForClass(
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"user">[] | undefined>;
 
   /**
@@ -1329,7 +1333,7 @@ export interface ServiceApi {
   addTeacherToClass(
     schoolId: string,
     classId: string,
-    user: TableTypes<"user">
+    user: TableTypes<"user">,
   ): Promise<void>;
 
   /**
@@ -1350,7 +1354,7 @@ export interface ServiceApi {
   checkTeacherExistInClass(
     schoolId: string,
     classId: string,
-    userId: string
+    userId: string,
   ): Promise<boolean>;
 
   /**
@@ -1361,7 +1365,7 @@ export interface ServiceApi {
    */
   checkUserIsManagerOrDirector(
     schoolId: string,
-    userId: string
+    userId: string,
   ): Promise<boolean>;
 
   /**
@@ -1376,7 +1380,7 @@ export interface ServiceApi {
     userId: string,
     classId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<{
     classWiseAssignments: TableTypes<"assignment">[];
     individualAssignments: TableTypes<"assignment">[];
@@ -1390,7 +1394,7 @@ export interface ServiceApi {
    */
   getTeacherJoinedDate(
     userId: string,
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"class_user"> | undefined>;
 
   /**
@@ -1410,7 +1414,7 @@ export interface ServiceApi {
     courseIds: string[],
     startDate: string,
     endDate: string,
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1418,7 +1422,7 @@ export interface ServiceApi {
    * @param lessonIds
    */
   getLessonsBylessonIds(
-    lessonIds: string[] // Expect an array of strings
+    lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined>;
   /**
    * To delete `teacher` from class for given class id and teacher id
@@ -1444,7 +1448,7 @@ export interface ServiceApi {
     course_id: string,
     startDate: string,
     endDate: string,
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1456,7 +1460,7 @@ export interface ServiceApi {
   getUniqueAssignmentIdsByCourseAndChapter(
     classId: string,
     courseId: string,
-    chapterIdOrIds: string | string[]
+    chapterIdOrIds: string | string[],
   ): Promise<string[]>;
 
   /**
@@ -1471,7 +1475,7 @@ export interface ServiceApi {
    */
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
-    userId: string
+    userId: string,
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the teachers for the school.
@@ -1479,7 +1483,7 @@ export interface ServiceApi {
    * @return A promise to an array of teachers.
    */
   getPrincipalsForSchool(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"user">[] | undefined>;
   /**
    * Fetches a paginated list of principal for a given school.
@@ -1491,7 +1495,7 @@ export interface ServiceApi {
   getPrincipalsForSchoolPaginated(
     schoolId: string,
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<PrincipalAPIResponse>;
   /**
    * This function gets all the coordinators for the school.
@@ -1499,7 +1503,7 @@ export interface ServiceApi {
    * @return A promise to an array of coordinators.
    */
   getCoordinatorsForSchool(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"user">[] | undefined>;
   /**
    * Fetches a paginated list of coordinators for a given school.
@@ -1511,7 +1515,7 @@ export interface ServiceApi {
   getCoordinatorsForSchoolPaginated(
     schoolId: string,
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<CoordinatorAPIResponse>;
   /**
    * This function gets all the sponsors for the school.
@@ -1519,7 +1523,7 @@ export interface ServiceApi {
    * @return A promise to an array of sponsors.
    */
   getSponsorsForSchool(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"user">[] | undefined>;
   /**
    * Adding a principal or coordinator or sponsor to school.
@@ -1531,7 +1535,7 @@ export interface ServiceApi {
   addUserToSchool(
     schoolId: string,
     user: TableTypes<"user">,
-    role: RoleType
+    role: RoleType,
   ): Promise<void>;
   /**
    * To delete a user from school for given school id, user id and role
@@ -1571,7 +1575,7 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string
+    schoolName: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1585,7 +1589,7 @@ export interface ServiceApi {
     phoneNumber: string,
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
@@ -1593,7 +1597,7 @@ export interface ServiceApi {
    * @param {string } programName -    program name
    */
   validateProgramName(
-    programName: string
+    programName: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1601,7 +1605,7 @@ export interface ServiceApi {
    * @param {string } schoolId -    school id(UDISE)
    */
   validateSchoolUdiseCode(
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1610,7 +1614,7 @@ export interface ServiceApi {
    */
   validateClassNameWithSchoolID(
     schoolId: string,
-    className: string
+    className: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1622,7 +1626,7 @@ export interface ServiceApi {
   validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
@@ -1636,7 +1640,7 @@ export interface ServiceApi {
     phoneNumber: string,
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1644,7 +1648,7 @@ export interface ServiceApi {
    * @param {string } schoolId -    school id(UDISE)
    */
   validateSchoolUdiseCode(
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1653,7 +1657,7 @@ export interface ServiceApi {
    */
   validateClassNameWithSchoolID(
     schoolId: string,
-    className: string
+    className: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1665,7 +1669,7 @@ export interface ServiceApi {
   validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1679,7 +1683,7 @@ export interface ServiceApi {
     phoneNumber: string,
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1687,7 +1691,7 @@ export interface ServiceApi {
    * @param {string } schoolId -    school id(UDISE)
    */
   validateSchoolUdiseCode(
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1696,7 +1700,7 @@ export interface ServiceApi {
    */
   validateClassNameWithSchoolID(
     schoolId: string,
-    className: string
+    className: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1708,7 +1712,7 @@ export interface ServiceApi {
   validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1720,7 +1724,7 @@ export interface ServiceApi {
   validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
-    gradeName: string
+    gradeName: string,
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1730,7 +1734,7 @@ export interface ServiceApi {
    */
   validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone?: string
+    fieldCoordinatorPhone?: string,
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
@@ -1740,7 +1744,7 @@ export interface ServiceApi {
   setStarsForStudents(
     studentId: string,
     starsCount: number,
-    is_immediate_sync?: boolean
+    is_immediate_sync?: boolean,
   ): Promise<void>;
 
   /**
@@ -1771,7 +1775,7 @@ export interface ServiceApi {
   updateLearningPath(
     student: TableTypes<"user">,
     learning_path: string,
-    is_immediate_sync?: boolean
+    is_immediate_sync?: boolean,
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -1835,7 +1839,7 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"program"> | undefined>} - A promise resolving to the program, or undefined if not found
    */
   getProgramForSchool(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"program"> | undefined>;
 
   /**
@@ -1845,7 +1849,7 @@ export interface ServiceApi {
    */
   // In ServiceApi
   getProgramManagersForSchool(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"user">[] | undefined>;
   /**
    * Updates the total stars for a student.
@@ -1859,7 +1863,7 @@ export interface ServiceApi {
    * @param link -Qrlink
    */
   getChapterIdbyQrLink(
-    link: string
+    link: string,
   ): Promise<TableTypes<"chapter_links"> | undefined>;
   /**
    * Fetches all schools available to the admin user with pagination.
@@ -1869,7 +1873,7 @@ export interface ServiceApi {
    */
   getSchoolsForAdmin(
     limit: number,
-    offset: number
+    offset: number,
   ): Promise<TableTypes<"school">[]>;
 
   /**
@@ -1910,7 +1914,7 @@ export interface ServiceApi {
   getSchoolsByModel(
     model: EnumType<"program_model">,
     limit: number,
-    offset: number
+    offset: number,
   ): Promise<TableTypes<"school">[]>;
 
   /**
@@ -1946,7 +1950,7 @@ export interface ServiceApi {
    * and values are arrays of filter option strings.
    */
   getSchoolFilterOptionsForProgram(
-    programId: string
+    programId: string,
   ): Promise<Record<string, string[]>>;
 
   /**
@@ -2000,7 +2004,7 @@ export interface ServiceApi {
   getTeacherInfoBySchoolId(
     schoolId: string,
     page: number,
-    limit: number
+    limit: number,
   ): Promise<TeacherAPIResponse>;
 
   /**
@@ -2015,7 +2019,7 @@ export interface ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
-    classId?: string, 
+    classId?: string,
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2028,7 +2032,7 @@ export interface ServiceApi {
   getStudentsAndParentsByClassId(
     classId: string,
     page: number,
-    limit: number
+    limit: number,
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2037,7 +2041,7 @@ export interface ServiceApi {
    * @returns Promise resolving to an object containing the student's data and an array of parents.
    */
   getStudentAndParentByStudentId(
-    studentId: string
+    studentId: string,
   ): Promise<{ user: any; parents: any[] }>;
 
   /**
@@ -2081,7 +2085,7 @@ export interface ServiceApi {
    * @returns {User} Student User Object
    */
   createAutoProfile(
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -2131,7 +2135,7 @@ export interface ServiceApi {
     search?: string,
     limit?: number,
     sortBy?: keyof TableTypes<"user">,
-    sortOrder?: "asc" | "desc"
+    sortOrder?: "asc" | "desc",
   ): Promise<{
     data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
@@ -2203,7 +2207,7 @@ export interface ServiceApi {
    * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
   getSchoolDetailsByUdise(
-    udiseCode: string
+    udiseCode: string,
   ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
 
   /**
@@ -2212,7 +2216,7 @@ export interface ServiceApi {
    * @returns SchoolData row
    */
   getSchoolDataByUdise(
-    udiseCode: string
+    udiseCode: string,
   ): Promise<TableTypes<"school_data"> | null>;
   /**
    * Fetches chapters by chapterIDs array.
@@ -2247,7 +2251,7 @@ export interface ServiceApi {
     orderBy: string,
     orderDir: "asc" | "desc",
     filters?: { request_type?: string[]; school?: string[] },
-    searchTerm?: string
+    searchTerm?: string,
   );
 
   /**
@@ -2264,7 +2268,7 @@ export interface ServiceApi {
     schoolId: string,
     searchTerm: string,
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<{ data: any[]; total: number }>;
 
   /**
@@ -2279,7 +2283,7 @@ export interface ServiceApi {
     searchTerm: string,
     page?: number,
     limit?: number,
-    classId?:string
+    classId?: string,
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(
@@ -2287,7 +2291,7 @@ export interface ServiceApi {
     respondedBy: string,
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
-    classId?: string
+    classId?: string,
   ): Promise<TableTypes<"ops_requests"> | undefined>;
 
   /**
@@ -2303,7 +2307,7 @@ export interface ServiceApi {
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
     rejectedReasonType?: string,
-    rejectedReasonDescription?: string
+    rejectedReasonDescription?: string,
   ): Promise<TableTypes<"ops_requests"> | undefined>;
 
   /**
@@ -2311,7 +2315,7 @@ export interface ServiceApi {
    * @param programId program ID
    */
   getFieldCoordinatorsByProgram(
-    programId: string
+    programId: string,
   ): Promise<{ data: TableTypes<"user">[] }>;
 
   /**
@@ -2337,7 +2341,7 @@ export interface ServiceApi {
       block?: string;
       address?: string;
     },
-    keyContacts?: any
+    keyContacts?: any,
   ): Promise<void>;
 
   /**
@@ -2361,7 +2365,7 @@ export interface ServiceApi {
    */
   getLocaleByIdOrCode(
     locale_id?: string,
-    locale_code?: string
+    locale_code?: string,
   ): Promise<TableTypes<"locale"> | null>;
 
   /**
@@ -2380,7 +2384,7 @@ export interface ServiceApi {
   sendJoinSchoolRequest(
     schoolId: string,
     requestType: RequestTypes,
-    classId?: string
+    classId?: string,
   ): Promise<void>;
   /**
    * Get all classes connected to school using rpc call
@@ -2392,7 +2396,7 @@ export interface ServiceApi {
    * @param rewardId reward ID
    */
   getRewardById(
-    rewardId: string
+    rewardId: string,
   ): Promise<TableTypes<"rive_reward"> | undefined>;
   /**
    * Fetch all rive_rewards
@@ -2404,7 +2408,7 @@ export interface ServiceApi {
   updateUserReward(
     userId: string,
     rewardId: string,
-    created_at?: string
+    created_at?: string,
   ): Promise<void>;
   /**
    * Fetch active students count information for a given class ID.
@@ -2421,13 +2425,13 @@ export interface ServiceApi {
    */
   getCompletedAssignmentsCountForSubjects(
     studentId: string,
-    subjectIds: string[]
+    subjectIds: string[],
   ): Promise<{ subject_id: string; completed_count: number }[]>;
   /**
    * Get or create a user and link them to a school (and optionally a class).
    */
   getOrcreateschooluser(
-    params: UserSchoolClassParams
+    params: UserSchoolClassParams,
   ): Promise<UserSchoolClassResult>;
 
   /**
@@ -2442,7 +2446,7 @@ export interface ServiceApi {
     schoolId: string,
     schoolModel: string,
     locationLink?: string,
-    keyContacts?: any
+    keyContacts?: any,
   ): Promise<void>;
 
   /**
@@ -2478,7 +2482,7 @@ export interface ServiceApi {
    */
   updateClassCourses(
     classId: string,
-    selectedCourseIds: string[]
+    selectedCourseIds: string[],
   ): Promise<void>;
   /**
    * Fetches filtered FC (Field Coordinator) questions based on support level and engagement target.
@@ -2490,7 +2494,7 @@ export interface ServiceApi {
    */
   getFilteredFcQuestions(
     type: EnumType<"fc_support_level"> | null,
-    targetType: EnumType<"fc_engagement_target">
+    targetType: EnumType<"fc_engagement_target">,
   ): Promise<TableTypes<"fc_question">[] | []>;
 
   /**
@@ -2547,7 +2551,7 @@ export interface ServiceApi {
    * @returns Promise resolving to a list of activities.
    */
   getActivitiesBySchoolId(
-    schoolId: string
+    schoolId: string,
   ): Promise<TableTypes<"fc_user_forms">[]>;
 
   /**
@@ -2556,7 +2560,7 @@ export interface ServiceApi {
    * @returns Promise resolving to school visit details or null if not found.
    */
   getSchoolVisitById(
-    visitIds: string[]
+    visitIds: string[],
   ): Promise<TableTypes<"fc_school_visit">[]>;
 
   /**
@@ -2581,7 +2585,7 @@ export interface ServiceApi {
    */
   getRecentAssignmentCountByTeacher(
     teacherId: string,
-    classId: string
+    classId: string,
   ): Promise<number | null>;
 
   // notes
@@ -2601,7 +2605,7 @@ export interface ServiceApi {
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: "createdAt" | "createdBy"
+    sortBy?: "createdAt" | "createdBy",
   ): Promise<PaginatedResponse<SchoolNote>>;
   /**
    * Get interactions metrics for a school.
@@ -2610,17 +2614,17 @@ export interface ServiceApi {
 
   getLidoCommonAudioUrl(
     languageId: string,
-    localeId?: string | null
+    localeId?: string | null,
   ): Promise<{ lido_common_audio_url: string | null } | null>;
 
   isStudentPlayedPalLesson(
     studentId: string,
-    courseId: string
+    courseId: string,
   ): Promise<boolean>;
 
   getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">
+    student?: TableTypes<"user">,
   ): Promise<TableTypes<"subject_lesson"> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;
@@ -2673,7 +2677,7 @@ export interface ServiceApi {
     name: string,
     messagesAdminsOnly?: boolean,
     infoAdminsOnly?: boolean,
-    addMembersAdminsOnly?: boolean
+    addMembersAdminsOnly?: boolean,
   ): Promise<boolean>;
 
   /**
@@ -2690,7 +2694,7 @@ export interface ServiceApi {
   getWhatsAppGroupByInviteLink(
     inviteLink: string,
     bot: string,
-    classId: string
+    classId: string,
   ): Promise<{
     group_id: string;
     group_name: string;
@@ -2698,14 +2702,128 @@ export interface ServiceApi {
   } | null>;
 
   /**
- * Get assigned lesson IDs for a given class + lessonids.
- * Used to mark lessons as already assigned (QR / Manual).
- *
- * @param classId
- * @param lessonIds
- */
-  getAssignedLessonIdsForClass(
-  classId: string,
-  lessonIds: string[],
+   * Get assigned lesson IDs for a given class + lessonids.
+   * Used to mark lessons as already assigned (QR / Manual).
+   *
+   * @param classId
+   * @param lessonIds
+   */
+  getAssignmentInfoForLessonsPerClass(
+    classId: string,
+    lessonIds: string[],
   ): Promise<string[]>;
-  }
+
+  // ================================
+  // STICKER BOOK APIS
+  // ================================
+
+  /**
+   * Retrieves all publicly available sticker books.
+   *
+   * Fetches metadata from the `sticker_book` table such as title,
+   * description, total stickers, and sort order.
+   * This API does NOT include user progress.
+   *
+   * @returns {Promise<StickerBook[]>}
+   * A promise resolving to a list of sticker books ordered by sort_index.
+   */
+
+  getAllStickerBooks(): Promise<StickerBook[]>;
+
+  /**
+   * Retrieves the current active sticker book along with the user's progress.
+   *
+   * Combines:
+   * - Public sticker book metadata (from `sticker_book`)
+   * - User-specific progress (from `user_sticker_book`)
+   *
+   * Used when rendering the main sticker book screen for a user.
+   *
+   * @param {string} userId - The authenticated user's ID.
+   * @returns {Promise<{ book: StickerBook; progress: UserStickerProgress | null } | null>}
+   * A promise resolving to:
+   * - The current sticker book and its associated user progress (if exists)
+   * - null if no active book is available.
+   */
+  getCurrentStickerBookWithProgress(userId: string): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null>;
+
+  /**
+   * Retrieves all sticker books completed by the user.
+   *
+   * Filters the `user_sticker_book` table by:
+   * - user_id
+   * - status = "completed"
+   *
+   * Returns the corresponding sticker book metadata.
+   *
+   * @param {string} userId - The authenticated user's ID.
+   * @returns {Promise<StickerBook[]>}
+   * A promise resolving to a list of sticker books that the user has completed.
+   * */
+  getUserWonStickerBooks(userId: string): Promise<StickerBook[]>;
+
+  /**
+   * Determines the next winnable sticker for a given sticker book.
+   *
+   * Compares:
+   * - All possible stickers defined for the book
+   * - Stickers already collected by the user
+   *
+   * Returns the next available sticker ID that the user has not yet collected.
+   *
+   * @param {string} stickerBookId - The ID of the sticker book.
+   * @returns {Promise<string | null>}
+   * A promise resolving to:
+   * - The next sticker ID that can be won
+   * - null if all stickers have already been collected.
+   */
+  getNextWinnableSticker(stickerBookId: string): Promise<string | null>;
+
+  /**
+   * Updates the user's progress when a sticker is won.
+   *
+   * Performs the following:
+   * 1. Validates authenticated user.
+   * 2. Fetches sticker book metadata.
+   * 3. Creates progress entry if none exists.
+   * 4. Adds the sticker to `stickers_collected` (avoiding duplicates).
+   * 5. Marks the book as "completed" if all stickers are collected.
+   *
+   * This method modifies the `user_sticker_book` table.
+   *
+   * @param {string} stickerBookId - The ID of the sticker book.
+   * @param {string} stickerId - The ID of the sticker won.
+   * @returns {Promise<void>}
+   * A promise resolving once the progress update is complete.
+   */
+  updateStickerWon(stickerBookId: string, stickerId: string): Promise<void>;
+  /**
+   * Checks whether a specific lesson assignment has already been assigned
+   * to a given class within a school.
+   *
+   * This method is typically used to prevent duplicate assignments
+   * when recommending or creating new assignments.
+   *
+   * @param schoolId - Unique identifier of the school.
+   * @param classId - Unique identifier of the class.
+   * @param courseId - Unique identifier of the course/subject.
+   * @param chapterId - Unique identifier of the chapter.
+   * @param lessonId - Unique identifier of the lesson.
+   *
+   * @returns Promise<boolean>
+   * - Resolves to `true` if the assignment already exists.
+   * - Resolves to `false` if the assignment has not been assigned yet.
+   *
+   * @throws May throw an error if the API request fails.
+   */
+  isAssignmentAlreadyAssigned(
+    schoolId: string,
+    classId: string,
+    courseId: string,
+    chapterId: string,
+    lessonId: string,
+  ): Promise<boolean>;
+}

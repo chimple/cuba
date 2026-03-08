@@ -623,7 +623,7 @@ const SearchLesson: React.FC = () => {
             ref={inputEl}
             id="search-lesson-bar"
             className="search-lesson-bar"
-            placeholder={String(t("Search"))}
+            placeholder={String(t("Search for a Lesson..."))}
             value={inputValue}
             onIonFocus={() => {
               setIsFocused(true);

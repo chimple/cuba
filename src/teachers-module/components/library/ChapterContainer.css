@@ -1,25 +1,30 @@
 .chaptercontainer-collapsable-container {
   text-align: left;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .chaptercontainer-chapter-header-row {
   display: flex;
   align-items: center;
   margin: 0;
-  padding: 0 10px 0 10px;
+  padding: 0 20px 0 20px;
   width: 100%;
+  max-width: 100%;
   border: 0;
   border-radius: 6px;
   background-color: #e7e0f0;
   height: 37px;
   min-height: 37px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .chaptercontainer-chapter-details {
   display: flex;
   align-items: center;
   width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 8px;
 }
 
@@ -27,6 +32,8 @@
   color: #666666;
   font-size: clamp(16px, 2.4vh, 22px);
   font-weight: 700;
+  min-width: 0;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -45,6 +52,7 @@
   display: flex;
   justify-content: center !important;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .chaptercontainer-colladable-header {
@@ -53,13 +61,39 @@
   justify-content: space-between;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .chaptercontainer-chapter-header-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding-right: 2px;
+}
+
+.chaptercontainer-expand-arrow {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #666666;
+  border-bottom: 2px solid #666666;
+  transform: rotate(45deg);
+  transform-origin: center;
+  transition: transform 0.16s ease;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: inline-block;
+  margin-right: 1px;
+  margin-top: -4px;
+}
+
+.chaptercontainer-expand-arrow.is-open {
+  transform: rotate(-135deg);
+  margin-top: 4px;
 }
 
 .chaptercontainer-chapter-select-all {
@@ -73,53 +107,86 @@
   user-select: none;
 }
 
-.chaptercontainer-chapter-select-all::before {
-  content: "Select All";
+.chaptercontainer-chapter-select-all-text {
+  display: inline-flex;
+  align-items: center;
 }
 
-.chaptercontainer-chapter-select-all::after {
-  content: "";
+.chaptercontainer-chapter-select-all-icon {
   width: 18px;
   height: 18px;
   border-radius: 4px;
   background-color: #fff;
   border: 1px solid #b6b6b6;
-  color: transparent;
-  font-size: 12px;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-.chaptercontainer-chapter-select-all.is-selected::after {
-  content: "\2713";
-  background-color: #c9e468;
+.chaptercontainer-chapter-select-all-icon-image {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
+.chaptercontainer-chapter-select-all.is-selected .chaptercontainer-chapter-select-all-icon {
   border: none;
-  color: #fff;
+  background-color: transparent;
 }
 
 .chaptercontainer-grid-container {
+  --chapter-grid-row-height: clamp(190px, 32vw, 250px);
+  --chapter-grid-row-gap: 12px;
   display: grid;
-  padding: 12px 4px 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 8px;
-  row-gap: 14px;
-  /* border-bottom: 1px solid #e7e2ec; */
-}
-
-@media (orientation: landscape) {
-  .chaptercontainer-grid-container {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.chaptercontainer-bottom-border {
-  border-bottom: none;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(clamp(130px, 18vw, 220px), 1fr)
+  );
+  grid-auto-rows: var(--chapter-grid-row-height);
+  padding: 10px 0;
+  gap: var(--chapter-grid-row-gap);
+  margin-left: 20px;
+  margin-right: 20px;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--chapter-grid-row-height) + var(--chapter-grid-row-gap) - 1px),
+    #e7e2ec calc(var(--chapter-grid-row-height) + var(--chapter-grid-row-gap) - 1px),
+    #e7e2ec calc(var(--chapter-grid-row-height) + var(--chapter-grid-row-gap))
+  );
 }
 
 .chaptercontainer-grid-item {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+  cursor: pointer;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.chaptercontainer-grid-item:nth-child(3n)::after {
+  content: none;
+}
+
+@media (orientation: landscape) {
+  .chaptercontainer-grid-item:nth-child(3n)::after {
+    content: none;
+  }
+
+  .chaptercontainer-grid-item:nth-child(4n)::after {
+    content: none;
+  }
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-lesson-component-container {
@@ -127,10 +194,12 @@
   flex-direction: column;
   flex-wrap: nowrap;
   width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   align-items: center;
-  gap: 4px;
+  min-width: 0;
+  overflow: visible;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-lesson-type-logo {
@@ -139,61 +208,94 @@
 
 .chaptercontainer-collapsable-container .lessoncomponent-image-container {
   cursor: pointer;
-  height: 54px;
-  width: 84px;
-  margin: 0 auto;
-  border-radius: 6px;
+  width: 100%;
+  height: clamp(96px, 12vw, 128px);
+  min-height: clamp(96px, 12vw, 128px);
+  max-height: clamp(96px, 12vw, 128px);
+  aspect-ratio: auto;
+  margin: 4px 0 0;
+  border-radius: 8px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background-color: #f1f1f1 !important;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image,
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image > div {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-image img {
   height: 100%;
   width: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-assigned-badge {
   top: 0;
   right: 0;
+  width: 20px;
+  height: 20px;
+  transform: translate(40%, -40%);
+  transform-origin: center;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.chaptercontainer-collapsable-container .lessoncomponent-image-container .lessoncomponent-lesson-assigned-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-text-container {
-  gap: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1 1 auto;
+  gap: 0;
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .chaptercontainer-collapsable-container .lessoncomponent-lesson-details {
-  font-size: clamp(11px, 1.7vh, 14px);
-  color: #646464;
+  color: #5b5b5b;
+  margin: 6px 0 4px;
+  min-height: 28px;
+  width: 100%;
+  font-size: clamp(16px, 1.6vh, 24px);
   font-weight: 500;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90px;
+  max-width: 100%;
 }
 
 .chaptercontainer-collapsable-container .select-icon-container {
   width: 100%;
   display: flex;
   justify-content: center;
+  margin-top: 3px;
+  flex-shrink: 0;
 }
 
 .chaptercontainer-collapsable-container .select-Assignmenticon {
-  width: 72px;
-  height: 21px;
+  width: 80px;
+  height: 25px;
   border: 1px solid #8e6cc6;
   border-radius: 6px;
   gap: 3px;
@@ -205,6 +307,33 @@
 }
 
 .chaptercontainer-collapsable-container .select-text {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .chaptercontainer-chapter-header-actions {
+    margin-left: 4px;
+    padding-right: 1px;
+  }
+
+  .chaptercontainer-chapter-select-all {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chaptercontainer-expand-arrow {
+    width: 9px;
+    height: 9px;
+  }
+
+  .chaptercontainer-chapter-header-actions {
+    margin-left: 4px;
+    padding-right: 1px;
+  }
+
+  .chaptercontainer-chapter-select-all {
+    gap: 4px;
+  }
 }
