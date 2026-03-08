@@ -54,6 +54,7 @@ import {
   OPS_ROLES,
   DEFAULT_LOCALE_ID,
   RESULT_STATUS,
+  LEARNING_PATHWAY_MODE,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -354,7 +355,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          [],
+        [],
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -462,38 +463,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-            .channel(`upload-fallback-${uploadingUser}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "upload_queue",
-                filter: `uploading_user=eq.${uploadingUser}`,
-              },
-              async (payload) => {
-                const status = payload.new?.status;
-                const id = payload.new?.id;
+          .channel(`upload-fallback-${uploadingUser}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `uploading_user=eq.${uploadingUser}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              const id = payload.new?.id;
+              console.log(
+                "🔄 [Fallback] Realtime update:",
+                status,
+                "ID:",
+                id,
+              );
+              if (
+                (status === "success" || status === "failed") &&
+                !resolved
+              ) {
+                resolved = true;
+                await fallbackChannel?.unsubscribe();
                 console.log(
-                  "🔄 [Fallback] Realtime update:",
-                  status,
-                  "ID:",
-                  id,
+                  `✅ / ❌ Fallback resolved with status: ${status}`,
                 );
-                if (
-                  (status === "success" || status === "failed") &&
-                  !resolved
-                ) {
-                  resolved = true;
-                  await fallbackChannel?.unsubscribe();
-                  console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`,
-                  );
-                  resolve(status === "success");
-                }
-              },
-            )
-            .subscribe()
+                resolve(status === "success");
+              }
+            },
+          )
+          .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -2446,7 +2447,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3816,11 +3817,11 @@ export class SupabaseApi implements ServiceApi {
 
       if (!existingLink) {
         await this.supabase.from("parent_user").insert({
-            student_id: newStudentId,
-            parent_id: parent.id,
-            is_deleted: false,
-            updated_at: now,
-          });
+          student_id: newStudentId,
+          parent_id: parent.id,
+          is_deleted: false,
+          updated_at: now,
+        });
       }
     }
 
@@ -3946,6 +3947,11 @@ export class SupabaseApi implements ServiceApi {
         return path.find((lesson: any) => lesson?.isPlayed === false) ?? path[0];
       };
 
+      const getActiveIsAssessment = (course: any): boolean | undefined => {
+        const isAssessment = getActiveLesson(course)?.is_assessment;
+        return typeof isAssessment === "boolean" ? isAssessment : undefined;
+      };
+
       const getActiveChapterId = (course: any): string | undefined => {
         const chapterId = getActiveLesson(course)?.chapter_id;
         return chapterId ? String(chapterId) : undefined;
@@ -3992,6 +3998,39 @@ export class SupabaseApi implements ServiceApi {
 
       const oldPathway = parseLearningPath(oldUser?.learning_path);
       const newPathway = parseLearningPath(newUser?.learning_path);
+      const oldPathMode =
+        typeof oldPathway?.pathMode === "string" ? oldPathway.pathMode : undefined;
+      const newPathMode =
+        typeof newPathway?.pathMode === "string" ? newPathway.pathMode : undefined;
+      const mergedPathMode = (() => {
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE ||
+          newPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+        ) {
+          return LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+        }
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          newPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
+        ) {
+          return LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY;
+        }
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.DISABLED ||
+          newPathMode === LEARNING_PATHWAY_MODE.DISABLED
+        ) {
+          return LEARNING_PATHWAY_MODE.DISABLED;
+        }
+        return newPathMode ?? oldPathMode;
+      })();
+      const fullAdaptiveSource =
+        oldPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE &&
+        newPathMode !== LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+          ? "old"
+          : newPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE &&
+              oldPathMode !== LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+            ? "new"
+            : undefined;
 
       const oldCourses = Array.isArray(oldPathway?.courses?.courseList)
         ? oldPathway.courses.courseList
@@ -4031,6 +4070,44 @@ export class SupabaseApi implements ServiceApi {
       };
 
       const pickMoreProgressedCourse = (oldCourse: any, newCourse: any): any => {
+        if (fullAdaptiveSource === "old") return oldCourse;
+        if (fullAdaptiveSource === "new") return newCourse;
+
+        const oldIsAssessment = getActiveIsAssessment(oldCourse);
+        const newIsAssessment = getActiveIsAssessment(newCourse);
+
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY) {
+
+          if (oldIsAssessment !== newIsAssessment) {
+            if (oldIsAssessment === false) return oldCourse;
+            if (newIsAssessment === false) return newCourse;
+          }
+        }
+
+        const oldChapterId = getActiveChapterId(oldCourse);
+        const newChapterId = getActiveChapterId(newCourse);
+        const hasAssessmentWithoutChapter =
+          (oldIsAssessment === true && !oldChapterId) ||
+          (newIsAssessment === true && !newChapterId);
+
+        if (hasAssessmentWithoutChapter) {
+          const oldPlayed = getPlayedCount(oldCourse);
+          const newPlayed = getPlayedCount(newCourse);
+          if (oldPlayed !== newPlayed) {
+            return oldPlayed > newPlayed ? oldCourse : newCourse;
+          }
+
+          const oldRemaining = getRemainingCount(oldCourse);
+          const newRemaining = getRemainingCount(newCourse);
+          if (oldRemaining !== newRemaining) {
+            return oldRemaining < newRemaining ? oldCourse : newCourse;
+          }
+
+          const oldPathLength = getPath(oldCourse).length;
+          const newPathLength = getPath(newCourse).length;
+          return oldPathLength >= newPathLength ? oldCourse : newCourse;
+        }
+
         const oldSort = getActiveSortIndex(oldCourse);
         const newSort = getActiveSortIndex(newCourse);
 
@@ -4110,8 +4187,8 @@ export class SupabaseApi implements ServiceApi {
       const mergedCurrentIndex =
         preferredCurrentCourseId !== undefined
           ? mergedCourses.findIndex(
-              (course) => getCourseId(course) === preferredCurrentCourseId,
-            )
+            (course) => getCourseId(course) === preferredCurrentCourseId,
+          )
           : -1;
       const fallbackRequestedIndex = newRequestedIndex ?? oldRequestedIndex ?? 0;
       const safeCurrentCourseIndex =
@@ -4120,9 +4197,9 @@ export class SupabaseApi implements ServiceApi {
           : mergedCurrentIndex >= 0
             ? mergedCurrentIndex
             : Math.max(
-                0,
-                Math.min(fallbackRequestedIndex, mergedCourses.length - 1),
-              );
+              0,
+              Math.min(fallbackRequestedIndex, mergedCourses.length - 1),
+            );
 
       const oldPathwayBase =
         typeof oldPathway === "object" && oldPathway ? oldPathway : {};
@@ -4132,7 +4209,8 @@ export class SupabaseApi implements ServiceApi {
         ...oldPathwayBase,
         ...newPathwayBase,
         type: newPathwayBase?.type ?? oldPathwayBase?.type,
-        pathMode: newPathwayBase?.pathMode ?? oldPathwayBase?.pathMode,
+        pathMode:
+          mergedPathMode ?? newPathwayBase?.pathMode ?? oldPathwayBase?.pathMode,
         updated_at: now,
         courses: {
           ...(oldPathwayBase?.courses || {}),
@@ -8026,8 +8104,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+            )
             : [];
         }
       }
@@ -8075,8 +8153,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+            )
             : [];
         }
       }
@@ -9065,21 +9143,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-              .from(TABLES.School)
-              .select("id, name, udise, group1,group2, group3, country")
-              .in("id", schoolIds)
+            .from(TABLES.School)
+            .select("id, name, udise, group1,group2, group3, country")
+            .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-              .from(TABLES.User)
-              .select("id, name, email, phone, gender")
-              .in("id", userIds)
+            .from(TABLES.User)
+            .select("id, name, email, phone, gender")
+            .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-              .from(TABLES.Class)
-              .select("id, name, school_id")
-              .in("id", classIds)
+            .from(TABLES.Class)
+            .select("id, name, school_id")
+            .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -10065,7 +10143,7 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string; [key: string]: any };
+      user: { id: string;[key: string]: any };
     };
     const isNewUser = message === "success-created";
     const dedupeAndPickLatest = async (
