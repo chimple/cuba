@@ -27,6 +27,8 @@ import { MoreHoriz } from "@mui/icons-material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import OpsGenericPopup from "../../common/OpsGenericPopup";
+import DeleteIcon from "../../assets/icons/deleteicon.svg";
 
 interface DisplayPrincipal {
   id: string;
@@ -76,6 +78,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     useState<PrincipalInfo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+    const [popup, setPopup] = useState({
+        open: false,
+        image: "",
+        heading: "",
+        text: "",
+        autoCloseSeconds: 0,
+      });
 
   const fetchPrincipals = useCallback(
     async (currentPage: number, silent = false) => {
@@ -401,8 +410,25 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         console.error("Missing principalId");
         return;
       }
-
-      await api.deleteUserFromSchool(schoolId, principalId, RoleType.PRINCIPAL);
+      const principalName = deleteTargetPrincipal.name;
+      const res = await api.deleteUserFromSchool(
+        schoolId,
+        principalId,
+        RoleType.PRINCIPAL,
+      );
+      if (res.success) {
+        const message = t(
+          "{{principalName}}'s profile has been deleted and is no longer available.",
+          { principalName: principalName ?? "" },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: "Profile Deleted Successfully",
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
+      }
       setIsDeleteModalOpen(false);
       setDeleteTargetPrincipal(null);
       fetchPrincipals(page);
@@ -423,6 +449,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   return (
     <div className="school-principals-page-container">
+      <OpsGenericPopup
+        isOpen={popup.open}
+        imageSrc={popup.image}
+        heading={popup.heading}
+        text={popup.text}
+        autoCloseSeconds={5}
+      />
       <Dialog
         open={isDeleteModalOpen}
         onClose={() => {

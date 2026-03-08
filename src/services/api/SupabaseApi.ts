@@ -1260,7 +1260,6 @@ export class SupabaseApi implements ServiceApi {
     if (!rpcRes || rpcRes.error) {
       return false;
     }
-
     return true;
   }
 
@@ -3710,36 +3709,41 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    existingStudentId: string, // OLD student (to delete)
+    existingStudentId: string,
     newStudentId: string,
-    requestId?: string | undefined, // NEW student (to keep)
-    respondedBy?: string | undefined,
-  ): Promise<void> {
+    requestId?: string,
+    respondedBy?: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!this.supabase) {
       throw new Error("Supabase not initialized.");
     }
+
     const now = new Date().toISOString();
-    // 1. Get NEW student (kept student)
+
+    // 1. Get destination student (record to keep)
     const { data: newStudentData, error: newStudentError } = await this.supabase
       .from("user")
       .select(
         `
-        *,
-        parent_links:parent_user!student_id (
-          parent:parent_id (*)
-        )
-      `,
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (*)
+      )
+    `,
       )
       .eq("id", newStudentId)
       .eq("is_deleted", false)
       .single();
+
     if (newStudentError || !newStudentData) {
       throw new Error("New student not found");
     }
+
     const newParents = (newStudentData.parent_links || []).map(
       (link: any) => link.parent,
     );
-    // 2. Get OLD student (to merge & delete)
+
+    // 2. Get source student (record to merge and delete)
     const { data: existingStudentData, error: existingStudentError } =
       await this.supabase
         .from("user")
@@ -3754,19 +3758,15 @@ export class SupabaseApi implements ServiceApi {
         .eq("id", existingStudentId)
         .eq("is_deleted", false)
         .single();
-    console.log(
-      "Existing student data:",
-      existingStudentData,
-      "Error:",
-      existingStudentError,
-    );
     if (existingStudentError || !existingStudentData) {
       throw new Error("Existing student not found");
     }
+
     const existingParents = (existingStudentData.parent_links || []).map(
       (link: any) => link.parent,
     );
-    // 3. Transfer results OLD → NEW
+
+    // 3. Transfer results
     const { data: results } = await this.supabase
       .from("result")
       .select("*")
@@ -3774,7 +3774,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false);
 
     if (results && results.length > 0) {
-      await this.supabase
+      const { error: resultTransferError } = await this.supabase
         .from("result")
         .update({
           student_id: newStudentId,
@@ -3782,16 +3782,22 @@ export class SupabaseApi implements ServiceApi {
         })
         .eq("student_id", existingStudentId)
         .eq("is_deleted", false);
+
+      if (resultTransferError) {
+        throw new Error(
+          `Failed to transfer results: ${resultTransferError.message}`,
+        );
+      }
     }
-    // 4. Merge parents (phone-phone, email-email, phone-email supported)
+
+    // 5. Merge parents
     const allParents = [...existingParents, ...newParents];
     const uniqueParents: any[] = [];
+
     for (const parent of allParents) {
       const alreadyExists = uniqueParents.some((p) => {
         const phoneMatch = p.phone && parent.phone && p.phone === parent.phone;
-
         const emailMatch = p.email && parent.email && p.email === parent.email;
-
         return phoneMatch || emailMatch;
       });
 
@@ -3799,9 +3805,8 @@ export class SupabaseApi implements ServiceApi {
         uniqueParents.push(parent);
       }
     }
-    // Link all unique parents to NEW student
+
     for (const parent of uniqueParents) {
-      // 1️⃣ Check if relation exists
       const { data: existingLink } = await this.supabase
         .from("parent_user")
         .select("id")
@@ -3809,20 +3814,68 @@ export class SupabaseApi implements ServiceApi {
         .eq("parent_id", parent.id)
         .maybeSingle();
 
-      // 2️⃣ If not exists → insert
       if (!existingLink) {
         await this.supabase.from("parent_user").insert({
-          student_id: newStudentId,
-          parent_id: parent.id,
-          is_deleted: false,
-          updated_at: now,
-        });
-      } else {
-        console.log("Already linked — skipping");
+            student_id: newStudentId,
+            parent_id: parent.id,
+            is_deleted: false,
+            updated_at: now,
+          });
       }
     }
-    // 5. Soft delete OLD student relations
-    await this.supabase
+
+    // 6. Merge learning pathway before soft deleting source student.
+    const pathwayMergeResult = await this.mergeUserPathway(
+      existingStudentId,
+      newStudentId,
+    );
+    if (!pathwayMergeResult.success) {
+      throw new Error(
+        pathwayMergeResult.message || "Failed to merge learning pathway.",
+      );
+    }
+
+    // 7. Merge stars from users table
+
+    // Get OLD student stars
+    const { data: oldUser, error: oldError } = await this.supabase
+      .from("user")
+      .select("stars")
+      .eq("id", existingStudentId)
+      .single();
+
+    // Get NEW student stars
+    const { data: newUser, error: newError } = await this.supabase
+      .from("user")
+      .select("stars")
+      .eq("id", newStudentId)
+      .single();
+
+    if (oldError || newError) {
+      throw new Error("Failed to fetch student stars.");
+    }
+
+    // Safely handle null values
+    const oldStars = oldUser?.stars ?? 0;
+    const newStars = newUser?.stars ?? 0;
+
+    const totalStars = oldStars + newStars;
+
+    // Update NEW student with merged stars
+    const { error: starUpdateError } = await this.supabase
+      .from("user")
+      .update({
+        stars: totalStars,
+        updated_at: now,
+      })
+      .eq("id", newStudentId);
+
+    if (starUpdateError) {
+      throw new Error(`Failed to update merged stars: ${starUpdateError.message}`);
+    }
+
+    // 8. Soft delete source student records
+    const { error: classDeleteError } = await this.supabase
       .from("class_user")
       .update({ is_deleted: true, updated_at: now })
       .eq("user_id", existingStudentId);
@@ -3837,9 +3890,9 @@ export class SupabaseApi implements ServiceApi {
       .update({ is_deleted: true, updated_at: now })
       .eq("id", existingStudentId);
 
-    // 6. Update ops request status
+    // 9. Update request
     if (requestId && respondedBy) {
-      const { error: updateRequestError } = await this.supabase
+      const { error: requestUpdateError } = await this.supabase
         .from("ops_requests")
         .update({
           request_status: "approved",
@@ -3847,16 +3900,275 @@ export class SupabaseApi implements ServiceApi {
           responded_by: respondedBy,
         })
         .eq("request_id", requestId);
-      if (updateRequestError) {
-        console.error(
-          "Error updating ops_requests status:",
-          updateRequestError.message,
+
+      if (requestUpdateError) {
+        throw new Error(
+          `Failed to update merge request: ${requestUpdateError.message}`,
         );
-        throw new Error("Failed to update request status.");
       }
     }
-  }
 
+    return {
+      success: true,
+      message: "Students merged successfully",
+    };
+  }
+  async mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      throw new Error("Supabase not initialized.");
+    }
+
+    try {
+      const now = new Date().toISOString();
+
+      const parseLearningPath = (value: unknown): any => {
+        if (!value) return {};
+        if (typeof value === "string") {
+          try {
+            return JSON.parse(value);
+          } catch (parseError) {
+            console.error("Failed to parse learning_path JSON:", parseError);
+            return {};
+          }
+        }
+        if (typeof value === "object") return value;
+        return {};
+      };
+
+      const getPath = (course: any): any[] =>
+        Array.isArray(course?.path) ? course.path : [];
+
+      const getActiveLesson = (course: any): any | undefined => {
+        const path = getPath(course);
+        return path.find((lesson: any) => lesson?.isPlayed === false) ?? path[0];
+      };
+
+      const getActiveChapterId = (course: any): string | undefined => {
+        const chapterId = getActiveLesson(course)?.chapter_id;
+        return chapterId ? String(chapterId) : undefined;
+      };
+
+      const getCourseId = (course: any): string | undefined => {
+        const courseId = course?.course_id;
+        return courseId !== undefined && courseId !== null
+          ? String(courseId)
+          : undefined;
+      };
+
+      const getPlayedCount = (course: any): number =>
+        getPath(course).filter((lesson: any) => lesson?.isPlayed === true)
+          .length;
+
+      const getRemainingCount = (course: any): number =>
+        getPath(course).filter((lesson: any) => lesson?.isPlayed === false)
+          .length;
+
+      const { data: oldUser, error: oldError } = await this.supabase
+        .from(TABLES.User)
+        .select("learning_path")
+        .eq("id", existingStudentId)
+        .single();
+
+      if (oldError) {
+        throw new Error(
+          `Failed to fetch existing student learning path: ${oldError.message}`,
+        );
+      }
+
+      const { data: newUser, error: newError } = await this.supabase
+        .from(TABLES.User)
+        .select("learning_path")
+        .eq("id", newStudentId)
+        .single();
+
+      if (newError) {
+        throw new Error(
+          `Failed to fetch destination student learning path: ${newError.message}`,
+        );
+      }
+
+      const oldPathway = parseLearningPath(oldUser?.learning_path);
+      const newPathway = parseLearningPath(newUser?.learning_path);
+
+      const oldCourses = Array.isArray(oldPathway?.courses?.courseList)
+        ? oldPathway.courses.courseList
+        : [];
+      const newCourses = Array.isArray(newPathway?.courses?.courseList)
+        ? newPathway.courses.courseList
+        : [];
+
+      const chapterIds = Array.from(
+        new Set(
+          [...oldCourses, ...newCourses]
+            .map((course) => getActiveChapterId(course))
+            .filter(Boolean) as string[],
+        ),
+      );
+
+      const chapterSortMap = new Map<string, number>();
+      if (chapterIds.length > 0) {
+        const { data: chapters, error: chapterError } = await this.supabase
+          .from(TABLES.Chapter)
+          .select("id, sort_index")
+          .in("id", chapterIds);
+
+        if (chapterError) {
+          console.error("Failed to fetch chapter sort_index map:", chapterError);
+        } else {
+          for (const chapter of chapters ?? []) {
+            chapterSortMap.set(String(chapter.id), chapter.sort_index ?? -1);
+          }
+        }
+      }
+
+      const getActiveSortIndex = (course: any): number => {
+        const chapterId = getActiveChapterId(course);
+        if (!chapterId) return -1;
+        return chapterSortMap.get(chapterId) ?? -1;
+      };
+
+      const pickMoreProgressedCourse = (oldCourse: any, newCourse: any): any => {
+        const oldSort = getActiveSortIndex(oldCourse);
+        const newSort = getActiveSortIndex(newCourse);
+
+        if (oldSort !== newSort) {
+          return oldSort > newSort ? oldCourse : newCourse;
+        }
+
+        const oldPlayed = getPlayedCount(oldCourse);
+        const newPlayed = getPlayedCount(newCourse);
+        if (oldPlayed !== newPlayed) {
+          return oldPlayed > newPlayed ? oldCourse : newCourse;
+        }
+
+        const oldRemaining = getRemainingCount(oldCourse);
+        const newRemaining = getRemainingCount(newCourse);
+        if (oldRemaining !== newRemaining) {
+          return oldRemaining < newRemaining ? oldCourse : newCourse;
+        }
+
+        const oldPathLength = getPath(oldCourse).length;
+        const newPathLength = getPath(newCourse).length;
+        return oldPathLength >= newPathLength ? oldCourse : newCourse;
+      };
+
+      const mergedByCourseId = new Map<string, any>();
+      for (const course of newCourses) {
+        const courseId = getCourseId(course);
+        if (courseId) mergedByCourseId.set(courseId, course);
+      }
+
+      for (const oldCourse of oldCourses) {
+        const courseId = getCourseId(oldCourse);
+        if (!courseId) continue;
+
+        const existing = mergedByCourseId.get(courseId);
+        if (!existing) {
+          mergedByCourseId.set(courseId, oldCourse);
+          continue;
+        }
+
+        mergedByCourseId.set(
+          courseId,
+          pickMoreProgressedCourse(oldCourse, existing),
+        );
+      }
+
+      const mergedCourses = Array.from(mergedByCourseId.values());
+
+      const getSafeIndex = (value: unknown): number | undefined => {
+        const parsed = Number(value);
+        return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
+      };
+
+      const oldRequestedIndex = getSafeIndex(
+        oldPathway?.courses?.currentCourseIndex,
+      );
+      const newRequestedIndex = getSafeIndex(
+        newPathway?.courses?.currentCourseIndex,
+      );
+
+      const oldCurrentCourse =
+        oldRequestedIndex !== undefined ? oldCourses[oldRequestedIndex] : undefined;
+      const newCurrentCourse =
+        newRequestedIndex !== undefined ? newCourses[newRequestedIndex] : undefined;
+
+      const preferredCurrentCourseId = (() => {
+        if (oldCurrentCourse && newCurrentCourse) {
+          const preferred = pickMoreProgressedCourse(
+            oldCurrentCourse,
+            newCurrentCourse,
+          );
+          return getCourseId(preferred);
+        }
+        return getCourseId(newCurrentCourse) ?? getCourseId(oldCurrentCourse);
+      })();
+
+      const mergedCurrentIndex =
+        preferredCurrentCourseId !== undefined
+          ? mergedCourses.findIndex(
+              (course) => getCourseId(course) === preferredCurrentCourseId,
+            )
+          : -1;
+      const fallbackRequestedIndex = newRequestedIndex ?? oldRequestedIndex ?? 0;
+      const safeCurrentCourseIndex =
+        mergedCourses.length === 0
+          ? 0
+          : mergedCurrentIndex >= 0
+            ? mergedCurrentIndex
+            : Math.max(
+                0,
+                Math.min(fallbackRequestedIndex, mergedCourses.length - 1),
+              );
+
+      const oldPathwayBase =
+        typeof oldPathway === "object" && oldPathway ? oldPathway : {};
+      const newPathwayBase =
+        typeof newPathway === "object" && newPathway ? newPathway : {};
+      const updatedPathway = {
+        ...oldPathwayBase,
+        ...newPathwayBase,
+        type: newPathwayBase?.type ?? oldPathwayBase?.type,
+        pathMode: newPathwayBase?.pathMode ?? oldPathwayBase?.pathMode,
+        updated_at: now,
+        courses: {
+          ...(oldPathwayBase?.courses || {}),
+          ...(newPathwayBase?.courses || {}),
+          courseList: mergedCourses,
+          currentCourseIndex: safeCurrentCourseIndex,
+        },
+      };
+
+      const { error: updateError } = await this.supabase
+        .from(TABLES.User)
+        .update({
+          learning_path: JSON.stringify(updatedPathway),
+          updated_at: now,
+        })
+        .eq("id", newStudentId);
+
+      if (updateError) {
+        throw new Error(
+          `Failed to update merged learning path: ${updateError.message}`,
+        );
+      }
+
+      return {
+        success: true,
+        message: "Learning pathway merged successfully.",
+      };
+    } catch (error: any) {
+      console.error("MERGE PATHWAY ERROR:", error);
+
+      return {
+        success: false,
+        message: error?.message || "Failed to merge pathway.",
+      };
+    }
+  }
   async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -6431,11 +6743,12 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
-    if (!this.supabase) return;
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      return { success: false, message: "Database not available." };
+    }
 
     try {
-      // Find existing school_user row
       const { data, error: selectError } = await this.supabase
         .from("school_user")
         .select("id")
@@ -6447,16 +6760,15 @@ export class SupabaseApi implements ServiceApi {
 
       if (selectError) {
         console.error("Error selecting school_user:", selectError);
-        return;
+        return { success: false, message: selectError.message };
       }
 
       if (!data) {
-        throw new Error("school_user not found.");
+        return { success: false, message: "school_user not found." };
       }
 
       const updatedAt = new Date().toISOString();
 
-      // Update is_deleted and updated_at
       const { error: updateError } = await this.supabase
         .from("school_user")
         .update({ is_deleted: true, updated_at: updatedAt })
@@ -6464,10 +6776,19 @@ export class SupabaseApi implements ServiceApi {
 
       if (updateError) {
         console.error("Error updating school_user:", updateError);
-        return;
+        return { success: false, message: updateError.message };
       }
-    } catch (error) {
+
+      return {
+        success: true,
+        message: "User removed from school successfully.",
+      };
+    } catch (error: any) {
       console.error("SupabaseApi ~ deleteUserFromSchool ~ error:", error);
+      return {
+        success: false,
+        message: error?.message || "Unexpected error occurred.",
+      };
     }
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {

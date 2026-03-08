@@ -48,6 +48,8 @@ import ActionMenu from "./ActionMenu";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import CloseIcon from "@mui/icons-material/Close";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import OpsGenericPopup from "../../common/OpsGenericPopup";
+import DeleteIcon from "../../assets/icons/deleteicon.svg";
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -196,6 +198,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     },
     [teachers],
   );
+   const [popup, setPopup] = useState({
+      open: false,
+      image: "",
+      heading: "",
+      text: "",
+      autoCloseSeconds: 0,
+    });
 
   const [teachersWithPerformance, setTeachersWithPerformance] = useState<
     DisplayTeacher[]
@@ -974,13 +983,26 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         (deleteTargetTeacher as { classId?: string }).classId ||
         (deleteTargetTeacher as { class_id?: string }).class_id ||
         "";
-
+      const teacherName = deleteTargetTeacher.user.name;
       if (!teacherId || !classId) {
         console.error("Missing teacherId or classId");
         return;
       }
 
-      await api.deleteUserFromClass(teacherId, classId);
+      const res = await api.deleteUserFromClass(teacherId, classId);
+      if (res) {
+        const message = t(
+          "{{teacherName}}'s profile has been deleted and is no longer available.",
+          { teacherName: teacherName ?? "" },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: "Profile Deleted Successfully",
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
+      }
       setIsDeleteModalOpen(false);
       setDeleteTargetTeacher(null);
       fetchTeachers(page, searchTerm);
@@ -1002,6 +1024,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   return (
     // The JSX remains the same
     <div className="schoolTeachers-pageContainer">
+      <OpsGenericPopup
+        isOpen={popup.open}
+        imageSrc={popup.image}
+        heading={popup.heading}
+        text={popup.text}
+        autoCloseSeconds={5}
+      />
       <Dialog
         open={isDeleteModalOpen}
         onClose={() => {

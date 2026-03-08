@@ -5823,7 +5823,7 @@ order by
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     try {
       const query = `
       SELECT *
@@ -5831,12 +5831,15 @@ order by
       WHERE user_id = ? AND school_id = ?
       AND role = '${role}' AND is_deleted = 0
     `;
+
       const res = await this._db?.query(query, [userId, schoolId]);
       const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?
-        AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
+        `UPDATE school_user 
+       SET is_deleted = 1, updated_at = ? 
+       WHERE user_id = ? AND school_id = ? 
+       AND role = '${role}' AND is_deleted = 0`,
         [updatedAt, userId, schoolId],
       );
 
@@ -5844,14 +5847,27 @@ order by
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
       } else {
-        throw new Error("school user not found after update.");
+        return { success: false, message: "School user not found." };
       }
+
       await this.updatePushChanges(TABLES.SchoolUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
       });
-    } catch (error) {
+
+      // ✅ Success return added
+      return {
+        success: true,
+        message: "User removed from school successfully.",
+      };
+    } catch (error: any) {
       console.error("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
+
+      // ✅ Error return added
+      return {
+        success: false,
+        message: error?.message || "Unexpected error occurred.",
+      };
     }
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -6850,23 +6866,25 @@ order by
   async mergeStudentRequest(
     existingStudentId: string,
     newStudentId: string,
-    requestId?: string | undefined,
-    respondedBy?: string | undefined,
-  ): Promise<void> {
+    requestId?: string,
+    respondedBy?: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!this._db) {
-      throw new Error("SQLite DB not initialized.");
+      return { success: false, message: "SQLite DB not initialized." };
     }
 
     const now = new Date().toISOString();
 
     try {
-      // 1. Get new student details + parents
+      // 1. Get new student
       const newStudentRes = await this._db.query(
         `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
         [newStudentId],
       );
       const newStudent = newStudentRes?.values?.[0];
-      if (!newStudent) throw new Error("New student not found");
+      if (!newStudent) {
+        return { success: false, message: "New student not found" };
+      }
 
       const newParentsRes = await this._db.query(
         `SELECT p.* FROM parent_user pu
@@ -6876,13 +6894,15 @@ order by
       );
       const newParents = newParentsRes?.values || [];
 
-      // 2. Get existing student details + parents
+      // 2. Get existing student
       const existingStudentRes = await this._db.query(
         `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
         [existingStudentId],
       );
       const existingStudent = existingStudentRes?.values?.[0];
-      if (!existingStudent) throw new Error("Existing student not found");
+      if (!existingStudent) {
+        return { success: false, message: "Existing student not found" };
+      }
 
       const existingParentsRes = await this._db.query(
         `SELECT p.* FROM parent_user pu
@@ -6892,16 +6912,16 @@ order by
       );
       const existingParents = existingParentsRes?.values || [];
 
-      // 3. Compare phone/email
+      // 3. Compare contacts
       const existingContact =
         existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
       const newContact =
         newParents?.[0]?.phone || newParents?.[0]?.email || null;
 
-      // 4. Transfer results
+      // 4. Transfer results (⚠️ FIXED: you had reversed IDs before)
       const resultRes = await this._db.query(
         `SELECT * FROM result WHERE student_id = ? AND is_deleted = 0`,
-        [newStudentId],
+        [existingStudentId],
       );
       const results = resultRes?.values || [];
 
@@ -6909,11 +6929,11 @@ order by
         await this._db.run(
           `UPDATE result SET student_id = ?, updated_at = ?
          WHERE student_id = ? AND is_deleted = 0`,
-          [existingStudentId, now, newStudentId],
+          [newStudentId, now, existingStudentId],
         );
       }
 
-      // 5. Link new parents if contact differs
+      // 5. Link parents if different
       if (newContact && newContact !== existingContact) {
         for (const parent of newParents) {
           const alreadyLinked = existingParents.some(
@@ -6924,7 +6944,8 @@ order by
 
           if (!alreadyLinked) {
             await this._db.run(
-              `INSERT INTO parent_user (student_id, parent_id, is_deleted, created_at, updated_at)
+              `INSERT INTO parent_user 
+             (student_id, parent_id, is_deleted, created_at, updated_at)
              VALUES (?, ?, 0, ?, ?)`,
               [existingStudentId, parent.id, now, now],
             );
@@ -6932,33 +6953,47 @@ order by
         }
       }
 
-      // 6. Soft-delete merged student + relations
+      // 6. Soft delete merged student
       await this._db.run(
         `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
       await this._db.run(
         `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
       await this._db.run(
         `UPDATE user SET is_deleted = 1, updated_at = ? WHERE id = ?`,
-        [now, newStudentId],
+        [now, existingStudentId],
       );
 
-      // 7. (Optional) mark ops_requests as approved/merged
-      await this._db.run(
-        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ? WHERE request_id = ?`,
-        [existingStudentId, now, respondedBy, requestId],
-      );
-    } catch (error) {
+      // 7. Optional ops request update
+      if (requestId) {
+        await this._db.run(
+          `UPDATE ops_requests 
+         SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ?
+         WHERE request_id = ?`,
+          [newStudentId, now, respondedBy ?? null, requestId],
+        );
+      }
+
+      // ✅ SUCCESS RETURN
+      return {
+        success: true,
+        message: "Students merged successfully.",
+      };
+    } catch (error: any) {
       console.error(
         "Error merging student in SQLite (mergeStudentRequestSqlite):",
         error,
       );
-      throw error;
+
+      return {
+        success: false,
+        message: error?.message || "Failed to merge students.",
+      };
     }
   }
 
@@ -8293,6 +8328,13 @@ order by
     group_name: string;
     members: number;
   } | null> {
+    throw new Error("Method not implemented.");
+  }
+
+  mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
     throw new Error("Method not implemented.");
   }
 
