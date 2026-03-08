@@ -2069,15 +2069,17 @@ export class ApiHandler implements ServiceApi {
 
   public async getNextWinnableSticker(
     stickerBookId: string,
+    userId: string
   ): Promise<string | null> {
-    return await this.s.getNextWinnableSticker(stickerBookId);
+    return await this.s.getNextWinnableSticker(stickerBookId, userId);
   }
 
   public async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string
   ): Promise<void> {
-    return await this.s.updateStickerWon(stickerBookId, stickerId);
+    return await this.s.updateStickerWon(stickerBookId, stickerId, userId);
   }
   public async isAssignmentAlreadyAssigned(
     schoolId: string,

@@ -68,8 +68,8 @@ export function SVGScene({
    STICKER EXTRACTION
 ============================================================ */
 
-function extractStickerSvg(
-  svg: SVGSVGElement,
+export function extractStickerSvg(
+  svg: SVGSVGElement | SVGGElement,
   stickerId: string
 ): string | null {
   const sticker = svg.querySelector(
@@ -84,14 +84,33 @@ function extractStickerSvg(
     "http://www.w3.org/2000/svg",
     "svg"
   );
+  wrapper.appendChild(clonedSticker);
 
-  wrapper.setAttribute("width", "500");
-  wrapper.setAttribute("height", "282");
-  wrapper.setAttribute("viewBox", "0 0 500 282");
+  // Temporarily append to DOM to calculate its precise bounds
+  wrapper.style.position = "absolute";
+  wrapper.style.visibility = "hidden";
+  document.body.appendChild(wrapper);
+
+  let bbox = { x: 0, y: 0, width: 500, height: 282 };
+  try {
+    bbox = clonedSticker.getBBox();
+  } catch (e) {
+    console.error("Failed to getBBox", e);
+  }
+  document.body.removeChild(wrapper);
+
+  const pad = 2;
+  const vx = (bbox.x || 0) - pad;
+  const vy = (bbox.y || 0) - pad;
+  const vw = (bbox.width || 500) + pad * 2;
+  const vh = (bbox.height || 282) + pad * 2;
+
+  wrapper.removeAttribute("style");
+  wrapper.setAttribute("width", "100%");
+  wrapper.setAttribute("height", "100%");
+  wrapper.setAttribute("viewBox", `${vx} ${vy} ${vw} ${vh}`);
   wrapper.setAttribute("fill", "none");
   wrapper.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-
-  wrapper.appendChild(clonedSticker);
 
   return wrapper.outerHTML;
 }

@@ -2769,7 +2769,7 @@ export interface ServiceApi {
    * - The next sticker ID that can be won
    * - null if all stickers have already been collected.
    */
-  getNextWinnableSticker(stickerBookId: string): Promise<string | null>;
+  getNextWinnableSticker(stickerBookId: string, userId: string): Promise<string | null>;
 
   /**
    * Updates the user's progress when a sticker is won.
@@ -2785,10 +2785,11 @@ export interface ServiceApi {
    *
    * @param {string} stickerBookId - The ID of the sticker book.
    * @param {string} stickerId - The ID of the sticker won.
+   * @param {string} userId - The ID of the user.
    * @returns {Promise<void>}
    * A promise resolving once the progress update is complete.
    */
-  updateStickerWon(stickerBookId: string, stickerId: string): Promise<void>;
+  updateStickerWon(stickerBookId: string, stickerId: string, userId: string): Promise<void>;
   /**
    * Checks whether a specific lesson assignment has already been assigned
    * to a given class within a school.
