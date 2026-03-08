@@ -16,6 +16,7 @@ import {
 } from "../common/constants";
 import { Util } from "../utility/util";
 import { LessonNode } from "./useLearningPath";
+import { extractStickerSvg } from "../components/coloring/SVGScene";
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -44,6 +45,22 @@ let pathwayTemplateCache: string | null = null;
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
+
+// Sticker sequence for the sticker box
+const STICKER_SEQUENCE = [
+  "beetle",
+  "fly",
+  "ant",
+  "snail",
+  "butterfly",
+  "flea",
+  "whale",
+  "octopus",
+  "fishy",
+  "turtle",
+  "star fish",
+  "gold fish",
+];
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -183,14 +200,25 @@ export function usePathwaySVG({
       // Preload icons/images for lessons (to reduce flicker)
       preloadAllLessonImages(lessons);
 
+      // Fetch sticker progress
+      const stickerProgress = await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      let nextStickerId: string | null = null;
+      let stickerBookId: string | null = null;
+      let stickerBookSvgUrl: string | null = null;
+
+      if (stickerProgress?.book) {
+        stickerBookId = stickerProgress.book.id;
+        stickerBookSvgUrl = stickerProgress.book.svg_url;
+        nextStickerId = await api.getNextWinnableSticker(stickerBookId, currentStudent.id);
+      }
+
+      const usesMysteryBox = !nextStickerId || !stickerBookSvgUrl;
+
       const [
         pathwaySVG,
         flowerActive,
         flowerInactive,
         playedLessonSVG,
-        gift1,
-        gift2,
-        gift3,
         halo,
       ] = await Promise.all([
         loadPathwayTemplate(),
@@ -209,23 +237,91 @@ export function usePathwaySVG({
           "remoteAsset/PlayedLesson.svg",
           "/pathwayAssets/English/PlayedLesson.svg"
         ),
-        loadGroupAsset(
-          "giftSVG",
-          "remoteAsset/pathGift1.svg",
-          "/pathwayAssets/English/pathGift1.svg"
-        ),
-        loadGroupAsset(
-          "giftSVG2",
-          "remoteAsset/pathGift2.svg",
-          "/pathwayAssets/English/pathGift2.svg"
-        ),
-        loadGroupAsset(
-          "giftSVG3",
-          "remoteAsset/pathGift3.svg",
-          "/pathwayAssets/English/pathGift3.svg"
-        ),
         loadHalo(),
       ]);
+
+      // Load sticker box or mystery box SVGs
+      let stickerBoxSvg: SVGGElement | SVGSVGElement;
+      let mysteryFrames: (SVGGElement | SVGSVGElement)[] = [];
+
+      if (usesMysteryBox) {
+        // All stickers exhausted → load all 3 mystery box frames
+        const [mf1, mf2, mf3] = await Promise.all([
+          loadGroupAsset(
+            "mysteryBox1",
+            "remoteAsset/mystery_box_frame_1.svg",
+            "/stickers/mystery_box/mystery_box_frame_1.svg"
+          ),
+          loadGroupAsset(
+            "mysteryBox2",
+            "remoteAsset/mystery_box_frame_2.svg",
+            "/stickers/mystery_box/mystery_box_frame_2.svg"
+          ),
+          loadGroupAsset(
+            "mysteryBox3",
+            "remoteAsset/mystery_box_frame_3.svg",
+            "/stickers/mystery_box/mystery_box_frame_3.svg"
+          ),
+        ]);
+        stickerBoxSvg = mf1;
+        mysteryFrames = [mf1, mf2, mf3];
+      } else {
+        try {
+          // Fetch the sticker book SVG and extract the specific sticker
+          const remoteBookSvg = await fetchRemoteSVGGroup(stickerBookSvgUrl!);
+          const extractedSvgString = extractStickerSvg(remoteBookSvg as SVGSVGElement, nextStickerId!);
+
+          if (extractedSvgString) {
+            const stickerSlotGroup = await loadGroupAsset(
+              "stickerSlot",
+              "remoteAsset/Stickerslot.svg",
+              "/stickers/Stickerslot.svg"
+            );
+
+            const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            wrapper.innerHTML = extractedSvgString;
+            const extractedSvgNode = wrapper.querySelector("svg");
+
+            if (extractedSvgNode) {
+              extractedSvgNode.setAttribute("x", "6");
+              extractedSvgNode.setAttribute("y", "6");
+              extractedSvgNode.setAttribute("width", "45");
+              extractedSvgNode.setAttribute("height", "32");
+
+              const clone = stickerSlotGroup.cloneNode(true) as SVGSVGElement | SVGGElement;
+              clone.appendChild(extractedSvgNode);
+              stickerBoxSvg = clone;
+            } else {
+              // Fallback to plotting the slot alone if parsing fails
+              stickerBoxSvg = stickerSlotGroup.cloneNode(true) as SVGSVGElement | SVGGElement;
+            }
+          } else {
+             throw new Error("Sticker not found in book");
+          }
+        } catch (e) {
+          console.error("Failed fetching or extracting sticker:", e);
+          // Network/load failure → fallback to mystery box
+          const [mf1, mf2, mf3] = await Promise.all([
+            loadGroupAsset(
+              "mysteryBox1",
+              "remoteAsset/mystery_box_frame_1.svg",
+              "/stickers/mystery_box/mystery_box_frame_1.svg"
+            ),
+            loadGroupAsset(
+              "mysteryBox2",
+              "remoteAsset/mystery_box_frame_2.svg",
+              "/stickers/mystery_box/mystery_box_frame_2.svg"
+            ),
+            loadGroupAsset(
+              "mysteryBox3",
+              "remoteAsset/mystery_box_frame_3.svg",
+              "/stickers/mystery_box/mystery_box_frame_3.svg"
+            ),
+          ]);
+          stickerBoxSvg = mf1;
+          mysteryFrames = [mf1, mf2, mf3];
+        }
+      }
 
       // Build SVG in next frame to keep main thread responsive
       requestAnimationFrame(async () => {
@@ -360,7 +456,7 @@ export function usePathwaySVG({
             });
 
             fragment.appendChild(activeGroup);
-          } 
+          }
           lastIndex = idx;
         });
 
@@ -409,57 +505,148 @@ export function usePathwaySVG({
           fragment.appendChild(flower_Inactive);
         }
 
-        // Gift node
+        // Sticker/Mystery box node (replaces old gift box)
         const endPath = paths[paths.length - 1];
         const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-        const Gift_Svg = document.createElementNS(
+        const Sticker_Svg = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "g"
         );
-        Gift_Svg.setAttribute(
+        Sticker_Svg.setAttribute(
           "style",
-          "cursor: pointer; transform-origin: center;"
+          "cursor: pointer;"
         );
-        Gift_Svg.appendChild(gift1.cloneNode(true));
-        placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 30);
+
+        let frameNodes: SVGElement[] = [];
+        if (mysteryFrames.length > 0) {
+          frameNodes = mysteryFrames.map(mf => mf.cloneNode(true) as SVGElement);
+          frameNodes.forEach((node, idx) => {
+            node.style.display = idx === 0 ? "block" : "none";
+            Sticker_Svg.appendChild(node);
+          });
+        } else {
+          Sticker_Svg.appendChild(stickerBoxSvg.cloneNode(true));
+        }
+
+        const stickerBaseX = endPoint.x - 25;
+        const stickerBaseY = endPoint.y - 30;
+        // Approximate center of sticker for rotation pivot (stickers ~62x49, mystery ~58x44)
+        const stickerCenterX = 30;
+        const stickerCenterY = 24;
+
+        placeElement(Sticker_Svg, stickerBaseX, stickerBaseY);
 
         const isRewardFeatureOn =
           localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
 
         if (currentIndex < pathEndIndex + 1) {
-          Gift_Svg.addEventListener("click", () => {
-            const replaceGiftContent = (newContent: SVGElement) => {
-              while (Gift_Svg.firstChild) {
-                Gift_Svg.removeChild(Gift_Svg.firstChild);
-              }
-              Gift_Svg.appendChild(newContent.cloneNode(true));
-            };
+          let isAnimating = false;
 
-            const animationSequence = [
-              { content: gift2, delay: 300 },
-              { content: gift3, delay: 500 },
-              { content: gift2, delay: 700 },
-              { content: gift3, delay: 900 },
-              {
-                callback: () => {
-                  setModalText("Complete these 5 lessons to earn rewards");
+          Sticker_Svg.addEventListener("click", () => {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            if (mysteryFrames.length > 0 && frameNodes.length > 0) {
+              // ── MYSTERY BOX: snappy frame-swap animation via display toggle ──
+              const duration = 1200;
+              let startTime: number | null = null;
+              let lastFrameIdx = -1;
+
+              const animate = (now: number) => {
+                if (startTime === null) startTime = now;
+                let progress = (now - startTime) / duration;
+                if (progress < 0) progress = 0;
+                if (progress > 1) progress = 1;
+
+                // Frame cycle: neutral -> 2 -> 3 -> 2 -> 3 -> neutral
+                const frameCycle = [0, 1, 2, 1, 2, 0, 1, 2];
+                const cycleSpeed = 0.5;
+                const cycleIdx = Math.floor(progress * frameCycle.length * cycleSpeed) % frameCycle.length;
+                const currentFrameIdx = progress < 1 ? frameCycle[cycleIdx] : 0;
+
+                if (currentFrameIdx !== lastFrameIdx) {
+                  frameNodes.forEach((node, idx) => {
+                    node.style.display = idx === currentFrameIdx ? "block" : "none";
+                  });
+                  lastFrameIdx = currentFrameIdx;
+                }
+
+                if (progress < 1) {
+                  requestAnimationFrame(animate);
+                } else {
+                  isAnimating = false;
+                  setModalText("Complete these 5 lessons to earn a sticker");
                   setModalOpen(true);
-                  replaceGiftContent(gift1);
-                },
-                delay: 1100,
-              },
-            ];
+                }
+              };
 
-            animationSequence.forEach(({ content, callback, delay }) => {
-              setTimeout(() => {
-                if (content) replaceGiftContent(content);
-                if (callback) callback();
-              }, delay);
-            });
+              requestAnimationFrame(animate);
+            } else {
+              // ── STICKER BOX: rotation-only wobble ──
+              const wobbleDuration = 2000;
+              let wobbleStart: number | null = null;
+
+              const rotKeys = [
+                { t: 0,    r: 0    },
+                { t: 0.15, r: -10  },
+                { t: 0.35, r: 10   },
+                { t: 0.55, r: -6   },
+                { t: 0.75, r: 4    },
+                { t: 0.90, r: -1   },
+                { t: 1,    r: 0    },
+              ];
+
+              const ease = (x: number) =>
+                0.5 - 0.5 * Math.cos(Math.PI * x);
+
+              const getRotation = (time: number): number => {
+                if (time <= 0) return rotKeys[0].r;
+                if (time >= 1) return rotKeys[rotKeys.length - 1].r;
+                for (let i = 0; i < rotKeys.length - 1; i++) {
+                  if (time >= rotKeys[i].t && time <= rotKeys[i + 1].t) {
+                    const frac = (time - rotKeys[i].t) / (rotKeys[i + 1].t - rotKeys[i].t);
+                    return rotKeys[i].r + (rotKeys[i + 1].r - rotKeys[i].r) * ease(frac);
+                  }
+                }
+                return 0;
+              };
+
+              const animateWobble = (now: number) => {
+                if (wobbleStart === null) wobbleStart = now;
+                let progress = (now - wobbleStart) / wobbleDuration;
+                if (progress < 0) progress = 0;
+                if (progress > 1) progress = 1;
+
+                const angle = getRotation(progress);
+
+                Sticker_Svg.setAttribute(
+                  "transform",
+                  `translate(${stickerBaseX}, ${stickerBaseY}) ` +
+                    `translate(${stickerCenterX}, ${stickerCenterY}) ` +
+                    `rotate(${angle}) ` +
+                    `translate(${-stickerCenterX}, ${-stickerCenterY})`
+                );
+
+                if (progress < 1) {
+                  requestAnimationFrame(animateWobble);
+                } else {
+                  Sticker_Svg.setAttribute(
+                    "transform",
+                    `translate(${stickerBaseX}, ${stickerBaseY})`
+                  );
+                  isAnimating = false;
+
+                  setModalText("Complete these 5 lessons to earn a sticker");
+                  setModalOpen(true);
+                }
+              };
+
+              requestAnimationFrame(animateWobble);
+            }
           });
         }
 
-        fragment.appendChild(Gift_Svg);
+        fragment.appendChild(Sticker_Svg);
         svg.appendChild(fragment);
 
         // Setup chimple mascot initial position

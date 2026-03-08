@@ -88,6 +88,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { log } from "console";
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -11593,22 +11594,31 @@ export class SupabaseApi implements ServiceApi {
         progress: progress as UserStickerProgress,
       };
     }
+    else {
+      const { data: books } = await this.supabase
+        .from("sticker_book")
+        .select("*")
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: true });
 
-    // 3️⃣ Fallback → first sticker book
-    const { data: firstBook } = await this.supabase
-      .from("sticker_book")
-      .select("*")
-      .eq("is_deleted", false)
-      .order("sort_index", { ascending: true })
-      .limit(1)
-      .single();
+      for (const book of books ?? []) {
+        const { data: progressCheck } = await this.supabase
+          .from("user_sticker_book")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("sticker_book_id", book.id)
+          .eq("is_deleted", false)
+          .maybeSingle();
 
-    if (!firstBook) return null;
-
-    return {
-      book: firstBook as StickerBook,
-      progress: null,
-    };
+        if (!progressCheck) {
+          return {
+            book: book as StickerBook,
+            progress: null,
+          };
+        }
+      }
+    }
+    return null;
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
@@ -11635,13 +11645,9 @@ export class SupabaseApi implements ServiceApi {
     return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
+  async getNextWinnableSticker(stickerBookId: string, userId: string): Promise<string | null> {
     if (!this.supabase) return null;
-
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!user?.id) return null;
-
-    const userId = user.id;
+    if (!userId) return null;
 
     const { data: book } = await this.supabase
       .from("sticker_book")
@@ -11652,7 +11658,7 @@ export class SupabaseApi implements ServiceApi {
 
     if (!book) return null;
 
-    const { data: progress } = await this.supabase
+    const { error,data: progress } = await this.supabase
       .from("user_sticker_book")
       .select("*")
       .eq("user_id", userId)
@@ -11674,13 +11680,10 @@ export class SupabaseApi implements ServiceApi {
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string
   ): Promise<void> {
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-
-    if (!user?.id) return;
     if (!this.supabase) return;
-
-    const userId = user.id;
+    if (!userId) return;
 
     // get book
     const { data: book } = await this.supabase
@@ -11706,12 +11709,16 @@ export class SupabaseApi implements ServiceApi {
     if (!progress) {
       const status = total === 1 ? "completed" : "in_progress";
 
-      await this.supabase.from("user_sticker_book").insert({
+      const { error, data } = await this.supabase.from("user_sticker_book").insert({
         user_id: userId,
         sticker_book_id: stickerBookId,
         stickers_collected: [stickerId],
         status,
+        is_deleted: false
       });
+      if (error) {
+        console.error("progress insert error:", JSON.stringify(error));
+      }
 
       return;
     }

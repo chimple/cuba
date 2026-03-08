@@ -76,6 +76,7 @@ import {
   GrowthBookAttributes,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
+  CURRENT_USER,
 } from "../common/constants";
 import { palUtil } from "./palUtil";
 import {
@@ -3120,6 +3121,18 @@ export class Util {
         course.path_id = newpathId;
         prevData.pathId = newpathId;
         course.completedPath +=1;
+
+        // 🏆 Win sticker if available
+        const stickerProgress = await api.getCurrentStickerBookWithProgress(currentStudent.id);
+        if (stickerProgress?.book) {
+          const nextStickerId = await api.getNextWinnableSticker(stickerProgress.book.id, currentStudent.id);
+          if (nextStickerId) {
+            const currentUser = localStorage.getItem(CURRENT_USER);
+            await api.updateStickerWon(stickerProgress.book.id, nextStickerId, currentStudent.id);
+            const updatedStickerProgress = await api.getCurrentStickerBookWithProgress(currentStudent.id);
+          }
+        }
+
         courseIndex += 1;
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
@@ -3175,39 +3188,39 @@ export class Util {
       console.error("Error updating learning path:", error);
     }
   }
-  
+
   // this function is created because local sqlite database was updating after UI rendering,
-  // so it was showing old learning path until we refresh the page, 
-  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one 
+  // so it was showing old learning path until we refresh the page,
+  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one
   public static getLatestLearningPathByUpdatedAt(
     student: TableTypes<"user">
   ): string | null {
     try {
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
-  
+
       // If nothing in session storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }
       const studentLearningPath = student.learning_path ? JSON.parse(student.learning_path) : null;
       const parsed = JSON.parse(sessionData);
-  
+
       // If session data belongs to different student, ignore it
       if (parsed.studentId !== student.id) {
         return student?.learning_path ?? null;
       }
-  
+
       const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
       const dbUpdatedAt = studentLearningPath?.updated_at
         ? new Date(studentLearningPath.updated_at).getTime()
         : 0;
-  
-      
+
+
       // Compare timestamps
       if (sessionUpdatedAt > dbUpdatedAt) {
         return parsed.learningPath;
       }
-  
+
       return student?.learning_path ?? null;
     } catch (error) {
       console.error("Error resolving latest learning path:", error);

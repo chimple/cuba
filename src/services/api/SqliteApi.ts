@@ -5536,7 +5536,7 @@ order by
       WHERE class_id = ?
         AND course_id = ?
         AND chapter_id IN (${idslst})
-        AND is_deleted = 0; 
+        AND is_deleted = 0;
     `;
 
     const res = await this._db?.query(query, [
@@ -7295,7 +7295,7 @@ order by
     const total = countResult?.values?.[0]?.total ?? 0;
     // ✅ DATA QUERY
     const query = `
-    SELECT 
+    SELECT
       u.id,
       u.name,
       u.student_id,
@@ -7307,10 +7307,10 @@ order by
     FROM class_user cu
     JOIN user u ON cu.user_id = u.id
     JOIN class c ON cu.class_id = c.id
-    LEFT JOIN parent_user pu 
-      ON pu.student_id = u.id 
+    LEFT JOIN parent_user pu
+      ON pu.student_id = u.id
       AND pu.is_deleted = 0
-    LEFT JOIN user p 
+    LEFT JOIN user p
       ON pu.parent_id = p.id
     WHERE ${whereClause}
     ORDER BY u.name
@@ -8340,15 +8340,16 @@ order by
     return await this._serverApi.getUserWonStickerBooks(userId);
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
-    return await this._serverApi.getNextWinnableSticker(stickerBookId);
+  async getNextWinnableSticker(stickerBookId: string, userId: string): Promise<string | null> {
+    return await this._serverApi.getNextWinnableSticker(stickerBookId, userId);
   }
 
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string,
   ): Promise<void> {
-    return await this._serverApi.updateStickerWon(stickerBookId, stickerId);
+    return await this._serverApi.updateStickerWon(stickerBookId, stickerId, userId);
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,
