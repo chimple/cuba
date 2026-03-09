@@ -530,7 +530,7 @@ const LidoPlayer: FC = () => {
         currentStudent,
         courseDocId,
         lesson.id,
-        Math.round(data.score ?? 0),
+        Math.round(data.finalScore ?? 0),
         data.correctMoves ?? 0,
         data.wrongMoves ?? 0,
         data.timeSpendForLesson ?? 0,
@@ -617,7 +617,7 @@ const LidoPlayer: FC = () => {
         quiz_completed: data.quizCompleted,
         game_time_spent: data.gameTimeSpent,
         quiz_time_spent: data.quizTimeSpent,
-        score: data.score,
+        score: data.finalScore,
         played_from: playedFrom,
         assignment_type: assignmentType,
       });
@@ -800,7 +800,7 @@ const LidoPlayer: FC = () => {
           score={
             lessonDetail?.plugin_type === "lido_assessment"
               ? 100
-              : Math.round(gameResult?.score ?? 0)
+              : Math.round(gameResult?.finalScore ?? 0)
           }
           message={t("You Completed the Lesson:")}
           showDialogBox={showDialogBox}
