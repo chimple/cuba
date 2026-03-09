@@ -47,6 +47,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
     null,
   );
+  const [subjectName, setSubjectName] = useState<string>(course?.name ?? "");
   const [selectedLessonMap, setSelectedLessonMap] = useState<
     Map<string, string>
   >(new Map(selectedLesson));
@@ -210,6 +211,21 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         setChapterId(fetched);
       }
     }
+    if (!course?.name) {
+      try {
+        const subjectId = lesson?.subject_id;
+        if (subjectId) {
+          const subject = await api.getSubject(subjectId);
+          if (subject?.name) {
+            setSubjectName(subject.name);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch subject", err);
+      }
+    } else {
+      setSubjectName(course.name);
+    }
   };
 
   const handleButtonClick = () => {
@@ -275,7 +291,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
         showSideMenu={false}
-        customText="Learning Outcome"
+        customText= {t("Learning Outcome")??"Learning Outcome"}
       />
 
       <div id="lesson-details-body" className="lesson-details-body">
@@ -342,7 +358,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                   <strong>{t("Chapter")}</strong>
                 </span>
                 <span className="lesson-details-separator">:</span>
-                <span className="lesson-details-value">{chapterName ?? ""}</span>
+                <span className="lesson-details-value">
+                  {chapterName ?? ""}
+                </span>
               </div>
               <div
                 className="lesson-details-meta lesson-details-row"
@@ -352,7 +370,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                   <strong>{t("Subject")}</strong>
                 </span>
                 <span className="lesson-details-separator">:</span>
-                <span className="lesson-details-value">{course?.name}</span>
+                <span className="lesson-details-value">{subjectName}</span>
               </div>
 
               <div
