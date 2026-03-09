@@ -291,7 +291,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
         showSideMenu={false}
-        customText= {t("Learning Outcome")??"Learning Outcome"}
+        customText={t("Learning Outcome") ?? "Learning Outcome"}
       />
 
       <div id="lesson-details-body" className="lesson-details-body">
