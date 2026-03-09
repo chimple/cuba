@@ -24,6 +24,7 @@ const mockSetGbUpdated = jest.fn();
 const mockUpdateLocalAttributes = jest.fn();
 const mockSetCurrMode = jest.fn();
 const mockLogEvent = jest.fn();
+const mockMigrateSupabaseSession = jest.fn();
 let mockCurrentLanguage = "en";
 const mockTranslations: Record<string, Record<string, string>> = {
   en: {
@@ -106,6 +107,7 @@ jest.mock("../utility/util", () => ({
   Util: {
     logEvent: (eventName: unknown, payload: unknown) =>
       mockLogEvent(eventName, payload),
+    migrateSupabaseSession: () => mockMigrateSupabaseSession(),
   },
 }));
 
@@ -281,6 +283,7 @@ describe("LoginScreen", () => {
     localStorage.clear();
     jest.clearAllMocks();
     mockCurrentLanguage = "en";
+    mockMigrateSupabaseSession.mockReset();
 
     window.matchMedia = jest.fn().mockImplementation((query) => ({
       matches: false,
