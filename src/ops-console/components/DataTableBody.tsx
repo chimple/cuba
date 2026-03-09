@@ -56,20 +56,13 @@ function TableSkeleton({
         <TableRow key={i}>
           {showSelectionColumn && (
             <TableCell
-              align="center"
-              sx={{
-                py: 0.25,
-                px: 1,
-                height: 32,
-                transform: "none",
-                width: 56,
-              }}
+              id="data-tablebody-skeleton-selection-cell"
+              className="data-tablebody-skeleton-selection-cell"
             >
               <Skeleton
+                id="data-tablebody-skeleton-selection-icon"
                 variant="circular"
-                width={18}
-                height={18}
-                sx={{ mx: "auto", transform: "none" }}
+                className="data-tablebody-skeleton-selection-icon"
               />
             </TableCell>
           )}
@@ -191,25 +184,8 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
             <TableRow>
               {selectableRows && (
                 <TableCell
-                  align="center"
-                  className="data-tablebody-head-cell"
-                  sx={{
-                    width: 56,
-                    maxWidth: 56,
-                    minWidth: 56,
-                    transform: "none",
-                    height: "auto",
-                    paddingTop: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
-                    },
-                    paddingBottom: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
-                    },
-                  }}
+                  id="data-tablebody-select-all-head-cell"
+                  className="data-tablebody-head-cell data-tablebody-select-all-head-cell"
                 >
                   <Checkbox
                     size="small"
@@ -281,29 +257,23 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
 
                 return (
                   <TableRow
+                    id="data-tablebody-row"
                     key={idx}
                     hover
                     onClick={() => {
                       handleRowAction(row);
                     }}
-                    sx={{
-                      cursor:
-                        selectableRows && !canSelect
-                          ? "not-allowed"
-                          : "pointer",
-                      height: "48px",
-                    }}
+                    className={`data-tablebody-row ${
+                      selectableRows && !canSelect
+                        ? "data-tablebody-row-disabled"
+                        : "data-tablebody-row-clickable"
+                    }`}
                     selected={selected}
                   >
                     {selectableRows && (
                       <TableCell
-                        align="center"
-                        className="data-tablebody-cell"
-                        sx={{
-                          width: 56,
-                          maxWidth: 56,
-                          minWidth: 56,
-                        }}
+                        id="data-tablebody-selection-cell"
+                        className="data-tablebody-cell data-tablebody-selection-cell"
                         onClick={(event) => event.stopPropagation()}
                       >
                         <Checkbox
@@ -320,6 +290,7 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
 
                     {columns.map((col) => (
                       <TableCell
+                        id="data-tablebody-content-cell"
                         key={String(col.key)}
                         align={col.align || "left"}
                         className="data-tablebody-cell"

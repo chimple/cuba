@@ -161,9 +161,10 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           >
             {filterIconSrc ? (
               <img
+                id="search-filter-icon-image"
                 src={filterIconSrc}
                 alt="Filter"
-                style={{ width: 13, height: 12, display: "block" }}
+                className="filter-icon-image-SearchAndFilter"
               />
             ) : (
               <FilterListIcon />
@@ -175,9 +176,10 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             startIcon={
               filterIconSrc ? (
                 <img
+                  id="search-filter-icon-image"
                   src={filterIconSrc}
                   alt="Filter"
-                  style={{ width: 13, height: 12, display: "block" }}
+                  className="filter-icon-image-SearchAndFilter"
                 />
               ) : (
                 <FilterListIcon />

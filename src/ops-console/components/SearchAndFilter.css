@@ -38,6 +38,13 @@
   margin-right: 8px;
   margin-left: -4px;
 }
+
+.filter-icon-image-SearchAndFilter {
+  width: 13px;
+  height: 12px;
+  display: block;
+}
+
 .cardlist-search {
   padding: 12px 20px 0;
 }
