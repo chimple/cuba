@@ -5144,6 +5144,7 @@ export type Database = {
           _page: number
           _page_size: number
           _search?: string | null
+           _include_migrated_counts: boolean
         }
         Returns: Json
       }

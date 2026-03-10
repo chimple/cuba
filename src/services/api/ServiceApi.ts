@@ -84,9 +84,11 @@ export type GetSchoolsWithProgramAccessParams = {
   orderBy?: string;
   orderDir?: "asc" | "desc";
   search?: string;
+  includeMigratedCounts?: boolean;
 };
 
 export type SchoolProgramAccessRow = {
+  [key: string]: any;
   school: Record<string, any>;
   program: Record<string, any>;
   program_users: Record<string, any>[];

@@ -8568,6 +8568,7 @@ export class SupabaseApi implements ServiceApi {
           _order_by: safeParams.orderBy ?? "school_name",
           _order_dir: safeParams.orderDir ?? "asc",
           _search: safeParams.search?.trim() || null,
+          _include_migrated_counts: safeParams.includeMigratedCounts ?? false,
         },
       );
 
@@ -8584,6 +8585,7 @@ export class SupabaseApi implements ServiceApi {
       const rawRows = Array.isArray(rawResponse.data) ? rawResponse.data : [];
       const normalizedRows: SchoolProgramAccessRow[] = rawRows.map(
         (item: any) => ({
+          ...(item && typeof item === "object" && !Array.isArray(item) ? item : {}),
           school:
             item?.school &&
             typeof item.school === "object" &&
