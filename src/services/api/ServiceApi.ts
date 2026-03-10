@@ -2863,4 +2863,5 @@ export interface ServiceApi {
     chapterId: string,
     lessonId: string,
   ): Promise<boolean>;
+  isSplUser(): Promise<boolean>;
 }

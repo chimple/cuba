@@ -674,7 +674,6 @@ export const SCHOOL = "school";
 export const CLASS = "class";
 export const CLASSES = "classes";
 export const DELETED_CLASSES = "deleted_classes";
-export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
@@ -861,7 +860,6 @@ export enum STAGES {
 }
 
 export const CURRENT_STUDENT = "currentStudent";
-export const CURRENT_USER = "currentUser";
 export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
@@ -973,7 +971,6 @@ export const CURRENT_CLASS_NAME = "currClassName";
 export const USER_SELECTION_STAGE = "userSelectionStage";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
-export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
 export const LOCAL_BUNDLES_PATH = "https://localhost/assets/lessonBundles/";
 export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";

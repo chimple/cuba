@@ -4,7 +4,6 @@ import { useHistory, useLocation } from "react-router-dom";
 import { t } from "i18next";
 import {
   CURRENT_MODE,
-  CURRENT_USER,
   MODES,
   PAGES,
   SchoolWithRole,
@@ -124,7 +123,6 @@ const ReqEditSchool: React.FC = () => {
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();

@@ -1,4 +1,3 @@
-import { DocumentData, Unsubscribe } from "firebase/firestore";
 import {
   MODES,
   LeaderboardDropdownList,
@@ -16,10 +15,8 @@ import {
   grade2,
   grade3,
   PROFILETYPE,
-  STARS_COUNT,
   LATEST_STARS,
   SchoolRoleMap,
-  MODEL,
   FilteredSchoolsForSchoolListingOps,
   COURSES,
   CHIMPLE_HINDI,
@@ -51,7 +48,6 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   REWARD_LESSON,
-  CURRENT_USER,
   DEFAULT_LOCALE_ID,
   SCHOOL,
   CLASS,
@@ -86,9 +82,6 @@ import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
-import { Table } from "@mui/material";
-import { create } from "domain";
-import { error } from "console";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -105,6 +98,7 @@ import {
   writeAssignmentCartToStorage,
 } from "../../teachers-module/pages/AssignmentCartStorage";
 import { runBackgroundWorkerStreamingSync } from "../../workers/backgroundWorkerClient";
+import { store } from "../../redux/store";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -2624,13 +2618,11 @@ export class SqliteApi implements ServiceApi {
     if (newReward !== null && currentUser) {
       let userId: string = "anonymous";
       try {
-        const data = localStorage.getItem(CURRENT_USER);
-        if (data) {
-          const userData = JSON.parse(data);
-          userId = userData?.user?.id ?? userData?.id ?? "anonymous";
-        }
+        const data = store.getState()?.auth?.user;
+        if (!data || !data.id) throw new Error("User data or ID is missing in the store");
+        userId = data?.id ?? "anonymous";
       } catch (error) {
-        console.error("Failed to parse CURRENT_USER from localStorage:", error);
+        console.error("Failed to get user from redux store:", error);
       }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
@@ -8394,5 +8386,8 @@ order by
       console.error("Error checking existing assignment:", error);
       return false;
     }
+  }
+  async isSplUser(): Promise<boolean> {
+    return await this._serverApi.isSplUser();
   }
 }

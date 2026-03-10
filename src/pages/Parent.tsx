@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
@@ -10,10 +10,8 @@ import {
   PARENTHEADERLIST,
   SCHOOL,
   TableTypes,
-  USER_DATA,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
-import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
 
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
@@ -38,11 +36,9 @@ import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
-import DebugMode from "../teachers-module/components/DebugMode";
-import { Capacitor } from "@capacitor/core";
-// import { EmailComposer } from "@ionic-native/email-composer";
-// import Share from "react";
+import { setUser } from "../redux/slices/auth/authSlice";
+import { useAppDispatch } from "../redux/hooks";
+
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
@@ -50,6 +46,7 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
+  const dispatch = useAppDispatch();
   // Commented out because Debug Mode has been moved to the Leaderboard page
   // const clickCount = useRef(0);
   // const [showDialogBox, setShowDialogBox] = useState(false);
@@ -105,7 +102,7 @@ const Parent: React.FC = () => {
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
     const mergedStudents = Util.mergeStudentsByUpdatedAt(
       userProfilePromise,
-      storedMapStr
+      storedMapStr,
     );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
       finalUser.push(mergedStudents[i]);
@@ -224,7 +221,7 @@ const Parent: React.FC = () => {
                 const allLang = await api.getAllLanguages();
 
                 const langDoc = allLang.find(
-                  (obj) => obj.id === selectedLangDocId
+                  (obj) => obj.id === selectedLangDocId,
                 );
 
                 if (!langDoc) return;
@@ -234,19 +231,16 @@ const Parent: React.FC = () => {
                 setTabIndex(t(parentHeaderIconList[1].header));
 
                 const langId = langDocIds.get(langDoc.code ?? "");
-
+                if (!currentUser || !currentUser.id) return;
                 if (currentUser && selectedLangDocId) {
                   api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
                 setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<"user"> | undefined =
-                  currentUser
-                    ? { ...currentUser, language_id: selectedLangDocId }
-                    : undefined;
-                localStorage.setItem(
-                  USER_DATA,
-                  JSON.stringify(updatedUserData)
-                );
+                const updatedUserData: TableTypes<"user"> = {
+                  ...currentUser,
+                  language_id: selectedLangDocId,
+                };
+                dispatch(setUser(updatedUserData));
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }
@@ -266,7 +260,7 @@ const Parent: React.FC = () => {
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser.id,
-                    v.detail?.checked
+                    v.detail?.checked,
                   );
                 }
                 // Commented out because Debug Mode has been moved to the Leaderboard page
@@ -321,7 +315,7 @@ const Parent: React.FC = () => {
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser.id,
-                    v.detail?.checked
+                    v.detail?.checked,
                   );
                 }
               }}
@@ -342,9 +336,9 @@ const Parent: React.FC = () => {
               onIonChangeClick={async () => {
                 if (!currentUser?.name || currentUser.name.trim() === "") {
                   history.replace(PAGES.ADD_TEACHER_NAME);
-                }else {
-                schoolUtil.setCurrMode(MODES.TEACHER);
-                history.replace(PAGES.DISPLAY_SCHOOLS);
+                } else {
+                  schoolUtil.setCurrMode(MODES.TEACHER);
+                  history.replace(PAGES.DISPLAY_SCHOOLS);
                 }
               }}
             />
@@ -390,7 +384,7 @@ const Parent: React.FC = () => {
                   let message = "Hiii !!!!";
                   window.open(
                     `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
-                    "_system"
+                    "_system",
                   );
                 }}
               >
@@ -431,7 +425,7 @@ const Parent: React.FC = () => {
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
-                    "_system"
+                    "_system",
                   );
                   // https://api.instagram.com/chimple_learning/
 
@@ -491,7 +485,7 @@ const Parent: React.FC = () => {
         onClick={() => {
           window.open(
             "https://www.chimple.org/in-school-guide-for-teachers",
-            "_system"
+            "_system",
           );
         }}
       >
@@ -506,7 +500,7 @@ const Parent: React.FC = () => {
   // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
-      (item) => item.header === newValue
+      (item) => item.header === newValue,
     );
     if (selectedHeader) {
       setCurrentHeader(selectedHeader.header);

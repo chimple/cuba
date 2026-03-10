@@ -5,7 +5,6 @@ import {
   CURRENT_SCHOOL,
   PAGES,
   TableTypes,
-  USER_ROLE,
   MODES,
   USER_SELECTION_STAGE,
   IS_OPS_USER,

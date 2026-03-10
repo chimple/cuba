@@ -1,8 +1,6 @@
 import {
   SCHOOL,
   CLASS,
-  USER_ROLE,
-  CURRENT_USER,
   CURRENT_MODE,
   SCHOOL_LOGIN,
   CURRENT_STUDENT,
@@ -14,8 +12,6 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 const KEYS_TO_CLEAR = [
   SCHOOL,
   CLASS,
-  USER_ROLE,
-  CURRENT_USER,
   CURRENT_MODE,
   SCHOOL_LOGIN,
   CURRENT_STUDENT,

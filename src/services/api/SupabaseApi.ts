@@ -32,7 +32,6 @@ import {
   TabType,
   PROGRAM_TAB,
   AVATARS,
-  USER_ROLE,
   ROLE_PRIORITY,
   StudentAPIResponse,
   StudentInfo,
@@ -95,6 +94,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { store } from "../../redux/store";
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -8382,7 +8382,7 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User not logged in");
     const userId = _currentUser.id;
-    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const from = (page - 1) * limit;
@@ -9553,7 +9553,7 @@ export class SupabaseApi implements ServiceApi {
     if (!_currentUser) throw new Error("User not logged in");
 
     const userId = _currentUser.id;
-    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const roles: string[] = store.getState().auth.roles ?? [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
 
@@ -12027,5 +12027,19 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return !!data;
+  }
+  async isSplUser(): Promise<boolean> {
+    if (!this.supabase) return false;
+    try{
+        const { data, error } = await this.supabase.functions.invoke("is_special_or_program_user");
+        if (error) {
+          console.error("Error checking special user status:", error);
+          return false;
+        }
+        return !!data;
+      }catch(e){
+        console.error("Exception in isSplUser:", e);
+        return false;
+      }
   }
 }

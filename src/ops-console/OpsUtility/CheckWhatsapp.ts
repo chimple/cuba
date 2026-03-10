@@ -1,6 +1,6 @@
 import axios from "axios";
 import { RoleType } from "../../interface/modelInterfaces";
-import { USER_ROLE } from "../../common/constants";
+import { store } from "../../redux/store";
 
 const RAPID_API_KEY = process.env.REACT_APP_RAPIDAPI_KEY;
 
@@ -29,8 +29,8 @@ async function validateWhatsappNumbers(phoneNumbers: string[]): Promise<any[]> {
 
 // Main function to validate WhatsApp numbers in batches
 export const checkWhatsappNumbers = async (numbers: string[]) => {
-  // ✅ Parse stored user roles as an array of strings
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  // ✅ get stored user roles as an array of strings
+  const currentUserRoles: string[] = store.getState().auth.roles as string[] || [];
 
   // ✅ Allow access only to certain roles
   const allowedRoles = [

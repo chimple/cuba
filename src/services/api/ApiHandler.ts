@@ -2111,4 +2111,7 @@ export class ApiHandler implements ServiceApi {
       lessonId,
     );
   }
+  public async isSplUser(): Promise<boolean> {
+    return await this.s.isSplUser();
+  }
 }

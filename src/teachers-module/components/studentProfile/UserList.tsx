@@ -4,7 +4,6 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import {
   CLASS_USERS,
   TableTypes,
-  USER_ROLE,
   OPS_ROLES,
 } from "../../../common/constants";
 import UserDetail from "./UserDetail";
@@ -12,6 +11,9 @@ import { IonAlert, IonIcon } from "@ionic/react";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { t } from "i18next";
 import { trashOutline } from "ionicons/icons";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
+import { AuthState } from "../../../redux/slices/auth/authSlice";
 
 const UserList: React.FC<{
   schoolDoc: TableTypes<"school">;
@@ -25,9 +27,11 @@ const UserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const currentUserRoles: string[] = JSON.parse(
-    localStorage.getItem(USER_ROLE) ?? "[]"
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
   );
+  const currentUserRoles = roles || [];
+
   useEffect(() => {
     init();
   }, []);

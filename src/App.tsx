@@ -51,7 +51,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
-import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import {
@@ -404,17 +403,18 @@ const App: React.FC = () => {
       JSON.stringify(shouldShowHomeworkRemoteAssets),
     );
 
-    try {
-      Filesystem.mkdir({
-        path: CACHE_IMAGE,
-        directory: Directory.Cache,
-      }).catch((e) => {
-        throw new Error("Error in creating directory for cache");
-      });
-    } catch (e) {
-      console.log("Error in creating directory for cache");
+    if(Capacitor.isNativePlatform()){
+      try {
+        Filesystem.mkdir({
+          path: CACHE_IMAGE,
+          directory: Directory.Cache,
+        }).catch((e) => {
+          throw new Error("Error in creating directory for cache");
+        });
+      } catch (e) {
+        console.log("Error in creating directory for cache");
+      }
     }
-
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
 
