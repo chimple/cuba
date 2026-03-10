@@ -3756,7 +3756,12 @@ export class Util {
   }
   public static getUser(): TableTypes<"user"> | undefined {
     try {
-      return store.getState().auth.user as TableTypes<"user">;
+      let rootState = localStorage.getItem("persist:root");
+      if(!rootState) return undefined;
+      let authState = JSON.parse(rootState).auth;
+      if(!authState) return undefined;
+      let user = JSON.parse(authState).user as TableTypes<"user">
+      return user;
     } catch (error) {
       console.error("Error retrieving user ID from redux store:", error);
       return undefined;
