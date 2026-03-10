@@ -37,6 +37,7 @@ import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
 import AddSchoolPage from "./AddSchoolPage";
 import ActivitiesPage from "./ActivitiesPage";
 import SchoolActivities from "./SchoolActivities";
+import MigrateSchoolsPage from "./MigrateSchoolsPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -200,6 +201,12 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <AddSchoolPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
+              exact={true}
+            >
+              <MigrateSchoolsPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}

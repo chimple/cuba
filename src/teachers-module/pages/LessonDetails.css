@@ -24,7 +24,7 @@
 
 .lesson-details-top {
   display: flex;
-  gap: clamp(20px, 3vw, 32px);
+  gap: clamp(20px, 5vw, 32px);
   align-items: flex-start;
   margin-bottom: clamp(16px, 3vw, 24px);
 }
@@ -63,6 +63,25 @@
   color: #777;
   margin-top: 10px;
   gap: clamp(6px, 1vw, 10px);
+  flex-shrink: 0;
+}
+
+.lesson-details-play-text {
+  line-height: 1.15;
+  text-align: center;
+}
+
+.lesson-details-thumb > div:last-child {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lesson-details-thumb > div:last-child .select-icon-image {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .lesson-details-btn {
@@ -158,6 +177,10 @@
 @media (max-width: 480px) {
   .lesson-details-root .header-custom-text {
     padding: 4vh 0;
+  }
+
+  .lesson-details-thumb {
+    min-height: 116px;
   }
 }
 

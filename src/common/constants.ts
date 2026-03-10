@@ -521,6 +521,7 @@ export enum PAGES {
   POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
   ADD_SCHOOL_PAGE = "/add-school-page",
+  MIGRATE_SCHOOLS_PAGE = "/migrate-schools-page",
   ACTIVITIES_PAGE = "/activities-page",
   SCHOOL_ACTIVITIES = "/school-activities",
   QR_ASSIGNMENTS = "/qr_assignments",

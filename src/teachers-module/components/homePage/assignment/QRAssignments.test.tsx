@@ -321,7 +321,7 @@ describe("QRAssignments – full coverage", () => {
     const selectedIds = payload.selectedAssignments.manual["course-1"]
       .count as string[];
     const manualLessons = payload.manualAssignments["course-1"]
-      .lessons as Array<{ id: string }>;
+      .lessons as Array<{ id: string; source?: string }>;
 
     expect(selectedIds.sort()).toEqual(
       ["lesson-2", "lesson-3", "lesson-4", "lesson-5"].sort(),
@@ -329,6 +329,7 @@ describe("QRAssignments – full coverage", () => {
     expect(manualLessons.map((l) => l.id).sort()).toEqual(
       ["lesson-2", "lesson-3", "lesson-4", "lesson-5"].sort(),
     );
+    expect(manualLessons.every((l) => l.source === "qr_code")).toBe(true);
   });
 
   /* ---------- Null User ---------- */
