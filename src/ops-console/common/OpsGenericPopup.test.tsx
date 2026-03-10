@@ -12,6 +12,11 @@ const baseProps: PopupProps = {
 
 const renderPopup = (props: Partial<PopupProps> = {}) =>
   render(<OpsGenericPopup {...baseProps} {...props} />);
+const renderPopupWithClose = (props: Partial<PopupProps> = {}) => {
+  const onClose = jest.fn();
+  const utils = renderPopup({ ...props, onClose });
+  return { ...utils, onClose };
+};
 
 const getOverlay = () => document.getElementById("ops-generic-popup-overlay");
 const getContainer = () => document.getElementById("ops-generic-popup-container");
@@ -284,8 +289,8 @@ describe("OpsGenericPopup", () => {
   });
 
   describe("close interactions", () => {
-    it("closes popup when close icon button is clicked", async () => {
-      renderPopup();
+    it("calls onClose when close icon button is clicked", () => {
+      const { onClose } = renderPopupWithClose();
 
       const closeButton = getCloseButton();
       expect(closeButton).toBeTruthy();
@@ -293,53 +298,55 @@ describe("OpsGenericPopup", () => {
         fireEvent.click(closeButton);
       }
 
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("closes popup when primary button is clicked", async () => {
-      renderPopup({ primaryButtonText: "Done" });
+    it("calls onClose when primary button is clicked", () => {
+      const { onClose } = renderPopupWithClose({
+        primaryButtonText: "Done",
+      });
 
       fireEvent.click(screen.getByRole("button", { name: "Done" }));
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("closes popup even when both icon and button are present", async () => {
-      renderPopup({
+    it("calls onClose even when both icon and button are present", () => {
+      const { onClose } = renderPopupWithClose({
         primaryButtonText: "Done",
         icon: <span data-testid="close-combo-icon">ok</span>,
       });
 
       expect(screen.getByTestId("close-combo-icon")).toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: "Done" }));
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it("does not reopen after internal close when parent keeps isOpen=true", async () => {
-      const { rerender } = renderPopup();
+    it("stays open if parent keeps isOpen=true after close", async () => {
+      const { onClose, rerender } = renderPopupWithClose();
       const closeButton = getCloseButton();
 
       expect(closeButton).toBeTruthy();
       if (closeButton) {
         fireEvent.click(closeButton);
       }
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
 
       rerender(<OpsGenericPopup {...baseProps} isOpen={true} />);
-      expect(screen.queryByText(baseProps.heading)).not.toBeInTheDocument();
+      expectPopupContentVisible();
     });
 
-    it("remains closed after internal close and parent sets isOpen=false", async () => {
-      const { rerender } = renderPopup();
+    it("remains closed after parent sets isOpen=false", async () => {
+      const { onClose, rerender } = renderPopupWithClose();
 
       const closeButton = getCloseButton();
       expect(closeButton).toBeTruthy();
       if (closeButton) {
         fireEvent.click(closeButton);
       }
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
 
       rerender(<OpsGenericPopup {...baseProps} isOpen={false} />);
-      expect(screen.queryByText(baseProps.heading)).not.toBeInTheDocument();
+      await expectPopupContentHidden();
     });
   });
 
@@ -426,18 +433,18 @@ describe("OpsGenericPopup", () => {
       expect(getContainer()).toBeInTheDocument();
     });
 
-    it("reopens when parent toggles false then true after internal close", async () => {
-      const { rerender } = renderPopup();
+    it("reopens when parent toggles false then true after close", async () => {
+      const { onClose, rerender } = renderPopupWithClose();
 
       const closeButton = getCloseButton();
       expect(closeButton).toBeTruthy();
       if (closeButton) {
         fireEvent.click(closeButton);
       }
-      await expectPopupContentHidden();
+      expect(onClose).toHaveBeenCalledTimes(1);
 
       rerender(<OpsGenericPopup {...baseProps} isOpen={false} />);
-      expect(screen.queryByText(baseProps.heading)).not.toBeInTheDocument();
+      await expectPopupContentHidden();
 
       rerender(<OpsGenericPopup {...baseProps} isOpen={true} />);
       expectPopupContentVisible();
