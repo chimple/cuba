@@ -53,6 +53,7 @@ import {
   OPS_ROLES,
   DEFAULT_LOCALE_ID,
   RESULT_STATUS,
+  LEARNING_PATHWAY_MODE,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -361,7 +362,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          [],
+        [],
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -469,38 +470,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-            .channel(`upload-fallback-${uploadingUser}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "upload_queue",
-                filter: `uploading_user=eq.${uploadingUser}`,
-              },
-              async (payload) => {
-                const status = payload.new?.status;
-                const id = payload.new?.id;
+          .channel(`upload-fallback-${uploadingUser}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `uploading_user=eq.${uploadingUser}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              const id = payload.new?.id;
+              console.log(
+                "🔄 [Fallback] Realtime update:",
+                status,
+                "ID:",
+                id,
+              );
+              if (
+                (status === "success" || status === "failed") &&
+                !resolved
+              ) {
+                resolved = true;
+                await fallbackChannel?.unsubscribe();
                 console.log(
-                  "🔄 [Fallback] Realtime update:",
-                  status,
-                  "ID:",
-                  id,
+                  `✅ / ❌ Fallback resolved with status: ${status}`,
                 );
-                if (
-                  (status === "success" || status === "failed") &&
-                  !resolved
-                ) {
-                  resolved = true;
-                  await fallbackChannel?.unsubscribe();
-                  console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`,
-                  );
-                  resolve(status === "success");
-                }
-              },
-            )
-            .subscribe()
+                resolve(status === "success");
+              }
+            },
+          )
+          .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -1414,7 +1415,6 @@ export class SupabaseApi implements ServiceApi {
     if (!rpcRes || rpcRes.error) {
       return false;
     }
-
     return true;
   }
 
@@ -2601,7 +2601,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3864,36 +3864,41 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async mergeStudentRequest(
-    existingStudentId: string, // OLD student (to delete)
+    existingStudentId: string,
     newStudentId: string,
-    requestId?: string | undefined, // NEW student (to keep)
-    respondedBy?: string | undefined,
-  ): Promise<void> {
+    requestId?: string,
+    respondedBy?: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!this.supabase) {
       throw new Error("Supabase not initialized.");
     }
+
     const now = new Date().toISOString();
-    // 1. Get NEW student (kept student)
+
+    // 1. Get destination student (record to keep)
     const { data: newStudentData, error: newStudentError } = await this.supabase
       .from("user")
       .select(
         `
-        *,
-        parent_links:parent_user!student_id (
-          parent:parent_id (*)
-        )
-      `,
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (*)
+      )
+    `,
       )
       .eq("id", newStudentId)
       .eq("is_deleted", false)
       .single();
+
     if (newStudentError || !newStudentData) {
       throw new Error("New student not found");
     }
+
     const newParents = (newStudentData.parent_links || []).map(
       (link: any) => link.parent,
     );
-    // 2. Get OLD student (to merge & delete)
+
+    // 2. Get source student (record to merge and delete)
     const { data: existingStudentData, error: existingStudentError } =
       await this.supabase
         .from("user")
@@ -3908,19 +3913,15 @@ export class SupabaseApi implements ServiceApi {
         .eq("id", existingStudentId)
         .eq("is_deleted", false)
         .single();
-    console.log(
-      "Existing student data:",
-      existingStudentData,
-      "Error:",
-      existingStudentError,
-    );
     if (existingStudentError || !existingStudentData) {
       throw new Error("Existing student not found");
     }
+
     const existingParents = (existingStudentData.parent_links || []).map(
       (link: any) => link.parent,
     );
-    // 3. Transfer results OLD → NEW
+
+    // 3. Transfer results
     const { data: results } = await this.supabase
       .from("result")
       .select("*")
@@ -3928,7 +3929,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false);
 
     if (results && results.length > 0) {
-      await this.supabase
+      const { error: resultTransferError } = await this.supabase
         .from("result")
         .update({
           student_id: newStudentId,
@@ -3936,16 +3937,22 @@ export class SupabaseApi implements ServiceApi {
         })
         .eq("student_id", existingStudentId)
         .eq("is_deleted", false);
+
+      if (resultTransferError) {
+        throw new Error(
+          `Failed to transfer results: ${resultTransferError.message}`,
+        );
+      }
     }
-    // 4. Merge parents (phone-phone, email-email, phone-email supported)
+
+    // 5. Merge parents
     const allParents = [...existingParents, ...newParents];
     const uniqueParents: any[] = [];
+
     for (const parent of allParents) {
       const alreadyExists = uniqueParents.some((p) => {
         const phoneMatch = p.phone && parent.phone && p.phone === parent.phone;
-
         const emailMatch = p.email && parent.email && p.email === parent.email;
-
         return phoneMatch || emailMatch;
       });
 
@@ -3953,9 +3960,8 @@ export class SupabaseApi implements ServiceApi {
         uniqueParents.push(parent);
       }
     }
-    // Link all unique parents to NEW student
+
     for (const parent of uniqueParents) {
-      // 1️⃣ Check if relation exists
       const { data: existingLink } = await this.supabase
         .from("parent_user")
         .select("id")
@@ -3963,7 +3969,6 @@ export class SupabaseApi implements ServiceApi {
         .eq("parent_id", parent.id)
         .maybeSingle();
 
-      // 2️⃣ If not exists → insert
       if (!existingLink) {
         await this.supabase.from("parent_user").insert({
           student_id: newStudentId,
@@ -3971,12 +3976,63 @@ export class SupabaseApi implements ServiceApi {
           is_deleted: false,
           updated_at: now,
         });
-      } else {
-        console.log("Already linked — skipping");
       }
     }
-    // 5. Soft delete OLD student relations
-    await this.supabase
+
+    // 6. Merge learning pathway before soft deleting source student.
+    const pathwayMergeResult = await this.mergeUserPathway(
+      existingStudentId,
+      newStudentId,
+    );
+    if (!pathwayMergeResult.success) {
+      throw new Error(
+        pathwayMergeResult.message || "Failed to merge learning pathway.",
+      );
+    }
+
+    // 7. Merge stars from users table
+
+    // Get OLD student stars
+    const { data: oldUser, error: oldError } = await this.supabase
+      .from("user")
+      .select("stars")
+      .eq("id", existingStudentId)
+      .eq("is_deleted", false)
+      .single();
+
+    // Get NEW student stars
+    const { data: newUser, error: newError } = await this.supabase
+      .from("user")
+      .select("stars")
+      .eq("id", newStudentId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (oldError || newError) {
+      throw new Error("Failed to fetch student stars.");
+    }
+
+    // Safely handle null values
+    const oldStars = oldUser?.stars ?? 0;
+    const newStars = newUser?.stars ?? 0;
+
+    const totalStars = oldStars + newStars;
+
+    // Update NEW student with merged stars
+    const { error: starUpdateError } = await this.supabase
+      .from("user")
+      .update({
+        stars: totalStars,
+        updated_at: now,
+      })
+      .eq("id", newStudentId);
+
+    if (starUpdateError) {
+      throw new Error(`Failed to update merged stars: ${starUpdateError.message}`);
+    }
+
+    // 8. Soft delete source student records
+     await this.supabase
       .from("class_user")
       .update({ is_deleted: true, updated_at: now })
       .eq("user_id", existingStudentId);
@@ -3991,9 +4047,9 @@ export class SupabaseApi implements ServiceApi {
       .update({ is_deleted: true, updated_at: now })
       .eq("id", existingStudentId);
 
-    // 6. Update ops request status
+    // 9. Update request
     if (requestId && respondedBy) {
-      const { error: updateRequestError } = await this.supabase
+      const { error: requestUpdateError } = await this.supabase
         .from("ops_requests")
         .update({
           request_status: "approved",
@@ -4001,16 +4057,376 @@ export class SupabaseApi implements ServiceApi {
           responded_by: respondedBy,
         })
         .eq("request_id", requestId);
-      if (updateRequestError) {
-        console.error(
-          "Error updating ops_requests status:",
-          updateRequestError.message,
+
+      if (requestUpdateError) {
+        throw new Error(
+          `Failed to update merge request: ${requestUpdateError.message}`,
         );
-        throw new Error("Failed to update request status.");
       }
     }
-  }
 
+    return {
+      success: true,
+      message: "Students merged successfully",
+    };
+  } 
+  async mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      throw new Error("Supabase not initialized.");
+    }
+
+    try {
+      const now = new Date().toISOString();
+
+      /**
+       * Safely parse learning_path JSON
+       */
+      const parseLearningPath = (value: unknown): any => {
+        if (!value) return {};
+        if (typeof value === "string") {
+          try {
+            return JSON.parse(value);
+          } catch {
+            return {};
+          }
+        }
+        if (typeof value === "object") return value;
+        return {};
+      };
+
+      /**
+       * Get lesson path safely
+       */
+      const getPath = (course: any): any[] =>
+        Array.isArray(course?.path) ? course.path : [];
+
+      /**
+       * Get currently active lesson
+       */
+      const getActiveLesson = (course: any): any | undefined => {
+        const path = getPath(course);
+        return path.find((lesson: any) => lesson?.isPlayed === false) ?? path[0];
+      };
+
+      /**
+       * Get active chapter id
+       */
+      const getActiveChapterId = (course: any): string | undefined => {
+        const chapterId = getActiveLesson(course)?.chapter_id;
+        return chapterId ? String(chapterId) : undefined;
+      };
+
+      /**
+       * Get course id
+       */
+      const getCourseId = (course: any): string | undefined => {
+        const courseId = course?.course_id;
+        return courseId !== undefined && courseId !== null
+          ? String(courseId)
+          : undefined;
+      };
+
+      /**
+       * Count played lessons
+       */
+      const getPlayedCount = (course: any): number =>
+        getPath(course).filter((l: any) => l?.isPlayed === true).length;
+
+      /**
+       * Count remaining lessons
+       */
+      const getRemainingCount = (course: any): number =>
+        getPath(course).filter((l: any) => l?.isPlayed === false).length;
+
+      /**
+       * Fetch both students learning_path
+       */
+      const { data: oldUser } = await this.supabase
+        .from(TABLES.User)
+        .select("learning_path")
+        .eq("id", existingStudentId)
+        .eq("is_deleted", false)
+        .single();
+
+
+      const { data: newUser } = await this.supabase
+        .from(TABLES.User)
+        .select("learning_path")
+        .eq("id", newStudentId)
+        .eq("is_deleted", false)
+        .single();
+
+      const oldPathway = parseLearningPath(oldUser?.learning_path);
+      const newPathway = parseLearningPath(newUser?.learning_path);
+
+      const oldPathMode = oldPathway?.pathMode;
+      const newPathMode = newPathway?.pathMode;
+
+      /**
+       * -----------------------------
+       * MODE MERGE RULES
+       * -----------------------------
+       *
+       * Priority:
+       * PAL > AssessmentOnly > Disabled
+       */
+
+      const mergedPathMode = (() => {
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE ||
+          newPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
+        ) {
+          return LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+        }
+
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          newPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
+        ) {
+          return LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY;
+        }
+
+        if (
+          oldPathMode === LEARNING_PATHWAY_MODE.DISABLED &&
+          newPathMode === LEARNING_PATHWAY_MODE.DISABLED
+        ) {
+          return LEARNING_PATHWAY_MODE.DISABLED;
+        }
+
+        return newPathMode ?? oldPathMode;
+      })();
+
+      /**
+       * Extract courses
+       */
+      const oldCourses = Array.isArray(oldPathway?.courses?.courseList)
+        ? oldPathway.courses.courseList
+        : [];
+
+      const newCourses = Array.isArray(newPathway?.courses?.courseList)
+        ? newPathway.courses.courseList
+        : [];
+
+      /**
+       * Edge case:
+       * both pathways empty
+       */
+      if (!oldCourses.length && !newCourses.length) {
+        return {
+          success: true,
+          message: "Both pathways empty.",
+        };
+      }
+
+      /**
+       * Fetch chapter sort indexes
+       */
+      const chapterIds: string[] = Array.from(
+        new Set(
+          [...oldCourses, ...newCourses]
+            .map((course) => getActiveChapterId(course))
+            .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      const chapterSortMap = new Map<string, number>();
+
+      if (chapterIds.length) {
+        const { data: chapters } = await this.supabase
+          .from(TABLES.Chapter)
+          .select("id, sort_index")
+          .in("id", chapterIds);
+
+        for (const c of chapters ?? []) {
+          chapterSortMap.set(String(c.id), c.sort_index ?? -1);
+        }
+      }
+
+      const getActiveSortIndex = (course: any): number => {
+        const chapterId = getActiveChapterId(course);
+        if (!chapterId) return -1;
+        return chapterSortMap.get(chapterId) ?? -1;
+      };
+
+      /**
+       * ----------------------------------------
+       * Decide which course is more progressed
+       * ----------------------------------------
+       */
+
+      const pickMoreProgressedCourse = (oldCourse: any, newCourse: any): any => {
+        if (!oldCourse) return newCourse;
+        if (!newCourse) return oldCourse;
+
+        const oldPlayed = getPlayedCount(oldCourse);
+        const newPlayed = getPlayedCount(newCourse);
+
+        const oldRemaining = getRemainingCount(oldCourse);
+        const newRemaining = getRemainingCount(newCourse);
+
+        const oldChapterSort = getActiveSortIndex(oldCourse);
+        const newChapterSort = getActiveSortIndex(newCourse);
+
+        const oldLesson = getActiveLesson(oldCourse);
+        const newLesson = getActiveLesson(newCourse);
+
+        const oldAssessmentCompleted =
+          oldLesson?.assessment_completed === true;
+        const newAssessmentCompleted =
+          newLesson?.assessment_completed === true;
+
+        const oldHasAssessment = oldLesson?.is_assessment === true;
+        const newHasAssessment = newLesson?.is_assessment === true;
+
+        /**
+         * PAL
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+          return newCourse ?? oldCourse;
+        }
+
+        /**
+         * AssessmentOnly rules
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY) {
+          /**
+           * If assessment completed → prefer that student
+           */
+          if (oldAssessmentCompleted !== newAssessmentCompleted) {
+            return oldAssessmentCompleted ? oldCourse : newCourse;
+          }
+
+          /**
+           * Assigned assessment scenario
+           */
+          if (oldHasAssessment !== newHasAssessment) {
+            const oldStarted = oldPlayed > 0;
+            const newStarted = newPlayed > 0;
+
+            if (oldStarted && !newStarted) return oldCourse;
+            if (newStarted && !oldStarted) return newCourse;
+
+            return oldHasAssessment ? oldCourse : newCourse;
+          }
+
+          /**
+           * Choose more progress
+           */
+          if (oldPlayed !== newPlayed) {
+            return oldPlayed > newPlayed ? oldCourse : newCourse;
+          }
+
+          if (oldRemaining !== newRemaining) {
+            return oldRemaining < newRemaining ? oldCourse : newCourse;
+          }
+
+          return newCourse;
+        }
+
+        /**
+         * Disabled mode
+         * compare chapter progress
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.DISABLED) {
+          if (oldChapterSort !== newChapterSort) {
+            return oldChapterSort > newChapterSort ? oldCourse : newCourse;
+          }
+
+          return oldPlayed > newPlayed ? oldCourse : newCourse;
+        }
+
+        return newCourse;
+      };
+
+      /**
+       * Merge courses by course_id
+       */
+
+      const mergedByCourseId = new Map<string, any>();
+
+      for (const course of newCourses) {
+        const id = getCourseId(course);
+        if (id) mergedByCourseId.set(id, course);
+      }
+
+      for (const oldCourse of oldCourses) {
+        const id = getCourseId(oldCourse);
+        if (!id) continue;
+
+        const existing = mergedByCourseId.get(id);
+
+        if (!existing) {
+          mergedByCourseId.set(id, oldCourse);
+          continue;
+        }
+
+        mergedByCourseId.set(
+          id,
+          pickMoreProgressedCourse(oldCourse, existing),
+        );
+      }
+
+      const mergedCourses = Array.from(mergedByCourseId.values());
+
+      /**
+       * Safe currentCourseIndex
+       */
+
+      const safeIndex = Math.max(
+        0,
+        Math.min(
+          newPathway?.courses?.currentCourseIndex ??
+          oldPathway?.courses?.currentCourseIndex ??
+          0,
+          mergedCourses.length - 1,
+        ),
+      );
+
+      /**
+       * Final merged pathway
+       */
+
+      const updatedPathway = {
+        ...oldPathway,
+        ...newPathway,
+        pathMode: mergedPathMode,
+        updated_at: now,
+        courses: {
+          ...(oldPathway?.courses || {}),
+          ...(newPathway?.courses || {}),
+          courseList: mergedCourses,
+          currentCourseIndex: safeIndex,
+        },
+      };
+
+      /**
+       * Update destination student
+       */
+
+      await this.supabase
+        .from(TABLES.User)
+        .update({
+          learning_path: JSON.stringify(updatedPathway),
+          updated_at: now,
+        })
+        .eq("id", newStudentId);
+
+      return {
+        success: true,
+        message: "Learning pathway merged successfully.",
+      };
+    } catch (error: any) {
+      console.error("MERGE PATHWAY ERROR:", error);
+
+      return {
+        success: false,
+        message: error?.message || "Failed to merge pathway.",
+      };
+    }
+  }
   async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -6585,11 +7001,12 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
-    if (!this.supabase) return;
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      return { success: false, message: "Database not available." };
+    }
 
     try {
-      // Find existing school_user row
       const { data, error: selectError } = await this.supabase
         .from("school_user")
         .select("id")
@@ -6601,16 +7018,15 @@ export class SupabaseApi implements ServiceApi {
 
       if (selectError) {
         console.error("Error selecting school_user:", selectError);
-        return;
+        return { success: false, message: selectError.message };
       }
 
       if (!data) {
-        throw new Error("school_user not found.");
+        return { success: false, message: "school_user not found." };
       }
 
       const updatedAt = new Date().toISOString();
 
-      // Update is_deleted and updated_at
       const { error: updateError } = await this.supabase
         .from("school_user")
         .update({ is_deleted: true, updated_at: updatedAt })
@@ -6618,10 +7034,19 @@ export class SupabaseApi implements ServiceApi {
 
       if (updateError) {
         console.error("Error updating school_user:", updateError);
-        return;
+        return { success: false, message: updateError.message };
       }
-    } catch (error) {
+
+      return {
+        success: true,
+        message: "User removed from school successfully.",
+      };
+    } catch (error: any) {
       console.error("SupabaseApi ~ deleteUserFromSchool ~ error:", error);
+      return {
+        success: false,
+        message: error?.message || "Unexpected error occurred.",
+      };
     }
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -7859,8 +8284,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+            )
             : [];
         }
       }
@@ -7908,8 +8333,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+            )
             : [];
         }
       }
@@ -9008,21 +9433,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-              .from(TABLES.School)
-              .select("id, name, udise, group1,group2, group3, country")
-              .in("id", schoolIds)
+            .from(TABLES.School)
+            .select("id, name, udise, group1,group2, group3, country")
+            .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-              .from(TABLES.User)
-              .select("id, name, email, phone, gender")
-              .in("id", userIds)
+            .from(TABLES.User)
+            .select("id, name, email, phone, gender")
+            .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-              .from(TABLES.Class)
-              .select("id, name, school_id")
-              .in("id", classIds)
+            .from(TABLES.Class)
+            .select("id, name, school_id")
+            .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -10008,7 +10433,7 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string; [key: string]: any };
+      user: { id: string;[key: string]: any };
     };
     const isNewUser = message === "success-created";
     const dedupeAndPickLatest = async (

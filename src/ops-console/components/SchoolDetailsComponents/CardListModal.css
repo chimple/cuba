@@ -239,6 +239,12 @@
   cursor: not-allowed;
 }
 
+.cardlist-merge-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 /* Right side buttons container */
 .cardlist-merge-footer > div:last-child {
   display: flex;
