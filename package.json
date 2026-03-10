@@ -38,7 +38,7 @@
     "@capawesome/capacitor-app-update": "^7.0.1",
     "@capawesome/capacitor-live-update": "^7.2.2",
     "@capgo/capacitor-social-login": "^7.11.8",
-    "@chimple/palau-recommendation": "0.1.2",
+    "@chimple/palau-recommendation": "^0.1.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@ffmpeg/ffmpeg": "^0.12.15",
