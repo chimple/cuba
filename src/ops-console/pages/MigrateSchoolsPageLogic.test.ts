@@ -171,6 +171,14 @@ describe("useMigrateSchoolsPageLogic", () => {
     expect(result.current.page).toBe(1);
   });
 
+  // TC 11.6: Fallback unknown tab query values to migrate.
+  it("should fallback unknown query tab to migrate", async () => {
+    mockLocationSearch = "?tab=nonsense";
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+    expect(result.current.activeTab).toBe("migrate");
+  });
+
   // TC 3.1-3.2-14.1-14.2: Fetch filter options and schools on mount with academicYears payload.
   it("should fetch options and schools on mount with academicYears payload", async () => {
     renderHook(() => useMigrateSchoolsPageLogic());
@@ -186,6 +194,7 @@ describe("useMigrateSchoolsPageLogic", () => {
     expect(request.academicYears).toHaveLength(1);
     expect(request.academicYears[0]).toMatch(/^\d{4}-\d{2}$/);
     expect(request.page).toBe(1);
+    expect(request.includeMigratedCounts).toBe(false);
   });
 
   // TC 13.1: Sync default state to minimal empty URL query.
@@ -233,6 +242,22 @@ describe("useMigrateSchoolsPageLogic", () => {
         mockReplace.mock.calls[mockReplace.mock.calls.length - 1][0].search;
       expect(search).toContain("orderDir=desc");
     });
+  });
+
+  // TC 2.3: Reset page to first when switching tabs.
+  it("should reset page to 1 when tab is switched", async () => {
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    act(() => {
+      result.current.setPage(3);
+    });
+    expect(result.current.page).toBe(3);
+
+    act(() => {
+      result.current.handleTabChange("migrated");
+    });
+    expect(result.current.page).toBe(1);
   });
 
   // TC 13.3: Sync search term changes into URL query.
@@ -285,8 +310,77 @@ describe("useMigrateSchoolsPageLogic", () => {
       ][0];
     expect(mockApiHandler.getSchoolsWithProgramAccess).toHaveBeenCalled();
     expect(request.academicYears).toEqual([expectedMigratedYear]);
+    expect(request.includeMigratedCounts).toBe(true);
     expect(result.current.rows).toEqual([]);
     expect(result.current.pageCount).toBe(0);
+  });
+
+  // TC 2.1-2.4: Switching to migrated tab should refresh rows and show empty when response is empty.
+  it("should clear rows after switching to migrated tab when migrated response is empty", async () => {
+    mockApiHandler.getSchoolsWithProgramAccess
+      .mockResolvedValueOnce({
+        ...emptySchoolsResponse,
+        total: 1,
+        data: [
+          {
+            school: {
+              school_name: "School One",
+              state: "Karnataka",
+              district: "Bangalore",
+              block: "B",
+              cluster: "C",
+              academic_year: "2024-25",
+            },
+            program: { name: "Program A", model: "at_home" },
+            program_users: [],
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        ...emptySchoolsResponse,
+        total: 0,
+        data: [],
+      });
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+
+    act(() => {
+      result.current.handleTabChange("migrated");
+    });
+
+    await waitFor(() => expect(result.current.rows).toEqual([]));
+    expect(result.current.pageCount).toBe(0);
+  });
+
+  // TC MIGRATED-YEAR: Migrated tab should display only the migrated academic year in rows.
+  it("should show only migrated academic year in migrated tab rows", async () => {
+    mockLocationSearch = "?tab=migrated";
+    mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce({
+      ...emptySchoolsResponse,
+      total: 1,
+      data: [
+        {
+          school: {
+            school_name: "School One",
+            academic_year: '["2025-26","2026-27"]',
+            state: "Karnataka",
+            district: "Bangalore",
+            block: "B",
+            cluster: "C",
+          },
+          program: { name: "Program A", model: "at_home" },
+          program_users: [],
+          migration_metrics: { academic_year: "2026-27" },
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+    expect(result.current.rows[0].academicYear).toBe("2026-27");
   });
 
   // TC 5.1-5.6-16.3-16.4: Map API rows with data fallbacks and merged program filter options.
@@ -319,10 +413,12 @@ describe("useMigrateSchoolsPageLogic", () => {
     await waitFor(() => expect(result.current.rows).toHaveLength(1));
 
     const row = result.current.rows[0];
+    const currentYear = new Date().getFullYear();
+    const expectedMigrateYear = `${currentYear - 1}-${String(currentYear).slice(-2)}`;
     expect(row.name.value).toBe("Green School");
     expect(row.programName).toBe("Program X");
     expect(row.programModel).toBe("At-Home");
-    expect(row.academicYear).toBe("2024-25, 2025-26");
+    expect(row.academicYear).toBe(expectedMigrateYear);
     expect(row.program_users).toEqual([]);
     expect(result.current.filterOptions.program).toEqual(
       expect.arrayContaining(["Base Program", "Program X"]),
@@ -539,6 +635,91 @@ describe("useMigrateSchoolsPageLogic", () => {
     errorSpy.mockRestore();
   });
 
+  // TC 6.7: Preserve existing program options when options API returns an empty program list.
+  it("should preserve program filter options when filter options api returns empty program array", async () => {
+    let resolveFilterOptions:
+      | ((value: typeof defaultFilterOptions) => void)
+      | undefined;
+
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockReturnValueOnce(
+      new Promise<typeof defaultFilterOptions>((resolve) => {
+        resolveFilterOptions = resolve;
+      }),
+    );
+    mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce({
+      ...emptySchoolsResponse,
+      total: 1,
+      data: [
+        {
+          school: {
+            school_name: "Green School",
+            udise_code: "UD123",
+            state: "Karnataka",
+            district: "D1",
+            cluster: "C1",
+            block: "B1",
+            academic_year: "2024-25",
+          },
+          program: {
+            name: "Program X",
+            model: "at_home",
+          },
+          program_users: [],
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitFor(() =>
+      expect(mockApiHandler.getSchoolsWithProgramAccess).toHaveBeenCalled(),
+    );
+    await waitFor(() =>
+      expect(result.current.filterOptions.program).toEqual(
+        expect.arrayContaining(["Program X"]),
+      ),
+    );
+
+    await act(async () => {
+      resolveFilterOptions?.({
+        ...defaultFilterOptions,
+        program: [],
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.filterOptions.program).toEqual(
+        expect.arrayContaining(["Program X"]),
+      ),
+    );
+  });
+
+  // TC 6.1: Open filter action should make filter slider visible.
+  it("should set filter slider open state when opening filters", async () => {
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    act(() => {
+      result.current.handleOpenFilter();
+    });
+
+    expect(result.current.isFilterOpen).toBe(true);
+  });
+
+  // TC 6.5: Reset page to first when applying filters.
+  it("should reset page to 1 when applying filters", async () => {
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    act(() => {
+      result.current.setPage(4);
+      result.current.handleOpenFilter();
+      result.current.handleTempFilterChange("state", ["Karnataka"]);
+      result.current.handleApplyFilters();
+    });
+
+    expect(result.current.page).toBe(1);
+  });
+
   // TC 9.1-9.4: Toggle row selection and select/unselect all visible rows.
   it("should toggle row selection and select/unselect all visible rows", async () => {
     const { result } = renderHook(() => useMigrateSchoolsPageLogic());
@@ -713,6 +894,28 @@ describe("useMigrateSchoolsPageLogic", () => {
     jest.useRealTimers();
   });
 
+  // TC 9.5: Manual success popup close should switch tab and reset page.
+  it("should apply migrated-tab transitions on manual success popup close", async () => {
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    act(() => {
+      result.current.handleToggleSchoolSelection("1");
+      result.current.setPage(3);
+    });
+    await act(async () => {
+      await result.current.handleConfirmMigrate();
+    });
+    expect(result.current.isSuccessPopupOpen).toBe(true);
+
+    act(() => {
+      result.current.handleCloseSuccessPopup();
+    });
+    expect(result.current.isSuccessPopupOpen).toBe(false);
+    expect(result.current.activeTab).toBe("migrated");
+    expect(result.current.page).toBe(1);
+  });
+
   // TC 12.1-12.3-12.4-12.5: Compute page count from total records with ceil behavior.
   it("should compute pageCount from total with ceil behavior", async () => {
     mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce({
@@ -723,6 +926,64 @@ describe("useMigrateSchoolsPageLogic", () => {
     const { result } = renderHook(() => useMigrateSchoolsPageLogic());
     await waitForInitialLoad();
     await waitFor(() => expect(result.current.pageCount).toBe(2));
+  });
+
+  // TC 10.2: Changing page should refetch using the requested page.
+  it("should refetch school list when page is changed", async () => {
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    act(() => {
+      result.current.setPage(2);
+    });
+    await waitFor(() =>
+      expect(mockApiHandler.getSchoolsWithProgramAccess).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 2 }),
+      ),
+    );
+  });
+
+  // TC 12.2: Handle school list responses that omit the data field.
+  it("should treat school list response with missing data field as empty rows", async () => {
+    mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce({
+      total: 0,
+      page: 1,
+      page_size: 20,
+      total_pages: 0,
+    });
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+    expect(result.current.rows).toEqual([]);
+    expect(result.current.pageCount).toBe(0);
+  });
+
+  // TC 12.3: Handle rows with null school/program payloads without crashing.
+  it("should handle rows with null school payload without crashing", async () => {
+    mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce({
+      ...emptySchoolsResponse,
+      total: 1,
+      data: [{ school: null, program: null, program_users: null }],
+    });
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+    expect(result.current.rows[0].name.value).toBe("--");
+    expect(result.current.rows[0].program_users).toEqual([]);
+  });
+
+  // TC 12.5: Handle null filter-options response without crashing.
+  it("should handle null filter options response without crashing", async () => {
+    mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValueOnce(
+      null,
+    );
+
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitFor(() =>
+      expect(mockApiHandler.getSchoolsWithProgramAccess).toHaveBeenCalled(),
+    );
+    expect(result.current.filterOptions).toEqual(INITIAL_FILTERS);
   });
 
   // TC 15.1-15.2-15.3: Expose expected table columns and filter config metadata.
@@ -742,6 +1003,25 @@ describe("useMigrateSchoolsPageLogic", () => {
     ]);
     expect(result.current.columns.every((c) => c.sortable === false)).toBe(true);
     expect(result.current.filterConfigsForSchool).toHaveLength(6);
+  });
+
+  // TC 15.4: Show migrated tab class metric columns after academic year.
+  it("should expose migrated tab columns with ukg and class metrics", async () => {
+    mockLocationSearch = "?tab=migrated";
+    const { result } = renderHook(() => useMigrateSchoolsPageLogic());
+    await waitForInitialLoad();
+
+    expect(result.current.columns.map((c) => c.key)).toEqual([
+      "name",
+      "programName",
+      "programModel",
+      "academicYear",
+      "ukg",
+      "class2",
+      "class3",
+      "class4",
+      "class5",
+    ]);
   });
 
   // TC 16.1-16.2-3.6: Safely handle null or failed school list API responses.

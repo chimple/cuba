@@ -366,11 +366,15 @@ export const useMigrateSchoolsPageLogic = () => {
         const schoolBlock = school.block || school.group3 || "--";
         const schoolCluster = school.cluster || school.group4 || "--";
         const resolvedAcademicYear =
-          normalizeAcademicYear(
-            school.academic_year ?? program.academic_year ?? school.academicYear,
-          ) ||
-          requestedAcademicYears[0] ||
-          "";
+          activeTab === "migrated"
+            ? normalizeAcademicYear(migrationMetrics.academic_year) ||
+              requestedAcademicYears[0] ||
+              ""
+            : requestedAcademicYears[0] ||
+              normalizeAcademicYear(
+                school.academic_year ?? program.academic_year ?? school.academicYear,
+              ) ||
+              "";
         const resolvedId =
           school.sch_id ||
           school.id ||
