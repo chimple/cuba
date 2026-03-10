@@ -132,23 +132,31 @@ export const normalizeProgramModel = (value: any): string => {
   return "";
 };
 
-const normalizeMigratedMetricValue = (value: any): string | number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+type MigratedMetricKey =
+  | "ukg_student_count"
+  | "class_2_student_count"
+  | "class_3_student_count"
+  | "class_4_student_count"
+  | "class_5_student_count";
+type MigratedMetricValue = number | null | undefined;
+type MigratedMetricSource = Partial<
+  Record<MigratedMetricKey, MigratedMetricValue>
+>;
 
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed.length > 0) return trimmed;
-  }
+const normalizeMigratedMetricValue = (
+  value: MigratedMetricValue,
+): string | number => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
 
   return "NA";
 };
 
 const resolveMigratedMetricValue = (
-  row: Record<string, any>,
-  school: Record<string, any>,
-  program: Record<string, any>,
-  migrationMetrics: Record<string, any>,
-  candidateKeys: string[],
+  row: MigratedMetricSource,
+  school: MigratedMetricSource,
+  program: MigratedMetricSource,
+  migrationMetrics: MigratedMetricSource,
+  candidateKeys: readonly MigratedMetricKey[],
 ): string | number => {
   const sources = [migrationMetrics, row, school, program];
 
