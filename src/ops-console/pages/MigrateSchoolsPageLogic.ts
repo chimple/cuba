@@ -132,6 +132,37 @@ export const normalizeProgramModel = (value: any): string => {
   return "";
 };
 
+const normalizeMigratedMetricValue = (value: any): string | number => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > 0) return trimmed;
+  }
+
+  return "NA";
+};
+
+const resolveMigratedMetricValue = (
+  row: Record<string, any>,
+  school: Record<string, any>,
+  program: Record<string, any>,
+  migrationMetrics: Record<string, any>,
+  candidateKeys: string[],
+): string | number => {
+  const sources = [migrationMetrics, row, school, program];
+
+  for (const source of sources) {
+    for (const key of candidateKeys) {
+      if (source && Object.prototype.hasOwnProperty.call(source, key)) {
+        return normalizeMigratedMetricValue(source[key]);
+      }
+    }
+  }
+
+  return "NA";
+};
+
 export const buildNameCell = (
   schoolName: string,
   schoolUdise: string,
@@ -296,6 +327,7 @@ export const useMigrateSchoolsPageLogic = () => {
         orderBy: backendOrderBy || undefined,
         orderDir,
         search: searchTerm,
+        includeMigratedCounts: activeTab === "migrated",
       });
 
       const data = response?.data || [];
@@ -323,6 +355,10 @@ export const useMigrateSchoolsPageLogic = () => {
         const school = row?.school && typeof row.school === "object" ? row.school : {};
         const program =
           row?.program && typeof row.program === "object" ? row.program : {};
+        const migrationMetrics =
+          row?.migration_metrics && typeof row.migration_metrics === "object"
+            ? row.migration_metrics
+            : {};
         const schoolName = school.school_name || school.name || "--";
         const schoolUdise = school.udise_code || school.udise || "--";
         const schoolState = school.state || school.group1 || "--";
@@ -341,6 +377,41 @@ export const useMigrateSchoolsPageLogic = () => {
           school.school_id ||
           program.school_id ||
           `school-${index}`;
+        const ukg = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ["ukg_student_count"],
+        );
+        const class2 = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ["class_2_student_count"],
+        );
+        const class3 = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ["class_3_student_count"],
+        );
+        const class4 = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ["class_4_student_count"],
+        );
+        const class5 = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ["class_5_student_count"],
+        );
 
         return {
           ...school,
@@ -361,6 +432,11 @@ export const useMigrateSchoolsPageLogic = () => {
           district: schoolDistrict,
           cluster: schoolCluster,
           block: schoolBlock,
+          ukg,
+          class2,
+          class3,
+          class4,
+          class5,
         };
       });
 
@@ -393,51 +469,109 @@ export const useMigrateSchoolsPageLogic = () => {
   }, [activeTab, academicYears, migratedAcademicYears]);
 
   const columns: Column<Record<string, any>>[] = useMemo(
-    () => [
-      {
-        key: "name",
-        label: t("School Name"),
-        width: "24%",
-        sortable: false,
-      },
-      {
-        key: "programName",
-        label: t("Program Name"),
-        width: "16%",
-        sortable: false,
-      },
-      {
-        key: "programModel",
-        label: t("Program Model"),
-        width: "14%",
-        sortable: false,
-      },
-      {
-        key: "academicYear",
-        label: t("Academic Year"),
-        width: "13%",
-        sortable: false,
-      },
-      {
-        key: "district",
-        label: t("District"),
-        width: "12%",
-        sortable: false,
-      },
-      {
-        key: "cluster",
-        label: t("Cluster"),
-        width: "11%",
-        sortable: false,
-      },
-      {
-        key: "block",
-        label: t("Block"),
-        width: "10%",
-        sortable: false,
-      },
-    ],
-    [],
+    () =>
+      activeTab === "migrated"
+        ? [
+            {
+              key: "name",
+              label: t("School Name"),
+              width: "24%",
+              sortable: false,
+            },
+            {
+              key: "programName",
+              label: t("Program Name"),
+              width: "16%",
+              sortable: false,
+            },
+            {
+              key: "programModel",
+              label: t("Program Model"),
+              width: "14%",
+              sortable: false,
+            },
+            {
+              key: "academicYear",
+              label: t("Academic Year"),
+              width: "13%",
+              sortable: false,
+            },
+            {
+              key: "ukg",
+              label: t("UKG"),
+              width: "8%",
+              sortable: false,
+            },
+            {
+              key: "class2",
+              label: t("Class 2"),
+              width: "8%",
+              sortable: false,
+            },
+            {
+              key: "class3",
+              label: t("Class 3"),
+              width: "8%",
+              sortable: false,
+            },
+            {
+              key: "class4",
+              label: t("Class 4"),
+              width: "8%",
+              sortable: false,
+            },
+            {
+              key: "class5",
+              label: t("Class 5"),
+              width: "8%",
+              sortable: false,
+            },
+          ]
+        : [
+            {
+              key: "name",
+              label: t("School Name"),
+              width: "24%",
+              sortable: false,
+            },
+            {
+              key: "programName",
+              label: t("Program Name"),
+              width: "16%",
+              sortable: false,
+            },
+            {
+              key: "programModel",
+              label: t("Program Model"),
+              width: "14%",
+              sortable: false,
+            },
+            {
+              key: "academicYear",
+              label: t("Academic Year"),
+              width: "13%",
+              sortable: false,
+            },
+            {
+              key: "district",
+              label: t("District"),
+              width: "12%",
+              sortable: false,
+            },
+            {
+              key: "cluster",
+              label: t("Cluster"),
+              width: "11%",
+              sortable: false,
+            },
+            {
+              key: "block",
+              label: t("Block"),
+              width: "10%",
+              sortable: false,
+            },
+          ],
+    [activeTab],
   );
 
   const filterConfigsForSchool = useMemo(
