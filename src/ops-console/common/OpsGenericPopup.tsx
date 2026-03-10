@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +12,14 @@ import { t } from "i18next";
 
 interface OpsGenericPopupProps {
   isOpen: boolean;
-  // MUI icon support
-  imageSrc?: string;          // Image support
+  imageSrc?: string;
   heading: string;
   text: string;
   primaryButtonText?: string;
   autoCloseSeconds?: number;
   icon?: React.ReactNode;
+  onPrimaryClick?: () => void;
+  onClose?: () => void;
 }
 
 const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
@@ -28,33 +29,28 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
   text,
   primaryButtonText,
   autoCloseSeconds,
-  icon
+  icon,
+  onPrimaryClick,
+  onClose,
 }) => {
-  const [open, setOpen] = useState(isOpen);
-
-  // Sync with parent open state
   useEffect(() => {
-    setOpen(isOpen);
-  }, [isOpen]);
-
-  // Auto close logic
-  useEffect(() => {
-    if (open && autoCloseSeconds) {
+    if (isOpen && autoCloseSeconds && onClose) {
       const timer = setTimeout(() => {
-        setOpen(false);
+        onClose();
       }, autoCloseSeconds * 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [open, autoCloseSeconds]);
+  }, [isOpen, autoCloseSeconds, onClose]);
 
   const handleClose = () => {
-    setOpen(false);
+    onClose?.();
   };
 
   return (
     <Dialog
-      open={open}
+      open={isOpen}
+      onClose={handleClose}
       id="ops-generic-popup-overlay"
       className="ops-generic-popup-overlay"
     >
@@ -62,7 +58,6 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
         id="ops-generic-popup-container"
         className="ops-generic-popup-container"
       >
-        {/* Close Button */}
         <IconButton
           id="ops-generic-popup-close-btn"
           className="ops-generic-popup-close-btn"
@@ -71,7 +66,6 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           <CloseIcon />
         </IconButton>
 
-        {/* Icon OR Image */}
         {icon && (
           <div
             id="ops-generic-popup-icon"
@@ -94,7 +88,6 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           </div>
         )}
 
-        {/* Heading */}
         <Typography
           id="ops-generic-popup-heading"
           className="ops-generic-popup-heading"
@@ -102,7 +95,6 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           {typeof heading === "string" ? t(heading) || heading : ""}
         </Typography>
 
-        {/* Text */}
         <Typography
           id="ops-generic-popup-text"
           className="ops-generic-popup-text"
@@ -110,14 +102,16 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           {typeof text === "string" ? t(text) || text : ""}
         </Typography>
 
-        {/* Optional Button */}
         {primaryButtonText && (
           <Button
             id="ops-generic-popup-primary-btn"
             className="ops-generic-popup-primary-btn"
             variant="contained"
             fullWidth
-            onClick={handleClose}
+            onClick={() => {
+              onPrimaryClick?.();
+              handleClose();
+            }}
           >
             {typeof primaryButtonText === "string"
               ? t(primaryButtonText) || primaryButtonText

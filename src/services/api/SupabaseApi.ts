@@ -3843,6 +3843,7 @@ export class SupabaseApi implements ServiceApi {
       .from("user")
       .select("stars")
       .eq("id", existingStudentId)
+      .eq("is_deleted", false)
       .single();
 
     // Get NEW student stars
@@ -3850,6 +3851,7 @@ export class SupabaseApi implements ServiceApi {
       .from("user")
       .select("stars")
       .eq("id", newStudentId)
+      .eq("is_deleted", false)
       .single();
 
     if (oldError || newError) {
@@ -3876,7 +3878,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     // 8. Soft delete source student records
-    const { error: classDeleteError } = await this.supabase
+     await this.supabase
       .from("class_user")
       .update({ is_deleted: true, updated_at: now })
       .eq("user_id", existingStudentId);
@@ -3913,7 +3915,7 @@ export class SupabaseApi implements ServiceApi {
       success: true,
       message: "Students merged successfully",
     };
-  }
+  } 
   async mergeUserPathway(
     existingStudentId: string,
     newStudentId: string,
@@ -3925,13 +3927,15 @@ export class SupabaseApi implements ServiceApi {
     try {
       const now = new Date().toISOString();
 
+      /**
+       * Safely parse learning_path JSON
+       */
       const parseLearningPath = (value: unknown): any => {
         if (!value) return {};
         if (typeof value === "string") {
           try {
             return JSON.parse(value);
-          } catch (parseError) {
-            console.error("Failed to parse learning_path JSON:", parseError);
+          } catch {
             return {};
           }
         }
@@ -3939,24 +3943,31 @@ export class SupabaseApi implements ServiceApi {
         return {};
       };
 
+      /**
+       * Get lesson path safely
+       */
       const getPath = (course: any): any[] =>
         Array.isArray(course?.path) ? course.path : [];
 
+      /**
+       * Get currently active lesson
+       */
       const getActiveLesson = (course: any): any | undefined => {
         const path = getPath(course);
         return path.find((lesson: any) => lesson?.isPlayed === false) ?? path[0];
       };
 
-      const getActiveIsAssessment = (course: any): boolean | undefined => {
-        const isAssessment = getActiveLesson(course)?.is_assessment;
-        return typeof isAssessment === "boolean" ? isAssessment : undefined;
-      };
-
+      /**
+       * Get active chapter id
+       */
       const getActiveChapterId = (course: any): string | undefined => {
         const chapterId = getActiveLesson(course)?.chapter_id;
         return chapterId ? String(chapterId) : undefined;
       };
 
+      /**
+       * Get course id
+       */
       const getCourseId = (course: any): string | undefined => {
         const courseId = course?.course_id;
         return courseId !== undefined && courseId !== null
@@ -3964,44 +3975,51 @@ export class SupabaseApi implements ServiceApi {
           : undefined;
       };
 
+      /**
+       * Count played lessons
+       */
       const getPlayedCount = (course: any): number =>
-        getPath(course).filter((lesson: any) => lesson?.isPlayed === true)
-          .length;
+        getPath(course).filter((l: any) => l?.isPlayed === true).length;
 
+      /**
+       * Count remaining lessons
+       */
       const getRemainingCount = (course: any): number =>
-        getPath(course).filter((lesson: any) => lesson?.isPlayed === false)
-          .length;
+        getPath(course).filter((l: any) => l?.isPlayed === false).length;
 
-      const { data: oldUser, error: oldError } = await this.supabase
+      /**
+       * Fetch both students learning_path
+       */
+      const { data: oldUser } = await this.supabase
         .from(TABLES.User)
         .select("learning_path")
         .eq("id", existingStudentId)
+        .eq("is_deleted", false)
         .single();
 
-      if (oldError) {
-        throw new Error(
-          `Failed to fetch existing student learning path: ${oldError.message}`,
-        );
-      }
 
-      const { data: newUser, error: newError } = await this.supabase
+      const { data: newUser } = await this.supabase
         .from(TABLES.User)
         .select("learning_path")
         .eq("id", newStudentId)
+        .eq("is_deleted", false)
         .single();
-
-      if (newError) {
-        throw new Error(
-          `Failed to fetch destination student learning path: ${newError.message}`,
-        );
-      }
 
       const oldPathway = parseLearningPath(oldUser?.learning_path);
       const newPathway = parseLearningPath(newUser?.learning_path);
-      const oldPathMode =
-        typeof oldPathway?.pathMode === "string" ? oldPathway.pathMode : undefined;
-      const newPathMode =
-        typeof newPathway?.pathMode === "string" ? newPathway.pathMode : undefined;
+
+      const oldPathMode = oldPathway?.pathMode;
+      const newPathMode = newPathway?.pathMode;
+
+      /**
+       * -----------------------------
+       * MODE MERGE RULES
+       * -----------------------------
+       *
+       * Priority:
+       * PAL > AssessmentOnly > Disabled
+       */
+
       const mergedPathMode = (() => {
         if (
           oldPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE ||
@@ -4009,57 +4027,67 @@ export class SupabaseApi implements ServiceApi {
         ) {
           return LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
         }
+
         if (
           oldPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
           newPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY
         ) {
           return LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY;
         }
+
         if (
-          oldPathMode === LEARNING_PATHWAY_MODE.DISABLED ||
+          oldPathMode === LEARNING_PATHWAY_MODE.DISABLED &&
           newPathMode === LEARNING_PATHWAY_MODE.DISABLED
         ) {
           return LEARNING_PATHWAY_MODE.DISABLED;
         }
+
         return newPathMode ?? oldPathMode;
       })();
-      const fullAdaptiveSource =
-        oldPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE &&
-        newPathMode !== LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
-          ? "old"
-          : newPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE &&
-              oldPathMode !== LEARNING_PATHWAY_MODE.FULL_ADAPTIVE
-            ? "new"
-            : undefined;
 
+      /**
+       * Extract courses
+       */
       const oldCourses = Array.isArray(oldPathway?.courses?.courseList)
         ? oldPathway.courses.courseList
         : [];
+
       const newCourses = Array.isArray(newPathway?.courses?.courseList)
         ? newPathway.courses.courseList
         : [];
 
-      const chapterIds = Array.from(
+      /**
+       * Edge case:
+       * both pathways empty
+       */
+      if (!oldCourses.length && !newCourses.length) {
+        return {
+          success: true,
+          message: "Both pathways empty.",
+        };
+      }
+
+      /**
+       * Fetch chapter sort indexes
+       */
+      const chapterIds: string[] = Array.from(
         new Set(
           [...oldCourses, ...newCourses]
             .map((course) => getActiveChapterId(course))
-            .filter(Boolean) as string[],
-        ),
+            .filter((id): id is string => Boolean(id))
+        )
       );
 
       const chapterSortMap = new Map<string, number>();
-      if (chapterIds.length > 0) {
-        const { data: chapters, error: chapterError } = await this.supabase
+
+      if (chapterIds.length) {
+        const { data: chapters } = await this.supabase
           .from(TABLES.Chapter)
           .select("id, sort_index")
           .in("id", chapterIds);
 
-        if (chapterError) {
-          console.error("Failed to fetch chapter sort_index map:", chapterError);
-        } else {
-          for (const chapter of chapters ?? []) {
-            chapterSortMap.set(String(chapter.id), chapter.sort_index ?? -1);
-          }
+        for (const c of chapters ?? []) {
+          chapterSortMap.set(String(c.id), c.sort_index ?? -1);
         }
       }
 
@@ -4069,170 +4097,168 @@ export class SupabaseApi implements ServiceApi {
         return chapterSortMap.get(chapterId) ?? -1;
       };
 
+      /**
+       * ----------------------------------------
+       * Decide which course is more progressed
+       * ----------------------------------------
+       */
+
       const pickMoreProgressedCourse = (oldCourse: any, newCourse: any): any => {
-        if (fullAdaptiveSource === "old") return oldCourse;
-        if (fullAdaptiveSource === "new") return newCourse;
+        if (!oldCourse) return newCourse;
+        if (!newCourse) return oldCourse;
 
-        const oldIsAssessment = getActiveIsAssessment(oldCourse);
-        const newIsAssessment = getActiveIsAssessment(newCourse);
+        const oldPlayed = getPlayedCount(oldCourse);
+        const newPlayed = getPlayedCount(newCourse);
 
-        if (mergedPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY) {
+        const oldRemaining = getRemainingCount(oldCourse);
+        const newRemaining = getRemainingCount(newCourse);
 
-          if (oldIsAssessment !== newIsAssessment) {
-            if (oldIsAssessment === false) return oldCourse;
-            if (newIsAssessment === false) return newCourse;
-          }
+        const oldChapterSort = getActiveSortIndex(oldCourse);
+        const newChapterSort = getActiveSortIndex(newCourse);
+
+        const oldLesson = getActiveLesson(oldCourse);
+        const newLesson = getActiveLesson(newCourse);
+
+        const oldAssessmentCompleted =
+          oldLesson?.assessment_completed === true;
+        const newAssessmentCompleted =
+          newLesson?.assessment_completed === true;
+
+        const oldHasAssessment = oldLesson?.is_assessment === true;
+        const newHasAssessment = newLesson?.is_assessment === true;
+
+        /**
+         * PAL
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) {
+          return newCourse ?? oldCourse;
         }
 
-        const oldChapterId = getActiveChapterId(oldCourse);
-        const newChapterId = getActiveChapterId(newCourse);
-        const hasAssessmentWithoutChapter =
-          (oldIsAssessment === true && !oldChapterId) ||
-          (newIsAssessment === true && !newChapterId);
+        /**
+         * AssessmentOnly rules
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY) {
+          /**
+           * If assessment completed → prefer that student
+           */
+          if (oldAssessmentCompleted !== newAssessmentCompleted) {
+            return oldAssessmentCompleted ? oldCourse : newCourse;
+          }
 
-        if (hasAssessmentWithoutChapter) {
-          const oldPlayed = getPlayedCount(oldCourse);
-          const newPlayed = getPlayedCount(newCourse);
+          /**
+           * Assigned assessment scenario
+           */
+          if (oldHasAssessment !== newHasAssessment) {
+            const oldStarted = oldPlayed > 0;
+            const newStarted = newPlayed > 0;
+
+            if (oldStarted && !newStarted) return oldCourse;
+            if (newStarted && !oldStarted) return newCourse;
+
+            return oldHasAssessment ? oldCourse : newCourse;
+          }
+
+          /**
+           * Choose more progress
+           */
           if (oldPlayed !== newPlayed) {
             return oldPlayed > newPlayed ? oldCourse : newCourse;
           }
 
-          const oldRemaining = getRemainingCount(oldCourse);
-          const newRemaining = getRemainingCount(newCourse);
           if (oldRemaining !== newRemaining) {
             return oldRemaining < newRemaining ? oldCourse : newCourse;
           }
 
-          const oldPathLength = getPath(oldCourse).length;
-          const newPathLength = getPath(newCourse).length;
-          return oldPathLength >= newPathLength ? oldCourse : newCourse;
+          return newCourse;
         }
 
-        const oldSort = getActiveSortIndex(oldCourse);
-        const newSort = getActiveSortIndex(newCourse);
+        /**
+         * Disabled mode
+         * compare chapter progress
+         */
+        if (mergedPathMode === LEARNING_PATHWAY_MODE.DISABLED) {
+          if (oldChapterSort !== newChapterSort) {
+            return oldChapterSort > newChapterSort ? oldCourse : newCourse;
+          }
 
-        if (oldSort !== newSort) {
-          return oldSort > newSort ? oldCourse : newCourse;
-        }
-
-        const oldPlayed = getPlayedCount(oldCourse);
-        const newPlayed = getPlayedCount(newCourse);
-        if (oldPlayed !== newPlayed) {
           return oldPlayed > newPlayed ? oldCourse : newCourse;
         }
 
-        const oldRemaining = getRemainingCount(oldCourse);
-        const newRemaining = getRemainingCount(newCourse);
-        if (oldRemaining !== newRemaining) {
-          return oldRemaining < newRemaining ? oldCourse : newCourse;
-        }
-
-        const oldPathLength = getPath(oldCourse).length;
-        const newPathLength = getPath(newCourse).length;
-        return oldPathLength >= newPathLength ? oldCourse : newCourse;
+        return newCourse;
       };
 
+      /**
+       * Merge courses by course_id
+       */
+
       const mergedByCourseId = new Map<string, any>();
+
       for (const course of newCourses) {
-        const courseId = getCourseId(course);
-        if (courseId) mergedByCourseId.set(courseId, course);
+        const id = getCourseId(course);
+        if (id) mergedByCourseId.set(id, course);
       }
 
       for (const oldCourse of oldCourses) {
-        const courseId = getCourseId(oldCourse);
-        if (!courseId) continue;
+        const id = getCourseId(oldCourse);
+        if (!id) continue;
 
-        const existing = mergedByCourseId.get(courseId);
+        const existing = mergedByCourseId.get(id);
+
         if (!existing) {
-          mergedByCourseId.set(courseId, oldCourse);
+          mergedByCourseId.set(id, oldCourse);
           continue;
         }
 
         mergedByCourseId.set(
-          courseId,
+          id,
           pickMoreProgressedCourse(oldCourse, existing),
         );
       }
 
       const mergedCourses = Array.from(mergedByCourseId.values());
 
-      const getSafeIndex = (value: unknown): number | undefined => {
-        const parsed = Number(value);
-        return Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
-      };
+      /**
+       * Safe currentCourseIndex
+       */
 
-      const oldRequestedIndex = getSafeIndex(
-        oldPathway?.courses?.currentCourseIndex,
+      const safeIndex = Math.max(
+        0,
+        Math.min(
+          newPathway?.courses?.currentCourseIndex ??
+          oldPathway?.courses?.currentCourseIndex ??
+          0,
+          mergedCourses.length - 1,
+        ),
       );
-      const newRequestedIndex = getSafeIndex(
-        newPathway?.courses?.currentCourseIndex,
-      );
 
-      const oldCurrentCourse =
-        oldRequestedIndex !== undefined ? oldCourses[oldRequestedIndex] : undefined;
-      const newCurrentCourse =
-        newRequestedIndex !== undefined ? newCourses[newRequestedIndex] : undefined;
+      /**
+       * Final merged pathway
+       */
 
-      const preferredCurrentCourseId = (() => {
-        if (oldCurrentCourse && newCurrentCourse) {
-          const preferred = pickMoreProgressedCourse(
-            oldCurrentCourse,
-            newCurrentCourse,
-          );
-          return getCourseId(preferred);
-        }
-        return getCourseId(newCurrentCourse) ?? getCourseId(oldCurrentCourse);
-      })();
-
-      const mergedCurrentIndex =
-        preferredCurrentCourseId !== undefined
-          ? mergedCourses.findIndex(
-            (course) => getCourseId(course) === preferredCurrentCourseId,
-          )
-          : -1;
-      const fallbackRequestedIndex = newRequestedIndex ?? oldRequestedIndex ?? 0;
-      const safeCurrentCourseIndex =
-        mergedCourses.length === 0
-          ? 0
-          : mergedCurrentIndex >= 0
-            ? mergedCurrentIndex
-            : Math.max(
-              0,
-              Math.min(fallbackRequestedIndex, mergedCourses.length - 1),
-            );
-
-      const oldPathwayBase =
-        typeof oldPathway === "object" && oldPathway ? oldPathway : {};
-      const newPathwayBase =
-        typeof newPathway === "object" && newPathway ? newPathway : {};
       const updatedPathway = {
-        ...oldPathwayBase,
-        ...newPathwayBase,
-        type: newPathwayBase?.type ?? oldPathwayBase?.type,
-        pathMode:
-          mergedPathMode ?? newPathwayBase?.pathMode ?? oldPathwayBase?.pathMode,
+        ...oldPathway,
+        ...newPathway,
+        pathMode: mergedPathMode,
         updated_at: now,
         courses: {
-          ...(oldPathwayBase?.courses || {}),
-          ...(newPathwayBase?.courses || {}),
+          ...(oldPathway?.courses || {}),
+          ...(newPathway?.courses || {}),
           courseList: mergedCourses,
-          currentCourseIndex: safeCurrentCourseIndex,
+          currentCourseIndex: safeIndex,
         },
       };
 
-      const { error: updateError } = await this.supabase
+      /**
+       * Update destination student
+       */
+
+      await this.supabase
         .from(TABLES.User)
         .update({
           learning_path: JSON.stringify(updatedPathway),
           updated_at: now,
         })
         .eq("id", newStudentId);
-
-      if (updateError) {
-        throw new Error(
-          `Failed to update merged learning path: ${updateError.message}`,
-        );
-      }
 
       return {
         success: true,

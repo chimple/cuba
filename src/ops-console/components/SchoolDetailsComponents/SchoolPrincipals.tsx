@@ -455,6 +455,12 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         heading={popup.heading}
         text={popup.text}
         autoCloseSeconds={5}
+        onClose={() =>
+          setPopup((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
       />
       <Dialog
         open={isDeleteModalOpen}

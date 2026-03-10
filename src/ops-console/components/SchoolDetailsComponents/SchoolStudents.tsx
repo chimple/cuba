@@ -236,6 +236,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [deleteTargetStudent, setDeleteTargetStudent] =
     useState<StudentInfo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMergingStudent, setIsMergingStudent] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [popup, setPopup] = useState({
     open: false,
@@ -1458,6 +1459,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return;
       }
 
+      setIsMergingStudent(true);
       const mergeResult = await api.mergeStudentRequest(oldId, newId);
       if (mergeResult.success) {
         const mergeMessage = t(
@@ -1485,7 +1487,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         });
       }
       // Keep UI in sync with backend after merge attempts.
-      await fetchStudents(page, debouncedSearchTerm, true);
+      let removed = false;
+      setStudents((prev) => {
+        const next = prev.filter((row: any) => {
+          const rowId = row?.user?.id ?? row?.id;
+          const keep = rowId !== oldId;
+          if (!keep) removed = true;
+          return keep;
+        });
+        return next;
+      });
+      if (removed) {
+        setTotalCount((prev) => Math.max(0, prev - 1));
+      }
       setShowSuccessPopup(true);
       setIsMergeStudentModalOpen(false);
       setMergePrimaryStudent(null);
@@ -1501,6 +1515,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setShowSuccessPopup(true);
       setIsMergeStudentModalOpen(false);
       setMergePrimaryStudent(null);
+    } finally {
+      setIsMergingStudent(false);
     }
   }
 
@@ -1512,6 +1528,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         heading={popup.heading}
         text={popup.text}
         autoCloseSeconds={5}
+        onClose={() =>
+          setPopup((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
       />
       <FormCard
         open={isAddStudentModalOpen}
@@ -1554,6 +1576,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         primaryStudentId={mergePrimaryStudent?.id}
         onClose={() => setIsMergeStudentModalOpen(false)}
         onSubmit={handleMergeStudents}
+        isSubmitting={isMergingStudent}
       />
 
       <Dialog
