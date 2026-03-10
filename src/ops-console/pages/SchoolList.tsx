@@ -9,7 +9,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS, USER_ROLE } from "../../common/constants";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -22,6 +22,9 @@ import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router"
 import { RoleType } from "../../interface/modelInterfaces";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -101,11 +104,11 @@ const SchoolList: React.FC = () => {
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
-
-
-  const userRoles = JSON.parse(
-    localStorage.getItem(USER_ROLE) || "[]"
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+
   const rolesWithAccess = [
     RoleType.SUPER_ADMIN,
     RoleType.OPERATIONAL_DIRECTOR,
@@ -345,6 +348,28 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
+              {haveAccess && (
+                <Button
+                  variant="outlined"
+                  id="school-list-migrate-button"
+                  className="school-list-migrate-button"
+                  onClick={() =>
+                    history.push(
+                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`
+                    )
+                  }
+                  startIcon={
+                    <img
+                      id="school-list-migrate-icon"
+                      src="assets/icons/migrateArrow.svg"
+                      alt="migrate"
+                      className="school-list-migrate-icon"
+                    />
+                  }
+                >
+                  {t("Migrate")}
+                </Button>
+              )}
               {haveAccess &&
               <Button
                 variant="outlined"

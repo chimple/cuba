@@ -10,11 +10,13 @@ import ContactCard from "../ContactCard";
 import {
   PAGES,
   PROGRAM_TAB_LABELS,
-  USER_ROLE,
 } from "../../../common/constants";
 import { useHistory } from "react-router";
 import { RoleType } from "../../../interface/modelInterfaces";
 import SubjectCurriculumCard from "../SubjectCurriculumCard";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
+import { AuthState } from "../../../redux/slices/auth/authSlice";
 
 interface SchoolOverviewProps {
   data: any;
@@ -22,6 +24,8 @@ interface SchoolOverviewProps {
 }
 
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
+  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const userRoles = roles || [];
   // school details
   const formatingSchoolModel = (raw: any) => {
     if (!raw) return "";
@@ -210,7 +214,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     }
   }
 
-  const userRoles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
   const rolesWithAccess = [
     RoleType.SUPER_ADMIN,
     RoleType.OPERATIONAL_DIRECTOR,

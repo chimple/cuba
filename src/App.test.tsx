@@ -1,26 +1,33 @@
 // Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
-import { render, act, waitFor } from "@testing-library/react";
+import { act, waitFor } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { GrowthBookProvider, GrowthBook } from "@growthbook/growthbook-react";
+import { renderWithProviders } from "./tests/test-utils";
 import App from "./App";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
 import { GENERIC_POP_UP } from "./common/constants";
 import * as growthbookModule from "@growthbook/growthbook-react";
 
-const growthbookMock = growthbookModule as any as {
-  __resetGrowthBookMock: () => void;
-  __setGrowthBookMock: (partial: {
-    attributes?: Record<string, unknown>;
-    features?: Record<string, unknown>;
-    flags?: Record<string, boolean>;
-  }) => void;
-};
+jest.mock("@growthbook/growthbook-react", () => ({
+  GrowthBookProvider: ({ children }: any) => children,
+  GrowthBook: jest.fn(),
+  useFeatureValue: jest.fn(),
+  useFeatureIsOn: jest.fn(),
+  useGrowthBook: jest.fn(),
+}));
+
 
 describe("App Component", () => {
   let onAppOpenSpy: jest.SpyInstance;
   let onTimeElapsedSpy: jest.SpyInstance;
+  let mockGrowthbook: any;
 
   beforeEach(() => {
     localStorage.clear();
-    growthbookMock.__resetGrowthBookMock();
+    mockGrowthbook = { getFeatureValue: jest.fn() };
+    (growthbookModule.useGrowthBook as jest.Mock).mockReturnValue(mockGrowthbook);
+    (growthbookModule.useFeatureValue as jest.Mock).mockImplementation((key, defaultValue) => defaultValue);
+    (growthbookModule.useFeatureIsOn as jest.Mock).mockReturnValue(false);
     onAppOpenSpy = jest
       .spyOn(PopupManager, "onAppOpen")
       .mockImplementation(() => {});
@@ -40,7 +47,8 @@ describe("App Component", () => {
     let unmount: () => void;
 
     act(() => {
-      const result = render(<App />);
+      mockGrowthbook.getFeatureValue.mockReturnValue(null);
+      const result = renderWithProviders(<BrowserRouter><App /></BrowserRouter>);
       unmount = result.unmount;
     });
 
@@ -97,14 +105,14 @@ describe("App Component", () => {
       triggers: trigger,
     };
 
-    growthbookMock.__setGrowthBookMock({
-      features: {
-        [GENERIC_POP_UP]: popupConfig,
-      },
-    });
+    mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
     window.history.replaceState({}, "", `/?tab=${tab}`);
 
-    render(<App />);
+    renderWithProviders(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
 
     await waitFor(() =>
       expect(PopupManager.onAppOpen).toHaveBeenCalledWith(popupConfig),
@@ -123,14 +131,14 @@ describe("App Component", () => {
       triggers: { type: "APP_OPEN", value: 1 },
     };
 
-    growthbookMock.__setGrowthBookMock({
-      features: {
-        [GENERIC_POP_UP]: popupConfig,
-      },
-    });
+    mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
     window.history.replaceState({}, "", "/?tab=home");
 
-    render(<App />);
+    renderWithProviders(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
@@ -142,14 +150,15 @@ describe("App Component", () => {
     { name: "missing screen_name", payload: { id: "gb-popup-no-screen" } },
     { name: "null payload", payload: null },
   ])("does not route popup when growthbook payload is malformed: $name", async ({ payload }) => {
-    growthbookMock.__setGrowthBookMock({
-      features: {
-        [GENERIC_POP_UP]: payload as any,
-      },
-    });
+    mockGrowthbook.getFeatureValue.mockReturnValue(payload);
+
     window.history.replaceState({}, "", "/?tab=leaderboard");
 
-    render(<App />);
+    renderWithProviders(
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>,
+    );
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(PopupManager.onAppOpen).not.toHaveBeenCalled();

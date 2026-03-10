@@ -1,5 +1,11 @@
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  ServiceApi,
+} from "./ServiceApi";
 import {
   RESULT_STATUS,
   SchoolVisitAction,
@@ -215,6 +221,11 @@ export class ApiHandler implements ServiceApi {
   }
   public async uploadData(payload: any): Promise<boolean | null> {
     return await this.s.uploadData(payload);
+  }
+  public async migrateSchoolData(payload: {
+    school_ids: string[];
+  }): Promise<boolean> {
+    return await this.s.migrateSchoolData(payload);
   }
   public async createSchool(
     name: string,
@@ -1504,6 +1515,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
 
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    return await this.s.getSchoolsWithProgramAccess(params);
+  }
+
   public async createOrAddUserOps(payload: {
     name: string;
     email?: string;
@@ -2100,5 +2117,8 @@ export class ApiHandler implements ServiceApi {
       chapterId,
       lessonId,
     );
+  }
+  public async isSplUser(): Promise<boolean> {
+    return await this.s.isSplUser();
   }
 }

@@ -4,13 +4,11 @@ import {
   AVATARS,
   CURRENT_MODE,
   CURRENT_PATHWAY_MODE,
-  HOMEHEADERLIST,
   HOMEWORK_PATHWAY,
   LEADERBOARDHEADERLIST,
   MODES,
   PAGES,
   TableTypes,
-  USER_DATA,
 } from "../../common/constants";
 import { useHistory } from "react-router";
 import { Util } from "../../utility/util";
@@ -24,6 +22,9 @@ import {
 } from "../../growthbook/Growthbook";
 import { schoolUtil } from "../../utility/schoolUtil";
 import i18n from "../../i18n";
+import { useAppSelector } from "../../redux/hooks";
+import { AuthState } from "../../redux/slices/auth/authSlice";
+import { RootState } from "../../redux/store";
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -38,6 +39,10 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
+
+  const { user: reduxUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
 
@@ -58,10 +63,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   // 5. Navigates to the Edit Student page
   const onEdit = async () => {
     const languages = await api.getAllLanguages();
-    const userData = localStorage.getItem(USER_DATA);
-    if (!userData) return;
-    const user = JSON.parse(userData) as TableTypes<"user">;
-
+    const user = reduxUser;
+    if(!user) return;
     const userLang = languages.find((lang) => lang.id === user.language_id);
     if (userLang?.code && i18n.language !== userLang.code) {
       i18n.changeLanguage(userLang.code);

@@ -304,8 +304,16 @@ const DebugPage: React.FC = () => {
       Util.setHotUpdateState({ progress: 40 });
 
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+      const { versionName } = await LiveUpdate.getVersionName();
+      let isUpdateAllowed = false;
+      if (latest.customProperties && latest.customProperties.version) {
+        isUpdateAllowed = Util.isVersionAllowed(
+          latest.customProperties.version,
+          versionName,
+        );
+      }
 
-      if (!latest.bundleId || latest.bundleId === currentBundleId) {
+      if (!latest.bundleId || latest.bundleId === currentBundleId || !isUpdateAllowed) {
         Util.setHotUpdateState({
           status: "Already up to date",
           progress: 100,
@@ -341,13 +349,21 @@ const DebugPage: React.FC = () => {
     const current = await LiveUpdate.getCurrentBundle();
     const latest = await LiveUpdate.fetchLatestBundle({ channel });
 
+    let isUpdateAllowed = false;
+    if (latest.customProperties && latest.customProperties.version) {
+      isUpdateAllowed = Util.isVersionAllowed(
+        latest.customProperties.version,
+        version.versionName,
+      );
+    }
+
     setHotUpdateMeta({
       versionName: version.versionName,
       versionCode: String(code.versionCode),
       currentBundleId: current.bundleId ?? "None",
       latestBundleId: latest.bundleId ?? "None",
       isUpdateAvailable:
-        !!latest.bundleId && latest.bundleId !== current.bundleId,
+        !!latest.bundleId && latest.bundleId !== current.bundleId && isUpdateAllowed,
     });
   }
 
@@ -377,7 +393,7 @@ const DebugPage: React.FC = () => {
           <button
             className="debug-btn debugmode-debug-hotupdate-btn"
             onClick={handleManualHotUpdate}
-            disabled={isHotUpdating}
+            disabled={isHotUpdating || !hotUpdateMeta.isUpdateAvailable}
           >
             {isHotUpdating ? "Updating App..." : "Manual Hot Update"}
           </button>

@@ -180,6 +180,11 @@
   color: white;
 }
 
+.debugmode-debug-hotupdate-btn:disabled {
+  background-color: #ffcc80;
+  cursor: not-allowed;
+}
+
 .debugmode-progress-bar-container {
   width: 100%;
   height: 14px;

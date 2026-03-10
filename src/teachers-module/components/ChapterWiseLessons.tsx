@@ -56,6 +56,29 @@ const ChapterWiseLessons: React.FC<Props> = ({
   const history = useHistory();
   const isAssignedLesson = (lessonId?: string) =>
     !!showAssignedBadge && !!lessonId && !!assignedLessonIds?.has(lessonId);
+  const openLessonDetails = (
+    lesson: TableTypes<"lesson">,
+    chapterId: string,
+    chapterName: string,
+    gradeName: string,
+    course?: TableTypes<"course">,
+  ) => {
+
+    history.replace(PAGES.LESSON_DETAILS, {
+      course: course ?? null,
+      lesson,
+      chapterId,
+      chapterName,
+      gradeName,
+      subjectName:
+        course?.code?.toUpperCase() ||
+        course?.name ||
+        lesson.cocos_subject_code ||
+        "",
+      from: PAGES.SEARCH_LESSON,
+      selectedLesson,
+    });
+  };
 
   return (
     <>
@@ -127,20 +150,13 @@ const ChapterWiseLessons: React.FC<Props> = ({
                     key={lesson.id}
                     className="chapter-wise-card"
                     onClick={() => {
-                      history.replace(PAGES.LESSON_DETAILS, {
-                        course: courseGroup.course ?? null,
+                      openLessonDetails(
                         lesson,
-                        chapterId: chapterGroup.chapterId,
-                        chapterName: chapterGroup.chapterName,
-                        gradeName: courseGroup.gradeName,
-                        subjectName:
-                          courseGroup.course?.code?.toUpperCase() ||
-                          courseGroup.course?.name ||
-                          lesson.cocos_subject_code ||
-                          "",
-                        from: PAGES.SEARCH_LESSON,
-                        selectedLesson,
-                      });
+                        chapterGroup.chapterId,
+                        chapterGroup.chapterName,
+                        courseGroup.gradeName,
+                        courseGroup.course,
+                      );
                     }}
                   >
                     <div id="chapter-wise-img" className="chapter-wise-img">
@@ -222,6 +238,9 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 id="chapter-wise-other-card"
                 key={lesson.id}
                 className="chapter-wise-card"
+                onClick={() => {
+                  openLessonDetails(lesson, OTHER_KEY, "", "", undefined);
+                }}
               >
                 <div id="chapter-wise-other-img" className="chapter-wise-img">
                   <div

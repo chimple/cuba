@@ -6,7 +6,7 @@ import { t } from "i18next";
 import "./QRAssignments.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import { Util } from "../../../../utility/util";
-import { PAGES } from "../../../../common/constants";
+import { AssignmentSource, PAGES } from "../../../../common/constants";
 import Header from "../../homePage/Header";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
 import Loading from "../../../../components/Loading";
@@ -305,9 +305,12 @@ const QRAssignments: React.FC = () => {
                   selectedAssignments,
                   manualAssignments: {
                     [location.state.courseId]: {
-                      lessons: lessons.filter((l) =>
-                        selectedLessonIds.includes(l.id),
-                      ),
+                      lessons: lessons
+                        .filter((l) => selectedLessonIds.includes(l.id))
+                        .map((l) => ({
+                          ...l,
+                          source: AssignmentSource.QR_CODE,
+                        })),
                     },
                   },
                   recommendedAssignments: {},

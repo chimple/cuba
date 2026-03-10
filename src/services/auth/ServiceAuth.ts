@@ -1,11 +1,11 @@
-import { UserAttributes } from "@supabase/supabase-js";
+import { Session, User, UserAttributes } from "@supabase/supabase-js";
 import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
   loginWithEmailAndPassword(
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
 
   googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
@@ -22,13 +22,16 @@ export interface ServiceAuth {
 
   generateOtp(
     phoneNumber: string,
-    appName: string
+    appName: string,
   ): Promise<{ success: boolean; error?: any }>;
 
   proceedWithVerificationCode(
     verificationId,
-    verificationCode
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean; userData?: any } | undefined>;
+    verificationCode,
+  ): Promise<
+    | { user: any; isUserExist: boolean; isSpl: boolean; userData?: any }
+    | undefined
+  >;
 
   logOut(): Promise<void>;
   doRefreshSession(): Promise<void>;
@@ -44,7 +47,7 @@ export interface ServiceAuth {
    */
   signInWithEmail(
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
   /**
    * Sends a password reset email to the given address.
@@ -60,4 +63,7 @@ export interface ServiceAuth {
    * @returns A promise that resolves to `true` if the update was successful, otherwise `false`.
    */
   updateUser(attributes: UserAttributes): Promise<boolean>;
+
+  getUser(): Promise<{ data: { user: User | null }; error: any }>;
+  getSession(): Promise<{ data: { session: Session | null }; error: any }>;
 }

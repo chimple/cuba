@@ -24,14 +24,10 @@ import {
   SOUND,
   MUSIC,
   MODES,
-  // APP_LANG,
   CONTINUE,
   DOWNLOADED_LESSON_ID,
   LAST_FUNCTION_CALL,
   LeaderboardRewardsType,
-  LEADERBOARD_REWARD_LIST,
-  // APP_LANG,
-  LeaderboardRewards,
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
@@ -39,10 +35,7 @@ import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
   DOWNLOADING_CHAPTER_ID,
-  TABLES,
-  REFRESH_TOKEN,
   SCHOOL,
-  USER_ROLE,
   CLASS,
   CURRENT_COURSE,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
@@ -58,7 +51,6 @@ import {
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
-  USER_DATA,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
@@ -67,17 +59,13 @@ import {
   LATEST_STARS,
   CURRENT_CLASS,
   RECOMMENDATION_TYPE,
-  USER_SELECTION_STAGE,
-  CURRENT_MODE,
   LIDO_COMMON_AUDIO_DIR,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
   HOT_UPDATE_STATE_KEY,
-  GrowthBookAttributes,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
 } from "../common/constants";
-import { palUtil } from "./palUtil";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
@@ -118,15 +106,14 @@ import { v4 as uuidv4 } from "uuid";
 import { updateLocalAttributes } from "../growthbook/Growthbook";
 import { recommendNextLesson } from "../hooks/useLearningPath";
 import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
+import { store } from "../redux/store";
+import { addRole, setRefreshToken, setUser } from "../redux/slices/auth/authSlice";
 
 declare global {
   interface Window {
     cc: any;
     _CCSettings: any;
   }
-}
-enum NotificationType {
-  REWARD = "reward",
 }
 
 export interface HotUpdateState {
@@ -213,8 +200,6 @@ export class Util {
     const nextChapterIndex =
       chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
     if (nextChapterIndex < chapters.length) {
-      const nextChapter = chapters[nextChapterIndex];
-      const firstLessonId = nextChapter.lessons[0];
       // if (firstLessonId instanceof TableTypes<"lesson">) {
       //   return firstLessonId;
       // }
@@ -228,7 +213,6 @@ export class Util {
       const startTime = Number(localStorage.getItem("startTime") || "0");
       const timeElapsed = (currentTime - startTime) / 1000; // in seconds
       if (timeElapsed >= Util.TIME_LIMIT) {
-        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
         const today = new Date().toISOString().split("T")[0];
 
         if ("2024-11-05" !== today) {
@@ -2101,12 +2085,30 @@ export class Util {
       );
     }
   }
-  public static addRefreshTokenToLocalStorage(refreshToken: string) {
+  public static addRefreshTokenToStore(refreshToken: string) {
     const data = {
       token: refreshToken,
       savedAt: new Date().toISOString(), // store current date/time in ISO format
     };
-    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(data));
+    try {
+      // store refreshToken in Redux store as JSON string
+      store.dispatch(setRefreshToken(JSON.stringify(data)));
+    } catch (e) {
+      console.error("Unable to store refresh token to Redux store", e);
+    }
+  }
+
+  // get refresh token from Redux store, if not available or error occurs return null
+  public static getRefreshTokenFromStore(): { token?: string; savedAt?: string } | null {
+    try {
+      const reduxVal = store.getState()?.auth?.refreshToken;
+      if (!reduxVal) return null;
+      const parsed = JSON.parse(reduxVal);
+      return { token: parsed.token, savedAt: parsed.savedAt };
+    } catch (e) {
+      console.error("Unable to read refresh token from Redux store", e);
+      return null;
+    }
   }
 
   public static setCurrentSchool = async (
@@ -2116,15 +2118,13 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
-    localStorage.setItem(USER_ROLE, JSON.stringify([role]));
+    store.dispatch(addRole(role));
   };
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
 
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
-      const user_role = localStorage.getItem(USER_ROLE);
-      if (user_role) {
-        const roles: string[] = JSON.parse(user_role);
+      const roles = store.getState()?.auth?.roles ?? [];
         if (
           [
             RoleType.SUPER_ADMIN,
@@ -2135,7 +2135,6 @@ export class Util {
         ) {
           return true;
         }
-      }
       try {
         const authHandler = ServiceConfig.getI().authHandler;
         const currentUser = await authHandler.getCurrentUser();
@@ -2713,7 +2712,7 @@ export class Util {
         language_id: selectedLanguage.id,
       };
 
-      localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+      store.dispatch(setUser(updatedUserData));
       auth.currentUser = updatedUserData;
     } catch (error) {
       console.error("Failed to update user language:", error);
@@ -3755,4 +3754,12 @@ export class Util {
     };
     return device;
   }
+  public static getUser(): TableTypes<"user"> | undefined {
+    try {
+      return store.getState().auth.user as TableTypes<"user">;
+    } catch (error) {
+      console.error("Error retrieving user ID from redux store:", error);
+      return undefined;
+    }
+  };
 }

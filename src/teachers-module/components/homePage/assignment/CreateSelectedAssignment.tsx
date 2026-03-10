@@ -477,7 +477,8 @@ const CreateSelectedAssignment = ({
               const tempChapterId =
                 tempLes?.source === AssignmentSource.RECOMMENDED
                   ? await api.getChapterByLesson(tempLes.id, current_class.id)
-                  : lessonToChapterMap.get(lessonId);
+                  : lessonToChapterMap.get(lessonId) ??
+                    (await api.getChapterByLesson(tempLes.id, current_class.id));
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
@@ -499,10 +500,13 @@ const CreateSelectedAssignment = ({
                 chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
               ) {
                 source = AssignmentSource.QR_CODE;
+              } else if (tempLes?.source === AssignmentSource.QR_CODE) {
+                source = AssignmentSource.QR_CODE;
               } else if (tempLes?.source === AssignmentSource.RECOMMENDED) {
                 source = AssignmentSource.RECOMMENDED;
+              } else if (type === TeacherAssignmentPageType.MANUAL) {
+                source = AssignmentSource.MANUAL;
               }
-
               await api.createAssignment(
                 studentList,
                 currUser.id,

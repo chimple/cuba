@@ -4,7 +4,6 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import {
   SCHOOL_USERS,
   TableTypes,
-  USER_ROLE,
   OPS_ROLES,
 } from "../../../common/constants";
 import { IonIcon } from "@ionic/react";

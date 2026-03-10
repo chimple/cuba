@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
@@ -37,6 +37,7 @@ import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
 import AddSchoolPage from "./AddSchoolPage";
 import ActivitiesPage from "./ActivitiesPage";
 import SchoolActivities from "./SchoolActivities";
+import MigrateSchoolsPage from "./MigrateSchoolsPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -44,7 +45,6 @@ const SidebarPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const userRole = localStorage.getItem(USER_ROLE) || "[]";
 
   useEffect(() => {
     fetchData();
@@ -201,6 +201,12 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <AddSchoolPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
+              exact={true}
+            >
+              <MigrateSchoolsPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}

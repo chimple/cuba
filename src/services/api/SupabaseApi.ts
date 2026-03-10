@@ -32,7 +32,6 @@ import {
   TabType,
   PROGRAM_TAB,
   AVATARS,
-  USER_ROLE,
   ROLE_PRIORITY,
   StudentAPIResponse,
   StudentInfo,
@@ -63,7 +62,14 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  SchoolProgramAccessRow,
+  ServiceApi,
+} from "./ServiceApi";
 import { Database } from "../database";
 import {
   PostgrestSingleResponse,
@@ -89,6 +95,7 @@ import {
   UserSchoolClassResult,
 } from "../../ops-console/pages/NewUserPageOps";
 import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+import { store } from "../../redux/store";
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -524,6 +531,153 @@ export class SupabaseApi implements ServiceApi {
         directChannel = subscribeToDirectChannel();
       } else {
         console.warn("❗ No upload_id returned — using fallback listener.");
+      }
+    });
+  }
+
+  async migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const supabase = this.supabase;
+    const schoolIds = Array.isArray(payload?.school_ids)
+      ? payload.school_ids
+          .map((id) => String(id ?? "").trim())
+          .filter((id) => id.length > 0)
+      : [];
+    if (schoolIds.length === 0) return false;
+
+    let resolved = false;
+    const currentUserData = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const uploadingUser = currentUserData?.id;
+
+    return new Promise(async (resolve) => {
+      let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
+      let fallbackChannel: RealtimeChannel | null = null;
+      let subscriptionFailCount = 0;
+
+      const resolveOnce = async (isSuccess: boolean) => {
+        if (resolved) return;
+        resolved = true;
+        if (directChannel) {
+          await directChannel.unsubscribe();
+        }
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+        }
+        resolve(isSuccess);
+      };
+
+      const subscribeToDirectChannel = (): RealtimeChannel => {
+        const channel = supabase
+          .channel(`school-migrate-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (realtimePayload) => {
+              const status = realtimePayload.new?.status;
+              if ((status === "success" || status === "failed") && !resolved) {
+                await resolveOnce(status === "success");
+              }
+            },
+          )
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              subscriptionFailCount = 0;
+            } else {
+              subscriptionFailCount++;
+              if (subscriptionFailCount > 2) {
+                await channel.unsubscribe();
+                directChannel = subscribeToDirectChannel();
+              }
+            }
+          });
+        return channel;
+      };
+
+      fallbackChannel = uploadingUser
+        ? supabase
+            .channel(`school-migrate-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (realtimePayload) => {
+                const status = realtimePayload.new?.status;
+                const id = realtimePayload.new?.id;
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved &&
+                  (!uploadId || id === uploadId)
+                ) {
+                  await resolveOnce(status === "success");
+                }
+              },
+            )
+            .subscribe()
+        : null;
+
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "school-data-migrate",
+        {
+          body: {
+            school_ids: schoolIds,
+          },
+        },
+      );
+
+      if (functionError) {
+        console.error("Edge function error in school-data-migrate:", functionError);
+        await resolveOnce(false);
+        return;
+      }
+
+      uploadId = data?.upload_id || data?.migration_id || data?.id;
+      if (uploadId) {
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+          fallbackChannel = null;
+        }
+
+        const { data: row } = await supabase
+          .from("upload_queue")
+          .select("status")
+          .eq("id", uploadId)
+          .single();
+
+        if (row?.status === "success") {
+          await resolveOnce(true);
+          return;
+        }
+        if (row?.status === "failed") {
+          await resolveOnce(false);
+          return;
+        }
+
+        directChannel = subscribeToDirectChannel();
+        return;
+      }
+
+      if (
+        data &&
+        typeof data === "object" &&
+        "success" in (data as Record<string, unknown>)
+      ) {
+        await resolveOnce(Boolean((data as Record<string, unknown>).success));
+        return;
+      }
+
+      if (!fallbackChannel) {
+        await resolveOnce(false);
       }
     });
   }
@@ -8367,6 +8521,116 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    const safeParams = params ?? ({} as GetSchoolsWithProgramAccessParams);
+    const normalizedPage = safeParams.page ?? 1;
+    const normalizedPageSize = safeParams.pageSize ?? 20;
+    const fallbackResponse: SchoolProgramAccessResponse = {
+      data: [],
+      total: 0,
+      page: normalizedPage,
+      page_size: normalizedPageSize,
+      total_pages: 0,
+    };
+
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return fallbackResponse;
+    }
+
+    const academicYears = Array.isArray(safeParams.academicYears)
+      ? safeParams.academicYears
+      : [];
+    const allowedFilterKeys: Array<
+      "program" | "programType" | "state" | "district" | "block" | "cluster"
+    > = ["program", "programType", "state", "district", "block", "cluster"];
+    const normalizedFilters = allowedFilterKeys.reduce<Record<string, string[]>>(
+      (acc, key) => {
+        const value = safeParams.filters?.[key];
+        if (Array.isArray(value) && value.length > 0) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {},
+    );
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_schools_with_program_access",
+        {
+          _academic_years: academicYears,
+          _filters: normalizedFilters,
+          _page: normalizedPage,
+          _page_size: normalizedPageSize,
+          _order_by: safeParams.orderBy ?? "school_name",
+          _order_dir: safeParams.orderDir ?? "asc",
+          _search: safeParams.search?.trim() || null,
+        },
+      );
+
+      if (error) {
+        console.error("RPC error in get_schools_with_program_access:", error);
+        return fallbackResponse;
+      }
+
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        return fallbackResponse;
+      }
+
+      const rawResponse = data as Record<string, any>;
+      const rawRows = Array.isArray(rawResponse.data) ? rawResponse.data : [];
+      const normalizedRows: SchoolProgramAccessRow[] = rawRows.map(
+        (item: any) => ({
+          school:
+            item?.school &&
+            typeof item.school === "object" &&
+            !Array.isArray(item.school)
+              ? item.school
+              : {},
+          program:
+            item?.program &&
+            typeof item.program === "object" &&
+            !Array.isArray(item.program)
+              ? item.program
+              : {},
+          program_users: Array.isArray(item?.program_users)
+            ? item.program_users.filter(
+                (user: any) =>
+                  user && typeof user === "object" && !Array.isArray(user),
+              )
+            : [],
+        }),
+      );
+
+      return {
+        data: normalizedRows,
+        total:
+          typeof rawResponse.total === "number" ? rawResponse.total : 0,
+        page:
+          typeof rawResponse.page === "number"
+            ? rawResponse.page
+            : normalizedPage,
+        page_size:
+          typeof rawResponse.page_size === "number"
+            ? rawResponse.page_size
+            : normalizedPageSize,
+        total_pages:
+          typeof rawResponse.total_pages === "number"
+            ? rawResponse.total_pages
+            : 0,
+      };
+    } catch (err) {
+      console.error(
+        "Unexpected error in get_schools_with_program_access:",
+        err,
+      );
+      return fallbackResponse;
+    }
+  }
+
   async createAutoProfile(
     languageDocId: string | undefined,
   ): Promise<TableTypes<"user">> {
@@ -8543,7 +8807,7 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User not logged in");
     const userId = _currentUser.id;
-    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const from = (page - 1) * limit;
@@ -9714,7 +9978,7 @@ export class SupabaseApi implements ServiceApi {
     if (!_currentUser) throw new Error("User not logged in");
 
     const userId = _currentUser.id;
-    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const roles: string[] = store.getState().auth.roles ?? [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
 
@@ -12188,5 +12452,19 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return !!data;
+  }
+  async isSplUser(): Promise<boolean> {
+    if (!this.supabase) return false;
+    try{
+        const { data, error } = await this.supabase.functions.invoke("is_special_or_program_user");
+        if (error) {
+          console.error("Error checking special user status:", error);
+          return false;
+        }
+        return !!data;
+      }catch(e){
+        console.error("Exception in isSplUser:", e);
+        return false;
+      }
   }
 }
