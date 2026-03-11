@@ -1,0 +1,1 @@
+npx.cmd lint-staged || { echo "[Husky Hook] Linting or formatting failed! Please run 'npm run fix-all' to automatically fix these issues, then try committing again."; exit 1; }
