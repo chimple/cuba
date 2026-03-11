@@ -95,7 +95,7 @@ export enum TABLES {
   LanguageLocale = "language_locale",
   SubjectLesson = "subject_lesson",
   StickerBook = "sticker_book",
-  UserStickerBook = "user_sticker_book"
+  UserStickerBook = "user_sticker_book",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -527,6 +527,7 @@ export enum PAGES {
   QR_ASSIGNMENTS = "/qr_assignments",
   TEACHER_RECOMMENDED_ASSIGNMENTS = "/teacher-recommended-assignments",
   COLORING_BOARD = "/coloring-board",
+  STICKER_BOOK = "/sticker-book",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -877,6 +878,10 @@ export enum EVENTS {
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
   REWARD_COLLECTED = "reward_collected",
+  STICKER_BOOK_MENU_TAP = "sticker_book_menu_tap",
+  STICKER_BOOK_PAGE_NEXT = "sticker_book_page_next",
+  STICKER_BOOK_PAGE_PREV = "sticker_book_page_prev",
+  STICKER_BOOK_PAGE_BACK = "sticker_book_page_back",
   HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
   HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
   HOMEWORK_PATHWAY_COURSE_CHANGED = "homework_pathway_course_changed",
@@ -1299,3 +1304,4 @@ export enum RESULT_STATUS {
 }
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
 export const LATEST_LEARNING_PATH = "latest_learning_path";
+export const ENABLE_STICKER_BOOK = "enable-sticker-book";
