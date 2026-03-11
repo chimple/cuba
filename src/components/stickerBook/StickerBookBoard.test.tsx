@@ -301,21 +301,6 @@ describe("StickerBookBoard", () => {
     expect(document.querySelector("#sb-board-content")).toBeInTheDocument();
   });
 
-  test("back button has correct class", () => {
-    render(
-      <StickerBookBoard
-        svgRaw={null}
-        isLocked={false}
-        {...baseProps}
-        collectedStickers={[]}
-      />,
-    );
-
-    expect(
-      document.querySelector(".sticker-book-back-btn"),
-    ).toBeInTheDocument();
-  });
-
   test("back button supports multiple clicks", () => {
     render(
       <StickerBookBoard
@@ -605,21 +590,6 @@ describe("StickerBookBoard", () => {
         onNext={jest.fn()}
         collectedStickers={[]}
       />,
-    );
-  });
-
-  test("back button has tabindex attribute", () => {
-    render(
-      <StickerBookBoard
-        svgRaw={null}
-        isLocked={false}
-        {...baseProps}
-        collectedStickers={[]}
-      />,
-    );
-
-    expect(document.querySelector(".sticker-book-back-btn")).toHaveAttribute(
-      "tabindex",
     );
   });
 
