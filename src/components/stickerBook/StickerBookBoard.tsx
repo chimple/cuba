@@ -3,7 +3,12 @@ import { t } from "i18next";
 import { EVENTS } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { SVGScene } from "../coloring/SVGScene";
-import { ParsedSvg, parseSvg, ensureNavImage } from "../common/SvgHelpers";
+import {
+  ParsedSvg,
+  parseSvg,
+  ensureNavImage,
+  sanitizeSvg,
+} from "../common/SvgHelpers";
 import NewBackButton from "../common/NewBackButton";
 import "./StickerBookBoard.css";
 
@@ -38,12 +43,12 @@ const InlineSvg = React.forwardRef<
       el.setAttribute(name, value);
     });
   }, [svg]);
-
+  const safeSvg = sanitizeSvg(svg.inner);
   return (
     <svg
       ref={localRef}
       className="sticker-book-svg"
-      dangerouslySetInnerHTML={{ __html: svg.inner }}
+      dangerouslySetInnerHTML={{ __html: safeSvg }}
     />
   );
 });

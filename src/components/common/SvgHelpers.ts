@@ -313,7 +313,7 @@ export function ensureNavImage(
   width: number,
   height: number,
   enabled: boolean,
-  onClick: () => void
+  onClick: () => void,
 ) {
   let img = svg.querySelector(`#${id}`) as SVGImageElement | null;
   if (!img) {
@@ -330,4 +330,18 @@ export function ensureNavImage(
   img.style.opacity = enabled ? "1" : "0.5";
   img.style.pointerEvents = enabled ? "all" : "none";
   img.onclick = enabled ? onClick : null;
+}
+export function sanitizeSvg(svg: string): string {
+  if (!svg) return svg;
+
+  return (
+    svg
+      // remove script tags
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      // remove event handlers like onclick, onload
+      .replace(/\son\w+="[^"]*"/gi, "")
+      .replace(/\son\w+='[^']*'/gi, "")
+      // remove javascript: links
+      .replace(/javascript:/gi, "")
+  );
 }
