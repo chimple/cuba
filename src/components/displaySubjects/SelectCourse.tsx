@@ -1,5 +1,4 @@
 import { FC, useState, useEffect } from "react";
-import Course from "../../models/course";
 import "./SelectCourse.css";
 import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";

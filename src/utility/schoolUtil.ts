@@ -26,26 +26,7 @@ export class schoolUtil {
     if (!temp) return;
     try {
       const currentClass = JSON.parse(temp) as TableTypes<"class">;
-      // function getRef(ref): DocumentReference {
-      //   const db = getFirestore();
-      //   const newCourseRef = doc(
-      //     db,
-      //     ref["_key"].path.segments.at(-2),
-      //     ref["_key"].path.segments.at(-1)
-      //   );
-      //   return newCourseRef;
-      // }
-
-      // function convertDoc(
-      //   refs: DocumentReference<DocumentData>
-      // ): DocumentReference {
-      //   const newCourseRef = getRef(refs);
-      //   return newCourseRef;
-      // }
-
-      // if (!!currentClass.school)
-      //   currentClass.school = convertDoc(currentClass.school);
-      // api.currentClass = currentClass;
+      
       return currentClass;
     } catch (error) {
       console.error("Failed to parse CURRENT_SCHOOL from localStorage:", error);
@@ -62,19 +43,7 @@ export class schoolUtil {
     localStorage.setItem(
       CURRENT_CLASS,
       JSON.stringify(currClass),
-      // JSON.stringify({
-      //   name: currClass.name,
-      //   image: currClass.image,
-      //   classCode: currClass.classCode,
-      //   school: currClass.school,
-      //   courses: currClass.courses,
-      //   description: currClass.description,
-      //   parents: currClass.parents,
-      //   students: currClass.students,
-      //   teachers: currClass.teachers,
-      //   principal: currClass.principal,
-      //   coordinator: currClass.coordinator,
-      // })
+      
     );
   };
   public static removeCurrentClass = () => {
@@ -89,26 +58,7 @@ export class schoolUtil {
 
     if (!temp) return;
     const currentSchool = JSON.parse(temp) as TableTypes<"school">;
-    // function getRef(ref): DocumentReference {
-    //   const db = getFirestore();
-    //   const newCourseRef = doc(
-    //     db,
-    //     ref["_key"].path.segments.at(-2),
-    //     ref["_key"].path.segments.at(-1)
-    //   );
-    //   return newCourseRef;
-    // }
-
-    // function convertDoc(
-    //   refs: DocumentReference<DocumentData>
-    // ): DocumentReference {
-    //   const newCourseRef = getRef(refs);
-    //   return newCourseRef;
-    // }
-
-    // // if (!!currentClass.school)
-    // //   currentClass.school = convertDoc(currentClass.school);
-    // api.currentSchool = currentSchool;
+    
     return currentSchool;
   }
   public static setCurrentSchool = async (currSchool: TableTypes<"school">) => {
@@ -118,18 +68,7 @@ export class schoolUtil {
     localStorage.setItem(
       CURRENT_SCHOOL,
       JSON.stringify(currSchool),
-      // JSON.stringify({
-      //   name: currSchool.name,
-      //   image: currSchool.image,
-      //   courses: currSchool.courses,
-      //   teachers: currSchool.teachers,
-      //   principal: currSchool.principal,
-      //   coordinator: currSchool.coordinator,
-      //   updatedAt: currSchool.updatedAt,
-      //   role: currSchool.role,
-      //   createdAt: currSchool.createdAt,
-      //   docId: currSchool.docId,
-      // })
+     
     );
   };
 

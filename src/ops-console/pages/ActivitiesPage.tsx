@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import Breadcrumb from "../components/Breadcrumb";
 import { t } from "i18next";
 import { PAGES,

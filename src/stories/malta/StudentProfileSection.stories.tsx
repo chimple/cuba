@@ -1,6 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import { number, string } from "prop-types";
 

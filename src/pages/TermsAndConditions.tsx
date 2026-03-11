@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { Redirect, Route, useHistory } from "react-router";
+import { useHistory } from "react-router";
 import { PAGES } from "../common/constants";
 import { t } from "i18next";
 import "../pages/TermsAndConditions.css";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();

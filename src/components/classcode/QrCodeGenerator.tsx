@@ -1,5 +1,4 @@
 import React from 'react';
-import QRCode from 'qrcode.react';
 
 interface QRCodeGeneratorProps {
     value: string;
@@ -9,7 +8,7 @@ interface QRCodeGeneratorProps {
 const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ value, size = 128 }) => {
     return (
         <></>
-        // <QRCode value={value} size={size} />
+        
     );
 };
 

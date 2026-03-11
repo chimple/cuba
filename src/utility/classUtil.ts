@@ -1,4 +1,3 @@
-import { start } from "repl";
 import {
   BANDS,
   LIDO_ASSESSMENT,
@@ -6,7 +5,7 @@ import {
   TableTypes,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
+import { addDays, addMonths, subDays } from "date-fns";
 import { Util } from "./util";
 
 export class ClassUtil {

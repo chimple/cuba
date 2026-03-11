@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./DashBoardDetails.css";
-import { useHistory, useLocation } from "react-router";
+import { useHistory } from "react-router";
 import Header from "../components/homePage/Header";
 import { BANDWISECOLOR, PAGES, TableTypes } from "../../common/constants";
 import { t } from "i18next";

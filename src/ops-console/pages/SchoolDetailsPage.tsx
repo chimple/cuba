@@ -10,7 +10,6 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
 import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
 import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
 import { SchoolVisitAction, SchoolVisitStatus, SchoolVisitType, SchoolVisitTypeLabels } from "../../common/constants";

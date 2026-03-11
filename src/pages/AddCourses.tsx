@@ -1,13 +1,11 @@
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Course from "../models/course";
 import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  ACTION,
   // DISPLAY_SUBJECTS_STORE,
   EVENTS,
   HOMEHEADERLIST,
-  MODES,
   PAGES,
   TableTypes,
 } from "../common/constants";

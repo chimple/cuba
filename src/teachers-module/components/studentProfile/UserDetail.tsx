@@ -8,7 +8,6 @@ import {
   TableTypes,
 } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
-import { IonIcon } from "@ionic/react";
 const UserDetail: React.FC<{
   user: TableTypes<"user">;
   classDoc: TableTypes<"class">;

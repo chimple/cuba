@@ -1,9 +1,5 @@
 import { FC } from "react";
-import CustomDropdown from "../CustomDropdown";
 import "./GradeBoardAndLangDropdown.css";
-import Curriculum from "../../models/curriculum";
-import Grade from "../../models/grade";
-import Language from "../../models/language";
 import { t } from "i18next";
 import DropDown from "../DropDown";
 import { TableTypes } from "../../common/constants";

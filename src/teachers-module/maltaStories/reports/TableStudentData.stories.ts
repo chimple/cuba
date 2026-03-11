@@ -1,6 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { number, string } from "prop-types";
 import TableStudentData from "../../components/reports/TableStudentData";
 import { TABLEDROPDOWN } from "../../../common/constants";
 

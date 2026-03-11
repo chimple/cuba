@@ -1,12 +1,8 @@
 import React, { FC } from "react";
 import {
   IonAlert,
-  IonButton,
-  IonFabButton,
   IonIcon,
-  useIonAlert,
 } from "@ionic/react";
-import { trash, add, create } from "ionicons/icons";
 interface CommonDialogProps {
   children?: React.ReactNode | React.ReactNode[];
   alertMsg: string;

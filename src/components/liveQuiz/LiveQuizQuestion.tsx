@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from "react";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { Encoding } from "@capacitor/filesystem";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import LiveQuiz, {

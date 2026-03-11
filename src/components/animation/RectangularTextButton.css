@@ -18,10 +18,6 @@
   border-bottom: 4.5px solid #474747;
 }
 
-/* .green-button:focus {
-  background-color: #EAEAEA !important;
-} */
-
 /* Styles for desktop and laptop devices (hover effect) */
 @media only screen and (min-width: 1030px) {
   .green-button:hover {
@@ -40,25 +36,6 @@
     transform: scale(1.05);
   }
 }
-
-/* @media only screen and (max-width: 900px){
-  .green-button:active {
-    background-color: #83c327;
-    color: White;
-    border-bottom: 4.5px solid #678E21;
-    transform: scale(1.05);
-
-  }
-}
-@media only screen and (max-width: 900px){
-  .red-button:active {
-    background-color: #F22A55;
-    color: White;
-    border-bottom: 4.5px solid #BB254D;
-    transform: scale(1.05);
-
-  }
-} */
 
 @media (pointer: coarse) {
   .green-button:active {

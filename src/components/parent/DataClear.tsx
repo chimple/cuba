@@ -6,7 +6,6 @@ import {
   CURRENT_STUDENT,
   CACHE_TABLES_TO_CLEAR,
 } from "../../common/constants";
-import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
 const KEYS_TO_CLEAR = [

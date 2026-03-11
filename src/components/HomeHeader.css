@@ -8,14 +8,12 @@
 #home-header-middle-icons {
     display: flex;
     justify-content: space-between;
-    /* width: 90vh; */
-    /* width: 30vw; */
-    /* margin: 0 auto */
+    
     gap: 3.2vw;
 }
 
 #home-header-middle-icons div {
-    /* padding-right: 5px */
+    
 }
 
 #home-header-puzzle-icon {
@@ -29,7 +27,7 @@
     font-size: 18px;
     text-align: center;
     line-height: 1;
-    /* margin-right: 1vw; */
+   
 }
 
 .home-header-indicator > p {

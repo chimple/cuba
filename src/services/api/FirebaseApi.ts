@@ -21,9 +21,6 @@ import {
   QuerySnapshot,
   Query,
   setDoc,
-  onSnapshot,
-  Unsubscribe,
-  FieldValue,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -54,7 +51,6 @@ import Grade from "../../models/grade";
 import Language from "../../models/language";
 import {
   ASSIGNMENT_COMPLETED_IDS,
-  Chapter,
   CollectionIds,
   StudentLessonResult,
 } from "../../common/courseConstants";
@@ -68,12 +64,10 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { AvatarObj } from "../../components/animation/Avatar";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
 import Sticker from "../../models/Sticker";
 import { Util } from "../../utility/util";
-import { Database } from "../database";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;

@@ -1,7 +1,6 @@
 import React from "react";
 import "./AssigmentCount.css";
 import { t } from "i18next";
-import NavigateNextOutlinedIcon from "@mui/icons-material/NavigateNextOutlined";
 interface AssigmentCountProps {
   assignments: number;
   onClick: () => void;

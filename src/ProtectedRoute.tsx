@@ -3,7 +3,6 @@ import { Redirect, Route } from "react-router-dom";
 import { ServiceConfig } from "./services/ServiceConfig";
 import { PAGES } from "./common/constants";
 import Loading from "./components/Loading";
-import { use } from "i18next";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined

@@ -5,7 +5,6 @@ import {
   AVATARS,
   LANG,
   PAGES,
-  CONTINUE,
   TableTypes,
 } from "../common/constants";
 import IconButton from "./IconButton";
@@ -61,7 +60,7 @@ const ProfileHeader: React.FC = () => {
               await i18n.changeLanguage(tempLangCode);
             }
           }
-          // history.replace(PAGES.DISPLAY_STUDENT);
+          
           history.replace(PAGES.SELECT_MODE);
         }}
       />

@@ -12,23 +12,16 @@ import {
 } from "../../../../common/constants";
 import {
   IonContent,
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonRefresher,
   IonRefresherContent,
 } from "@ionic/react";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
-import { Tables } from "../../../../services/database";
 import { ClassUtil } from "../../../../utility/classUtil";
 import Loading from "../../../../components/Loading";
 import { useHistory } from "react-router";
 import { Util } from "../../../../utility/util";
-import CustomDropdown from "../../CustomDropdown";
 import { t } from "i18next";
 import ImageDropdown from "../../imageDropdown";
-import SkeltonLoading from "../../../../components/SkeltonLoading";
 
 const DashBoard: React.FC = ({}) => {
   const [selectedSubject, setSelectedSubject] =

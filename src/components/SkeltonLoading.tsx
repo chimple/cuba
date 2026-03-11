@@ -1,4 +1,4 @@
-import { IonCol, IonLoading, LoadingOptions } from "@ionic/react";
+import { IonCol } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -93,7 +93,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         {header == HOMEHEADERLIST.SUGGESTIONS ? (
           <div className="skelton-home-page-app-ba-div">
-            {/* <Skeleton className="skelton-home-page-app-bar" /> */}
+            
           </div>
         ) : null}
       </div>
@@ -175,16 +175,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   function skeltonHome() {
     return (
       <div className="skelton-home-screen">
-        {/* <div id="skelton-home-screen-div">
-          <img
-            id="skelton-home-screen-char"
-            src={"/assets/animation/chimple_avatar.png"}
-            loading="lazy"
-            alt=""
-          />
-        </div> */}
-        {/* <Skeleton className="skelton-home-screen-avatar" /> */}
-        {/* <Skeleton className="skelton-home-screen-diloag" /> */}
+        
       </div>
     );
   }

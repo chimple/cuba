@@ -19,7 +19,6 @@ import {
   CLASS,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
-import ToggleButton from "../../components/parent/ToggleButton";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
@@ -27,7 +26,6 @@ import { IonItem } from "@ionic/react";
 import CommonToggle from "../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
 import {
-  IoGitPullRequestOutline,
   IoGitPullRequestSharp,
 } from "react-icons/io5";
 import { t } from "i18next";

@@ -1,4 +1,4 @@
-import { IonIcon, IonPage } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./AppLangSelection.css";
 import { useHistory } from "react-router-dom";
@@ -6,7 +6,6 @@ import { LANGUAGE, LANG, PAGES, APP_LANGUAGES } from "../common/constants";
 import Loading from "../components/Loading";
 import i18n from "../i18n";
 import NextButton from "../components/common/NextButton";
-import { chevronForward } from "ionicons/icons";
 import DropDown from "../components/DropDown";
 
 const AppLangSelection: React.FC = () => {

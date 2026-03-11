@@ -3,21 +3,18 @@ import { FC, useEffect, useState } from "react";
 import Course from "../models/course";
 import Lesson from "../models/lesson";
 
-import { Chapter, StudentLessonResult } from "../common/courseConstants";
+import { Chapter } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CONTINUE,
-  CURRENT_CLASS,
-  CURRENT_MODE,
   // DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
   PAGES,
   TableTypes,
 } from "../common/constants";
-import { IonIcon, IonPage } from "@ionic/react";
-import { chevronBackCircleSharp } from "ionicons/icons";
+import { IonPage } from "@ionic/react";
 import "./DisplaySubjects.css";
 import { t } from "i18next";
 import SelectCourse from "../components/displaySubjects/SelectCourse";
@@ -27,7 +24,6 @@ import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
-import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";

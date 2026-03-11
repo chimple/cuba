@@ -5,7 +5,6 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CONTINUE,
   CURRENT_SELECTED_COURSE,
-  DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   HOMEHEADERLIST,
   MODES,

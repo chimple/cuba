@@ -1,7 +1,6 @@
-import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
+import { IonButton, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { COURSES, MIN_PASS, PAGES, TableTypes } from "../common/constants";
-import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
 import { Lesson } from "../interface/curriculumInterfaces";
@@ -12,7 +11,6 @@ import "./Profile.css";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import User from "../models/user";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);

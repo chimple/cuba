@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef } from "react";
 import "./SelectChapter.css";
 import SelectIconImage from "./SelectIconImage";
 import DownloadLesson from "../DownloadChapterAndLesson";

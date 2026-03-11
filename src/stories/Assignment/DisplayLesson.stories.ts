@@ -1,7 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import { action } from "@storybook/addon-actions";
 import LessonIcon from "../../components/malta/assignment/LessonIcon";
 
 const meta = {

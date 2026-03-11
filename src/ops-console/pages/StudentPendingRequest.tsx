@@ -11,7 +11,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Radio,
   TablePagination,
 } from "@mui/material";
 import { IonCheckbox } from "@ionic/react";

@@ -32,7 +32,6 @@ import {
   useGbContext,
 } from "../../growthbook/Growthbook";
 import { toPng } from "html-to-image";
-import { IoShareSocialSharp } from "react-icons/io5";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 const HomePage: React.FC = () => {
   const history = useHistory();

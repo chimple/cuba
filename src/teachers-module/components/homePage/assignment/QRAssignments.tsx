@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router";
-import { IonIcon } from "@ionic/react";
-import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
 import { t } from "i18next";
 import "./QRAssignments.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";

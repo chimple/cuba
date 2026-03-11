@@ -1,11 +1,10 @@
-import { FC, MouseEvent, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
 import {
   AssignmentSource,
-  CAMERAPERMISSION,
   COURSES,
   PAGES,
   TableTypes,
@@ -18,7 +17,6 @@ import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerTypeHint,
 } from "@capacitor/barcode-scanner";
-import { App } from "@capacitor/app";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import Loading from "../../../../components/Loading";
 import { checkmarkCircle, ellipseOutline } from "ionicons/icons";

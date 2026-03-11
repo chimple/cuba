@@ -3,8 +3,6 @@ import {
   IonPage,
   IonHeader,
   IonToolbar,
-  IonButtons,
-  IonBackButton,
   IonContent,
   IonSelect,
   IonSelectOption,
@@ -15,17 +13,13 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSpinner,
-  IonButton,
 } from "@ionic/react";
 import {
   searchOutline,
   close,
-  helpCircleOutline,
   chevronDownOutline,
-  arrowBack,
 } from "ionicons/icons";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import NoSchoolsFound from "../components/NoSchoolsFound";
 import SchoolListItem from "../components/SchoolListItem";
 import {
   MODES,
@@ -40,7 +34,6 @@ import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../../utility/schoolUtil";
-import { Capacitor } from "@capacitor/core";
 import Header from "../components/homePage/Header";
 import { Util } from "../../utility/util";
 

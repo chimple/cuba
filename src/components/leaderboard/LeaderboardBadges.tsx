@@ -1,7 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import Badge from "../../models/Badge";
 import { LeaderboardRewardsType, TableTypes } from "../../common/constants";
 import CachedImage from "../common/CachedImage";
 import "./LeaderboardBadges.css";
@@ -316,16 +315,6 @@ const LeaderboardBadges: FC = () => {
         ))}
         </div>
       </div>
-
-      {/* Disabled Badges */}
-      {/* {allBadges &&
-        allBadges.length > 0 &&
-        allBadges.map((value, index) => (
-          <div key={index} className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image} />
-            {!!value?.name && <p>{value?.name}</p>}
-          </div>
-        ))} */}
     </div>
   ) : (
     <div></div>

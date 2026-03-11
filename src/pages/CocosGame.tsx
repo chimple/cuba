@@ -13,7 +13,6 @@ import {
   PAGES,
   PROBLEM_END,
   RESULT_STATUS,
-  REWARD_LEARNING_PATH,
   REWARD_LESSON,
   TableTypes,
 } from "../common/constants";

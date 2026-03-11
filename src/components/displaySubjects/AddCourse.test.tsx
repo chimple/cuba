@@ -2,7 +2,6 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AddCourse from "./AddCourse";
 import "@testing-library/jest-dom";
-import { t } from "i18next";
 import { DEFUALT_SUBJECT_CARD_COLOUR } from "../../common/constants";
 
 /* ---------------- MOCKS ---------------- */

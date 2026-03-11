@@ -1,6 +1,5 @@
 import { t } from "i18next";
 import { AVATARS } from "../../common/constants";
-import User from "../../models/user";
 import { Util } from "../../utility/util";
 import "./StudentAvatar.css";
 

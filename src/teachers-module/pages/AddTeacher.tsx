@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { IonButton, IonText, IonAlert } from "@ionic/react";
+import { IonAlert } from "@ionic/react";
 import InputField from "../../common/InputField";
-import { Util } from "../../utility/util";
 import { PAGES, TableTypes } from "../../common/constants";
 import Header from "../components/homePage/Header";
 import { useHistory, useLocation } from "react-router-dom";
 import "./AddTeacher.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { RoleType } from "../../interface/modelInterfaces";
 
 const AddTeacher: React.FC = () => {
   const history = useHistory();

@@ -1,4 +1,4 @@
-import { IonPage, IonHeader, useIonRouter } from "@ionic/react";
+import { IonPage, IonHeader } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   HOMEHEADERLIST,
@@ -6,21 +6,17 @@ import {
   PREVIOUS_SELECTED_COURSE,
   HeaderIconConfig,
   DEFAULT_HEADER_ICON_CONFIGS,
-  MODES,
   CONTINUE,
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
   TableTypes,
-  RECOMMENDATIONS,
-  STARS_COUNT,
   LANGUAGE,
   LANG,
   IS_REWARD_FEATURE_ON,
   GENERIC_POP_UP,
 } from "../common/constants";
 import "./Home.css";
-import LessonSlider from "../components/LessonSlider";
 import HomeHeader from "../components/HomeHeader";
 import { useHistory, useLocation } from "react-router";
 // Default theme
@@ -30,11 +26,7 @@ import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Timestamp } from "firebase/firestore";
-import { schoolUtil } from "../utility/schoolUtil";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { t } from "i18next";
 import { App } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import Subjects from "./Subjects";
@@ -43,10 +35,8 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { Device } from "@capacitor/device";
 import i18n from "../i18n";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import CampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
 import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
 import { useGrowthBook } from "@growthbook/growthbook-react";

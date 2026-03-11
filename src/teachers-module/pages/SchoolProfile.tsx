@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   PAGES,
-  SCHOOL,
   SchoolWithRole,
   TableTypes,
 } from "../../common/constants";

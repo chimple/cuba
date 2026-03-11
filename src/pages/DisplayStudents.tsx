@@ -1,29 +1,19 @@
-import { IonContent, IonPage, useIonToast } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
-import Loading from "../components/Loading";
-import User from "../models/user";
 import {
   AVATARS,
-  MAX_STUDENTS_ALLOWED,
   PAGES,
   MODES,
-  CONTINUE,
   TableTypes,
-  CURRENT_CLASS,
   EDIT_STUDENTS_MAP,
-  CURRENT_STUDENT,
-  LANG,
-  LANGUAGE,
 } from "../common/constants";
-import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";

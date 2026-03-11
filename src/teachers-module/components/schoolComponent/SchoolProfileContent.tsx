@@ -1,12 +1,10 @@
 import React from "react";
-import { Button } from "@mui/material";
 import { t } from "i18next";
 import "./SchoolProfileContent.css";
-import { PAGES, TableTypes } from "../../../common/constants";
+import { TableTypes } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { RoleType } from "../../../interface/modelInterfaces";
-import { IonIcon, IonLabel } from "@ionic/react";
-import { pencilSharp } from "ionicons/icons";
+import { IonLabel } from "@ionic/react";
 import ProfileDetails from "../library/ProfileDetails";
 
 const SchoolProfileContent: React.FC<{

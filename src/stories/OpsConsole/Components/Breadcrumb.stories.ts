@@ -1,6 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import React from "react";
 import Breadcrumb from "../../../ops-console/components/Breadcrumb";
 
 const meta: Meta<typeof Breadcrumb> = {

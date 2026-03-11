@@ -37,7 +37,6 @@ import {
 import {
   getGradeOptions,
   filterBySearchAndFilters,
-  sortSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";

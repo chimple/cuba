@@ -1,4 +1,4 @@
-import { IonInput, IonList } from "@ionic/react";
+import { IonInput } from "@ionic/react";
 import { FC } from "react";
 import "./AddSchool.css";
 import CommonButton from "../common/CommonButton";

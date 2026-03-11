@@ -3,7 +3,7 @@ import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CachedImage from "./CachedImage";
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
-import { Filesystem, Directory } from "@capacitor/filesystem";
+import { Filesystem } from "@capacitor/filesystem";
 
 /* ================= MOCKS ================= */
 

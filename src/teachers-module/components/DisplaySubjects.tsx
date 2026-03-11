@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
-  IonButton,
-  IonModal,
-  IonContent,
   IonIcon,
   IonAlert,
 } from "@ionic/react";
-import { checkmarkCircle, closeCircleOutline } from "ionicons/icons";
+import { checkmarkCircle } from "ionicons/icons";
 import { t } from "i18next";
 import "./DisplaySubjects.css";
 import { TableTypes } from "../../common/constants";

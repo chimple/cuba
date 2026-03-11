@@ -1,34 +1,26 @@
 import { FC, useEffect, useRef, useState, useCallback } from "react";
-import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CONTINUE,
-  CURRENT_CLASS,
-  CURRENT_MODE,
   CURRENT_SELECTED_CHAPTER,
   CURRENT_SELECTED_COURSE,
   CURRENT_SELECTED_GRADE,
   CURRENT_STAGE,
-  DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
   PAGES,
   TableTypes,
 } from "../common/constants";
-import { IonIcon, IonItem, IonList, IonPage } from "@ionic/react";
-import { chevronBackCircleSharp } from "ionicons/icons";
+import { IonItem, IonPage } from "@ionic/react";
 import "./DisplayChapters.css";
 import { t } from "i18next";
-import SelectCourse from "../components/displaySubjects/SelectCourse";
-import Loading from "../components/Loading";
 import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
-import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { registerBackButtonHandler } from "../common/backButtonRegistry";
