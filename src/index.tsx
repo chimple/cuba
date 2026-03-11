@@ -41,6 +41,7 @@ import {
   CAN_HOT_UPDATE,
   EVENTS,
   IS_OPS_USER,
+  TableTypes,
   VERSION_KEY,
 } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
@@ -80,9 +81,23 @@ Sentry.init(
   SentryReact.init,
 );
 // set user initially (might be "anonymous" until rehydration completes)
-let userData = Util.getUser();
-let userId: string = userData?.id ?? "anonymous";
-if (userId) Sentry.setUser({ id: userId });
+let userId: string = "anonymous";
+let userData: TableTypes<"user"> | undefined;
+
+persistor.subscribe(() => {
+  const { bootstrapped } = persistor.getState();
+
+  if (bootstrapped) {
+    const user = store.getState().auth?.user;
+
+    if (user?.id) {
+      userId = user.id;
+      userData = user;
+      Sentry.setUser({ id: userId });
+    }
+  }
+});
+
 const isNativePlatform = Capacitor.isNativePlatform();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
 if (isNativePlatform) {
