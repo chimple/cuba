@@ -131,7 +131,7 @@
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
     "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
-    "fix-staged": "lint-staged -c .lintstagedrc-fix.json",
+    "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
     "prepare": "husky"
   },
   "eslintConfig": {
