@@ -19,7 +19,7 @@ const NewBackButton: React.FC<Props> = ({ onClick }) => {
         if (e.key === "Enter" || e.key === " ") onClick();
       }}
       src="/assets/icons/BackButtonIcon.svg"
-      alt="BackButtonIcon"
+      alt=""
     />
   );
 };
