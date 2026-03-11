@@ -243,6 +243,21 @@
   color: #1a71f6;
 }
 
+.migrate-schools-table-wrap-hide-selection
+  .data-tablebody-select-all-head-cell
+  .MuiCheckbox-root,
+.migrate-schools-table-wrap-hide-selection
+  .data-tablebody-selection-cell
+  .MuiCheckbox-root {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.migrate-schools-table-wrap-hide-selection .data-tablebody-row-disabled,
+.migrate-schools-table-wrap-hide-selection .data-tablebody-selection-cell {
+  cursor: default !important;
+}
+
 .migrate-schools-name {
   display: block;
   max-width: 100%;

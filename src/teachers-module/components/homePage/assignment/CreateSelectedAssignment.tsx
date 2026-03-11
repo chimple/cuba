@@ -17,7 +17,7 @@ import {
 import { ClassUtil } from "../../../../utility/classUtil";
 import { Util } from "../../../../utility/util";
 import { useHistory } from "react-router";
-import { t } from "i18next";
+import i18n, { t } from "i18next";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import { TeacherAssignmentPageType } from "./TeacherAssignment";
 import CommonDialogBox from "../../../../common/CommonDialogBox";
@@ -310,15 +310,36 @@ const CreateSelectedAssignment = ({
   const getShareText = async () => {
     const currentClass = await Util.getCurrentClass();
     const groupedDetails = groupLessonDetails(shareTextLessonDetails);
+    let schoolLanguageCode: string | undefined;
 
-    let text = `🧒🧒🧒🧒 ${t(
+    try {
+      if (currentClass?.school_id) {
+        const school = await api.getSchoolById(currentClass.school_id);
+        const schoolLanguageIdOrCode = school?.language ?? undefined;
+        if (schoolLanguageIdOrCode) {
+          const languageDoc = await api.getLanguageWithId(schoolLanguageIdOrCode);
+          schoolLanguageCode = languageDoc?.code ?? schoolLanguageIdOrCode;
+        }
+
+      }
+    } catch (error) {
+      console.error("Failed to resolve school language for share text:", error);
+    }
+
+    if (schoolLanguageCode) {
+      await i18n.loadLanguages([schoolLanguageCode]);
+    }
+    const fixedT = schoolLanguageCode ? i18n.getFixedT(schoolLanguageCode) : t;
+    const translate = (key: string): string => fixedT(key);
+
+    let text = `🧒🧒🧒🧒 ${translate(
       "Dear Students, Your teacher has assigned you the below homework. Please go to Chimple Learning app and complete it.\n\n"
     )}`;
-    text += `*${t("Class")}: ${currentClass?.name.trim()}*\n\n`;
+    text += `*${translate("Class")}: ${currentClass?.name.trim()}*\n\n`;
     groupedDetails.forEach((subjectDetails) => {
-      text += `*${t("Subject")}: ${subjectDetails.subject}*\n`;
+      text += `*${translate("Subject")}: ${subjectDetails.subject}*\n`;
       subjectDetails.chapters.forEach((chapter, chapterIndex) => {
-        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${
+        text += `   ${chapterIndex + 1}. _*${translate("Chapter")}*_: ${
           chapter.name
         }\n`;
         chapter.lessons.forEach((lesson, lessonIndex) => {
@@ -326,7 +347,7 @@ const CreateSelectedAssignment = ({
           const formattedLesson = `${lessonNumber} ${lesson}`;
           const space = "                      ";
           if (lessonIndex === 0) {
-            text += `       _*${t("Lesson")}*_: ${formattedLesson}\n`;
+            text += `       _*${translate("Lesson")}*_: ${formattedLesson}\n`;
           } else {
             text += `${space}${formattedLesson}\n`;
           }
@@ -336,7 +357,7 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
-    text += `${t(
+    text += `${translate(
       "Please click this link to access your Homework"
     )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}&source=teacher`;
 

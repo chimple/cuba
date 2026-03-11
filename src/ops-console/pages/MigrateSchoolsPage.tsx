@@ -142,7 +142,11 @@ const MigrateSchoolsPage: React.FC = () => {
 
       <div
         id="migrate-schools-table-wrap"
-        className="migrate-schools-table-wrap"
+        className={`migrate-schools-table-wrap${
+          activeTab === "migrated"
+            ? " migrate-schools-table-wrap-hide-selection"
+            : ""
+        }`}
       >
         {!isLoading && rows.length > 0 && (
           <DataTableBody
@@ -153,9 +157,14 @@ const MigrateSchoolsPage: React.FC = () => {
             onSort={handleSort}
             loading={isLoading}
             selectableRows
-            selectedRowIds={selectedSchoolIds}
-            onToggleRowSelection={handleToggleSchoolSelection}
-            onToggleSelectAll={handleSelectAllVisible}
+            selectedRowIds={activeTab === "migrate" ? selectedSchoolIds : []}
+            onToggleRowSelection={
+              activeTab === "migrate" ? handleToggleSchoolSelection : undefined
+            }
+            onToggleSelectAll={
+              activeTab === "migrate" ? handleSelectAllVisible : undefined
+            }
+            isRowSelectable={() => activeTab === "migrate"}
             getRowId={(row) => String(row.sch_id || row.id)}
             disableRowNavigation
           />

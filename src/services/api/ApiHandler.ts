@@ -1280,7 +1280,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return this.s.deleteUserFromSchool(schoolId, userId, role);
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -1577,13 +1577,20 @@ export class ApiHandler implements ServiceApi {
     newStudentId: string,
     requestId?: string | undefined,
     respondedBy?: string | undefined,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return await this.s.mergeStudentRequest(
       existingStudentId,
       newStudentId,
       requestId,
       respondedBy,
     );
+  }
+
+  public async mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return await this.s.mergeUserPathway(existingStudentId, newStudentId);
   }
 
   public async getClassesBySchoolId(

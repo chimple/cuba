@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import SearchAndFilter from "../SearchAndFilter";
 import DataTablePagination from "../DataTablePagination";
 import { ServiceConfig } from "../../../services/ServiceConfig";
+import { CircularProgress } from "@mui/material";
 import "./CardListModal.css";
 import { t } from "i18next";
 
@@ -24,7 +25,8 @@ interface CardListModalProps {
   classId: string;
   primaryStudentId?: string;
   onClose: () => void;
-  onSubmit: (student: StudentItem) => void;
+  onSubmit: (student: StudentItem) => void | Promise<void>;
+  isSubmitting?: boolean;
 }
 
 const ROWS_PER_PAGE = 20;
@@ -36,6 +38,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
   primaryStudentId,
   onClose,
   onSubmit,
+  isSubmitting = false,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [students, setStudents] = useState<StudentItem[]>([]);
@@ -156,6 +159,7 @@ const primaryContact =
           <button
             id="cardlist-close-button"
             className="cardlist-close-button"
+            disabled={isSubmitting}
             onClick={onClose}
           >
             ✕
@@ -260,6 +264,7 @@ const primaryContact =
             <button
               id="cardlist-cancel-button"
               className="cardlist-merge-cancel-btn"
+              disabled={isSubmitting}
               onClick={onClose}
             >
               {t("Cancel")}
@@ -268,10 +273,17 @@ const primaryContact =
             <button
               id="cardlist-merge-button"
               className="cardlist-merge-btn"
-              disabled={!selectedStudent}
+              disabled={!selectedStudent || isSubmitting}
               onClick={() => selectedStudent && onSubmit(selectedStudent)}
             >
-              {t("Merge")}
+              {isSubmitting ? (
+                <span className="cardlist-merge-btn-content">
+                  <CircularProgress size={14} color="inherit" />
+                  {t("Merging...")}
+                </span>
+              ) : (
+                t("Merge")
+              )}
             </button>
           </div>
         </div>
