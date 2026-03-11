@@ -4,6 +4,8 @@ import {
   AVATARS,
   CURRENT_MODE,
   CURRENT_PATHWAY_MODE,
+  ENABLE_STICKER_BOOK,
+  EVENTS,
   HOMEWORK_PATHWAY,
   LEADERBOARDHEADERLIST,
   MODES,
@@ -15,6 +17,7 @@ import { Util } from "../../utility/util";
 import { AvatarObj } from "../animation/Avatar";
 import ParentalLock from "../parent/ParentalLock";
 import { t } from "i18next";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   updateLocalAttributes,
@@ -39,6 +42,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [isClosing, setIsClosing] = useState(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
+  const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
 
   const { user: reduxUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -64,7 +68,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const onEdit = async () => {
     const languages = await api.getAllLanguages();
     const user = reduxUser;
-    if(!user) return;
+    if (!user) return;
     const userLang = languages.find((lang) => lang.id === user.language_id);
     if (userLang?.code && i18n.language !== userLang.code) {
       i18n.changeLanguage(userLang.code);
@@ -74,6 +78,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onLeaderboard = () => {
     history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
+  };
+
+  const onStickerBook = () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_MENU_TAP, {
+      user_id: student?.id,
+      source: "profile_menu",
+    });
+    history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };
 
   const onReward = () => {
@@ -100,6 +112,11 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   };
 
   const allMenuItems = [
+    {
+      icon: "/assets/icons/StickerBook.svg",
+      label: "Sticker Book",
+      onClick: onStickerBook,
+    },
     {
       icon: "/assets/icons/Ranking.svg",
       label: "Leaderboard",
@@ -130,6 +147,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const HIDE_IN_SCHOOL = new Set(["Parents Section", "Edit Profile"]);
 
   const menuItems = allMenuItems
+    .filter((item) =>
+      item.label === "Sticker Book" ? isStickerBookEnabled : true,
+    )
     .filter(
       (item) =>
         !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label)),
