@@ -19,7 +19,6 @@ import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import ChapterWiseLessons from "../components/ChapterWiseLessons";
 import {
   readAssignmentCartFromStorage,
-  writeAssignmentCartToStorage,
 } from "./AssignmentCartStorage";
 
 type LessonMeta = {
@@ -83,6 +82,8 @@ const SearchLesson: React.FC = () => {
   const OTHER_KEY = "other";
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const requestIdRef = useRef(0);
+  const selectedLessonRef = useRef(selectedLesson);
+  const classSelectedLessonRef = useRef(classSelectedLesson);
 
   useEffect(() => {
     const init = async () => {
@@ -107,7 +108,7 @@ const SearchLesson: React.FC = () => {
           } else {
             setShowHistory(true);
           }
-        } catch {}
+        } catch { }
       } else {
         setShowHistory(true);
       }
@@ -123,6 +124,14 @@ const SearchLesson: React.FC = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    selectedLessonRef.current = selectedLesson;
+  }, [selectedLesson]);
+
+  useEffect(() => {
+    classSelectedLessonRef.current = classSelectedLesson;
+  }, [classSelectedLesson]);
 
   const isLessonSelected = (chapterId: string, lessonId: string) => {
     const manual =
@@ -195,20 +204,18 @@ const SearchLesson: React.FC = () => {
       Partial<Record<AssignmentSource, string[]>>
     >,
   ) => {
-    const nextSelected = new Map(selectedLesson);
+    const nextSelected = new Map(selectedLessonRef.current);
     nextSelected.set(
       classId,
       JSON.stringify(Object.fromEntries(nextClassSelection)),
     );
+    selectedLessonRef.current = nextSelected;
     setSelectedLesson(nextSelected);
 
-    const existing = readAssignmentCartFromStorage(userId);
-    const now = new Date().toISOString();
-    writeAssignmentCartToStorage(userId, {
-      lessons: JSON.stringify(Object.fromEntries(nextSelected)),
-      created_at: existing?.created_at ?? now,
-      updated_at: now,
-    });
+    await api.createOrUpdateAssignmentCart(
+      userId,
+      JSON.stringify(Object.fromEntries(nextSelected)),
+    );
   };
 
   const toggleLessonSelection = async (chapterId: string, lessonId: string) => {
@@ -220,7 +227,7 @@ const SearchLesson: React.FC = () => {
 
     const classId = currentClass.id;
 
-    const next = new Map(classSelectedLesson);
+    const next = new Map(classSelectedLessonRef.current);
     const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
 
     const manual = new Set(chapterSourceMap[AssignmentSource.MANUAL] ?? []);
@@ -238,6 +245,7 @@ const SearchLesson: React.FC = () => {
     chapterSourceMap[AssignmentSource.QR_CODE] = Array.from(qr);
 
     next.set(chapterId, chapterSourceMap);
+    classSelectedLessonRef.current = next;
     setClassSelectedLesson(next);
 
     let total = 0;
@@ -263,7 +271,7 @@ const SearchLesson: React.FC = () => {
 
     const classId = currentClass.id;
 
-    const next = new Map(classSelectedLesson);
+    const next = new Map(classSelectedLessonRef.current);
     const chapterSourceMap = { ...(next.get(chapterId) ?? {}) };
 
     const manual = new Set(chapterSourceMap[AssignmentSource.MANUAL] ?? []);
@@ -292,6 +300,7 @@ const SearchLesson: React.FC = () => {
     chapterSourceMap[AssignmentSource.QR_CODE] = Array.from(qr);
 
     next.set(chapterId, chapterSourceMap);
+    classSelectedLessonRef.current = next;
     setClassSelectedLesson(next);
 
     // Recalculate count
@@ -311,8 +320,12 @@ const SearchLesson: React.FC = () => {
     const classId = classIdArg ?? currentClass?.id;
     if (!user?.id || !classId) return;
 
-    const cart = readAssignmentCartFromStorage(user.id);
+    const cart =
+      (await api.getUserAssignmentCart(user.id)) ??
+      readAssignmentCartFromStorage(user.id);
     if (!cart?.lessons) {
+      selectedLessonRef.current = new Map();
+      classSelectedLessonRef.current = new Map();
       setSelectedLesson(new Map());
       setClassSelectedLesson(new Map());
       setAssignmentCount(0);
@@ -328,6 +341,7 @@ const SearchLesson: React.FC = () => {
       ]),
     );
 
+    selectedLessonRef.current = fullMap;
     setSelectedLesson(fullMap);
     const classMapRaw = parsed[classId];
     const classMap =
@@ -336,6 +350,7 @@ const SearchLesson: React.FC = () => {
         : classMapRaw || {};
     const map = normalizeClassSelection(classMap);
 
+    classSelectedLessonRef.current = map;
     setClassSelectedLesson(map);
 
     let count = 0;
@@ -539,10 +554,10 @@ const SearchLesson: React.FC = () => {
     const lowerTerm = searchTerm.trim().toLowerCase();
     const filtered = lowerTerm
       ? lessons.filter(
-          (lesson) =>
-            lesson.name?.toLowerCase().includes(lowerTerm) ||
-            lesson.outcome?.toLowerCase().includes(lowerTerm),
-        )
+        (lesson) =>
+          lesson.name?.toLowerCase().includes(lowerTerm) ||
+          lesson.outcome?.toLowerCase().includes(lowerTerm),
+      )
       : lessons;
 
     const courseMap = new Map<
@@ -714,7 +729,7 @@ const SearchLesson: React.FC = () => {
           </div>
         )}
 
-        <AssigmentCount assignments={assignmentCount} onClick={() => {}} />
+        <AssigmentCount assignments={assignmentCount} onClick={() => { history.push(PAGES.TEACHER_ASSIGNMENT); }} />
       </main>
     </div>
   );
