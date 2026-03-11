@@ -2069,8 +2069,9 @@ export class ApiHandler implements ServiceApi {
 
   public async getNextWinnableSticker(
     stickerBookId: string,
+    userId?: string,
   ): Promise<string | null> {
-    return await this.s.getNextWinnableSticker(stickerBookId);
+    return await this.s.getNextWinnableSticker(stickerBookId, userId);
   }
 
   public async updateStickerWon(

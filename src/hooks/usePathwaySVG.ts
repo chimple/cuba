@@ -1,6 +1,8 @@
 import { RefObject, useEffect } from "react";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Capacitor } from "@capacitor/core";
+import { useFeatureIsOn, useFeatureValue } from "@growthbook/growthbook-react";
+import { t } from "i18next";
 
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
@@ -13,9 +15,14 @@ import {
   RewardBoxState,
   IS_REWARD_FEATURE_ON,
   LIDO_ASSESSMENT,
+  EVENTS,
+  STICKER_BOOK_PREVIEW_ENABLED,
+  PATHWAY_END_REWARD_BOX_VARIANT,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
 } from "../common/constants";
 import { Util } from "../utility/util";
 import { LessonNode } from "./useLearningPath";
+import { StickerBookPreviewData } from "../components/learningPathway/StickerBookPreviewModal";
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -35,12 +42,15 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
+  onStickerPreviewReady: (data: StickerBookPreviewData) => void;
 }
 
 // CACHES
 const svgGroupCache: Record<string, SVGGElement | SVGSVGElement> = {};
 const svgStringCache: Record<string, string> = {};
 let pathwayTemplateCache: string | null = null;
+const stickerSlotCache: Record<string, SVGGElement> = {};
+const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
@@ -74,6 +84,116 @@ const fetchRemoteSVGGroup = async (
   const svgNode = wrapper.querySelector("svg");
   if (svgNode) return svgNode as SVGSVGElement;
   return wrapper as SVGGElement;
+};
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const buildStickerDataUrlFromBook = async (
+  stickerBookSvgUrl: string,
+  stickerId: string,
+): Promise<string | null> => {
+  const cacheKey = `${stickerBookSvgUrl}::${stickerId}`;
+  const cached = stickerDataUrlCache[cacheKey];
+  if (cached) return cached;
+
+  const slot = await loadStickerSlotFromBook(stickerBookSvgUrl, stickerId);
+  if (!slot) return null;
+
+  // Compute bbox for a tight viewBox
+  const tempSvg = document.createElementNS(SVG_NS, "svg");
+  tempSvg.setAttribute("width", "1");
+  tempSvg.setAttribute("height", "1");
+  tempSvg.style.position = "absolute";
+  tempSvg.style.left = "-10000px";
+  tempSvg.style.top = "-10000px";
+  tempSvg.style.visibility = "hidden";
+
+  const slotClone = slot.cloneNode(true) as SVGGElement;
+  tempSvg.appendChild(slotClone);
+  document.body.appendChild(tempSvg);
+
+  let bbox: DOMRect | null = null;
+  try {
+    bbox = slotClone.getBBox();
+  } catch {
+    bbox = null;
+  } finally {
+    document.body.removeChild(tempSvg);
+  }
+
+  if (!bbox || bbox.width <= 0 || bbox.height <= 0) return null;
+
+  const svg = `<svg xmlns="${SVG_NS}" viewBox="${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}" preserveAspectRatio="xMidYMid meet">${slot.outerHTML}</svg>`;
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  stickerDataUrlCache[cacheKey] = dataUrl;
+  return dataUrl;
+};
+
+const loadStickerSlotFromBook = async (
+  stickerBookSvgUrl: string,
+  stickerId: string,
+): Promise<SVGGElement | null> => {
+  const cacheKey = `${stickerBookSvgUrl}::${stickerId}`;
+  const cached = stickerSlotCache[cacheKey];
+  if (cached) return cached.cloneNode(true) as SVGGElement;
+
+  const res = await fetch(stickerBookSvgUrl);
+  const text = await res.text();
+
+  const wrapper = document.createElementNS(SVG_NS, "g");
+  wrapper.innerHTML = text;
+
+  const safeId =
+    typeof (CSS as any)?.escape === "function"
+      ? (CSS as any).escape(stickerId)
+      : stickerId.replace(/"/g, '\\"');
+
+  const slot = wrapper.querySelector(
+    `[data-slot-id="${safeId}"]`,
+  ) as SVGGElement | null;
+  if (!slot) return null;
+
+  stickerSlotCache[cacheKey] = slot;
+  return slot.cloneNode(true) as SVGGElement;
+};
+
+const normalizeStickerSlotToSize = (
+  slot: SVGGElement,
+  size: number,
+): SVGGElement => {
+  const tempSvg = document.createElementNS(SVG_NS, "svg");
+  tempSvg.setAttribute("width", "1");
+  tempSvg.setAttribute("height", "1");
+  tempSvg.style.position = "absolute";
+  tempSvg.style.left = "-10000px";
+  tempSvg.style.top = "-10000px";
+  tempSvg.style.visibility = "hidden";
+
+  const slotClone = slot.cloneNode(true) as SVGGElement;
+  tempSvg.appendChild(slotClone);
+  document.body.appendChild(tempSvg);
+
+  let bbox: DOMRect | null = null;
+  try {
+    bbox = slotClone.getBBox();
+  } catch {
+    // ignore
+  } finally {
+    document.body.removeChild(tempSvg);
+  }
+
+  if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
+    return slotClone;
+  }
+
+  const scale = Math.min(size / bbox.width, size / bbox.height);
+  const tx = (size - bbox.width * scale) / 2 - bbox.x * scale;
+  const ty = (size - bbox.height * scale) / 2 - bbox.y * scale;
+
+  const wrapper = document.createElementNS(SVG_NS, "g");
+  wrapper.setAttribute("transform", `translate(${tx}, ${ty}) scale(${scale})`);
+  wrapper.appendChild(slotClone);
+  return wrapper;
 };
 
 const createSVGImage = (
@@ -116,8 +236,14 @@ export function usePathwaySVG({
   setCurrentChapter,
   setIsRewardPathLoaded,
   isRewardPathLoaded,
+  onStickerPreviewReady,
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
+  const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
+  const rewardBoxVariant = useFeatureValue(
+    PATHWAY_END_REWARD_BOX_VARIANT,
+    "sticker",
+  );
 
   useEffect(() => {
     (window as any).__triggerPathwayReload__ = loadSVG;
@@ -126,7 +252,7 @@ export function usePathwaySVG({
     return () => {
       delete (window as any).__triggerPathwayReload__;
     };
-  }, [isRewardPathLoaded]);
+  }, [isRewardPathLoaded, isStickerBookPreviewOn, rewardBoxVariant]);
 
   async function loadSVG() {
     if (!containerRef.current) return;
@@ -155,7 +281,10 @@ export function usePathwaySVG({
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
       if (!course) return;
-      const pathItem = course.path.find((p: LessonNode) => p && p.isPlayed === false);
+      const pathItem = course.path.find(
+        (p: LessonNode) => p && p.isPlayed === false,
+      );
+      if (!pathItem) return;
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
       const activeIndex = course.path.findIndex((p: LessonNode) => p.isPlayed === false);
@@ -164,15 +293,48 @@ export function usePathwaySVG({
       const startIndex = Math.max(0, currentIndex - (PATH_SIZE - 1));
       const pathEndIndex = Math.min(Math.max(course.path.length - 1, 4), startIndex + PATH_SIZE - 1);
 
-      const [courseData, chapterData] = await Promise.all([
-        api.getCourse(course.id),
-        api.getChapterById(course.path.find((p: LessonNode) => p && p.isPlayed === false).chapter_id),
-      ]);
+      let courseData: any = null;
+      let chapterData: any = null;
+      try {
+        [courseData, chapterData] = await Promise.all([
+          api.getCourse(course.id),
+          api.getChapterById(pathItem.chapter_id),
+        ]);
+      } catch (err) {
+        console.warn(
+          "Offline: Could not fetch Course/Chapter metadata. Using fallbacks.",
+          err,
+        );
+        courseData = { id: course.id, name: "Course" };
+        chapterData = { id: pathItem.chapter_id, name: "Chapter" };
+      }
 
+      const stickerPreviewPayload = isStickerBookPreviewOn
+        ? await buildStickerPreviewPayload()
+        : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
+
+      // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
+      if (isStickerBookPreviewOn && stickerPreviewPayload) {
+        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            const shouldOpenForStudent =
+              parsed?.studentId && parsed.studentId === currentStudent.id;
+            if (shouldOpenForStudent) {
+              sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+              // Defer so the rest of the pathway UI can mount first.
+              setTimeout(() => onStickerPreviewReady(stickerPreviewPayload), 0);
+            }
+          } catch {
+            // Ignore malformed storage value
+          }
+        }
+      }
 
       const lessons = await Promise.all(
         course.path
@@ -188,9 +350,9 @@ export function usePathwaySVG({
         flowerActive,
         flowerInactive,
         playedLessonSVG,
-        gift1,
-        gift2,
-        gift3,
+        mysteryBox1,
+        mysteryBox2,
+        mysteryBox3,
         halo,
       ] = await Promise.all([
         loadPathwayTemplate(),
@@ -210,19 +372,19 @@ export function usePathwaySVG({
           "/pathwayAssets/English/PlayedLesson.svg"
         ),
         loadGroupAsset(
-          "giftSVG",
-          "remoteAsset/pathGift1.svg",
-          "/pathwayAssets/English/pathGift1.svg"
+          "mysteryBox1",
+          "remoteAsset/mysteryBox1.svg",
+          "/pathwayAssets/English/mysteryBox1.svg"
         ),
         loadGroupAsset(
-          "giftSVG2",
-          "remoteAsset/pathGift2.svg",
-          "/pathwayAssets/English/pathGift2.svg"
+          "mysteryBox2",
+          "remoteAsset/mysteryBox2.svg",
+          "/pathwayAssets/English/mysteryBox2.svg"
         ),
         loadGroupAsset(
-          "giftSVG3",
-          "remoteAsset/pathGift3.svg",
-          "/pathwayAssets/English/pathGift3.svg"
+          "mysteryBox3",
+          "remoteAsset/mysteryBox3.svg",
+          "/pathwayAssets/English/mysteryBox3.svg"
         ),
         loadHalo(),
       ]);
@@ -343,7 +505,7 @@ export function usePathwaySVG({
               35,
               85,
               80,
-              "pathway-structure-animated-pointer"
+              "PathwayStructure-animated-pointer"
             );
             activeGroup.appendChild(pointer);
 
@@ -409,57 +571,238 @@ export function usePathwaySVG({
           fragment.appendChild(flower_Inactive);
         }
 
-        // Gift node
+        // Path-end reward node (Sticker or Mystery box)
         const endPath = paths[paths.length - 1];
         const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-        const Gift_Svg = document.createElementNS(
+        const rewardWrapper = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "g"
-        );
-        Gift_Svg.setAttribute(
-          "style",
-          "cursor: pointer; transform-origin: center;"
-        );
-        Gift_Svg.appendChild(gift1.cloneNode(true));
-        placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 30);
+        ) as SVGGElement;
+        rewardWrapper.setAttribute("style", "cursor: pointer;");
+
+        // Wrap the reward visuals in an inner <g> so CSS transform animations don't
+        // clobber the outer translate() from placeElement (SVG transform attribute).
+        const rewardGroup = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "g",
+        ) as SVGGElement;
+        (rewardGroup.style as any).transformBox = "fill-box";
+        rewardGroup.style.transformOrigin = "center";
+        rewardWrapper.appendChild(rewardGroup);
 
         const isRewardFeatureOn =
           localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
 
-        if (currentIndex < pathEndIndex + 1) {
-          Gift_Svg.addEventListener("click", () => {
-            const replaceGiftContent = (newContent: SVGElement) => {
-              while (Gift_Svg.firstChild) {
-                Gift_Svg.removeChild(Gift_Svg.firstChild);
-              }
-              Gift_Svg.appendChild(newContent.cloneNode(true));
-            };
+        const isOffline = !navigator.onLine;
+        const normalizedVariant = String(rewardBoxVariant ?? "")
+          .trim()
+          .toLowerCase();
+        const gbWantsMystery =
+          normalizedVariant === "mystery_3d" ||
+          normalizedVariant === "mystery" ||
+          normalizedVariant === "mysterybox" ||
+          normalizedVariant === "mystery_box";
 
-            const animationSequence = [
-              { content: gift2, delay: 300 },
-              { content: gift3, delay: 500 },
-              { content: gift2, delay: 700 },
-              { content: gift3, delay: 900 },
-              {
-                callback: () => {
-                  setModalText("Complete these 5 lessons to earn rewards");
-                  setModalOpen(true);
-                  replaceGiftContent(gift1);
-                },
-                delay: 1100,
-              },
-            ];
+        const hasNextSticker = Boolean(stickerPreviewPayload?.nextStickerId);
+        let nextStickerSlot: SVGGElement | null = null;
+        const hasNextStickerImage = Boolean(stickerPreviewPayload?.nextStickerImage);
+        const canTrySlotFromBook = Boolean(
+          stickerPreviewPayload?.stickerBookSvgUrl &&
+            stickerPreviewPayload?.nextStickerId,
+        );
 
-            animationSequence.forEach(({ content, callback, delay }) => {
-              setTimeout(() => {
-                if (content) replaceGiftContent(content);
-                if (callback) callback();
-              }, delay);
-            });
-          });
+        if (!hasNextStickerImage && canTrySlotFromBook) {
+          try {
+            nextStickerSlot = await loadStickerSlotFromBook(
+              stickerPreviewPayload!.stickerBookSvgUrl,
+              stickerPreviewPayload!.nextStickerId,
+            );
+          } catch {
+            nextStickerSlot = null;
+          }
         }
 
-        fragment.appendChild(Gift_Svg);
+        const hasRenderableSticker = hasNextStickerImage || Boolean(nextStickerSlot);
+        const rewardMode: "sticker" | "mystery_box" =
+          isOffline || !hasNextSticker || !hasRenderableSticker || gbWantsMystery
+            ? "mystery_box"
+            : "sticker";
+
+        rewardWrapper.setAttribute("data-reward-mode", rewardMode);
+        rewardWrapper.setAttribute(
+          "aria-label",
+          rewardMode === "sticker" ? "Sticker reward" : "Mystery box reward",
+        );
+
+        const playRewardClickAnimation = (
+          mode: "sticker" | "mystery_box",
+        ): Promise<void> => {
+          const animationClass =
+            mode === "sticker"
+              ? "PathwayStructure-end-reward-box--sticker-clicked"
+              : "PathwayStructure-end-reward-box--clicked";
+
+          rewardGroup.classList.remove(
+            "PathwayStructure-end-reward-box--sticker-clicked",
+            "PathwayStructure-end-reward-box--clicked",
+          );
+
+          // force reflow so the animation can restart
+          void rewardGroup.getBoundingClientRect();
+          rewardGroup.classList.add(animationClass);
+
+          return new Promise((resolve) => {
+            let resolved = false;
+            const finish = () => {
+              if (resolved) return;
+              resolved = true;
+              rewardGroup.classList.remove(animationClass);
+              resolve();
+            };
+
+            const onEnd = (event: AnimationEvent) => {
+              if (event.target === rewardGroup) finish();
+            };
+
+            rewardGroup.addEventListener("animationend", onEnd, { once: true });
+            window.setTimeout(finish, 1100);
+          });
+        };
+
+        if (rewardMode === "sticker") {
+          rewardGroup.classList.add(
+            "PathwayStructure-end-reward-box",
+            "PathwayStructure-end-reward-box--sticker",
+          );
+
+          const size =
+            window.innerWidth >= 1024 ? 78 : window.innerWidth >= 768 ? 72 : 64;
+
+          const bg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect",
+          );
+          bg.setAttribute("width", String(size));
+          bg.setAttribute("height", String(size));
+          bg.setAttribute("rx", String(Math.round(size * 0.2)));
+          bg.setAttribute("ry", String(Math.round(size * 0.2)));
+          bg.setAttribute("fill", "#FFFDEE");
+          bg.setAttribute("stroke", "#F55376");
+          bg.setAttribute("stroke-width", "4");
+
+	          const padding = Math.round(size * 0.14);
+	          const contentSize = size - padding * 2;
+
+	          rewardGroup.appendChild(bg);
+	          if (hasNextStickerImage && stickerPreviewPayload?.nextStickerImage) {
+	            const stickerImage = createSVGImage(
+	              stickerPreviewPayload.nextStickerImage,
+	              contentSize,
+	              contentSize,
+	              padding,
+	              padding,
+	              "PathwayStructure-end-reward-sticker-image",
+	            );
+	            rewardGroup.appendChild(stickerImage);
+	          } else if (nextStickerSlot) {
+              const normalizedSlot = normalizeStickerSlotToSize(
+                nextStickerSlot,
+                contentSize,
+              );
+              const positioned = document.createElementNS(SVG_NS, "g");
+              positioned.setAttribute(
+                "transform",
+                `translate(${padding}, ${padding})`,
+              );
+              positioned.appendChild(normalizedSlot);
+              rewardGroup.appendChild(positioned);
+            }
+          placeElement(
+            rewardWrapper,
+            endPoint.x - size / 2,
+            endPoint.y - size / 2,
+          );
+
+          if (currentIndex < pathEndIndex + 1) {
+            rewardWrapper.addEventListener("click", async () => {
+              await playRewardClickAnimation(rewardMode);
+
+              void Util.logEvent(EVENTS.PATHWAY_STICKER_BOX_TAPPED, {
+                user_id: Util.getCurrentStudent()?.id ?? "unknown",
+                source: "learning_pathway",
+                sticker_book_id: stickerPreviewPayload?.stickerBookId ?? "unknown",
+                sticker_id: stickerPreviewPayload?.nextStickerId ?? "unknown",
+                gb_variant: normalizedVariant || "sticker",
+              });
+
+              if (isStickerBookPreviewOn && stickerPreviewPayload) {
+                onStickerPreviewReady(stickerPreviewPayload);
+              } else {
+                setModalText(t("Complete these 5 lessons to earn rewards"));
+                setModalOpen(true);
+              }
+            });
+          }
+        } else {
+          rewardGroup.classList.add(
+            "PathwayStructure-end-reward-box",
+            "PathwayStructure-end-reward-box--mystery",
+          );
+          rewardGroup.appendChild(mysteryBox1.cloneNode(true));
+          placeElement(rewardWrapper, endPoint.x - 25, endPoint.y - 40 + 15);
+
+          if (currentIndex < pathEndIndex + 1) {
+            rewardWrapper.addEventListener("click", async () => {
+              await playRewardClickAnimation(rewardMode);
+
+              const reason = isOffline
+                ? "offline"
+                : hasNextSticker
+                  ? "experiment"
+                  : "stickers_exhausted";
+
+              void Util.logEvent(EVENTS.PATHWAY_MYSTERY_BOX_TAPPED, {
+                user_id: Util.getCurrentStudent()?.id ?? "unknown",
+                source: "learning_pathway",
+                reason,
+                sticker_book_id: stickerPreviewPayload?.stickerBookId ?? "unknown",
+                sticker_id: stickerPreviewPayload?.nextStickerId ?? "none",
+                gb_variant: normalizedVariant || "mystery_box",
+              });
+
+              const replaceContent = (newContent: SVGElement) => {
+                while (rewardGroup.firstChild) {
+                  rewardGroup.removeChild(rewardGroup.firstChild);
+                }
+                rewardGroup.appendChild(newContent.cloneNode(true));
+              };
+
+              const animationSequence = [
+                { content: mysteryBox2, delay: 300 },
+                { content: mysteryBox3, delay: 500 },
+                { content: mysteryBox2, delay: 700 },
+                { content: mysteryBox3, delay: 900 },
+                {
+                  callback: () => {
+                    setModalText(t("Complete these 5 lessons to earn 10 stars"));
+                    setModalOpen(true);
+                    replaceContent(mysteryBox1);
+                  },
+                  delay: 1100,
+                },
+              ];
+
+              animationSequence.forEach(({ content, callback, delay }) => {
+                setTimeout(() => {
+                  if (content) replaceContent(content);
+                  if (callback) callback();
+                }, delay);
+              });
+            });
+          }
+        }
+
+        fragment.appendChild(rewardWrapper);
         svg.appendChild(fragment);
 
         // Setup chimple mascot initial position
@@ -518,6 +861,57 @@ export function usePathwaySVG({
       });
     } catch (error) {
       console.error("Failed to load SVG:", error);
+    }
+  }
+
+  async function buildStickerPreviewPayload(): Promise<StickerBookPreviewData | null> {
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.id) return null;
+
+      const currentBookWithProgress =
+        await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      if (!currentBookWithProgress?.book) return null;
+
+	      const { book, progress } = currentBookWithProgress;
+	      const collectedStickerIds = progress?.stickers_collected ?? [];
+	      const nextStickerId = await api.getNextWinnableSticker(
+	        book.id,
+	        currentStudent.id,
+	      );
+	      if (!nextStickerId) return null;
+
+	      const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
+	      const nextSticker = nextStickerDetails?.[0];
+	      let nextStickerImage = nextSticker?.image || undefined;
+	      if (!nextStickerImage && book.svg_url) {
+	        try {
+	          const dataUrl = await buildStickerDataUrlFromBook(
+	            book.svg_url,
+	            nextStickerId,
+	          );
+	          if (dataUrl) nextStickerImage = dataUrl;
+	        } catch (err) {
+	          console.warn(
+	            "[StickerBook] Failed to build sticker preview image from book SVG",
+	            err,
+	          );
+	        }
+	      }
+
+	      return {
+	        source: "learning_pathway",
+	        stickerBookId: book.id,
+	        stickerBookTitle: book.title || "Sticker Book",
+	        stickerBookSvgUrl: book.svg_url || "",
+	        collectedStickerIds,
+	        nextStickerId,
+	        nextStickerName: nextSticker?.name || "Sticker",
+	        nextStickerImage,
+	      };
+    } catch (error) {
+      console.error("Failed to build sticker preview payload:", error);
+      return null;
     }
   }
 
