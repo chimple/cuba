@@ -18,7 +18,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-// import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import "leaflet/dist/leaflet.css";
 import "./i18n";
@@ -40,9 +39,9 @@ import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
 import {
   CAN_HOT_UPDATE,
-  CURRENT_USER,
   EVENTS,
   IS_OPS_USER,
+  TableTypes,
   VERSION_KEY,
 } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
@@ -50,6 +49,9 @@ import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
 import { Preferences } from "@capacitor/preferences";
+import { Provider } from "react-redux";
+import { persistor, store } from "./redux/store";
+import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter } from "react-router-dom";
 
 Sentry.init(
@@ -78,24 +80,24 @@ Sentry.init(
   // Forward the init method from @sentry/react
   SentryReact.init,
 );
+// set user initially (might be "anonymous" until rehydration completes)
 let userId: string = "anonymous";
-let userData;
-try {
-  const data = localStorage.getItem(CURRENT_USER);
-  if (data) {
-    userData = JSON.parse(data);
-    userId = userData?.user?.id ?? userData?.id ?? "anonymous";
-  } else { 
-    let tempData = localStorage.getItem("userData");
-    if(tempData) {
-    userData = JSON.parse(tempData);
-    userId = userData?.id ?? "anonymous";
+let userData: TableTypes<"user"> | undefined;
+
+persistor.subscribe(() => {
+  const { bootstrapped } = persistor.getState();
+
+  if (bootstrapped) {
+    const user = store.getState().auth?.user;
+
+    if (user?.id) {
+      userId = user.id;
+      userData = user;
+      Sentry.setUser({ id: userId });
     }
   }
-} catch (error) {
-  console.error("Error retrieving user ID for Sentry:", error);
-}
-if (userId) Sentry.setUser({ id: userId });
+});
+
 const isNativePlatform = Capacitor.isNativePlatform();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
 if (isNativePlatform) {
@@ -180,26 +182,16 @@ const gb = new GrowthBook({
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
     try {
-      let userId = "anonymous";
-      try {
-        const data = localStorage.getItem(CURRENT_USER);
-        if (data) {
-          const userData = JSON.parse(data);
-          if (typeof userData === "object" && userData !== null) {
-            userId = userData?.user?.id ?? userData?.id ?? "anonymous";
-          } else {
-            const auth = ServiceConfig.getI().authHandler;
-            const currentUser = await auth.getCurrentUser();
-            userId = currentUser?.id ?? "anonymous";
-          }
-        } else {
+      // grab the user id out of redux; fall back to the auth handler if
+      // for some reason the slice hasn't been populated yet (e.g. first launch)
+      if (userId === "anonymous") {
+        try {
           const auth = ServiceConfig.getI().authHandler;
           const currentUser = await auth.getCurrentUser();
           userId = currentUser?.id ?? "anonymous";
+        } catch (e) {
+          console.log("Error reading user from auth handler:", e);
         }
-      } catch (e) {
-        console.log("Error reading user:", e);
-        userId = "anonymous";
       }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
         user_id: userId,
@@ -223,10 +215,7 @@ async function checkForUpdate() {
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
   console.log("🚀 Started for updates...");
   try {
-    if (
-      isNativePlatform &&
-      canHotUpdate
-    ) {
+    if (isNativePlatform && canHotUpdate) {
       console.log("🚀 Checking for updates...");
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
@@ -362,13 +351,17 @@ async function checkForUpdate() {
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
   root.render(
-    <BrowserRouter>
-      <GrowthBookProvider growthbook={gb}>
-        <GbProvider>
-          <App />
-        </GbProvider>
-      </GrowthBookProvider>
-    </BrowserRouter>,
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <GrowthBookProvider growthbook={gb}>
+            <GbProvider>
+              <App />
+            </GbProvider>
+          </GrowthBookProvider>
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>,
   );
   SplashScreen.hide();
   setTimeout(() => {
@@ -381,13 +374,17 @@ if (isOpsUser) {
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
     root.render(
-      <BrowserRouter>
-        <GrowthBookProvider growthbook={gb}>
-          <GbProvider>
-            <App />
-          </GbProvider>
-        </GrowthBookProvider>
-      </BrowserRouter>,
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <BrowserRouter>
+            <GrowthBookProvider growthbook={gb}>
+              <GbProvider>
+                <App />
+              </GbProvider>
+            </GrowthBookProvider>
+          </BrowserRouter>
+        </PersistGate>
+      </Provider>,
     );
     SplashScreen.hide();
     setTimeout(() => {

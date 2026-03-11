@@ -3,7 +3,6 @@ import { FC, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { RoleType } from "../interface/modelInterfaces";
 import {
   LANGUAGE,
   AVATARS,
@@ -12,26 +11,25 @@ import {
   TableTypes,
   SELECTED_CLASSES,
   SELECTED_STUDENTS,
-  CURRENT_MODE,
   CURRENT_SCHOOL_NAME,
   CURRENT_CLASS_NAME,
   USER_SELECTION_STAGE,
   STAGES,
   CURRENT_CLASS,
-  CURRENT_SCHOOL,
   IS_OPS_USER,
-  USER_DATA,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
 import { GiTeacher } from "react-icons/gi";
 import { t } from "i18next";
 import "./SelectMode.css";
-import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
 import DropDown from "../components/DropDown";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { RootState } from "../redux/store";
+import { AuthState, setAuthUser, setIsOpsUser, setRoles, setUser } from "../redux/slices/auth/authSlice";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -58,6 +56,7 @@ const SelectMode: FC = () => {
     school: TableTypes<"school">;
   }[] = [];
   useEffect(() => {
+    restoreAuth();
     init();
     changeLanguage();
     return () => {
@@ -70,6 +69,10 @@ const SelectMode: FC = () => {
   const history = useHistory();
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
+  const dispatch = useAppDispatch();
+  const { authUser, user: reduxUser, roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   useEffect(() => {
     if (currClass && stage === STAGES.STUDENT) {
       displayStudents(currClass);
@@ -135,7 +138,6 @@ const SelectMode: FC = () => {
 
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    localStorage.setItem(USER_DATA, JSON.stringify(currUser));
     const allSchool = await api.getSchoolsForUser(currUser.id);
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
@@ -203,6 +205,33 @@ const SelectMode: FC = () => {
     setIsLoading(false);
   };
 
+  const setUserRoles = async (userId: string) => {
+    try {
+      if(roles.length > 0) return; // If roles are already set in Redux, skip fetching again
+      const userRoles = await api.getUserSpecialRoles(userId);
+
+      if (userRoles.length > 0) {
+        dispatch(setRoles(userRoles));
+      }
+    } catch (e) {
+      console.error("Error fetching user roles:", e);
+    }
+  };
+  const restoreAuth = async () => {
+    if(!reduxUser?.id) {
+      const user = await auth.getCurrentUser();
+      if (!user) return;
+      dispatch(setUser(user));
+
+      if(!authUser || !authUser.id) {
+        const { data } = await ServiceConfig.getI().authHandler.getUser();
+        dispatch(setAuthUser(data.user));
+      }
+      const isOps = await api.isSplUser();
+      dispatch(setIsOpsUser(isOps));
+      await setUserRoles(user.id); // Fetch and set user roles in Redux
+    }
+  };
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);

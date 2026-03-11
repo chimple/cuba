@@ -5135,6 +5135,19 @@ export type Database = {
           school: Json
         }[]
       }
+      get_schools_with_program_access: {
+        Args: {
+          _academic_years: string[]
+          _filters: Json
+          _order_by: string
+          _order_dir: string
+          _page: number
+          _page_size: number
+          _search?: string | null
+           _include_migrated_counts: boolean
+        }
+        Returns: Json
+      }
       get_sorted_students: {
         Args: { p_limit: number; p_offset: number; p_school_id: string }
         Returns: Json

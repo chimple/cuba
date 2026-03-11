@@ -1,5 +1,11 @@
 import User from "../../models/user";
-import { AssignmentCartData, LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  AssignmentCartData,
+  GetSchoolsWithProgramAccessParams,
+  LeaderboardInfo,
+  SchoolProgramAccessResponse,
+  ServiceApi,
+} from "./ServiceApi";
 import {
   RESULT_STATUS,
   SchoolVisitAction,
@@ -215,6 +221,11 @@ export class ApiHandler implements ServiceApi {
   }
   public async uploadData(payload: any): Promise<boolean | null> {
     return await this.s.uploadData(payload);
+  }
+  public async migrateSchoolData(payload: {
+    school_ids: string[];
+  }): Promise<boolean> {
+    return await this.s.migrateSchoolData(payload);
   }
   public async createSchool(
     name: string,
@@ -1269,7 +1280,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return this.s.deleteUserFromSchool(schoolId, userId, role);
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -1504,6 +1515,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
 
+  async getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse> {
+    return await this.s.getSchoolsWithProgramAccess(params);
+  }
+
   public async createOrAddUserOps(payload: {
     name: string;
     email?: string;
@@ -1560,13 +1577,20 @@ export class ApiHandler implements ServiceApi {
     newStudentId: string,
     requestId?: string | undefined,
     respondedBy?: string | undefined,
-  ): Promise<void> {
+  ): Promise<{ success: boolean; message: string }> {
     return await this.s.mergeStudentRequest(
       existingStudentId,
       newStudentId,
       requestId,
       respondedBy,
     );
+  }
+
+  public async mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return await this.s.mergeUserPathway(existingStudentId, newStudentId);
   }
 
   public async getClassesBySchoolId(
@@ -2094,5 +2118,8 @@ export class ApiHandler implements ServiceApi {
       chapterId,
       lessonId,
     );
+  }
+  public async isSplUser(): Promise<boolean> {
+    return await this.s.isSplUser();
   }
 }

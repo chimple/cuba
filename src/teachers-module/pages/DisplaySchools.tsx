@@ -1,15 +1,15 @@
-import { FC, useEffect, useState, useRef } from "react";
+import { FC, useEffect, useMemo, useState, useRef } from "react";
 import { useHistory, useLocation } from "react-router";
 import {
   CLASS,
   CURRENT_SCHOOL,
   PAGES,
   TableTypes,
-  USER_ROLE,
   MODES,
   USER_SELECTION_STAGE,
   IS_OPS_USER,
   LANGUAGE,
+  OPS_ROLES,
   STATUS,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
@@ -28,6 +28,9 @@ import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
 import { RoleType } from "../../interface/modelInterfaces";
 import Loading from "../../components/Loading";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
@@ -42,12 +45,18 @@ const DisplaySchools: FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
   const [user, setUser] = useState<TableTypes<"user">>();
-  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
+  const { roles = [], isOpsUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const isAuthorizedForOpsMode = useMemo(() => {
+    const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
+    return isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === "true";
+  }, [isOpsUser, roles]);
 
   const checkSchoolRequest = async () => {
     const api = ServiceConfig.getI().apiHandler;
@@ -119,8 +128,6 @@ const DisplaySchools: FC = () => {
     }
     if (!currentUser) return;
     setUser(currentUser);
-    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
-    if (isOpsUser) setIsAuthorizedForOpsMode(true);
     try {
       await Util.updateUserLanguage(languageCode ?? "en");
     } catch (error) {

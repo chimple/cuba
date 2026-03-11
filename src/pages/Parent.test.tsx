@@ -1,7 +1,8 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MODES, PAGES } from "../common/constants";
+import { renderWithProviders } from "../tests/test-utils";
 
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
@@ -217,7 +218,7 @@ describe("Parent page", () => {
       { school: { id: "school-1" }, role: "TEACHER" },
     ]);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() =>
       expect(mockApiHandler.getParentStudentProfiles).toHaveBeenCalledTimes(1)
@@ -239,7 +240,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
     expect(await screen.findByText("Language")).toBeInTheDocument();
@@ -254,7 +255,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
     await user.click(
@@ -272,7 +273,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
     await user.click(
@@ -291,7 +292,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
 
@@ -315,7 +316,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "back" }));
     expect(mockSetPathToBackButton).toHaveBeenCalledWith(
@@ -332,7 +333,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
 
@@ -361,7 +362,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "help" }));
     expect(await screen.findByText("Chimple Help Desk")).toBeInTheDocument();
@@ -402,7 +403,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "faq" }));
     await user.click(screen.getByText("Please Visit Our Website"));
@@ -420,7 +421,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
     await user.click(await screen.findByRole("button", { name: "unknown" }));
 
     expect(screen.getByTestId("custom-app-bar")).toBeInTheDocument();
@@ -431,7 +432,7 @@ describe("Parent page", () => {
   it("does not crash when auth returns null (init does nothing)", async () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() =>
       expect(mockApiHandler.getAllLanguages).not.toHaveBeenCalled()
@@ -447,7 +448,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValueOnce(null as any);
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() =>
       expect(mockApiHandler.getSchoolsForUser).toHaveBeenCalledWith("parent-1")
@@ -483,7 +484,7 @@ describe("Parent page", () => {
     });
     mockApiHandler.getAllLanguages.mockResolvedValueOnce([]);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() => expect(mockApiHandler.getAllLanguages).toHaveBeenCalled());
     expect(mockChangeLanguage).not.toHaveBeenCalled();
@@ -509,7 +510,7 @@ describe("Parent page", () => {
       { id: "lang-nocode", name: "NoCode" }, // code missing
     ] as any);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() => expect(mockApiHandler.getAllLanguages).toHaveBeenCalled());
     expect(mockChangeLanguage).not.toHaveBeenCalled();
@@ -525,7 +526,7 @@ describe("Parent page", () => {
     });
     mockAuthHandler.getCurrentUser.mockResolvedValueOnce(null);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
 
@@ -562,7 +563,7 @@ describe("Parent page", () => {
         language_id: "lang-1",
       });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
     await user.click(await screen.findByRole("button", { name: "setting" }));
 
     await user.click(screen.getByRole("button", { name: "Sound" }));
@@ -582,7 +583,7 @@ describe("Parent page", () => {
       language_id: "lang-1",
     });
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() => expect(mockApiHandler.getAllLanguages).toHaveBeenCalledTimes(1));
 
@@ -602,7 +603,7 @@ describe("Parent page", () => {
       { id: "lang-2", name: "Hindi", code: "hi" },
     ]);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await waitFor(() => expect(mockApiHandler.getAllLanguages).toHaveBeenCalled());
     expect(mockChangeLanguage).toHaveBeenCalledWith("en");
@@ -621,7 +622,7 @@ describe("Parent page", () => {
       { id: "lang-3", name: "NoCode", code: undefined },
     ] as any);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
     await user.click(await screen.findByRole("button", { name: "setting" }));
 
     await user.selectOptions(screen.getByLabelText("language-dropdown"), "lang-3");
@@ -643,7 +644,7 @@ describe("Parent page", () => {
       // music toggle user fetch
       .mockResolvedValueOnce(null);
 
-    render(<Parent />);
+    renderWithProviders(<Parent />);
 
     await user.click(await screen.findByRole("button", { name: "setting" }));
     await user.click(screen.getByRole("button", { name: "Music" }));

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   IonMenu,
   IonHeader,
@@ -13,12 +13,11 @@ import { Util } from "../../../utility/util";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  CURRENT_USER,
   IS_OPS_USER,
   MODES,
+  OPS_ROLES,
   PAGES,
   SCHOOL,
-  USER_ROLE,
 } from "../../../common/constants";
 import ProfileSection from "./ProfileDetail";
 import SchoolSection from "./SchoolSection";
@@ -39,6 +38,9 @@ import {
 } from "../../../growthbook/Growthbook";
 import { ClearCacheData } from "../../../components/parent/DataClear";
 import { registerBackButtonHandler } from "../../../common/backButtonRegistry";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
+import { AuthState } from "../../../redux/slices/auth/authSlice";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -48,8 +50,6 @@ const SideMenu: React.FC<{
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
-    useState<boolean>(false);
   const [schoolData, setSchoolData] = useState<
     { id: string | number; name: string }[]
   >([]);
@@ -73,6 +73,13 @@ const SideMenu: React.FC<{
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { roles, isOpsUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const isAuthorizedForOpsMode = useMemo(() => {
+    const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
+    return isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === "true";
+  }, [isOpsUser, roles]);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -100,10 +107,6 @@ const SideMenu: React.FC<{
       if (!currentUser) {
         console.error("No user is logged in.");
         return;
-      }
-      const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
-      if (isOpsUser) {
-        setIsAuthorizedForOpsMode(true);
       }
       setFullName(currentUser.name || "");
       setEmail(currentUser.email || currentUser.phone || "");
@@ -313,7 +316,6 @@ const SideMenu: React.FC<{
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
     history.replace(PAGES.LOGIN);

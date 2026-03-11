@@ -95,7 +95,7 @@ export enum TABLES {
   LanguageLocale = "language_locale",
   SubjectLesson = "subject_lesson",
   StickerBook = "sticker_book",
-  UserStickerBook = "user_sticker_book"
+  UserStickerBook = "user_sticker_book",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -521,11 +521,13 @@ export enum PAGES {
   POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
   ADD_SCHOOL_PAGE = "/add-school-page",
+  MIGRATE_SCHOOLS_PAGE = "/migrate-schools-page",
   ACTIVITIES_PAGE = "/activities-page",
   SCHOOL_ACTIVITIES = "/school-activities",
   QR_ASSIGNMENTS = "/qr_assignments",
   TEACHER_RECOMMENDED_ASSIGNMENTS = "/teacher-recommended-assignments",
   COLORING_BOARD = "/coloring-board",
+  STICKER_BOOK = "/sticker-book",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -673,7 +675,6 @@ export const SCHOOL = "school";
 export const CLASS = "class";
 export const CLASSES = "classes";
 export const DELETED_CLASSES = "deleted_classes";
-export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
@@ -860,7 +861,6 @@ export enum STAGES {
 }
 
 export const CURRENT_STUDENT = "currentStudent";
-export const CURRENT_USER = "currentUser";
 export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
@@ -878,6 +878,10 @@ export enum EVENTS {
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
   REWARD_COLLECTED = "reward_collected",
+  STICKER_BOOK_MENU_TAP = "sticker_book_menu_tap",
+  STICKER_BOOK_PAGE_NEXT = "sticker_book_page_next",
+  STICKER_BOOK_PAGE_PREV = "sticker_book_page_prev",
+  STICKER_BOOK_PAGE_BACK = "sticker_book_page_back",
   HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
   HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
   HOMEWORK_PATHWAY_COURSE_CHANGED = "homework_pathway_course_changed",
@@ -977,7 +981,6 @@ export const CURRENT_CLASS_NAME = "currClassName";
 export const USER_SELECTION_STAGE = "userSelectionStage";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
-export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
 export const LOCAL_BUNDLES_PATH = "https://localhost/assets/lessonBundles/";
 export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
@@ -1309,3 +1312,4 @@ export enum RESULT_STATUS {
 }
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
 export const LATEST_LEARNING_PATH = "latest_learning_path";
+export const ENABLE_STICKER_BOOK = "enable-sticker-book";

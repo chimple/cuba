@@ -113,6 +113,18 @@ jest.mock("../components/DropDown", () => ({
   ),
 }));
 
+jest.mock("../redux/hooks", () => ({
+  useAppDispatch: jest.fn(),
+  useAppSelector: jest.fn(),
+}));
+
+jest.mock("../redux/slices/auth/authSlice", () => ({
+  setAuthUser: jest.fn(),
+  setIsOpsUser: jest.fn(),
+  setRoles: jest.fn(),
+  setUser: jest.fn(),
+}));
+
 const mockApiHandler = {
   getSchoolsForUser: jest.fn(),
   getSchoolsWithRoleAutouser: jest.fn(),
@@ -120,10 +132,13 @@ const mockApiHandler = {
   getClassesForSchool: jest.fn(),
   getStudentsForClass: jest.fn(),
   currentMode: undefined as any,
+  isSplUser: jest.fn().mockResolvedValue(false),
+  getUserSpecialRoles: jest.fn().mockResolvedValue([]),
 };
 
 const mockAuthHandler = {
   getCurrentUser: jest.fn(),
+  getUser: jest.fn(),
 };
 
 jest.mock("../services/ServiceConfig", () => ({
@@ -137,11 +152,27 @@ jest.mock("../services/ServiceConfig", () => ({
 
 const SelectMode = require("./SelectMode").default;
 
+// Import the mocked hooks
+const { useAppDispatch, useAppSelector } = require("../redux/hooks");
+
 describe("SelectMode page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+
+    // Mock Redux hooks
+    useAppDispatch.mockReturnValue(jest.fn());
+    useAppSelector.mockImplementation((selector: any) =>
+      selector({
+        auth: {
+          authUser: null,
+          user: null,
+          roles: [],
+          isOpsUser: false,
+        },
+      })
+    );
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
@@ -149,7 +180,10 @@ describe("SelectMode page", () => {
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
     mockApiHandler.getStudentsForClass.mockResolvedValue([]);
     mockApiHandler.currentMode = undefined;
+    mockApiHandler.isSplUser.mockResolvedValue(false);
+    mockApiHandler.getUserSpecialRoles.mockResolvedValue([]);
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
+    mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
   });
 

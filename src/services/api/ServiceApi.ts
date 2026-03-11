@@ -67,6 +67,41 @@ export type AssignmentCartData = {
   updated_at: string;
 };
 
+export type SchoolProgramAccessFilters = {
+  program?: string[];
+  programType?: string[];
+  state?: string[];
+  district?: string[];
+  block?: string[];
+  cluster?: string[];
+};
+
+export type GetSchoolsWithProgramAccessParams = {
+  academicYears: string[];
+  filters?: SchoolProgramAccessFilters;
+  page?: number;
+  pageSize?: number;
+  orderBy?: string;
+  orderDir?: "asc" | "desc";
+  search?: string;
+  includeMigratedCounts?: boolean;
+};
+
+export type SchoolProgramAccessRow = {
+  [key: string]: any;
+  school: Record<string, any>;
+  program: Record<string, any>;
+  program_users: Record<string, any>[];
+};
+
+export type SchoolProgramAccessResponse = {
+  data: SchoolProgramAccessRow[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -255,6 +290,13 @@ export interface ServiceApi {
    * @returns {Promise<boolean | null>} Returns if the upload is success or upload fails.
    */
   uploadData(payload: any): Promise<boolean | null>;
+
+  /**
+   * Calls the school migration edge function with selected school ids.
+   * @param payload - School ids to migrate in shape: { school_ids: string[] }.
+   * @returns Promise resolving true when migration request succeeds.
+   */
+  migrateSchoolData(payload: { school_ids: string[] }): Promise<boolean>;
 
   createStudentProfile(
     name: string,
@@ -1546,8 +1588,8 @@ export interface ServiceApi {
   deleteUserFromSchool(
     schoolId: string,
     userId: string,
-    role: RoleType,
-  ): Promise<void>;
+    role: RoleType
+  ): Promise<{ success: boolean; message: string }> ;
 
   /**
    * updates a school LastModified time and Date
@@ -1974,6 +2016,14 @@ export interface ServiceApi {
   }>;
 
   /**
+   * Fetch schools with linked program access details using academic years and optional filters.
+   * Calls the `get_schools_with_program_access` RPC and returns normalized paginated output.
+   */
+  getSchoolsWithProgramAccess(
+    params: GetSchoolsWithProgramAccessParams,
+  ): Promise<SchoolProgramAccessResponse>;
+
+  /**
    * Creates or gets a user based on the provided payload.
    * @param {Object} payload - The user creation payload.
    * @param {string} payload.name - Name of the user.
@@ -2063,8 +2113,19 @@ export interface ServiceApi {
     existingStudentId: string,
     newStudentId: string,
     requestId?: string | undefined,
-    respondedBy?: string | undefined,
-  ): Promise<void>;
+    respondedBy?: string | undefined
+  ): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Merge a stdeunt pathway based on chapter sort_index by comparing patway for old and new student record.
+   * @param {string} existingStudentId - The student ID to merge into.
+   * @param {string} newStudentId - The student ID being merged and marked as deleted.
+   * @returns  {success: boolean; message: string }Promise resolving when the merge is complete.
+   */
+    mergeUserPathway(
+    existingStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }>
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 
@@ -2818,4 +2879,5 @@ export interface ServiceApi {
     chapterId: string,
     lessonId: string,
   ): Promise<boolean>;
+  isSplUser(): Promise<boolean>;
 }

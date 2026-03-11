@@ -1,0 +1,14 @@
+.sticker-book-page {
+  height: 100vh;
+  padding: 15px;
+  background: #dff3f8;
+  overflow: hidden;
+}
+
+.sticker-book-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+}

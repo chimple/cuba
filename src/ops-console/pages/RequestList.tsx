@@ -14,7 +14,6 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
-  USER_ROLE,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -27,6 +26,9 @@ import { useLocation, useHistory } from "react-router";
 import "./RequestList.css";
 import { Constants } from "../../services/database";
 import { RoleType } from "../../interface/modelInterfaces";
+import { useAppSelector } from "../../redux/hooks";
+import { RootState } from "../../redux/store";
+import { AuthState } from "../../redux/slices/auth/authSlice";
 
 const filterConfigsForRequests = [
   { key: "school", label: t("Select School") },
@@ -50,13 +52,7 @@ const INITIAL_FILTER_OPTIONS: FilterOptions = {
   school: [],
 };
 
-const getTabOptions = () => {
-  let userRoles: string[] = [];
-  try {
-    userRoles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
-  } catch (error) {
-    console.error("Failed to parse user roles from localStorage:", error);
-  }
+const getTabOptions = (userRoles) => {
   // Only Super Admin and Operational Director can see the Flagged tab
   const canSeeFlaggedTab =
     userRoles.includes(RoleType.SUPER_ADMIN) ||
@@ -82,7 +78,9 @@ const RequestList: React.FC = () => {
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
-  const tabOptions = useMemo(() => getTabOptions(), []);
+  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const userRoles = roles || [];
+  const tabOptions = useMemo(() => getTabOptions(userRoles), []);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
     try {
