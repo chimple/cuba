@@ -3754,12 +3754,4 @@ export class Util {
     };
     return device;
   }
-  public static getUser(): TableTypes<"user"> | undefined {
-    try {
-      return store.getState().auth.user as TableTypes<"user">;
-    } catch (error) {
-      console.error("Error retrieving user ID from redux store:", error);
-      return undefined;
-    }
-  };
 }
