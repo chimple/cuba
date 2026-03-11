@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { t } from "i18next";
 import fallbackStickerBookLayout from "../../assets/images/newWhole_layout.svg";
+import { SVGScene } from "../coloring/SVGScene";
+import { ParsedSvg, parseSvg } from "../common/SvgHelpers";
 import "./StickerBookPreviewModal.css";
 
 export interface StickerBookPreviewData {
@@ -19,61 +21,31 @@ interface StickerBookPreviewModalProps {
   onClose: (reason: "close_button" | "backdrop" | "acknowledge_button") => void;
 }
 
-const SLOT_SELECTORS = "path,circle,ellipse,rect,polygon,polyline";
-const UPCOMING_STICKER_COLOR = "#FFFFFF";
-const CURRENT_WINNABLE_STICKER_COLOR = "#B8B8B8";
+const InlineSvg = React.forwardRef<
+  SVGSVGElement,
+  { svg: ParsedSvg; className?: string }
+>(({ svg, className }, ref) => {
+  const localRef = useRef<SVGSVGElement | null>(null);
 
-const updateStickerSlotStyle = (
-  slot: Element,
-  status: "collected" | "next" | "locked",
-) => {
-  const shapes = slot.querySelectorAll(SLOT_SELECTORS);
+  React.useImperativeHandle(ref, () => localRef.current as SVGSVGElement, []);
 
-  if (status === "collected") {
-    (slot as HTMLElement).style.opacity = "1";
-    shapes.forEach((shape) => {
-      shape.removeAttribute("filter");
-      shape.removeAttribute("stroke-opacity");
-      shape.removeAttribute("fill-opacity");
+  useEffect(() => {
+    const el = localRef.current;
+    if (!el) return;
+    if (className) el.setAttribute("class", className);
+    Object.entries(svg.attrs).forEach(([name, value]) => {
+      el.setAttribute(name, value);
     });
-    return;
-  }
+    // Keep popup rendering stable across sources: always fit frame.
+    el.setAttribute("width", "100%");
+    el.setAttribute("height", "100%");
+    el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  }, [svg, className]);
 
-  if (status === "next") {
-    (slot as HTMLElement).style.opacity = "1";
-    shapes.forEach((shape) => {
-      const fill = shape.getAttribute("fill");
-      if (fill && fill !== "none") {
-        shape.setAttribute("fill", CURRENT_WINNABLE_STICKER_COLOR);
-      }
+  return <svg ref={localRef} dangerouslySetInnerHTML={{ __html: svg.inner }} />;
+});
 
-      const stroke = shape.getAttribute("stroke");
-      if (stroke && stroke !== "none") {
-        shape.setAttribute("stroke", CURRENT_WINNABLE_STICKER_COLOR);
-      }
-
-      shape.setAttribute("fill-opacity", "1");
-      shape.setAttribute("stroke-opacity", "1");
-    });
-    return;
-  }
-
-  (slot as HTMLElement).style.opacity = "1";
-  shapes.forEach((shape) => {
-    const fill = shape.getAttribute("fill");
-    if (fill && fill !== "none") {
-      shape.setAttribute("fill", UPCOMING_STICKER_COLOR);
-    }
-
-    const stroke = shape.getAttribute("stroke");
-    if (stroke && stroke !== "none") {
-      shape.setAttribute("stroke", UPCOMING_STICKER_COLOR);
-    }
-
-    shape.setAttribute("fill-opacity", "1");
-    shape.setAttribute("stroke-opacity", "1");
-  });
-};
+InlineSvg.displayName = "InlineSvg";
 
 const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   data,
@@ -81,12 +53,8 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
 }) => {
   const [svgMarkup, setSvgMarkup] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const bookContainerRef = useRef<HTMLDivElement>(null);
-
-  const collectedStickerSet = useMemo(
-    () => new Set(data.collectedStickerIds),
-    [data.collectedStickerIds],
-  );
+  const bookSvgRef = useRef<SVGSVGElement | null>(null);
+  const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
 
   useEffect(() => {
     let mounted = true;
@@ -96,7 +64,9 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       try {
         const response = await fetch(data.stickerBookSvgUrl);
         if (!response.ok) {
-          throw new Error(`Failed to fetch sticker book SVG: ${response.status}`);
+          throw new Error(
+            `Failed to fetch sticker book SVG: ${response.status}`,
+          );
         }
         const text = await response.text();
         if (mounted) {
@@ -122,30 +92,6 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       mounted = false;
     };
   }, [data.stickerBookSvgUrl]);
-
-  useEffect(() => {
-    if (!svgMarkup || !bookContainerRef.current) return;
-
-    const svgNode = bookContainerRef.current.querySelector("svg");
-    if (!svgNode) return;
-
-    svgNode.setAttribute("width", "100%");
-    svgNode.setAttribute("height", "100%");
-    svgNode.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-    const allSlots = svgNode.querySelectorAll("[data-slot-id]");
-
-    allSlots.forEach((slot) => {
-      const slotId = slot.getAttribute("data-slot-id") ?? "";
-      if (collectedStickerSet.has(slotId)) {
-        updateStickerSlotStyle(slot, "collected");
-      } else if (slotId === data.nextStickerId) {
-        updateStickerSlotStyle(slot, "next");
-      } else {
-        updateStickerSlotStyle(slot, "locked");
-      }
-    });
-  }, [svgMarkup, data.nextStickerId, collectedStickerSet]);
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -193,10 +139,23 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
           ) : (
             <div
               className="StickerBookPreviewModal-book"
-              ref={bookContainerRef}
-              dangerouslySetInnerHTML={{ __html: svgMarkup }}
               data-testid="StickerBookPreviewModal-book"
-            />
+            >
+              {parsedSvg && (
+                <SVGScene
+                  mode="preview"
+                  sceneWidth="100%"
+                  svgRefExternal={bookSvgRef}
+                  collectedStickers={data.collectedStickerIds}
+                  nextStickerId={data.nextStickerId}
+                  isDragEnabled={false}
+                  stickerVisibilityMode="strict"
+                  showUncollectedStickers={true}
+                >
+                  <InlineSvg svg={parsedSvg} />
+                </SVGScene>
+              )}
+            </div>
           )}
         </div>
 

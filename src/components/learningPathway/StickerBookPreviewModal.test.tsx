@@ -92,10 +92,10 @@ describe("StickerBookPreviewModal", () => {
       '[data-slot-id="slot-locked"] rect',
     ) as SVGRectElement;
 
-    expect(collected.getAttribute("fill-opacity")).toBeNull();
-    expect(collected.getAttribute("stroke-opacity")).toBeNull();
-    expect(next.getAttribute("fill")).toBe("#B8B8B8");
-    expect(next.getAttribute("stroke")).toBe("#B8B8B8");
+    expect(collected.getAttribute("fill-opacity")).toBe("0.3");
+    expect(collected.getAttribute("stroke-opacity")).toBe("0.3");
+    expect(next.getAttribute("fill")).toBe("#D1D2D4");
+    expect(next.getAttribute("stroke")).toBe("#D1D2D4");
     expect(locked.getAttribute("fill")).toBe("#FFFFFF");
     expect(locked.getAttribute("stroke")).toBe("#FFFFFF");
   });
@@ -284,7 +284,7 @@ describe("StickerBookPreviewModal", () => {
     expect(closeButton).toHaveAttribute("aria-label", "close-sticker-book-preview");
   });
 
-  test("forces loaded svg sizing and preserveAspectRatio attributes", async () => {
+  test("renders parsed inline svg element with original attributes", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -299,9 +299,8 @@ describe("StickerBookPreviewModal", () => {
 
     const svg = container.querySelector(".StickerBookPreviewModal-book svg") as SVGElement;
     expect(svg).toBeTruthy();
-    expect(svg.getAttribute("width")).toBe("100%");
-    expect(svg.getAttribute("height")).toBe("100%");
-    expect(svg.getAttribute("preserveAspectRatio")).toBe("xMidYMid meet");
+    expect(svg.getAttribute("viewBox")).toBe("0 0 100 100");
+    expect(svg.getAttribute("xmlns")).toBe("http://www.w3.org/2000/svg");
   });
 
   test("sets slot container opacity to 1 for all slot states", async () => {
@@ -345,8 +344,8 @@ describe("StickerBookPreviewModal", () => {
     const shape = container.querySelector('[data-slot-id="slot-next"] rect') as SVGRectElement;
     expect(shape.getAttribute("fill")).toBe("none");
     expect(shape.getAttribute("stroke")).toBe("none");
-    expect(shape.getAttribute("fill-opacity")).toBe("1");
-    expect(shape.getAttribute("stroke-opacity")).toBe("1");
+    expect(shape.getAttribute("fill-opacity")).toBeNull();
+    expect(shape.getAttribute("stroke-opacity")).toBeNull();
   });
 
   test("renders normally when SVG has no data-slot-id elements", async () => {
@@ -435,8 +434,8 @@ describe("StickerBookPreviewModal", () => {
       const updated = container.querySelector(
         '[data-slot-id="slot-collected"] rect',
       ) as SVGRectElement;
-      expect(updated.getAttribute("fill-opacity")).toBeNull();
-      expect(updated.getAttribute("stroke-opacity")).toBeNull();
+      expect(updated.getAttribute("fill-opacity")).toBe("0.3");
+      expect(updated.getAttribute("stroke-opacity")).toBe("0.3");
     });
   });
 

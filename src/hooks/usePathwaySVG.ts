@@ -23,6 +23,7 @@ import {
 import { Util } from "../utility/util";
 import { LessonNode } from "./useLearningPath";
 import { StickerBookPreviewData } from "../components/learningPathway/StickerBookPreviewModal";
+import { extractStickerSvg } from "../components/common/SvgHelpers";
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -49,7 +50,6 @@ interface UsePathwaySVGParams {
 const svgGroupCache: Record<string, SVGGElement | SVGSVGElement> = {};
 const svgStringCache: Record<string, string> = {};
 let pathwayTemplateCache: string | null = null;
-const stickerSlotCache: Record<string, SVGGElement> = {};
 const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -96,104 +96,24 @@ const buildStickerDataUrlFromBook = async (
   const cached = stickerDataUrlCache[cacheKey];
   if (cached) return cached;
 
-  const slot = await loadStickerSlotFromBook(stickerBookSvgUrl, stickerId);
-  if (!slot) return null;
-
-  // Compute bbox for a tight viewBox
-  const tempSvg = document.createElementNS(SVG_NS, "svg");
-  tempSvg.setAttribute("width", "1");
-  tempSvg.setAttribute("height", "1");
-  tempSvg.style.position = "absolute";
-  tempSvg.style.left = "-10000px";
-  tempSvg.style.top = "-10000px";
-  tempSvg.style.visibility = "hidden";
-
-  const slotClone = slot.cloneNode(true) as SVGGElement;
-  tempSvg.appendChild(slotClone);
-  document.body.appendChild(tempSvg);
-
-  let bbox: DOMRect | null = null;
+  let stickerSvg: string | null = null;
   try {
-    bbox = slotClone.getBBox();
+    const res = await fetch(stickerBookSvgUrl);
+    const text = await res.text();
+    const wrapper = document.createElementNS(SVG_NS, "g");
+    wrapper.innerHTML = text;
+    const svgNode = wrapper.querySelector("svg") as SVGSVGElement | null;
+    if (!svgNode) return null;
+    stickerSvg = extractStickerSvg(svgNode, stickerId);
   } catch {
-    bbox = null;
-  } finally {
-    document.body.removeChild(tempSvg);
+    stickerSvg = null;
   }
 
-  if (!bbox || bbox.width <= 0 || bbox.height <= 0) return null;
+  if (!stickerSvg) return null;
 
-  const svg = `<svg xmlns="${SVG_NS}" viewBox="${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}" preserveAspectRatio="xMidYMid meet">${slot.outerHTML}</svg>`;
-  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(stickerSvg)}`;
   stickerDataUrlCache[cacheKey] = dataUrl;
   return dataUrl;
-};
-
-const loadStickerSlotFromBook = async (
-  stickerBookSvgUrl: string,
-  stickerId: string,
-): Promise<SVGGElement | null> => {
-  const cacheKey = `${stickerBookSvgUrl}::${stickerId}`;
-  const cached = stickerSlotCache[cacheKey];
-  if (cached) return cached.cloneNode(true) as SVGGElement;
-
-  const res = await fetch(stickerBookSvgUrl);
-  const text = await res.text();
-
-  const wrapper = document.createElementNS(SVG_NS, "g");
-  wrapper.innerHTML = text;
-
-  const safeId =
-    typeof (CSS as any)?.escape === "function"
-      ? (CSS as any).escape(stickerId)
-      : stickerId.replace(/"/g, '\\"');
-
-  const slot = wrapper.querySelector(
-    `[data-slot-id="${safeId}"]`,
-  ) as SVGGElement | null;
-  if (!slot) return null;
-
-  stickerSlotCache[cacheKey] = slot;
-  return slot.cloneNode(true) as SVGGElement;
-};
-
-const normalizeStickerSlotToSize = (
-  slot: SVGGElement,
-  size: number,
-): SVGGElement => {
-  const tempSvg = document.createElementNS(SVG_NS, "svg");
-  tempSvg.setAttribute("width", "1");
-  tempSvg.setAttribute("height", "1");
-  tempSvg.style.position = "absolute";
-  tempSvg.style.left = "-10000px";
-  tempSvg.style.top = "-10000px";
-  tempSvg.style.visibility = "hidden";
-
-  const slotClone = slot.cloneNode(true) as SVGGElement;
-  tempSvg.appendChild(slotClone);
-  document.body.appendChild(tempSvg);
-
-  let bbox: DOMRect | null = null;
-  try {
-    bbox = slotClone.getBBox();
-  } catch {
-    // ignore
-  } finally {
-    document.body.removeChild(tempSvg);
-  }
-
-  if (!bbox || bbox.width <= 0 || bbox.height <= 0) {
-    return slotClone;
-  }
-
-  const scale = Math.min(size / bbox.width, size / bbox.height);
-  const tx = (size - bbox.width * scale) / 2 - bbox.x * scale;
-  const ty = (size - bbox.height * scale) / 2 - bbox.y * scale;
-
-  const wrapper = document.createElementNS(SVG_NS, "g");
-  wrapper.setAttribute("transform", `translate(${tx}, ${ty}) scale(${scale})`);
-  wrapper.appendChild(slotClone);
-  return wrapper;
 };
 
 const createSVGImage = (
@@ -604,7 +524,7 @@ export function usePathwaySVG({
           normalizedVariant === "mystery_box";
 
         const hasNextSticker = Boolean(stickerPreviewPayload?.nextStickerId);
-        let nextStickerSlot: SVGGElement | null = null;
+        let nextStickerDataUrl: string | null = null;
         const hasNextStickerImage = Boolean(stickerPreviewPayload?.nextStickerImage);
         const canTrySlotFromBook = Boolean(
           stickerPreviewPayload?.stickerBookSvgUrl &&
@@ -613,16 +533,17 @@ export function usePathwaySVG({
 
         if (!hasNextStickerImage && canTrySlotFromBook) {
           try {
-            nextStickerSlot = await loadStickerSlotFromBook(
+            nextStickerDataUrl = await buildStickerDataUrlFromBook(
               stickerPreviewPayload!.stickerBookSvgUrl,
               stickerPreviewPayload!.nextStickerId,
             );
           } catch {
-            nextStickerSlot = null;
+            nextStickerDataUrl = null;
           }
         }
 
-        const hasRenderableSticker = hasNextStickerImage || Boolean(nextStickerSlot);
+        const hasRenderableSticker =
+          hasNextStickerImage || Boolean(nextStickerDataUrl);
         const rewardMode: "sticker" | "mystery_box" =
           isOffline || !hasNextSticker || !hasRenderableSticker || gbWantsMystery
             ? "mystery_box"
@@ -704,18 +625,17 @@ export function usePathwaySVG({
 	              "PathwayStructure-end-reward-sticker-image",
 	            );
 	            rewardGroup.appendChild(stickerImage);
-	          } else if (nextStickerSlot) {
-              const normalizedSlot = normalizeStickerSlotToSize(
-                nextStickerSlot,
-                contentSize,
+	          } else if (nextStickerDataUrl) {
+              rewardGroup.appendChild(
+                createSVGImage(
+                  nextStickerDataUrl,
+                  contentSize,
+                  contentSize,
+                  padding,
+                  padding,
+                  "PathwayStructure-end-reward-sticker-image",
+                ),
               );
-              const positioned = document.createElementNS(SVG_NS, "g");
-              positioned.setAttribute(
-                "transform",
-                `translate(${padding}, ${padding})`,
-              );
-              positioned.appendChild(normalizedSlot);
-              rewardGroup.appendChild(positioned);
             }
           placeElement(
             rewardWrapper,

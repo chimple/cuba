@@ -5,10 +5,9 @@ import {
   applyLockedBackground,
   applyLockedStickerOutline,
   applyStickerVisibilityStrict,
-  extractStickerSvg,
 } from "../common/SvgHelpers";
 
-export type Mode = "drag" | "color";
+export type Mode = "drag" | "color" | "preview";
 
 type Props = {
   mode: Mode;
@@ -24,6 +23,7 @@ type Props = {
   lockedStickerOutline?: boolean;
   lockedBackgroundColor?: string;
   showUncollectedStickers?: boolean;
+  sceneWidth?: number | string;
 };
 
 export function SVGScene({
@@ -39,6 +39,7 @@ export function SVGScene({
   lockedStickerOutline = false,
   lockedBackgroundColor,
   showUncollectedStickers = true,
+  sceneWidth = 560,
 }: Props) {
   const internalRef = useRef<SVGSVGElement | null>(null);
   const svgRef = svgRefExternal ?? internalRef;
@@ -46,21 +47,6 @@ export function SVGScene({
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-
-    // 🔵 CLONE ORIGINAL SVG BEFORE ANY MODIFICATION
-    const originalSvg = svg.cloneNode(true) as SVGSVGElement;
-
-    // ---- Sticker extraction (from original clone) ----
-    // if (nextStickerId) {
-    const stickerSvg = extractStickerSvg(originalSvg, "turtle");
-
-    if (stickerSvg) {
-      console.log("🎉 Extracted Sticker SVG:");
-      console.log(stickerSvg);
-    } else {
-      console.log("❌ Sticker not found:", nextStickerId);
-    }
-    // }
 
     // ---- Apply scene modes AFTER extraction ----
     if (mode === "color") {
@@ -108,6 +94,6 @@ export function SVGScene({
 
   return React.cloneElement(children as React.ReactElement<any>, {
     ref: svgRef,
-    width: 560,
+    width: sceneWidth,
   });
 }
