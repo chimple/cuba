@@ -54,6 +54,7 @@ import { Preferences } from "@capacitor/preferences";
 import { Browser } from "@capacitor/browser";
 import { BrowserRouter } from "react-router-dom";
 
+
 Sentry.init(
   {
     dsn: process.env.REACT_APP_SENTRY_DSN,
@@ -219,10 +220,7 @@ async function checkForUpdate() {
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
   console.log("🚀 Started for updates...");
   try {
-    if (
-      isNativePlatform &&
-      canHotUpdate
-    ) {
+    if (isNativePlatform && canHotUpdate) {
       console.log("🚀 Checking for updates...");
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
