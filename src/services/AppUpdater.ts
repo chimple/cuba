@@ -1,7 +1,7 @@
-import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
-import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import { COPIED_BUNDLE_FILES_INDEX } from "../common/constants";
-import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
+import { Capacitor, CapacitorHttp, WebView } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { COPIED_BUNDLE_FILES_INDEX } from '../common/constants';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 
 // --------------
 // INTERNAL TYPES
@@ -41,12 +41,12 @@ declare type Release = {
 };
 
 export enum HotUpdateStatus {
-  CHECKING_FOR_UPDATE = "Checking for an update",
-  COPY_FROM_BUNDLE = "Getting ready for an update in the background",
-  FOUND_UPDATE = "Found a new update",
-  DOWNLOADING_THE_UPDATES = "Downloading the latest updates",
-  ALREADY_UPDATED = "Already on the latest version",
-  ERROR = "Something went wrong",
+  CHECKING_FOR_UPDATE = 'Checking for an update',
+  COPY_FROM_BUNDLE = 'Getting ready for an update in the background',
+  FOUND_UPDATE = 'Found a new update',
+  DOWNLOADING_THE_UPDATES = 'Downloading the latest updates',
+  ALREADY_UPDATED = 'Already on the latest version',
+  ERROR = 'Something went wrong',
 }
 
 export const AppUpdater = {
@@ -64,7 +64,7 @@ export const AppUpdater = {
     webServerURL: string,
     statusCallback: (status: HotUpdateStatus) => void,
     // checkDelay: number = 1000 * 60 * 60
-    checkDelay: number = 0
+    checkDelay: number = 0,
   ): Promise<boolean> => {
     // Do not run the sync job on non-native platforms. On Web the service worker will manage caching file instead.
     if (!Capacitor.isNativePlatform()) {
@@ -76,22 +76,22 @@ export const AppUpdater = {
     // Start the app update job.
     const timeStart = new Date();
 
-    console.debug("AppUpdater: Starting...");
+    console.debug('AppUpdater: Starting...');
 
     try {
       // Get the currently installed release version.
       let activeRelease = await getCurrentRelease();
       statusCallback(HotUpdateStatus.CHECKING_FOR_UPDATE);
       console.debug(
-        "🚀 ~ file: AppUpdater.ts.ts:91 ~ activeRelease:",
-        JSON.stringify(activeRelease)
+        '🚀 ~ file: AppUpdater.ts.ts:91 ~ activeRelease:',
+        JSON.stringify(activeRelease),
       );
 
       // Build the initial release from the app bundle if no release has been installed.
       if (!activeRelease) {
         statusCallback(HotUpdateStatus.COPY_FROM_BUNDLE);
         buildReleaseFromBundle();
-        console.debug("copying the files from bundle in background");
+        console.debug('copying the files from bundle in background');
         return false;
       }
       localStorage.removeItem(COPIED_BUNDLE_FILES_INDEX);
@@ -107,12 +107,12 @@ export const AppUpdater = {
 
       // Go online to check what the latest app release is.
       const serverChecksumVersion = await getServerChecksum(
-        webServerURL + "/checksum-version.json"
+        webServerURL + '/checksum-version.json',
       );
 
       if (!serverChecksumVersion) {
         statusCallback(HotUpdateStatus.ERROR);
-        throw "Unable to get checksum-version from server";
+        throw 'Unable to get checksum-version from server';
       }
 
       // Check that latest release is not already installed.
@@ -124,23 +124,23 @@ export const AppUpdater = {
         throw `Latest release already installed (${serverChecksumVersion.id})`;
       }
       const serverChecksum = await getServerChecksum(
-        webServerURL + "/checksum.json"
+        webServerURL + '/checksum.json',
       );
       if (!serverChecksum) {
         statusCallback(HotUpdateStatus.ERROR);
-        throw "Unable to get checksum from server";
+        throw 'Unable to get checksum from server';
       }
       statusCallback(HotUpdateStatus.FOUND_UPDATE);
 
       // Prepare to download a new release.
-      await createDir("releases", Directory.Data);
-      await removeDir("releases/next", Directory.Data);
+      await createDir('releases', Directory.Data);
+      await removeDir('releases/next', Directory.Data);
       // Create the empty directory structure for each of the files in the new release package.
       const paths = [
         ...new Set(
           serverChecksum.files.map((file) =>
-            file.path.substring(0, file.path.lastIndexOf("/"))
-          )
+            file.path.substring(0, file.path.lastIndexOf('/')),
+          ),
         ),
       ];
 
@@ -152,13 +152,13 @@ export const AppUpdater = {
       // Download the new release files from the web server.
       const downloadTasks: Promise<any>[] = [];
 
-      const filePlan = await runBackgroundWorkerTask("PLAN_HOT_UPDATE_FILES", {
+      const filePlan = await runBackgroundWorkerTask('PLAN_HOT_UPDATE_FILES', {
         activeFiles: currentRelease.checksum.files,
         serverFiles: serverChecksum.files,
       }).catch((error) => {
         console.warn(
-          "AppUpdater: Worker planning failed, falling back to in-thread checksum comparison.",
-          error
+          'AppUpdater: Worker planning failed, falling back to in-thread checksum comparison.',
+          error,
         );
         return {
           copyFromPreviousPaths: serverChecksum.files
@@ -166,8 +166,8 @@ export const AppUpdater = {
               currentRelease.checksum.files.find(
                 (activeFile) =>
                   activeFile.path === serverFile.path &&
-                  activeFile.hash === serverFile.hash
-              )
+                  activeFile.hash === serverFile.hash,
+              ),
             )
             .map((file) => file.path),
           downloadFromServerPaths: serverChecksum.files
@@ -176,8 +176,8 @@ export const AppUpdater = {
                 !currentRelease.checksum.files.find(
                   (activeFile) =>
                     activeFile.path === serverFile.path &&
-                    activeFile.hash === serverFile.hash
-                )
+                    activeFile.hash === serverFile.hash,
+                ),
             )
             .map((file) => file.path),
         };
@@ -188,8 +188,8 @@ export const AppUpdater = {
           copyFromPreviousRelease(
             `releases/${currentRelease.checksum.id}/${path}`,
             `releases/next/${path}`,
-            Directory.Data
-          )
+            Directory.Data,
+          ),
         );
       }
       for (const path of filePlan.downloadFromServerPaths) {
@@ -197,15 +197,15 @@ export const AppUpdater = {
           downloadFileFromWebServer(
             `${webServerURL}/${path}`,
             `releases/next/${path}`,
-            Directory.Data
-          )
+            Directory.Data,
+          ),
         );
       }
 
       await Promise.all(downloadTasks);
       // Save the release checksum.
       await Filesystem.writeFile({
-        path: "releases/next/checksum.json",
+        path: 'releases/next/checksum.json',
         directory: Directory.Data,
         data: JSON.stringify(serverChecksum),
         encoding: Encoding.UTF8,
@@ -213,7 +213,7 @@ export const AppUpdater = {
       });
       // Install the downloaded release package.
       await Filesystem.rename({
-        from: "releases/next",
+        from: 'releases/next',
         to: `releases/${serverChecksum.id}`,
         directory: Directory.Data,
       });
@@ -222,7 +222,7 @@ export const AppUpdater = {
 
       // // Activate the downloaded release.
       // await activateRelease(serverChecksum.id);
-      localStorage.setItem("readyForHotUpdate", serverChecksum.id);
+      localStorage.setItem('readyForHotUpdate', serverChecksum.id);
 
       // Report that the app was successfully updated.
       return true;
@@ -234,7 +234,7 @@ export const AppUpdater = {
   },
 };
 async function checkForDownloadedHotUpdate(): Promise<boolean> {
-  const serverChecksumId = localStorage.getItem("readyForHotUpdate");
+  const serverChecksumId = localStorage.getItem('readyForHotUpdate');
 
   if (!serverChecksumId) return false;
   //  Delete any old release packages.
@@ -242,7 +242,7 @@ async function checkForDownloadedHotUpdate(): Promise<boolean> {
 
   // Activate the downloaded release.
   await activateRelease(serverChecksumId);
-  localStorage.removeItem("readyForHotUpdate");
+  localStorage.removeItem('readyForHotUpdate');
   return true;
 }
 // --------------
@@ -255,11 +255,11 @@ async function checkForDownloadedHotUpdate(): Promise<boolean> {
  * @returns The installed release details.
  */
 async function getCurrentRelease(): Promise<Release | null> {
-  console.debug("AppUpdater: Looking for current release.");
+  console.debug('AppUpdater: Looking for current release.');
 
   try {
     const result = await Filesystem.readFile({
-      path: "version.json",
+      path: 'version.json',
       directory: Directory.Data,
       encoding: Encoding.UTF8,
     });
@@ -276,7 +276,7 @@ async function getCurrentRelease(): Promise<Release | null> {
             directory: Directory.Data,
             encoding: Encoding.UTF8,
           })
-        ).data as string
+        ).data as string,
       ) as Checksum;
 
       // Return the release version details.
@@ -290,7 +290,7 @@ async function getCurrentRelease(): Promise<Release | null> {
     }
   } catch (ignore) {
     console.debug(
-      'AppUpdater: Could not find "version.json", must be a new app install.'
+      'AppUpdater: Could not find "version.json", must be a new app install.',
     );
   }
 
@@ -305,22 +305,22 @@ async function getCurrentRelease(): Promise<Release | null> {
  * @returns The built release details.
  */
 async function buildReleaseFromBundle(): Promise<Release> {
-  console.debug("AppUpdater: Building initial release from app bundle.");
+  console.debug('AppUpdater: Building initial release from app bundle.');
 
   try {
     // Get the bundled release checksum.
-    const response = await fetch("http://localhost/checksum.json");
+    const response = await fetch('http://localhost/checksum.json');
     const checksum = (await response.json()) as Checksum;
 
     // Prepare to download a new release.
-    await createDir("releases", Directory.Data);
+    await createDir('releases', Directory.Data);
 
     // Create the empty directory structure for each of the files in the new release package.
     const paths = [
       ...new Set(
         checksum.files.map((file) =>
-          file.path.substring(0, file.path.lastIndexOf("/"))
-        )
+          file.path.substring(0, file.path.lastIndexOf('/')),
+        ),
       ),
     ];
 
@@ -332,7 +332,7 @@ async function buildReleaseFromBundle(): Promise<Release> {
     // let downloadTasks: Promise<boolean>[] = [];
     // const limit = 300;
     const copiedBundleFiles: number = Number(
-      localStorage.getItem(COPIED_BUNDLE_FILES_INDEX) ?? 0
+      localStorage.getItem(COPIED_BUNDLE_FILES_INDEX) ?? 0,
     );
 
     for (let i = copiedBundleFiles; i < checksum.files.length; i++) {
@@ -340,26 +340,26 @@ async function buildReleaseFromBundle(): Promise<Release> {
       const url = `http://localhost/${currentFile.path}`;
       // const alreadyCopied = copiedBundleFiles.find((value) => url === value);
       console.debug(
-        "🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:",
+        '🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:',
         i,
         currentFile.path,
-        JSON.stringify(copiedBundleFiles)
+        JSON.stringify(copiedBundleFiles),
       );
       // if (!!alreadyCopied) continue;
       console.debug(
-        "🚀 ~ file: AppUpdater.ts:293 ~ buildReleaseFromBundle ~ continue:",
+        '🚀 ~ file: AppUpdater.ts:293 ~ buildReleaseFromBundle ~ continue:',
         currentFile.path,
-        "total",
+        'total',
         i,
-        "/",
-        checksum.files.length
+        '/',
+        checksum.files.length,
       );
       // downloadTasks.push(
       const didDownload = await downloadFileFromAppBundle(
         url,
         `releases/${checksum.id}/${currentFile.path}`,
         Directory.Data,
-        i + 1
+        i + 1,
       );
       // );
       // if (
@@ -397,10 +397,10 @@ async function buildReleaseFromBundle(): Promise<Release> {
     console.error(error);
 
     // Clean-up the job output when things go wrong.
-    await removeDir("releases", Directory.Data);
+    await removeDir('releases', Directory.Data);
 
     // Throw the error to break the update process.
-    throw "AppUpdater: Could not build release from bundled.";
+    throw 'AppUpdater: Could not build release from bundled.';
   }
 }
 
@@ -412,13 +412,13 @@ async function buildReleaseFromBundle(): Promise<Release> {
  */
 async function setCurrentRelease(
   releaseName: string,
-  timestamp: Date = new Date()
+  timestamp: Date = new Date(),
 ): Promise<void> {
   console.debug(`AppUpdater: App configured for release '${releaseName}'.`);
 
   // Update app release summary file.
   await Filesystem.writeFile({
-    path: "version.json",
+    path: 'version.json',
     data: JSON.stringify({
       id: releaseName,
       updated: timestamp,
@@ -435,12 +435,12 @@ async function setCurrentRelease(
  * @param activeReleaseName - The active release not to delete.
  */
 async function deleteOldReleases(activeReleaseName: string): Promise<void> {
-  console.debug("AppUpdater: Deleting old releases.");
+  console.debug('AppUpdater: Deleting old releases.');
 
   // Get a list of all the release directories.
   const installedReleases = (
     await Filesystem.readdir({
-      path: "releases",
+      path: 'releases',
       directory: Directory.Data,
     })
   ).files;
@@ -479,13 +479,13 @@ async function activateRelease(releaseName: string): Promise<void> {
   await setCurrentRelease(releaseName, new Date());
 
   // Point the app web view to the new release folder.
-  if (Capacitor.getPlatform() === "android") {
+  if (Capacitor.getPlatform() === 'android') {
     await WebView.setServerBasePath({
-      path: releasePath.uri.replace("file://", ""),
+      path: releasePath.uri.replace('file://', ''),
     });
   } else {
     await WebView.setServerBasePath({
-      path: releasePath.uri.replace("file://", ""),
+      path: releasePath.uri.replace('file://', ''),
     }); // TODO - test if ios works the same as android, this line might have to change to their file storage convention.
   }
 
@@ -510,16 +510,16 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
   try {
     const res = await CapacitorHttp.request({
       url: url,
-      method: "GET",
-      responseType: "json",
+      method: 'GET',
+      responseType: 'json',
     });
     if (!!res && res.status === 200 && !!res.data) {
       return res.data as Checksum;
     }
   } catch (error) {
     console.debug(
-      "AppUpdater: Could not download and parse server checksum.\n\n",
-      error
+      'AppUpdater: Could not download and parse server checksum.\n\n',
+      error,
     );
   }
 
@@ -536,7 +536,7 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
 async function copyFromPreviousRelease(
   fromPath: string,
   toPath: string,
-  directory: Directory
+  directory: Directory,
 ): Promise<void> {
   // console.debug(`AppUpdater: Copy from previous release: '${fromPath}'`);
   try {
@@ -560,19 +560,19 @@ async function copyFromPreviousRelease(
 async function downloadFileFromWebServer(
   url: string,
   path: string,
-  directory: Directory
+  directory: Directory,
 ): Promise<void> {
   try {
     console.debug(`AppUpdater: Download from Server:${url} '${path}'`);
     const result = await Filesystem.downloadFile({
       url: url,
       path: path,
-      method: "GET",
+      method: 'GET',
       directory: directory,
       connectTimeout: 10 * 1000,
       readTimeout: 10 * 1000,
     });
-    console.debug("🚀 ~ file: AppUpdater.ts.ts:540 ~ result:", result.path);
+    console.debug('🚀 ~ file: AppUpdater.ts.ts:540 ~ result:', result.path);
     // const res = await CapacitorHttp.get({
     //   url: url,
     //   responseType: "blob",
@@ -585,15 +585,15 @@ async function downloadFileFromWebServer(
     // });
   } catch (error) {
     console.error(
-      "🚀 ~ file: AppUpdater.ts.ts:526 ~ error:",
+      '🚀 ~ file: AppUpdater.ts.ts:526 ~ error:',
       JSON.stringify(error),
       error,
-      "      url: ",
+      '      url: ',
       url,
-      "path: ",
+      'path: ',
       path,
-      "directory",
-      directory
+      'directory',
+      directory,
     );
   }
 }
@@ -611,7 +611,7 @@ export async function downloadFileFromAppBundle(
   url: RequestInfo,
   path: string,
   directory: Directory,
-  index: number
+  index: number,
 ): Promise<boolean> {
   console.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
 
@@ -654,21 +654,21 @@ export async function downloadFileFromAppBundle(
     // Parse the file response into a base64 string that can be sent through the Capacitor bridge.
     let base64Data: string;
 
-    if (path.endsWith(".html")) {
+    if (path.endsWith('.html')) {
       const response = await fetch(url);
 
       // Read the HTML file out as text.
       let text = await response.text();
 
       // Strip the injected Capacitor framework code out of the <head> tag.
-      const stripStart = text.indexOf("<head>") + 6;
-      const stripEnd = text.indexOf("</script>") + 9;
+      const stripStart = text.indexOf('<head>') + 6;
+      const stripEnd = text.indexOf('</script>') + 9;
 
       text = text.substring(0, stripStart) + text.substring(stripEnd);
 
       // Convert the clean-up text to a base64 string.
       base64Data = btoa(text);
-    } else if (path.endsWith(".svg")) {
+    } else if (path.endsWith('.svg')) {
       const response = await fetch(url);
 
       // Read the HTML file out as text.
@@ -692,7 +692,7 @@ export async function downloadFileFromAppBundle(
     }
 
     // Save the base64 data to disk. Capacitor will parse this back to a binary file type internally.
-    if (path.endsWith(".svg")) {
+    if (path.endsWith('.svg')) {
       const svgWrite = await Filesystem.writeFile({
         path: path,
         directory: directory,
@@ -712,7 +712,7 @@ export async function downloadFileFromAppBundle(
     console.debug(
       `AppUpdater: Could not copy '${path}' from app bundle`,
       url,
-      error
+      error,
     );
 
     return false;

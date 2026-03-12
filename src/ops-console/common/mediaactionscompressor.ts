@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
-import { runMediaCompressionTask } from "../../workers/mediaCompressionWorkerClient";
-import { VideoQuality } from "../../workers/mediaCompression.worker.types";
+import { useCallback, useState } from 'react';
+import { runMediaCompressionTask } from '../../workers/mediaCompressionWorkerClient';
+import { VideoQuality } from '../../workers/mediaCompression.worker.types';
 
 type CompressProgressCb = (progress: number) => void;
 
@@ -16,8 +16,8 @@ type CompressOptions = {
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
 const formatBytes = (bytes: number) => {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
   let value = bytes;
   let idx = 0;
   while (value >= 1024 && idx < units.length - 1) {
@@ -28,85 +28,85 @@ const formatBytes = (bytes: number) => {
   return `${value.toFixed(precision)} ${units[idx]}`;
 };
 
-const inferMediaKind = (file: File): "video" | "image" | "other" => {
-  const mime = (file.type || "").toLowerCase();
-  if (mime.startsWith("video/")) return "video";
-  if (mime.startsWith("image/")) return "image";
-  const name = (file.name || "").toLowerCase();
-  const ext = name.includes(".") ? name.split(".").pop() ?? "" : "";
+const inferMediaKind = (file: File): 'video' | 'image' | 'other' => {
+  const mime = (file.type || '').toLowerCase();
+  if (mime.startsWith('video/')) return 'video';
+  if (mime.startsWith('image/')) return 'image';
+  const name = (file.name || '').toLowerCase();
+  const ext = name.includes('.') ? (name.split('.').pop() ?? '') : '';
   const imageExts = new Set([
-    "jpg",
-    "jpeg",
-    "png",
-    "webp",
-    "gif",
-    "bmp",
-    "heic",
-    "heif",
-    "avif",
-    "tif",
-    "tiff",
-    "svg",
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'gif',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+    'tif',
+    'tiff',
+    'svg',
   ]);
   const videoExts = new Set([
-    "mp4",
-    "mov",
-    "m4v",
-    "webm",
-    "mkv",
-    "avi",
-    "3gp",
-    "3gpp",
-    "3g2",
-    "ogg",
-    "ogv",
+    'mp4',
+    'mov',
+    'm4v',
+    'webm',
+    'mkv',
+    'avi',
+    '3gp',
+    '3gpp',
+    '3g2',
+    'ogg',
+    'ogv',
   ]);
-  if (videoExts.has(ext)) return "video";
-  if (imageExts.has(ext)) return "image";
-  return "other";
+  if (videoExts.has(ext)) return 'video';
+  if (imageExts.has(ext)) return 'image';
+  return 'other';
 };
 
 const shouldSkipVideoCompression = (file: File) => {
-  const mime = (file.type || "").toLowerCase();
-  const ext = (file.name.split(".").pop() || "").toLowerCase();
-  const isWebm = mime.includes("webm") || ext === "webm";
+  const mime = (file.type || '').toLowerCase();
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const isWebm = mime.includes('webm') || ext === 'webm';
   return file.size < 2 * 1024 * 1024 || isWebm;
 };
 
 const shouldSkipImageCompression = (file: File) => {
-  const mime = (file.type || "").toLowerCase();
-  const ext = ((file.name || "").split(".").pop() || "").toLowerCase();
+  const mime = (file.type || '').toLowerCase();
+  const ext = ((file.name || '').split('.').pop() || '').toLowerCase();
   return (
-    mime === "image/gif" ||
-    mime === "image/svg+xml" ||
-    ext === "gif" ||
-    ext === "svg"
+    mime === 'image/gif' ||
+    mime === 'image/svg+xml' ||
+    ext === 'gif' ||
+    ext === 'svg'
   );
 };
 
 const preferWorkerCanvas = () =>
-  typeof OffscreenCanvas !== "undefined" &&
-  typeof createImageBitmap === "function";
+  typeof OffscreenCanvas !== 'undefined' &&
+  typeof createImageBitmap === 'function';
 
 export async function compressMediaForUpload(
   file: File,
   options: CompressOptions = {},
 ): Promise<File> {
-  const { signal, onProgress, logTag = "media" } = options;
+  const { signal, onProgress, logTag = 'media' } = options;
   if (signal?.aborted) {
-    throw new DOMException("Aborted", "AbortError");
+    throw new DOMException('Aborted', 'AbortError');
   }
   const kind = inferMediaKind(file);
-  if (kind === "video") {
+  if (kind === 'video') {
     if (shouldSkipVideoCompression(file)) {
       onProgress?.(1);
       return file;
     }
     try {
-      const compressed = await runMediaCompressionTask("COMPRESS_VIDEO", file, {
+      const compressed = await runMediaCompressionTask('COMPRESS_VIDEO', file, {
         signal,
         onProgress,
-        videoQuality: options.videoQuality ?? "medium",
+        videoQuality: options.videoQuality ?? 'medium',
       });
       if (compressed.size >= file.size) {
         console.info(
@@ -120,7 +120,7 @@ export async function compressMediaForUpload(
       onProgress?.(1);
       return compressed;
     } catch (error) {
-      if ((error as Error).name === "AbortError") {
+      if ((error as Error).name === 'AbortError') {
         throw error;
       }
       console.error(`[${logTag}] video compression failed:`, error);
@@ -129,14 +129,14 @@ export async function compressMediaForUpload(
     }
   }
 
-  if (kind === "image") {
+  if (kind === 'image') {
     if (shouldSkipImageCompression(file)) {
       onProgress?.(1);
       return file;
     }
     const taskType = preferWorkerCanvas()
-      ? "COMPRESS_IMAGE_CANVAS"
-      : "COMPRESS_IMAGE_FFMPEG";
+      ? 'COMPRESS_IMAGE_CANVAS'
+      : 'COMPRESS_IMAGE_FFMPEG';
     try {
       const compressed = await runMediaCompressionTask(taskType, file, {
         signal,
@@ -156,7 +156,7 @@ export async function compressMediaForUpload(
       onProgress?.(1);
       return compressed;
     } catch (error) {
-      if ((error as Error).name === "AbortError") {
+      if ((error as Error).name === 'AbortError') {
         throw error;
       }
       console.error(`[${logTag}] image compression failed:`, error);
@@ -169,7 +169,7 @@ export async function compressMediaForUpload(
   return file;
 }
 
-export type FFmpegCompressType = "video" | "image";
+export type FFmpegCompressType = 'video' | 'image';
 
 export const useFFmpegCompress = () => {
   const [loading, setLoading] = useState(false);
@@ -183,17 +183,17 @@ export const useFFmpegCompress = () => {
   const compressFile = useCallback(
     async (file: File, type: FFmpegCompressType) => {
       if (!ready) {
-        throw new Error("Media worker not ready");
+        throw new Error('Media worker not ready');
       }
       setLoading(true);
       try {
-        if (type === "video") {
+        if (type === 'video') {
           return await compressMediaForUpload(file, {
-            logTag: "media",
-            videoQuality: "medium",
+            logTag: 'media',
+            videoQuality: 'medium',
           });
         }
-        return await compressMediaForUpload(file, { logTag: "media" });
+        return await compressMediaForUpload(file, { logTag: 'media' });
       } finally {
         setLoading(false);
       }

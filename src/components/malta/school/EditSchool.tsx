@@ -1,7 +1,7 @@
-import { IonInput } from "@ionic/react";
-import { FC } from "react";
-import "./EditSchool.css";
-import CommonButton from "../common/CommonButton";
+import { IonInput } from '@ionic/react';
+import { FC } from 'react';
+import './EditSchool.css';
+import CommonButton from '../common/CommonButton';
 
 interface EditSchoolProps {
   schoolName: string;
@@ -20,17 +20,11 @@ const EditSchool: FC<EditSchoolProps> = ({
 }) => {
   return (
     <div className="alignItems">
-      <IonInput
-        value={schoolName}
-      ></IonInput>
+      <IonInput value={schoolName}></IonInput>
       <br />
-      <IonInput
-        value={cityName}
-      ></IonInput>
+      <IonInput value={cityName}></IonInput>
       <br />
-      <IonInput
-        value={stateName}
-      ></IonInput>
+      <IonInput value={stateName}></IonInput>
       <div className="buttonRow">
         <CommonButton disabled={false} title="Cancel" onClicked={onCancel} />
         <CommonButton disabled={false} title="Save" onClicked={onSave} />

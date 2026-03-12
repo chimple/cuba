@@ -1,8 +1,8 @@
-import { useEffect, useRef } from "react";
-import "./BackButton.css";
-import { IoIosArrowBack } from "react-icons/io";
-import { registerBackButtonHandler } from "../../common/backButtonRegistry";
-import { t } from "i18next";
+import { useEffect, useRef } from 'react';
+import './BackButton.css';
+import { IoIosArrowBack } from 'react-icons/io';
+import { registerBackButtonHandler } from '../../common/backButtonRegistry';
+import { t } from 'i18next';
 
 const BackButton: React.FC<{
   onClicked: any;
@@ -24,7 +24,7 @@ const BackButton: React.FC<{
   return (
     <IoIosArrowBack
       id="common-back-button"
-      aria-label={String(t("Back"))}
+      aria-label={String(t('Back'))}
       onClick={onClicked}
     ></IoIosArrowBack>
   );

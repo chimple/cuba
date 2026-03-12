@@ -1,9 +1,9 @@
-import React from "react";
-import { t } from "i18next";
-import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { TeacherAssignmentPageType } from "./TeacherAssignment";
-import { AssignmentSource } from "../../../../common/constants";
-import "./RecommendedAssignments.css";
+import React from 'react';
+import { t } from 'i18next';
+import SelectIconImage from '../../../../components/displaySubjects/SelectIconImage';
+import { TeacherAssignmentPageType } from './TeacherAssignment';
+import { AssignmentSource } from '../../../../common/constants';
+import './RecommendedAssignments.css';
 
 export type Lesson = {
   id: string;
@@ -146,7 +146,7 @@ const RecommendedAssignments: React.FC<Props> = ({
                 id={`recommended-assignments-selected-count-${subjectId}`}
                 className="recommended-assignments-selected-count"
               >
-                {subject.lessons.filter((lesson) => lesson.selected).length} /{" "}
+                {subject.lessons.filter((lesson) => lesson.selected).length} /{' '}
                 {subject.lessons.length}
               </div>
             </div>
@@ -155,7 +155,7 @@ const RecommendedAssignments: React.FC<Props> = ({
               className="recommended-assignments-add-more-btn"
               onClick={() => handleAddMoreLessons(subjectId)}
             >
-              {t("Add 5 more")}
+              {t('Add 5 more')}
             </button>
           </div>
 
@@ -178,7 +178,7 @@ const RecommendedAssignments: React.FC<Props> = ({
                     >
                       <SelectIconImage
                         defaultSrc="assets/icons/DefaultIcon.png"
-                        webSrc={assignment.image ?? ""}
+                        webSrc={assignment.image ?? ''}
                         imageWidth="100%"
                         imageHeight="100%"
                       />
@@ -191,9 +191,9 @@ const RecommendedAssignments: React.FC<Props> = ({
                         id={`recommended-assignments-lesson-name-${subjectId}-${index}`}
                         className="recommended-assignments-list-item-name"
                       >
-                        {courseCode === "ENGLISH"
-                          ? (assignment.name ?? "")
-                          : t(assignment.name ?? "")}
+                        {courseCode === 'ENGLISH'
+                          ? (assignment.name ?? '')
+                          : t(assignment.name ?? '')}
                       </div>
                       <div
                         className="recommended-assignments-chapter-name"
@@ -205,7 +205,7 @@ const RecommendedAssignments: React.FC<Props> = ({
                     <span
                       id={`recommended-assignments-toggle-circle-${subjectId}-${index}`}
                       className={`recommended-assignments-toggle-circle ${
-                        isSelected ? "is-selected" : "is-unselected"
+                        isSelected ? 'is-selected' : 'is-unselected'
                       }`}
                       onClick={() =>
                         toggleAssignmentSelection(

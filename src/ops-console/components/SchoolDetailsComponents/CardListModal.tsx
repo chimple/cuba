@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
-import SearchAndFilter from "../SearchAndFilter";
-import DataTablePagination from "../DataTablePagination";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { CircularProgress } from "@mui/material";
-import "./CardListModal.css";
-import { t } from "i18next";
+import React, { useState, useEffect } from 'react';
+import SearchAndFilter from '../SearchAndFilter';
+import DataTablePagination from '../DataTablePagination';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { CircularProgress } from '@mui/material';
+import './CardListModal.css';
+import { t } from 'i18next';
 
 interface StudentItem {
   user?: {
@@ -44,7 +44,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const [students, setStudents] = useState<StudentItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>();
   const requestIdRef = React.useRef(0);
@@ -93,7 +93,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
 
   useEffect(() => {
     if (!open) return;
-    fetchStudents(1, "");
+    fetchStudents(1, '');
   }, [open]);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      setSearch("");
+      setSearch('');
       setPage(1);
       setSelectedId(undefined);
     }
@@ -112,15 +112,15 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const processedStudents = students
     .map((s: any) => {
       const user = s.user ?? s;
-      const phone = s.parent?.phone ?? s.phone ?? user?.phone ?? "";
+      const phone = s.parent?.phone ?? s.phone ?? user?.phone ?? '';
       return {
         ...s,
         user: {
           ...user,
-          phone: String(phone).replace(/\D/g, ""),
+          phone: String(phone).replace(/\D/g, ''),
         },
         parent: {
-          phone: String(phone).replace(/\D/g, ""),
+          phone: String(phone).replace(/\D/g, ''),
         },
       };
     })
@@ -131,27 +131,26 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const pageCount = Math.ceil(total / ROWS_PER_PAGE);
   if (!open) return null;
 
-
-const primaryName = primaryStudentData?.user?.name || "";
-const primaryContact =
-  primaryStudentData?.parent?.phone ||
-  primaryStudentData?.user?.phone ||
-  primaryStudentData?.user?.email ||
-  "";
+  const primaryName = primaryStudentData?.user?.name || '';
+  const primaryContact =
+    primaryStudentData?.parent?.phone ||
+    primaryStudentData?.user?.phone ||
+    primaryStudentData?.user?.email ||
+    '';
   return (
     <div id="cardlist-backdrop" className="cardlist-modal-backdrop">
       <div id="cardlist-modal" className="cardlist-modal">
         <div id="cardlist-header" className="cardlist-header">
           <div id="cardlist-header-content">
             <h2 id="cardlist-title" className="cardlist-title">
-              {t("Merge Student")}
+              {t('Merge Student')}
             </h2>
 
             <p id="cardlist-subtitle" className="cardlist-subtitle">
-              {t("Select which student profile to merge into")}{" "}
+              {t('Select which student profile to merge into')}{' '}
               <strong id="cardlist-primary-student">
                 {primaryName}
-                {primaryContact ? ` (${primaryContact})` : ""}
+                {primaryContact ? ` (${primaryContact})` : ''}
               </strong>
             </p>
           </div>
@@ -179,18 +178,18 @@ const primaryContact =
         <div id="cardlist-warning" className="cardlist-warning">
           ⚠️
           {t(
-            "This will combine both student records permanently. This action cannot be undone.",
+            'This will combine both student records permanently. This action cannot be undone.',
           )}
         </div>
 
         <div id="cardlist-container" className="cardlist-model-container">
           {loading ? (
             <div id="cardlist-loading" className="cardlist-loading">
-              {t("Loading...")}
+              {t('Loading...')}
             </div>
           ) : processedStudents.length === 0 ? (
             <div id="cardlist-empty" className="cardlist-empty">
-              {t("No students found")}
+              {t('No students found')}
             </div>
           ) : (
             processedStudents.map((s) => {
@@ -200,7 +199,7 @@ const primaryContact =
                   id="cardlist-label"
                   key={s.user?.id}
                   className={`cardlist-card ${
-                    selected ? "cardlist-card-selected" : ""
+                    selected ? 'cardlist-card-selected' : ''
                   }`}
                 >
                   <input
@@ -212,11 +211,11 @@ const primaryContact =
 
                   <div id="cardlist-row" className="cardlist-row">
                     <span id="cardlist-col-id" className="cardlist-col-id">
-                      {s.user?.student_id || "N/A"}
+                      {s.user?.student_id || 'N/A'}
                     </span>
 
                     <span id="cardlist-col-name" className="cardlist-col-name">
-                      {s.user?.name || "N/A"}
+                      {s.user?.name || 'N/A'}
                     </span>
 
                     <span
@@ -224,12 +223,12 @@ const primaryContact =
                       className="cardlist-col-gender"
                     >
                       {s.user?.gender
-                        ? s.user.gender.toLowerCase() === "male"
-                          ? "Male"
-                          : s.user.gender.toLowerCase() === "female"
-                            ? "Female"
+                        ? s.user.gender.toLowerCase() === 'male'
+                          ? 'Male'
+                          : s.user.gender.toLowerCase() === 'female'
+                            ? 'Female'
                             : s.user.gender
-                        : "N/A"}
+                        : 'N/A'}
                     </span>
                     <span
                       id="cardlist-col-phone"
@@ -238,7 +237,7 @@ const primaryContact =
                       {s.parent?.phone ||
                         s.user?.phone ||
                         s.user?.email ||
-                        "N/A"}
+                        'N/A'}
                     </span>
                   </div>
                 </label>
@@ -267,7 +266,7 @@ const primaryContact =
               disabled={isSubmitting}
               onClick={onClose}
             >
-              {t("Cancel")}
+              {t('Cancel')}
             </button>
 
             <button
@@ -279,10 +278,10 @@ const primaryContact =
               {isSubmitting ? (
                 <span className="cardlist-merge-btn-content">
                   <CircularProgress size={14} color="inherit" />
-                  {t("Merging...")}
+                  {t('Merging...')}
                 </span>
               ) : (
-                t("Merge")
+                t('Merge')
               )}
             </button>
           </div>

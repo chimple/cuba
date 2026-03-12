@@ -1,6 +1,6 @@
-import { IonRadio, IonRadioGroup } from "@ionic/react";
-import { FC } from "react";
-import "./SwitchSchool.css";
+import { IonRadio, IonRadioGroup } from '@ionic/react';
+import { FC } from 'react';
+import './SwitchSchool.css';
 interface SwitchSchoolProps {
   schools: string[];
 }
@@ -11,9 +11,7 @@ const SwitchSchool: FC<SwitchSchoolProps> = ({ schools }) => {
       <IonRadioGroup value={schools[0]}>
         {schools.map((school) => (
           <>
-            <IonRadio value={school}>
-              {school}
-            </IonRadio>
+            <IonRadio value={school}>{school}</IonRadio>
             <br />
           </>
         ))}

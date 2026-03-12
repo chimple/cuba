@@ -1,7 +1,7 @@
-import {store} from "./store";
+import { store } from './store';
 
-describe("Redux Store Setup", () => {
-  it("should initialize the store with empty root state", () => {
+describe('Redux Store Setup', () => {
+  it('should initialize the store with empty root state', () => {
     const state = store.getState();
     // Since rootReducer is empty, we expect state to only contain redux-persist state if any
     expect(state).toBeDefined();

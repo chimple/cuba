@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import "./LessonComponent.css"; // Assuming you have some basic styles
-import { COURSES,TableTypes } from "../../../common/constants";
-import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
-import SelectIcon from "../SelectIcon";
-import { t } from "i18next";
+import React, { useEffect, useState } from 'react';
+import './LessonComponent.css'; // Assuming you have some basic styles
+import { COURSES, TableTypes } from '../../../common/constants';
+import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
+import SelectIcon from '../SelectIcon';
+import { t } from 'i18next';
 
 interface LessonComponentProps {
-  lesson: TableTypes<"lesson">;
+  lesson: TableTypes<'lesson'>;
   handleLessonCLick: Function;
   handleSelect: Function;
   isSelcted: boolean;
@@ -45,19 +45,22 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
         id="lessoncomponent-lesson-type-logo"
         className="lessoncomponent-lesson-type-logo"
       >
-        <div id="lessoncomponent-lesson-type" className="lessoncomponent-lesson-type">
-          {lesson.plugin_type === "cocos" ? t("Assignment") : t("Live Quiz")}
+        <div
+          id="lessoncomponent-lesson-type"
+          className="lessoncomponent-lesson-type"
+        >
+          {lesson.plugin_type === 'cocos' ? t('Assignment') : t('Live Quiz')}
         </div>
         <div
           id={
-            lesson.plugin_type === "cocos"
-              ? "lessoncomponent-assignment-logo"
-              : "lessoncomponent-quiz-logo"
+            lesson.plugin_type === 'cocos'
+              ? 'lessoncomponent-assignment-logo'
+              : 'lessoncomponent-quiz-logo'
           }
           className={
-            lesson.plugin_type === "cocos"
-              ? "lessoncomponent-assignment-logo"
-              : "lessoncomponent-quiz-logo"
+            lesson.plugin_type === 'cocos'
+              ? 'lessoncomponent-assignment-logo'
+              : 'lessoncomponent-quiz-logo'
           }
         ></div>
       </div>
@@ -68,10 +71,13 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           handleLessonCLick();
         }}
       >
-        <div id="lessoncomponent-lesson-image" className="lessoncomponent-lesson-image">
+        <div
+          id="lessoncomponent-lesson-image"
+          className="lessoncomponent-lesson-image"
+        >
           <SelectIconImage
             localSrc={`courses/en/icons/en00.webp`}
-            defaultSrc={"assets/icons/DefaultIcon.png"}
+            defaultSrc={'assets/icons/DefaultIcon.png'}
             webSrc={`${lesson.image}`}
             // imageWidth="100%"
             imageHeight="100%"
@@ -82,28 +88,34 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           <span
             id="lessoncomponent-lesson-assigned-badge"
             className="lessoncomponent-lesson-assigned-badge"
-            title={t("Assigned") ?? ""}
-            aria-label={t("Assigned") ?? ""}
+            title={t('Assigned') ?? ''}
+            aria-label={t('Assigned') ?? ''}
           >
             <img
               src="/assets/hideassigned.png"
               alt=""
               onError={(event) => {
-                event.currentTarget.src = "assets/icons/assignmentSelect.svg";
+                event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
               }}
             />
           </span>
         ) : null}
       </div>
-      <div id="lessoncomponent-text-container" className="lessoncomponent-text-container">
-        <div id="lessoncomponent-lesson-details" className="lessoncomponent-lesson-details">
+      <div
+        id="lessoncomponent-text-container"
+        className="lessoncomponent-text-container"
+      >
+        <div
+          id="lessoncomponent-lesson-details"
+          className="lessoncomponent-lesson-details"
+        >
           {courseCode === COURSES.ENGLISH
             ? lesson.name!.length > 15
-              ? lesson.name?.substring(0, 15) + "..."
+              ? lesson.name?.substring(0, 15) + '...'
               : lesson.name
-            : t(lesson.name ?? "").length > 15
-              ? t(lesson.name ?? "").substring(0, 15) + "..."
-              : t(lesson.name ?? "")}
+            : t(lesson.name ?? '').length > 15
+              ? t(lesson.name ?? '').substring(0, 15) + '...'
+              : t(lesson.name ?? '')}
         </div>
         {isSelButton ? (
           <SelectIcon isSelected={isTicked} onClick={handleTickClick} />

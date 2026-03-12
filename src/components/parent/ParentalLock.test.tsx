@@ -1,26 +1,26 @@
-import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import ParentalLock from "./ParentalLock";
-import { PAGES } from "../../common/constants";
-import { Util } from "../../utility/util";
-import { schoolUtil } from "../../utility/schoolUtil";
+import React from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import ParentalLock from './ParentalLock';
+import { PAGES } from '../../common/constants';
+import { Util } from '../../utility/util';
+import { schoolUtil } from '../../utility/schoolUtil';
 
 const mockHistory = {
   replace: jest.fn(),
   push: jest.fn(),
-  location: { pathname: "/display-students" },
+  location: { pathname: '/display-students' },
 };
 
-jest.mock("react-router-dom", () => ({
+jest.mock('react-router-dom', () => ({
   useHistory: () => mockHistory,
 }));
 
-jest.mock("i18next", () => ({
+jest.mock('i18next', () => ({
   t: (k: string) => k,
   changeLanguage: jest.fn(),
 }));
 
-jest.mock("../../utility/util", () => ({
+jest.mock('../../utility/util', () => ({
   Util: {
     setParentLanguagetoLocal: jest.fn(),
     setPathToBackButton: jest.fn(),
@@ -28,7 +28,7 @@ jest.mock("../../utility/util", () => ({
   },
 }));
 
-jest.mock("../../utility/schoolUtil", () => ({
+jest.mock('../../utility/schoolUtil', () => ({
   schoolUtil: {
     setCurrentClass: jest.fn(),
   },
@@ -47,7 +47,7 @@ const setup = (props?: Partial<React.ComponentProps<typeof ParentalLock>>) => {
 const runTouchSwipe = async (
   dialog: HTMLElement,
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
 ) => {
   fireEvent.touchStart(dialog, {
     targetTouches: [{ clientX: start.x, clientY: start.y }],
@@ -61,89 +61,94 @@ const runTouchSwipe = async (
 const runMouseSwipe = (
   dialog: HTMLElement,
   start: { x: number; y: number },
-  end: { x: number; y: number }
+  end: { x: number; y: number },
 ) => {
   fireEvent.mouseDown(dialog, { clientX: start.x, clientY: start.y });
   fireEvent.mouseMove(dialog, { clientX: end.x, clientY: end.y });
   fireEvent.mouseUp(dialog);
 };
 
-describe("ParentalLock", () => {
+describe('ParentalLock', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Util.setParentLanguagetoLocal as jest.Mock).mockResolvedValue(undefined);
     (Math.random as any) = jest.fn(() => 0);
   });
 
-  test("renders dialog when showDialogBox is true", async () => {
+  test('renders dialog when showDialogBox is true', async () => {
     setup({ showDialogBox: true });
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
-  test("does not render dialog when showDialogBox is false", () => {
+  test('does not render dialog when showDialogBox is false', () => {
     setup({ showDialogBox: false });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  test("renders parent section header", async () => {
+  test('renders parent section header', async () => {
     setup();
-    expect(await screen.findByText("Parents Section")).toBeInTheDocument();
+    expect(await screen.findByText('Parents Section')).toBeInTheDocument();
   });
 
-  test("renders unlock instruction for LEFT when random chooses LEFT", async () => {
+  test('renders unlock instruction for LEFT when random chooses LEFT', async () => {
     (Math.random as any) = jest.fn(() => 0);
     setup();
-    expect(await screen.findByText("Swipe LEFT to Unlock")).toBeInTheDocument();
+    expect(await screen.findByText('Swipe LEFT to Unlock')).toBeInTheDocument();
   });
 
-  test("renders unlock instruction for RIGHT when random chooses RIGHT", async () => {
+  test('renders unlock instruction for RIGHT when random chooses RIGHT', async () => {
     (Math.random as any) = jest.fn(() => 0.26);
     setup();
-    expect(await screen.findByText("Swipe RIGHT to Unlock")).toBeInTheDocument();
+    expect(
+      await screen.findByText('Swipe RIGHT to Unlock'),
+    ).toBeInTheDocument();
   });
 
-  test("renders unlock instruction for UP when random chooses UP", async () => {
+  test('renders unlock instruction for UP when random chooses UP', async () => {
     (Math.random as any) = jest.fn(() => 0.51);
     setup();
-    expect(await screen.findByText("Swipe UP to Unlock")).toBeInTheDocument();
+    expect(await screen.findByText('Swipe UP to Unlock')).toBeInTheDocument();
   });
 
-  test("renders unlock instruction for DOWN when random chooses DOWN", async () => {
+  test('renders unlock instruction for DOWN when random chooses DOWN', async () => {
     (Math.random as any) = jest.fn(() => 0.76);
     setup();
-    expect(await screen.findByText("Swipe DOWN to Unlock")).toBeInTheDocument();
+    expect(await screen.findByText('Swipe DOWN to Unlock')).toBeInTheDocument();
   });
 
-  test("close icon click calls onHandleClose", async () => {
+  test('close icon click calls onHandleClose', async () => {
     const onHandleClose = jest.fn();
     setup({ onHandleClose });
-    const closeImg = await screen.findByAltText("Close");
+    const closeImg = await screen.findByAltText('Close');
     fireEvent.click(closeImg);
     expect(onHandleClose).toHaveBeenCalled();
   });
 
-  test("correct LEFT touch swipe unlocks and executes navigation side effects", async () => {
+  test('correct LEFT touch swipe unlocks and executes navigation side effects', async () => {
     (Math.random as any) = jest.fn(() => 0);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     await runTouchSwipe(dialog, { x: 300, y: 100 }, { x: 200, y: 100 });
 
     await waitFor(() => {
       expect(onUnlock).toHaveBeenCalledTimes(1);
       expect(Util.setParentLanguagetoLocal).toHaveBeenCalledTimes(1);
-      expect(Util.setPathToBackButton).toHaveBeenCalledWith(PAGES.PARENT, mockHistory);
+      expect(Util.setPathToBackButton).toHaveBeenCalledWith(
+        PAGES.PARENT,
+        mockHistory,
+      );
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(null);
       expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
     });
   });
 
-  test("wrong touch swipe direction does not unlock", async () => {
+  test('wrong touch swipe direction does not unlock', async () => {
     (Math.random as any) = jest.fn(() => 0);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     await runTouchSwipe(dialog, { x: 100, y: 100 }, { x: 200, y: 100 });
 
@@ -153,22 +158,22 @@ describe("ParentalLock", () => {
     });
   });
 
-  test("touch swipe below minimum threshold does not unlock", async () => {
+  test('touch swipe below minimum threshold does not unlock', async () => {
     (Math.random as any) = jest.fn(() => 0);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     await runTouchSwipe(dialog, { x: 200, y: 100 }, { x: 170, y: 100 });
 
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("touch end without move does not unlock", async () => {
+  test('touch end without move does not unlock', async () => {
     (Math.random as any) = jest.fn(() => 0);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     fireEvent.touchStart(dialog, {
       targetTouches: [{ clientX: 300, clientY: 100 }],
@@ -178,25 +183,28 @@ describe("ParentalLock", () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("correct RIGHT mouse swipe unlocks", async () => {
+  test('correct RIGHT mouse swipe unlocks', async () => {
     (Math.random as any) = jest.fn(() => 0.26);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 100, y: 100 }, { x: 200, y: 100 });
 
     await waitFor(() => {
       expect(onUnlock).toHaveBeenCalledTimes(1);
-      expect(Util.setPathToBackButton).toHaveBeenCalledWith(PAGES.PARENT, mockHistory);
+      expect(Util.setPathToBackButton).toHaveBeenCalledWith(
+        PAGES.PARENT,
+        mockHistory,
+      );
     });
   });
 
-  test("correct UP mouse swipe unlocks", async () => {
+  test('correct UP mouse swipe unlocks', async () => {
     (Math.random as any) = jest.fn(() => 0.51);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 100, y: 200 }, { x: 100, y: 100 });
 
@@ -205,11 +213,11 @@ describe("ParentalLock", () => {
     });
   });
 
-  test("correct DOWN mouse swipe unlocks", async () => {
+  test('correct DOWN mouse swipe unlocks', async () => {
     (Math.random as any) = jest.fn(() => 0.76);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 100, y: 100 }, { x: 100, y: 200 });
 
@@ -218,32 +226,32 @@ describe("ParentalLock", () => {
     });
   });
 
-  test("wrong mouse swipe direction does not unlock", async () => {
+  test('wrong mouse swipe direction does not unlock', async () => {
     (Math.random as any) = jest.fn(() => 0.76);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 300, y: 100 }, { x: 200, y: 100 });
 
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("mouse swipe below minimum threshold does not unlock", async () => {
+  test('mouse swipe below minimum threshold does not unlock', async () => {
     (Math.random as any) = jest.fn(() => 0.26);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 100, y: 100 }, { x: 130, y: 100 });
 
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("mouse up without mouse move does not unlock", async () => {
+  test('mouse up without mouse move does not unlock', async () => {
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     fireEvent.mouseDown(dialog, { clientX: 200, clientY: 100 });
     fireEvent.mouseUp(dialog);
@@ -251,11 +259,11 @@ describe("ParentalLock", () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("mouse enter primes start point and swipe can still unlock", async () => {
+  test('mouse enter primes start point and swipe can still unlock', async () => {
     (Math.random as any) = jest.fn(() => 0.26);
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     fireEvent.mouseEnter(dialog, { clientX: 100, clientY: 100 });
     fireEvent.mouseMove(dialog, { clientX: 200, clientY: 100 });
@@ -266,10 +274,10 @@ describe("ParentalLock", () => {
     });
   });
 
-  test("touch events with missing coordinates do not unlock", async () => {
+  test('touch events with missing coordinates do not unlock', async () => {
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     fireEvent.touchStart(dialog, { targetTouches: [{}] });
     fireEvent.touchMove(dialog, { targetTouches: [{}] });
@@ -278,10 +286,10 @@ describe("ParentalLock", () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("mouse move before mouse down does not unlock", async () => {
+  test('mouse move before mouse down does not unlock', async () => {
     const onUnlock = jest.fn();
     setup({ onUnlock });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     fireEvent.mouseMove(dialog, { clientX: 200, clientY: 100 });
     fireEvent.mouseUp(dialog);
@@ -289,25 +297,28 @@ describe("ParentalLock", () => {
     expect(onUnlock).not.toHaveBeenCalled();
   });
 
-  test("unlock still executes side effects when onUnlock callback is not provided", async () => {
+  test('unlock still executes side effects when onUnlock callback is not provided', async () => {
     (Math.random as any) = jest.fn(() => 0);
     setup({ onUnlock: undefined });
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     await runTouchSwipe(dialog, { x: 300, y: 100 }, { x: 200, y: 100 });
 
     await waitFor(() => {
       expect(Util.setParentLanguagetoLocal).toHaveBeenCalled();
-      expect(Util.setPathToBackButton).toHaveBeenCalledWith(PAGES.PARENT, mockHistory);
+      expect(Util.setPathToBackButton).toHaveBeenCalledWith(
+        PAGES.PARENT,
+        mockHistory,
+      );
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(null);
       expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
     });
   });
 
-  test("does not execute side effects when swipe direction is incorrect", async () => {
+  test('does not execute side effects when swipe direction is incorrect', async () => {
     (Math.random as any) = jest.fn(() => 0.26);
     setup();
-    const dialog = await screen.findByRole("dialog");
+    const dialog = await screen.findByRole('dialog');
 
     runMouseSwipe(dialog, { x: 300, y: 100 }, { x: 200, y: 100 });
 

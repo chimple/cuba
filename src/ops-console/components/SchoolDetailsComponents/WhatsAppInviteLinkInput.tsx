@@ -1,7 +1,7 @@
-import React from "react";
-import { Box, Typography } from "@mui/material";
-import { t } from "i18next";
-import "./WhatsAppInviteLinkInput.css";
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+import { t } from 'i18next';
+import './WhatsAppInviteLinkInput.css';
 
 type Props = {
   inviteInput: string;
@@ -44,7 +44,7 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
           onClick={onSubmit}
           disabled={loading || !inviteInput.trim()}
         >
-          {loading ? t("Checking...") : t("Submit")}
+          {loading ? t('Checking...') : t('Submit')}
         </button>
 
         {groupId && (
@@ -54,7 +54,7 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
             onClick={onCancel}
             disabled={loading}
           >
-            {t("Cancel")}
+            {t('Cancel')}
           </button>
         )}
       </Box>

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import "./Parent.css";
+import { useEffect, useState } from 'react';
+import './Parent.css';
 import {
   CLASS,
   EDIT_STUDENTS_MAP,
@@ -10,9 +10,9 @@ import {
   PARENTHEADERLIST,
   SCHOOL,
   TableTypes,
-} from "../common/constants";
-import ProfileCard from "../components/parent/ProfileCard";
-import ToggleButton from "../components/parent/ToggleButton";
+} from '../common/constants';
+import ProfileCard from '../components/parent/ProfileCard';
+import ToggleButton from '../components/parent/ToggleButton';
 
 import {
   EmailIcon,
@@ -20,33 +20,33 @@ import {
   FacebookIcon,
   TwitterIcon,
   WhatsappIcon,
-} from "react-share";
-import { FaInstagramSquare } from "react-icons/fa";
-import { t } from "i18next";
-import { TfiWorld } from "react-icons/tfi";
-import i18n from "../i18n";
-import { ServiceConfig } from "../services/ServiceConfig";
-import ParentLogout from "../components/parent/ParentLogout";
-import { Box } from "@mui/material";
-import { useHistory } from "react-router-dom";
-import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import { RoleType } from "../interface/modelInterfaces";
-import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import { setUser } from "../redux/slices/auth/authSlice";
-import { useAppDispatch } from "../redux/hooks";
+} from 'react-share';
+import { FaInstagramSquare } from 'react-icons/fa';
+import { t } from 'i18next';
+import { TfiWorld } from 'react-icons/tfi';
+import i18n from '../i18n';
+import { ServiceConfig } from '../services/ServiceConfig';
+import ParentLogout from '../components/parent/ParentLogout';
+import { Box } from '@mui/material';
+import { useHistory } from 'react-router-dom';
+import CustomAppBar from '../components/studentProgress/CustomAppBar';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import DropDown from '../components/DropDown';
+import { RoleType } from '../interface/modelInterfaces';
+import DeleteParentAccount from '../components/parent/DeleteParentAccount';
+import { setUser } from '../redux/slices/auth/authSlice';
+import { useAppDispatch } from '../redux/hooks';
 
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
+  const [userProfile, setUserProfile] = useState<TableTypes<'user'>[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
   const dispatch = useAppDispatch();
-  
+
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -55,15 +55,15 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-  
+
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [currentUser, setCurrentUser] = useState<
-    TableTypes<"user"> | undefined
+    TableTypes<'user'> | undefined
   >();
   const [schools, setSchools] = useState<
     {
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
@@ -71,15 +71,15 @@ const Parent: React.FC = () => {
     id: string;
     displayName: string;
   }[] = [];
-  
+
   const localAppLang = localStorage.getItem(LANGUAGE);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const parentHeaderIconList = [
-    { header: "profile", displayName: "Profile" },
-    { header: "setting", displayName: "Setting" },
-    { header: "help", displayName: "Help" },
-    { header: "faq", displayName: "FAQ" },
+    { header: 'profile', displayName: 'Profile' },
+    { header: 'setting', displayName: 'Setting' },
+    { header: 'help', displayName: 'Help' },
+    { header: 'faq', displayName: 'FAQ' },
   ];
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
@@ -92,7 +92,7 @@ const Parent: React.FC = () => {
   }, [reloadProfiles]);
 
   async function getStudentProfile() {
-    const userProfilePromise: TableTypes<"user">[] =
+    const userProfilePromise: TableTypes<'user'>[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
@@ -165,9 +165,7 @@ const Parent: React.FC = () => {
     }
   }
 
-
   function profileUI() {
-    
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
@@ -177,8 +175,8 @@ const Parent: React.FC = () => {
           }
           return (
             <ProfileCard
-              width={"27vw"}
-              height={"50vh"}
+              width={'27vw'}
+              height={'50vh'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -197,7 +195,7 @@ const Parent: React.FC = () => {
       <div>
         <div id="parent-page-setting">
           <div id="parent-page-setting-div">
-            <p id="parent-page-setting-lang-text">{t("Language")}</p>
+            <p id="parent-page-setting-lang-text">{t('Language')}</p>
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
@@ -217,18 +215,18 @@ const Parent: React.FC = () => {
                 );
 
                 if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code ?? "");
-                await i18n.changeLanguage(langDoc.code ?? "");
+                localStorage.setItem(LANGUAGE, langDoc.code ?? '');
+                await i18n.changeLanguage(langDoc.code ?? '');
                 const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
-                const langId = langDocIds.get(langDoc.code ?? "");
+                const langId = langDocIds.get(langDoc.code ?? '');
                 if (!currentUser || !currentUser.id) return;
                 if (currentUser && selectedLangDocId) {
                   api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
                 setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<"user"> = {
+                const updatedUserData: TableTypes<'user'> = {
                   ...currentUser,
                   language_id: selectedLangDocId,
                 };
@@ -236,14 +234,13 @@ const Parent: React.FC = () => {
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }
-                
               }}
             />
           </div>
           <div id="parent-page-setting-div">
             <ToggleButton
               flag={soundFlag!}
-              title={t("Sound")}
+              title={t('Sound')}
               onIonChangeClick={async (v) => {
                 setSoundFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
@@ -255,14 +252,12 @@ const Parent: React.FC = () => {
                     v.detail?.checked,
                   );
                 }
-               
               }}
             ></ToggleButton>
-            
 
             <ToggleButton
               flag={musicFlag!}
-              title={t("Music")}
+              title={t('Music')}
               onIonChangeClick={async (v) => {
                 setMusicFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
@@ -290,7 +285,7 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
-                if (!currentUser?.name || currentUser.name.trim() === "") {
+                if (!currentUser?.name || currentUser.name.trim() === '') {
                   history.replace(PAGES.ADD_TEACHER_NAME);
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
@@ -307,59 +302,56 @@ const Parent: React.FC = () => {
   function helpUI() {
     return (
       <div id="parent-page-help">
-        <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
+        <h1 id="parent-page-help-title">{t('Chimple Help Desk')}</h1>
         <div id="parent-page-help-title-container">
           <div id="parent-page-help-title-link">
             <div id="parent-page-help-title-e1">
               <div id="parent-page-help-share-button">
                 <EmailShareButton
-                  url={"help@sutara.org"}
-                  subject={"Chimple Kids app- Help Desk"}
+                  url={'help@sutara.org'}
+                  subject={'Chimple Kids app- Help Desk'}
                   body=""
                   className="Demo__some-network__share-button"
                 >
                   {/* Email Us */}
-                  {t("Email Us")}
+                  {t('Email Us')}
                 </EmailShareButton>
-                <EmailIcon size={"2vw"} round />
+                <EmailIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  window.open("https://www.chimple.org/", "_system");
+                  window.open('https://www.chimple.org/', '_system');
                 }}
               >
                 {/* Visit Website */}
-                {t("Visit Website")}
-                <TfiWorld size={"2vw"} />
+                {t('Visit Website')}
+                <TfiWorld size={'2vw'} />
                 {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  let message = "Hiii !!!!";
+                  let message = 'Hiii !!!!';
                   window.open(
                     `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
-                    "_system",
+                    '_system',
                   );
                 }}
               >
-              
-                {t("WhatsApp Us")}
-                <WhatsappIcon size={"2vw"} round />
+                {t('WhatsApp Us')}
+                <WhatsappIcon size={'2vw'} round />
               </div>
             </div>
             <div id="parent-page-help-title-e2">
-              <div id="help">{t("Help Video")}</div>
+              <div id="help">{t('Help Video')}</div>
               <div id="parent-page-help-title-e2-video">
                 <iframe
                   id="parent-page-help-title-e2-video-youtude"
                   className="embed-responsive-item"
                   allowFullScreen={true}
-                 
                   src="https://www.youtube.com/embed/Ez9oouE2pOE"
                   title="YouTube video player"
-                  
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   // allowfullscreen
                 ></iframe>
@@ -372,7 +364,7 @@ const Parent: React.FC = () => {
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
-                    "_system",
+                    '_system',
                   );
                   // https://api.instagram.com/chimple_learning/
 
@@ -380,31 +372,26 @@ const Parent: React.FC = () => {
                 }}
               >
                 {/* Instagram */}
-                {t("Instagram")}
-                <FaInstagramSquare size={"2vw"} />
+                {t('Instagram')}
+                <FaInstagramSquare size={'2vw'} />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  
-                  window.open(`https://www.facebook.com/chimple`, "_system");
+                  window.open(`https://www.facebook.com/chimple`, '_system');
                 }}
               >
-                
-                {t("Facebook")}
-                <FacebookIcon size={"2vw"} round />
+                {t('Facebook')}
+                <FacebookIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  
-                  window.open(`https://twitter.com/chimple_org`, "_system");
+                  window.open(`https://twitter.com/chimple_org`, '_system');
                 }}
               >
-                
-                
-                {t("Twitter")}
-                <TwitterIcon size={"2vw"} round />
+                {t('Twitter')}
+                <TwitterIcon size={'2vw'} round />
               </div>
             </div>
           </div>
@@ -418,18 +405,17 @@ const Parent: React.FC = () => {
         id="faq-page"
         onClick={() => {
           window.open(
-            "https://www.chimple.org/in-school-guide-for-teachers",
-            "_system",
+            'https://www.chimple.org/in-school-guide-for-teachers',
+            '_system',
           );
         }}
       >
-        <p>{t("Please Visit Our Website")}</p>
-        <TfiWorld size={"3vw"} />
+        <p>{t('Please Visit Our Website')}</p>
+        <TfiWorld size={'3vw'} />
       </div>
     );
   }
 
-  
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue,
@@ -467,11 +453,10 @@ const Parent: React.FC = () => {
           handleBackButton={handleBackButton}
           customStyle={true}
         />
-        {tabIndex === t("profile") && <div>{profileUI()}</div>}
-        {tabIndex === t("setting") && <div>{settingUI()}</div>}
-        {tabIndex === t("help") && <div>{helpUI()}</div>}
-        {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        
+        {tabIndex === t('profile') && <div>{profileUI()}</div>}
+        {tabIndex === t('setting') && <div>{settingUI()}</div>}
+        {tabIndex === t('help') && <div>{helpUI()}</div>}
+        {tabIndex === t('faq') && <div>{faqUI()}</div>}
       </div>
     </Box>
   );

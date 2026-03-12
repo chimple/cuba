@@ -1,20 +1,20 @@
-import { t } from "i18next";
-import "./ParentLogout.css";
-import { ImSwitch } from "react-icons/im";
-import { useState } from "react";
-import DialogBoxButtons from "./DialogBoxButtons​";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory } from "react-router";
+import { t } from 'i18next';
+import './ParentLogout.css';
+import { ImSwitch } from 'react-icons/im';
+import { useState } from 'react';
+import DialogBoxButtons from './DialogBoxButtons​';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory } from 'react-router';
 import {
   CLASS,
   CURRENT_MODE,
   PAGES,
   SCHOOL,
   SCHOOL_LOGIN,
-} from "../../common/constants";
-import { Capacitor } from "@capacitor/core";
-import { Util } from "../../utility/util";
-import { ClearCacheData } from "./DataClear";
+} from '../../common/constants';
+import { Capacitor } from '@capacitor/core';
+import { Util } from '../../utility/util';
+import { ClearCacheData } from './DataClear';
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -39,14 +39,14 @@ const ParentLogout: React.FC<{}> = ({}) => {
       className="parent-logout-btn"
     >
       <ImSwitch className="parent-logout-icon" />
-      <div>{t("Sign out as a Parent")}</div>
+      <div>{t('Sign out as a Parent')}</div>
       <DialogBoxButtons
-        width={"40vw"}
-        height={"30vh"}
-        message={t("Do you want to sign out")}
+        width={'40vw'}
+        height={'30vh'}
+        message={t('Do you want to sign out')}
         showDialogBox={showDialogBox}
-        yesText={t("Cancel")}
-        noText={t("Sign Out")}
+        yesText={t('Cancel')}
+        noText={t('Sign Out')}
         handleClose={() => {
           setShowDialogBox(false);
         }}

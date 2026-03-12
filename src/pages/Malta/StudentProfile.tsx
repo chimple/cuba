@@ -1,12 +1,12 @@
-import React from "react";
+import React from 'react';
 
-import { PAGES } from "../../common/constants";
+import { PAGES } from '../../common/constants';
 
-import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
-import "./StudentProfile.css";
-import { t } from "i18next";
-import CloseIcon from "@mui/icons-material/Close";
-import { useHistory } from "react-router-dom";
+import StudentProfileSection from '../../components/malta/StudentProfile/StudentProfileSection';
+import './StudentProfile.css';
+import { t } from 'i18next';
+import CloseIcon from '@mui/icons-material/Close';
+import { useHistory } from 'react-router-dom';
 
 const StudentProfile: React.FC<{
   name?: string;
@@ -23,7 +23,6 @@ const StudentProfile: React.FC<{
         <CloseIcon />
       </button>
       <div className="profile-container-section">
-        
         <div className="profile-name">{name}</div>
       </div>
       <StudentProfileSection
@@ -39,7 +38,7 @@ const StudentProfile: React.FC<{
           {t("Click below to view student's progress")}
         </div>
         <button className="view-button-in-student-profile">
-          {t("View Progress")}
+          {t('View Progress')}
         </button>
       </div>
     </div>

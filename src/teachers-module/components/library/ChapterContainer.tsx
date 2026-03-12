@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import "./ChapterContainer.css";
-import LessonComponent from "./LessonComponent";
-import { COURSES, TableTypes } from "../../../common/constants";
-import { t } from "i18next";
+import React, { useEffect, useState } from 'react';
+import './ChapterContainer.css';
+import LessonComponent from './LessonComponent';
+import { COURSES, TableTypes } from '../../../common/constants';
+import { t } from 'i18next';
 interface ChapterContainerProps {
-  chapter: TableTypes<"chapter">;
-  lessons: TableTypes<"lesson">[];
+  chapter: TableTypes<'chapter'>;
+  lessons: TableTypes<'lesson'>[];
   chapterSelectedLessons: Function;
   syncSelectedLessons: string[];
   isOpened: boolean;
-  lessonClickCallBack: (lesson: TableTypes<"lesson">) => void;
+  lessonClickCallBack: (lesson: TableTypes<'lesson'>) => void;
   courseCode?: string;
   showAssignedBadge?: boolean;
   assignedLessonIds?: Set<string>;
@@ -43,10 +43,10 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   const handleLessonToggle = (lesson: string) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lesson)) {
-        chapterSelectedLessons(chapter.id, lesson, false);   //remove lesson
+        chapterSelectedLessons(chapter.id, lesson, false); //remove lesson
         return prevSelectedLessons.filter((item) => item !== lesson);
       } else {
-        chapterSelectedLessons(chapter.id, lesson, true);   //add lesson
+        chapterSelectedLessons(chapter.id, lesson, true); //add lesson
         return [...prevSelectedLessons, lesson];
       }
     });
@@ -56,7 +56,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setSelectedLessons((prevSelectedLessons) => {
       const prevSet = new Set(prevSelectedLessons);
       const shouldSelectAll = chapterLessonIds.some(
-        (lessonId) => !prevSet.has(lessonId)
+        (lessonId) => !prevSet.has(lessonId),
       );
 
       if (shouldSelectAll) {
@@ -74,7 +74,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         }
       });
       return prevSelectedLessons.filter(
-        (lessonId) => !chapterLessonIds.includes(lessonId)
+        (lessonId) => !chapterLessonIds.includes(lessonId),
       );
     });
   };
@@ -98,7 +98,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           tabIndex={0}
           onClick={toggleChapter}
           onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
+            if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
               toggleChapter();
             }
@@ -112,7 +112,9 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
               id="chaptercontainer-chapter-name"
               className="chaptercontainer-chapter-name"
             >
-              {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
+              {courseCode === COURSES.ENGLISH
+                ? chapter.name
+                : t(chapter.name ?? '')}
             </div>
 
             <div
@@ -129,7 +131,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
             <div
               id="chaptercontainer-chapter-select-all"
               className={`chaptercontainer-chapter-select-all${
-                isAllSelected ? " is-selected" : ""
+                isAllSelected ? ' is-selected' : ''
               }`}
               role="button"
               tabIndex={0}
@@ -138,15 +140,18 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 handleSelectAll();
               }}
               onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
+                if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
                   event.stopPropagation();
                   handleSelectAll();
                 }
               }}
             >
-              <span id="chaptercontainer-chapter-select-all-text" className="chaptercontainer-chapter-select-all-text">
-                {t("Select All")}
+              <span
+                id="chaptercontainer-chapter-select-all-text"
+                className="chaptercontainer-chapter-select-all-text"
+              >
+                {t('Select All')}
               </span>
               <span
                 id="chaptercontainer-chapter-select-all-icon"
@@ -166,7 +171,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
             <span
               id="chaptercontainer-expand-arrow"
               className={`chaptercontainer-expand-arrow${
-                isExpanded ? " is-open" : ""
+                isExpanded ? ' is-open' : ''
               }`}
               aria-hidden="true"
             />

@@ -23,7 +23,7 @@
 }
 
 #rive-avatar-shadow {
-  content: "";
+  content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -65,11 +65,9 @@
 
 .buttons-in-avatar-option-box {
   margin: 2% 0 2% 0;
- 
+
   display: flex;
   align-items: center;
-
-  
 }
 .chimple-avatar-chatbox-bubble1,
 .chimple-avatar-chatbox-bubble2,

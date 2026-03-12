@@ -1,4 +1,4 @@
-export type TriggerType = "APP_OPEN" | "GAME_COMPLETE" | "TIME_ELAPSED";
+export type TriggerType = 'APP_OPEN' | 'GAME_COMPLETE' | 'TIME_ELAPSED';
 
 export interface PopupConfig {
   id: string;
@@ -19,23 +19,22 @@ export interface PopupConfig {
     endDate: string;
   };
 
-content: Record<
-  string,
-  {
-    thumbnailImageUrl: string;
-    backgroundImageUrl?: string;
+  content: Record<
+    string,
+    {
+      thumbnailImageUrl: string;
+      backgroundImageUrl?: string;
 
-    heading: string;
-    subHeading?: string;
-    details?: string[];
+      heading: string;
+      subHeading?: string;
+      details?: string[];
 
-    buttonText: string;
-  }
->;
-
+      buttonText: string;
+    }
+  >;
 
   action?: {
-    type: "DEEP_LINK";
+    type: 'DEEP_LINK';
     target: string;
   };
 }

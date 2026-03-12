@@ -1,11 +1,8 @@
 #leaderboard-page {
-  
   align-items: center;
-  
 }
 
 #LeaderBoard-AppBar {
- 
   padding: 0%;
   background-color: transparent !important;
 }
@@ -41,7 +38,6 @@
   flex-direction: column;
 }
 
-
 #leaderboard-left-UI-content {
   text-align: left;
   white-space: nowrap;
@@ -63,7 +59,7 @@
 
 #leaderboard-left-note-message {
   max-width: 27vw;
-  
+
   margin: 0vw 1vw;
   font-size: 10px;
   position: absolute;
@@ -75,7 +71,6 @@
 }
 
 #leaderboard-right-UI-content {
-  
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -127,7 +122,7 @@
   font-size: 11px;
   white-space: nowrap;
   display: block;
-  
+
   overflow: hidden;
 }
 

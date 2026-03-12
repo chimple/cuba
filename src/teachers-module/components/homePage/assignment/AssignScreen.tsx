@@ -1,15 +1,15 @@
-import { FC } from "react";
-import { t } from "i18next";
-import { ReactComponent as AssignScreenArrowIcon } from "../../../assets/icons/assign-screen-arrow.svg";
-import "./AssignScreen.css";
-import { useHistory } from "react-router-dom";
+import { FC } from 'react';
+import { t } from 'i18next';
+import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
+import './AssignScreen.css';
+import { useHistory } from 'react-router-dom';
 import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerTypeHint,
-} from "@capacitor/barcode-scanner";
-import { PAGES } from "../../../../common/constants";
-import { ServiceConfig } from "../../../../services/ServiceConfig";
-import { Toast } from "@capacitor/toast";
+} from '@capacitor/barcode-scanner';
+import { PAGES } from '../../../../common/constants';
+import { ServiceConfig } from '../../../../services/ServiceConfig';
+import { Toast } from '@capacitor/toast';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -35,22 +35,22 @@ const AssignScreen: FC<AssignScreenProps> = ({
         return;
       }
       let scannedText = result.ScanResult;
-      if (scannedText.startsWith("http://")) {
-        scannedText = scannedText.replace(/^http:\/\//, "https://");
+      if (scannedText.startsWith('http://')) {
+        scannedText = scannedText.replace(/^http:\/\//, 'https://');
       }
       const response = await api.getChapterIdbyQrLink(scannedText);
       if (!response?.chapter_id) {
         await Toast.show({
-          text: t("Chapter Not Found"),
-          duration: "long",
+          text: t('Chapter Not Found'),
+          duration: 'long',
         });
         return;
       }
       const lessons = await api.getLessonsForChapter(response.chapter_id);
       if (!lessons || lessons.length === 0) {
         await Toast.show({
-          text: t("No lessons found for this chapter"),
-          duration: "long",
+          text: t('No lessons found for this chapter'),
+          duration: 'long',
         });
         return;
       }
@@ -61,11 +61,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
         fromPage: PAGES.HOME_PAGE,
       });
     } catch (error) {
-      console.error("Scan failed:", error);
+      console.error('Scan failed:', error);
 
       await Toast.show({
-        text: t("Something Went wrong"),
-        duration: "long",
+        text: t('Something Went wrong'),
+        duration: 'long',
       });
     }
   };
@@ -73,7 +73,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
     <section className="assign-screen">
       <div id="assign-screen-content" className="assign-screen-content">
         <h2 id="assign-screen-heading" className="assign-screen-heading">
-          {t("Choose from the three options for assignments")}
+          {t('Choose from the three options for assignments')}
         </h2>
 
         <div id="assign-screen-card-list" className="assign-screen-card-list">
@@ -85,7 +85,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
           >
             <img
               src="assets/books.png"
-              alt={t("Library") || "Library"}
+              alt={t('Library') || 'Library'}
               id="assign-screen-card-image assign-screen-icon-library-bg"
               className="assign-screen-card-image assign-screen-icon-library-bg"
             />
@@ -95,7 +95,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                 className="assign-screen-card-caption"
               >
                 {t(
-                  "Choose from 300+ assignments across multiple subjects to assign homework",
+                  'Choose from 300+ assignments across multiple subjects to assign homework',
                 )}
               </p>
               <div
@@ -106,7 +106,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-card-title"
                   className="assign-screen-card-title"
                 >
-                  {t("Library")}
+                  {t('Library')}
                 </h3>
                 <span
                   id="assign-screen-arrow-wrap"
@@ -131,7 +131,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
           >
             <img
               src="assets/qr.png"
-              alt={t("Scan QR") || "Scan QR"}
+              alt={t('Scan QR') || 'Scan QR'}
               id="assign-screen-card-image assign-screen-icon-scan-bg"
               className="assign-screen-card-image assign-screen-icon-scan-bg"
             />
@@ -141,7 +141,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                 className="assign-screen-card-caption"
               >
                 {t(
-                  "Scan chapters from your textbook to instantly assign homework",
+                  'Scan chapters from your textbook to instantly assign homework',
                 )}
               </p>
               <div
@@ -152,7 +152,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-card-title"
                   className="assign-screen-card-title"
                 >
-                  {t("Scan QR")}
+                  {t('Scan QR')}
                 </h3>
                 <span
                   id="assign-screen-arrow-wrap"
@@ -177,7 +177,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
           >
             <img
               src="assets/thumb.png"
-              alt={t("Recommended") || "Recommended"}
+              alt={t('Recommended') || 'Recommended'}
               id="assign-screen-card-image assign-screen-icon-recommend-bg"
               className="assign-screen-card-image assign-screen-icon-recommend-bg"
             />
@@ -186,7 +186,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                 id="assign-screen-card-caption"
                 className="assign-screen-card-caption"
               >
-                {t("Pre-selected assignments aligned for academic growth")}
+                {t('Pre-selected assignments aligned for academic growth')}
               </p>
               <div
                 id="assign-screen-card-bottom"
@@ -196,7 +196,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-card-title"
                   className="assign-screen-card-title"
                 >
-                  {t("Recommended")}
+                  {t('Recommended')}
                 </h3>
                 <span
                   id="assign-screen-arrow-wrap"

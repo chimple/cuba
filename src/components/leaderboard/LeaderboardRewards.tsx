@@ -1,23 +1,23 @@
-import { FC, useEffect, useState } from "react";
-import { LEADERBOARD_REWARD_LIST } from "../../common/constants";
-import { Tab, Tabs } from "@mui/material";
-import { t } from "i18next";
-import LeaderboardBadges from "./LeaderboardBadges";
-import LeaderboardBonus from "./LeaderboardBonus";
-import "./LeaderboardRewards.css";
-import LeaderboardSticker from "./LeaderboardSticker";
+import { FC, useEffect, useState } from 'react';
+import { LEADERBOARD_REWARD_LIST } from '../../common/constants';
+import { Tab, Tabs } from '@mui/material';
+import { t } from 'i18next';
+import LeaderboardBadges from './LeaderboardBadges';
+import LeaderboardBonus from './LeaderboardBonus';
+import './LeaderboardRewards.css';
+import LeaderboardSticker from './LeaderboardSticker';
 
 const LeaderboardRewards: FC = () => {
   const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
   const handleChange = (
     event: React.SyntheticEvent,
-    newValue: LEADERBOARD_REWARD_LIST
+    newValue: LEADERBOARD_REWARD_LIST,
   ) => {
     setTabIndex(newValue);
   };
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const rewardsTab = urlParams.get("rewards");
+    const rewardsTab = urlParams.get('rewards');
     let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
     if (rewardsTab) {
       if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
@@ -33,8 +33,8 @@ const LeaderboardRewards: FC = () => {
     // Update URL when tabIndex changes
     if (tabIndex) {
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set("rewards", tabIndex.toLowerCase());
-      window.history.replaceState({}, "", newUrl.toString());
+      newUrl.searchParams.set('rewards', tabIndex.toLowerCase());
+      window.history.replaceState({}, '', newUrl.toString());
     }
   }, [tabIndex]);
 
@@ -46,18 +46,15 @@ const LeaderboardRewards: FC = () => {
         textColor="secondary"
         indicatorColor="secondary"
         aria-label="secondary tabs example"
-        
         scrollButtons="auto"
-       
         centered
         sx={{
-          
-          "& .MuiTabs-indicator": {
-            backgroundColor: "#000000 !important",
-            bottom: "15% !important",
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#000000 !important',
+            bottom: '15% !important',
           },
-          "& .MuiTab-root": { color: "#000000 !important" },
-          "& .Mui-selected": { color: "#000000 !important" },
+          '& .MuiTab-root': { color: '#000000 !important' },
+          '& .Mui-selected': { color: '#000000 !important' },
         }}
       >
         <Tab

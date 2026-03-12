@@ -1,31 +1,34 @@
 import React from 'react';
-import "./TableStudentData.css"
+import './TableStudentData.css';
 interface TableStudentDataProps {
-    studentData: Record<string, number | null>;
+  studentData: Record<string, number | null>;
 }
 
 function getColor(score: number | null) {
-    if (score == null) {
-        return 'white'
-    }
-    else if (score < 30) {
-        return '#EAA6B1';
-    } else if (score >= 30 && score <= 70) {
-        return '#F4D6AE';
-    } else {
-        return '#CEF3D6';
-    }
+  if (score == null) {
+    return 'white';
+  } else if (score < 30) {
+    return '#EAA6B1';
+  } else if (score >= 30 && score <= 70) {
+    return '#F4D6AE';
+  } else {
+    return '#CEF3D6';
+  }
 }
 
 const TableStudentData: React.FC<TableStudentDataProps> = ({ studentData }) => {
-    return (
-        <>
-            {Object.keys(studentData).map((val, key) => (
-                <td className="square-cell" style={{ backgroundColor: getColor(studentData[val]) }}>{studentData[val]}</td>
-            ))}
-        </>
-    );
-
+  return (
+    <>
+      {Object.keys(studentData).map((val, key) => (
+        <td
+          className="square-cell"
+          style={{ backgroundColor: getColor(studentData[val]) }}
+        >
+          {studentData[val]}
+        </td>
+      ))}
+    </>
+  );
 };
 
 export default TableStudentData;

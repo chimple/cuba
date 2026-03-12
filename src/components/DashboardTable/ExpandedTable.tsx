@@ -1,18 +1,18 @@
-import React from "react";
-import "./ExpandedTable.css";
+import React from 'react';
+import './ExpandedTable.css';
 interface ExpandedTableProps {
   expandedData: Record<string, Record<string, number | null>>;
 }
 
 function getColor(score: number | null) {
   if (score == null) {
-    return "white";
+    return 'white';
   } else if (score < 30) {
-    return "red";
+    return 'red';
   } else if (score >= 30 && score <= 70) {
-    return "orange";
+    return 'orange';
   } else {
-    return "green";
+    return 'green';
   }
 }
 const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
@@ -20,13 +20,13 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
     <>
       {Object.keys(expandedData).map((val, key) => (
         <tr key={key}>
-          <td>{"Lesson Name"}</td>
+          <td>{'Lesson Name'}</td>
           {Object.keys(expandedData[val]).map((v, k) => (
             <td
               className="square-cell"
               style={{ color: getColor(expandedData[val][v]) }}
             >
-              {expandedData[val][v] + "%"}
+              {expandedData[val][v] + '%'}
             </td>
           ))}
         </tr>

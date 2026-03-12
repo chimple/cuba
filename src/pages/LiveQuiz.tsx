@@ -1,17 +1,17 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { ServiceConfig } from "../services/ServiceConfig";
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   HOMEHEADERLIST,
   PAGES,
   TableTypes,
   LIVE_QUIZ,
-} from "../common/constants";
-import { useHistory } from "react-router";
-import { Util } from "../utility/util";
-import { t } from "i18next";
-import LessonSlider from "../components/LessonSlider";
-import "./LiveQuiz.css";
-import SkeltonLoading from "../components/SkeltonLoading";
+} from '../common/constants';
+import { useHistory } from 'react-router';
+import { Util } from '../utility/util';
+import { t } from 'i18next';
+import LessonSlider from '../components/LessonSlider';
+import './LiveQuiz.css';
+import SkeltonLoading from '../components/SkeltonLoading';
 
 interface LiveQuizProps {
   liveQuizCount: (count: number) => void;
@@ -20,19 +20,18 @@ interface LiveQuizProps {
 const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
-  const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<"lesson">[]>([]);
+  const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<'lesson'>[]>([]);
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>();
-  const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
-    []
+  const [assignments, setAssignments] = useState<TableTypes<'assignment'>[]>(
+    [],
   );
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
   const api = ServiceConfig.getI().apiHandler;
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const isMounted = useRef(true);
-
 
   const init = useCallback(async () => {
     setLoading(true);
@@ -58,21 +57,21 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
 
     const quizChunks = await Promise.all(
       linkedData.classes.map((_class) =>
-        api.getLiveQuizLessons(_class.id, student.id)
-      )
+        api.getLiveQuizLessons(_class.id, student.id),
+      ),
     );
     const allLiveQuizzes = quizChunks.flat();
     allLiveQuizzes.sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
 
     const lessonPromises = allLiveQuizzes.map((assignment) =>
-      api.getLesson(assignment.lesson_id)
+      api.getLesson(assignment.lesson_id),
     );
     const resolvedLessons = await Promise.all(lessonPromises);
     const _lessons = resolvedLessons.filter(
-      (lesson): lesson is TableTypes<"lesson"> => lesson !== null
+      (lesson): lesson is TableTypes<'lesson'> => lesson !== null,
     );
 
     setAssignments(allLiveQuizzes);
@@ -96,7 +95,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
       }
       debounceTimer.current = setTimeout(() => {
         init();
-      }, 1000); 
+      }, 1000);
     };
 
     api.assignmentListner(currentClass.id, (payload) => {
@@ -108,7 +107,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
     api.assignmentUserListner(student.id, async (assignmentUser) => {
       if (assignmentUser) {
         const assignment = await api.getAssignmentById(
-          assignmentUser.assignment_id
+          assignmentUser.assignment_id,
         );
         if (isMounted.current && assignment && assignment.type === LIVE_QUIZ) {
           handleQuizUpdate();
@@ -147,7 +146,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
             </div>
           ) : (
             <div className="pending-live-quiz">
-              {t("You do not have any live quizzes available.")}
+              {t('You do not have any live quizzes available.')}
             </div>
           )}
         </div>

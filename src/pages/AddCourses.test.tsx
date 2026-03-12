@@ -1,8 +1,8 @@
-import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import AddCourses from "./AddCourses";
-import { EVENTS, HOMEHEADERLIST, PAGES } from "../common/constants";
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import AddCourses from './AddCourses';
+import { EVENTS, HOMEHEADERLIST, PAGES } from '../common/constants';
 
 const mockHistory = { replace: jest.fn() };
 const mockGetCurrentStudent = jest.fn();
@@ -16,20 +16,20 @@ const mockApiHandler = {
 let mockOnline = true;
 const mockLogEvent = jest.fn();
 
-jest.mock("i18next", () => ({
+jest.mock('i18next', () => ({
   t: (key: string) => key,
 }));
 
-jest.mock("@ionic/react", () => ({
+jest.mock('@ionic/react', () => ({
   IonPage: ({ children }: any) => <div data-testid="ion-page">{children}</div>,
 }));
 
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
   useHistory: () => mockHistory,
 }));
 
-jest.mock("../services/ServiceConfig", () => ({
+jest.mock('../services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
       apiHandler: mockApiHandler,
@@ -37,35 +37,35 @@ jest.mock("../services/ServiceConfig", () => ({
   },
 }));
 
-jest.mock("../utility/util", () => ({
+jest.mock('../utility/util', () => ({
   Util: {
     getCurrentStudent: () => mockGetCurrentStudent(),
     logEvent: (...args: any[]) => mockLogEvent(...args),
   },
 }));
 
-jest.mock("../utility/schoolUtil", () => ({
+jest.mock('../utility/schoolUtil', () => ({
   schoolUtil: {
     getCurrentClass: () => mockGetCurrentClass(),
     getCurrMode: () => mockGetCurrMode(),
   },
 }));
 
-jest.mock("../common/onlineOfflineErrorMessageHandler", () => ({
+jest.mock('../common/onlineOfflineErrorMessageHandler', () => ({
   useOnlineOfflineErrorMessageHandler: () => ({
     online: mockOnline,
     presentToast: mockPresentToast,
   }),
 }));
 
-jest.mock("../components/Loading", () => ({
+jest.mock('../components/Loading', () => ({
   __esModule: true,
   default: ({ isLoading }: any) => (
     <div data-testid="loading">{String(isLoading)}</div>
   ),
 }));
 
-jest.mock("../components/SkeltonLoading", () => ({
+jest.mock('../components/SkeltonLoading', () => ({
   __esModule: true,
   default: ({ isLoading, header }: any) => (
     <div data-testid="skeleton">
@@ -74,7 +74,7 @@ jest.mock("../components/SkeltonLoading", () => ({
   ),
 }));
 
-jest.mock("../components/common/BackButton", () => ({
+jest.mock('../components/common/BackButton', () => ({
   __esModule: true,
   default: ({ onClicked }: any) => (
     <button type="button" data-testid="back-button" onClick={onClicked}>
@@ -83,7 +83,7 @@ jest.mock("../components/common/BackButton", () => ({
   ),
 }));
 
-jest.mock("../components/common/NextButton", () => ({
+jest.mock('../components/common/NextButton', () => ({
   __esModule: true,
   default: ({ disabled, onClicked }: any) => (
     <button
@@ -97,7 +97,7 @@ jest.mock("../components/common/NextButton", () => ({
   ),
 }));
 
-jest.mock("../components/displaySubjects/AddCourse", () => ({
+jest.mock('../components/displaySubjects/AddCourse', () => ({
   __esModule: true,
   default: ({ courses, onSelectedCoursesChange }: any) => (
     <div data-testid="add-course">
@@ -113,37 +113,37 @@ jest.mock("../components/displaySubjects/AddCourse", () => ({
   ),
 }));
 
-describe("AddCourses", () => {
-  const currentStudent = { id: "student-1", name: "Alex" } as any;
-  const mockCourses = [{ id: "course-1", name: "Maths" }] as any;
+describe('AddCourses', () => {
+  const currentStudent = { id: 'student-1', name: 'Alex' } as any;
+  const mockCourses = [{ id: 'course-1', name: 'Maths' }] as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnline = true;
     mockGetCurrentStudent.mockReturnValue(currentStudent);
-    mockGetCurrentClass.mockReturnValue({ id: "class-1" });
-    mockGetCurrMode.mockResolvedValue("PARENT");
+    mockGetCurrentClass.mockReturnValue({ id: 'class-1' });
+    mockGetCurrMode.mockResolvedValue('PARENT');
     mockApiHandler.getAdditionalCourses.mockResolvedValue(mockCourses);
     mockApiHandler.addCourseForParentsStudent.mockResolvedValue(undefined);
   });
 
-  it("fetches additional courses and renders AddCourse list", async () => {
+  it('fetches additional courses and renders AddCourse list', async () => {
     render(<AddCourses />);
 
     await waitFor(() => {
       expect(mockApiHandler.getAdditionalCourses).toHaveBeenCalledWith(
-        currentStudent.id
+        currentStudent.id,
       );
     });
 
-    expect(await screen.findByTestId("add-course")).toBeInTheDocument();
-    expect(screen.getByTestId("course-count")).toHaveTextContent("1");
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(
-      `false-${HOMEHEADERLIST.SUBJECTS}`
+    expect(await screen.findByTestId('add-course')).toBeInTheDocument();
+    expect(screen.getByTestId('course-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      `false-${HOMEHEADERLIST.SUBJECTS}`,
     );
   });
 
-  it("calls course fetch flow twice on mount (init and direct call)", async () => {
+  it('calls course fetch flow twice on mount (init and direct call)', async () => {
     render(<AddCourses />);
 
     await waitFor(() => {
@@ -151,7 +151,7 @@ describe("AddCourses", () => {
     });
   });
 
-  it("queries current class and mode while loading courses", async () => {
+  it('queries current class and mode while loading courses', async () => {
     render(<AddCourses />);
 
     await waitFor(() => {
@@ -160,7 +160,7 @@ describe("AddCourses", () => {
     });
   });
 
-  it("calls current class and mode lookups twice due double course fetch on mount", async () => {
+  it('calls current class and mode lookups twice due double course fetch on mount', async () => {
     render(<AddCourses />);
 
     await waitFor(() => {
@@ -169,7 +169,7 @@ describe("AddCourses", () => {
     });
   });
 
-  it("redirects to select mode when current student is missing", async () => {
+  it('redirects to select mode when current student is missing', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
 
     render(<AddCourses />);
@@ -192,68 +192,68 @@ describe("AddCourses", () => {
   //   expect(screen.getByTestId("next-button")).toBeEnabled();
   // });
 
-  it("navigates home when back button is clicked", async () => {
+  it('navigates home when back button is clicked', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
 
-    await screen.findByTestId("back-button");
-    await user.click(screen.getByTestId("back-button"));
+    await screen.findByTestId('back-button');
+    await user.click(screen.getByTestId('back-button'));
 
     expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.HOME);
   });
 
-  it("shows offline toast and does not update courses when next is clicked offline", async () => {
+  it('shows offline toast and does not update courses when next is clicked offline', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
 
-    await screen.findByTestId("select-course-button");
-    await user.click(screen.getByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await screen.findByTestId('select-course-button');
+    await user.click(screen.getByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     expect(mockPresentToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Device is offline.",
-        color: "danger",
-      })
+        message: 'Device is offline.',
+        color: 'danger',
+      }),
     );
     expect(mockApiHandler.addCourseForParentsStudent).not.toHaveBeenCalled();
     expect(mockLogEvent).not.toHaveBeenCalled();
     expect(mockHistory.replace).not.toHaveBeenCalledWith(PAGES.HOME);
   });
 
-  it("shows full offline toast payload when next is clicked without connectivity", async () => {
+  it('shows full offline toast payload when next is clicked without connectivity', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
 
-    await screen.findByTestId("select-course-button");
-    await user.click(screen.getByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await screen.findByTestId('select-course-button');
+    await user.click(screen.getByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     expect(mockPresentToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Device is offline.",
-        color: "danger",
+        message: 'Device is offline.',
+        color: 'danger',
         duration: 3000,
-        position: "bottom",
-        buttons: [expect.objectContaining({ text: "Dismiss", role: "cancel" })],
-      })
+        position: 'bottom',
+        buttons: [expect.objectContaining({ text: 'Dismiss', role: 'cancel' })],
+      }),
     );
   });
 
-  it("updates selected courses and navigates home when next is clicked online", async () => {
+  it('updates selected courses and navigates home when next is clicked online', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
 
-    await screen.findByTestId("select-course-button");
-    await user.click(screen.getByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await screen.findByTestId('select-course-button');
+    await user.click(screen.getByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     await waitFor(() => {
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledWith(
         [mockCourses[0]],
-        currentStudent
+        currentStudent,
       );
     });
 
@@ -262,35 +262,35 @@ describe("AddCourses", () => {
     expect(mockPresentToast).not.toHaveBeenCalled();
   });
 
-  it("logs profile event once on successful next click", async () => {
+  it('logs profile event once on successful next click', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
 
-    await screen.findByTestId("select-course-button");
-    await user.click(screen.getByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await screen.findByTestId('select-course-button');
+    await user.click(screen.getByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     await waitFor(() => {
       expect(mockLogEvent).toHaveBeenCalledTimes(1);
     });
   });
 
-  it("renders no subjects message when no additional courses are available", async () => {
+  it('renders no subjects message when no additional courses are available', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([]);
     render(<AddCourses />);
 
     expect(
-      await screen.findByText("No more subjects available to add")
+      await screen.findByText('No more subjects available to add'),
     ).toBeInTheDocument();
-    expect(screen.queryByTestId("add-course")).not.toBeInTheDocument();
-    expect(screen.getByTestId("next-button")).toBeDisabled();
+    expect(screen.queryByTestId('add-course')).not.toBeInTheDocument();
+    expect(screen.getByTestId('next-button')).toBeDisabled();
   });
 
-  it("keeps next disabled and does not submit when no course is selected", async () => {
+  it('keeps next disabled and does not submit when no course is selected', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
 
-    const nextButton = await screen.findByTestId("next-button");
+    const nextButton = await screen.findByTestId('next-button');
     expect(nextButton).toBeDisabled();
     await user.click(nextButton);
 
@@ -298,7 +298,7 @@ describe("AddCourses", () => {
     expect(mockLogEvent).not.toHaveBeenCalled();
   });
 
-  it("renders loading as true before course fetch resolves", async () => {
+  it('renders loading as true before course fetch resolves', async () => {
     let resolveCourses: (value: any) => void = () => {};
     const pendingCourses = new Promise((resolve) => {
       resolveCourses = resolve;
@@ -307,86 +307,90 @@ describe("AddCourses", () => {
 
     render(<AddCourses />);
 
-    expect(screen.getByTestId("loading")).toHaveTextContent("true");
+    expect(screen.getByTestId('loading')).toHaveTextContent('true');
 
     resolveCourses(mockCourses);
     await waitFor(() => {
-      expect(screen.getByTestId("loading")).toHaveTextContent("false");
+      expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
   });
 
-  it("calls addCourseForParentsStudent once per successful next click", async () => {
+  it('calls addCourseForParentsStudent once per successful next click', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
 
-    await screen.findByTestId("select-course-button");
-    await user.click(screen.getByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await screen.findByTestId('select-course-button');
+    await user.click(screen.getByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     await waitFor(() => {
-      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(1);
+      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 
-  it("renders ion page container", () => {
+  it('renders ion page container', () => {
     render(<AddCourses />);
-    expect(screen.getByTestId("ion-page")).toBeInTheDocument();
+    expect(screen.getByTestId('ion-page')).toBeInTheDocument();
   });
 
-  it("renders back and next buttons", () => {
+  it('renders back and next buttons', () => {
     render(<AddCourses />);
-    expect(screen.getByTestId("back-button")).toBeInTheDocument();
-    expect(screen.getByTestId("next-button")).toBeInTheDocument();
+    expect(screen.getByTestId('back-button')).toBeInTheDocument();
+    expect(screen.getByTestId('next-button')).toBeInTheDocument();
   });
 
-  it("shows skeleton loading true while courses are pending", () => {
+  it('shows skeleton loading true while courses are pending', () => {
     mockApiHandler.getAdditionalCourses.mockReturnValue(new Promise(() => {}));
     render(<AddCourses />);
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(
-      `true-${HOMEHEADERLIST.SUBJECTS}`
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      `true-${HOMEHEADERLIST.SUBJECTS}`,
     );
   });
 
-  it("calls getAdditionalCourses twice with the same student id by default", async () => {
+  it('calls getAdditionalCourses twice with the same student id by default', async () => {
     render(<AddCourses />);
     await waitFor(() => {
       expect(mockApiHandler.getAdditionalCourses).toHaveBeenCalledTimes(2);
     });
     expect(mockApiHandler.getAdditionalCourses.mock.calls[0][0]).toBe(
-      currentStudent.id
+      currentStudent.id,
     );
     expect(mockApiHandler.getAdditionalCourses.mock.calls[1][0]).toBe(
-      currentStudent.id
+      currentStudent.id,
     );
   });
 
-  it("does not render select-course-button when no additional courses are returned", async () => {
+  it('does not render select-course-button when no additional courses are returned', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([]);
     render(<AddCourses />);
-    await screen.findByText("No more subjects available to add");
-    expect(screen.queryByTestId("select-course-button")).not.toBeInTheDocument();
+    await screen.findByText('No more subjects available to add');
+    expect(
+      screen.queryByTestId('select-course-button'),
+    ).not.toBeInTheDocument();
   });
 
-  it("back click does not submit course updates", async () => {
+  it('back click does not submit course updates', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("back-button"));
+    await user.click(await screen.findByTestId('back-button'));
     expect(mockApiHandler.addCourseForParentsStudent).not.toHaveBeenCalled();
     expect(mockLogEvent).not.toHaveBeenCalled();
   });
 
-  it("back click does not show offline toast", async () => {
+  it('back click does not show offline toast', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("back-button"));
+    await user.click(await screen.findByTestId('back-button'));
     expect(mockPresentToast).not.toHaveBeenCalled();
   });
 
-  it("double back click navigates home twice", async () => {
+  it('double back click navigates home twice', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    const backButton = await screen.findByTestId("back-button");
+    const backButton = await screen.findByTestId('back-button');
     await user.click(backButton);
     await user.click(backButton);
     expect(mockHistory.replace).toHaveBeenCalledTimes(2);
@@ -394,53 +398,55 @@ describe("AddCourses", () => {
     expect(mockHistory.replace).toHaveBeenNthCalledWith(2, PAGES.HOME);
   });
 
-  it("offline next click calls toast once", async () => {
+  it('offline next click calls toast once', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     expect(mockPresentToast).toHaveBeenCalledTimes(1);
   });
 
-  it("two offline next clicks show toast twice", async () => {
+  it('two offline next clicks show toast twice', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const nextButton = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const nextButton = screen.getByTestId('next-button');
     await user.click(nextButton);
     await user.click(nextButton);
     expect(mockPresentToast).toHaveBeenCalledTimes(2);
   });
 
-  it("online next click does not show toast", async () => {
+  it('online next click does not show toast', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
       expect(mockPresentToast).not.toHaveBeenCalled();
     });
   });
 
-  it("double online next click submits updates twice", async () => {
+  it('double online next click submits updates twice', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const nextButton = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const nextButton = screen.getByTestId('next-button');
     await user.click(nextButton);
     await user.click(nextButton);
     await waitFor(() => {
-      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(2);
+      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(
+        2,
+      );
     });
   });
 
-  it("double online next click logs events twice", async () => {
+  it('double online next click logs events twice', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const nextButton = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const nextButton = screen.getByTestId('next-button');
     await user.click(nextButton);
     await user.click(nextButton);
     await waitFor(() => {
@@ -448,11 +454,11 @@ describe("AddCourses", () => {
     });
   });
 
-  it("double online next click navigates home twice", async () => {
+  it('double online next click navigates home twice', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const nextButton = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const nextButton = screen.getByTestId('next-button');
     await user.click(nextButton);
     await user.click(nextButton);
     await waitFor(() => {
@@ -461,44 +467,44 @@ describe("AddCourses", () => {
     });
   });
 
-  it("renders correct course count when two courses are returned", async () => {
+  it('renders correct course count when two courses are returned', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([
-      { id: "course-1", name: "Maths" },
-      { id: "course-2", name: "Science" },
+      { id: 'course-1', name: 'Maths' },
+      { id: 'course-2', name: 'Science' },
     ]);
     render(<AddCourses />);
-    expect(await screen.findByTestId("course-count")).toHaveTextContent("2");
+    expect(await screen.findByTestId('course-count')).toHaveTextContent('2');
   });
 
-  it("shows no-subjects message when courses response is null", async () => {
+  it('shows no-subjects message when courses response is null', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue(null);
     render(<AddCourses />);
     expect(
-      await screen.findByText("No more subjects available to add")
+      await screen.findByText('No more subjects available to add'),
     ).toBeInTheDocument();
   });
 
-  it("shows no-subjects message when courses response is undefined", async () => {
+  it('shows no-subjects message when courses response is undefined', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue(undefined);
     render(<AddCourses />);
     expect(
-      await screen.findByText("No more subjects available to add")
+      await screen.findByText('No more subjects available to add'),
     ).toBeInTheDocument();
   });
 
-  it("does not call presentToast when next is disabled and clicked", async () => {
+  it('does not call presentToast when next is disabled and clicked', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    const nextButton = await screen.findByTestId("next-button");
+    const nextButton = await screen.findByTestId('next-button');
     expect(nextButton).toBeDisabled();
     await user.click(nextButton);
     expect(mockPresentToast).not.toHaveBeenCalled();
   });
 
-  it("uses latest getCurrentStudent values across the two fetch calls", async () => {
-    const s1 = { id: "student-a", name: "A" };
-    const s2 = { id: "student-b", name: "B" };
+  it('uses latest getCurrentStudent values across the two fetch calls', async () => {
+    const s1 = { id: 'student-a', name: 'A' };
+    const s2 = { id: 'student-b', name: 'B' };
     mockGetCurrentStudent
       .mockReturnValueOnce(currentStudent) // render-time currentStudent
       .mockReturnValueOnce(s1) // first getCourses
@@ -509,47 +515,51 @@ describe("AddCourses", () => {
     await waitFor(() => {
       expect(mockApiHandler.getAdditionalCourses).toHaveBeenCalledTimes(2);
     });
-    expect(mockApiHandler.getAdditionalCourses.mock.calls[0][0]).toBe("student-a");
-    expect(mockApiHandler.getAdditionalCourses.mock.calls[1][0]).toBe("student-b");
+    expect(mockApiHandler.getAdditionalCourses.mock.calls[0][0]).toBe(
+      'student-a',
+    );
+    expect(mockApiHandler.getAdditionalCourses.mock.calls[1][0]).toBe(
+      'student-b',
+    );
   });
 
-  it("keeps loading false after successful online submit", async () => {
+  it('keeps loading false after successful online submit', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
-      expect(screen.getByTestId("loading")).toHaveTextContent("false");
+      expect(screen.getByTestId('loading')).toHaveTextContent('false');
     });
   });
 
-  it("renders add-course with course-count 3 when API returns three courses", async () => {
+  it('renders add-course with course-count 3 when API returns three courses', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([
-      { id: "c1", name: "Maths" },
-      { id: "c2", name: "Science" },
-      { id: "c3", name: "English" },
+      { id: 'c1', name: 'Maths' },
+      { id: 'c2', name: 'Science' },
+      { id: 'c3', name: 'English' },
     ]);
     render(<AddCourses />);
-    expect(await screen.findByTestId("add-course")).toBeInTheDocument();
-    expect(screen.getByTestId("course-count")).toHaveTextContent("3");
+    expect(await screen.findByTestId('add-course')).toBeInTheDocument();
+    expect(screen.getByTestId('course-count')).toHaveTextContent('3');
   });
 
-  it("does not show no-subjects text when courses exist", async () => {
+  it('does not show no-subjects text when courses exist', async () => {
     render(<AddCourses />);
-    await screen.findByTestId("add-course");
+    await screen.findByTestId('add-course');
     expect(
-      screen.queryByText("No more subjects available to add")
+      screen.queryByText('No more subjects available to add'),
     ).not.toBeInTheDocument();
   });
 
-  it("sets loading false after empty courses response", async () => {
+  it('sets loading false after empty courses response', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([]);
     render(<AddCourses />);
-    await screen.findByText("No more subjects available to add");
-    expect(screen.getByTestId("loading")).toHaveTextContent("false");
+    await screen.findByText('No more subjects available to add');
+    expect(screen.getByTestId('loading')).toHaveTextContent('false');
   });
 
-  it("does not query class/mode when student is missing", async () => {
+  it('does not query class/mode when student is missing', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -559,45 +569,45 @@ describe("AddCourses", () => {
     expect(mockGetCurrMode).not.toHaveBeenCalled();
   });
 
-  it("online submit passes selected course id in payload", async () => {
+  it('online submit passes selected course id in payload', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledWith(
-        [expect.objectContaining({ id: "course-1" })],
-        currentStudent
+        [expect.objectContaining({ id: 'course-1' })],
+        currentStudent,
       );
     });
   });
 
-  it("double online submit uses same payload both times", async () => {
+  it('double online submit uses same payload both times', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const next = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const next = screen.getByTestId('next-button');
     await user.click(next);
     await user.click(next);
     await waitFor(() => {
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenNthCalledWith(
         1,
-        [expect.objectContaining({ id: "course-1" })],
-        currentStudent
+        [expect.objectContaining({ id: 'course-1' })],
+        currentStudent,
       );
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenNthCalledWith(
         2,
-        [expect.objectContaining({ id: "course-1" })],
-        currentStudent
+        [expect.objectContaining({ id: 'course-1' })],
+        currentStudent,
       );
     });
   });
 
-  it("double online submit logs USER_PROFILE event each time", async () => {
+  it('double online submit logs USER_PROFILE event each time', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const next = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const next = screen.getByTestId('next-button');
     await user.click(next);
     await user.click(next);
     await waitFor(() => {
@@ -606,74 +616,74 @@ describe("AddCourses", () => {
     });
   });
 
-  it("offline repeated submit never calls addCourseForParentsStudent", async () => {
+  it('offline repeated submit never calls addCourseForParentsStudent', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const next = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const next = screen.getByTestId('next-button');
     await user.click(next);
     await user.click(next);
     expect(mockApiHandler.addCourseForParentsStudent).not.toHaveBeenCalled();
   });
 
-  it("offline repeated submit never logs events", async () => {
+  it('offline repeated submit never logs events', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const next = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const next = screen.getByTestId('next-button');
     await user.click(next);
     await user.click(next);
     expect(mockLogEvent).not.toHaveBeenCalled();
   });
 
-  it("offline repeated submit never navigates home", async () => {
+  it('offline repeated submit never navigates home', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    const next = screen.getByTestId("next-button");
+    await user.click(await screen.findByTestId('select-course-button'));
+    const next = screen.getByTestId('next-button');
     await user.click(next);
     await user.click(next);
     expect(mockHistory.replace).not.toHaveBeenCalledWith(PAGES.HOME);
   });
 
-  it("next button is enabled after selecting a course", async () => {
+  it('next button is enabled after selecting a course', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    const next = await screen.findByTestId("next-button");
+    const next = await screen.findByTestId('next-button');
     expect(next).toBeDisabled();
-    await user.click(await screen.findByTestId("select-course-button"));
-    expect(screen.getByTestId("next-button")).toBeEnabled();
+    await user.click(await screen.findByTestId('select-course-button'));
+    expect(screen.getByTestId('next-button')).toBeEnabled();
   });
 
-  it("stays disabled when courses are unavailable", async () => {
+  it('stays disabled when courses are unavailable', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([]);
     render(<AddCourses />);
-    await screen.findByText("No more subjects available to add");
-    expect(screen.getByTestId("next-button")).toBeDisabled();
+    await screen.findByText('No more subjects available to add');
+    expect(screen.getByTestId('next-button')).toBeDisabled();
   });
 
-  it("shows loading true and hides add-course while request is pending", () => {
+  it('shows loading true and hides add-course while request is pending', () => {
     mockApiHandler.getAdditionalCourses.mockReturnValue(new Promise(() => {}));
     render(<AddCourses />);
-    expect(screen.getByTestId("loading")).toHaveTextContent("true");
-    expect(screen.queryByTestId("add-course")).not.toBeInTheDocument();
+    expect(screen.getByTestId('loading')).toHaveTextContent('true');
+    expect(screen.queryByTestId('add-course')).not.toBeInTheDocument();
   });
 
-  it("does not show no-subject message while request is pending", () => {
+  it('does not show no-subject message while request is pending', () => {
     mockApiHandler.getAdditionalCourses.mockReturnValue(new Promise(() => {}));
     render(<AddCourses />);
     expect(
-      screen.queryByText("No more subjects available to add")
+      screen.queryByText('No more subjects available to add'),
     ).not.toBeInTheDocument();
   });
 
-  it("submit uses baseline mocked currentStudent from setup", async () => {
-    const renderStudent = { id: "render-student", name: "R" };
-    const fetchStudent1 = { id: "fetch-1", name: "F1" };
-    const fetchStudent2 = { id: "fetch-2", name: "F2" };
+  it('submit uses baseline mocked currentStudent from setup', async () => {
+    const renderStudent = { id: 'render-student', name: 'R' };
+    const fetchStudent1 = { id: 'fetch-1', name: 'F1' };
+    const fetchStudent2 = { id: 'fetch-2', name: 'F2' };
     mockGetCurrentStudent
       .mockReturnValueOnce(renderStudent)
       .mockReturnValueOnce(fetchStudent1)
@@ -681,26 +691,26 @@ describe("AddCourses", () => {
 
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
 
     await waitFor(() => {
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledWith(
-        [expect.objectContaining({ id: "course-1" })],
-        currentStudent
+        [expect.objectContaining({ id: 'course-1' })],
+        currentStudent,
       );
     });
   });
 
-  it("skeleton header stays SUBJECTS after loaded state", async () => {
+  it('skeleton header stays SUBJECTS after loaded state', async () => {
     render(<AddCourses />);
-    await screen.findByTestId("add-course");
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(
-      `false-${HOMEHEADERLIST.SUBJECTS}`
+    await screen.findByTestId('add-course');
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      `false-${HOMEHEADERLIST.SUBJECTS}`,
     );
   });
 
-  it("redirect path is SELECT_MODE twice when student missing (double fetch path)", async () => {
+  it('redirect path is SELECT_MODE twice when student missing (double fetch path)', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -709,25 +719,25 @@ describe("AddCourses", () => {
     });
   });
 
-  it("successful submit does not call SELECT_MODE navigation", async () => {
+  it('successful submit does not call SELECT_MODE navigation', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
       expect(mockHistory.replace).not.toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
   });
 
-  it("back navigation remains HOME even when online flag is false", async () => {
+  it('back navigation remains HOME even when online flag is false', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("back-button"));
+    await user.click(await screen.findByTestId('back-button'));
     expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.HOME);
   });
 
-  it("missing student triggers SELECT_MODE for each mount-time fetch invocation", async () => {
+  it('missing student triggers SELECT_MODE for each mount-time fetch invocation', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -736,17 +746,19 @@ describe("AddCourses", () => {
     });
   });
 
-  it("shows loading true immediately on initial render", () => {
+  it('shows loading true immediately on initial render', () => {
     render(<AddCourses />);
-    expect(screen.getByTestId("loading")).toHaveTextContent("true");
+    expect(screen.getByTestId('loading')).toHaveTextContent('true');
   });
 
-  it("skeleton always uses SUBJECTS header key", () => {
+  it('skeleton always uses SUBJECTS header key', () => {
     render(<AddCourses />);
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(HOMEHEADERLIST.SUBJECTS);
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      HOMEHEADERLIST.SUBJECTS,
+    );
   });
 
-  it("calls Util.getCurrentStudent at least three times on happy mount path", async () => {
+  it('calls Util.getCurrentStudent at least three times on happy mount path', async () => {
     render(<AddCourses />);
     await waitFor(() => {
       expect(mockApiHandler.getAdditionalCourses).toHaveBeenCalledTimes(2);
@@ -754,7 +766,7 @@ describe("AddCourses", () => {
     expect(mockGetCurrentStudent.mock.calls.length).toBeGreaterThanOrEqual(3);
   });
 
-  it("calls Util.getCurrentStudent three times when student is missing", async () => {
+  it('calls Util.getCurrentStudent three times when student is missing', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -763,7 +775,7 @@ describe("AddCourses", () => {
     expect(mockGetCurrentStudent).toHaveBeenCalledTimes(3);
   });
 
-  it("continues fetching courses when current class is undefined", async () => {
+  it('continues fetching courses when current class is undefined', async () => {
     mockGetCurrentClass.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -771,7 +783,7 @@ describe("AddCourses", () => {
     });
   });
 
-  it("continues fetching courses when current mode resolves undefined", async () => {
+  it('continues fetching courses when current mode resolves undefined', async () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
@@ -779,147 +791,149 @@ describe("AddCourses", () => {
     });
   });
 
-  it("after selecting a course, no-subject text is not rendered", async () => {
+  it('after selecting a course, no-subject text is not rendered', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
     expect(
-      screen.queryByText("No more subjects available to add")
+      screen.queryByText('No more subjects available to add'),
     ).not.toBeInTheDocument();
   });
 
-  it("double selecting still keeps next button enabled", async () => {
+  it('double selecting still keeps next button enabled', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    const selectButton = await screen.findByTestId("select-course-button");
+    const selectButton = await screen.findByTestId('select-course-button');
     await user.click(selectButton);
     await user.click(selectButton);
-    expect(screen.getByTestId("next-button")).toBeEnabled();
+    expect(screen.getByTestId('next-button')).toBeEnabled();
   });
 
-  it("select then back navigates home without submitting", async () => {
+  it('select then back navigates home without submitting', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("back-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('back-button'));
     expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.HOME);
     expect(mockApiHandler.addCourseForParentsStudent).not.toHaveBeenCalled();
   });
 
-  it("select then back does not log USER_PROFILE", async () => {
+  it('select then back does not log USER_PROFILE', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("back-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('back-button'));
     expect(mockLogEvent).not.toHaveBeenCalled();
   });
 
-  it("select then back does not trigger toast even offline", async () => {
+  it('select then back does not trigger toast even offline', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("back-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('back-button'));
     expect(mockPresentToast).not.toHaveBeenCalled();
   });
 
-  it("with two courses returned, selected payload still uses first course from mock AddCourse", async () => {
+  it('with two courses returned, selected payload still uses first course from mock AddCourse', async () => {
     const user = userEvent.setup();
     mockApiHandler.getAdditionalCourses.mockResolvedValue([
-      { id: "course-1", name: "Maths" },
-      { id: "course-2", name: "Science" },
+      { id: 'course-1', name: 'Maths' },
+      { id: 'course-2', name: 'Science' },
     ]);
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
       expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledWith(
-        [expect.objectContaining({ id: "course-1" })],
-        currentStudent
+        [expect.objectContaining({ id: 'course-1' })],
+        currentStudent,
       );
     });
   });
 
-  it("double select then submit calls addCourseForParentsStudent once", async () => {
+  it('double select then submit calls addCourseForParentsStudent once', async () => {
     const user = userEvent.setup();
     render(<AddCourses />);
-    const selectButton = await screen.findByTestId("select-course-button");
+    const selectButton = await screen.findByTestId('select-course-button');
     await user.click(selectButton);
     await user.click(selectButton);
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(screen.getByTestId('next-button'));
     await waitFor(() => {
-      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(1);
+      expect(mockApiHandler.addCourseForParentsStudent).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 
-  it("offline selected submit keeps loading false", async () => {
+  it('offline selected submit keeps loading false', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
-    expect(screen.getByTestId("loading")).toHaveTextContent("false");
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
+    expect(screen.getByTestId('loading')).toHaveTextContent('false');
   });
 
-  it("offline selected submit keeps skeleton in loaded state", async () => {
+  it('offline selected submit keeps skeleton in loaded state', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(
-      `false-${HOMEHEADERLIST.SUBJECTS}`
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      `false-${HOMEHEADERLIST.SUBJECTS}`,
     );
   });
 
-  it("empty courses response keeps skeleton in loaded state", async () => {
+  it('empty courses response keeps skeleton in loaded state', async () => {
     mockApiHandler.getAdditionalCourses.mockResolvedValue([]);
     render(<AddCourses />);
-    await screen.findByText("No more subjects available to add");
-    expect(screen.getByTestId("skeleton")).toHaveTextContent(
-      `false-${HOMEHEADERLIST.SUBJECTS}`
+    await screen.findByText('No more subjects available to add');
+    expect(screen.getByTestId('skeleton')).toHaveTextContent(
+      `false-${HOMEHEADERLIST.SUBJECTS}`,
     );
   });
 
-  it("missing student keeps loading true because fetch exits early", async () => {
+  it('missing student keeps loading true because fetch exits early', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
       expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
-    expect(screen.getByTestId("loading")).toHaveTextContent("true");
+    expect(screen.getByTestId('loading')).toHaveTextContent('true');
   });
 
-  it("missing student does not render no-subject message while loading true", async () => {
+  it('missing student does not render no-subject message while loading true', async () => {
     mockGetCurrentStudent.mockReturnValue(undefined);
     render(<AddCourses />);
     await waitFor(() => {
       expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
     expect(
-      screen.queryByText("No more subjects available to add")
+      screen.queryByText('No more subjects available to add'),
     ).not.toBeInTheDocument();
   });
 
-  it("offline toast buttons include a single dismiss action", async () => {
+  it('offline toast buttons include a single dismiss action', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     expect(mockPresentToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        buttons: [expect.objectContaining({ text: "Dismiss", role: "cancel" })],
-      })
+        buttons: [expect.objectContaining({ text: 'Dismiss', role: 'cancel' })],
+      }),
     );
   });
 
-  it("offline selected submit does not navigate to SELECT_MODE", async () => {
+  it('offline selected submit does not navigate to SELECT_MODE', async () => {
     const user = userEvent.setup();
     mockOnline = false;
     render(<AddCourses />);
-    await user.click(await screen.findByTestId("select-course-button"));
-    await user.click(screen.getByTestId("next-button"));
+    await user.click(await screen.findByTestId('select-course-button'));
+    await user.click(screen.getByTestId('next-button'));
     expect(mockHistory.replace).not.toHaveBeenCalledWith(PAGES.SELECT_MODE);
   });
 });

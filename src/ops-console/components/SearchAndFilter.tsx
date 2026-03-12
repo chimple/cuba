@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Stack,
   TextField,
@@ -7,12 +7,12 @@ import {
   IconButton,
   useMediaQuery,
   useTheme,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import CloseIcon from "@mui/icons-material/Close";
-import "./SearchAndFilter.css";
-import { useTranslation } from "react-i18next";
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CloseIcon from '@mui/icons-material/Close';
+import './SearchAndFilter.css';
+import { useTranslation } from 'react-i18next';
 
 interface SearchAndFilterProps {
   searchTerm: string;
@@ -22,7 +22,7 @@ interface SearchAndFilterProps {
   onClearFilters?: () => void;
   isFilter?: boolean;
   forceOpenSearch?: boolean;
-  variantType?: "outlined" | "standard";
+  variantType?: 'outlined' | 'standard';
   filterIconSrc?: string;
 }
 
@@ -41,13 +41,15 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width: 900px)");
+  const isMobile = useMediaQuery('(max-width: 900px)');
   const showfilter = isFilter ?? true;
   const isPortraitMobile = useMediaQuery(
-    "(max-width: 600px) and (orientation: portrait)"
+    '(max-width: 600px) and (orientation: portrait)',
   );
   if (filters) {
-    const hasFilters = Object.values(filters).some((values) => values.length > 0);
+    const hasFilters = Object.values(filters).some(
+      (values) => values.length > 0,
+    );
   }
 
   const [inputValue, setInputValue] = useState(searchTerm);
@@ -67,8 +69,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
     return () => clearTimeout(handler);
   }, [inputValue]);
 
-  const [showMobileSearch, setShowMobileSearch] =
-    useState(forceOpenSearch);
+  const [showMobileSearch, setShowMobileSearch] = useState(forceOpenSearch);
 
   useEffect(() => {
     if (forceOpenSearch) {
@@ -86,7 +87,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       {isPortraitMobile ? (
         <TextField
           variant={variantType}
-          placeholder={t("Search") || "Search"}
+          placeholder={t('Search') || 'Search'}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
@@ -104,7 +105,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         showMobileSearch ? (
           <TextField
             variant={variantType}
-            placeholder={t("Search") || "Search"}
+            placeholder={t('Search') || 'Search'}
             onChange={(e) => setInputValue(e.target.value)}
             value={inputValue}
             className="search-input-SearchAndFilter"
@@ -138,7 +139,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       ) : (
         <TextField
           variant={variantType}
-          placeholder={t("Search") || "Search"}
+          placeholder={t('Search') || 'Search'}
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
           className="search-input-SearchAndFilter"
@@ -157,7 +158,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           <IconButton
             aria-label="Open Filters"
             onClick={onFilterClick}
-            sx={{ marginLeft: "0px" }}
+            sx={{ marginLeft: '0px' }}
           >
             {filterIconSrc ? (
               <img
@@ -188,7 +189,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
             className="filter-button-SearchAndFilter"
             onClick={onFilterClick}
           >
-            <span style={{ color: "black" }}>{t("Filter")}</span>
+            <span style={{ color: 'black' }}>{t('Filter')}</span>
           </Button>
         ))}
     </Stack>

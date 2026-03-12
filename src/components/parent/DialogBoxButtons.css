@@ -1,11 +1,9 @@
-
-
 .dialog-box-button-style {
   color: white !important;
   border-radius: var(--border-radius) !important;
   padding: 2vh !important;
   width: 50%;
-  
+
   text-align: center;
   font-size: var(--text-size) !important;
 }

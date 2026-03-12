@@ -1,13 +1,13 @@
-import React from "react";
-import { render, screen, waitFor, cleanup } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import CachedImage from "./CachedImage";
-import { Capacitor, CapacitorHttp } from "@capacitor/core";
-import { Filesystem } from "@capacitor/filesystem";
+import React from 'react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import CachedImage from './CachedImage';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { Filesystem } from '@capacitor/filesystem';
 
 /* ================= MOCKS ================= */
 
-jest.mock("@capacitor/core", () => ({
+jest.mock('@capacitor/core', () => ({
   Capacitor: {
     isNativePlatform: jest.fn(),
   },
@@ -16,24 +16,24 @@ jest.mock("@capacitor/core", () => ({
   },
 }));
 
-jest.mock("@capacitor/filesystem", () => ({
+jest.mock('@capacitor/filesystem', () => ({
   Filesystem: {
     readFile: jest.fn(),
     writeFile: jest.fn(),
   },
   Directory: {
-    Cache: "CACHE",
+    Cache: 'CACHE',
   },
 }));
 
-jest.mock("../../common/constants", () => ({
-  CACHE_IMAGE: "cached_images",
+jest.mock('../../common/constants', () => ({
+  CACHE_IMAGE: 'cached_images',
 }));
 
 /* ================= TEST SUITE ================= */
 
-describe("CachedImage Component", () => {
-  const testUrl = "https://example.com/image.png";
+describe('CachedImage Component', () => {
+  const testUrl = 'https://example.com/image.png';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -45,17 +45,17 @@ describe("CachedImage Component", () => {
 
   /* ---------------- Web Platform ---------------- */
 
-  test("1. returns original URL on web platform", async () => {
+  test('1. returns original URL on web platform', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute("src", testUrl);
+      expect(screen.getByRole('img')).toHaveAttribute('src', testUrl);
     });
   });
 
-  test("2. does not call filesystem on web", async () => {
+  test('2. does not call filesystem on web', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     render(<CachedImage src={testUrl} />);
@@ -67,26 +67,26 @@ describe("CachedImage Component", () => {
 
   /* ---------------- Native - Cache Hit ---------------- */
 
-  test("3. loads image from cache if exists", async () => {
+  test('3. loads image from cache if exists', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     (Filesystem.readFile as jest.Mock).mockResolvedValue({
-      data: "base64data",
+      data: 'base64data',
     });
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute(
-        "src",
-        "data:image/png;base64,base64data",
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'src',
+        'data:image/png;base64,base64data',
       );
     });
   });
 
-  test("4. does not call HTTP if cache hit", async () => {
+  test('4. does not call HTTP if cache hit', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
-    (Filesystem.readFile as jest.Mock).mockResolvedValue({ data: "123" });
+    (Filesystem.readFile as jest.Mock).mockResolvedValue({ data: '123' });
 
     render(<CachedImage src={testUrl} />);
 
@@ -97,12 +97,12 @@ describe("CachedImage Component", () => {
 
   /* ---------------- Native - Cache Miss ---------------- */
 
-  test("5. fetches from HTTP if cache miss", async () => {
+  test('5. fetches from HTTP if cache miss', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
-    (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error("no file"));
+    (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error('no file'));
 
     (CapacitorHttp.get as jest.Mock).mockResolvedValue({
-      data: "blobdata",
+      data: 'blobdata',
     });
 
     (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
@@ -114,11 +114,11 @@ describe("CachedImage Component", () => {
     });
   });
 
-  test("6. writes file to cache after fetch", async () => {
+  test('6. writes file to cache after fetch', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
     (CapacitorHttp.get as jest.Mock).mockResolvedValue({
-      data: "blobdata",
+      data: 'blobdata',
     });
     (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
 
@@ -129,27 +129,27 @@ describe("CachedImage Component", () => {
     });
   });
 
-  test("7. returns base64 after HTTP fetch", async () => {
+  test('7. returns base64 after HTTP fetch', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
     (CapacitorHttp.get as jest.Mock).mockResolvedValue({
-      data: "blobdata",
+      data: 'blobdata',
     });
     (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute(
-        "src",
-        "data:image/png;base64,blobdata",
+      expect(screen.getByRole('img')).toHaveAttribute(
+        'src',
+        'data:image/png;base64,blobdata',
       );
     });
   });
 
   /* ---------------- HTTP Failure ---------------- */
 
-  test("8. returns original URL if HTTP fails", async () => {
+  test('8. returns original URL if HTTP fails', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
     (CapacitorHttp.get as jest.Mock).mockRejectedValue(new Error());
@@ -157,11 +157,11 @@ describe("CachedImage Component", () => {
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute("src", testUrl);
+      expect(screen.getByRole('img')).toHaveAttribute('src', testUrl);
     });
   });
 
-  test("9. logs error on HTTP failure", async () => {
+  test('9. logs error on HTTP failure', async () => {
     console.error = jest.fn();
 
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
@@ -177,61 +177,61 @@ describe("CachedImage Component", () => {
 
   /* ---------------- Edge Cases ---------------- */
 
-  test("10. renders empty div if no src", () => {
+  test('10. renders empty div if no src', () => {
     render(<CachedImage />);
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
-  test("11. updates when src changes", async () => {
+  test('11. updates when src changes', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     const { rerender } = render(<CachedImage src="url1" />);
     rerender(<CachedImage src="url2" />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute("src", "url2");
+      expect(screen.getByRole('img')).toHaveAttribute('src', 'url2');
     });
   });
 
-  test("12. alt equals imgSrc", async () => {
+  test('12. alt equals imgSrc', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      const img = screen.getByRole("img");
-      expect(img).toHaveAttribute("alt", testUrl);
+      const img = screen.getByRole('img');
+      expect(img).toHaveAttribute('alt', testUrl);
     });
   });
 
-  test("13. loading attribute is lazy", async () => {
+  test('13. loading attribute is lazy', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toHaveAttribute("loading", "lazy");
+      expect(screen.getByRole('img')).toHaveAttribute('loading', 'lazy');
     });
   });
 
-  test("14. handles writeFile failure gracefully", async () => {
+  test('14. handles writeFile failure gracefully', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
     (CapacitorHttp.get as jest.Mock).mockResolvedValue({
-      data: "blobdata",
+      data: 'blobdata',
     });
     (Filesystem.writeFile as jest.Mock).mockRejectedValue(new Error());
 
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(screen.getByRole("img")).toBeInTheDocument();
+      expect(screen.getByRole('img')).toBeInTheDocument();
     });
   });
 
   /* 15–30 Additional Coverage */
 
-  test("15. readFile called with correct path", async () => {
+  test('15. readFile called with correct path', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
 
@@ -240,16 +240,16 @@ describe("CachedImage Component", () => {
     await waitFor(() => {
       expect(Filesystem.readFile).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: expect.stringContaining("https:--example.com-image.png"),
+          path: expect.stringContaining('https:--example.com-image.png'),
         }),
       );
     });
   });
 
-  test("16. http called with correct url", async () => {
+  test('16. http called with correct url', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
-    (CapacitorHttp.get as jest.Mock).mockResolvedValue({ data: "blob" });
+    (CapacitorHttp.get as jest.Mock).mockResolvedValue({ data: 'blob' });
     (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
 
     render(<CachedImage src={testUrl} />);
@@ -261,7 +261,7 @@ describe("CachedImage Component", () => {
     });
   });
 
-  test("17-30. component mounts/unmounts cleanly", async () => {
+  test('17-30. component mounts/unmounts cleanly', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
 
     for (let i = 0; i < 14; i++) {

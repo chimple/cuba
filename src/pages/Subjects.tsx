@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { useHistory, useLocation } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
   CURRENT_SELECTED_COURSE,
@@ -10,12 +10,12 @@ import {
   MODES,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import "./Subjects.css";
-import SelectCourse from "../components/displaySubjects/SelectCourse";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import SkeltonLoading from "../components/SkeltonLoading";
+} from '../common/constants';
+import './Subjects.css';
+import SelectCourse from '../components/displaySubjects/SelectCourse';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import SkeltonLoading from '../components/SkeltonLoading';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -26,21 +26,21 @@ const Subjects: React.FC<{}> = ({}) => {
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<TableTypes<"course">[]>();
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>();
   const [mode, setMode] = useState<MODES>();
   const [studentLinked, setStudentLinked] = useState<boolean>(false);
-  
+
   const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: TableTypes<"grade">[];
-    courses: TableTypes<"course">[];
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
   }>();
-  const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<'grade'>>();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>();
   const [userMode, setUserMode] = useState<boolean>(false);
   const history = useHistory();
@@ -78,31 +78,28 @@ const Subjects: React.FC<{}> = ({}) => {
 
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
-      
 
       setIsLoading(false);
-    } else if (!!urlParams.get("isReload")) {
+    } else if (!!urlParams.get('isReload')) {
       await getCourses();
-      
     } else {
       let result = await getCourses();
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       let _localMap: {
-        grades: TableTypes<"grade">[];
-        courses: TableTypes<"course">[];
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
       } = JSON.parse(map);
-      
+
       setLocalGradeMap(_localMap);
     }
   };
 
-  const getCourses = async (): Promise<TableTypes<"course">[]> => {
+  const getCourses = async (): Promise<TableTypes<'course'>[]> => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
-      
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
@@ -131,20 +128,20 @@ const Subjects: React.FC<{}> = ({}) => {
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
-    
+
     setCourses(courses);
-   
+
     setIsLoading(false);
     return courses;
   };
 
-  const onCourseChanges = async (course: TableTypes<"course">) => {
+  const onCourseChanges = async (course: TableTypes<'course'>) => {
     const gradesMap: {
-      grades: TableTypes<"grade">[];
-      courses: TableTypes<"course">[];
+      grades: TableTypes<'grade'>[];
+      courses: TableTypes<'course'>[];
     } = await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
-      (grade) => grade.id === course.grade_id
+      (grade) => grade.id === course.grade_id,
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
@@ -157,22 +154,18 @@ const Subjects: React.FC<{}> = ({}) => {
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
-    
+
     const params = `courseDocId=${course.id}`;
-    
+
     if (urlParams.get(CONTINUE)) {
-      history.push(
-        PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` + "&" + params
-      );
+      history.push(PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` + '&' + params);
     } else {
-      history.push(PAGES.DISPLAY_CHAPTERS + "?" + params);
+      history.push(PAGES.DISPLAY_CHAPTERS + '?' + params);
     }
   };
 
- 
-
   return (
-    <div id="display-subjects-page" style={{ height: "100vh" }}>
+    <div id="display-subjects-page" style={{ height: '100vh' }}>
       <SkeltonLoading isLoading={isLoading} header={HOMEHEADERLIST.SUBJECTS} />
       <div className="subjects-content">
         {!isLoading &&

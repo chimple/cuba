@@ -1,7 +1,7 @@
-import { FC } from "react";
-import { IonInput } from "@ionic/react";
-import "./EditClassField.css";
-import { t } from "i18next";
+import { FC } from 'react';
+import { IonInput } from '@ionic/react';
+import './EditClassField.css';
+import { t } from 'i18next';
 
 interface EditClassFieldProps {
   className: string;
@@ -14,12 +14,12 @@ const EditClassField: FC<EditClassFieldProps> = ({
 }) => {
   return (
     <div className="edit-classname-div">
-      <div className="edit-class-name">{t("Class")}</div>
+      <div className="edit-class-name">{t('Class')}</div>
       <IonInput
         className="class-text-field"
         value={className}
         onIonChange={(e) => setClassName(e.detail.value!)}
-        placeholder={t("Enter class name") ?? ""}
+        placeholder={t('Enter class name') ?? ''}
         class="custom-edit-class"
       />
     </div>

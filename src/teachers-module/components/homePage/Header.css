@@ -28,7 +28,7 @@
 .chimple-logo {
   width: 159px;
   height: 25px;
-  background-image: url("../../assets/icons/chimple_logo.png");
+  background-image: url('../../assets/icons/chimple_logo.png');
   background-size: contain; /* This ensures the image covers the entire area of the div */
 }
 .help-icon {
