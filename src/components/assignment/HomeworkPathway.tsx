@@ -171,7 +171,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const fetchHomeworkPathway = async (
     student: TableTypes<"user">,
     subjectId?: string
-  ) => {
+  ): Promise<void> => {
     setLoading(true);
 
     // 0️⃣ Read existing path from localStorage (if any)
@@ -233,7 +233,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
               pathData = existingPath;
             } else {
               // No path yet, try global recompute
-              return fetchHomeworkPathway(student);
+              await fetchHomeworkPathway(student);
+              return;
             }
           }
         }

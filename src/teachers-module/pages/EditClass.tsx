@@ -23,22 +23,17 @@ type LocationState = {
 const EditClass: FC = () => {
   const location = useLocation<LocationState>();
   const api = ServiceConfig.getI()?.apiHandler;
-  const incoming = location.state?.classDoc ?? Util.getCurrentClass();
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const [className, setClassName] = useState<string>("");
   const { school: localSchool = null, classDoc: tempClass = null } =
-    (location.state || {}) as any;
+    location.state || {};
   const currentSchool =
-    (localSchool as TableTypes<"school">) ?? Util.getCurrentSchool();
+    localSchool ?? Util.getCurrentSchool();
   const history = useHistory();
   const [isSaving, setIsSaving] = useState(false);
-  const navigationState = Util.getNavigationState();
-  const { origin: paramOrigin = null } = (location.state || {}) as any;
+  const { origin: paramOrigin = null } = location.state || {};
 
-  let isEditMode;
-  if (location) {
-    isEditMode = location?.pathname === PAGES.EDIT_CLASS;
-  }
+  const isEditMode: boolean = location.pathname === PAGES.EDIT_CLASS;
   const isButtonDisabled =
     !className.trim() || (isEditMode && currentClass?.name === className);
 
@@ -116,6 +111,7 @@ const EditClass: FC = () => {
       );
       return;
     } else if (paramOrigin === PAGES.SUBJECTS_PAGE) {
+      if (!currentSchool) return;
       Util.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
       history.replace(PAGES.SUBJECTS_PAGE, {
         schoolId: currentSchool.id,

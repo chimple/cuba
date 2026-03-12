@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS, RequestTypes } from "../../common/constants";
+import { PAGES, REQUEST_TABS, RequestTypes, TableTypes } from "../../common/constants";
 import "./PrincipalTeacherPendingRequest.css";
 import { Constants } from "../../services/database";
 import OpsCustomDropdown from "../components/OpsCustomDropdown";
@@ -94,11 +94,14 @@ const PrincipalTeacherPendingRequest = () => {
             ]);
 
           const allRequests = [
-            ...(pendingRequests || []),
-            ...(approvedRequests || []),
-            ...(rejectedRequests || []),
+            ...(pendingRequests?.data || []),
+            ...(approvedRequests?.data || []),
+            ...(rejectedRequests?.data || []),
           ];
-          const req = allRequests.find((r: any) => r.request_id === id);
+          const req = allRequests.find(
+            (r: TableTypes<"ops_requests"> | Record<string, unknown>) =>
+              "request_id" in r && r.request_id === id,
+          );
 
           if (req) {
             setRequestData(req);

@@ -9,14 +9,17 @@ import ExpandedTable from './ExpandedTable';
 
 
 interface DashboardTableProps {
-    studentsData,
-    headerData
+    studentsData: Record<string, Record<string, number | null>>;
+    headerData: Map<
+      string,
+      { headerName: string; startAt: string; endAt: string; courseId?: string }
+    >[];
 }
 
 const DashboardTable: React.FC<DashboardTableProps> = ({ studentsData, headerData }) => {
-    const [expandedRow, setExpandedRow] = useState(null);
+    const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
-    const handleRowClick = (key) => {
+    const handleRowClick = (key: number) => {
         if (expandedRow === key) {
             setExpandedRow(null);
         } else {

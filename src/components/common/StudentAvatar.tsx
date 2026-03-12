@@ -3,12 +3,18 @@ import { AVATARS } from "../../common/constants";
 import { Util } from "../../utility/util";
 import "./StudentAvatar.css";
 
+interface StudentAvatarStudent {
+  id?: string | null;
+  name?: string | null;
+  avatar?: string | null;
+}
+
 const StudentAvatar: React.FC<{
-  student;
-  onClicked;
-  width?;
-  namePosition?;
-  nameLabel?;
+  student: StudentAvatarStudent;
+  onClicked: (student: StudentAvatarStudent) => void;
+  width?: string | number;
+  namePosition?: "above" | "below" | "right" | "left";
+  nameLabel?: React.ReactNode;
 }> = ({ student, onClicked, width, namePosition = "below", nameLabel }) => {
   const containerStyle: React.CSSProperties = {
     display: "flex",
@@ -46,7 +52,7 @@ const StudentAvatar: React.FC<{
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name} {nameLabel}
+            {student.name || ""} {nameLabel}
           </span>
         ))}
       <img
@@ -62,7 +68,7 @@ const StudentAvatar: React.FC<{
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name} {nameLabel}
+            {student.name || ""} {nameLabel}
           </span>
         ))}
       {namePosition === "below" &&
@@ -72,7 +78,7 @@ const StudentAvatar: React.FC<{
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name} {nameLabel}
+            {student.name || ""} {nameLabel}
           </span>
         ))}
     </div>

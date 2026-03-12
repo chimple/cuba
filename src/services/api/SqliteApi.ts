@@ -97,6 +97,7 @@ import {
 } from "../../teachers-module/pages/AssignmentCartStorage";
 import { runBackgroundWorkerStreamingSync } from "../../workers/backgroundWorkerClient";
 import { store } from "../../redux/store";
+import { Json } from "../database";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -111,7 +112,7 @@ export class SqliteApi implements ServiceApi {
   private _currentCourse:
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
-  private _syncTableData = {};
+  private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
 
   public static getI(): SqliteApi {
@@ -170,7 +171,10 @@ export class SqliteApi implements ServiceApi {
         const data = await fetch("databases/upgradeStatements.json");
 
         if (!data || !data.ok) return;
-        const upgradeStatementsMap: { [key: string]: string[] } =
+        const upgradeStatementsMap: Record<
+          string,
+          { statements?: string[]; tableChanges?: Record<string, string> }
+        > =
           await data.json();
 
         for (
@@ -3090,7 +3094,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query);
     console.log("🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:", res?.values);
     if (!res || !res.values || res.values.length < 1) return {};
-    const resultMap = {};
+    const resultMap: { [lessonDocId: string]: TableTypes<"result"> } = {};
     for (const data of res.values) {
       resultMap[data.lesson_id] = data;
     }
@@ -4437,7 +4441,17 @@ export class SqliteApi implements ServiceApi {
     const cart = readAssignmentCartFromStorage(userId);
     return cart;
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
     const query = `
       SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
       FROM ${TABLES.Result} r
@@ -4447,14 +4461,22 @@ export class SqliteApi implements ServiceApi {
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
-    let resultMap: Map<string, string> = new Map<string, string>();
+    const resultMap: Record<
+      string,
+      (TableTypes<"result"> & { lesson_name?: string; chapter_name?: string })[]
+    > = {};
     if (res && res.values) {
       res.values.forEach((result) => {
         const courseId = result.course_id;
         if (!resultMap[courseId]) {
           resultMap[courseId] = [];
         }
-        resultMap[courseId].push(result);
+        resultMap[courseId].push(
+          result as TableTypes<"result"> & {
+            lesson_name?: string;
+            chapter_name?: string;
+          },
+        );
       });
     }
     return resultMap;
@@ -6960,6 +6982,7 @@ order by
     });
 
     for (const course of coursesToAdd) {
+      if (!course) continue;
       const newUserCourse: TableTypes<"user_course"> = {
         course_id: course.id,
         created_at: new Date().toISOString(),
@@ -7131,10 +7154,19 @@ order by
     orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string,
-  ) {
+  ): Promise<{
+    data: Array<TableTypes<"ops_requests"> | Record<string, Json>>;
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  }> {
     throw new Error("Method not implemented.");
   }
-  async getRequestFilterOptions() {
+  async getRequestFilterOptions(): Promise<{
+    requestType: Array<string | null>;
+    school: { id: string; name: string }[];
+  } | null> {
     throw new Error("Method not implemented.");
   }
   async searchStudentsInSchool(
@@ -7695,7 +7727,10 @@ order by
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
-  }) {
+  }): Promise<{
+    data: TableTypes<"fc_user_forms"> | null;
+    error: object | null;
+  }> {
     throw new Error("Method not implemented.");
   }
   public async getTodayVisitId(
@@ -7714,7 +7749,10 @@ order by
   ): Promise<TableTypes<"fc_school_visit">[]> {
     return this._serverApi.getSchoolVisitById(visitIds);
   }
-  async getActivitiesFilterOptions() {
+  async getActivitiesFilterOptions(): Promise<{
+    contactType: Array<string | null>;
+    performance: Array<string | null>;
+  } | null> {
     throw new Error("Method not implemented.");
   }
 

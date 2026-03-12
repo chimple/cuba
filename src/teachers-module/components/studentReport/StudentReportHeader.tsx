@@ -9,7 +9,12 @@ interface StudentReportHeaderProps {
   selectedSubject?: TableTypes<"course">;
   mappedSubjectOptions: { id: string; name: string, icon: string, subjectDetail: string }[];
   currentClass?: TableTypes<"class">;
-  onSubjectChange;
+  onSubjectChange: (selected: {
+    id: string | number;
+    name: string;
+    icon?: string;
+    subjectDetail?: string;
+  }) => void;
 }
 const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
   student,

@@ -262,7 +262,17 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
-  getStudentProgress(studentId: string): Promise<Map<string, string>> {
+  getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
     throw new Error("Method not implemented.");
   }
   getStudentResultInMap(

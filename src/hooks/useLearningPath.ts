@@ -459,7 +459,8 @@ export const useLearningPath = (opts?: {
 
     const total_learning_path_completed =
       learningPath.courses.courseList.reduce(
-        (total, course) => total + (course.completedPath ?? 0),
+        (total: number, course: { completedPath?: number }) =>
+          total + (course.completedPath ?? 0),
         0,
       );
 
@@ -575,7 +576,7 @@ export const useLearningPath = (opts?: {
   }
 
   function migrate(coursePath: any) {
-    const lessons = coursePath.path || [];
+    const lessons: LessonNode[] = coursePath.path || [];
 
     const startIndex = coursePath.startIndex ?? 0;
     const currentIndex = coursePath.currentIndex ?? 0;
@@ -589,8 +590,8 @@ export const useLearningPath = (opts?: {
     const windowLessons = lessons.slice(0, Math.min(lessons.length, 5));
 
     const newPath: LessonNode[] = windowLessons
-      .filter((_, idx) => startIndex + idx <= activeAbsIndex)
-      .map((l: any, idx: number) => {
+      .filter((_lesson: LessonNode, idx: number) => startIndex + idx <= activeAbsIndex)
+      .map((l: LessonNode, idx: number) => {
         const absIndex = startIndex + idx;
         return {
           lesson_id: l.lesson_id,

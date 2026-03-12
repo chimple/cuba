@@ -10,6 +10,20 @@ import {
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
+type LiveQuizQuestionResult = {
+  question_id: string;
+  score: number;
+};
+
+const toRoomResults = (
+  results: TableTypes<"live_quiz_room">["results"]
+): Record<string, LiveQuizQuestionResult[]> => {
+  if (results && typeof results === "object" && !Array.isArray(results)) {
+    return results as Record<string, LiveQuizQuestionResult[]>;
+  }
+  return {};
+};
+
 const LiveQuizHeader: FC<{
   roomDoc: TableTypes<"live_quiz_room">;
   remainingTime: number | undefined;
@@ -82,9 +96,10 @@ const LiveQuizHeader: FC<{
       lastQuestionId?: string;
     }[] = [];
 
+    const roomResults = toRoomResults(roomDoc.results);
     roomDoc.participants?.forEach((studentId: string) => {
       if (studentIdMap[studentId]) {
-        const studentResult: any[] = roomDoc.results?.[studentId];
+        const studentResult = roomResults[studentId];
         if (studentResult && studentResult.length > 0) {
           const totalScore = studentResult.reduce(
             (acc: number, question) => acc + question.score,
@@ -132,13 +147,13 @@ const LiveQuizHeader: FC<{
       <div className="live-quiz-header">
         {sortedStudents &&
           sortedStudents.map((studentMap) => {
-            const studentResult = roomDoc.results
-              ? roomDoc.results[studentMap.student.id]
-              : undefined;
+            const studentResult =
+              toRoomResults(roomDoc.results)[studentMap.student.id];
             const lastAnswer = studentResult?.[studentResult.length - 1];
             const currentQuestionResult = currentQuestion
               ? studentResult?.find(
-                  (result) => result.question_id === currentQuestion.id
+                  (result: LiveQuizQuestionResult) =>
+                    result.question_id === currentQuestion.id
                 )
               : null;
             return (

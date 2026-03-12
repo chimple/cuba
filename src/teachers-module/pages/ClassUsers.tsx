@@ -45,8 +45,12 @@ const ClassUsers: React.FC = () => {
     }
   };
 
-  const handleTabSelect = (tab) => {
-    setSelectedTab(tab);
+  const handleTabSelect = (tab: string) => {
+    if (tab === CLASS_USERS.TEACHERS) {
+      setSelectedTab(CLASS_USERS.TEACHERS);
+      return;
+    }
+    setSelectedTab(CLASS_USERS.STUDENTS);
   };
   const addStudent = () => {
     history.replace(PAGES.ADD_STUDENT, {

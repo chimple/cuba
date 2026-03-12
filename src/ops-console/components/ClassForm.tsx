@@ -183,15 +183,22 @@ const ClassForm: React.FC<{
                 normalizedInviteLink,
                 whatspAppBotNumber || ""
               );
+              let resolvedGroupIdValue = "";
+              if (gId && typeof gId === "object" && !Array.isArray(gId)) {
+                const groupId = (gId as { group_id?: string | null }).group_id;
+                if (typeof groupId === "string") {
+                  resolvedGroupIdValue = groupId;
+                }
+              }
 
-              if (!gId?.group_id) {
+              if (!resolvedGroupIdValue) {
                 setErrorMessage("Invalid WhatsApp Invite Link.");
                 setSaving(false);
                 return;
               }
 
-              groupIdToStore = gId.group_id;
-              setResolvedGroupId(gId.group_id);
+              groupIdToStore = resolvedGroupIdValue;
+              setResolvedGroupId(resolvedGroupIdValue);
 
             } catch (e) {
               console.error("getGroupIdByInvite failed", e);
@@ -217,15 +224,22 @@ const ClassForm: React.FC<{
                     normalizedInviteLink,
                     whatspAppBotNumber || ""
                   );
+                  let resolvedGroupIdValue = "";
+                  if (gId && typeof gId === "object" && !Array.isArray(gId)) {
+                    const groupId = (gId as { group_id?: string | null }).group_id;
+                    if (typeof groupId === "string") {
+                      resolvedGroupIdValue = groupId;
+                    }
+                  }
 
-                  if (!gId?.group_id) {
+                  if (!resolvedGroupIdValue) {
                     setErrorMessage("Invalid WhatsApp Invite Link.");
                     setSaving(false);
                     return;
                   }
 
-                  groupIdToStore = gId.group_id;
-                  setResolvedGroupId(gId.group_id);
+                  groupIdToStore = resolvedGroupIdValue;
+                  setResolvedGroupId(resolvedGroupIdValue);
 
                 } catch (e) {
                   console.error("getGroupIdByInvite failed", e);

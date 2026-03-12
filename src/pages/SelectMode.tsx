@@ -280,7 +280,7 @@ const SelectMode: FC = () => {
       console.error("Error fetching classes:", error);
     }
   };
-  const displayStudents = async (curClass) => {
+  const displayStudents = async (curClass: TableTypes<"class">) => {
     // if(!currClass) return;
     const element = await api.getStudentsForClass(curClass.id);
     if (!element) return;

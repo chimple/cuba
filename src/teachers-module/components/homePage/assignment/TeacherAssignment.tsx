@@ -33,6 +33,32 @@ export enum TeacherAssignmentPageType {
   RECOMMENDED = "recommended",
 }
 
+type AssignmentLesson = TableTypes<"lesson"> & {
+  selected?: boolean;
+  source?: string;
+};
+
+type SubjectAssignmentGroup = {
+  name: string;
+  courseCode: string | null;
+  lessons: AssignmentLesson[];
+  sort_index: number | null;
+  isCollapsed: boolean;
+};
+
+type SelectedSubjectCount = {
+  count: string[];
+};
+
+type SelectedLessonsByType = {
+  count: number;
+} & Record<string, SelectedSubjectCount | number>;
+
+type SelectedLessonsCountState = Record<
+  TeacherAssignmentPageType,
+  SelectedLessonsByType
+>;
+
 const TeacherAssignment: FC<{
   onLibraryClick: () => void;
   autoStartScan?: boolean;
@@ -50,10 +76,11 @@ const TeacherAssignment: FC<{
 
   const [manualCollapsed, setManualCollapsed] = useState(false);
   const [recommendedCollapsed, setRecommendedCollapsed] = useState(true);
-  const [selectedLessonsCount, setSelectedLessonsCount] = useState({
+  const [selectedLessonsCount, setSelectedLessonsCount] =
+    useState<SelectedLessonsCountState>({
     [TeacherAssignmentPageType.MANUAL]: { count: 0 },
     [TeacherAssignmentPageType.RECOMMENDED]: { count: 0 },
-  });
+    });
   const auth = ServiceConfig.getI().authHandler;
 
   useEffect(() => {
@@ -225,7 +252,7 @@ const TeacherAssignment: FC<{
       Object.keys(updatedRecommendedAssignments).forEach((subjectId) => {
         updatedRecommendedAssignments[subjectId].lessons =
           updatedRecommendedAssignments[subjectId].lessons.map(
-            (assignment) => ({
+            (assignment: AssignmentLesson) => ({
               ...assignment,
               selected: false,
               source: AssignmentSource.RECOMMENDED,
@@ -242,7 +269,7 @@ const TeacherAssignment: FC<{
       Object.keys(updatedRecommendedAssignments).forEach((subjectId) => {
         updatedRecommendedAssignments[subjectId].lessons =
           updatedRecommendedAssignments[subjectId].lessons.map(
-            (assignment) => ({
+            (assignment: AssignmentLesson) => ({
               ...assignment,
               selected: true,
               source: AssignmentSource.RECOMMENDED,
@@ -283,34 +310,43 @@ const TeacherAssignment: FC<{
     type: TeacherAssignmentPageType,
     updatedAssignments: any,
   ) => {
-    let tempSelectedCount = { ...selectedLessonsCount };
+    let tempSelectedCount: SelectedLessonsCountState = {
+      ...selectedLessonsCount,
+    };
     tempSelectedCount[type].count = 0;
+
+    const ensureSubjectCount = (
+      data: SelectedLessonsByType,
+      subjectId: string,
+    ): SelectedSubjectCount => {
+      const currentValue = data[subjectId];
+      if (!currentValue || typeof currentValue === "number") {
+        data[subjectId] = { count: [] };
+        return data[subjectId] as SelectedSubjectCount;
+      }
+      return currentValue;
+    };
+
     Object.keys(updatedAssignments).forEach((subjectId) => {
       let lessonCount = 0;
 
       updatedAssignments[subjectId].lessons.forEach((assignment: any) => {
+        const subjectSelection = ensureSubjectCount(
+          tempSelectedCount[type],
+          subjectId,
+        );
         if (assignment.selected) {
           lessonCount++;
-          if (!tempSelectedCount[type][subjectId]) {
-            tempSelectedCount[type][subjectId] = { count: [] };
-          }
-          if (
-            !tempSelectedCount[type][subjectId].count.includes(assignment.id)
-          ) {
-            tempSelectedCount[type][subjectId].count.push(assignment.id);
+          if (!subjectSelection.count.includes(assignment.id)) {
+            subjectSelection.count.push(assignment.id);
           }
         } else {
-          if (!tempSelectedCount[type][subjectId]) {
-            tempSelectedCount[type][subjectId] = { count: [] };
-          }
-          if (
-            tempSelectedCount[type][subjectId].count.includes(assignment.id)
-          ) {
-            const i = tempSelectedCount[type][subjectId].count.findIndex(
-              (id: any) => id === assignment.id,
+          if (subjectSelection.count.includes(assignment.id)) {
+            const i = subjectSelection.count.findIndex(
+              (id: string) => id === assignment.id,
             );
             if (i > -1) {
-              tempSelectedCount[type][subjectId].count.splice(i, 1);
+              subjectSelection.count.splice(i, 1);
             }
           }
         }

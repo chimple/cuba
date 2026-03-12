@@ -19,13 +19,10 @@ interface LocationState {
 const EditSchool: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI()?.apiHandler;
-  const location = useLocation();
+  const location = useLocation<LocationState>();
   const { school, role, origin } = (location.state as LocationState) || {};
   const prevOrigin = origin ?? null;
-  let isEditMode;
-  if (location) {
-    isEditMode = location.pathname === PAGES.EDIT_SCHOOL;
-  }
+  const isEditMode: boolean = location.pathname === PAGES.EDIT_SCHOOL;
   const [currentSchool, setCurrentSchool] =
     useState<TableTypes<"school"> | null>(null);
   const [schoolData, setSchoolData] = useState({
@@ -69,7 +66,6 @@ const EditSchool: React.FC = () => {
   };
 
   const handleSave = async () => {
-    let tempSchool: TableTypes<"school">;
     try {
       setIsSaving(true);
 

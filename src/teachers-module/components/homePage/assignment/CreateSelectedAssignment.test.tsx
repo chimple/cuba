@@ -5,7 +5,12 @@ import CreateSelectedAssignment from "./CreateSelectedAssignment";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import { Util } from "../../../../utility/util";
 import { ClassUtil } from "../../../../utility/classUtil";
-import { AssignmentSource, BANDS, PAGES } from "../../../../common/constants";
+import {
+  AssignmentSource,
+  BANDS,
+  PAGES,
+  TableTypes,
+} from "../../../../common/constants";
 import { Toast } from "@capacitor/toast";
 
 const mockHistory = { replace: jest.fn(), push: jest.fn() };
@@ -54,6 +59,35 @@ const mockApi = {
   getLesson: jest.fn(),
   createAssignment: jest.fn(),
 };
+
+type AssignmentLesson = TableTypes<"lesson"> & { source?: AssignmentSource };
+
+const buildLesson = (
+  id: string,
+  source: AssignmentSource,
+  pluginType = "assignment",
+): AssignmentLesson => ({
+  id,
+  plugin_type: pluginType,
+  source,
+  cocos_chapter_code: null,
+  cocos_lesson_id: null,
+  cocos_subject_code: null,
+  color: null,
+  created_at: "",
+  created_by: null,
+  image: null,
+  is_deleted: null,
+  language_id: null,
+  metadata: null,
+  name: null,
+  outcome: null,
+  status: null,
+  subject_id: null,
+  target_age_from: null,
+  target_age_to: null,
+  updated_at: null,
+});
 
 const mockAuth = {
   getCurrentUser: jest.fn(),
@@ -130,9 +164,7 @@ describe("CreateSelectedAssignment (QR flow)", () => {
           "course-1": {
             lessons: [
               {
-                id: "lesson-1",
-                plugin_type: "assignment",
-                source: AssignmentSource.QR_CODE,
+                ...buildLesson("lesson-1", AssignmentSource.QR_CODE),
               },
             ],
           },
@@ -174,7 +206,7 @@ describe("CreateSelectedAssignment (QR flow)", () => {
         selectedAssignments={{ manual: { "course-1": { count: ["lesson-1"] } } }}
         manualAssignments={{
           "course-1": {
-            lessons: [{ id: "lesson-1", source: AssignmentSource.QR_CODE }],
+            lessons: [buildLesson("lesson-1", AssignmentSource.QR_CODE)],
           },
         }}
         recommendedAssignments={{}}
@@ -320,9 +352,7 @@ describe("CreateSelectedAssignment (QR flow)", () => {
           "course-1": {
             lessons: [
               {
-                id: "lesson-1",
-                plugin_type: "assignment",
-                source: AssignmentSource.MANUAL,
+                ...buildLesson("lesson-1", AssignmentSource.MANUAL),
               },
             ],
           },
@@ -358,9 +388,7 @@ describe("CreateSelectedAssignment (QR flow)", () => {
           "course-1": {
             lessons: [
               {
-                id: "lesson-2",
-                plugin_type: "assignment",
-                source: AssignmentSource.RECOMMENDED,
+                ...buildLesson("lesson-2", AssignmentSource.RECOMMENDED),
               },
             ],
           },

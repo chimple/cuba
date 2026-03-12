@@ -26,6 +26,7 @@ interface SchoolOverviewProps {
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
   const userRoles = roles || [];
+  const programTabLabels = PROGRAM_TAB_LABELS as Record<string, string>;
   // school details
   const formatingSchoolModel = (raw: any) => {
     if (!raw) return "";
@@ -38,7 +39,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     return arr
       .map(
         (v: string) =>
-          PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
+          programTabLabels[v.toLowerCase().replace(/ /g, "_")] ||
           v
             .toLowerCase()
             .replace(/_/g, " ")
@@ -87,7 +88,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
         return arr
           .map(
             (v: string) =>
-              PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
+              programTabLabels[v.toLowerCase().replace(/ /g, "_")] ||
               v
                 .toLowerCase()
                 .replace(/_/g, " ")
@@ -324,12 +325,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 {t("Program Manager")}
               </Typography>
               <Box>
-                {data.programManagers?.map((manager, idx) => (
+                {data.programManagers?.map((manager: { name?: string; role?: string; phone?: string; email?: string }, idx: number) => (
                   <ContactCard
                     key={idx}
-                    name={manager.name}
+                    name={manager.name || ""}
                     role={manager.role || t("Program Manager")}
-                    phone={manager.phone || manager.email}
+                    phone={manager.phone || manager.email || ""}
                   />
                 ))}
               </Box>
@@ -521,12 +522,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   {t("Program Manager")}
                 </Typography>
                 <Box>
-                  {data.programManagers?.map((manager, idx) => (
+                  {data.programManagers?.map((manager: { name?: string; role?: string; phone?: string; email?: string }, idx: number) => (
                     <ContactCard
                       key={idx}
-                      name={manager.name}
+                      name={manager.name || ""}
                       role={manager.role || t("Program Manager")}
-                      phone={manager.phone || manager.email}
+                      phone={manager.phone || manager.email || ""}
                     />
                   ))}
                 </Box>

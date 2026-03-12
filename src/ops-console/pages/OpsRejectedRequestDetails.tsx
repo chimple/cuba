@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGES,
+  REQUEST_TABS,
+  TableTypes,
+} from "../../common/constants";
 import "./OpsRejectedRequestDetails.css";
 import { useTranslation } from "react-i18next"; // Import useTranslation
 
@@ -25,12 +30,12 @@ const StudentRejectedRequestDetails = () => {
     rejectedBy?: { name?: string };
     respondedBy?: { name?: string };
     requestedBy?: { name?: string; phone?: string; email?: string };
-    request_id?: string;
-    request_type?: string;
+    request_id?: string | null;
+    request_type?: string | null;
     created_at?: string;
     updated_at?: string;
-    rejected_reason_type?: string;
-    rejected_reason_description?: string;
+    rejected_reason_type?: string | null;
+    rejected_reason_description?: string | null;
   };
 
   const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(
@@ -53,7 +58,14 @@ const StudentRejectedRequestDetails = () => {
             1,
             DEFAULT_PAGE_SIZE
           );
-          const req = rejectedRequests?.find((r) => r.request_id === id);
+          const req = rejectedRequests?.data?.find(
+            (
+              r: TableTypes<"ops_requests"> | Record<string, unknown>,
+            ): r is TableTypes<"ops_requests"> =>
+              "request_id" in r &&
+              typeof r.request_id === "string" &&
+              r.request_id === id,
+          );
           if (req) setRequestDetails(req);
           else setError(t("Request not found")); // Translated
         }

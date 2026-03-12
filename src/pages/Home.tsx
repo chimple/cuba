@@ -89,7 +89,7 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
-  const appStateChange = (isActive) => {
+  const appStateChange = (isActive: boolean) => {
     Util.onAppStateChange({ isActive });
   };
 
@@ -182,7 +182,7 @@ const Home: FC = () => {
   useEffect(() => {
     Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
-  const handleJoinClassEvent = async (event) => {
+  const handleJoinClassEvent = async (event: Event) => {
     await getAssignments(true);
     setCanShowAvatar(true);
     setIsStudentLinked(true);
@@ -369,18 +369,28 @@ const Home: FC = () => {
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
 
-      const courseCount = allAssignments.reduce((accumulator, current: any) => {
-        if (accumulator[current.course_id]) {
-          accumulator[current.course_id] += 1;
-        } else {
-          accumulator[current.course_id] = 1;
-        }
-        return accumulator;
-      }, {});
-      const result = Object.keys(courseCount).reduce((acc, courseId) => {
-        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
-        return acc;
-      }, {});
+      const courseCount = allAssignments.reduce<Record<string, number>>(
+        (accumulator, current: TableTypes<"assignment">) => {
+          const courseId = current.course_id;
+          if (!courseId) {
+            return accumulator;
+          }
+          if (accumulator[courseId]) {
+            accumulator[courseId] += 1;
+          } else {
+            accumulator[courseId] = 1;
+          }
+          return accumulator;
+        },
+        {},
+      );
+      const result = Object.keys(courseCount).reduce<Record<string, number>>(
+        (acc, courseId) => {
+          acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
+          return acc;
+        },
+        {},
+      );
       const device = await Util.logDeviceInfo();
       const attributeParams = {
         studentDetails: student,

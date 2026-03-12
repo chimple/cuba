@@ -126,9 +126,9 @@ const JoinSchool: React.FC = () => {
               }`}
           >
             {requestType === RequestTypes.TEACHER &&
-              classList.map((cls) => (
+              classList.map((cls: { id: string; name: string }) => (
                 <button
-                  key={cls}
+                  key={cls.id}
                   className={`join-school-class-btn ${selectedClass === cls ? "join-school-selected-class" : ""
                     }`}
                   onClick={() => setSelectedClass(cls)}

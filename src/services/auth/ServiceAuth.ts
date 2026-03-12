@@ -16,7 +16,10 @@ export interface ServiceAuth {
 
   isUserLoggedIn(): Promise<boolean>;
 
-  phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
+  phoneNumberSignIn(
+    phoneNumber: string,
+    recaptchaVerifier: object,
+  ): Promise<any>;
 
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
@@ -26,8 +29,8 @@ export interface ServiceAuth {
   ): Promise<{ success: boolean; error?: any }>;
 
   proceedWithVerificationCode(
-    verificationId,
-    verificationCode,
+    verificationId: string,
+    verificationCode: string,
   ): Promise<
     | { user: any; isUserExist: boolean; isSpl: boolean; userData?: any }
     | undefined

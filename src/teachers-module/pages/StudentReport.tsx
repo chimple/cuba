@@ -13,14 +13,31 @@ import { PAGES, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { ClassUtil } from "../../utility/classUtil";
 
+type StudentReportLocationState = {
+  student?: TableTypes<"user">;
+  classDoc?: TableTypes<"class">;
+  isStudentProfilePage?: boolean;
+  startDate?: string | Date;
+  endDate?: string | Date;
+  selectedType?: string;
+  isAssignments?: boolean;
+  sortType?: string;
+};
+
+type SubjectOption = {
+  id: string | number;
+  name: string;
+  icon?: string;
+  subjectDetail?: string;
+};
+
 const StudentReport: React.FC = () => {
   const history = useHistory();
+  const locationState = (history.location.state ?? {}) as StudentReportLocationState;
   const currentSchool = Util.getCurrentSchool();
-  const student = history.location.state!["student"] as TableTypes<"user">;
-  const tempClass = history.location.state!["classDoc"] as TableTypes<"class">;
-  const isStudentProfilePage = history.location.state![
-    "isStudentProfilePage"
-  ] as boolean;
+  const student = locationState.student as TableTypes<"user">;
+  const tempClass = locationState.classDoc as TableTypes<"class">;
+  const isStudentProfilePage = Boolean(locationState.isStudentProfilePage);
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -42,10 +59,14 @@ const StudentReport: React.FC = () => {
     }[]
   >([]);
   const [startDate, setStartDate] = useState<string | null>(
-    format(history.location.state!["startDate"], "yyyy-MM-dd")
+    locationState.startDate
+      ? format(new Date(locationState.startDate), "yyyy-MM-dd")
+      : null
   );
   const [endDate, setEndDate] = useState<string | null>(
-    format(history.location.state!["endDate"], "yyyy-MM-dd")
+    locationState.endDate
+      ? format(new Date(locationState.endDate), "yyyy-MM-dd")
+      : null
   );
   let maxEndDate: string;
 
@@ -143,9 +164,14 @@ const StudentReport: React.FC = () => {
       setShowEndDatePicker(false);
     }
   };
-  const handleSelectSubject = async (subject) => {
+  const handleSelectSubject = async (subject: SubjectOption) => {
     if (subject) {
-      setSelectedSubject(subject);
+      const selectedCourse = subjects?.find(
+        (item) => item.id === String(subject.id)
+      );
+      if (selectedCourse) {
+        setSelectedSubject(selectedCourse);
+      }
     }
   };
   const handleBackButton = () => {
@@ -157,11 +183,11 @@ const StudentReport: React.FC = () => {
     } else {
       history.replace(PAGES.HOME_PAGE, {
         tabValue: 3,
-        startDate: history.location.state!["startDate"],
-        endDate: history.location.state!["endDate"],
-        selectedType: history.location.state!["selectedType"],
-        isAssignments: history.location.state!["isAssignments"],
-        sortType: history.location.state!["sortType"],
+        startDate: locationState.startDate,
+        endDate: locationState.endDate,
+        selectedType: locationState.selectedType,
+        isAssignments: locationState.isAssignments,
+        sortType: locationState.sortType,
       });
     }
   };

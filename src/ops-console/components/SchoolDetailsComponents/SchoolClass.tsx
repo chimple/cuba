@@ -166,7 +166,11 @@ useEffect(() => {
       .map(async (c) => {
         try {
           const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
-          return { classId: c.id, isExited: res.is_exited };
+          const parsed =
+            typeof res === "object" && res !== null && !Array.isArray(res)
+              ? (res as { is_exited?: boolean })
+              : null;
+          return { classId: c.id, isExited: parsed?.is_exited ?? false };
         } catch (err) {
           console.error(`Failed to fetch WhatsApp group details for group ${c.group_id}:`, err);
           return null;

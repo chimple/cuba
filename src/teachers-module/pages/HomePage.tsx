@@ -20,6 +20,8 @@ import {
   LANGUAGE,
   PAGES,
   STATUS,
+  TABLEDROPDOWN,
+  TABLESORTBY,
   TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
@@ -38,10 +40,10 @@ const HomePage: React.FC = () => {
   const location = useLocation<{
     tabValue?: number;
     isAssignments?: boolean;
-    selectedType?: string;
-    sortType?: string;
-    startDate?: string;
-    endDate?: string;
+    selectedType?: TABLEDROPDOWN;
+    sortType?: TABLESORTBY;
+    startDate?: Date;
+    endDate?: Date;
   }>();
   // 1) Safely grab tabValue (default to 0)
   const initialTab = location.state?.tabValue ?? 0;

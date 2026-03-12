@@ -52,7 +52,7 @@ export class AvatarObj {
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 60;
-  weeklyTimeSpent: {} = { min: 0, sec: 0 };
+  weeklyTimeSpent: { min: number; sec: number } = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";

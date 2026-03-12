@@ -18,7 +18,9 @@ const handleClick = async (event: MouseEvent) => {
   storedStudent.type = RoleType.STUDENT || "null";
 
   let target = event.target as HTMLElement;
-  const getTextContent = (element: HTMLElement | null): string | undefined => {
+  const getTextContent = (
+    element: HTMLElement | null
+  ): string | null | undefined => {
     if (!element) return undefined;
     //Handle Checkboxes
     if (target?.matches('input[type="checkbox"]')) {

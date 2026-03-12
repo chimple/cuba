@@ -16,7 +16,12 @@ import {
 import { IonCheckbox } from "@ionic/react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGES,
+  REQUEST_TABS,
+  TableTypes,
+} from "../../common/constants";
 import "./StudentPendingRequest.css";
 import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
@@ -99,11 +104,14 @@ const StudentPendingRequestDetails = () => {
             ]);
 
           const allRequests = [
-            ...(pendingRequests || []),
-            ...(approvedRequests || []),
-            ...(rejectedRequests || []),
+            ...(pendingRequests?.data || []),
+            ...(approvedRequests?.data || []),
+            ...(rejectedRequests?.data || []),
           ];
-          const req = allRequests.find((r: any) => r.request_id === id);
+          const req = allRequests.find(
+            (r: TableTypes<"ops_requests"> | Record<string, unknown>) =>
+              "request_id" in r && r.request_id === id,
+          );
 
           if (req) {
             setRequestData(req);

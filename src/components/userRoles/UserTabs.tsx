@@ -7,7 +7,7 @@ import { AppBar, Box } from '@mui/material';
 
 interface UserTabsProps {
   userType: USERTYPES;
-  onChange: (event, newValu) => void;
+  onChange: (event: React.SyntheticEvent, newValu: USERTYPES) => void;
 }
 
 const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {

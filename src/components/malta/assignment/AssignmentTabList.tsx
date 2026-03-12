@@ -5,7 +5,7 @@ import "./AssignmentTabList.css";
 
 interface AssignmentTabListProps {
   tabHeader: ASSIGNMENTTAB_LIST;
-  segmentChanged: (evt) => void;
+  segmentChanged: (evt: CustomEvent) => void;
 }
 
 const AssignmentTabList: React.FC<AssignmentTabListProps> = ({

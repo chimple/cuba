@@ -28,30 +28,35 @@ jest.mock("./LessonCard", () => ({
 jest.mock("@splidejs/react-splide", () => {
   const React = require("react");
   return {
-    Splide: React.forwardRef(({ children, onMoved, options }: any, ref) => {
-      mockLessonSplidePropsSpy({ onMoved, options });
-      React.useImperativeHandle(ref, () => ({ go: mockGo }));
-      const childCount = React.Children.count(children);
-      return (
-        <div data-testid="splide-root">
-          <button
-            type="button"
-            data-testid="move-middle"
-            onClick={() => onMoved?.({ index: 1 })}
-          >
-            move-middle
-          </button>
-          <button
-            type="button"
-            data-testid="move-last"
-            onClick={() => onMoved?.({ index: childCount - 1 })}
-          >
-            move-last
-          </button>
-          {children}
-        </div>
-      );
-    }),
+    Splide: React.forwardRef(
+      (
+        { children, onMoved, options }: any,
+        ref: React.Ref<{ go: (index: number) => void }>,
+      ) => {
+        mockLessonSplidePropsSpy({ onMoved, options });
+        React.useImperativeHandle(ref, () => ({ go: mockGo }));
+        const childCount = React.Children.count(children);
+        return (
+          <div data-testid="splide-root">
+            <button
+              type="button"
+              data-testid="move-middle"
+              onClick={() => onMoved?.({ index: 1 })}
+            >
+              move-middle
+            </button>
+            <button
+              type="button"
+              data-testid="move-last"
+              onClick={() => onMoved?.({ index: childCount - 1 })}
+            >
+              move-last
+            </button>
+            {children}
+          </div>
+        );
+      },
+    ),
     SplideSlide: ({ children, onLoad }: any) => (
       <div data-testid="splide-slide">
         <button type="button" data-testid="slide-load" onClick={() => onLoad?.()}>

@@ -547,7 +547,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         if (cancelled) return;
         const next = new Map<string, Set<string>>();
         results.forEach(([classId, group]) => {
-          const members = Array.isArray(group?.members) ? group.members : [];
+          const parsedGroup =
+            typeof group === "object" && group !== null && !Array.isArray(group)
+              ? (group as { members?: string[] })
+              : null;
+          const members = Array.isArray(parsedGroup?.members)
+            ? (parsedGroup?.members ?? [])
+            : [];
           // Normalize to 10-digit numbers so comparisons are consistent.
           const normalizedMembers = new Set<string>(
             members
@@ -1267,7 +1273,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setErrorMessage(undefined);
   }, [history]);
 
-  const handleEditSubmit = async (values) => {
+  const handleEditSubmit = async (values: Record<string, string>) => {
     if (!editStudentData) return; // ✅ null safety
 
     const user = editStudentData.user;

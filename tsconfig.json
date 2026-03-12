@@ -14,7 +14,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "strictPropertyInitialization": false,
     "types": ["jest","lido-standalone"],
     "jsx": "react-jsx"

@@ -330,14 +330,20 @@ const Leaderboard: React.FC = () => {
             currentValue={weeklySelectedValue || weeklyList[0]?.id}
             width="26vw"
             onValueChange={(selectedValue) => {
-              
-              if (weeklyList[selectedValue]?.displayName != undefined) {
-                setWeeklySelectedValue(weeklyList[selectedValue]?.id);
+              const selectedIndex =
+                typeof selectedValue === "number"
+                  ? selectedValue
+                  : Number(selectedValue);
+              const selectedWeek =
+                Number.isNaN(selectedIndex)
+                  ? weeklyList.find((week) => week.id === selectedValue)
+                  : weeklyList[selectedIndex];
+              if (selectedWeek?.displayName != undefined) {
+                setWeeklySelectedValue(selectedWeek.id);
                 fetchLeaderBoardData(
                   currentStudent!,
-                  
-                  weeklyList[selectedValue].type ??
-                    LeaderboardDropdownList.WEEKLY,
+                  // weeklyList[0] === weeklyList[selectedValue],
+                  selectedWeek.type ?? LeaderboardDropdownList.WEEKLY,
                   currentClassAndSchool?.classes[0].id || "",
                 );
                 
