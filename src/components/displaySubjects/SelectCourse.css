@@ -16,12 +16,7 @@
   height: 100vh;
 }
 .course-icon {
-  /* width: min(30vh, 136px);
-  height: min(30vh, 136px);
-  background-color: white;
-  background-repeat: no-repeat; */
-  /* width: clamp(120px, 16.5vw, 400px);
-  height: clamp(40px, 65vw, 254px); */
+  
   margin-top: 3vh;
   width: clamp(26vh, 28vh, 37vh);
   height: clamp(13vh, 49vh, 71vh);
@@ -57,7 +52,7 @@
 
 .subject-header {
   display: flex;
-  /* margin-top: 1vh; */
+  
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;

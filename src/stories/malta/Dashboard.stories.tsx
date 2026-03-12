@@ -1,7 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import { useState } from "react";
 import Dashboard from "../../pages/Malta/Dashboard";
 
 const meta: Meta = {

@@ -59,22 +59,12 @@ Sentry.init(
     dsn: process.env.REACT_APP_SENTRY_DSN,
 
     sendDefaultPii: true,
-    // enableLogs: true,
-    // // Logs requires @sentry/capacitor 2.0.0 or newer.
-    // _experiments: {
-    //   enableLogs: true,
-    //   beforeSendLog: (log) => {
-    //     return log;
-    //   },
-    // },
+    
 
     integrations: [
       Sentry.browserTracingIntegration(),
 
-      // send console.log, console.warn, and console.error calls as logs to Sentry
-      // SentryReact.consoleLoggingIntegration({
-      //   levels: ["log", "warn", "error"],
-      // }),
+      
     ],
   },
   // Forward the init method from @sentry/react
@@ -159,7 +149,10 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString(), error.toString());
+  recordExecption(
+    message.toString(),
+    error?.toString() ?? "Unknown error",
+  );
 };
 const container = document.getElementById("root");
 const root = createRoot(container!, {

@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { IonIcon, IonItem, IonButton } from "@ionic/react";
+import { IonIcon, IonButton } from "@ionic/react";
 import { chevronDown } from "ionicons/icons";
 import { TableTypes } from "../../common/constants";
 import schoolImage from "../assets/images/school.svg";

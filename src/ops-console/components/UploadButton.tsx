@@ -1,5 +1,4 @@
 import React from "react";
-import { Fab } from "@mui/material";
 import { FileUploadOutlined } from "@mui/icons-material";
 import "./UploadButton.css";
 import { t } from "i18next";

@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import { IonIcon } from "@ionic/react";
-import { calendarOutline } from "ionicons/icons";
+import React, { useState, useEffect } from "react";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { format } from "date-fns";
 import { TableTypes } from "../../../common/constants";

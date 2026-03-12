@@ -102,12 +102,6 @@
   border-bottom: none;
 }
 
-/* .LanguageDropdown-option:hover,
-.LanguageDropdown-option.selected {
-  background: #ffe5cc;
-  color: #F34D08;
-} */
-
 @media screen and (max-width: 768px) {
   .LanguageDropdown-container {
     position: absolute;

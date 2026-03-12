@@ -12,8 +12,7 @@
   width: fit-content;
   height: 80%;
   margin: 0 auto;                 
-  /* text-align: left;    */
-  /* text-align: left;    */
+  
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

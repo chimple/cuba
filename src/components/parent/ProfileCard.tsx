@@ -51,9 +51,9 @@ const ProfileCard: React.FC<{
     <IonCard
       id="profile-card"
       style={{
-        // width: "auto",
+        
         width: width,
-        // height: height,
+        
         height: "auto",
         padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
@@ -87,15 +87,10 @@ const ProfileCard: React.FC<{
             }}
           ></MdModeEditOutline>
         ) : (
-          // <></>
+          
           <p className="profile-card-empty-element">&#9679;</p>
         )}
-        {/* <img
-          id="profile-card-edit-icon"
-          loading="lazy"
-          src="assets/icons/DoneIcon.svg"
-          alt="assets/icons/DoneIcon.svg"
-        /> */}
+        
       </div>
       {userType ? (
         <div id="profile-card-image-div">
@@ -147,17 +142,16 @@ const ProfileCard: React.FC<{
           id="profile-card-image-report"
           onClick={async () => {
             await Util.setCurrentStudent(user, undefined, false, false);
-            // const api = ServiceConfig.getI().apiHandler;
-            // api.currentStudent = user;
+            
 
             Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
-          {/* {t("Progress Report")} */}
+          
           Progress
         </div>
       ) : (
-        // <></>
+        
         <p className="profile-card-empty-element">&#9679;</p>
       )}
       {showDialogBox ? (
@@ -209,13 +203,12 @@ const ProfileCard: React.FC<{
             setReloadProfiles(true);
             const eventParams = {
               user_id: user.id,
-              // user_type: user.role,
+              
               user_name: user.name,
               user_gender: user.gender!,
               user_age: user.age!,
               phone_number: user.phone,
-              // parent_id: user.uid,
-              // parent_username: user.username,
+              
               action_type: ACTION.DELETE,
             };
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);

@@ -27,11 +27,18 @@ import PathwayModal from "../learningPathway/PathwayModal";
 import ChimpleRiveMascot from "../learningPathway/ChimpleRiveMascot";
 import RewardBox from "../learningPathway/RewardBox";
 import DailyRewardModal from "../learningPathway/DailyRewardModal";
-import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
   onHomeworkComplete?: () => void;
+}
+
+interface HomeworkPathLessonItem {
+  lesson: TableTypes<"lesson">;
+  course_id: string;
+  chapter_id: string;
+  assignment_id?: string;
+  raw_assignment?: TableTypes<"assignment">;
 }
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -391,8 +398,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       if (!storedHomeworkPath) {
         return;
       }
-      const homeworkPath = JSON.parse(storedHomeworkPath);
-      const lessonsToRender = homeworkPath.lessons;
+      const homeworkPath = JSON.parse(storedHomeworkPath) as {
+        lessons: HomeworkPathLessonItem[];
+        currentIndex: number;
+      };
+      const lessonsToRender: HomeworkPathLessonItem[] = homeworkPath.lessons;
       const currentIndex = homeworkPath.currentIndex;
       const pathEndIndex = lessonsToRender.length - 1;
       const startIndex = 0;
@@ -587,10 +597,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             typeof lesson.image === "string" &&
             /^(https?:\/\/|\/)/.test(lesson.image);
 
-          const lesson_image =
+          const lesson_image: string =
             isPlayed || isActive
               ? isValidUrl
-                ? lesson.image
+                ? lesson.image ?? "assets/icons/DefaultIcon.png"
                 : "assets/icons/DefaultIcon.png"
               : "assets/icons/NextNodeIcon.svg";
 

@@ -8,13 +8,13 @@ import {
   IconButton,
 } from "@mui/material";
 import InfoCard from "../components/InfoCard";
-import { useHistory, useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import "./ProgramDetailsPage.css";
 import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { PAGES, PROGRAM_TAB_LABELS } from "../../common/constants";
 import { BsFillBellFill } from "react-icons/bs";
 import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 

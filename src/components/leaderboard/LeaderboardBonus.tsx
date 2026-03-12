@@ -127,7 +127,7 @@ const LeaderboardBonus: FC = () => {
     for (const key in monthlyData) {
       const monthNumber = parseInt(key);
       if (!isNaN(monthNumber) && monthNumber > currentMonth) {
-        monthlyData[key].forEach((item) => {
+        monthlyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
           }
@@ -179,7 +179,7 @@ const LeaderboardBonus: FC = () => {
     for (const key in monthlyData) {
       const monthNumber = parseInt(key);
       if (!isNaN(monthNumber) && monthNumber < currentMonth) {
-        monthlyData[key].forEach((item) => {
+        monthlyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
           }

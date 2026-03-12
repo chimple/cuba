@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ProfileDetails from "./ProfileDetails";
 import { useFeatureValue } from "@growthbook/growthbook-react";
@@ -24,7 +24,7 @@ jest.mock("../../services/Firebase", () => ({
 // Comprehensive i18next mock
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: (key: string) => key,
     i18n: {
       changeLanguage: jest.fn().mockResolvedValue(true),
       language: "en",
@@ -37,7 +37,7 @@ jest.mock("react-i18next", () => ({
 jest.mock("i18next", () => ({
   changeLanguage: jest.fn().mockResolvedValue(true),
   language: "en",
-  t: (key) => key,
+  t: (key: string) => key,
   use: jest.fn().mockReturnThis(),
   init: jest.fn(),
 }));
@@ -67,16 +67,16 @@ const mockAuth = {
 
 // LocalStorage Mock
 const localStorageMock = (() => {
-  let store = {};
+  let store: Record<string, string> = {};
   return {
-    getItem: jest.fn((key) => store[key] || null),
-    setItem: jest.fn((key, value) => {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string) => {
       store[key] = value.toString();
     }),
     clear: jest.fn(() => {
       store = {};
     }),
-    removeItem: jest.fn((key) => {
+    removeItem: jest.fn((key: string) => {
       delete store[key];
     }),
   };

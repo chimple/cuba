@@ -2,6 +2,7 @@ import "./LessonSlider.css";
 import "./LessonCard.css";
 import LessonCard from "./LessonCard";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
+import { Splide as SplideInstance } from "@splidejs/splide";
 import { useEffect, useState, useRef } from "react";
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -16,7 +17,7 @@ const LessonSlider: React.FC<{
   showSubjectName: boolean;
   showChapterName: boolean;
   onEndReached?: () => void;
-  onMoved?: (splide: any) => any;
+  onMoved?: (splide: SplideInstance) => void;
   downloadButtonLoading?: boolean;
   showDate?: boolean;
   onDownloadOrDelete?: () => void;
@@ -60,7 +61,7 @@ const LessonSlider: React.FC<{
     if (startIndex) lessonSwiperRef?.current.go(startIndex);
   };
 
-  const handleMoved = (splide) => {
+  const handleMoved = (splide: SplideInstance) => {
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
 
@@ -84,7 +85,7 @@ const LessonSlider: React.FC<{
     const student = Util.getCurrentStudent();
     if (!student || !student.id) return;
     api.getFavouriteLessons(student.id).then((val) => {
-      const data = {};
+      const data: Record<string, boolean> = {};
       val.forEach((lesson) => {
         data[lesson.id] = true;
       });
@@ -92,7 +93,10 @@ const LessonSlider: React.FC<{
     });
   };
 
-  const assignmentMap = {};
+  const assignmentMap: Record<string, string> = {};
+  const assignmentLookup:
+    | { [key: string]: TableTypes<"assignment"> }
+    | undefined = assignments as { [key: string]: TableTypes<"assignment"> } | undefined;
   return isHome ? (
     <div className="Lesson-slider-content">
       <Splide
@@ -178,7 +182,7 @@ const LessonSlider: React.FC<{
                 showScoreCard={isPlayed}
                 score={lessonsScoreMap[m.id]?.score}
                 showChapterName={showChapterName}
-                assignment={assignments?.[m.id]}
+                assignment={assignmentLookup?.[m.id]}
                 downloadButtonLoading={downloadButtonLoading}
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}

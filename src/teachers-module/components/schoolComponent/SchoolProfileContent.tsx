@@ -1,12 +1,10 @@
 import React from "react";
-import { Button } from "@mui/material";
 import { t } from "i18next";
 import "./SchoolProfileContent.css";
-import { PAGES, TableTypes } from "../../../common/constants";
+import { TableTypes } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { RoleType } from "../../../interface/modelInterfaces";
-import { IonIcon, IonLabel } from "@ionic/react";
-import { pencilSharp } from "ionicons/icons";
+import { IonLabel } from "@ionic/react";
 import ProfileDetails from "../library/ProfileDetails";
 
 const SchoolProfileContent: React.FC<{
@@ -27,16 +25,7 @@ const SchoolProfileContent: React.FC<{
         <div className="schoolProfile-top-div">
           <div className="school-address-div">{t("School Address")}</div>
           <div className="schoolProfile-edit-icon-container">
-            {/* <IonIcon
-              icon={pencilSharp}
-              className="schoolProfile-edit-icon"
-              onClick={() => {
-                history.replace(PAGES.EDIT_SCHOOL, {
-                  school: school,
-                  role: role,
-                });
-              }}
-            /> */}
+           
           </div>
         </div>
         <div className="profile-row">

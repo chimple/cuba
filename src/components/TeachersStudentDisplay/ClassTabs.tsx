@@ -1,14 +1,13 @@
 import React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import { t } from 'i18next';
 import { USERTYPES } from '../../common/constants';
 import "./ClassTabs.css"
 import { AppBar, Box } from '@mui/material';
 
 interface ClassTabsProps {
     userType: USERTYPES;
-    onChange: (event, newValu) => void;
+    onChange: (event: React.SyntheticEvent, newValu: USERTYPES) => void;
 }
 
 const ClassTabs: React.FC<ClassTabsProps> = ({ userType: value, onChange }) => {

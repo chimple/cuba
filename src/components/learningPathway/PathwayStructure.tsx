@@ -7,13 +7,22 @@ import ChimpleRiveMascot from "./ChimpleRiveMascot";
 import RewardBox from "./RewardBox";
 import DailyRewardModal from "./DailyRewardModal";
 import RewardRive from "./RewardRive";
+import StickerBookPreviewModal, {
+  StickerBookPreviewData,
+} from "./StickerBookPreviewModal";
 
 import { useHistory } from "react-router";
 import { usePathwayData } from "../../hooks/usePathwayData";
 import { usePathwaySVG } from "../../hooks/usePathwaySVG";
+import { Util } from "../../utility/util";
+import { EVENTS } from "../../common/constants";
 
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
+  const [stickerPreviewData, setStickerPreviewData] =
+    React.useState<StickerBookPreviewData | null>(null);
+  const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
+    React.useState<boolean>(false);
 
   const {
     // refs
@@ -80,7 +89,32 @@ const PathwayStructure: React.FC = () => {
     setIsRewardPathLoaded,
     isRewardPathLoaded,
     checkAndUpdateReward,
+    onStickerPreviewReady: (data) => {
+      setStickerPreviewData(data);
+      setIsStickerPreviewOpen(true);
+      Util.logEvent(EVENTS.STICKER_PREVIEW_POPUP_SHOWN, {
+        user_id: Util.getCurrentStudent()?.id ?? "unknown",
+        sticker_book_id: data.stickerBookId,
+        sticker_id: data.nextStickerId,
+        source: data.source,
+      });
+    },
   });
+
+  const closeStickerPreview = React.useCallback(
+    (reason: "close_button" | "backdrop" | "acknowledge_button") => {
+      if (!stickerPreviewData) return;
+      Util.logEvent(EVENTS.STICKER_PREVIEW_POPUP_CLOSED, {
+        user_id: Util.getCurrentStudent()?.id ?? "unknown",
+        sticker_book_id: stickerPreviewData.stickerBookId,
+        sticker_id: stickerPreviewData.nextStickerId,
+        source: stickerPreviewData.source,
+        close_reason: reason,
+      });
+      setIsStickerPreviewOpen(false);
+    },
+    [stickerPreviewData],
+  );
 
   return (
     <>
@@ -95,7 +129,7 @@ const PathwayStructure: React.FC = () => {
       )}
 
       {/* SVG Root Container */}
-      <div className="pathway-structure-div" ref={containerRef} />
+      <div className="PathwayStructure-div" ref={containerRef} />
 
       {/* Chimple Mascot */}
       {riveContainer &&
@@ -128,6 +162,13 @@ const PathwayStructure: React.FC = () => {
           text={"Play one lesson and collect your daily reward!"}
           onClose={handleRewardModalClose}
           onPlay={handleRewardModalPlay}
+        />
+      )}
+
+      {isStickerPreviewOpen && stickerPreviewData && (
+        <StickerBookPreviewModal
+          data={stickerPreviewData}
+          onClose={closeStickerPreview}
         />
       )}
     </>

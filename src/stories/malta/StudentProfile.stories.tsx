@@ -1,6 +1,5 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 import StudentProfile from "../../pages/Malta/StudentProfile";
 import { string } from "prop-types";
 

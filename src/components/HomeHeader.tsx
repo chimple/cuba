@@ -6,7 +6,6 @@ import {
   HeaderIconConfig,
   PAGES,
   MODES,
-  CURRENT_MODE,
   TableTypes,
 } from "../common/constants";
 import "./HomeHeader.css";
@@ -14,10 +13,8 @@ import HeaderIcon from "./HeaderIcon";
 import React, { useEffect, useRef, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
-import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import ProfileMenu from "./ProfileMenu/ProfileMenu";
 
 // Define the Props for StarsCounter
@@ -134,7 +131,7 @@ const HomeHeader: React.FC<{
     setIsLinked(true);
     window.removeEventListener("JoinClassListner", handleJoinClassListner);
   };
-  // const student =await Util.getCurrentStudent();
+ 
 
   useEffect(() => {
     const handler = (e: Event) => {

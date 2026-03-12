@@ -7,15 +7,11 @@ import {
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
-  LATEST_STARS,
-  STARS_COUNT,
   TableTypes,
   LIVE_QUIZ,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
-import { schoolUtil } from "../../utility/schoolUtil";
 import {
-  updateLocalAttributes,
   useGbContext,
 } from "../../growthbook/Growthbook";
 import Loading from "../Loading";
@@ -175,7 +171,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const fetchHomeworkPathway = async (
     student: TableTypes<"user">,
     subjectId?: string
-  ) => {
+  ): Promise<void> => {
     setLoading(true);
 
     // 0️⃣ Read existing path from localStorage (if any)
@@ -237,7 +233,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
               pathData = existingPath;
             } else {
               // No path yet, try global recompute
-              return fetchHomeworkPathway(student);
+              await fetchHomeworkPathway(student);
+              return;
             }
           }
         }

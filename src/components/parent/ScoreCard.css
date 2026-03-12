@@ -9,7 +9,7 @@
   min-width: 196px;
   min-height: 48px;
   max-width: 340px;
-  /* font-size: var(--text-size) !important; */
+  
   display: flex;
   justify-content: center;
   align-items: center;

@@ -9,13 +9,11 @@ import {
   AssignmentSource,
   SEARCH_LESSON_HISTORY,
   SEARCH_LESSON_CACHE_KEY,
-  IS_OPS_USER,
 } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
-import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import ChapterWiseLessons from "../components/ChapterWiseLessons";
 import {
   readAssignmentCartFromStorage,

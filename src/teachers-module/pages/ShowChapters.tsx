@@ -103,7 +103,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     }
   }, [chapters, activeChapterId]);
 
-  const syncSelectedLesson = async (lesson) => {
+  const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
       await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
   };
@@ -175,7 +175,10 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     setCourseCode(course_data?.code ?? "");
   };
 
-  const handleOnLessonClick = (lesson, chapter) => {
+  const handleOnLessonClick = (
+    lesson: TableTypes<"lesson">,
+    chapter: TableTypes<"chapter">
+  ) => {
     history.replace(PAGES.LESSON_DETAILS, {
       course: course,
       lesson: lesson,
@@ -184,8 +187,6 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       from: PAGES.SHOW_CHAPTERS,
     });
   };
-
-  // const handleSelectedLesson = (chapterId: string, lessonIds: string[]) => {
   //   if (lessonIds !== undefined) {
   //     const newClassSelectedLesson = new Map(classSelectedLesson);
   //     const existing = newClassSelectedLesson.get(chapterId) ?? {};

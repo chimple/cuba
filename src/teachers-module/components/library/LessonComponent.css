@@ -44,7 +44,7 @@
   border-radius: 8px;
   position: relative;
   overflow: visible;
-  /* background-color: bisque; */
+  
 }
 @media (orientation: landscape) {
   .lessoncomponent-image-container {
@@ -63,7 +63,7 @@
 .lessoncomponent-lesson-image img {
   height: 75px;
   width: 100px; /* Adjust the size as needed */
-  /* height: auto; */
+  
 }
 
 .lessoncomponent-lesson-assigned-badge {

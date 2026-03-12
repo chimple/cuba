@@ -14,7 +14,7 @@ interface TeachersStudentDisplayProps {
 const TeachersStudentDisplay: React.FC<TeachersStudentDisplayProps> = () => {
     const [tabIndex, setTabIndex] = useState(USERTYPES.TEACHERS);
     const [users, setUsers] = useState<User[]>([]);
-    const onTabChange = (event, newValue) => {
+    const onTabChange = (event: React.SyntheticEvent, newValue: USERTYPES) => {
         setTabIndex(newValue);
     };
     return (

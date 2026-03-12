@@ -1,4 +1,3 @@
-import { start } from "repl";
 import {
   BANDS,
   LIDO_ASSESSMENT,
@@ -6,7 +5,7 @@ import {
   TableTypes,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
+import { addDays, addMonths, subDays } from "date-fns";
 import { Util } from "./util";
 
 export class ClassUtil {
@@ -478,7 +477,7 @@ export class ClassUtil {
       HeaderData: monthsMapArray,
     };
   }
-  public formatDate(timestamp) {
+  public formatDate(timestamp: string | number | Date) {
     const date = new Date(timestamp);
     const day = date.getDate();
     const month = date.getMonth() + 1;

@@ -4,8 +4,8 @@ import LiveQuizQuestion from "./LiveQuizQuestion";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { schoolUtil } from "../../utility/schoolUtil";
-import { LIVE_QUIZ_QUESTION_TIME, LiveQuizType } from "../../models/liveQuiz";
-import { PAGES, REWARD_LESSON } from "../../common/constants";
+import { LIVE_QUIZ_QUESTION_TIME } from "../../models/liveQuiz";
+import { PAGES } from "../../common/constants";
 
 const mockReplace = jest.fn();
 const mockAudioPlay = jest.fn().mockResolvedValue(undefined);

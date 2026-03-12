@@ -105,8 +105,7 @@ const LessonCard: React.FC<{
     }
   };
 
-  // const lessonCardColor =
-  //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+  
 
   const [lessonCardColor, setLessonCardColor] = useState("");
 
@@ -172,20 +171,7 @@ const LessonCard: React.FC<{
         }}
         onClick={async () => {
           if (isUnlocked) {
-            // if (
-            //   lesson.chapter.course.isCourseMapped &&
-            //   lesson.orig_course_id != undefined &&
-            //   lesson.orig_chapter_id != undefined &&
-            //   lesson.orig_lesson_id != undefined
-            // ) {
-            //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   history.push(PAGES.GAME + parmas, {
-            //     url: "chimple-lib/index.html" + parmas,
-            //     lessonId: TableTypes<"lesson">.orig_lesson_id,
-            //     lesson: TableTypes<"lesson">,
-            //     from: history.location.pathname,
-            //   });
-            // } else {
+            
             if (!course && !currentCourse) {
               await getCurrentCourse();
             }
@@ -211,7 +197,7 @@ const LessonCard: React.FC<{
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (
-              // !!assignment?.id &&
+              
               lesson.plugin_type === LIVE_QUIZ
             ) {
               const lessonId = lesson.cocos_lesson_id;
@@ -318,7 +304,7 @@ const LessonCard: React.FC<{
 
                 <p>
                   {currentCourse?.name}
-                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                  
                 </p>
               </div>
             ) : null}
@@ -369,7 +355,7 @@ const LessonCard: React.FC<{
                       <LessonCardStarIcons score={score}></LessonCardStarIcons>
                     </div>
 
-                    {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
+                    
                   </div>
                 ) : (
                   <></>
@@ -379,7 +365,7 @@ const LessonCard: React.FC<{
               )}
             </div>
 
-            {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
+            
           </div>
           <div className="lesson-download-button-container">
             {lesson.cocos_lesson_id && (

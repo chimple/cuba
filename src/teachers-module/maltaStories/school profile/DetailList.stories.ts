@@ -3,7 +3,6 @@ import type { Meta, StoryObj } from "@storybook/react";
 import DetailList from "../../components/schoolComponent/DetailList";
 import {
   IconType,
-  PAGES,
   SchoolWithRole,
   TableTypes,
 } from "../../../common/constants";

@@ -17,11 +17,6 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
   const isGrade1 =
     course.grade_id === grade1 || course.grade_id === belowGrade1;
 
-  // Build the icon path using course.code.
-  // If no code is available, default to English icon.
-  // const localSrc = course.code
-  //   ? `courses/${course.code}/icons/${course.code}00.webp`
-  //   : `courses/en/icons/en00.webp`;
 
   return (
     <div onClick={handleCourseCLick} className="course-button">

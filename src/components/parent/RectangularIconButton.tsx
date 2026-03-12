@@ -1,13 +1,10 @@
 import { t } from "i18next";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { PARENTHEADERLIST } from "../../common/constants";
 import "./RectangularIconButton.css";
-import { SyntheticEvent, useState } from "react";
 const RectangularIconButton: React.FC<{
   buttonWidth: number;
   buttonHeight: number;
   iconSrc: string;
-  // rectangularIcon: any;
+  
   name: string;
   isButtonEnable: boolean;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
@@ -15,12 +12,12 @@ const RectangularIconButton: React.FC<{
   buttonWidth,
   buttonHeight,
   iconSrc,
-  // rectangularIcon,
+  
   name,
   isButtonEnable,
   onHeaderIconClick,
 }) => {
-    // const isButtonEnable;
+    
 
     return (
       <div
@@ -42,7 +39,7 @@ const RectangularIconButton: React.FC<{
           src={iconSrc}
         />
         <p>{t(name)}</p>
-        {/* {rectangularIcon} */}
+        
       </div>
     );
   };

@@ -17,7 +17,6 @@ import { Util } from "../../utility/util";
 import ProfileDetails from "../components/library/ProfileDetails";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Capacitor } from "@capacitor/core";
-import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 interface LocationState {
@@ -27,15 +26,12 @@ interface LocationState {
 }
 const ReqEditSchool: React.FC = () => {
   const history = useHistory();
-  const location = useLocation();
+  const location = useLocation<LocationState>();
   const { school, role, origin } = (location.state as LocationState) || {};
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [isRequestSent, setIsRequestSent] = useState(false);
   const prevOrigin = origin ?? null;
-  let isEditMode;
-  if (location) {
-    isEditMode = location.pathname === PAGES.REQ_EDIT_SCHOOL;
-  }
+  const isEditMode: boolean = location.pathname === PAGES.REQ_EDIT_SCHOOL;
 
   const [schoolData, setSchoolData] = useState({
     name: "",

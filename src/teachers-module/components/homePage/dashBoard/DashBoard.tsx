@@ -12,27 +12,33 @@ import {
 } from "../../../../common/constants";
 import {
   IonContent,
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonRefresher,
   IonRefresherContent,
 } from "@ionic/react";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
-import { Tables } from "../../../../services/database";
 import { ClassUtil } from "../../../../utility/classUtil";
 import Loading from "../../../../components/Loading";
 import { useHistory } from "react-router";
 import { Util } from "../../../../utility/util";
-import CustomDropdown from "../../CustomDropdown";
 import { t } from "i18next";
 import ImageDropdown from "../../imageDropdown";
-import SkeltonLoading from "../../../../components/SkeltonLoading";
+
+type SubjectOption = {
+  icon: string;
+  id: string;
+  name: string;
+  subjectDetail: string;
+};
+const isSubjectOption = (
+  value: TableTypes<"course"> | SubjectOption | undefined
+): value is SubjectOption => {
+  return value != null && "icon" in value;
+};
 
 const DashBoard: React.FC = ({}) => {
-  const [selectedSubject, setSelectedSubject] =
-    useState<TableTypes<"course">>();
+  const [selectedSubject, setSelectedSubject] = useState<
+    TableTypes<"course"> | SubjectOption
+  >();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
   const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);
@@ -42,7 +48,7 @@ const DashBoard: React.FC = ({}) => {
   const history = useHistory();
   const current_class = Util.getCurrentClass();
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    { icon: string; id: string; name: string; subjectDetail: string }[]
+    SubjectOption[]
   >([]);
   useEffect(() => {
     if (subjects.length > 0) {
@@ -99,9 +105,7 @@ const DashBoard: React.FC = ({}) => {
       console.error("Error fetching curriculums or grades:", error);
       setMappedSubjectOptions([]);
     }
-    setSelectedSubject(
-      Util.getCurrentCourse(current_class?.id) ?? (ALL_SUBJECT as unknown as TableTypes<"course">)
-    );
+    setSelectedSubject(Util.getCurrentCourse(current_class?.id) ?? ALL_SUBJECT);
   };
 
   const init = async () => {
@@ -128,11 +132,20 @@ const DashBoard: React.FC = ({}) => {
     setIsLoading(false);
   };
 
-  const handleSelectSubject = (subject) => {
-    if (subject) {
-      setSelectedSubject(subject);
-      Util.setCurrentCourse(current_class?.id, subject);
-    }
+  const handleSelectSubject = (selected: {
+    id: string | number;
+    name: string;
+    icon?: string;
+    subjectDetail?: string;
+  }): void => {
+    const selectedOption = subjectOptionsWithAll.find(
+      (option) => option.id === selected.id
+    );
+    if (!selectedOption) return;
+
+    setSelectedSubject(selectedOption);
+    const selectedCourse = subjects.find((subject) => subject.id === selectedOption.id);
+    Util.setCurrentCourse(current_class?.id, selectedCourse ?? null);
   };
 
   const onRefresh = (event: CustomEvent) => {
@@ -160,13 +173,15 @@ const DashBoard: React.FC = ({}) => {
               id: selectedSubject?.id ?? "",
               name: selectedSubject?.name ?? "",
               icon:
-                (selectedSubject as any)?.icon ??
+                (isSubjectOption(selectedSubject) ? selectedSubject.icon : "") ??
                 subjectOptionsWithAll.find(
                   (option) => option.id === selectedSubject?.id
                 )?.icon ??
                 "",
               subjectDetail:
-                (selectedSubject as any)?.subject ??
+                (isSubjectOption(selectedSubject)
+                  ? selectedSubject.subjectDetail
+                  : "") ??
                 subjectOptionsWithAll.find(
                   (option) => option.id === selectedSubject?.id
                 )?.subjectDetail ??

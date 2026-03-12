@@ -1,7 +1,7 @@
 import React from "react";
-// import "./TeacherProfile.css";
+
 import { PAGES } from "../../common/constants";
-// import ProfileDetails from "../../teachers-module/components/homePage/library/ProfileDetails";
+
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
 import { t } from "i18next";
@@ -23,7 +23,7 @@ const StudentProfile: React.FC<{
         <CloseIcon />
       </button>
       <div className="profile-container-section">
-        {/* <ProfileDetails imgSrc="" width="" height="20vh" /> */}
+        
         <div className="profile-name">{name}</div>
       </div>
       <StudentProfileSection

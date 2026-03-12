@@ -129,7 +129,14 @@ const OpsFlaggedRequestDetails = () => {
           1,
           DEFAULT_PAGE_SIZE
         );
-        const req = flaggedRequests?.find((r) => r.request_id === id);
+        const req = flaggedRequests?.data?.find(
+          (
+            r: TableTypes<"ops_requests"> | Record<string, unknown>,
+          ): r is TableTypes<"ops_requests"> =>
+            "request_id" in r &&
+            typeof r.request_id === "string" &&
+            r.request_id === id,
+        );
         if (req) {
           setRequestDetails(req);
           initializeFormFields(req);

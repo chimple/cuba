@@ -1,14 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   IonMenu,
-  IonHeader,
-  IonMenuButton,
-  IonToolbar,
-  IonToggle,
-  IonLabel,
   IonItem,
 } from "@ionic/react";
-import { APIMode, ServiceConfig } from "../../../services/ServiceConfig";
+import { ServiceConfig } from "../../../services/ServiceConfig";
 import { Util } from "../../../utility/util";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
@@ -17,7 +12,6 @@ import {
   MODES,
   OPS_ROLES,
   PAGES,
-  SCHOOL,
 } from "../../../common/constants";
 import ProfileSection from "./ProfileDetail";
 import SchoolSection from "./SchoolSection";
@@ -25,12 +19,10 @@ import ClassSection from "./ClassSection";
 import "./SideMenu.css";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { useHistory } from "react-router";
-import { PiUserSwitchFill } from "react-icons/pi";
 import { schoolUtil } from "../../../utility/schoolUtil";
 import CommonToggle from "../../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
 import DialogBoxButtons from "../../../components/parent/DialogBoxButtons​";
-import { ImSwitch } from "react-icons/im";
 import { t } from "i18next";
 import {
   updateLocalAttributes,
@@ -113,7 +105,7 @@ const SideMenu: React.FC<{
       setCurrentUserId(currentUser.id);
       let teacher_class_ids: string[] = [];
       const schoolList: any = [];
-      const roleMap = {};
+      const roleMap: Record<string, RoleType> = {};
 
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {
@@ -140,11 +132,6 @@ const SideMenu: React.FC<{
           return;
         }
 
-        // setClassData(classMap);
-        // const tempClass = Util.getCurrentClass();
-        // if (!tempClass) {
-        //   return;
-        // }
         setCurrentClassId(updatedClass.id);
         setcurrentClassDetail({
           id: updatedClass.id,

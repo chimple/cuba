@@ -2,7 +2,6 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AddCourse from "./AddCourse";
 import "@testing-library/jest-dom";
-import { t } from "i18next";
 import { DEFUALT_SUBJECT_CARD_COLOUR } from "../../common/constants";
 
 /* ---------------- MOCKS ---------------- */
@@ -11,12 +10,12 @@ const mockPresentToast = jest.fn();
 
 // mock slider
 jest.mock("@splidejs/react-splide", () => ({
-  Splide: ({ children }) => <div>{children}</div>,
-  SplideSlide: ({ children }) => <div>{children}</div>,
+  Splide: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SplideSlide: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 // mock icon image component
-jest.mock("./SelectIconImage", () => (props) => (
+jest.mock("./SelectIconImage", () => (props: { localSrc?: string; webSrc?: string }) => (
   <div
     data-testid="icon-mock"
     data-local-src={props.localSrc}
@@ -31,7 +30,7 @@ jest.mock("../Loading", () => () => <div>Loading...</div>);
 
 // mock i18n
 jest.mock("i18next", () => ({
-  t: (key) => key,
+  t: (key: string) => key,
 }));
 
 // mock online/offline hook

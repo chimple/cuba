@@ -1,4 +1,4 @@
-import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
+import { IonContent, IonPage } from "@ionic/react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./EditStudent.css";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
@@ -9,7 +9,6 @@ import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLa
 import {
   ACTION,
   LANGUAGE,
-  CURRENT_STUDENT,
   EVENTS,
   GENDER,
   PAGES,
@@ -17,10 +16,6 @@ import {
   TableTypes,
   EDIT_STUDENTS_MAP,
 } from "../common/constants";
-import { chevronForward } from "ionicons/icons";
-import Curriculum from "../models/curriculum";
-import Grade from "../models/grade";
-import Language from "../models/language";
 import Loading from "../components/Loading";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -142,13 +137,13 @@ const EditStudent = () => {
         );
         const eventParams = {
           user_id: student.id,
-          user_type: student.role,
+          user_type: undefined,
           user_name: student.name!,
           user_gender: student.gender,
           user_age: student.age,
-          phone_number: student.username,
-          parent_username: student.username,
-          parent_id: student.uid,
+          phone_number: undefined,
+          parent_username: undefined,
+          parent_id: undefined,
           action_type: ACTION.CREATE,
         };
 

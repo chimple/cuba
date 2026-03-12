@@ -59,8 +59,6 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import User from "../../models/user";
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
@@ -99,6 +97,7 @@ import {
 } from "../../teachers-module/pages/AssignmentCartStorage";
 import { runBackgroundWorkerStreamingSync } from "../../workers/backgroundWorkerClient";
 import { store } from "../../redux/store";
+import { Json } from "../database";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -113,7 +112,7 @@ export class SqliteApi implements ServiceApi {
   private _currentCourse:
     | Map<string, TableTypes<"course"> | undefined>
     | undefined;
-  private _syncTableData = {};
+  private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
 
   public static getI(): SqliteApi {
@@ -172,7 +171,10 @@ export class SqliteApi implements ServiceApi {
         const data = await fetch("databases/upgradeStatements.json");
 
         if (!data || !data.ok) return;
-        const upgradeStatementsMap: { [key: string]: string[] } =
+        const upgradeStatementsMap: Record<
+          string,
+          { statements?: string[]; tableChanges?: Record<string, string> }
+        > =
           await data.json();
 
         for (
@@ -260,21 +262,9 @@ export class SqliteApi implements ServiceApi {
   }
 
   private async setUpDatabase() {
-    //   console.log("🧱 setUpDatabase START", {
-    //   hasDb: !!this._db,
-    //   hasSqlite: !!this._sqlite,
-    //   DB_VERSION: this.DB_VERSION,
-    // });
+    
     if (!this._db || !this._sqlite) return;
-    // try {
-    //   const exportedData = await this._db.exportToJson("full");
-    //   console.log(
-    //     "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
-    //     JSON.stringify(exportedData.export?.tables)
-    //   );
-    // } catch (error) {
-    //   console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
-    // }
+   
     let res1: DBSQLiteValues | undefined = undefined;
     try {
       const stmt =
@@ -294,12 +284,7 @@ export class SqliteApi implements ServiceApi {
       res1.values[0].count < 10
     ) {
       try {
-        // const data = await fetch("databases/init_sqlite.json");
-        // if (!data || !data.ok) return;
-        // const queries = await data.json();
-        // for (const query of queries) {
-        //   const res298 = await this.executeQuery(query);
-        // }
+        
 
         try {
           //  console.log("⬇️ About to import SQLite schema from JSON");
@@ -313,9 +298,7 @@ export class SqliteApi implements ServiceApi {
             this.DB_VERSION.toString(),
           );
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
-          // if (!Capacitor.isNativePlatform())
-          // window.location.reload();
-          //  console.warn("🔄 Reloading app after DB import");
+          
           window.location.replace(BASE_NAME || "/");
           return;
         } catch (error) {
@@ -351,8 +334,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    // console.log("✅ SQLite DB is READY");
-    // Move sync logic to a separate method that can be called after full initialization
+   
     await this.checkAndSyncData();
   }
 
@@ -691,50 +673,7 @@ export class SqliteApi implements ServiceApi {
     }
     const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
-    // if (batchQueries.length > 0) {
-    //   try {
-    //     if (Capacitor.getPlatform() === "web") {
-    //       const chunkSize = 100;
-
-    //       for (let i = 0; i < batchQueries.length; i += chunkSize) {
-    //         const chunk = batchQueries.slice(i, i + chunkSize);
-    //         let manualTransaction = false;
-    //         try {
-    //           // Try to start a transaction manually
-    //           try {
-    //             await this._db.run("BEGIN TRANSACTION;");
-    //             manualTransaction = true;
-    //           } catch (beginErr) {}
-
-    //           for (const q of chunk) {
-    //             await this._db.run(q.statement, q.values);
-    //           }
-
-    //           if (manualTransaction) {
-    //             await this._db.run("COMMIT;");
-    //           }
-    //         } catch (chunkErr) {
-    //           console.error(
-    //             `SqliteApi: Error in chunk ${i / chunkSize + 1}`,
-    //             chunkErr,
-    //           );
-
-    //           if (manualTransaction) {
-    //             try {
-    //               await this._db.run("ROLLBACK;");
-    //             } catch (rbErr) {}
-    //           }
-    //           throw chunkErr;
-    //         }
-    //       }
-    //       await this._sqlite?.saveToStore(this.DB_NAME);
-    //     } else {
-    //       await this._db.executeSet(batchQueries);
-    //     }
-    //   } catch (error) {
-    //     console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
-    //   }
-    // }
+    
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
@@ -1711,92 +1650,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  // async deleteProfile(studentId: string) {
-  //   if (!this._db) return;
-  //   try {
-  //     const authHandler = ServiceConfig.getI()?.authHandler;
-  //     const currentUser = await authHandler?.getCurrentUser();
-  //     if (!currentUser) return;
-  //     await this._serverApi.deleteProfile(studentId);
-
-  //     const localParentId = currentUser.id;
-
-  //     // Check if the student is connected to any class
-  //     const classResult = await this._db.query(
-  //       `SELECT class_id FROM class_user WHERE user_id = ? AND is_deleted = 0 LIMIT 1`,
-  //       [studentId]
-  //     );
-  //     const localClassId =
-  //       classResult?.values && classResult.values.length > 0
-  //         ? classResult.values[0].class_id
-  //         : null;
-  //     if (localClassId) {
-  //       // Remove the student's connection to the class
-  //       await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
-  //         studentId,
-  //       ]);
-
-  //       // Check if any other child of the parent is connected to the same class
-  //       const otherChildrenConnected = await this._db.query(
-  //         `
-  //         SELECT 1
-  //          FROM class_user cu
-  //          JOIN parent_user pu ON cu.user_id = pu.student_id
-  //          WHERE cu.class_id = ?
-  //          AND pu.parent_id = ?
-  //          AND pu.student_id != ?
-  //          AND cu.is_deleted = 0
-  //          AND pu.is_deleted = 0
-  //        `,
-  //         [localClassId, localParentId, studentId]
-  //       );
-  //       // If no other child is connected, remove the parent's connection from the class
-  //       if (
-  //         otherChildrenConnected.values == null ||
-  //         otherChildrenConnected.values.length < 1 ||
-  //         !otherChildrenConnected.values[0]
-  //       ) {
-  //         await this.executeQuery(
-  //           `
-  //         DELETE FROM class_user
-  //         WHERE class_id = ?
-  //         AND user_id = ?
-  //         AND role = 'parent'`,
-  //           [localClassId, localParentId]
-  //         );
-  //       }
-  //     }
-
-  //     // Remove the student's connection to the parent and other related records
-  //     await this.executeQuery(`DELETE FROM parent_user WHERE student_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM user_badge WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM user_bonus WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM user_course WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM user_sticker WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM assignment_user WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM favorite_lesson WHERE user_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM result WHERE student_id = ?`, [
-  //       studentId,
-  //     ]);
-  //     await this.executeQuery(`DELETE FROM user WHERE id = ?`, [studentId]);
-  //   } catch (error) {
-  //     console.error("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
-  //   }
-  // }
 
   async deleteProfile(studentId: string) {
     if (!this._db) return;
@@ -3241,7 +3094,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query);
     console.log("🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:", res?.values);
     if (!res || !res.values || res.values.length < 1) return {};
-    const resultMap = {};
+    const resultMap: { [lessonDocId: string]: TableTypes<"result"> } = {};
     for (const data of res.values) {
       resultMap[data.lesson_id] = data;
     }
@@ -4588,7 +4441,17 @@ export class SqliteApi implements ServiceApi {
     const cart = readAssignmentCartFromStorage(userId);
     return cart;
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
     const query = `
       SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
       FROM ${TABLES.Result} r
@@ -4598,14 +4461,22 @@ export class SqliteApi implements ServiceApi {
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
-    let resultMap: Map<string, string> = new Map<string, string>();
+    const resultMap: Record<
+      string,
+      (TableTypes<"result"> & { lesson_name?: string; chapter_name?: string })[]
+    > = {};
     if (res && res.values) {
       res.values.forEach((result) => {
         const courseId = result.course_id;
         if (!resultMap[courseId]) {
           resultMap[courseId] = [];
         }
-        resultMap[courseId].push(result);
+        resultMap[courseId].push(
+          result as TableTypes<"result"> & {
+            lesson_name?: string;
+            chapter_name?: string;
+          },
+        );
       });
     }
     return resultMap;
@@ -7111,6 +6982,7 @@ order by
     });
 
     for (const course of coursesToAdd) {
+      if (!course) continue;
       const newUserCourse: TableTypes<"user_course"> = {
         course_id: course.id,
         created_at: new Date().toISOString(),
@@ -7282,10 +7154,19 @@ order by
     orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string,
-  ) {
+  ): Promise<{
+    data: Array<TableTypes<"ops_requests"> | Record<string, Json>>;
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  }> {
     throw new Error("Method not implemented.");
   }
-  async getRequestFilterOptions() {
+  async getRequestFilterOptions(): Promise<{
+    requestType: Array<string | null>;
+    school: { id: string; name: string }[];
+  } | null> {
     throw new Error("Method not implemented.");
   }
   async searchStudentsInSchool(
@@ -7846,7 +7727,10 @@ order by
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
-  }) {
+  }): Promise<{
+    data: TableTypes<"fc_user_forms"> | null;
+    error: object | null;
+  }> {
     throw new Error("Method not implemented.");
   }
   public async getTodayVisitId(
@@ -7865,7 +7749,10 @@ order by
   ): Promise<TableTypes<"fc_school_visit">[]> {
     return this._serverApi.getSchoolVisitById(visitIds);
   }
-  async getActivitiesFilterOptions() {
+  async getActivitiesFilterOptions(): Promise<{
+    contactType: Array<string | null>;
+    performance: Array<string | null>;
+  } | null> {
     throw new Error("Method not implemented.");
   }
 
@@ -8383,8 +8270,11 @@ order by
     return await this._serverApi.getUserWonStickerBooks(userId);
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
-    return await this._serverApi.getNextWinnableSticker(stickerBookId);
+  async getNextWinnableSticker(
+    stickerBookId: string,
+    userId?: string,
+  ): Promise<string | null> {
+    return await this._serverApi.getNextWinnableSticker(stickerBookId, userId);
   }
 
   async updateStickerWon(

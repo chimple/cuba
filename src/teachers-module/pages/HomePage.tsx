@@ -20,6 +20,8 @@ import {
   LANGUAGE,
   PAGES,
   STATUS,
+  TABLEDROPDOWN,
+  TABLESORTBY,
   TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
@@ -32,17 +34,16 @@ import {
   useGbContext,
 } from "../../growthbook/Growthbook";
 import { toPng } from "html-to-image";
-import { IoShareSocialSharp } from "react-icons/io5";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
     tabValue?: number;
     isAssignments?: boolean;
-    selectedType?: string;
-    sortType?: string;
-    startDate?: string;
-    endDate?: string;
+    selectedType?: TABLEDROPDOWN;
+    sortType?: TABLESORTBY;
+    startDate?: Date;
+    endDate?: Date;
   }>();
   // 1) Safely grab tabValue (default to 0)
   const initialTab = location.state?.tabValue ?? 0;
@@ -287,20 +288,7 @@ const HomePage: React.FC = () => {
               />
             }
           />
-          {/* <BottomNavigationAction
-            label={t("Library")}
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  tabValue === 1
-                    ? "assets/icons/bookSelected.png"
-                    : "assets/icons/book.png"
-                }
-                alt=""
-              />
-            }
-          /> */}
+         
           <BottomNavigationAction
             value={2}
             label={t("Assign")}

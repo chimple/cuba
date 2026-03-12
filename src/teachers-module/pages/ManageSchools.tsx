@@ -4,19 +4,16 @@ import {
   IonContent,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonSpinner,
 } from "@ionic/react";
 import { IconType, PAGES, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleType } from "../../interface/modelInterfaces";
 import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
 import "./ManageSchools.css";
 import { t } from "i18next";
 import DetailList from "../components/schoolComponent/DetailList";
 import { Util } from "../../utility/util";
-import UploadButton from "../../ops-console/components/UploadButton";
 import DetailListHeader from "../components/schoolComponent/DetailListHeader";
 import Loading from "../../components/Loading";
 
@@ -167,19 +164,6 @@ const ManageSchools: React.FC = () => {
         )}
       </IonContent>
 
-      {/* Original commented out code */}
-      {/* {isManagerOrDirector && (
-        <UploadButton
-          onClick={() => {
-            history.replace(PAGES.UPLOAD_PAGE);
-          }}
-        />
-      )} */}
-      {/* <AddButton
-        onClick={() => {
-          history.replace(PAGES.REQ_ADD_SCHOOL);
-        }}
-      /> */}
     </IonPage>
   );
 };

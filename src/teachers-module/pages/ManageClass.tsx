@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  CLASS,
   CLASSES,
   IconType,
   PAGES,
-  SCHOOL,
   TableTypes,
   OPS_ROLES
 } from "../../common/constants";

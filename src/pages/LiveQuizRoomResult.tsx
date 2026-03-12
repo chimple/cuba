@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./LiveQuizRoomResult.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentAvatar from "../components/common/StudentAvatar";
-import User from "../models/user";
 import Confetti from "react-confetti";
 import NextButton from "../components/common/NextButton";
 import { useHistory } from "react-router";
@@ -20,7 +19,12 @@ const LiveQuizRoomResult: React.FC = () => {
   );
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
-  const [sortedStudentScores, setSortedStudentScores] = useState<any[]>([]);
+  type Participant = {
+    studentDocId: string;
+    totalScore: number;
+    totalTimeSpent: number;
+  };
+  const [sortedStudentScores, setSortedStudentScores] = useState<Participant[]>([]);
   const [isCongratsVisible, setCongratsVisible] = useState(true);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
@@ -47,15 +51,19 @@ const LiveQuizRoomResult: React.FC = () => {
       }
 
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      type Participant = {
-        studentDocId: string;
-        totalScore: number;
-        totalTimeSpent: number;
-      };
+      const parsedResults =
+        liveQuizRoomResults &&
+        typeof liveQuizRoomResults === "object" &&
+        !Array.isArray(liveQuizRoomResults)
+          ? (liveQuizRoomResults as Record<
+              string,
+              Array<{ score: number; timeSpent: number }>
+            >)
+          : {};
       const studentResults: Participant[] = [];
-      if (liveQuizRoomResults) {
-        Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
-          const studentResult = liveQuizRoomResults[studentDocId];
+      if (Object.keys(parsedResults).length > 0) {
+        Object.keys(parsedResults).forEach((studentDocId) => {
+          const studentResult = parsedResults[studentDocId];
           const totalScore = studentResult.reduce(
             (acc: number, question) => acc + question.score,
             0

@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router";
-import { IonIcon } from "@ionic/react";
-import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
 import { t } from "i18next";
 import "./QRAssignments.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
@@ -234,26 +232,7 @@ const QRAssignments: React.FC = () => {
                       {t(lesson.chapterName ?? "")}
                     </div>
                   </div>
-                  {/* 
-                  {lesson.isSelected ? (
-                    <span
-                      id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
-                      className="qrAssignments-toggle-circle is-selected"
-                      onClick={() => toggleLesson(lesson.id)}
-                    >
-                      <img
-                        src="assets/tick.png"
-                        alt=""
-                        className="qrAssignments-toggle-check"
-                      />
-                    </span>
-                  ) : (
-                    <span
-                      id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
-                      className="qrAssignments-toggle-circle is-unselected"
-                      onClick={() => toggleLesson(lesson.id)}
-                    />
-                  )} */}
+                  
                   <button
                     type="button"
                     id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}

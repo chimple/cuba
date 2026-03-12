@@ -1,5 +1,4 @@
 import React from 'react';
-import User from '../models/user';
 import "./UserImageWithName.css"
 interface UserImageWithNameProps {
     userDocId: string,

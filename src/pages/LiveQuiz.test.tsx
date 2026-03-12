@@ -1,5 +1,5 @@
 import React from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import LiveQuiz from "./LiveQuiz";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";

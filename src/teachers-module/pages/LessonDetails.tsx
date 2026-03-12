@@ -4,7 +4,6 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import { t } from "i18next";
 import "./LessonDetails.css";
-import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import {
@@ -19,44 +18,49 @@ import {
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
-import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 interface LessonDetailsProps {}
+type LessonDetailsState = {
+  course?: TableTypes<"course">;
+  lesson?: TableTypes<"lesson">;
+  fromCocos?: boolean;
+  chapterId?: string;
+  selectedLesson?: Map<string, string> | Array<[string, string]>;
+  chapterName?: string;
+  gradeName?: string;
+  from?: string;
+};
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-  const state = history.location.state as any;
-  const course: TableTypes<"course"> = history.location.state?.[
-    "course"
-  ] as TableTypes<"course">;
-  const lesson: TableTypes<"lesson"> = history.location.state?.[
-    "lesson"
-  ] as TableTypes<"lesson">;
-  const fromCocos: boolean = state?.["fromCocos"] as boolean;
-  const [chapterId, setChapterId] = useState(state?.["chapterId"] as string);
+  const state = (history.location.state ?? {}) as LessonDetailsState;
+  const course: TableTypes<"course"> | undefined = state.course;
+  const lesson: TableTypes<"lesson"> = state.lesson as TableTypes<"lesson">;
+  const fromCocos: boolean = Boolean(state.fromCocos);
+  const [chapterId, setChapterId] = useState(state.chapterId ?? "");
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
-  const selectedLesson = state?.["selectedLesson"];
-  const chapterName = state?.["chapterName"];
-  const gradeName = state?.["gradeName"];
+  const selectedLesson = state.selectedLesson;
+  const chapterName = state.chapterName;
+  const gradeName = state.gradeName;
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
     null,
   );
   const [subjectName, setSubjectName] = useState<string>(course?.name ?? "");
   const [selectedLessonMap, setSelectedLessonMap] = useState<
     Map<string, string>
-  >(new Map(selectedLesson));
+  >(new Map(selectedLesson ?? []));
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
 
-  const syncSelectedLesson = async (lesson) => {
+  const syncSelectedLesson = async (lesson: string): Promise<void> => {
     var current_user = await auth.getCurrentUser();
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
@@ -168,16 +172,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           [AssignmentSource.MANUAL]: [...value],
         });
       } else if (typeof value === "object" && value !== null) {
-        // New format
-        Object.keys(value).forEach((key) => {
-          if (
-            key !== AssignmentSource.MANUAL &&
-            key !== AssignmentSource.QR_CODE
-          ) {
-            delete value[key];
-          }
-        });
-        class_sync_lesson.set(chapterId, value);
+        const sourceValue = value as Record<string, string[]>;
+        const normalizedValue: Partial<Record<AssignmentSource, string[]>> = {};
+        const manual = sourceValue[AssignmentSource.MANUAL];
+        const qr = sourceValue[AssignmentSource.QR_CODE];
+        if (Array.isArray(manual)) {
+          normalizedValue[AssignmentSource.MANUAL] = manual;
+        }
+        if (Array.isArray(qr)) {
+          normalizedValue[AssignmentSource.QR_CODE] = qr;
+        }
+        class_sync_lesson.set(chapterId, normalizedValue);
       }
     });
     setClassSelectedLesson(class_sync_lesson);

@@ -4,7 +4,6 @@ import Sidebar from "../../components/malta/Dashboard/Sidebar";
 import Dropdowns from "../../components/malta/Dropdowns";
 import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
 import { t } from "i18next";
-import DashboardTable from "../../components/DashboardTable/DashboardTable";
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -52,7 +51,7 @@ const Dashboard: React.FC = () => {
         </div>
         <DashboardStats />
       </div>
-      {/* <DashboardTable studentsData={{}} headerData={[]}/> */}
+      
       <button className="floating-button">+</button>
     </>
   );

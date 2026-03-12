@@ -1,14 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   IonIcon,
-  IonItem,
-  IonLabel,
   IonSelect,
   IonSelectOption,
 } from "@ionic/react";
 import "./CustomDropdown.css";
 import { arrowDown, caretDownSharp } from "ionicons/icons";
-import { ArrowDownward } from "@mui/icons-material";
 import { t } from "i18next";
 interface CustomDropdownProps extends React.ComponentProps<typeof IonSelect> {
   icon?: string;

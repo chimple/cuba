@@ -3,8 +3,6 @@ import "./CreateSelectedAssignment.css"; // Assuming you will have a separate CS
 import { IonIcon } from "@ionic/react";
 import {
   calendarOutline,
-  chevronDownOutline,
-  chevronUpOutline,
 } from "ionicons/icons";
 import {
   ALL_SUBJECT,
@@ -13,6 +11,7 @@ import {
   BANDS,
   BANDWISECOLOR,
   PAGES,
+  TableTypes,
 } from "../../../../common/constants";
 import { ClassUtil } from "../../../../utility/classUtil";
 import { Util } from "../../../../utility/util";
@@ -42,17 +41,58 @@ interface SubjectGroup {
   subject: string;
   chapters: Chapter[];
 }
+
+type SelectableStudent = TableTypes<"user"> & { selected?: boolean };
+
+interface BandStudentGroup {
+  title: string;
+  isCollapsed: boolean;
+  color: string;
+  students: SelectableStudent[];
+}
+
+type GroupWiseStudents = Record<string, BandStudentGroup>;
+
+interface SubjectAssignmentSelection {
+  count: string[];
+}
+
+type AssignmentCountOnly = {
+  count: number;
+};
+
+type SelectedAssignments = Record<
+  string,
+  Record<string, SubjectAssignmentSelection | AssignmentCountOnly>
+> & {
+  length?: number;
+};
+
+interface AssignmentBucket {
+  lessons: (TableTypes<"lesson"> & { source?: string | null })[];
+}
+
+type AssignmentLookup = Record<string, AssignmentBucket>;
+
+interface CreateSelectedAssignmentProps {
+  selectedAssignments: SelectedAssignments;
+  manualAssignments: AssignmentLookup;
+  recommendedAssignments: AssignmentLookup;
+}
+
 const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
-}) => {
+}: CreateSelectedAssignmentProps) => {
   const history = useHistory();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const [groupWiseStudents, setGroupWiseStudents] = useState({});
+  const [groupWiseStudents, setGroupWiseStudents] = useState<GroupWiseStudents>(
+    {},
+  );
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [maxEndDate, setMaxEndDate] = useState("");
@@ -100,7 +140,7 @@ const CreateSelectedAssignment = ({
 
     //  Selecting all student Bands
     _studentList.forEach((category) => {
-      category.forEach((student: any) => {
+      category.forEach((student: SelectableStudent) => {
         student.selected = true;
       });
     });
@@ -155,7 +195,13 @@ const CreateSelectedAssignment = ({
         for (const subjectId of Object.keys(selectedAssignments[type])) {
           const subjectData = selectedAssignments[type][subjectId];
 
-          if (!subjectData || subjectId === "count") continue;
+          if (
+            !subjectData ||
+            subjectId === "count" ||
+            !Array.isArray(subjectData.count)
+          ) {
+            continue;
+          }
 
           const tempLessons =
             type === TeacherAssignmentPageType.MANUAL
@@ -168,9 +214,10 @@ const CreateSelectedAssignment = ({
           }
           // Process lessons asynchronously in parallel
           await Promise.all(
-            subjectData.count.map(async (lessonId) => {
+            subjectData.count.map(async (lessonId: string) => {
               const tempLes = tempLessons.find(
-                (les: any) => les.id === lessonId
+                (les: TableTypes<"lesson"> & { source?: string | null }) =>
+                  les.id === lessonId,
               );
               if (!tempLes) {
                 console.warn(`Lesson not found for lessonId: ${lessonId}`);
@@ -220,8 +267,8 @@ const CreateSelectedAssignment = ({
     }
   };
 
-  const toggleCollapse = (category) => {
-    setGroupWiseStudents((bandStudents) => ({
+  const toggleCollapse = (category: string) => {
+    setGroupWiseStudents((bandStudents: GroupWiseStudents) => ({
       ...bandStudents,
       [category]: {
         ...bandStudents[category],
@@ -234,11 +281,11 @@ const CreateSelectedAssignment = ({
     const newAllSelected = !allSelected;
     setAllSelected(newAllSelected);
     // Update all bands' students' selection state
-    setGroupWiseStudents((bandStudents) => {
+    setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       Object.keys(updatedBands).forEach((band) => {
         updatedBands[band].students = updatedBands[band].students.map(
-          (student) => ({
+          (student: SelectableStudent) => ({
             ...student,
             selected: newAllSelected,
           })
@@ -248,8 +295,8 @@ const CreateSelectedAssignment = ({
     });
   };
 
-  const toggleStudentSelection = (category, index) => {
-    setGroupWiseStudents((bandStudents) => {
+  const toggleStudentSelection = (category: string, index: number) => {
+    setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       const students = [...updatedBands[category].students];
       students[index].selected = !students[index].selected;
@@ -257,7 +304,9 @@ const CreateSelectedAssignment = ({
 
       // Recalculate if "Select All" should be checked
       const allSelectedBands = Object.keys(updatedBands).every((band) =>
-        updatedBands[band].students.every((student) => student.selected)
+        updatedBands[band].students.every(
+          (student: SelectableStudent) => student.selected,
+        ),
       );
 
       setAllSelected(allSelectedBands);
@@ -267,15 +316,17 @@ const CreateSelectedAssignment = ({
   useEffect(() => {
     // Check if all bands are selected initially
     const initialAllSelected = Object.keys(groupWiseStudents).every((band) =>
-      groupWiseStudents[band].students.every((student) => student.selected)
+      groupWiseStudents[band].students.every(
+        (student: SelectableStudent) => student.selected,
+      ),
     );
     setAllSelected(initialAllSelected);
   }, [groupWiseStudents]);
 
-  const getSelectedStudentList = (studentsMap) => {
+  const getSelectedStudentList = (studentsMap: GroupWiseStudents) => {
     let studentList: string[] = [];
     Object.keys(studentsMap).forEach((group) => {
-      studentsMap[group]?.students.forEach((student) => {
+      studentsMap[group]?.students.forEach((student: SelectableStudent) => {
         if (student?.selected) {
           studentList.push(student.id);
         }
@@ -406,7 +457,13 @@ const CreateSelectedAssignment = ({
       for (const type of Object.keys(selectedAssignments)) {
         for (const subjectId of Object.keys(selectedAssignments[type])) {
           const subjectData = selectedAssignments[type][subjectId];
-          if (!subjectData || subjectId === "count") continue;
+          if (
+            !subjectData ||
+            subjectId === "count" ||
+            !Array.isArray(subjectData.count)
+          ) {
+            continue;
+          }
 
           for (const lessonId of subjectData.count) {
             for (const [chapterId, sourceMap] of sync_lesson.entries()) {
@@ -473,7 +530,13 @@ const CreateSelectedAssignment = ({
         for (const subjectId of Object.keys(selectedAssignments[type])) {
           const subjectData = selectedAssignments[type][subjectId];
 
-          if (!subjectData || subjectId === "count") continue;
+          if (
+            !subjectData ||
+            subjectId === "count" ||
+            !Array.isArray(subjectData.count)
+          ) {
+            continue;
+          }
 
           const tempLessons =
             type === TeacherAssignmentPageType.MANUAL
@@ -485,10 +548,12 @@ const CreateSelectedAssignment = ({
             continue;
           }
           // Process lessons asynchronously in parallel
+          const lessonIds = subjectData.count;
           await Promise.all(
-            subjectData.count.map(async (lessonId, idx) => {
+            lessonIds.map(async (lessonId: string, idx: number) => {
               const tempLes = tempLessons.find(
-                (les: any) => les.id === lessonId
+                (les: TableTypes<"lesson"> & { source?: string | null }) =>
+                  les.id === lessonId,
               );
               if (!tempLes) {
                 console.warn(`Lesson not found for lessonId: ${lessonId}`);
@@ -706,7 +771,7 @@ const CreateSelectedAssignment = ({
                   <div className="select-all-student-count">
                     {
                       groupWiseStudents[category].students.filter(
-                        (student) => student.selected
+                        (student: SelectableStudent) => student.selected
                       ).length
                     }
                     /{groupWiseStudents[category].students.length}
@@ -726,7 +791,7 @@ const CreateSelectedAssignment = ({
                     checked={
                       groupWiseStudents[category].students.length > 0
                         ? groupWiseStudents[category].students.every(
-                            (student) => student.selected
+                            (student: SelectableStudent) => student.selected
                           )
                         : true
                     }
@@ -735,11 +800,13 @@ const CreateSelectedAssignment = ({
                     onChange={() => {
                       const allSelected = groupWiseStudents[
                         category
-                      ].students.every((student) => student.selected);
-                      setGroupWiseStudents((bandStudents) => {
+                      ].students.every(
+                        (student: SelectableStudent) => student.selected,
+                      );
+                      setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
                         const updatedStudents = bandStudents[
                           category
-                        ].students.map((student) => ({
+                        ].students.map((student: SelectableStudent) => ({
                           ...student,
                           selected: !allSelected,
                         }));
@@ -759,7 +826,7 @@ const CreateSelectedAssignment = ({
               {!groupWiseStudents[category].isCollapsed && (
                 <ul className="students-list">
                   {groupWiseStudents[category].students.map(
-                    (student, index) => (
+                    (student: SelectableStudent, index: number) => (
                       <div>
                         <li key={index} className="student-item">
                           <span>{student.name}</span>
@@ -784,7 +851,7 @@ const CreateSelectedAssignment = ({
 
         <button
           className="assign-selected-button"
-          disabled={selectedAssignments.length > 0}
+          disabled={(selectedAssignments.length ?? 0) > 0}
           onClick={createAssignmentsForStudents}
         >
           {t("Assign")}

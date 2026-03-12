@@ -52,7 +52,7 @@ export class AvatarObj {
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 60;
-  weeklyTimeSpent: {} = { min: 0, sec: 0 };
+  weeklyTimeSpent: { min: number; sec: number } = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
@@ -219,27 +219,15 @@ export class AvatarObj {
           this._currentSuggestionNumber = 0;
         }
         const path = "assets/animation/avatarSugguestions.json";
-        // localStorage.getItem("avatarSuggestionJsonLocation") ||
-        // "assets/animation/avatarSugguestions.json";
-
-        // let response = await fetch(path);
-        let response;
-        // try {
-        //   response = await Filesystem.readFile({
-        //     path: path,
-        //   });
-        //   let suggesstionJson = await response.data;
-
        
-
-        //   this._allSuggestions = JSON.parse(suggesstionJson).data;
-        // } catch (error) {
+        let response;
+        
 
         response = await fetch(path);
         let suggesstionJson = await response.json();
 
         this._allSuggestions = suggesstionJson.data;
-        // }
+        
       }
 
       const currentAvatarSuggestionNoFromLocal = this.getCurrentSuggestionNo();

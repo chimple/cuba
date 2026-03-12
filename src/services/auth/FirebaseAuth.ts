@@ -20,11 +20,9 @@ import {
 import { RoleType } from "../../interface/modelInterfaces";
 import {
   FirebaseAuthentication,
-  // SignInWithPhoneNumberResult,
+ 
 } from "@capacitor-firebase/authentication";
-// import { cfaSignIn } from "capacitor-firebase-auth-x";
-// import { FirebaseAuthentication } from "@awesome-cordova-plugins/firebase-authentication";
-// import { getFirebaseAuth } from "../Firebase";
+
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
@@ -54,17 +52,7 @@ export class FirebaseAuth implements ServiceAuth {
     return FirebaseAuth.i;
   }
 
-  // public static whichAuth() {
-  //   let auth;
-  //   if (Capacitor.isNativePlatform()) {
-  //     auth = initializeAuth(getApp(), {
-  //       persistence: indexedDBLocalPersistence,
-  //     });
-  //   } else {
-  //     auth = getAuth(getApp());
-  //   }
-  //   return auth;
-  // }
+
   private async updateUserPreferenceLanguage() {
     if (!!this._currentUser) {
       const appLang = localStorage.getItem(LANGUAGE);
@@ -223,35 +211,13 @@ export class FirebaseAuth implements ServiceAuth {
 
   public async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented");
-    // try {
-    //   if (this._currentUser) return this._currentUser;
-    //   const currentUser = this._auth.currentUser;
     
-    //   // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-    //   
-
-    //   // if (!currentUser) {
-    //   //   currentUser = getAuth().currentUser;
-    //   
-    //   // }
-    //   if (!currentUser) return;
-    //   const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-    //   this.updateUserPreferenceLanguage();
-    //   this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-    
-    //   this._currentUser.docId = tempUserDoc.id;
-    //   return this._currentUser;
-    // } catch (error) {
-    
-    // }
   }
 
   public set currentUser(value: User) {
     this._currentUser = value;
   }
-  // public set updatecurrentUser(user: TableTypes<"user">) {
-  //     this._currentUser = user;
-  // }
+
 
   public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
     try {
@@ -259,12 +225,7 @@ export class FirebaseAuth implements ServiceAuth {
       let result: any;
       if (Capacitor.isNativePlatform()) {
         try {
-          // let res = await FirebaseAuthentication.verifyPhoneNumber(
-          //   phoneNumber,
-          //   0
-          // ).then((verificationId) => {
           
-          // });
 
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
@@ -281,15 +242,7 @@ export class FirebaseAuth implements ServiceAuth {
                   }
                 );
 
-                // // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
-                // await FirebaseAuthentication.addListener(
-                //   "authStateChange",
-                //   async (event) => {
-                
-
-                //     resolve(event);
-                //   }
-                // );
+               
 
                 await FirebaseAuthentication.addListener(
                   "phoneVerificationFailed",
@@ -349,10 +302,7 @@ export class FirebaseAuth implements ServiceAuth {
         return result;
       }
 
-      // if (verificationId) {
-      
-      //   proceedWithVerificationCode(verificationId);
-      // }
+
     } catch (error) {
       throw error;
     }
@@ -393,20 +343,12 @@ export class FirebaseAuth implements ServiceAuth {
     verificationCode
   ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     try {
-      // const verificationCode = e.detail.data.values[0];
+     
       if (!verificationCode || verificationCode.length < 6) {
         return;
       }
 
-      // Confirm the verification code
-      // const credential =
-      //   await FirebaseAuthentication.confirmVerificationCode({
-      //     verificationId: result.verificationId,
-      //     verificationCode,
-      //   });
-      // if (!confirmVerificationCredential.credential) {
-      //   return;
-      // }
+     
       const functions = getFunctions();
       const generateCustomTocken = httpsCallable(
         functions,
@@ -417,10 +359,7 @@ export class FirebaseAuth implements ServiceAuth {
         otp: verificationCode,
       });
       const response = result.data as Map<string, string>;
-      // const credential = PhoneAuthProvider.credential(
-      //   result.verificationId,
-      //   verificationCode
-      // );
+      
       const auth = await getAuth();
       if (response["error"] != null) {
         throw Error(response["error"]);
@@ -429,17 +368,10 @@ export class FirebaseAuth implements ServiceAuth {
         token: response["customToken"],
       });
       let res = await signInWithCustomToken(auth, response["customToken"]);
-      // let res = await signInWithCredential(auth, credential);
+      
       const u = await FirebaseAuthentication.getCurrentUser();
 
       
-      // Success!
-
-      // await FirebaseAuthentication.confirmVerificationCode({
-      //   verificationId: result.verificationId,
-      //   verificationCode,
-      // });
-
       
       
 
@@ -507,30 +439,7 @@ export class FirebaseAuth implements ServiceAuth {
     throw new Error("Method not implemented");
     
 
-    // const user = await this.getCurrentUser();
     
-    // if (!!user) return true;
-    
-    // // if (!user && Capacitor.isNativePlatform()) return false;
-
-    // const res = localStorage.getItem(CURRENT_USER);
-    
-    // if (!res) return false;
-    // for (var i = 0; i < 1000; i++) {
-    //   await new Promise((res) => setTimeout(res, 100));
-    //   const user = await this.getCurrentUser();
-    
-    //   if (!!user) {
-    //     await FirebaseAnalytics.setUserId({
-    //       userId: user.id,
-    //     });
-    //     Util.setUserProperties(user);
-    //     return true;
-    //   }
-    // }
-    // localStorage.removeItem(CURRENT_USER);
-    // if (!user) return false;
-    // return false;
   }
 
   async logOut(): Promise<void> {

@@ -11,16 +11,13 @@
 .score-card-first-star {
   width: 28px;
   height: 27px;
-  /* float: left; 
-  position: relative; 
-  transform: translateY(-5vh); */
+ 
 }
 
 .score-card-middle-star {
   width: 28px;
   height: 27px;
-  /* float: left;
-  position: relative; */
+  
   margin: 0 2px;
   transform: translateY(20px);
 }

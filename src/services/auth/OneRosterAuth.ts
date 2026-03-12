@@ -1,9 +1,5 @@
-import { DocumentReference } from "firebase/firestore";
-import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { ConfirmationResult } from "@firebase/auth";
-import { Database } from "../database";
 import { TableTypes } from "../../common/constants";
 import { UserAttributes } from "@supabase/supabase-js";
 

@@ -1,4 +1,3 @@
-import { DocumentData, Unsubscribe } from "firebase/firestore";
 import {
   SchoolVisitAction,
   SchoolVisitType,
@@ -20,7 +19,6 @@ import {
   STARS_COUNT,
   EVENTS,
   SchoolRoleMap,
-  MODEL,
   FilteredSchoolsForSchoolListingOps,
   COURSES,
   CHIMPLE_HINDI,
@@ -32,7 +30,6 @@ import {
   TabType,
   PROGRAM_TAB,
   AVATARS,
-  ROLE_PRIORITY,
   StudentAPIResponse,
   StudentInfo,
   TeacherAPIResponse,
@@ -60,8 +57,6 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import User from "../../models/user";
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
@@ -70,7 +65,7 @@ import {
   SchoolProgramAccessRow,
   ServiceApi,
 } from "./ServiceApi";
-import { Database } from "../database";
+import { Database, Json } from "../database";
 import {
   PostgrestSingleResponse,
   RealtimeChannel,
@@ -720,7 +715,11 @@ export class SupabaseApi implements ServiceApi {
         });
       }
       tableNames.map(async (tableName) => {
-        data.set(tableName, res?.data?.[tableName] ?? []);
+        const payload =
+          res?.data && typeof res.data === "object" && !Array.isArray(res.data)
+            ? (res.data as Record<string, Json>)
+            : {};
+        data.set(tableName, (payload[tableName] as Json[]) ?? []);
       });
       return data;
     } catch (err: any) {
@@ -741,302 +740,6 @@ export class SupabaseApi implements ServiceApi {
       throw err;
     }
   }
-  // async getTablesData(
-  //   tableNames: TABLES[] = Object.values(TABLES),
-  //   tablesLastModifiedTime: Map<string, string> = new Map(),
-  //   isInitialFetch = false
-  // ): Promise<Map<string, any[]>> {
-  //   try {
-  //     const data = new Map<string, any[]>();
-
-  //     const fetchPromises = tableNames.map(async (tableName) => {
-  //       const lastModifiedDate =
-  //         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-  //       let rpcName;
-  //       let res;
-  //       switch (tableName) {
-  //         case TABLES.Assignment: {
-  //           rpcName = "sql_get_assignments";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Assignment_cart: {
-  //           rpcName = "sql_get_assignment_cart";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Assignment_user: {
-  //           rpcName = "sql_get_assignment_users";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Badge: {
-  //           rpcName = "sql_get_badge";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Chapter: {
-  //           rpcName = "sql_get_chapter";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.ChapterLesson: {
-  //           rpcName = "sql_get_chapter_lesson";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Class: {
-  //           rpcName = "sql_get_class";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.ClassCourse: {
-  //           rpcName = "sql_get_class_course";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.ClassInvite_code: {
-  //           rpcName = "sql_get_class_invite_codes";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.ClassUser: {
-  //           rpcName = "sql_get_class_user";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.OpsRequests: {
-  //           rpcName = "sql_get_ops_requests";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Course: {
-  //           rpcName = "sql_get_course";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Curriculum: {
-  //           rpcName = "sql_get_curriculum";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.FavoriteLesson: {
-  //           rpcName = "sql_get_favorite_lessons";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Grade: {
-  //           rpcName = "sql_get_grade";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Language: {
-  //           rpcName = "sql_get_language";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Lesson: {
-  //           rpcName = "sql_get_lessons";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.ParentUser: {
-  //           rpcName = "sql_get_parent_users";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-
-  //         case TABLES.Result: {
-  //           rpcName = "sql_get_results";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Reward: {
-  //           rpcName = "sql_get_reward";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.School: {
-  //           rpcName = "sql_get_schools";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.SchoolCourse: {
-  //           rpcName = "sql_get_school_courses";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.SchoolUser: {
-  //           rpcName = "sql_get_school_user";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Sticker: {
-  //           rpcName = "sql_get_sticker";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Subject: {
-  //           rpcName = "sql_get_subject";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.User: {
-  //           rpcName = "sql_get_users";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.UserBadge: {
-  //           rpcName = "sql_get_user_badges";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.UserBonus: {
-  //           rpcName = "sql_get_user_bonus";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.UserCourse: {
-  //           rpcName = "sql_get_user_courses";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.UserSticker: {
-  //           rpcName = "sql_get_user_stickers";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         case TABLES.Live_quiz_room: {
-  //           rpcName = "sql_get_live_quiz_rooms";
-  //           res = await this.supabase?.rpc(rpcName, {
-  //             p_updated_at: lastModifiedDate,
-  //           });
-  //           break;
-  //         }
-  //         default:
-  //           res = await this.supabase
-  //             ?.from(tableName)
-  //             .select("*")
-  //             .gte("updated_at", lastModifiedDate);
-  //           data.set(tableName, res?.data ?? []);
-  //       }
-
-  //       if (res == null || res.error || !res.data) {
-  //         let parent_user;
-  //         try {
-  //           parent_user =
-  //             await ServiceConfig.getI().authHandler.getCurrentUser();
-  //         } catch (error: any) {
-  //           console.error("User Error", error);
-  //         }
-  //         Util.logEvent(EVENTS.SYNCHING_ERROR, {
-  //           user_name: parent_user?.name || null,
-  //           user_id: parent_user?.id || null,
-  //           user_username: parent_user?.email || null,
-  //           rpc_fn_name: rpcName || "not found",
-  //           table_name: tableName || "not found",
-  //           last_modified_date: lastModifiedDate || "not found",
-  //           error_code: res?.error?.code || null,
-  //           error_deatils: res?.error?.details || null,
-  //           error_hint: res?.error?.hint || null,
-  //           error_message: res?.error?.message || null,
-  //         });
-  //         if (isInitialFetch) {
-  //           throw new Error(
-  //             `Initial fetch failed for ${rpcName || tableName}: ${
-  //               res?.error?.message
-  //             }`
-  //           );
-  //         }
-  //       }
-  //       // console.log(
-  //       //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
-  //       // );
-  //       data.set(tableName, res?.data ?? []);
-  //     });
-
-  //     await Promise.all(fetchPromises);
-  //     return data;
-  //   } catch (err: any) {
-  //     let parent_user;
-  //     try {
-  //       parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
-  //     } catch (error: any) {
-  //       console.error("User Error", error);
-  //     }
-  //     Util.logEvent(EVENTS.SYNCHING_ERROR, {
-  //       user_name: parent_user?.name || null,
-  //       user_id: parent_user?.id || null,
-  //       user_username: parent_user?.email || null,
-  //       rpc_fn_name: "not found",
-  //       table_name: "not found",
-  //       last_modified_date: "not found",
-  //       error_message: err || "Unknown error",
-  //     });
-  //     console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
-  //     throw err;
-  //   }
-  // }
 
   async mutate(
     mutateType: MUTATE_TYPES,
@@ -1742,6 +1445,7 @@ export class SupabaseApi implements ServiceApi {
         digitalSkillsCourse,
       ].filter(Boolean);
       for (const course of coursesToAdd) {
+        if (!course) continue;
         const newUserCourse: TableTypes<TABLES.UserCourse> = {
           id: uuidv4(),
           user_id: studentId,
@@ -3227,8 +2931,18 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? [];
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
-    if (!this.supabase) return new Map();
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
+    if (!this.supabase) return {};
 
     // Use chapter_lesson to join lesson and chapter
     const { data, error } = await this.supabase
@@ -3253,10 +2967,13 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error fetching student progress:", error);
-      return new Map();
+      return {};
     }
 
-    const resultMap = new Map<string, string>();
+    const resultMap: Record<
+      string,
+      (TableTypes<"result"> & { lesson_name?: string; chapter_name?: string })[]
+    > = {};
 
     if (!data) return resultMap;
 
@@ -3266,7 +2983,14 @@ export class SupabaseApi implements ServiceApi {
         if (courseId && !resultMap[courseId]) {
           resultMap[courseId] = [];
         }
-        if (courseId) resultMap[courseId].push(result);
+        if (courseId) {
+          resultMap[courseId].push(
+            result as TableTypes<"result"> & {
+              lesson_name?: string;
+              chapter_name?: string;
+            },
+          );
+        }
       });
     }
     return resultMap;
@@ -5387,13 +5111,26 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
-      if (!data || !data[periodType]) {
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        Array.isArray(data) ||
+        !(periodType in data)
+      ) {
+        console.error("No reward found for the given year or periodType.");
+        return;
+      }
+      const rewardPayload = data[periodType as keyof typeof data];
+
+      if (!rewardPayload) {
         console.error("No reward found for the given year or periodType.");
         return;
       }
 
       try {
-        return JSON.parse(data[0][periodType]);
+        return typeof rewardPayload === "string"
+          ? JSON.parse(rewardPayload)
+          : (rewardPayload as TableTypes<"reward">);
       } catch (parseError) {
         console.error("Error parsing JSON from reward data:", parseError);
         return;
@@ -5971,7 +5708,7 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId,
+    classId: string,
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -6424,7 +6161,10 @@ export class SupabaseApi implements ServiceApi {
     return !!data; // true if found, false if not
   }
 
-  async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
+  async checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string,
+  ): Promise<boolean> {
     if (!this.supabase) return false;
 
     const roles = [
@@ -7439,51 +7179,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  // async validateUserContacts(
-  //   programManagerPhone: string,
-  //   fieldCoordinatorPhone?: string
-  // ): Promise<{ status: string; errors?: string[] }> {
-  //   if (!this.supabase) {
-  //     return {
-  //       status: "error",
-  //       errors: ["Supabase client is not initialized"],
-  //     };
-  //   }
-
-  //   const errors: string[] = [];
-
-  //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
-  //   const { data: pmData, error: pmError } = await this.supabase
-  //     .from("user")
-  //     .select("id")
-  //     .eq(queryKey, programManagerPhone.trim());
-
-  //   if (pmError || !pmData) {
-  //     errors.push(
-  //       "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
-  //     );
-  //   }
-
-  //   if (fieldCoordinatorPhone) {
-  //     const fCqueryKey = fieldCoordinatorPhone.includes("@")
-  //       ? "email"
-  //       : "phone";
-  //     const { data: fcData, error: fcError } = await this.supabase
-  //       .from("user")
-  //       .select("id")
-  //       .eq(fCqueryKey, fieldCoordinatorPhone);
-
-  //     if (fcError || !fcData) {
-  //       errors.push(
-  //         "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
-  //       );
-  //     }
-  //   }
-
-  //   return errors.length > 0
-  //     ? { status: "error", errors }
-  //     : { status: "success" };
-  // }
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -7631,12 +7326,13 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const parsed: Record<string, string[]> = {};
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in data) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           if (Array.isArray(val)) {
             parsed[key] = val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             );
           } else {
             parsed[key] = [];
@@ -8279,12 +7975,13 @@ export class SupabaseApi implements ServiceApi {
         cluster: [],
       };
 
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in parsed) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             )
             : [];
         }
@@ -8328,12 +8025,13 @@ export class SupabaseApi implements ServiceApi {
         model: [],
       };
 
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in parsed) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             )
             : [];
         }
@@ -12326,13 +12024,19 @@ export class SupabaseApi implements ServiceApi {
     return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
+  async getNextWinnableSticker(
+    stickerBookId: string,
+    userId?: string,
+  ): Promise<string | null> {
     if (!this.supabase) return null;
 
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!user?.id) return null;
-
-    const userId = user.id;
+    const resolvedUserId = userId?.trim();
+    let effectiveUserId = resolvedUserId;
+    if (!effectiveUserId) {
+      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!user?.id) return null;
+      effectiveUserId = user.id;
+    }
 
     const { data: book } = await this.supabase
       .from("sticker_book")
@@ -12346,7 +12050,7 @@ export class SupabaseApi implements ServiceApi {
     const { data: progress } = await this.supabase
       .from("user_sticker_book")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", effectiveUserId)
       .eq("sticker_book_id", stickerBookId)
       .eq("is_deleted", false)
       .maybeSingle();

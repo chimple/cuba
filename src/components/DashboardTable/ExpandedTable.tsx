@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import "./ExpandedTable.css";
 interface ExpandedTableProps {
-  expandedData;
+  expandedData: Record<string, Record<string, number | null>>;
 }
 
-function getColor(score) {
+function getColor(score: number | null) {
   if (score == null) {
     return "white";
   } else if (score < 30) {

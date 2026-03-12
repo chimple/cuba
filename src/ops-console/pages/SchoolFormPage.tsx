@@ -4,8 +4,6 @@ import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/Sch
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import Breadcrumb from "../components/Breadcrumb";
 import {
-  useMediaQuery,
-  useTheme,
   Box,
   Grid,
   Typography,
@@ -16,7 +14,7 @@ import {
 import ContactFormSection from "../components/SchoolRequestComponents/ContactFormSection";
 import "./SchoolFormPage.css";
 import { t } from "i18next";
-import { PAGES, REQUEST_TABS, STATUS } from "../../common/constants";
+import { PAGES, STATUS } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleType } from "../../interface/modelInterfaces";
 

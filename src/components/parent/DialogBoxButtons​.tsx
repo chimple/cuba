@@ -1,19 +1,12 @@
 import React, { MouseEventHandler } from "react";
-import { IonAlert, IonButton, IonIcon } from "@ionic/react";
 import "./DialogBoxButtons.css";
 import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
 } from "@mui/material";
-import { t } from "i18next";
-import { chevronForward } from "ionicons/icons";
-import { title } from "process";
-import { IoCloseCircle } from "react-icons/io5";
-import { PAGES } from "../../common/constants";
 
 const DialogBoxButtons: React.FC<{
   width: string;
@@ -59,9 +52,7 @@ const DialogBoxButtons: React.FC<{
             maxWidth: "70vw",
             maxHeight: "40vh",
           }}
-          // sx={{
-          //   "&.MuiDialogContent-root": { padding: " 20px 0 24px 33px " },
-          // }}
+         
         >
           <DialogContentText
             style={{

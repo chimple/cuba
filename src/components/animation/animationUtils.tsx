@@ -1,6 +1,5 @@
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { useState, useEffect } from "react";
-import { Util } from "../../utility/util";
 import { LANGUAGE } from "../../common/constants";
 
 export function useAudioPlayer(audioSrc: string) {

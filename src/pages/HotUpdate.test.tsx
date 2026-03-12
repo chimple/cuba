@@ -43,7 +43,7 @@ jest.mock("../services/AppUpdater", () => ({
 }));
 
 describe("HotUpdate Page", () => {
-  let historyMock;
+  let historyMock: { replace: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();

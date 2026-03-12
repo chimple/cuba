@@ -65,6 +65,7 @@ import {
   HOT_UPDATE_STATE_KEY,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -77,13 +78,6 @@ import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-// import {
-//   DocumentReference,
-//   doc,
-//   getFirestore,
-//   enableNetwork,
-//   disableNetwork,
-// } from "firebase/firestore";
 import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
@@ -92,7 +86,6 @@ import {
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { getFunctions, httpsCallable } from "firebase/functions";
-// import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
@@ -131,36 +124,21 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
-  // public static convertCourses(_courses: Course1[]): Course1[] {
-  //   let courses: Course1[] = [];
-  //   _courses.forEach((course) => {
-  //     course.chapters.forEach((chapter) => {
-  //       chapter.lessons = this.convertDoc(chapter.lessons);
-  //     });
-
-  //     course.curriculum = Util.getRef(course.curriculum);
-  //     course.grade = Util.getRef(course.grade);
-  //     course.subject = Util.getRef(course.subject);
-  //   });
-  //   return _courses;
-  // }
-
   public static async getNextLessonFromGivenChapter(
-    chapters,
-    currentChapterId,
-    currentLessonId,
-    ChapterDetail,
-  ) {
+    chapters: curriculamInterfaceChapter[],
+    currentChapterId: string,
+    currentLessonId: string,
+    ChapterDetail: curriculamInterfaceChapter | undefined,
+  ): Promise<TableTypes<"lesson"> | undefined> {
     const api = ServiceConfig.getI().apiHandler;
-    // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
     const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
     if (!currentChapter) return undefined;
-    let currentLessonIndex;
+    let currentLessonIndex = -1;
 
-    // currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
-    const cChapter = await api.getLessonsForChapter(currentChapter);
+    
+    const cChapter = await api.getLessonsForChapter(currentChapter.id);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
       const currentLesson = cChapter[i];
@@ -170,7 +148,10 @@ export class Util {
       }
     }
 
-    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+    if (
+      currentLessonIndex >= 0 &&
+      currentLessonIndex < currentChapter.lessons.length - 1
+    ) {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
       let studentResult:
@@ -198,11 +179,10 @@ export class Util {
     }
 
     const nextChapterIndex =
-      chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
+      chapters.findIndex((chapter: curriculamInterfaceChapter) => {
+        return chapter.id === currentChapterId;
+      }) + 1;
     if (nextChapterIndex < chapters.length) {
-      // if (firstLessonId instanceof TableTypes<"lesson">) {
-      //   return firstLessonId;
-      // }
       return undefined;
     }
   }
@@ -216,15 +196,15 @@ export class Util {
         const today = new Date().toISOString().split("T")[0];
 
         if ("2024-11-05" !== today) {
-          // if (STAGES.MODE === "parent") {
+          
           const showModalEvent = new CustomEvent("shouldShowModal", {
             detail: true,
           });
           document.dispatchEvent(showModalEvent);
-          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          
           window.dispatchEvent(showModalEvent);
           localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
-          // }
+          
           return;
         }
       }
@@ -235,40 +215,14 @@ export class Util {
     window.dispatchEvent(showModalEvent);
   };
 
-  // public static convertDoc(refs: any[]): DocumentReference[] {
-  //   const data: DocumentReference[] = [];
-  //   for (let ref of refs) {
-  //     const newCourseRef = Util.getRef(ref);
-
-  //     data.push(newCourseRef);
-  //   }
-  //   return data;
-  // }
 
   public static checkLessonPresentInCourse(
     course: TableTypes<"course">,
     lessonDoc: String,
   ): boolean {
-    // if (!course || !course) return false;
-    // for (const chapter of course?.chapters) {
-    //   for (const lesson of chapter.lessons) {
-    //     if (lesson.id === lessonDoc) {
-    //       return true;
-    //     }
-    //   }
-    // }
+ 
     return false;
   }
-
-  // public static getRef(ref): DocumentReference {
-  //   const db = getFirestore();
-  //   const newCourseRef = doc(
-  //     db,
-  //     ref["_key"].path.segments.at(-2),
-  //     ref["_key"].path.segments.at(-1)
-  //   );
-  //   return newCourseRef;
-  // }
 
   public static getCurrentStudent(): TableTypes<"user"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
@@ -382,7 +336,11 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
-  public static async getLessonPath({ lessonId }): Promise<string | null> {
+  public static async getLessonPath({
+    lessonId,
+  }: {
+    lessonId: string;
+  }): Promise<string | null> {
     const gameUrl = localStorage.getItem("gameUrl");
 
     const exists = async (path: string) => {
@@ -903,12 +861,17 @@ export class Util {
       }
       const settings = window._CCSettings;
       const launchScene = settings.launchScene;
-      const bundle = window.cc.assetManager.bundles.find(function (b) {
+      const bundle = window.cc.assetManager.bundles.find(function (b: {
+        getSceneInfo: (sceneName: string) => object | null;
+      }) {
         return b.getSceneInfo(launchScene);
       });
 
-      await new Promise((resolve, reject) => {
-        bundle.loadScene(launchScene, null, null, function (err, scene) {
+      await new Promise<object>((resolve, reject) => {
+        bundle.loadScene(launchScene, null, null, function (
+          err: Error | null | undefined,
+          scene: object,
+        ) {
           if (!err) {
             window.cc.director.runSceneImmediate(scene);
             if (window.cc.sys.isBrowser) {
@@ -981,17 +944,13 @@ export class Util {
     }
 
     if (subjectCode === COURSES.PUZZLE) {
-      // let currentIndex = -1;
+     
       if (Object.keys(lessonResultMap).length <= 0) return 0;
       const currentIndex = Util.getLastPlayedLessonIndexForLessons(
         lessons,
         lessonResultMap,
       );
-      // for (let i = 0; i < lessons.length; i++) {
-      //   if (lessonResultMap[lessons[i].id]) {
-      //     currentIndex = i;
-      //   }
-      // }
+      
       return currentIndex <= 0 ? -1 : currentIndex;
     }
     const apiInstance = OneRosterApi.getInstance();
@@ -1002,12 +961,7 @@ export class Util {
       preQuiz.score ?? 0,
       chapters,
     );
-    // let tempCurrentIndex = 0;
-    // for (let i = 0; i < tempLevelChapter.lessons.length; i++) {
-    //   if (lessonResultMap[tempLevelChapter.lessons[i].id]) {
-    //     tempCurrentIndex = i;
-    //   }
-    // }
+    
     const tempCurrentIndex = Util.getLastPlayedLessonIndexForLessons(
       tempLevelChapter.lessons,
       lessonResultMap,
@@ -1016,7 +970,7 @@ export class Util {
       (lesson: any) =>
         lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id,
     );
-    // currentIndex--;
+    
     return currentIndex < 0 ? 0 : currentIndex;
   }
 
@@ -1033,7 +987,7 @@ export class Util {
     return tempCurrentIndex;
   }
 
-  public static getCourseByGrade(courseId): string {
+  public static getCourseByGrade(courseId: string): string {
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     let gradeMap = {};
     if (!selectedGrade) {
@@ -1044,20 +998,9 @@ export class Util {
 
     return courseId;
 
-    // if (courseId === HEADERLIST.ENGLISH) {
-    //   return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-    //     ? COURSES.ENGLISH_G1
-    //     : COURSES.ENGLISH_G2;
-    // } else if (courseId === HEADERLIST.MATHS) {
-    //   return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-    //     ? COURSES.MATHS_G1
-    //     : COURSES.MATHS_G2;
-    // } else {
-    //   return courseId;
-    // }
   }
 
-  public static async showLog(msg): Promise<void> {
+  public static async showLog(msg: string | object): Promise<void> {
     if (Capacitor.getPlatform() !== "android") return;
     if (typeof msg !== "string") {
       msg = JSON.stringify(msg);
@@ -1133,14 +1076,7 @@ export class Util {
         name: "gender",
         value: currentUser.gender?.toLocaleString() || "",
       });
-      // await FirebaseAnalytics.setUserProperty({
-      //   name: "user_type",
-      //   value: currentUser.role,
-      // });
-      // await FirebaseAnalytics.setUserProperty({
-      //   name: "username",
-      //   value: currentUser.username,
-      // });
+      
     } catch (error) {
       console.error("Set User Properties Error ", error);
     }
@@ -1161,7 +1097,7 @@ export class Util {
     });
   }
 
-  public static onAppStateChange = ({ isActive }) => {
+  public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
     // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
       TextToSpeech.stop();
@@ -1202,7 +1138,7 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
-    // Util.handleAppStateChange(isActive);
+    
   };
 
   public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
@@ -1359,25 +1295,7 @@ export class Util {
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify(student),
-      // JSON.stringify({
-      //   age: student?.age ?? null,
-      //   avatar: student?.avatar ?? null,
-      //   board: student?.board ?? null,
-      //   courses: student?.courses,
-      //   createdAt: student?.createdAt,
-      //   updatedAt: student?.updatedAt,
-      //   gender: student?.gender ?? null,
-      //   grade: student?.grade ?? null,
-      //   image: student?.image ?? null,
-      //   language: student?.language ?? null,
-      //   name: student?.name,
-      //   role: student?.role,
-      //   uid: student?.uid,
-      //   rewards: student?.rewards,
-      //   username: student?.username,
-      //   users: student?.users,
-      //   docId: student?.id,
-      // })
+      
     );
 
     if (!languageCode && !!student?.language_id) {
@@ -1390,19 +1308,14 @@ export class Util {
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
-    //Setting Student Id in User Properites
-    // if (student)
-    //   await FirebaseAnalytics.setUserId({
-    //     userId: student?.id,
-    //   });
-    // if (student) await Util.setUserProperties(student);
+    
   };
 
-  public static randomBetween(min, max) {
+  public static randomBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  public static isEmail(username) {
+  public static isEmail(username: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(username);
     return isValid;
@@ -1446,28 +1359,7 @@ export class Util {
   public static async subscribeToClassTopicForAllStudents(
     currentUser: TableTypes<"user">,
   ): Promise<void> {
-    // if (!Capacitor.isNativePlatform()) return;
-    // const students: DocumentReference[] = currentUser.users;
-    // if (!students || students.length < 1) return;
-    // const api = ServiceConfig.getI().apiHandler;
-    // for (let studentRef of students) {
-    //   if (!studentRef.id) continue;
-    //   api.getStudentResult(studentRef.id).then((studentProfile) => {
-    //     if (
-    //       !!studentProfile &&
-    //       !!studentProfile.classes &&
-    //       studentProfile.classes.length > 0 &&
-    //       studentProfile.classes.length === studentProfile.schools.length
-    //     ) {
-    //       for (let i = 0; i < studentProfile.classes.length; i++) {
-    //         const classId = studentProfile.classes[i];
-    //         const schoolId = studentProfile.schools[i];
-    //         if (!this.isClassTokenSubscribed(classId))
-    //           this.subscribeToClassTopic(classId, schoolId);
-    //       }
-    //     }
-    //   });
-    // }
+    
   }
 
   public static isClassTokenSubscribed(classId: string): boolean {
@@ -1499,7 +1391,12 @@ export class Util {
     return result.token;
   }
 
-  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+  public static isTextFieldFocus(
+    scollToRef: {
+      current?: { scrollIntoView: (options: ScrollIntoViewOptions) => void };
+    },
+    setIsInputFocus: (isFocused: boolean) => void,
+  ) {
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -1709,10 +1606,10 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
       return true;
     }
-    const lessThanOneHourAgo = (date) => {
-      const now: any = new Date();
+    const lessThanOneHourAgo = (date: Date): boolean => {
+      const now = new Date();
       const ONE_HOUR = 60 * 60 * 1000; /* ms */
-      const res = now - date < ONE_HOUR;
+      const res = now.getTime() - date.getTime() < ONE_HOUR;
       return res;
     };
     const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
@@ -1723,21 +1620,7 @@ export class Util {
   }
 
   public static listenToNetwork() {
-    // try {
-    //   const _db = getFirestore();
-    //   if (navigator.onLine) {
-    //     enableNetwork(_db);
-    //   } else {
-    //     disableNetwork(_db);
-    //   }
-    //   window.addEventListener("online", (e) => {
-    //     enableNetwork(_db);
-    //   });
-    //   window.addEventListener("offline", (e) => {
-    //     disableNetwork(_db);
-    //   });
-    // } catch (err) {
-    // }
+    
   }
 
   public static async showInAppReview() {
@@ -1781,15 +1664,7 @@ export class Util {
         users: port.users,
       });
       const res: any = result.data;
-      // if (res.migrated) {
-      //   const _db = getFirestore();
-      //   const newStudents: DocumentReference[] = res.studentIds.map(
-      //     (studentId) => doc(_db, CollectionIds.USER, studentId)
-      //   );
-      //   await Filesystem.deleteFile({ path: filePath });
-      //   localStorage.setItem(IS_MIGRATION_CHECKED, "true");
-      //   return { migrated: true, newStudents: newStudents };
-      // }
+      
     } catch (error) {
       console.error("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
@@ -1814,10 +1689,7 @@ export class Util {
       const api = ServiceConfig.getI().apiHandler;
       const studentResult = await api.getStudentClassesAndSchools(student.id);
 
-      // if (!studentResult || studentResult.classes.length === 0) {
-      //   console.error("Student result is undefined or classes array is empty");
-      //   return false;
-      // }
+     
 
       if (
         studentResult &&
@@ -1827,15 +1699,11 @@ export class Util {
         return true;
       }
 
-      // if (studentResult.last5Lessons && Object.keys(studentResult.last5Lessons).length > 0) {
-      //   return false;
-      // }
+      
 
       // If Remote Config allows showing avatar, return true
       const canShowAvatarValue = false;
-      // await RemoteConfig.getBoolean(
-      //   REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-      // );
+      
 
       return canShowAvatarValue;
     } catch (error) {
@@ -1850,9 +1718,7 @@ export class Util {
     localStorageNameForFilePath: string,
   ) {
     try {
-      // if (!Capacitor.isNativePlatform()) {
-      //   return;
-      // }
+      
 
       if (!newFileURL) {
         return;
@@ -1880,7 +1746,7 @@ export class Util {
       localStorage.setItem(
         localStorageNameForFilePath,
         res.uri,
-        // res.uri.slice(1, res.uri.length)
+        
       );
     } catch (error) {
       console.error("Json File Migration failed ", error);
@@ -1902,7 +1768,14 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
+    const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+      typeof weeklyData === "string"
+        ? JSON.parse(weeklyData)
+        : typeof weeklyData === "object" && weeklyData !== null
+          ? (weeklyData as Record<string, { type: string; id: string }[]>)
+          : {};
+    const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+    weeklyRewards.forEach((value: { type: string; id: string }) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1962,36 +1835,21 @@ export class Util {
       const weeklyData = rewardsDoc.weeklySticker;
       let currentReward;
 
-      weeklyData?.[currentWeek.toString()].forEach(async (value) => {
+      const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+        typeof weeklyData === "string"
+          ? JSON.parse(weeklyData)
+          : typeof weeklyData === "object" && weeklyData !== null
+            ? (weeklyData as Record<string, { type: string; id: string }[]>)
+            : {};
+      const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+      weeklyRewards.forEach(async (value: { type: string; id: string }) => {
         currentReward = value;
       });
-      // if (!currentUser.rewards) {
-      //   let leaderboardReward: LeaderboardRewards = {
-      //     badges: [],
-      //     bonus: [],
-      //     sticker: [],
-      //   };
-      //   currentUser.rewards = leaderboardReward;
-      // }
-      // if (!currentUser.rewards.sticker) {
-      //   currentUser.rewards.sticker = [];
-      // }
+      
       if (!currentReward) {
         return false;
       }
-      // let canPushCurrentReward = true;
-      // for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
-      //   const element = currentUser.rewards.sticker[i];
-      //   if (element.id === currentReward.id) {
-      //     canPushCurrentReward = false;
-      //   }
-      // }
-      // if (canPushCurrentReward)
-      //   currentUser.rewards.sticker.push({
-      //     id: currentReward.id,
-      //     seen: false,
-      //   });
-      // await api.updateRewardsForStudent(currentUser.id, currentUser.rewards);
+      
       return true;
     } catch (error) {
       console.error("unlockWeeklySticker() error ", error);
@@ -2002,51 +1860,7 @@ export class Util {
   public static async getAllUnlockedRewards(): Promise<
     unlockedRewardsInfo[] | undefined
   > {
-    //   await this.getStudentFromServer();
-    //   const api = ServiceConfig.getI().apiHandler;
-    //   const currentStudent = this.getCurrentStudent();
-    //   if (!currentStudent || !currentStudent.rewards) return;
-    //   const processRewards = async (
-    //     rewards: any[],
-    //     type: LeaderboardRewardsType,
-    //     apiGetter: (id: string) => Promise<any>,
-    //     rewardList: LEADERBOARD_REWARD_LIST
-    //   ) => {
-    //     for (const element of rewards) {
-    //       if (!element.seen) {
-    //         const reward = await apiGetter(element.id);
-    //         if (reward) {
-    //           allUnlockedRewards.push({
-    //             id: element.id,
-    //             type,
-    //             image: reward.image || reward.thumbnail,
-    //             name: reward.name || reward.title,
-    //             leaderboardRewardList: rewardList,
-    //           });
-    //         }
-    //       }
-    //     }
-    //   };
-    //   const allUnlockedRewards: unlockedRewardsInfo[] = [];
-    //   await processRewards(
-    //     currentStudent.rewards.badges || [],
-    //     LeaderboardRewardsType.BADGE,
-    //     (id) => api.getBadgeById(id),
-    //     LEADERBOARD_REWARD_LIST.BADGES
-    //   );
-    //   await processRewards(
-    //     currentStudent.rewards.bonus || [],
-    //     LeaderboardRewardsType.BONUS,
-    //     (id) => api.getLesson(id),
-    //     LEADERBOARD_REWARD_LIST.BONUS
-    //   );
-    //   await processRewards(
-    //     currentStudent.rewards.sticker || [],
-    //     LeaderboardRewardsType.STICKER,
-    //     (id) => api.getStickerById(id),
-    //     LEADERBOARD_REWARD_LIST.STICKER
-    //   );
-    //   return allUnlockedRewards;
+   
     return;
   }
 
@@ -2183,7 +1997,7 @@ export class Util {
       isSchoolConnected(api.currentSchool.id).then((res) => {
         if (!res) {
           api.currentSchool = undefined;
-          // schoolUtil.setCurrMode(MODES.SCHOOL);
+          
           console.log("School no longer connected → removing from storage");
           localStorage.removeItem(SCHOOL);
           localStorage.removeItem(CLASS);
@@ -2229,7 +2043,7 @@ export class Util {
     isSchoolConnected(currentSchool.id).then((res) => {
       if (!res) {
         api.currentSchool = undefined;
-        // schoolUtil.setCurrMode(MODES.SCHOOL);
+        
         localStorage.removeItem(SCHOOL);
         localStorage.removeItem(CLASS);
         return;
@@ -3125,6 +2939,17 @@ export class Util {
           10,
           false,
         );
+        // If stickers are available (and we're online), award the next sticker for completing this pathway.
+        await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              createdAt: new Date().toISOString(),
+            }),
+          );
+        }
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
         }
@@ -3172,6 +2997,27 @@ export class Util {
       }
     } catch (error) {
       console.error("Error updating learning path:", error);
+    }
+  }
+
+  private static async tryAwardStickerForCompletedPathway(
+    studentId: string,
+  ): Promise<void> {
+    try {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      const api = ServiceConfig.getI().apiHandler;
+      const current = await api.getCurrentStickerBookWithProgress(studentId);
+      if (!current?.book?.id) return;
+
+      const nextStickerId = await api.getNextWinnableSticker(
+        current.book.id,
+        studentId,
+      );
+      if (!nextStickerId) return;
+
+      await api.updateStickerWon(current.book.id, nextStickerId);
+    } catch (error) {
+      console.warn("[StickerBook] Failed to award pathway sticker:", error);
     }
   }
   

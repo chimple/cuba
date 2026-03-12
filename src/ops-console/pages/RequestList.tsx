@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   IconButton,
@@ -14,6 +14,7 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
+  TableTypes,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -42,6 +43,47 @@ type FilterOptions = {
   school: Array<{ id: string; name: string }>;
 };
 
+type OpsRequestUserRef = {
+  id?: string;
+  name?: string;
+};
+
+type OpsRequestSchoolRef = {
+  id?: string;
+  name?: string;
+};
+
+type OpsRequestClassRef = {
+  id?: string;
+  name?: string;
+};
+
+type OpsRequestItem = TableTypes<"ops_requests"> & {
+  request_id?: string;
+  school?: OpsRequestSchoolRef | null;
+  classInfo?: OpsRequestClassRef | null;
+  requestedBy?: OpsRequestUserRef | null;
+  respondedBy?: OpsRequestUserRef | null;
+  requested_by?: string | null;
+  responded_by?: string | null;
+};
+
+type RequestRow = {
+  request_id: string;
+  request_type: string;
+  school_name: string;
+  class: string;
+  from: string;
+  requested_date?: string;
+  approved_date?: string;
+  approved_by?: string;
+  rejected_date?: string;
+  rejected_reason?: string;
+  rejected_by?: string;
+  flagged_date?: string;
+  flagged_by?: string;
+};
+
 const INITIAL_FILTERS: Filters = {
   request_type: [],
   school: [],
@@ -52,7 +94,7 @@ const INITIAL_FILTER_OPTIONS: FilterOptions = {
   school: [],
 };
 
-const getTabOptions = (userRoles) => {
+const getTabOptions = (userRoles: string[]) => {
   // Only Super Admin and Operational Director can see the Flagged tab
   const canSeeFlaggedTab =
     userRoles.includes(RoleType.SUPER_ADMIN) ||
@@ -105,8 +147,8 @@ const RequestList: React.FC = () => {
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
-  const [requestData, setRequestData] = useState<any[]>([]);
-  const [rawRequestData, setRawRequestData] = useState<any[]>([]);
+  const [requestData, setRequestData] = useState<RequestRow[]>([]);
+  const [rawRequestData, setRawRequestData] = useState<OpsRequestItem[]>([]);
 
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -157,7 +199,9 @@ const RequestList: React.FC = () => {
         const data = await api.getRequestFilterOptions();
         if (data) {
           setFilterOptions({
-            request_type: data.requestType || [],
+            request_type: (data.requestType || []).filter(
+              (value): value is string => Boolean(value)
+            ),
             school: data.school || [],
           });
 
@@ -212,9 +256,9 @@ const RequestList: React.FC = () => {
           Object.entries(filtersWithSchoolIds).filter(
             ([_, v]) => Array.isArray(v) && v.length > 0
           )
-        );
+        ) as Filters;
 
-        const orderByMapping = {
+        const orderByMapping: Record<string, string> = {
           approved_date: "updated_at",
           rejected_date: "updated_at",
           requested_date: "created_at",
@@ -244,64 +288,64 @@ const RequestList: React.FC = () => {
           debouncedSearchTerm
         );
 
-        setRawRequestData(data || []);
-        let mappedData: any[] = [];
+        const requestItems = (data || []) as OpsRequestItem[];
+        setRawRequestData(requestItems);
+        let mappedData: RequestRow[] = [];
         switch (selectedTab) {
           case REQUEST_TABS.APPROVED:
-            mappedData = (data || []).map((req) => ({
-              request_id: req.request_id,
-              request_type: req.request_type,
+            mappedData = requestItems.map((req) => ({
+              request_id: req.request_id || req.id,
+              request_type: req.request_type ?? "-",
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              approved_date: formatDateOnly(req.updated_at),
+              approved_date: formatDateOnly(req.updated_at ?? undefined),
               approved_by: req.respondedBy?.name || "-",
             }));
             break;
 
           case REQUEST_TABS.REJECTED:
-            mappedData = (data || []).map((req) => ({
-              request_id: req.request_id,
-              request_type: req.request_type,
+            mappedData = requestItems.map((req) => ({
+              request_id: req.request_id || req.id,
+              request_type: req.request_type ?? "-",
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              rejected_date: formatDateOnly(req.updated_at),
+              rejected_date: formatDateOnly(req.updated_at ?? undefined),
               rejected_reason: req.rejected_reason_type || "-",
               rejected_by: req.respondedBy?.name || "-",
             }));
             break;
 
           case REQUEST_TABS.FLAGGED:
-            mappedData = (data || []).map((req) => ({
-              request_id: req.request_id,
-              request_type: req.request_type,
+            mappedData = requestItems.map((req) => ({
+              request_id: req.request_id || req.id,
+              request_type: req.request_type ?? "-",
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              flagged_date: formatDateOnly(req.updated_at),
+              flagged_date: formatDateOnly(req.updated_at ?? undefined),
               flagged_by: req.respondedBy?.name || "-",
             }));
             break;
 
           case REQUEST_TABS.PENDING:
           default:
-            mappedData = (data || []).map((req) => {
-              const requestedDate = new Date(req.created_at).toLocaleString(
-                "en-IN",
-                {
-                  timeZone: "Asia/Kolkata",
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true,
-                }
-              );
+            mappedData = requestItems.map((req) => {
+              const requestedDate = req.created_at
+                ? new Date(req.created_at).toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : "-";
               return {
-                request_id: req.request_id,
-                request_type: req.request_type,
+                request_id: req.request_id || req.id,
+                request_type: req.request_type ?? "-",
                 school_name: req.school?.name || "-",
                 class: req.classInfo?.name || "-",
                 from: req.requestedBy?.name || "-",
@@ -343,7 +387,7 @@ const RequestList: React.FC = () => {
     });
   };
 
-  const pendingColumns: Column<Record<string, any>>[] = [
+  const pendingColumns: Column<RequestRow>[] = [
     {
       key: "request_id",
       label: t("Request ID"),
@@ -383,7 +427,7 @@ const RequestList: React.FC = () => {
       orderBy: "requested_date",
     },
   ];
-  const approvedColumns: Column<Record<string, any>>[] = [
+  const approvedColumns: Column<RequestRow>[] = [
     {
       key: "request_id",
       label: t("Request ID"),
@@ -430,7 +474,7 @@ const RequestList: React.FC = () => {
     },
   ];
 
-  const rejectedColumns: Column<Record<string, any>>[] = [
+  const rejectedColumns: Column<RequestRow>[] = [
     {
       key: "request_id",
       label: t("Request ID"),
@@ -476,7 +520,7 @@ const RequestList: React.FC = () => {
       sortable: false,
     },
   ];
-  const flaggedColumns: Column<Record<string, any>>[] = [
+  const flaggedColumns: Column<RequestRow>[] = [
     {
       key: "request_id",
       label: t("Request ID"),
@@ -562,7 +606,7 @@ const RequestList: React.FC = () => {
     school: filterOptions.school.map((s) => s.name),
   };
 
-  const handleRowClick = (id: string | number, row: any) => {
+  const handleRowClick = (id: string | number, row: RequestRow) => {
     // Ensure request_type exists and is a string
     if (!row.request_type || typeof row.request_type !== "string") return;
 

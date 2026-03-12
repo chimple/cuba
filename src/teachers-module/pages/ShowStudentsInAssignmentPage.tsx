@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PAGES, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import "./ShowStudentsInAssignmentPage.css";
 import CreateSelectedAssignment from "../components/homePage/assignment/CreateSelectedAssignment";

@@ -13,7 +13,6 @@ import {
   PAGES,
   PROBLEM_END,
   RESULT_STATUS,
-  REWARD_LEARNING_PATH,
   REWARD_LESSON,
   TableTypes,
 } from "../common/constants";
@@ -331,7 +330,7 @@ const CocosGame: React.FC = () => {
       if (!assignmentId) {
         const result = await api.getPendingAssignmentForLesson(
           lesson.id,
-          classId,
+          classId ?? "",
           currentStudent.id
         );
         if (result) {

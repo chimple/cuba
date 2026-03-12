@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import "react-circular-progressbar/dist/styles.css";
 import "./DashBoardStudentProgress.css"; // Import the CSS file
 import {
-  BANDWISECOLOR,
   LIDO_ASSESSMENT,
   TableTypes,
 } from "../../../common/constants";
-import { t } from "i18next";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 

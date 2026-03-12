@@ -4,7 +4,7 @@ import "react-circular-progressbar/dist/styles.css";
 import "./WeeklySummary.css"; // Import the CSS file
 import { HomeWeeklySummary } from "../../../common/constants";
 import { t } from "i18next";
-import { addDays, subDays, format } from "date-fns";
+import { subDays, format } from "date-fns";
 
 interface WeeklySummaryProps {
   weeklySummary?: HomeWeeklySummary;

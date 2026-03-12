@@ -2,7 +2,7 @@ import { FC } from "react";
 import { t } from "i18next";
 import { ReactComponent as AssignScreenArrowIcon } from "../../../assets/icons/assign-screen-arrow.svg";
 import "./AssignScreen.css";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerTypeHint,

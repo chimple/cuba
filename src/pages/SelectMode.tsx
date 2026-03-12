@@ -280,7 +280,7 @@ const SelectMode: FC = () => {
       console.error("Error fetching classes:", error);
     }
   };
-  const displayStudents = async (curClass) => {
+  const displayStudents = async (curClass: TableTypes<"class">) => {
     // if(!currClass) return;
     const element = await api.getStudentsForClass(curClass.id);
     if (!element) return;
@@ -377,16 +377,7 @@ const SelectMode: FC = () => {
               <div className="class-main">
                 <div className="class-header">
                   <div></div>
-                  {/* <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      //  history.replace(PAGES.SELECT_SCHOOL);
-                      localStorage.removeItem(SELECTED_CLASSES);
-                      localStorage.removeItem(CURRENT_SCHOOL);
-                      localStorage.removeItem(CURRENT_SCHOOL_NAME);
-                      setStage(STAGES.SCHOOL);
-                    }}
-                  /> */}
+                  
 
                   <div className="selectmode-schoolname-header">
                     {currentSchool?.name}
@@ -400,7 +391,7 @@ const SelectMode: FC = () => {
                       key={tempClass.id}
                       onClick={async () => {
                         if (!tempClass) return;
-                        // localStorage.setItem(CURRENT_CLASS,JSON.stringify(tempClass));
+                        
                         schoolUtil.setCurrentClass(tempClass);
                         setCurrClass(tempClass);
                         localStorage.setItem(
@@ -432,7 +423,7 @@ const SelectMode: FC = () => {
                       src="/assets/icons/BackButtonIcon.svg"
                       alt="BackButtonIcon"
                       onClick={() => {
-                        //  history.replace(PAGES.SELECT_SCHOOL);
+                        
                         localStorage.removeItem(SELECTED_STUDENTS);
                         localStorage.removeItem(CURRENT_CLASS);
                         localStorage.removeItem(CURRENT_CLASS_NAME);
@@ -454,10 +445,10 @@ const SelectMode: FC = () => {
                       key={tempStudent.id}
                       onClick={() => {
                         setCurrStudent(tempStudent);
-                        // setStage(STAGES.STUDENT);
+                        
                         localStorage.setItem(USER_SELECTION_STAGE, "true");
                         onStudentClick(tempStudent);
-                        // Util.setCurrentStudent(tempStudent);
+                        
                       }}
                       className="class-avatar"
                     >

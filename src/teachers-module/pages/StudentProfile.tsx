@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./StudentProfile.css";
-import { CLASS, PAGES, PROFILETYPE, SCHOOL, TableTypes } from "../../common/constants";
+import { PAGES, PROFILETYPE, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import { IonPage } from "@ionic/react";
@@ -12,15 +12,19 @@ import { useHistory } from "react-router-dom";
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
+  const state = (history.location.state ?? {}) as {
+    classDoc?: TableTypes<"class">;
+    studentId?: string;
+  };
   const [student, setStudent] = useState<TableTypes<"user">>();
   const [school, setSchool] = useState<TableTypes<"school">>();
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const [isEditing, setIsEditing] = useState(false);
   const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
-  const tempClass = history.location.state!["classDoc"] as TableTypes<"class">;
+  const tempClass = state.classDoc;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const paramStudentId = history.location.state!["studentId"] as string;
+  const paramStudentId = state.studentId ?? "";
   const api = ServiceConfig.getI()?.apiHandler;
   const auth = ServiceConfig.getI()?.authHandler;
 

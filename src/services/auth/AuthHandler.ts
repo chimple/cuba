@@ -38,7 +38,10 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.isUserLoggedIn();
   }
 
-  public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
+  public async phoneNumberSignIn(
+    phoneNumber: string,
+    recaptchaVerifier: object,
+  ): Promise<any> {
     return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
   }
   public async generateOtp(
@@ -66,8 +69,8 @@ export class AuthHandler implements ServiceAuth {
   }
 
   public async proceedWithVerificationCode(
-    verificationId,
-    verificationCode,
+    verificationId: string,
+    verificationCode: string,
   ): Promise<
     | {
         user: User | null;

@@ -1,8 +1,6 @@
 import React from "react";
 import "./UserProfileSection.css";
 import { t } from "i18next";
-import DropDown from "../../components/DropDown";
-import { IonItem, IonSelect, IonSelectOption } from "@ionic/react";
 import CustomDropdown from "./CustomDropdown";
 
 interface LanguageOption {

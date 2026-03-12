@@ -8,7 +8,6 @@ import SchoolTeachers from "./SchoolTeachers";
 import SchoolStudents from "./SchoolStudents";
 import SchoolPrincipals from "./SchoolPrincipals";
 import SchoolCoordinators from "./SchoolCoordinators";
-import ClassDetailsPage from "./ClassDetailsPage";
 import SchoolClasses from "./SchoolClass";
 import SchoolNotes from "./SchoolNotes";
 

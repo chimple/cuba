@@ -4,11 +4,9 @@ import DataTablePagination from "../components/DataTablePagination";
 import {
   Box,
   Typography,
-  CircularProgress,
   useMediaQuery,
   useTheme,
   IconButton,
-  Button,
   Chip,
 } from "@mui/material";
 import "./SchoolActivities.css";
@@ -223,14 +221,16 @@ const SchoolActivities: React.FC = () => {
       setLoadingFilters(true);
       try {
         const res = await api.getActivitiesFilterOptions();
+        const performanceValues = res?.performance ?? [];
+        const contactTypeValues = res?.contactType ?? [];
         const transformed = {
-          ...res,
-          performance: (res.performance || []).map(
-            (p: string) => PERFORMANCE_UI[p as PerformanceLevel]?.label || p
+          ...(res ?? {}),
+          performance: performanceValues.map((p) =>
+            PERFORMANCE_UI[(p ?? "") as PerformanceLevel]?.label ?? (p ?? "")
           ),
-          contactType: (res.contactType || []).map(
-            (ct: string) =>
-              ct.charAt(0).toUpperCase() + ct.slice(1).toLowerCase()
+          contactType: contactTypeValues.map((ct) =>
+            (ct ?? "").charAt(0).toUpperCase() +
+            (ct ?? "").slice(1).toLowerCase()
           ),
         };
 

@@ -15,7 +15,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import DataTableBody from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { PAGES } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";

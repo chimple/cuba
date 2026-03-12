@@ -33,13 +33,15 @@ const LiveQuizRoom: React.FC = () => {
   const [lesson, setLesson] = useState<TableTypes<"lesson"> | undefined>();
   const [course, setCourse] = useState<TableTypes<"course"> | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  let lessonId;
-  let courseId;
+  let lessonId: string | undefined;
+  let courseId: string | undefined;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [assignmentResult, setAssignmentResult] =
     useState<TableTypes<"result">[]>();
 
-  const state = (history.location.state as any) ?? {};
+  const state = (history.location.state ?? {}) as {
+    assignment?: string;
+  };
   useEffect(() => {
     init();
   }, []);
@@ -68,7 +70,8 @@ const LiveQuizRoom: React.FC = () => {
       assignment = await api.getAssignmentById(paramAssignmentId);
     }
     lessonId = assignment?.lesson_id;
-    courseId = assignment?.course_id;
+    courseId = assignment?.course_id ?? undefined;
+    if (!lessonId || !courseId) return;
     const tempLesson = await api.getLesson(lessonId);
     if (!!tempLesson) {
       setLesson(tempLesson);

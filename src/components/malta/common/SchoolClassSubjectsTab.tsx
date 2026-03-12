@@ -5,7 +5,7 @@ import "./SchoolClassSubjectsTab.css";
 
 interface CommonTabProps {
   tabHeader: COMMONTAB_LIST;
-  segmentChanged: (evt) => void;
+  segmentChanged: (evt: CustomEvent) => void;
 }
 
 const CommonTab: React.FC<CommonTabProps> = ({

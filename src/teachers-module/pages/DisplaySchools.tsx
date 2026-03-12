@@ -1,8 +1,6 @@
 import { FC, useEffect, useMemo, useState, useRef } from "react";
 import { useHistory, useLocation } from "react-router";
 import {
-  CLASS,
-  CURRENT_SCHOOL,
   PAGES,
   TableTypes,
   MODES,
@@ -12,19 +10,17 @@ import {
   OPS_ROLES,
   STATUS,
 } from "../../common/constants";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
+import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { AppBar } from "@mui/material";
 import { t } from "i18next";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
-import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
 import { RoleType } from "../../interface/modelInterfaces";
 import Loading from "../../components/Loading";

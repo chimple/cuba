@@ -1,4 +1,3 @@
-import User from "../../models/user";
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
@@ -18,7 +17,6 @@ import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
-  MODEL,
   MODES,
   PROFILETYPE,
   SchoolRoleMap,
@@ -38,10 +36,7 @@ import {
   SearchSchoolsResult,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData, Unsubscribe } from "firebase/firestore";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
-import { image, school } from "ionicons/icons";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -430,7 +425,17 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     return await this.s.getStudentResult(studentId, fromCache);
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
     return await this.s.getStudentProgress(studentId);
   }
   async getStudentResultInMap(
@@ -819,7 +824,7 @@ export class ApiHandler implements ServiceApi {
   public async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
     student: TableTypes<"user">,
-  ): Promise<TableTypes<"course">[]> {
+  ): Promise<TableTypes<"course">[] | void> {
     return this.s.addCourseForParentsStudent(courses, student);
   }
 
@@ -1045,7 +1050,7 @@ export class ApiHandler implements ServiceApi {
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId,
+    classId: string,
   ): Promise<TableTypes<"result">[]> {
     return this.s.getStudentLastTenResults(
       studentId,
@@ -1843,12 +1848,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.updateUserReward(userId, rewardId, created_at);
   }
-  public async getActiveStudentsCountByClass(classId): Promise<string> {
+  public async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return this.s.getActiveStudentsCountByClass(classId);
   }
   public async getCompletedAssignmentsCountForSubjects(
-    studentId,
-    subjectIds,
+    studentId: string,
+    subjectIds: string[],
   ): Promise<{ subject_id: string; completed_count: number }[]> {
     return this.s.getCompletedAssignmentsCountForSubjects(
       studentId,
@@ -2093,8 +2098,9 @@ export class ApiHandler implements ServiceApi {
 
   public async getNextWinnableSticker(
     stickerBookId: string,
+    userId?: string,
   ): Promise<string | null> {
-    return await this.s.getNextWinnableSticker(stickerBookId);
+    return await this.s.getNextWinnableSticker(stickerBookId, userId);
   }
 
   public async updateStickerWon(

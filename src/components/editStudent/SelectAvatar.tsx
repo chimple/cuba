@@ -2,7 +2,6 @@ import { FC } from "react";
 import { AVATARS } from "../../common/constants";
 import "./SelectAvatar.css";
 import { BsFillCheckCircleFill } from "react-icons/bs";
-import { t } from "i18next";
 
 const SelectAvatar: FC<{
   avatar: string | undefined;

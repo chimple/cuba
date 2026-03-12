@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./StudentReportHeader.css";
-import CustomDropdown from "../CustomDropdown";
 import { TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import ImageDropdown from "../imageDropdown";
@@ -10,7 +9,12 @@ interface StudentReportHeaderProps {
   selectedSubject?: TableTypes<"course">;
   mappedSubjectOptions: { id: string; name: string, icon: string, subjectDetail: string }[];
   currentClass?: TableTypes<"class">;
-  onSubjectChange;
+  onSubjectChange: (selected: {
+    id: string | number;
+    name: string;
+    icon?: string;
+    subjectDetail?: string;
+  }) => void;
 }
 const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
   student,

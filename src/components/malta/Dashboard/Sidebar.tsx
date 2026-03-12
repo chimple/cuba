@@ -1,8 +1,7 @@
 import { t } from "i18next";
-import React, { useState } from "react";
+import React from "react";
 import { useHistory } from "react-router";
 import { PAGES } from "../../../common/constants";
-// import ProfileDetails from "../../../teachers-module/components/homePage/library/ProfileDetails";
 import "./Sidebar.css";
 import CloseIcon from "@mui/icons-material/Close";
 

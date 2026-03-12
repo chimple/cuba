@@ -1,10 +1,8 @@
 import {
   IonCard,
   IonCardContent,
-  IonInput,
   IonItem,
   IonLabel,
-  IonList,
 } from "@ionic/react";
 import { FC } from "react";
 import "./SchoolDetail.css";

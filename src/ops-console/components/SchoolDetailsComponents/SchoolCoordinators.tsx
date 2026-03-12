@@ -130,7 +130,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
     {
       key: "name",
       label: t("Coordinator Name"),
-      renderCell: (c) => (
+      renderCell: (c: DisplayCoordinator) => (
         <Typography variant="body2" className="coordinator-name-data">
           {c.name}
         </Typography>
@@ -141,7 +141,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
     {
       key: "emailDisplay",
       label: t("Email"),
-      renderCell: (c) => (
+      renderCell: (c: DisplayCoordinator) => (
         <Typography variant="body2" className="truncate-text">
           {c.emailDisplay}
         </Typography>

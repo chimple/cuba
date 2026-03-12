@@ -1,5 +1,4 @@
 import { FC, useState, useEffect } from "react";
-import Course from "../../models/course";
 import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
@@ -15,7 +14,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 
 const AddCourse: FC<{
   courses: TableTypes<"course">[];
-  onSelectedCoursesChange;
+  onSelectedCoursesChange: (selectedCourses: TableTypes<"course">[]) => void;
 }> = ({ courses, onSelectedCoursesChange }) => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
@@ -58,7 +57,7 @@ const AddCourse: FC<{
     }
   };
 
-  const handleClick = (course) => {
+  const handleClick = (course: TableTypes<"course">) => {
     if (!online) {
       presentToast({
         message: t(`Device is offline.`),
@@ -90,12 +89,12 @@ const AddCourse: FC<{
           selectedCourses.splice(selectedCourses?.indexOf(cCourse!), 1);
           setCoursesSelected(selectedCourses);
         }
-        onSelectedCoursesChange(coursesSelected);
+        onSelectedCoursesChange(selectedCourses);
       }
     }
   };
 
-  const renderSubjectCard = (curr, currt) => {
+  const renderSubjectCard = (curr: string, currt: string) => {
     return (
       <div className="add-course-subject-slider-content">
         <Splide

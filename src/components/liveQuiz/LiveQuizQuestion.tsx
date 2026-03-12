@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from "react";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { Encoding } from "@capacitor/filesystem";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import LiveQuiz, {
@@ -18,7 +17,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
 import { schoolUtil } from "../../utility/schoolUtil";
 
-let questionInterval;
+let questionInterval: ReturnType<typeof setInterval> | undefined;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
 let totalLessonScore = 0;
 let totalLessonTimeSpent = 0;
@@ -35,7 +34,7 @@ const LiveQuizQuestion: FC<{
   onShowAnswer?: (canShow: boolean) => void;
   lessonId?: string;
   quizData?: any;
-  onTotalScoreChange?;
+  onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
   isReward?: boolean;
 }> = ({
@@ -501,7 +500,9 @@ const readLocalConfig = async (
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (lessonId) {
-      onTotalScoreChange(totalLessonScore);
+      if (onTotalScoreChange) {
+        onTotalScoreChange(totalLessonScore);
+      }
       const classData = schoolUtil.getCurrentClass();
       if (isReward === true) {
         sessionStorage.setItem(REWARD_LESSON, "true");
@@ -543,7 +544,10 @@ const readLocalConfig = async (
       }
     } else {
       if (!roomDoc?.results) return;
-      for (let result of roomDoc.results[student!.id]) {
+      const roomResults = roomDoc.results as
+        | Record<string, { score: number; timeSpent: number }[]>
+        | undefined;
+      for (let result of roomResults?.[student!.id] ?? []) {
         totalScore += result.score || 0;
         totalTimeSpent += result.timeSpent || 0;
         if (result.score > 0) {

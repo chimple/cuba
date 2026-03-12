@@ -37,7 +37,6 @@ import {
 import {
   getGradeOptions,
   filterBySearchAndFilters,
-  sortSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
@@ -340,7 +339,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         if (cancelled) return;
         const next = new Map<string, Set<string>>();
         results.forEach(([classId, group]) => {
-          const members = Array.isArray(group?.members) ? group.members : [];
+          const parsedGroup =
+            typeof group === "object" && group !== null && !Array.isArray(group)
+              ? (group as { members?: string[] })
+              : null;
+          const members = Array.isArray(parsedGroup?.members)
+            ? (parsedGroup?.members ?? [])
+            : [];
           // Normalize to 10-digit numbers so comparisons are consistent.
           const normalizedMembers = new Set<string>(
             members
@@ -831,9 +836,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     {
       key: "name",
       label: t("Teacher Name"),
-      renderCell: (t) => (
+      renderCell: (teacher: DisplayTeacher) => (
         <Typography variant="body2" className="teacher-name-data">
-          {t.name}
+          {teacher.name}
         </Typography>
       ),
     },
@@ -873,9 +878,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       key: "class",
       label: t("Class Name"),
       sortable: true,
-      renderCell: (s) => (
+      renderCell: (teacher: DisplayTeacher) => (
         <Typography variant="body2" className="student-name-data">
-          {s.class}
+          {teacher.class}
         </Typography>
       ),
     },
@@ -911,7 +916,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     {
       key: "phoneEmailDisplay", // 🔹 use merged column
       label: t("Phone / Email"),
-      renderCell: (row) => (
+      renderCell: (row: DisplayTeacher) => (
         <Typography variant="body2" className="truncate-text">
           {row.phoneEmailDisplay}
         </Typography>
