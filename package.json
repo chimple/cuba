@@ -140,7 +140,10 @@
       "react-app/jest",
       "plugin:storybook/recommended",
       "plugin:prettier/recommended"
-    ]
+    ],
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "error"
+    }
   },
   "browserslist": {
     "production": [
