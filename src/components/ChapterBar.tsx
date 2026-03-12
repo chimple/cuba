@@ -6,8 +6,8 @@ import DropDown from "./DropDown";
 const ChapterBar: React.FC<{
   chapters: Chapter[];
   currentChapter: Chapter;
-  onChapterChange;
-  onGradeChange;
+  onChapterChange: (event: CustomEvent) => void;
+  onGradeChange: (value: string | null) => void;
   showGrade: boolean;
   grades: ({
     id: string;

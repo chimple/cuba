@@ -76,7 +76,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     Marathi: "मराठी",
   };
 
-  const createStyledCell = (message, isError) => {
+  const createStyledCell = (message: string, isError: boolean) => {
     const color = isError ? "FF0000" : "00A000";
     return {
       v: message,

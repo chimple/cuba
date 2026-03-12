@@ -46,6 +46,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from "../../interface/modelInterfaces";
+import { Json } from "../database";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -100,6 +101,34 @@ export type SchoolProgramAccessResponse = {
   page: number;
   page_size: number;
   total_pages: number;
+};
+
+type OpsRequestsResponse = {
+  data: Array<TableTypes<"ops_requests"> | Record<string, Json>>;
+  total: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+};
+
+type RequestFilterSchool = {
+  id: string;
+  name: string;
+};
+
+type RequestFilterOptions = {
+  requestType: Array<string | null>;
+  school: RequestFilterSchool[];
+};
+
+type FcUserFormSaveResult = {
+  data: TableTypes<"fc_user_forms"> | null;
+  error: object | null;
+};
+
+type ActivitiesFilterOptions = {
+  contactType: Array<string | null>;
+  performance: Array<string | null>;
 };
 
 export interface ServiceApi {
@@ -362,7 +391,7 @@ export interface ServiceApi {
    * To delete `Profile` for given student Id
    * @param {string } studentId - Student Id
    */
-  deleteProfile(studentId: string);
+  deleteProfile(studentId: string): Promise<void>;
 
   /**
    * Gives all `Curriculums` available on database
@@ -426,11 +455,11 @@ export interface ServiceApi {
   );
   get currentSchool(): TableTypes<"school"> | undefined;
   set currentSchool(value: TableTypes<"school"> | undefined);
-  updateSoundFlag(userId: string, value: boolean);
-  updateMusicFlag(userId: string, value: boolean);
-  updateLanguage(userId: string, value: string);
-  updateTcAccept(userId: string);
-  updateFcmToken(userId: string);
+  updateSoundFlag(userId: string, value: boolean): Promise<void>;
+  updateMusicFlag(userId: string, value: boolean): Promise<void>;
+  updateLanguage(userId: string, value: string): Promise<void>;
+  updateTcAccept(userId: string): Promise<void>;
+  updateFcmToken(userId: string): Promise<void>;
 
   /**
    * Gives Language for given a language firebase doc Id
@@ -472,7 +501,7 @@ export interface ServiceApi {
   addCourseForParentsStudent(
     courses: TableTypes<"course">[],
     student: TableTypes<"user">,
-  );
+  ): Promise<TableTypes<"course">[] | void>;
 
   /**
    * Gives List of subjects for given a student for Home user
@@ -736,7 +765,17 @@ export interface ServiceApi {
    * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
 
-  getStudentProgress(studentId: string): Promise<Map<string, string>>;
+  getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  >;
 
   /**
    * Gives StudentProgress for given a Student
@@ -945,7 +984,7 @@ export interface ServiceApi {
    * Removes LiveQuizChannel after live quiz completion;
    */
 
-  removeLiveQuizChannel();
+  removeLiveQuizChannel(): Promise<void>;
 
   /**
    * Establishes a real-time listener for changes in a assignmentUser document.
@@ -961,7 +1000,7 @@ export interface ServiceApi {
   /**
    * Remove AssignmentChannel;
    */
-  removeAssignmentChannel();
+  removeAssignmentChannel(): Promise<void>;
   /**
    * Establishes a real-time listener for changes in a assignmet document.
    * @param classId  - The class Id of the student
@@ -1103,7 +1142,10 @@ export interface ServiceApi {
    * @param unlockReward - The ID of the current student.
    * @returns A Promise that resolves with void when the update is complete.
    */
-  updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards);
+  updateRewardsForStudent(
+    studentId: string,
+    unlockReward: LeaderboardRewards,
+  ): void | Promise<void>;
 
   /**
    * Retrieves chapters belonging to the specified course.
@@ -1251,7 +1293,7 @@ export interface ServiceApi {
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId,
+    classId: string,
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1277,12 +1319,12 @@ export interface ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
-  );
+  ): Promise<void>;
   /**
    * Deletes a class
    * @param classId
    */
-  deleteClass(classId: string);
+  deleteClass(classId: string): Promise<void>;
 
   /**
    *  Get the results By assignmentIds
@@ -1471,7 +1513,7 @@ export interface ServiceApi {
    * @param {string } classId - Class Id
    * @param {string } teacherId - Teacher Id
    */
-  deleteTeacher(classId: string, teacherId: string);
+  deleteTeacher(classId: string, teacherId: string): Promise<void>;
   /**
    * To get class code for the given class id
    * @param {string } classId - Class Id
@@ -2302,14 +2344,14 @@ export interface ServiceApi {
     orderDir: "asc" | "desc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string,
-  );
+  ): Promise<OpsRequestsResponse>;
 
   /**
    * Retrieves available filter options for operational requests.
    * Typically used for populating dropdowns or filters in UI.
    * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
    */
-  getRequestFilterOptions();
+  getRequestFilterOptions(): Promise<RequestFilterOptions | null>;
 
   /**
    * Search teachers in a school by name, email, or phone (paginated)
@@ -2584,7 +2626,7 @@ export interface ServiceApi {
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
-  });
+  }): Promise<FcUserFormSaveResult>;
 
   /**
    * Retrieves the visit ID for a specific user at a school for today.
@@ -2616,7 +2658,7 @@ export interface ServiceApi {
   /**
    * Fetch filter options for FC activities.
    */
-  getActivitiesFilterOptions();
+  getActivitiesFilterOptions(): Promise<ActivitiesFilterOptions | null>;
   /**
    * Returns the number of times a teacher has assigned assignments
    * to a specific class in the last 15 days.
@@ -2693,7 +2735,7 @@ export interface ServiceApi {
    * @returns Promise resolving to the WhatsApp group details including
    *          group name, members list, and invite link.
    */
-  getWhatsappGroupDetails(groupId: string, bot: string);
+  getWhatsappGroupDetails(groupId: string, bot: string): Promise<Json>;
 
   /**
    * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.
@@ -2701,14 +2743,14 @@ export interface ServiceApi {
    * @param {string} bot - The WhatsApp bot phone number used to access the group.
    * @returns Promise resolving to the WhatsApp group id
    */
-  getGroupIdByInvite(invite_link: string, bot: string);
+  getGroupIdByInvite(invite_link: string, bot: string): Promise<Json>;
 
   /**
    * Fetch phone/botNum details using bot num.
    * @param {string} bot - The WhatsApp bot phone number.
    * @returns Promise resolving to the phoneNum details
    */
-  getPhoneDetailsByBotNum(bot: string);
+  getPhoneDetailsByBotNum(bot: string): Promise<Json>;
   /**
    * Updates WhatsApp group settings such as name, admin-only permissions, etc.
    *

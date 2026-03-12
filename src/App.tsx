@@ -533,7 +533,7 @@ const App: React.FC = () => {
     setStartTime(Date.now());
     localStorage.setItem(START_TIME_KEY, Date.now().toString());
   };
-  const processNotificationData = async (data) => {
+  const processNotificationData = async (data: ExtraData | undefined) => {
     Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {

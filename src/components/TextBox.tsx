@@ -2,13 +2,13 @@
 import "./TextBox.css";
 import { IoCallOutline } from "react-icons/io5";
 // import { InputChangeEventDetail, IonInputCustomEvent } from "@ionic/core";
-import { ChangeEvent } from "react";
+import { ChangeEvent, FocusEventHandler, Ref } from "react";
 
 const TextBox: React.FC<{
   inputText: string;
-  ref?;
-  inputType;
-  onFocus?;
+  ref?: Ref<HTMLInputElement>;
+  inputType: string;
+  onFocus?: FocusEventHandler<HTMLInputElement>;
   maxLength: number;
   inputValue: string;
   icon?: React.JSX.Element; // Define icon prop as JSX.Element

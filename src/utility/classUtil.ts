@@ -478,7 +478,7 @@ export class ClassUtil {
       HeaderData: monthsMapArray,
     };
   }
-  public formatDate(timestamp) {
+  public formatDate(timestamp: string | number | Date) {
     const date = new Date(timestamp);
     const day = date.getDate();
     const month = date.getMonth() + 1;

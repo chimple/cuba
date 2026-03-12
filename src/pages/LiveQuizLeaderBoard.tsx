@@ -9,10 +9,24 @@ import { useHistory } from "react-router";
 import NextButton from "../components/common/NextButton";
 import { Util } from "../utility/util";
 
+type ParticipantScore = {
+  studentDocId: string;
+  totalScore: number;
+  totalTimeSpent?: number;
+};
+
+type QuizResultEntry = {
+  score: number;
+  timeSpent: number;
+  question_id: string;
+};
+
 const LiveQuizLeaderBoard: React.FC = () => {
-  const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
+  const [combinedStudentScores, setCombinedStudentScores] = useState<
+    ParticipantScore[]
+  >([]);
   const [students, setStudents] = useState(
-    new Map<String, TableTypes<"user">>()
+    new Map<string, TableTypes<"user">>()
   );
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
@@ -29,17 +43,19 @@ const LiveQuizLeaderBoard: React.FC = () => {
     try {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      type Participant = {
-        studentDocId: string;
-        totalScore: number;
-        totalTimeSpent: number;
-      };
-      const studentResults: Participant[] = [];
+      const studentResults: ParticipantScore[] = [];
       if (!!liveQuizRoomResults) {
-        Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
-          const studentResult = liveQuizRoomResults[studentDocId];
+        const roomResults = liveQuizRoomResults as Record<
+          string,
+          QuizResultEntry[]
+        >;
+        Object.keys(roomResults).forEach((studentDocId) => {
+          const studentResult = roomResults[studentDocId];
           const { totalScore, totalTimeSpent } = studentResult.reduce(
-            (acc, question) => {
+            (
+              acc: { totalScore: number; totalTimeSpent: number },
+              question: QuizResultEntry
+            ) => {
               acc.totalScore += question.score;
               acc.totalTimeSpent += question.timeSpent;
               return acc;
@@ -54,12 +70,12 @@ const LiveQuizLeaderBoard: React.FC = () => {
           });
         });
 
-        const liveQuizRoomScores: Participant[] = studentResults;
+        const liveQuizRoomScores: ParticipantScore[] = studentResults;
         const leaderboardScores = await fetchAssignmentResults();
 
         const combinedScores = combineScores(
           liveQuizRoomScores,
-          leaderboardScores
+          leaderboardScores ?? []
         );
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
         setCombinedStudentScores(combinedScores);
@@ -89,7 +105,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
     if (res) {
       const assignmentId = res?.assignment_id;
       const assignmentDoc = await api.getAssignmentById(assignmentId);
-      let scoresData: any;
+      let scoresData: ParticipantScore[] = [];
 
       if (assignmentDoc) {
         const results = await api.getStudentResultsByAssignmentId(
@@ -99,7 +115,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         resultData = results[0].result_data;
         const playedStudentIds = [
           ...new Set(resultData.map((result) => result.student_id)),
-        ];
+        ].filter((studentId): studentId is string => Boolean(studentId));
 
         scoresData = playedStudentIds.map((studentDocId) => {
           const totalScore = resultData
@@ -108,27 +124,32 @@ const LiveQuizLeaderBoard: React.FC = () => {
 
           return {
             studentDocId,
-            totalScore,
+            totalScore: totalScore ?? 0,
           };
         });
       }
       return scoresData;
     }
+    return [];
   };
-  const combineScores = (roomResultScores, leaderboardScores) => {
+  const combineScores = (
+    roomResultScores: ParticipantScore[],
+    leaderboardScores: ParticipantScore[]
+  ): ParticipantScore[] => {
     const uniqueStudentDocIds = Array.from(
       new Set([
-        ...roomResultScores.map((res) => res.studentDocId),
-        ...leaderboardScores.map((res) => res.studentDocId),
+        ...roomResultScores.map((res: ParticipantScore) => res.studentDocId),
+        ...leaderboardScores.map((res: ParticipantScore) => res.studentDocId),
       ])
     );
 
-    const combinedScores = uniqueStudentDocIds.map((studentDocId) => {
+    const combinedScores = uniqueStudentDocIds
+      .map((studentDocId) => {
       const roomResultScore = roomResultScores.find(
-        (res) => res.studentDocId === studentDocId
+        (res: ParticipantScore) => res.studentDocId === studentDocId
       );
       const leaderboardScore = leaderboardScores.find(
-        (res) => res.studentDocId === studentDocId
+        (res: ParticipantScore) => res.studentDocId === studentDocId
       );
       if (!!roomResultScore && !!leaderboardScore) {
         return {
@@ -138,7 +159,8 @@ const LiveQuizLeaderBoard: React.FC = () => {
       } else {
         return roomResultScore || leaderboardScore;
       }
-    });
+      })
+      .filter((score): score is ParticipantScore => Boolean(score));
 
     return combinedScores;
   };
@@ -168,8 +190,10 @@ const LiveQuizLeaderBoard: React.FC = () => {
         </div>
         <div className="leaderboard-container">
           {combinedStudentScores
-            .filter((scoreData) => students.has(scoreData.studentDocId))
-            .map((scoreData, index) => (
+            .filter((scoreData: ParticipantScore) =>
+              students.has(scoreData.studentDocId)
+            )
+            .map((scoreData: ParticipantScore, index: number) => (
               <IonRow
                 key={index}
                 className={`leaderboard-row ${

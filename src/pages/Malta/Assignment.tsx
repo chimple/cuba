@@ -176,7 +176,7 @@ const Assignment: React.FC = () => {
   const onCourseChange = () => {};
   const onLessonSelect = () => {};
 
-  const segmentChanged = (evt) => {
+  const segmentChanged = (evt: CustomEvent) => {
     //write logic
     setActiveTab(evt.detail.value);
   };

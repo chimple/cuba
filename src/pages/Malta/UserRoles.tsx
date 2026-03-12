@@ -16,7 +16,7 @@ const UserRoles: React.FC<UserRolesProps> = () => {
   const [tabIndex, setTabIndex] = useState(USERTYPES.PRINCIAPAL);
   const [showPopUp, setShowPopUP] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const onTabChange = (event, newValue) => {
+  const onTabChange = (event: React.SyntheticEvent, newValue: USERTYPES) => {
     setTabIndex(newValue);
   };
   return (

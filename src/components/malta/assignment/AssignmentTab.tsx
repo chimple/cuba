@@ -6,9 +6,9 @@ import { TableTypes } from "../../../common/constants";
 const AssignmentTab: FC<{
   lessons: TableTypes<"lesson">[];
   courses: TableTypes<"course">[];
-  onCourseChange;
-  onChapterChange;
-  onLessonSelect;
+  onCourseChange: (courseId: string) => void;
+  onChapterChange: (chapterId: string) => void;
+  onLessonSelect: (lesson: TableTypes<"lesson">) => void;
 }> = ({
   lessons,
   courses,

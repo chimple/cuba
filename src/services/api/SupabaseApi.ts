@@ -70,7 +70,7 @@ import {
   SchoolProgramAccessRow,
   ServiceApi,
 } from "./ServiceApi";
-import { Database } from "../database";
+import { Database, Json } from "../database";
 import {
   PostgrestSingleResponse,
   RealtimeChannel,
@@ -720,7 +720,11 @@ export class SupabaseApi implements ServiceApi {
         });
       }
       tableNames.map(async (tableName) => {
-        data.set(tableName, res?.data?.[tableName] ?? []);
+        const payload =
+          res?.data && typeof res.data === "object" && !Array.isArray(res.data)
+            ? (res.data as Record<string, Json>)
+            : {};
+        data.set(tableName, (payload[tableName] as Json[]) ?? []);
       });
       return data;
     } catch (err: any) {
@@ -1742,6 +1746,7 @@ export class SupabaseApi implements ServiceApi {
         digitalSkillsCourse,
       ].filter(Boolean);
       for (const course of coursesToAdd) {
+        if (!course) continue;
         const newUserCourse: TableTypes<TABLES.UserCourse> = {
           id: uuidv4(),
           user_id: studentId,
@@ -3227,8 +3232,18 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? [];
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
-    if (!this.supabase) return new Map();
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  > {
+    if (!this.supabase) return {};
 
     // Use chapter_lesson to join lesson and chapter
     const { data, error } = await this.supabase
@@ -3253,10 +3268,13 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error fetching student progress:", error);
-      return new Map();
+      return {};
     }
 
-    const resultMap = new Map<string, string>();
+    const resultMap: Record<
+      string,
+      (TableTypes<"result"> & { lesson_name?: string; chapter_name?: string })[]
+    > = {};
 
     if (!data) return resultMap;
 
@@ -3266,7 +3284,14 @@ export class SupabaseApi implements ServiceApi {
         if (courseId && !resultMap[courseId]) {
           resultMap[courseId] = [];
         }
-        if (courseId) resultMap[courseId].push(result);
+        if (courseId) {
+          resultMap[courseId].push(
+            result as TableTypes<"result"> & {
+              lesson_name?: string;
+              chapter_name?: string;
+            },
+          );
+        }
       });
     }
     return resultMap;
@@ -5387,13 +5412,26 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
-      if (!data || !data[periodType]) {
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        Array.isArray(data) ||
+        !(periodType in data)
+      ) {
+        console.error("No reward found for the given year or periodType.");
+        return;
+      }
+      const rewardPayload = data[periodType as keyof typeof data];
+
+      if (!rewardPayload) {
         console.error("No reward found for the given year or periodType.");
         return;
       }
 
       try {
-        return JSON.parse(data[0][periodType]);
+        return typeof rewardPayload === "string"
+          ? JSON.parse(rewardPayload)
+          : (rewardPayload as TableTypes<"reward">);
       } catch (parseError) {
         console.error("Error parsing JSON from reward data:", parseError);
         return;
@@ -5971,7 +6009,7 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     courseIds: string[],
     assignmentIds: string[],
-    classId,
+    classId: string,
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -6424,7 +6462,10 @@ export class SupabaseApi implements ServiceApi {
     return !!data; // true if found, false if not
   }
 
-  async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
+  async checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string,
+  ): Promise<boolean> {
     if (!this.supabase) return false;
 
     const roles = [
@@ -7631,12 +7672,13 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const parsed: Record<string, string[]> = {};
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in data) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           if (Array.isArray(val)) {
             parsed[key] = val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             );
           } else {
             parsed[key] = [];
@@ -8279,12 +8321,13 @@ export class SupabaseApi implements ServiceApi {
         cluster: [],
       };
 
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in parsed) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             )
             : [];
         }
@@ -8328,12 +8371,13 @@ export class SupabaseApi implements ServiceApi {
         model: [],
       };
 
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !Array.isArray(data)) {
         for (const key in parsed) {
-          const val = data[key];
+          const val = (data as Record<string, Json>)[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null",
+              (v): v is string =>
+                typeof v === "string" && v.trim() !== "" && v !== "null",
             )
             : [];
         }

@@ -129,7 +129,7 @@ const LeaderboardStickers: FC = () => {
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
@@ -155,7 +155,7 @@ const LeaderboardStickers: FC = () => {
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
@@ -180,7 +180,7 @@ const LeaderboardStickers: FC = () => {
     const stickerIds: string[] = [];
     const weeklyData: any = rewardsDoc.weeklySticker;
     if (weeklyData[nextWeek.toString()]) {
-      weeklyData[nextWeek.toString()].forEach((value) => {
+      weeklyData[nextWeek.toString()].forEach((value: { id: string; type: string }) => {
         if (value.type === LeaderboardRewardsType.STICKER) {
           stickerIds.push(value.id);
         }

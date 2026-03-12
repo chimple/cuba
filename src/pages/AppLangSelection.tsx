@@ -23,9 +23,10 @@ const AppLangSelection: React.FC = () => {
 
   async function getLangList() {
     setIsLoading(true);
+    const appLanguages = APP_LANGUAGES as Record<string, string>;
     const languages = Object.keys(APP_LANGUAGES).map((key) => ({
       id: key,
-      displayName: APP_LANGUAGES[key],
+      displayName: appLanguages[key],
     }));
 
     const currLang = localStorage.getItem(LANGUAGE);
@@ -70,7 +71,7 @@ const AppLangSelection: React.FC = () => {
                 optionList={langList}
                 currentValue={currentAppLang || langList[0]?.id}
                 width="26vw"
-                onValueChange={async (selectedLang) => {
+                onValueChange={async (selectedLang: string) => {
                   if (!selectedLang) return;
                   localStorage.setItem(LANGUAGE, selectedLang);
                   await i18n.changeLanguage(selectedLang);

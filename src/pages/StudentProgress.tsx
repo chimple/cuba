@@ -12,15 +12,23 @@ import SkeltonLoading from "../components/SkeltonLoading";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentHeader, setCurrentHeader] = useState<any>(undefined);
+  const [currentHeader, setCurrentHeader] = useState<string | null>(null);
   const [studentProgressHeaderIconList, setStudentProgressHeaderIconList] =
     useState<HeaderIconConfig[]>([]);
   const [headerContent, setHeaderContent] = useState<string[]>([]);
   const [dataContent, setDataContent] = useState<string[][]>([]);
   const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
   const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
-  const [lessonsResults, setLessonsResults] = useState<Map<string, string>>();
-  const [tabs, setTabs] = useState<{ [key: string]: string }>({});
+  const [lessonsResults, setLessonsResults] = useState<
+    Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
+  >();
+  const [tabs, setTabs] = useState<Record<string, React.ReactNode>>({});
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
@@ -33,7 +41,7 @@ const StudentProgress: React.FC = () => {
     courseId: string;
     displayName: React.ReactNode;
     iconSrc: string;
-    header: any;
+    header: string | null;
     course: TableTypes<"course">;
   }
   const handleBackButton = () => {
@@ -166,7 +174,13 @@ const StudentProgress: React.FC = () => {
 
   async function getResultsForStudentForSelectedHeader(
     selectedCourseId: string,
-    lessonsResults: Map<string, string>
+    lessonsResults: Record<
+      string,
+      (TableTypes<"result"> & {
+        lesson_name?: string;
+        chapter_name?: string;
+      })[]
+    >
   ) {
     setIsLoading(true);
     let isDataAvailable: boolean = false;
@@ -176,12 +190,13 @@ const StudentProgress: React.FC = () => {
       if (lessonResultsForCourse) {
         isDataAvailable = true;
         lessonResultsForCourse.forEach((result) => {
-          const computeMinutes = Math.floor(result.time_spent / 60);
-          const computeSeconds = result.time_spent % 60;
+          const timeSpent = result.time_spent ?? 0;
+          const computeMinutes = Math.floor(timeSpent / 60);
+          const computeSeconds = timeSpent % 60;
           tempDataContent.push([
-            result.lesson_name,
-            result.chapter_name,
-            Math.floor(result.score).toString(),
+            result.lesson_name ?? "",
+            result.chapter_name ?? "",
+            Math.floor(result.score ?? 0).toString(),
             `${computeMinutes}:${computeSeconds}`,
           ]);
         });
@@ -212,7 +227,7 @@ const StudentProgress: React.FC = () => {
     if (studentProgressHeaderIconList.length > 0) {
       setTabIndex(studentProgressHeaderIconList[0].courseId);
     }
-    const newTabs = {};
+    const newTabs: Record<string, React.ReactNode> = {};
     studentProgressHeaderIconList.forEach((iconConfig) => {
       newTabs[iconConfig.courseId] = iconConfig.displayName;
     });

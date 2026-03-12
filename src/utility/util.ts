@@ -147,21 +147,21 @@ export class Util {
   // }
 
   public static async getNextLessonFromGivenChapter(
-    chapters,
-    currentChapterId,
-    currentLessonId,
-    ChapterDetail,
-  ) {
+    chapters: curriculamInterfaceChapter[],
+    currentChapterId: string,
+    currentLessonId: string,
+    ChapterDetail: curriculamInterfaceChapter | undefined,
+  ): Promise<TableTypes<"lesson"> | undefined> {
     const api = ServiceConfig.getI().apiHandler;
     // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
     const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
     if (!currentChapter) return undefined;
-    let currentLessonIndex;
+    let currentLessonIndex = -1;
 
     // currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
-    const cChapter = await api.getLessonsForChapter(currentChapter);
+    const cChapter = await api.getLessonsForChapter(currentChapter.id);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
       const currentLesson = cChapter[i];
@@ -171,7 +171,10 @@ export class Util {
       }
     }
 
-    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+    if (
+      currentLessonIndex >= 0 &&
+      currentLessonIndex < currentChapter.lessons.length - 1
+    ) {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
       let studentResult:
@@ -199,7 +202,9 @@ export class Util {
     }
 
     const nextChapterIndex =
-      chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
+      chapters.findIndex((chapter: curriculamInterfaceChapter) => {
+        return chapter.id === currentChapterId;
+      }) + 1;
     if (nextChapterIndex < chapters.length) {
       // if (firstLessonId instanceof TableTypes<"lesson">) {
       //   return firstLessonId;
@@ -383,7 +388,11 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
-  public static async getLessonPath({ lessonId }): Promise<string | null> {
+  public static async getLessonPath({
+    lessonId,
+  }: {
+    lessonId: string;
+  }): Promise<string | null> {
     const gameUrl = localStorage.getItem("gameUrl");
 
     const exists = async (path: string) => {
@@ -904,12 +913,17 @@ export class Util {
       }
       const settings = window._CCSettings;
       const launchScene = settings.launchScene;
-      const bundle = window.cc.assetManager.bundles.find(function (b) {
+      const bundle = window.cc.assetManager.bundles.find(function (b: {
+        getSceneInfo: (sceneName: string) => object | null;
+      }) {
         return b.getSceneInfo(launchScene);
       });
 
-      await new Promise((resolve, reject) => {
-        bundle.loadScene(launchScene, null, null, function (err, scene) {
+      await new Promise<object>((resolve, reject) => {
+        bundle.loadScene(launchScene, null, null, function (
+          err: Error | null | undefined,
+          scene: object,
+        ) {
           if (!err) {
             window.cc.director.runSceneImmediate(scene);
             if (window.cc.sys.isBrowser) {
@@ -1034,7 +1048,7 @@ export class Util {
     return tempCurrentIndex;
   }
 
-  public static getCourseByGrade(courseId): string {
+  public static getCourseByGrade(courseId: string): string {
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     let gradeMap = {};
     if (!selectedGrade) {
@@ -1058,7 +1072,7 @@ export class Util {
     // }
   }
 
-  public static async showLog(msg): Promise<void> {
+  public static async showLog(msg: string | object): Promise<void> {
     if (Capacitor.getPlatform() !== "android") return;
     if (typeof msg !== "string") {
       msg = JSON.stringify(msg);
@@ -1162,7 +1176,7 @@ export class Util {
     });
   }
 
-  public static onAppStateChange = ({ isActive }) => {
+  public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
     // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
       TextToSpeech.stop();
@@ -1399,11 +1413,11 @@ export class Util {
     // if (student) await Util.setUserProperties(student);
   };
 
-  public static randomBetween(min, max) {
+  public static randomBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  public static isEmail(username) {
+  public static isEmail(username: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(username);
     return isValid;
@@ -1500,7 +1514,12 @@ export class Util {
     return result.token;
   }
 
-  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+  public static isTextFieldFocus(
+    scollToRef: {
+      current?: { scrollIntoView: (options: ScrollIntoViewOptions) => void };
+    },
+    setIsInputFocus: (isFocused: boolean) => void,
+  ) {
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -1710,10 +1729,10 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
       return true;
     }
-    const lessThanOneHourAgo = (date) => {
-      const now: any = new Date();
+    const lessThanOneHourAgo = (date: Date): boolean => {
+      const now = new Date();
       const ONE_HOUR = 60 * 60 * 1000; /* ms */
-      const res = now - date < ONE_HOUR;
+      const res = now.getTime() - date.getTime() < ONE_HOUR;
       return res;
     };
     const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
@@ -1903,7 +1922,14 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
+    const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+      typeof weeklyData === "string"
+        ? JSON.parse(weeklyData)
+        : typeof weeklyData === "object" && weeklyData !== null
+          ? (weeklyData as Record<string, { type: string; id: string }[]>)
+          : {};
+    const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+    weeklyRewards.forEach((value: { type: string; id: string }) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1963,7 +1989,14 @@ export class Util {
       const weeklyData = rewardsDoc.weeklySticker;
       let currentReward;
 
-      weeklyData?.[currentWeek.toString()].forEach(async (value) => {
+      const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+        typeof weeklyData === "string"
+          ? JSON.parse(weeklyData)
+          : typeof weeklyData === "object" && weeklyData !== null
+            ? (weeklyData as Record<string, { type: string; id: string }[]>)
+            : {};
+      const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+      weeklyRewards.forEach(async (value: { type: string; id: string }) => {
         currentReward = value;
       });
       // if (!currentUser.rewards) {

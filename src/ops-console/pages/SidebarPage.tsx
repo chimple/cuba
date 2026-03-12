@@ -9,6 +9,7 @@ import {
   useRouteMatch,
   Route,
   Redirect,
+  useParams,
 } from "react-router-dom";
 import ProtectedRoute from "../../ProtectedRoute";
 import "./SidebarPage.css";
@@ -38,6 +39,21 @@ import AddSchoolPage from "./AddSchoolPage";
 import ActivitiesPage from "./ActivitiesPage";
 import SchoolActivities from "./SchoolActivities";
 import MigrateSchoolsPage from "./MigrateSchoolsPage";
+
+const SchoolDetailsRoute: React.FC = () => {
+  const { school_id } = useParams<{ school_id: string }>();
+  return <SchoolDetailsPage id={school_id} />;
+};
+
+const ProgramDetailsRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramDetailsPage id={program_id} />;
+};
+
+const ProgramConnectedSchoolRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramConnectedSchoolPage id={program_id} />;
+};
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -150,21 +166,13 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <SchoolDetailsPage id={routeProps.match.params.school_id} />
-                );
-              }}
+              <SchoolDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
-                );
-              }}
+              <ProgramDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
               <NewProgram />
@@ -176,13 +184,7 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramConnectedSchoolPage
-                    id={routeProps.match.params.program_id}
-                  />
-                );
-              }}
+              <ProgramConnectedSchoolRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}

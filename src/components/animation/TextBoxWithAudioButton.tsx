@@ -7,7 +7,11 @@ interface TextBoxWithAudioButtonProps {
   onClick?: () => void; // Define the prop for the callback function
   message: string;
 }
-export default function TextBoxWithAudioButton({ message, fontSize, onClick }) {
+export default function TextBoxWithAudioButton({
+  message,
+  fontSize,
+  onClick,
+}: TextBoxWithAudioButtonProps) {
   return (
     <div
       style={{

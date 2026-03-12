@@ -16,12 +16,12 @@ import CustomDropdown from "../CustomDropdown";
 import CalendarPicker from "../../../common/CalendarPicker";
 
 interface TableChoiceHeaderProps {
-  onDateChange;
-  onIsAssignments;
-  isMonthly;
-  handleNameSort;
-  sortBy;
-  isAssignmentsOnlyProp;
+  onDateChange: (dateRange: { startDate: Date; endDate: Date }) => void;
+  onIsAssignments: (isAssignmentsOnly: boolean) => void;
+  isMonthly: boolean;
+  handleNameSort: (sortOption: { id: string; name: TABLESORTBY }) => void;
+  sortBy: TABLESORTBY;
+  isAssignmentsOnlyProp: boolean;
   dateRangeValue: {
     startDate: Date;
     endDate: Date;
@@ -40,8 +40,6 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   isAssignmentReport,
 }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | undefined>();
-
   const [isAssignmentsOnly, setIsAssignmentsOnly] = useState(
     isAssignmentsOnlyProp
   );

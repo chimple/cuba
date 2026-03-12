@@ -59,7 +59,11 @@ const OpsApprovedRequestDetails = () => {
             1,
             DEFAULT_PAGE_SIZE
           );
-          req = approvedRequest?.find((r) => r.request_id === id);
+          req =
+            (approvedRequest?.data?.find(
+              (r: TableTypes<"ops_requests"> | Record<string, unknown>) =>
+                "request_id" in r && r.request_id === id,
+            ) as RequestDetails | undefined) ?? null;
           if (req) setRequestDetails(req);
           else setError(t("requestNotFound"));
         }

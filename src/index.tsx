@@ -159,7 +159,10 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString(), error.toString());
+  recordExecption(
+    message.toString(),
+    error?.toString() ?? "Unknown error",
+  );
 };
 const container = document.getElementById("root");
 const root = createRoot(container!, {

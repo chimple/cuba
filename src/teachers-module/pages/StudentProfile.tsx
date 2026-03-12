@@ -12,15 +12,19 @@ import { useHistory } from "react-router-dom";
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
+  const state = (history.location.state ?? {}) as {
+    classDoc?: TableTypes<"class">;
+    studentId?: string;
+  };
   const [student, setStudent] = useState<TableTypes<"user">>();
   const [school, setSchool] = useState<TableTypes<"school">>();
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const [isEditing, setIsEditing] = useState(false);
   const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
-  const tempClass = history.location.state!["classDoc"] as TableTypes<"class">;
+  const tempClass = state.classDoc;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const paramStudentId = history.location.state!["studentId"] as string;
+  const paramStudentId = state.studentId ?? "";
   const api = ServiceConfig.getI()?.apiHandler;
   const auth = ServiceConfig.getI()?.authHandler;
 

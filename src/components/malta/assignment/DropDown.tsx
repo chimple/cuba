@@ -1,4 +1,5 @@
 import { MenuItem, Select } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material/Select";
 import "./DropDown.css";
 
 const placeholderTextItem = "select";
@@ -9,7 +10,7 @@ interface DropDownProps {
     displayName: string;
   }[];
   currentValue: string | undefined;
-  onValueChange: (evt) => void;
+  onValueChange: (value: string) => void;
   placeholder: string | undefined;
   width: string;
 }
@@ -22,7 +23,7 @@ const DropDown: React.FC<DropDownProps> = ({
   return (
     <Select
       className="dropdown-outer"
-      onChange={(evt) => {
+      onChange={(evt: SelectChangeEvent<string>) => {
         onValueChange(evt.target.value);
       }}
       value={currentValue}

@@ -33,7 +33,8 @@ const ParentalLock: React.FC<{
 
     useEffect(() => {
       const randomIndex = Math.floor(Math.random() * Object.keys(FourSides).length);
-      const direction = FourSides[Object.keys(FourSides)[randomIndex]];
+      const directionKey = Object.keys(FourSides)[randomIndex] as keyof typeof FourSides;
+      const direction = FourSides[directionKey];
       setUserDirection(direction) //random sides
 
       const str = t(`Swipe x to Unlock`)
@@ -52,18 +53,18 @@ const ParentalLock: React.FC<{
     };
 
 
-    const [touchStart, setTouchStart] = useState({ x: null, y: null });
-    const [touchEnd, setTouchEnd] = useState({ x: null, y: null });
+    const [touchStart, setTouchStart] = useState<{ x: number | null; y: number | null }>({ x: null, y: null });
+    const [touchEnd, setTouchEnd] = useState<{ x: number | null; y: number | null }>({ x: null, y: null });
 
     const minSwipeDistance = 50;
 
-    const onTouchStart = (e) => {
+    const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
       if (!e.targetTouches || !e.targetTouches[0]?.clientX) return;
       setTouchEnd({ x: null, y: null }); // Reset touchEnd to null
       setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
     };
 
-    const onTouchMove = (e) => {
+    const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
       if (!e.targetTouches || !e.targetTouches[0]?.clientX) return;
       setTouchEnd({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
     };
@@ -96,12 +97,12 @@ const ParentalLock: React.FC<{
         }
       }
     };
-    const onMouseDown = (e) => {
+    const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
       setTouchEnd({ x: null, y: null });
       setTouchStart({ x: e.clientX, y: e.clientY });
     };
 
-    const onMouseMove = (e) => {
+    const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
       if (!touchStart.x || !touchStart.y) return;
       setTouchEnd({ x: e.clientX, y: e.clientY });
     };

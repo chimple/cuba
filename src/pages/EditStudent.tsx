@@ -142,13 +142,13 @@ const EditStudent = () => {
         );
         const eventParams = {
           user_id: student.id,
-          user_type: student.role,
+          user_type: undefined,
           user_name: student.name!,
           user_gender: student.gender,
           user_age: student.age,
-          phone_number: student.username,
-          parent_username: student.username,
-          parent_id: student.uid,
+          phone_number: undefined,
+          parent_username: undefined,
+          parent_id: undefined,
           action_type: ACTION.CREATE,
         };
 

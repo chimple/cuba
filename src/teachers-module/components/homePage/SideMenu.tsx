@@ -113,7 +113,7 @@ const SideMenu: React.FC<{
       setCurrentUserId(currentUser.id);
       let teacher_class_ids: string[] = [];
       const schoolList: any = [];
-      const roleMap = {};
+      const roleMap: Record<string, RoleType> = {};
 
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {

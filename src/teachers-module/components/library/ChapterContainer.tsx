@@ -9,7 +9,7 @@ interface ChapterContainerProps {
   chapterSelectedLessons: Function;
   syncSelectedLessons: string[];
   isOpened: boolean;
-  lessonClickCallBack;
+  lessonClickCallBack: (lesson: TableTypes<"lesson">) => void;
   courseCode?: string;
   showAssignedBadge?: boolean;
   assignedLessonIds?: Set<string>;
@@ -40,7 +40,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     chapterLessonIds.length > 0 &&
     chapterLessonIds.every((lessonId) => selectedLessons.includes(lessonId));
 
-  const handleLessonToggle = (lesson) => {
+  const handleLessonToggle = (lesson: string) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lesson)) {
         chapterSelectedLessons(chapter.id, lesson, false);   //remove lesson

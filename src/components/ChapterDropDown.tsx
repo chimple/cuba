@@ -5,7 +5,7 @@ import "./ChapterDropDown.css";
 const ChapterDropDown: React.FC<{
   chapters: Chapter[];
   currentChapter: Chapter;
-  onChapterChange;
+  onChapterChange: (event: CustomEvent) => void;
 }> = ({ chapters, currentChapter: currentChapter, onChapterChange }) => {
   return (
     <IonList>

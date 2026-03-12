@@ -209,7 +209,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                           chapterGroup.chapterId,
                           lesson.id,
                         )}
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                           e.stopPropagation();
                           toggleLessonSelection(
                             chapterGroup.chapterId,
@@ -285,7 +285,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 <div
                   id="chapter-wise-other-btn"
                   className="chapter-wise-btn"
-                  onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.stopPropagation();
                   }}
                 >

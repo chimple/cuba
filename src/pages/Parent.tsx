@@ -518,7 +518,7 @@ const Parent: React.FC = () => {
     }
   }, []);
   useEffect(() => {
-    const updatedTabs = {};
+    const updatedTabs: Record<string, string> = {};
     parentHeaderIconList.forEach((item) => {
       updatedTabs[t(item.header)] = t(item.header);
     });
