@@ -137,7 +137,7 @@ export class Util {
     if (!currentChapter) return undefined;
     let currentLessonIndex = -1;
 
-    // currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
+    
     const cChapter = await api.getLessonsForChapter(currentChapter.id);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
