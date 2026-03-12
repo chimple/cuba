@@ -4,7 +4,6 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import { t } from "i18next";
 import "./LessonDetails.css";
-import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import {
@@ -19,7 +18,6 @@ import {
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
-import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";

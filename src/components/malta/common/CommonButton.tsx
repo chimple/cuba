@@ -1,6 +1,5 @@
-import { IonButton, IonIcon } from "@ionic/react";
+import { IonButton } from "@ionic/react";
 import { t } from "i18next";
-import { chevronForward, warning } from "ionicons/icons";
 import "./CommonButton.css";
 import React from "react";
 

@@ -187,8 +187,6 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       from: PAGES.SHOW_CHAPTERS,
     });
   };
-
-  // const handleSelectedLesson = (chapterId: string, lessonIds: string[]) => {
   //   if (lessonIds !== undefined) {
   //     const newClassSelectedLesson = new Map(classSelectedLesson);
   //     const existing = newClassSelectedLesson.get(chapterId) ?? {};

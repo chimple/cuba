@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx-js-style";
-import { Capacitor } from "@capacitor/core";
 import "./FileUpload.css";
 import UploadIcon from "../assets/icons/upload_icon.png";
 import { FaCloudDownloadAlt } from "react-icons/fa";
@@ -8,7 +7,6 @@ import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { runBackgroundWorkerTask } from "../../workers/backgroundWorkerClient";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
@@ -17,7 +15,6 @@ import { useHistory } from "react-router-dom";
 import {
   BULK_UPLOAD_TEMPLATE_URL,
   FileUploadStep,
-  PAGES,
 } from "../../common/constants";
 
 type NamedContact = {

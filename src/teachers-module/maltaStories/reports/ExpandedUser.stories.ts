@@ -1,6 +1,6 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { number, string } from "prop-types";
+import { string } from "prop-types";
 import ExpandedUser from "../../components/reports/ExpandedUser";
 
 const meta = {

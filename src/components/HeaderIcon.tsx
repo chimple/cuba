@@ -1,9 +1,7 @@
 import { t } from "i18next";
 import {
   ACTIVE_HEADER_ICON_CONFIGS,
-  DEFAULT_HEADER_ICON_CONFIGS,
   HOMEHEADERLIST,
-  HeaderIconConfig,
 } from "../common/constants";
 import IconButton from "./IconButton";
 import { IonBadge } from "@ionic/react";
@@ -37,13 +35,7 @@ const HeaderIcon: React.FC<{
         justifyContent: "center",
       }}
     >
-      {/* <div className="home-header-indicator">
-      {isCurrentHeaderActive ? (
-        <p>&#9679;</p>
-      ) : (
-        <p>&nbsp;</p>
-      )}
-      </div> */}
+      
       {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (

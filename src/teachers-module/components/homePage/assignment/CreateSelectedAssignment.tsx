@@ -3,8 +3,6 @@ import "./CreateSelectedAssignment.css"; // Assuming you will have a separate CS
 import { IonIcon } from "@ionic/react";
 import {
   calendarOutline,
-  chevronDownOutline,
-  chevronUpOutline,
 } from "ionicons/icons";
 import {
   ALL_SUBJECT,

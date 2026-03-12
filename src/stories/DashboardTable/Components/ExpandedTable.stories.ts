@@ -1,9 +1,6 @@
 
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import ExpandedUser from "../../../components/DashboardTable/ExpandedUser";
-import { string } from "prop-types";
 import ExpandedTable from "../../../components/DashboardTable/ExpandedTable";
 
 const meta = {

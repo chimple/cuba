@@ -1,11 +1,9 @@
 // Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
 import { act, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
-import { GrowthBookProvider, GrowthBook } from "@growthbook/growthbook-react";
 import { renderWithProviders } from "./tests/test-utils";
 import App from "./App";
 import PopupManager from "./components/GenericPopUp/GenericPopUpManager";
-import { GENERIC_POP_UP } from "./common/constants";
 import * as growthbookModule from "@growthbook/growthbook-react";
 
 jest.mock("@growthbook/growthbook-react", () => ({

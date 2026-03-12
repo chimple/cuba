@@ -21,7 +21,6 @@ import ClassForm from "../ClassForm";
 import { ClassWithDetails, SchoolStats } from "../../pages/SchoolDetailsPage";
 import { TableTypes, AGE_OPTIONS, GENDER } from "../../../common/constants";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
-import { normalizePhone10 } from "../../pages/NewUserPageOps";
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { CONTINUE, PAGES } from "../../common/constants";
+import { PAGES } from "../../common/constants";
 import "./StudentProgressHeader.css";
 import React from "react";
 import { useHistory } from "react-router-dom";
@@ -26,7 +26,7 @@ const StudentProgressHeader: React.FC<{
   return (
     <div id="student-progress-header-icons">
       <BackButton
-        //iconSize={"8vh"}
+        
         onClicked={() => {
           Util.setPathToBackButton(PAGES.PARENT, history);
         }}

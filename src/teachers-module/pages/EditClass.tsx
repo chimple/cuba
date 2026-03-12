@@ -1,5 +1,4 @@
 import { FC, useState, useEffect } from "react";
-import { IonButton } from "@ionic/react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import EditClassField from "../components/classComponents/EditClassField";
 import {

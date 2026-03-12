@@ -1,9 +1,6 @@
-/* ion-select::part(icon) {
-  content: url("../../../public/assets/icons/DropDownArrow.png");
-} */
+
 ion-select {
-  /* background: white; */
-  /* padding: 10px 20px; */
+  
   border-radius: 30px;
   height: min(5vh, 40px);
   min-height: 35px;
@@ -17,11 +14,11 @@ ion-select::part(text) {
 }
 
 ion-popover {
-  /* --width: none; */
+  
 }
 
 .dropdown-header {
-  /* position: relative; */
+ 
   padding: 0;
   margin: 0;
   display: flex;

@@ -42,12 +42,10 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
-  sortSchoolTeachers,
-  paginateSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { normalizePhone10 } from "../../pages/NewUserPageOps";
-import { ClassRow, SchoolData, SchoolDetailsData } from "./SchoolClass";
+import { ClassRow, SchoolData } from "./SchoolClass";
 import { ClassUtil } from "../../../utility/classUtil";
 import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";

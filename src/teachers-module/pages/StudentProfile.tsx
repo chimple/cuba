@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./StudentProfile.css";
-import { CLASS, PAGES, PROFILETYPE, SCHOOL, TableTypes } from "../../common/constants";
+import { PAGES, PROFILETYPE, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import { IonPage } from "@ionic/react";

@@ -126,7 +126,6 @@
   width: clamp(9rem, 27vw, 11rem);
   height: clamp(3rem, 7vh, 3rem);
 
-  /* border-radius: 0.75rem; */
   border-radius: 10px;
   border: none;
   cursor: pointer;

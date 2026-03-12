@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { IonPage } from "@ionic/react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -28,7 +27,6 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
 import { logProfileClick } from "../../analytics/profileClickUtil";
-import i18n from "../../i18n";
 import {
   registerBackButtonHandler,
   reinitializeHardwareBackButton,

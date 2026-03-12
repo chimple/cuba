@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./LiveQuizRoomResult.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentAvatar from "../components/common/StudentAvatar";
-import User from "../models/user";
 import Confetti from "react-confetti";
 import NextButton from "../components/common/NextButton";
 import { useHistory } from "react-router";

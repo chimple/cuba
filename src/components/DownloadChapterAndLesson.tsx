@@ -9,7 +9,6 @@ import { Capacitor } from "@capacitor/core";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  DOWNLOADED_LESSON_ID,
   DOWNLOADING_CHAPTER_ID,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   TableTypes,

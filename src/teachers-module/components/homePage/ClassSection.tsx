@@ -1,6 +1,5 @@
 import React from "react";
-import { IonItem, IonIcon, IonLabel, IonButton } from "@ionic/react";
-import { peopleOutline, chevronForwardOutline } from "ionicons/icons";
+import { IonLabel, IonButton } from "@ionic/react";
 import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
 import ClassCodeGenerateButton from "../ClassCodeGenerateButton";

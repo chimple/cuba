@@ -10,7 +10,7 @@ import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
-import { IonAlert, IonIcon } from "@ionic/react";
+import { IonAlert } from "@ionic/react";
 import { PROFILETYPE } from "../../common/constants";
 import EditIcon from "@mui/icons-material/Edit";
 

@@ -279,15 +279,6 @@ const LeaderboardStickers: FC = () => {
         </div>
       </div>
 
-      {/* Disabled Stickers
-      {allSticker &&
-        allSticker.length > 0 &&
-        allSticker.map((value, index) => (
-          <div key={index} className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image} />
-            {!!value?.name && <p>{value?.name}</p>}
-          </div>
-        ))} */}
     </div>
   ) : (
     <div></div>

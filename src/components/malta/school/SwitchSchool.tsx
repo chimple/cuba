@@ -1,4 +1,4 @@
-import { IonItem, IonList, IonRadio, IonRadioGroup } from "@ionic/react";
+import { IonRadio, IonRadioGroup } from "@ionic/react";
 import { FC } from "react";
 import "./SwitchSchool.css";
 interface SwitchSchoolProps {

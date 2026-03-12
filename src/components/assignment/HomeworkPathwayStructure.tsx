@@ -27,7 +27,6 @@ import PathwayModal from "../learningPathway/PathwayModal";
 import ChimpleRiveMascot from "../learningPathway/ChimpleRiveMascot";
 import RewardBox from "../learningPathway/RewardBox";
 import DailyRewardModal from "../learningPathway/DailyRewardModal";
-import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;

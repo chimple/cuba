@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./StudentReport.css";
-import { IonIcon, IonPage } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import Header from "../components/homePage/Header";
 import { useHistory } from "react-router";
 import { Util } from "../../utility/util";
 import StudentReportHeader from "../components/studentReport/StudentReportHeader";
 import { t } from "i18next";
-import { calendarOutline } from "ionicons/icons";
 import { addMonths, format, isAfter } from "date-fns";
 import StudentReportTable from "../components/studentReport/StudentReportTable";
 import CalendarPicker from "../../common/CalendarPicker";

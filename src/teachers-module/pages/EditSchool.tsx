@@ -79,7 +79,7 @@ const EditSchool: React.FC = () => {
           profilePic
         );
 
-        //   if (navigationState?.stage === Class_Creation_Stages.CREATE_SCHOOL) {
+        
         //     Util.setNavigationState(Class_Creation_Stages.SCHOOL_COURSE);
         //     history.replace(PAGES.SUBJECTS_PAGE, {
         //       schoolId: updatedSchool.id,

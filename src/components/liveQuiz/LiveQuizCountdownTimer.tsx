@@ -4,7 +4,6 @@ import {
   buildStyles,
 } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { Timestamp } from "firebase/firestore";
 import "./LiveQuizCountdownTimer.css";
 import RadialSeparators from "./RadialSeparators";
 import i18n from "../../i18n";

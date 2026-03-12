@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Grid from "@mui/material/Grid";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { useHistory, useLocation, useParams } from "react-router";
 import SchoolDetailsCard from "../components/SchoolRequestComponents/SchoolDetailsCard";
 import RequestFromCard from "../components/SchoolRequestComponents/RequestFromCard";

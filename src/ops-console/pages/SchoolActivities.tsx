@@ -4,11 +4,9 @@ import DataTablePagination from "../components/DataTablePagination";
 import {
   Box,
   Typography,
-  CircularProgress,
   useMediaQuery,
   useTheme,
   IconButton,
-  Button,
   Chip,
 } from "@mui/material";
 import "./SchoolActivities.css";

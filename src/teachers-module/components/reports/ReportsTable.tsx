@@ -8,7 +8,6 @@ import ExpandedTable from "./ExpandedTable";
 import {
   PAGES,
   TABLEDROPDOWN,
-  TABLES,
   TABLESORTBY,
   TableTypes,
   ALL_SUBJECT,
@@ -17,10 +16,9 @@ import { Util } from "../../../utility/util";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import Loading from "../../../components/Loading";
 import { ClassUtil } from "../../../utility/classUtil";
-import { addMonths, subDays, subMonths, addDays } from "date-fns";
+import { subDays, subMonths } from "date-fns";
 import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
-import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
 import ImageDropdown from "../imageDropdown";
 

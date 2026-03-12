@@ -1,10 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import "./AddStudentSection.css";
 import { t } from "i18next";
-import { IonIcon, IonItem, IonRadio, IonRadioGroup, IonSelect, IonSelectOption } from "@ionic/react";
-import DropDown from "../../components/DropDown";
-import { caretDownSharp } from "ionicons/icons";
-import { backgroundClip } from "html2canvas/dist/types/css/property-descriptors/background-clip";
+import { IonRadio, IonRadioGroup } from "@ionic/react";
 import CustomDropdown from "./CustomDropdown";
 
 interface LanguageOption {

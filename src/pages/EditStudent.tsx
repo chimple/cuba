@@ -1,4 +1,4 @@
-import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
+import { IonContent, IonPage } from "@ionic/react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./EditStudent.css";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
@@ -9,7 +9,6 @@ import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLa
 import {
   ACTION,
   LANGUAGE,
-  CURRENT_STUDENT,
   EVENTS,
   GENDER,
   PAGES,
@@ -17,10 +16,6 @@ import {
   TableTypes,
   EDIT_STUDENTS_MAP,
 } from "../common/constants";
-import { chevronForward } from "ionicons/icons";
-import Curriculum from "../models/curriculum";
-import Grade from "../models/grade";
-import Language from "../models/language";
 import Loading from "../components/Loading";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";

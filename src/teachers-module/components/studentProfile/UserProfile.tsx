@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import EditIcon from "@mui/icons-material/Edit";
 import "./UserProfile.css";
-import { PAGES, TableTypes } from "../../../common/constants";
+import { TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router-dom";
 import ProfileDetails from "../library/ProfileDetails";

@@ -1,7 +1,6 @@
 import { IonContent, IonPage } from "@ionic/react";
 import { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router";
-import { t } from "i18next";
 import { PAGES } from "../common/constants";
 import { StickerBook as StickerBookType } from "../interface/modelInterfaces";
 import StickerBookBoard from "../components/stickerBook/StickerBookBoard";

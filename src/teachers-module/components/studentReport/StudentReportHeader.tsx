@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./StudentReportHeader.css";
-import CustomDropdown from "../CustomDropdown";
 import { TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import ImageDropdown from "../imageDropdown";

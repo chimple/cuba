@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
-import FormSection from "../components/SchoolRequestComponents/FormSection";
+import React, { useEffect, useState } from "react";
 import Breadcrumb from "../components/Breadcrumb";
 import { Box, Grid, Typography, FormLabel, TextField } from "@mui/material";
 import ContactFormSection from "../components/SchoolRequestComponents/ContactFormSection";
 import "./AddSchoolPage.css";
 import { t } from "i18next";
-import { PAGES, STATUS } from "../../common/constants";
+import { PAGES } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router-dom";
 import { RoleType } from "../../interface/modelInterfaces";

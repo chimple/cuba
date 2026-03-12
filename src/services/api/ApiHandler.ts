@@ -1,4 +1,3 @@
-import User from "../../models/user";
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
@@ -18,7 +17,6 @@ import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
-  MODEL,
   MODES,
   PROFILETYPE,
   SchoolRoleMap,
@@ -38,10 +36,7 @@ import {
   SearchSchoolsResult,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData, Unsubscribe } from "firebase/firestore";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
-import { image, school } from "ionicons/icons";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,

@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Header.css";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
-import MenuIcon from "@mui/icons-material/Menu";
 import { useHistory } from "react-router";
 import { DrawerOptions, PAGES } from "../../../common/constants";
 import Box from "@mui/material/Box";

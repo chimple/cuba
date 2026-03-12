@@ -1,6 +1,6 @@
 import React from "react";
-import { IonButton, IonLabel, IonItem, IonIcon } from "@ionic/react";
-import { TfiSharethis } from "react-icons/tfi"; // You can replace this with Ionic icons if you prefer.
+import { IonButton, IonItem } from "@ionic/react";
+// You can replace this with Ionic icons if you prefer.
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import "./ClassCodeGenerateButton.css"; // Ensure this still styles your component appropriately.

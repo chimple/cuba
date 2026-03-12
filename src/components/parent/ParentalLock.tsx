@@ -1,10 +1,9 @@
-import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { CONTINUE, PAGES } from "../../common/constants";
+import { PAGES } from "../../common/constants";
 import { Dialog, DialogContent } from "@mui/material";
-import { IoCloseCircle } from "react-icons/io5";
 import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
-import { changeLanguage, t } from "i18next";
+import { t } from "i18next";
 import "./ParentalLock.css";
 import { FcLock } from "react-icons/fc";
 import { Util } from "../../utility/util";

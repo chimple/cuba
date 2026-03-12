@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { LEADERBOARD_REWARD_LIST } from "../../common/constants";
-import { Box, Tab, Tabs } from "@mui/material";
+import { Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import LeaderboardBadges from "./LeaderboardBadges";
 import LeaderboardBonus from "./LeaderboardBonus";
@@ -46,12 +46,12 @@ const LeaderboardRewards: FC = () => {
         textColor="secondary"
         indicatorColor="secondary"
         aria-label="secondary tabs example"
-        // variant="scrollable"
+        
         scrollButtons="auto"
-        // aria-label="scrollable auto tabs example"
+       
         centered
         sx={{
-          // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+          
           "& .MuiTabs-indicator": {
             backgroundColor: "#000000 !important",
             bottom: "15% !important",

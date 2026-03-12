@@ -5,7 +5,6 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Button as MuiButton,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useHistory } from "react-router-dom";

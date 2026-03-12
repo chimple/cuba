@@ -20,7 +20,7 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
           </div>
         ))
       )}
-      {/* <div id="logo-msg">{msg}</div> */}
+      
     </div>
   );
 };

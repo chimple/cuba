@@ -7,15 +7,11 @@ import {
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
-  LATEST_STARS,
-  STARS_COUNT,
   TableTypes,
   LIVE_QUIZ,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
-import { schoolUtil } from "../../utility/schoolUtil";
 import {
-  updateLocalAttributes,
   useGbContext,
 } from "../../growthbook/Growthbook";
 import Loading from "../Loading";

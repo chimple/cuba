@@ -10,7 +10,6 @@ import {
   GeoDataParams,
   LeaderboardDropdownList,
   LeaderboardRewards,
-  MODEL,
   MODES,
   PrincipalAPIResponse,
   PROFILETYPE,
@@ -29,8 +28,7 @@ import {
   RESULT_STATUS,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData, Unsubscribe } from "firebase/firestore";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { DocumentData } from "firebase/firestore";
 import {
   RoleType,
   CreateSchoolNoteInput,

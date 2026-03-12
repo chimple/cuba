@@ -15,12 +15,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Route, Switch, useHistory, useLocation } from "react-router-dom";
+import { Route, Switch, useLocation } from "react-router-dom";
 import {
-  IonAlert,
   IonApp,
-  IonButton,
-  IonModal,
   IonRouterOutlet,
   IonToast,
   setupIonicReact,
@@ -59,11 +56,8 @@ import {
   CACHE_IMAGE,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   CAN_ACCESS_REMOTE_ASSETS,
-  CONTINUE,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
-  GAME_URL,
-  HOMEHEADERLIST,
   HOMEWORK_PATHWAY_ASSETS,
   IS_CUBA,
   LEARNING_PATH_ASSETS,
@@ -79,38 +73,26 @@ import {
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
-import EditStudent from "./pages/EditStudent";
 import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
 // import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import DisplaySubjects from "./pages/DisplaySubjects";
 import AddCourses from "./pages/AddCourses";
-import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
-import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
-import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
 import LiveQuizRoom from "./pages/LiveQuizRoom";
-import LiveQuiz from "./pages/LiveQuiz";
-import { AvatarObj } from "./components/animation/Avatar";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 import LiveQuizGame from "./pages/LiveQuizGame";
 import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
-import { useTtsAudioPlayer } from "./components/animation/animationUtils";
-import { ServiceConfig } from "./services/ServiceConfig";
-import User from "./models/user";
 // import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
-import Dashboard from "./pages/Malta/Dashboard";
-import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import "./App.css";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
@@ -144,7 +126,6 @@ import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 import ProgramsPage from "./ops-console/pages/ProgramPage";
-import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 import LoginScreen from "./pages/LoginScreen";
@@ -517,15 +498,6 @@ const App: React.FC = () => {
     }
   };
 
-  // useEffect(() => {
-  //   initializeUsage();
-  //   document.addEventListener("visibilitychange", handleVisibilityChange);
-  //   startTimeout();
-  //   return () => {
-  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
-  //     clearExistingTimeout();
-  //   };
-  // }, []);
 
   const handleContinue = () => {
     setShowModal(false);
@@ -560,19 +532,7 @@ const App: React.FC = () => {
   async function updateAvatarSuggestionJson() {
     // Update Avatar Suggestion local Json
     try {
-      //Initialize firebase remote config
-      // await FirebaseRemoteConfig.fetchAndActivate();
-      // const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
-      //   REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
-      // );
-      // Util.migrateLocalJsonFile(
-      //   // "assets/animation/avatarSugguestions.json",
-      //   CAN_UPDATE_AVATAR_SUGGESTION_JSON,
-      //   "assets/animation/avatarSugguestions.json",
-      //   "assets/avatarSugguestions.json",
-      //   "avatarSuggestionJsonLocation"
-      // );
-      // // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+     
     } catch (error) {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
@@ -824,12 +784,7 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.REQUEST_LIST} exact={true}>
               <RequestList />
             </ProtectedRoute>
-            {/* <ProtectedRoute path={PAGES.PROFILE_DETAILS} exact={true}>
-              <ProfileDetails/>
-            </ProtectedRoute> */}
-            {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
-              <ProgramDetailPage />
-            </ProtectedRoute> */}
+            
             <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
               <SidebarPage />
             </ProtectedRoute>

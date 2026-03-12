@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { AppBar, } from '@mui/material';
 import BackButton from '../../components/common/BackButton';
 import "./ClassCode.css"

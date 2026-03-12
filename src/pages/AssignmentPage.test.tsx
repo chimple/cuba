@@ -1,11 +1,11 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import AssignmentPage from "./Assignment";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import { Capacitor } from "@capacitor/core";
-import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { PAGES, LIVE_QUIZ } from "../common/constants";
 
 /* ======================================================

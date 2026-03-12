@@ -6,10 +6,8 @@ import { AVATARS, PAGES, TableTypes } from "../../common/constants";
 import AddStudentSection from "../components/AddStudentSection";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { Util } from "../../utility/util";
 import ProfileDetails from "../components/library/ProfileDetails";
 import Loading from "../../components/Loading";
-import { RoleType } from "../../interface/modelInterfaces";
 
 const AddStudent: React.FC = () => {
   const history = useHistory();

@@ -1,18 +1,15 @@
-import { IonButton, IonPage } from "@ionic/react";
+import { IonButton } from "@ionic/react";
 import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  CURRENT_CLASS,
-  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
   TABLES,
-  TYPE,
   TableTypes,
 } from "../common/constants";
 import { useHistory } from "react-router";
@@ -25,7 +22,6 @@ import { Capacitor } from "@capacitor/core";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import LearningPathway from "../components/LearningPathway";
 import HomeworkPathway from "../components/assignment/HomeworkPathway";
 import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
 import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";

@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
   IonAlert,
-  IonButton,
-  IonCheckbox,
-  IonFab,
-  IonFabButton,
-  IonIcon,
   IonicSafeString,
 } from "@ionic/react";
-import { addOutline } from "ionicons/icons";
 import Header from "../components/homePage/Header";
 import DisplaySubjects from "../components/DisplaySubjects";
 import "./SubjectSelection.css";

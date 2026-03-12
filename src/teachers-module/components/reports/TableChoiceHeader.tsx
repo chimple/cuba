@@ -9,11 +9,7 @@ import {
   subMonths,
 } from "date-fns";
 import { t } from "i18next";
-import { funnel, personCircle } from "ionicons/icons";
-import { IonIcon } from "@ionic/react";
 import { TABLESORTBY } from "../../../common/constants";
-import CustomDropdown from "../CustomDropdown";
-import CalendarPicker from "../../../common/CalendarPicker";
 
 interface TableChoiceHeaderProps {
   onDateChange: (dateRange: { startDate: Date; endDate: Date }) => void;

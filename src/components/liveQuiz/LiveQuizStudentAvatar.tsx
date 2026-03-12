@@ -1,6 +1,5 @@
 import { FC } from "react";
 import "./LiveQuizStudentAvatar.css";
-import User from "../../models/user";
 import { AVATARS, TableTypes } from "../../common/constants";
 import {
   CircularProgressbarWithChildren,

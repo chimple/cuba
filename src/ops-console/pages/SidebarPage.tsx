@@ -2,12 +2,9 @@ import React, { useEffect, useState } from "react";
 import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
 import {
-  BrowserRouter as Router,
   Switch,
   useRouteMatch,
-  Route,
   Redirect,
   useParams,
 } from "react-router-dom";
@@ -23,14 +20,12 @@ import NewProgram from "../components/NewProgram";
 import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
-import { RoleType } from "../../interface/modelInterfaces";
 import RequestList from "./RequestList";
 import StudentPendingRequest from "./StudentPendingRequest";
 import SchoolPendingRequest from "./SchoolPendingRequest";
 import SchoolApprovedRequest from "./SchoolApprovedRequest";
 import SchoolRejectedRequest from "./SchoolRejectedRequest";
 import SchoolFormPage from "./SchoolFormPage";
-import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
 import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
 import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
 import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";

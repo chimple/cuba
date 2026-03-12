@@ -17,7 +17,6 @@ import { Util } from "../../utility/util";
 import ProfileDetails from "../components/library/ProfileDetails";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Capacitor } from "@capacitor/core";
-import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 interface LocationState {

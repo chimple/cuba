@@ -1,7 +1,6 @@
 
 //@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
 import DashboardTable from "../../../components/DashboardTable/DashboardTable";
 
 const meta = {

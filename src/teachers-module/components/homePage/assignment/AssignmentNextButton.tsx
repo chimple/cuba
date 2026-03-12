@@ -1,11 +1,7 @@
 import React, { MouseEventHandler } from "react";
 import "react-circular-progressbar/dist/styles.css";
 import "./AssignmentNextButton.css"; // Import the CSS file
-import { Toast } from "@capacitor/toast";
 import { t } from "i18next";
-import { PAGES } from "../../../../common/constants";
-import { recommendedAssignments } from "../../../../stories/Assignment/RecommendedAssignment.stories";
-import { TeacherAssignmentPageType } from "./TeacherAssignment";
 import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
 import ArrowForwardIosOutlinedIcon from "@mui/icons-material/ArrowForwardIosOutlined";
 

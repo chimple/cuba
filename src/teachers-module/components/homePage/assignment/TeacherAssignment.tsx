@@ -1,11 +1,10 @@
-import { FC, MouseEvent, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
 import {
   AssignmentSource,
-  CAMERAPERMISSION,
   COURSES,
   PAGES,
   TableTypes,
@@ -18,7 +17,6 @@ import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerTypeHint,
 } from "@capacitor/barcode-scanner";
-import { App } from "@capacitor/app";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import Loading from "../../../../components/Loading";
 import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
@@ -474,28 +472,7 @@ const TeacherAssignment: FC<{
               style={{ width: "16px", height: "16px", marginLeft: "auto" }}
             />
           )}
-          {/* <h4>
-            {selectedLessonsCount?.[type]?.[subjectId]?.count?.length ?? 0}/
-            {assignments[subjectId]?.lessons?.length ?? 0}
-          </h4> */}
-          {/* {!assignments[subjectId].isCollapsed && (
-            <div className="select-all-container">
-              <input
-                className="select-all-container-checkbox"
-                type="checkbox"
-                checked={areAllSelectedInSubject(assignments, subjectId)}
-                onClick={(e) => e.stopPropagation()}
-                onChange={() =>
-                  selectAllAssignmentsInSubject(
-                    type,
-                    assignments,
-                    setCategory,
-                    subjectId
-                  )
-                }
-              />
-            </div>
-          )} */}
+          
         </div>
         {!assignments[subjectId].isCollapsed && (
           <div>
@@ -828,12 +805,7 @@ const TeacherAssignment: FC<{
                   />
                 ) : (
                   <div className="select-all-container">
-                    {/* <h3 className="recommended-assignments-headings">
-                  {selectedLessonsCount?.[TeacherAssignmentPageType.RECOMMENDED]?.count ?? 0}/
-                  {Object.keys(recommendedAssignments).reduce((total, subjectId) => {
-                    return total + recommendedAssignments[subjectId].lessons.length;
-                  }, 0)}
-                </h3> */}
+                   
                     <label className="recommended-assignments-headings">
                       {t("Select All")}
                     </label>

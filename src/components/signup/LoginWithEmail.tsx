@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import React, { useState } from "react";
+import React from "react";
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import "./LoginWithEmail.css";

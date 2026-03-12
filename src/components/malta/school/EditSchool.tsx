@@ -1,8 +1,7 @@
-import { IonInput, IonList } from "@ionic/react";
+import { IonInput } from "@ionic/react";
 import { FC } from "react";
 import "./EditSchool.css";
 import CommonButton from "../common/CommonButton";
-import { t } from "i18next";
 
 interface EditSchoolProps {
   schoolName: string;
