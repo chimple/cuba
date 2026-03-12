@@ -84,6 +84,38 @@ export const normalizeAcademicYear = (value: any): string => {
   return "";
 };
 
+const normalizeLatestAcademicYear = (value: any): string => {
+  if (Array.isArray(value)) {
+    const years = value
+      .map((item) => String(item ?? "").trim())
+      .filter((item) => item.length > 0);
+    return years.at(-1) || "";
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+
+    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          const years = parsed
+            .map((item) => String(item ?? "").trim())
+            .filter((item) => item.length > 0);
+          return years.at(-1) || "";
+        }
+      } catch (_err) {
+        return trimmed;
+      }
+    }
+
+    return trimmed;
+  }
+
+  return "";
+};
+
 export const normalizeProgramModel = (value: any): string => {
   const toLabel = (model: string): string => {
     const normalized = model.trim().toLowerCase();
@@ -375,12 +407,11 @@ export const useMigrateSchoolsPageLogic = () => {
         const schoolCluster = school.cluster || school.group4 || "--";
         const resolvedAcademicYear =
           activeTab === "migrated"
-            ? normalizeAcademicYear(migrationMetrics.academic_year) ||
-              requestedAcademicYears[0] ||
-              ""
-            : requestedAcademicYears[0] ||
-              normalizeAcademicYear(
-                school.academic_year ?? program.academic_year ?? school.academicYear,
+            ? normalizeLatestAcademicYear(
+                school.academic_year ?? school.academicYear,
+              ) || ""
+            : normalizeLatestAcademicYear(
+                school.academic_year ?? school.academicYear,
               ) ||
               "";
         const resolvedId =
