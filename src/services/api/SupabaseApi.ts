@@ -12326,13 +12326,19 @@ export class SupabaseApi implements ServiceApi {
     return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
+  async getNextWinnableSticker(
+    stickerBookId: string,
+    userId?: string,
+  ): Promise<string | null> {
     if (!this.supabase) return null;
 
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!user?.id) return null;
-
-    const userId = user.id;
+    const resolvedUserId = userId?.trim();
+    let effectiveUserId = resolvedUserId;
+    if (!effectiveUserId) {
+      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!user?.id) return null;
+      effectiveUserId = user.id;
+    }
 
     const { data: book } = await this.supabase
       .from("sticker_book")
@@ -12346,7 +12352,7 @@ export class SupabaseApi implements ServiceApi {
     const { data: progress } = await this.supabase
       .from("user_sticker_book")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", effectiveUserId)
       .eq("sticker_book_id", stickerBookId)
       .eq("is_deleted", false)
       .maybeSingle();

@@ -65,6 +65,7 @@ import {
   HOT_UPDATE_STATE_KEY,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -3125,6 +3126,17 @@ export class Util {
           10,
           false,
         );
+        // If stickers are available (and we're online), award the next sticker for completing this pathway.
+        await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              createdAt: new Date().toISOString(),
+            }),
+          );
+        }
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
         }
@@ -3172,6 +3184,27 @@ export class Util {
       }
     } catch (error) {
       console.error("Error updating learning path:", error);
+    }
+  }
+
+  private static async tryAwardStickerForCompletedPathway(
+    studentId: string,
+  ): Promise<void> {
+    try {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      const api = ServiceConfig.getI().apiHandler;
+      const current = await api.getCurrentStickerBookWithProgress(studentId);
+      if (!current?.book?.id) return;
+
+      const nextStickerId = await api.getNextWinnableSticker(
+        current.book.id,
+        studentId,
+      );
+      if (!nextStickerId) return;
+
+      await api.updateStickerWon(current.book.id, nextStickerId);
+    } catch (error) {
+      console.warn("[StickerBook] Failed to award pathway sticker:", error);
     }
   }
   

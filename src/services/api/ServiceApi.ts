@@ -2830,7 +2830,10 @@ export interface ServiceApi {
    * - The next sticker ID that can be won
    * - null if all stickers have already been collected.
    */
-  getNextWinnableSticker(stickerBookId: string): Promise<string | null>;
+  getNextWinnableSticker(
+    stickerBookId: string,
+    userId?: string,
+  ): Promise<string | null>;
 
   /**
    * Updates the user's progress when a sticker is won.
