@@ -62,6 +62,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
     const loadSvg = async () => {
       setIsLoading(true);
       try {
+        // Load the actual sticker-book layout so SVGScene can apply slot states on top.
         const response = await fetch(data.stickerBookSvgUrl);
         if (!response.ok) {
           throw new Error(
@@ -73,6 +74,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
           setSvgMarkup(text);
         }
       } catch (error) {
+        // Keep the preview usable even if the configured book SVG fails to load.
         console.warn("Failed to load sticker book SVG. Falling back.", error);
         const fallbackResponse = await fetch(fallbackStickerBookLayout);
         const fallbackText = await fallbackResponse.text();

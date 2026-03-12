@@ -29,6 +29,7 @@ export function extractStickerSvg(
   svg: SVGSVGElement,
   stickerId: string,
 ): string | null {
+  // Stickers are stored as groups under their slot id inside the full book SVG.
   const sticker = svg.querySelector(
     `[data-slot-id="${stickerId}"]`,
   ) as SVGGElement | null;
@@ -44,6 +45,7 @@ export function extractStickerSvg(
     const measureSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     measureSvg.setAttribute("width", "1");
     measureSvg.setAttribute("height", "1");
+    // Mount off-screen so getBBox can measure accurately without visual flicker.
     measureSvg.style.position = "absolute";
     measureSvg.style.left = "-10000px";
     measureSvg.style.top = "-10000px";
@@ -63,6 +65,7 @@ export function extractStickerSvg(
   const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   wrapper.setAttribute("width", "100%");
   wrapper.setAttribute("height", "100%");
+  // Fall back to the historical full-book viewBox if measurement fails.
   wrapper.setAttribute("viewBox", tightViewBox ?? "0 0 500 282");
   wrapper.setAttribute("preserveAspectRatio", "xMidYMid meet");
   wrapper.setAttribute("fill", "none");

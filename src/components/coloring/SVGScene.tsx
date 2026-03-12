@@ -48,11 +48,13 @@ export function SVGScene({
     const svg = svgRef.current;
     if (!svg) return;
 
-    // ---- Apply scene modes AFTER extraction ----
+    // Apply the scene-specific SVG transforms after the inline SVG has mounted.
     if (mode === "color") {
       applyColorMode(svg, colorModeUncolouredColor, colorModeUncolouredStyle);
     }
 
+    // Preview mode intentionally skips drag/color transforms and only applies
+    // sticker visibility state below.
     if (mode === "drag" && isDragEnabled) {
       applyDragMode(svg);
     }

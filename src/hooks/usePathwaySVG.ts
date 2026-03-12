@@ -88,7 +88,9 @@ const fetchRemoteSVGGroup = async (
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-const buildStickerDataUrlFromBook = async (
+// Builds a display-ready data URL for a single sticker by extracting it from
+// the full sticker-book SVG. Used as a fallback when sticker.image is missing.
+const getStickerImageFallbackFromBookSvg = async (
   stickerBookSvgUrl: string,
   stickerId: string,
 ): Promise<string | null> => {
@@ -98,6 +100,7 @@ const buildStickerDataUrlFromBook = async (
 
   let stickerSvg: string | null = null;
   try {
+    // Extract the requested sticker from the full book SVG and reuse it as an image.
     const res = await fetch(stickerBookSvgUrl);
     const text = await res.text();
     const wrapper = document.createElementNS(SVG_NS, "g");
@@ -160,6 +163,7 @@ export function usePathwaySVG({
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
   const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
+  // Default to sticker rewards when the experiment value is missing.
   const rewardBoxVariant = useFeatureValue(
     PATHWAY_END_REWARD_BOX_VARIANT,
     "sticker",
@@ -230,7 +234,7 @@ export function usePathwaySVG({
       }
 
       const stickerPreviewPayload = isStickerBookPreviewOn
-        ? await buildStickerPreviewPayload()
+        ? await getStickerPreviewPayload()
         : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
@@ -524,26 +528,10 @@ export function usePathwaySVG({
           normalizedVariant === "mystery_box";
 
         const hasNextSticker = Boolean(stickerPreviewPayload?.nextStickerId);
-        let nextStickerDataUrl: string | null = null;
-        const hasNextStickerImage = Boolean(stickerPreviewPayload?.nextStickerImage);
-        const canTrySlotFromBook = Boolean(
-          stickerPreviewPayload?.stickerBookSvgUrl &&
-            stickerPreviewPayload?.nextStickerId,
-        );
-
-        if (!hasNextStickerImage && canTrySlotFromBook) {
-          try {
-            nextStickerDataUrl = await buildStickerDataUrlFromBook(
-              stickerPreviewPayload!.stickerBookSvgUrl,
-              stickerPreviewPayload!.nextStickerId,
-            );
-          } catch {
-            nextStickerDataUrl = null;
-          }
-        }
-
-        const hasRenderableSticker =
-          hasNextStickerImage || Boolean(nextStickerDataUrl);
+        // `getStickerPreviewPayload` already resolves image fallback via book SVG.
+        const nextStickerImageSrc = stickerPreviewPayload?.nextStickerImage;
+        const hasRenderableSticker = Boolean(nextStickerImageSrc);
+        // Show the sticker reward only when a real sticker can be rendered.
         const rewardMode: "sticker" | "mystery_box" =
           isOffline || !hasNextSticker || !hasRenderableSticker || gbWantsMystery
             ? "mystery_box"
@@ -611,32 +599,23 @@ export function usePathwaySVG({
           bg.setAttribute("stroke", "#F55376");
           bg.setAttribute("stroke-width", "4");
 
-	          const padding = Math.round(size * 0.14);
-	          const contentSize = size - padding * 2;
+          const padding = Math.round(size * 0.14);
+          const contentSize = size - padding * 2;
 
-	          rewardGroup.appendChild(bg);
-	          if (hasNextStickerImage && stickerPreviewPayload?.nextStickerImage) {
-	            const stickerImage = createSVGImage(
-	              stickerPreviewPayload.nextStickerImage,
-	              contentSize,
-	              contentSize,
-	              padding,
-	              padding,
-	              "PathwayStructure-end-reward-sticker-image",
-	            );
-	            rewardGroup.appendChild(stickerImage);
-	          } else if (nextStickerDataUrl) {
-              rewardGroup.appendChild(
-                createSVGImage(
-                  nextStickerDataUrl,
-                  contentSize,
-                  contentSize,
-                  padding,
-                  padding,
-                  "PathwayStructure-end-reward-sticker-image",
-                ),
-              );
-            }
+          rewardGroup.appendChild(bg);
+          // Reuse the same resolved sticker image that powers the preview modal.
+          if (nextStickerImageSrc) {
+            rewardGroup.appendChild(
+              createSVGImage(
+                nextStickerImageSrc,
+                contentSize,
+                contentSize,
+                padding,
+                padding,
+                "PathwayStructure-end-reward-sticker-image",
+              ),
+            );
+          }
           placeElement(
             rewardWrapper,
             endPoint.x - size / 2,
@@ -784,51 +763,57 @@ export function usePathwaySVG({
     }
   }
 
-  async function buildStickerPreviewPayload(): Promise<StickerBookPreviewData | null> {
+  // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
+  // This is the single place where we resolve next sticker image fallback.
+  async function getStickerPreviewPayload(): Promise<StickerBookPreviewData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
 
+      // Start from the active sticker book and the user's current progress.
       const currentBookWithProgress =
         await api.getCurrentStickerBookWithProgress(currentStudent.id);
       if (!currentBookWithProgress?.book) return null;
 
-	      const { book, progress } = currentBookWithProgress;
-	      const collectedStickerIds = progress?.stickers_collected ?? [];
-	      const nextStickerId = await api.getNextWinnableSticker(
-	        book.id,
-	        currentStudent.id,
-	      );
-	      if (!nextStickerId) return null;
+      const { book, progress } = currentBookWithProgress;
+      const collectedStickerIds = progress?.stickers_collected ?? [];
+      // The preview always centers around the next sticker the user can win.
+      const nextStickerId = await api.getNextWinnableSticker(
+        book.id,
+        currentStudent.id,
+      );
+      if (!nextStickerId) return null;
 
-	      const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
-	      const nextSticker = nextStickerDetails?.[0];
-	      let nextStickerImage = nextSticker?.image || undefined;
-	      if (!nextStickerImage && book.svg_url) {
-	        try {
-	          const dataUrl = await buildStickerDataUrlFromBook(
-	            book.svg_url,
-	            nextStickerId,
-	          );
-	          if (dataUrl) nextStickerImage = dataUrl;
-	        } catch (err) {
-	          console.warn(
-	            "[StickerBook] Failed to build sticker preview image from book SVG",
-	            err,
-	          );
-	        }
-	      }
+      const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
+      const nextSticker = nextStickerDetails?.[0];
+      let nextStickerImage = nextSticker?.image || undefined;
 
-	      return {
-	        source: "learning_pathway",
-	        stickerBookId: book.id,
-	        stickerBookTitle: book.title || "Sticker Book",
-	        stickerBookSvgUrl: book.svg_url || "",
-	        collectedStickerIds,
-	        nextStickerId,
-	        nextStickerName: nextSticker?.name || "Sticker",
-	        nextStickerImage,
-	      };
+      // Some stickers do not have a standalone image, so derive one from the book SVG.
+      if (!nextStickerImage && book.svg_url) {
+        try {
+          const dataUrl = await getStickerImageFallbackFromBookSvg(
+            book.svg_url,
+            nextStickerId,
+          );
+          if (dataUrl) nextStickerImage = dataUrl;
+        } catch (err) {
+          console.warn(
+            "[StickerBook] Failed to build sticker preview image from book SVG",
+            err,
+          );
+        }
+      }
+
+      return {
+        source: "learning_pathway",
+        stickerBookId: book.id,
+        stickerBookTitle: book.title || "Sticker Book",
+        stickerBookSvgUrl: book.svg_url || "",
+        collectedStickerIds,
+        nextStickerId,
+        nextStickerName: nextSticker?.name || "Sticker",
+        nextStickerImage,
+      };
     } catch (error) {
       console.error("Failed to build sticker preview payload:", error);
       return null;
