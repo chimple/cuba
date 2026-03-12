@@ -1,5 +1,5 @@
-import { IonPage, IonHeader } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
+import { IonPage, IonHeader } from '@ionic/react';
+import { FC, useEffect, useState } from 'react';
 import {
   HOMEHEADERLIST,
   PAGES,
@@ -15,35 +15,35 @@ import {
   LANG,
   IS_REWARD_FEATURE_ON,
   GENERIC_POP_UP,
-} from "../common/constants";
-import "./Home.css";
-import HomeHeader from "../components/HomeHeader";
-import { useHistory, useLocation } from "react-router";
+} from '../common/constants';
+import './Home.css';
+import HomeHeader from '../components/HomeHeader';
+import { useHistory, useLocation } from 'react-router';
 // Default theme
-import "@splidejs/react-splide/css";
+import '@splidejs/react-splide/css';
 // or only core styles
-import "@splidejs/react-splide/css/core";
-import { Util } from "../utility/util";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Timestamp } from "firebase/firestore";
-import { App } from "@capacitor/app";
-import SearchLesson from "./SearchLesson";
-import AssignmentPage from "./Assignment";
-import Subjects from "./Subjects";
-import LiveQuiz from "./LiveQuiz";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { AvatarObj } from "../components/animation/Avatar";
-import LearningPathway from "../components/LearningPathway";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import i18n from "../i18n";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import WinterCampaignPopupGating from "../components/WinterCampaignPopup/WinterCampaignPopupGating";
-import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
-import { useGrowthBook } from "@growthbook/growthbook-react";
+import '@splidejs/react-splide/css/core';
+import { Util } from '../utility/util';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Timestamp } from 'firebase/firestore';
+import { App } from '@capacitor/app';
+import SearchLesson from './SearchLesson';
+import AssignmentPage from './Assignment';
+import Subjects from './Subjects';
+import LiveQuiz from './LiveQuiz';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { AvatarObj } from '../components/animation/Avatar';
+import LearningPathway from '../components/LearningPathway';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import i18n from '../i18n';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterCampaignPopupGating';
+import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
+import { useGrowthBook } from '@growthbook/growthbook-react';
 const localData: any = {};
 
 const Home: FC = () => {
-  const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
+  const [dataCourse, setDataCourse] = useState<TableTypes<'lesson'>[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -51,10 +51,10 @@ const Home: FC = () => {
     [lessonId: string]: { course_id: string };
   }>({});
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>();
   const [pendingAssignments, setPendingAssignments] = useState<
-    TableTypes<"assignment">[]
+    TableTypes<'assignment'>[]
   >([]);
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const [pendingAssignmentCount, setPendingAssignmentCount] =
@@ -64,29 +64,27 @@ const Home: FC = () => {
   const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
 
   if (isRewardFeatureOn === true) {
-    localStorage.setItem(IS_REWARD_FEATURE_ON, "true");
+    localStorage.setItem(IS_REWARD_FEATURE_ON, 'true');
   } else if (isRewardFeatureOn === false) {
-    localStorage.setItem(IS_REWARD_FEATURE_ON, "false");
+    localStorage.setItem(IS_REWARD_FEATURE_ON, 'false');
   }
 
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    
-
     setCanShowAvatar(true);
   };
   const urlParams = new URLSearchParams(location.search);
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState(() => {
-    const currPage = urlParams.get("tab");
+    const currPage = urlParams.get('tab');
     if (
       currPage &&
       Object.values(HOMEHEADERLIST).includes(currPage as HOMEHEADERLIST)
     ) {
       return currPage as HOMEHEADERLIST;
     } else {
-      return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
+      return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
     }
   });
   const appStateChange = (isActive: boolean) => {
@@ -99,8 +97,8 @@ const Home: FC = () => {
   useEffect(() => {
     if (currentHeader) {
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set("tab", currentHeader);
-      window.history.replaceState({}, "", newUrl.toString());
+      newUrl.searchParams.set('tab', currentHeader);
+      window.history.replaceState({}, '', newUrl.toString());
     }
   }, [currentHeader]);
 
@@ -145,7 +143,7 @@ const Home: FC = () => {
       setGbUpdated(true);
     })();
 
-    localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
+    localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'true');
     Util.checkDownloadedLessonsFromLocal();
     initData();
     setCurrentHeader(HOMEHEADERLIST.HOME);
@@ -154,16 +152,16 @@ const Home: FC = () => {
     if (!!urlParams.get(CONTINUE)) {
       setCurrentHeader(currentHeader);
     }
-    window.addEventListener("JoinClassListner", handleJoinClassEvent);
-    App.addListener("appStateChange", ({ isActive }) =>
+    window.addEventListener('JoinClassListner', handleJoinClassEvent);
+    App.addListener('appStateChange', ({ isActive }) =>
       appStateChange(isActive),
     );
     const handlePathwayCreated = (e: Event) => {
       const customEvent = e as CustomEvent;
     };
-    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    window.addEventListener('PathwayCreated', handlePathwayCreated);
     return () => {
-      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+      window.removeEventListener('PathwayCreated', handlePathwayCreated);
     };
   }, []);
 
@@ -173,7 +171,7 @@ const Home: FC = () => {
         ? HOMEHEADERLIST.HOME
         : currentHeader,
     );
-    localStorage.setItem("currentHeader", currentHeader);
+    localStorage.setItem('currentHeader', currentHeader);
     if (currentHeader !== HOMEHEADERLIST.HOME) {
       fetchData();
     }
@@ -187,7 +185,7 @@ const Home: FC = () => {
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
-    window.removeEventListener("JoinClassListner", handleJoinClassEvent);
+    window.removeEventListener('JoinClassListner', handleJoinClassEvent);
   };
   const initData = async () => {
     const student = Util.getCurrentStudent();
@@ -195,7 +193,7 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    const langDoc = await api.getLanguageWithId(student.language_id ?? "");
+    const langDoc = await api.getLanguageWithId(student.language_id ?? '');
     if (langDoc) {
       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
       localStorage.setItem(LANGUAGE, tempLangCode);
@@ -228,7 +226,7 @@ const Home: FC = () => {
     const lessonCourseMap = Object.fromEntries(
       Object.entries(studentResult).map(([lessonDocId, details]) => [
         lessonDocId,
-        { course_id: details.course_id || "" },
+        { course_id: details.course_id || '' },
       ]),
     );
     setLessonCourseMap(lessonCourseMap);
@@ -244,26 +242,26 @@ const Home: FC = () => {
     updateAtb();
 
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("page") === PAGES.JOIN_CLASS) {
+    if (urlParams.get('page') === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       setTimeout(() => {
         setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       }, 500);
-    } else if (urlParams.get("page") === PAGES.LIVE_QUIZ) {
+    } else if (urlParams.get('page') === PAGES.LIVE_QUIZ) {
       if (isStudentLinked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
       else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
     }
   };
 
-  function sortPlayedLessonDocByDate(playedLessonData: TableTypes<"result">[]) {
+  function sortPlayedLessonDocByDate(playedLessonData: TableTypes<'result'>[]) {
     const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
     for (const lessonDoc of playedLessonData) {
       const lessonDate = Timestamp.fromDate(
-        new Date(lessonDoc?.updated_at ?? ""),
+        new Date(lessonDoc?.updated_at ?? ''),
       );
       const combinedTime =
         lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
-      lessonArray.push({ lessonDoc: lessonDoc.lesson_id ?? "", combinedTime });
+      lessonArray.push({ lessonDoc: lessonDoc.lesson_id ?? '', combinedTime });
     }
     lessonArray.sort((a, b) => b.combinedTime - a.combinedTime);
     return lessonArray.map((item) => item.lessonDoc);
@@ -305,10 +303,9 @@ const Home: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   async function getAssignments(
-    withListeners: boolean = true
-  ): Promise<TableTypes<"lesson">[]> {
-
-    let reqLes: TableTypes<"lesson">[] = [];
+    withListeners: boolean = true,
+  ): Promise<TableTypes<'lesson'>[]> {
+    let reqLes: TableTypes<'lesson'>[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
     const linkedData =
@@ -327,7 +324,7 @@ const Home: FC = () => {
       !!linkedData.classes &&
       linkedData.classes.length > 0
     ) {
-      const allAssignments: TableTypes<"assignment">[] = [];
+      const allAssignments: TableTypes<'assignment'>[] = [];
 
       await Promise.all(
         linkedData.classes.map(async (_class) => {
@@ -370,7 +367,7 @@ const Home: FC = () => {
       setPendingAssignments(allAssignments);
 
       const courseCount = allAssignments.reduce<Record<string, number>>(
-        (accumulator, current: TableTypes<"assignment">) => {
+        (accumulator, current: TableTypes<'assignment'>) => {
           const courseId = current.course_id;
           if (!courseId) {
             return accumulator;
@@ -455,13 +452,13 @@ const Home: FC = () => {
   };
 
   async function onHeaderIconClick(selectedHeader: any) {
-    let reqLes: TableTypes<"lesson">[] = [];
+    let reqLes: TableTypes<'lesson'>[] = [];
     var headerIconList: HeaderIconConfig[] = [];
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
-    localStorage.setItem("currentHeader", selectedHeader);
+    localStorage.setItem('currentHeader', selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
@@ -470,8 +467,8 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);
-        const body = document.querySelector("body");
-        body?.style.removeProperty("background-image");
+        const body = document.querySelector('body');
+        body?.style.removeProperty('background-image');
         break;
       default:
         break;

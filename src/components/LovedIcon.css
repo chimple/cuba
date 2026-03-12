@@ -1,5 +1,4 @@
 .fav-icon {
-  
   background-color: rgb(220, 213, 213);
   height: clamp(30px, 8vh, 58px);
   width: clamp(30px, 8vh, 58px);
@@ -12,15 +11,12 @@
 
 .fav-icon-image {
   color: red;
-  
+
   height: clamp(8vh, 11vh, 8vh);
   width: clamp(5vh, 6vh, 6vh);
 }
 
-
-
 .lovedicon {
-  
   display: flex;
   position: relative;
   justify-content: flex-end;

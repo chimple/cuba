@@ -1,13 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Typography } from "@mui/material";
-import { t } from "i18next";
-import { useHistory, useLocation } from "react-router";
-import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { Column } from "../components/DataTableBody";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import { t } from 'i18next';
+import { useHistory, useLocation } from 'react-router';
+import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Column } from '../components/DataTableBody';
 
 export type Filters = Record<string, string[]>;
-export type MigrationTab = "migrate" | "migrated";
+export type MigrationTab = 'migrate' | 'migrated';
 type RowData = Record<string, any>;
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -22,15 +22,15 @@ export const INITIAL_FILTERS: Filters = {
 };
 
 export const FILTER_KEYS = [
-  "program",
-  "programType",
-  "state",
-  "district",
-  "cluster",
-  "block",
+  'program',
+  'programType',
+  'state',
+  'district',
+  'cluster',
+  'block',
 ] as const;
 
-export const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
+export const parseJSONParam = <T>(param: string | null, fallback: T): T => {
   try {
     return param ? (JSON.parse(param) as T) : fallback;
   } catch {
@@ -39,39 +39,42 @@ export const parseJSONParam = <T,>(param: string | null, fallback: T): T => {
 };
 
 export const normalizeFiltersFromQuery = (value: unknown): Filters => {
-  if (!value || typeof value !== "object") return INITIAL_FILTERS;
+  if (!value || typeof value !== 'object') return INITIAL_FILTERS;
   const source = value as Record<string, unknown>;
-  return FILTER_KEYS.reduce<Filters>((acc, key) => {
-    acc[key] = Array.isArray(source[key])
-      ? (source[key] as unknown[]).filter(
-          (item): item is string =>
-            typeof item === "string" && item.trim().length > 0,
-        )
-      : [];
-    return acc;
-  }, { ...INITIAL_FILTERS });
+  return FILTER_KEYS.reduce<Filters>(
+    (acc, key) => {
+      acc[key] = Array.isArray(source[key])
+        ? (source[key] as unknown[]).filter(
+            (item): item is string =>
+              typeof item === 'string' && item.trim().length > 0,
+          )
+        : [];
+      return acc;
+    },
+    { ...INITIAL_FILTERS },
+  );
 };
 
 export const normalizeAcademicYear = (value: any): string => {
   if (Array.isArray(value)) {
     const years = value
-      .map((item) => String(item ?? "").trim())
+      .map((item) => String(item ?? '').trim())
       .filter((item) => item.length > 0);
-    return years.join(", ");
+    return years.join(', ');
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const trimmed = value.trim();
-    if (!trimmed) return "";
+    if (!trimmed) return '';
 
-    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
           return parsed
-            .map((item) => String(item ?? "").trim())
+            .map((item) => String(item ?? '').trim())
             .filter((item) => item.length > 0)
-            .join(", ");
+            .join(', ');
         }
       } catch (_err) {
         return trimmed;
@@ -81,17 +84,17 @@ export const normalizeAcademicYear = (value: any): string => {
     return trimmed;
   }
 
-  return "";
+  return '';
 };
 
 export const normalizeProgramModel = (value: any): string => {
   const toLabel = (model: string): string => {
     const normalized = model.trim().toLowerCase();
     if (normalized === PROGRAM_TAB.AT_HOME) {
-      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_HOME].replace(/\s+/g, "-");
+      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_HOME].replace(/\s+/g, '-');
     }
     if (normalized === PROGRAM_TAB.AT_SCHOOL) {
-      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_SCHOOL].replace(/\s+/g, "-");
+      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_SCHOOL].replace(/\s+/g, '-');
     }
     if (normalized === PROGRAM_TAB.HYBRID) {
       return PROGRAM_TAB_LABELS[PROGRAM_TAB.HYBRID];
@@ -101,25 +104,25 @@ export const normalizeProgramModel = (value: any): string => {
 
   if (Array.isArray(value)) {
     const models = value
-      .map((item) => String(item ?? "").trim())
+      .map((item) => String(item ?? '').trim())
       .filter((item) => item.length > 0)
       .map(toLabel);
-    return models.join(", ");
+    return models.join(', ');
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const trimmed = value.trim();
-    if (!trimmed) return "";
+    if (!trimmed) return '';
 
-    if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) {
           return parsed
-            .map((item) => String(item ?? "").trim())
+            .map((item) => String(item ?? '').trim())
             .filter((item) => item.length > 0)
             .map(toLabel)
-            .join(", ");
+            .join(', ');
         }
       } catch (_err) {
         return toLabel(trimmed);
@@ -129,15 +132,15 @@ export const normalizeProgramModel = (value: any): string => {
     return toLabel(trimmed);
   }
 
-  return "";
+  return '';
 };
 
 type MigratedMetricKey =
-  | "ukg_student_count"
-  | "class_2_student_count"
-  | "class_3_student_count"
-  | "class_4_student_count"
-  | "class_5_student_count";
+  | 'ukg_student_count'
+  | 'class_2_student_count'
+  | 'class_3_student_count'
+  | 'class_4_student_count'
+  | 'class_5_student_count';
 type MigratedMetricValue = number | null | undefined;
 type MigratedMetricSource = Partial<
   Record<MigratedMetricKey, MigratedMetricValue>
@@ -146,9 +149,9 @@ type MigratedMetricSource = Partial<
 const normalizeMigratedMetricValue = (
   value: MigratedMetricValue,
 ): string | number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
 
-  return "NA";
+  return 'NA';
 };
 
 const resolveMigratedMetricValue = (
@@ -168,7 +171,7 @@ const resolveMigratedMetricValue = (
     }
   }
 
-  return "NA";
+  return 'NA';
 };
 
 export const buildNameCell = (
@@ -178,26 +181,26 @@ export const buildNameCell = (
 ) => {
   const subtitle =
     schoolUdise || schoolState
-      ? `${schoolUdise ?? ""} - ${schoolState ?? ""}`.trim()
-      : "--";
+      ? `${schoolUdise ?? ''} - ${schoolState ?? ''}`.trim()
+      : '--';
 
   return {
     value: schoolName,
     render: React.createElement(
       Box,
       {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
       },
       React.createElement(
         Typography,
-        { className: "migrate-schools-name" },
+        { className: 'migrate-schools-name' },
         schoolName,
       ),
       React.createElement(
         Typography,
-        { className: "migrate-schools-subname" },
+        { className: 'migrate-schools-subname' },
         subtitle,
       ),
     ),
@@ -211,15 +214,15 @@ export const useMigrateSchoolsPageLogic = () => {
   const qs = new URLSearchParams(location.search);
 
   const [activeTab, setActiveTab] = useState<MigrationTab>(() => {
-    const tab = qs.get("tab");
-    return tab === "migrated" ? "migrated" : "migrate";
+    const tab = qs.get('tab');
+    return tab === 'migrated' ? 'migrated' : 'migrate';
   });
-  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const initialFilters = useMemo(
     () =>
       normalizeFiltersFromQuery(
         parseJSONParam<Record<string, unknown> | null>(
-          qs.get("filters"),
+          qs.get('filters'),
           INITIAL_FILTERS,
         ),
       ),
@@ -234,13 +237,13 @@ export const useMigrateSchoolsPageLogic = () => {
   const [rows, setRows] = useState<RowData[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(() => {
-    const parsed = Number(qs.get("page"));
+    const parsed = Number(qs.get('page'));
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
   });
-  const [orderBy, setOrderBy] = useState(() => qs.get("orderBy") || "");
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">(() => {
-    const direction = qs.get("orderDir");
-    return direction === "desc" ? "desc" : "asc";
+  const [orderBy, setOrderBy] = useState(() => qs.get('orderBy') || '');
+  const [orderDir, setOrderDir] = useState<'asc' | 'desc'>(() => {
+    const direction = qs.get('orderDir');
+    return direction === 'desc' ? 'desc' : 'asc';
   });
   const [selectedSchoolIds, setSelectedSchoolIds] = useState<string[]>([]);
   const [isMigrateDialogOpen, setIsMigrateDialogOpen] = useState(false);
@@ -257,7 +260,10 @@ export const useMigrateSchoolsPageLogic = () => {
     const currentYear = new Date().getFullYear();
     return `${currentYear}-${String(currentYear + 1).slice(-2)}`;
   }, []);
-  const academicYears = useMemo(() => [currentAcademicYear], [currentAcademicYear]);
+  const academicYears = useMemo(
+    () => [currentAcademicYear],
+    [currentAcademicYear],
+  );
   const migratedAcademicYears = useMemo(
     () => [migratedAcademicYear],
     [migratedAcademicYear],
@@ -265,11 +271,11 @@ export const useMigrateSchoolsPageLogic = () => {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (activeTab !== "migrate") params.set("tab", activeTab);
-    if (searchTerm.trim()) params.set("search", searchTerm);
-    if (page !== 1) params.set("page", String(page));
-    if (orderBy) params.set("orderBy", orderBy);
-    if (orderDir !== "asc") params.set("orderDir", orderDir);
+    if (activeTab !== 'migrate') params.set('tab', activeTab);
+    if (searchTerm.trim()) params.set('search', searchTerm);
+    if (page !== 1) params.set('page', String(page));
+    if (orderBy) params.set('orderBy', orderBy);
+    if (orderDir !== 'asc') params.set('orderDir', orderDir);
 
     const cleanedFilters = Object.fromEntries(
       Object.entries(filters).filter(
@@ -277,7 +283,7 @@ export const useMigrateSchoolsPageLogic = () => {
       ),
     );
     if (Object.keys(cleanedFilters).length > 0) {
-      params.set("filters", JSON.stringify(cleanedFilters));
+      params.set('filters', JSON.stringify(cleanedFilters));
     }
 
     history.replace({ search: params.toString() });
@@ -302,7 +308,7 @@ export const useMigrateSchoolsPageLogic = () => {
           }));
         }
       } catch (error) {
-        console.error("Failed to fetch filter options", error);
+        console.error('Failed to fetch filter options', error);
       } finally {
         setIsFilterLoading(false);
       }
@@ -321,12 +327,12 @@ export const useMigrateSchoolsPageLogic = () => {
       );
 
       let backendOrderBy = orderBy;
-      if (backendOrderBy === "name") backendOrderBy = "school_name";
-      if (backendOrderBy === "district") backendOrderBy = "district";
-      if (backendOrderBy === "academicYear") backendOrderBy = "academic_year";
+      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
+      if (backendOrderBy === 'district') backendOrderBy = 'district';
+      if (backendOrderBy === 'academicYear') backendOrderBy = 'academic_year';
 
       const requestedAcademicYears =
-        activeTab === "migrated" ? migratedAcademicYears : academicYears;
+        activeTab === 'migrated' ? migratedAcademicYears : academicYears;
       const response = await api.getSchoolsWithProgramAccess({
         academicYears: requestedAcademicYears,
         filters: cleanedFilters,
@@ -335,7 +341,7 @@ export const useMigrateSchoolsPageLogic = () => {
         orderBy: backendOrderBy || undefined,
         orderDir,
         search: searchTerm,
-        includeMigratedCounts: activeTab === "migrated",
+        includeMigratedCounts: activeTab === 'migrated',
       });
 
       const data = response?.data || [];
@@ -346,7 +352,7 @@ export const useMigrateSchoolsPageLogic = () => {
             .map((item: any) => item?.program?.name)
             .filter(
               (value: unknown): value is string =>
-                typeof value === "string" && value.trim().length > 0,
+                typeof value === 'string' && value.trim().length > 0,
             ),
         ),
       );
@@ -360,29 +366,32 @@ export const useMigrateSchoolsPageLogic = () => {
       }
 
       const formatted = data.map((row: any, index: number) => {
-        const school = row?.school && typeof row.school === "object" ? row.school : {};
+        const school =
+          row?.school && typeof row.school === 'object' ? row.school : {};
         const program =
-          row?.program && typeof row.program === "object" ? row.program : {};
+          row?.program && typeof row.program === 'object' ? row.program : {};
         const migrationMetrics =
-          row?.migration_metrics && typeof row.migration_metrics === "object"
+          row?.migration_metrics && typeof row.migration_metrics === 'object'
             ? row.migration_metrics
             : {};
-        const schoolName = school.school_name || school.name || "--";
-        const schoolUdise = school.udise_code || school.udise || "--";
-        const schoolState = school.state || school.group1 || "--";
-        const schoolDistrict = school.district || school.group2 || "--";
-        const schoolBlock = school.block || school.group3 || "--";
-        const schoolCluster = school.cluster || school.group4 || "--";
+        const schoolName = school.school_name || school.name || '--';
+        const schoolUdise = school.udise_code || school.udise || '--';
+        const schoolState = school.state || school.group1 || '--';
+        const schoolDistrict = school.district || school.group2 || '--';
+        const schoolBlock = school.block || school.group3 || '--';
+        const schoolCluster = school.cluster || school.group4 || '--';
         const resolvedAcademicYear =
-          activeTab === "migrated"
+          activeTab === 'migrated'
             ? normalizeAcademicYear(migrationMetrics.academic_year) ||
               requestedAcademicYears[0] ||
-              ""
+              ''
             : requestedAcademicYears[0] ||
               normalizeAcademicYear(
-                school.academic_year ?? program.academic_year ?? school.academicYear,
+                school.academic_year ??
+                  program.academic_year ??
+                  school.academicYear,
               ) ||
-              "";
+              '';
         const resolvedId =
           school.sch_id ||
           school.id ||
@@ -394,35 +403,35 @@ export const useMigrateSchoolsPageLogic = () => {
           school,
           program,
           migrationMetrics,
-          ["ukg_student_count"],
+          ['ukg_student_count'],
         );
         const class2 = resolveMigratedMetricValue(
           row,
           school,
           program,
           migrationMetrics,
-          ["class_2_student_count"],
+          ['class_2_student_count'],
         );
         const class3 = resolveMigratedMetricValue(
           row,
           school,
           program,
           migrationMetrics,
-          ["class_3_student_count"],
+          ['class_3_student_count'],
         );
         const class4 = resolveMigratedMetricValue(
           row,
           school,
           program,
           migrationMetrics,
-          ["class_4_student_count"],
+          ['class_4_student_count'],
         );
         const class5 = resolveMigratedMetricValue(
           row,
           school,
           program,
           migrationMetrics,
-          ["class_5_student_count"],
+          ['class_5_student_count'],
         );
 
         return {
@@ -438,8 +447,9 @@ export const useMigrateSchoolsPageLogic = () => {
             program.name ||
             school.program_name ||
             school.program ||
-            "--",
-          programModel: normalizeProgramModel(program.model ?? school.model) || "--",
+            '--',
+          programModel:
+            normalizeProgramModel(program.model ?? school.model) || '--',
           academicYear: resolvedAcademicYear,
           district: schoolDistrict,
           cluster: schoolCluster,
@@ -454,7 +464,7 @@ export const useMigrateSchoolsPageLogic = () => {
 
       setRows(formatted);
     } catch (error) {
-      console.error("Failed to fetch migrate schools list", error);
+      console.error('Failed to fetch migrate schools list', error);
       setRows([]);
       setTotal(0);
     } finally {
@@ -482,104 +492,104 @@ export const useMigrateSchoolsPageLogic = () => {
 
   const columns: Column<Record<string, any>>[] = useMemo(
     () =>
-      activeTab === "migrated"
+      activeTab === 'migrated'
         ? [
             {
-              key: "name",
-              label: t("School Name"),
-              width: "24%",
+              key: 'name',
+              label: t('School Name'),
+              width: '24%',
               sortable: false,
             },
             {
-              key: "programName",
-              label: t("Program Name"),
-              width: "16%",
+              key: 'programName',
+              label: t('Program Name'),
+              width: '16%',
               sortable: false,
             },
             {
-              key: "programModel",
-              label: t("Program Model"),
-              width: "14%",
+              key: 'programModel',
+              label: t('Program Model'),
+              width: '14%',
               sortable: false,
             },
             {
-              key: "academicYear",
-              label: t("Academic Year"),
-              width: "13%",
+              key: 'academicYear',
+              label: t('Academic Year'),
+              width: '13%',
               sortable: false,
             },
             {
-              key: "ukg",
-              label: t("UKG"),
-              width: "8%",
+              key: 'ukg',
+              label: t('UKG'),
+              width: '8%',
               sortable: false,
             },
             {
-              key: "class2",
-              label: t("Class 2"),
-              width: "8%",
+              key: 'class2',
+              label: t('Class 2'),
+              width: '8%',
               sortable: false,
             },
             {
-              key: "class3",
-              label: t("Class 3"),
-              width: "8%",
+              key: 'class3',
+              label: t('Class 3'),
+              width: '8%',
               sortable: false,
             },
             {
-              key: "class4",
-              label: t("Class 4"),
-              width: "8%",
+              key: 'class4',
+              label: t('Class 4'),
+              width: '8%',
               sortable: false,
             },
             {
-              key: "class5",
-              label: t("Class 5"),
-              width: "8%",
+              key: 'class5',
+              label: t('Class 5'),
+              width: '8%',
               sortable: false,
             },
           ]
         : [
             {
-              key: "name",
-              label: t("School Name"),
-              width: "24%",
+              key: 'name',
+              label: t('School Name'),
+              width: '24%',
               sortable: false,
             },
             {
-              key: "programName",
-              label: t("Program Name"),
-              width: "16%",
+              key: 'programName',
+              label: t('Program Name'),
+              width: '16%',
               sortable: false,
             },
             {
-              key: "programModel",
-              label: t("Program Model"),
-              width: "14%",
+              key: 'programModel',
+              label: t('Program Model'),
+              width: '14%',
               sortable: false,
             },
             {
-              key: "academicYear",
-              label: t("Academic Year"),
-              width: "13%",
+              key: 'academicYear',
+              label: t('Academic Year'),
+              width: '13%',
               sortable: false,
             },
             {
-              key: "district",
-              label: t("District"),
-              width: "12%",
+              key: 'district',
+              label: t('District'),
+              width: '12%',
               sortable: false,
             },
             {
-              key: "cluster",
-              label: t("Cluster"),
-              width: "11%",
+              key: 'cluster',
+              label: t('Cluster'),
+              width: '11%',
               sortable: false,
             },
             {
-              key: "block",
-              label: t("Block"),
-              width: "10%",
+              key: 'block',
+              label: t('Block'),
+              width: '10%',
               sortable: false,
             },
           ],
@@ -588,49 +598,55 @@ export const useMigrateSchoolsPageLogic = () => {
 
   const filterConfigsForSchool = useMemo(
     () => [
-      { key: "program", label: t("Select Program") },
-      { key: "programType", label: t("Select Program Type") },
-      { key: "state", label: t("Select State") },
-      { key: "district", label: t("Select District") },
-      { key: "cluster", label: t("Select Cluster") },
-      { key: "block", label: t("Select Block") },
+      { key: 'program', label: t('Select Program') },
+      { key: 'programType', label: t('Select Program Type') },
+      { key: 'state', label: t('Select State') },
+      { key: 'district', label: t('Select District') },
+      { key: 'cluster', label: t('Select Cluster') },
+      { key: 'block', label: t('Select Block') },
     ],
     [],
   );
 
   const handleSort = useCallback(
     (columnKey: string) => {
-      const sortableKeys = ["name", "academicYear", "district"];
+      const sortableKeys = ['name', 'academicYear', 'district'];
       if (!sortableKeys.includes(columnKey)) return;
 
       if (orderBy === columnKey) {
-        setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+        setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
       } else {
         setOrderBy(columnKey);
-        setOrderDir("asc");
+        setOrderDir('asc');
       }
       setPage(1);
     },
     [orderBy],
   );
 
-  const handleToggleSchoolSelection = useCallback((schoolId: string | number) => {
-    const id = String(schoolId);
-    setSelectedSchoolIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  }, []);
+  const handleToggleSchoolSelection = useCallback(
+    (schoolId: string | number) => {
+      const id = String(schoolId);
+      setSelectedSchoolIds((prev) =>
+        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+      );
+    },
+    [],
+  );
 
-  const handleSelectAllVisible = useCallback((checked: boolean, visibleRows: any[]) => {
-    const visibleIds = visibleRows
-      .map((row) => String(row.sch_id || row.id))
-      .filter(Boolean);
+  const handleSelectAllVisible = useCallback(
+    (checked: boolean, visibleRows: any[]) => {
+      const visibleIds = visibleRows
+        .map((row) => String(row.sch_id || row.id))
+        .filter(Boolean);
 
-    setSelectedSchoolIds((prev) => {
-      if (checked) return Array.from(new Set([...prev, ...visibleIds]));
-      return prev.filter((id) => !visibleIds.includes(id));
-    });
-  }, []);
+      setSelectedSchoolIds((prev) => {
+        if (checked) return Array.from(new Set([...prev, ...visibleIds]));
+        return prev.filter((id) => !visibleIds.includes(id));
+      });
+    },
+    [],
+  );
 
   const handleClearFilters = useCallback(() => {
     setFilters(INITIAL_FILTERS);
@@ -660,9 +676,12 @@ export const useMigrateSchoolsPageLogic = () => {
     setTempFilters(filters);
   }, [filters]);
 
-  const handleTempFilterChange = useCallback((name: string, value: string[]) => {
-    setTempFilters((prev) => ({ ...prev, [name]: value }));
-  }, []);
+  const handleTempFilterChange = useCallback(
+    (name: string, value: string[]) => {
+      setTempFilters((prev) => ({ ...prev, [name]: value }));
+    },
+    [],
+  );
 
   const handleApplyFilters = useCallback(() => {
     setFilters(tempFilters);
@@ -692,7 +711,7 @@ export const useMigrateSchoolsPageLogic = () => {
 
   const handleCloseSuccessPopup = useCallback(() => {
     setIsSuccessPopupOpen(false);
-    setActiveTab("migrated");
+    setActiveTab('migrated');
     setPage(1);
   }, []);
 
@@ -704,7 +723,7 @@ export const useMigrateSchoolsPageLogic = () => {
     if (isMigrating) return;
 
     const schoolIds = selectedSchoolIds
-      .map((id) => String(id ?? "").trim())
+      .map((id) => String(id ?? '').trim())
       .filter((id) => id.length > 0);
 
     if (schoolIds.length === 0) return;
@@ -725,7 +744,7 @@ export const useMigrateSchoolsPageLogic = () => {
       setIsMigrateDialogOpen(false);
       setIsFailurePopupOpen(true);
     } catch (error) {
-      console.error("Failed to migrate selected schools", error);
+      console.error('Failed to migrate selected schools', error);
       setIsMigrateDialogOpen(false);
       setIsFailurePopupOpen(true);
     } finally {
@@ -756,7 +775,7 @@ export const useMigrateSchoolsPageLogic = () => {
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
   const isSelectionActionVisible =
-    activeTab === "migrate" && selectedSchoolIds.length > 0;
+    activeTab === 'migrate' && selectedSchoolIds.length > 0;
 
   return {
     activeTab,

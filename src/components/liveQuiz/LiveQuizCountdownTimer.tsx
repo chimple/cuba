@@ -1,12 +1,12 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState } from 'react';
 import {
   CircularProgressbarWithChildren,
   buildStyles,
-} from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
-import "./LiveQuizCountdownTimer.css";
-import RadialSeparators from "./RadialSeparators";
-import i18n from "../../i18n";
+} from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import './LiveQuizCountdownTimer.css';
+import RadialSeparators from './RadialSeparators';
+import i18n from '../../i18n';
 
 const LiveQuizCountdownTimer: FC<{
   startsAt: Date;
@@ -17,7 +17,7 @@ const LiveQuizCountdownTimer: FC<{
 
   useEffect(() => {
     const newMaxValue = Math.ceil(
-      (startsAt.getTime() - new Date().getTime()) / 1000
+      (startsAt.getTime() - new Date().getTime()) / 1000,
     );
     setMaxValue(newMaxValue < 0 ? 0 : newMaxValue);
 
@@ -49,7 +49,7 @@ const LiveQuizCountdownTimer: FC<{
       {remainingTime !== null && remainingTime >= 0 ? (
         <>
           <p className="live-quiz-countdown-header">
-            {i18n.t("Please wait. Quiz will be starting soon")}
+            {i18n.t('Please wait. Quiz will be starting soon')}
           </p>
           <div className="dashed-progress-container">
             <div className="dashed-progressbar">
@@ -57,13 +57,13 @@ const LiveQuizCountdownTimer: FC<{
                 value={Math.max(0, (1 - remainingTime / maxValue) * 100) ?? 0}
                 strokeWidth={10}
                 styles={buildStyles({
-                  strokeLinecap: "butt",
+                  strokeLinecap: 'butt',
                 })}
               >
                 <RadialSeparators count={maxValue > 60 ? 60 : maxValue} />
                 <div className="live-quiz-countdown-text">
                   <p>{remainingTime}</p>
-                  <p>{i18n.t("sec").toUpperCase()}</p>
+                  <p>{i18n.t('sec').toUpperCase()}</p>
                 </div>
               </CircularProgressbarWithChildren>
             </div>

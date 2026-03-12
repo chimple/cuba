@@ -1,7 +1,7 @@
-import { t } from "i18next";
-import { AVATARS } from "../../common/constants";
-import { Util } from "../../utility/util";
-import "./StudentAvatar.css";
+import { t } from 'i18next';
+import { AVATARS } from '../../common/constants';
+import { Util } from '../../utility/util';
+import './StudentAvatar.css';
 
 interface StudentAvatarStudent {
   id?: string | null;
@@ -13,29 +13,29 @@ const StudentAvatar: React.FC<{
   student: StudentAvatarStudent;
   onClicked: (student: StudentAvatarStudent) => void;
   width?: string | number;
-  namePosition?: "above" | "below" | "right" | "left";
+  namePosition?: 'above' | 'below' | 'right' | 'left';
   nameLabel?: React.ReactNode;
-}> = ({ student, onClicked, width, namePosition = "below", nameLabel }) => {
+}> = ({ student, onClicked, width, namePosition = 'below', nameLabel }) => {
   const containerStyle: React.CSSProperties = {
-    display: "flex",
+    display: 'flex',
     flexDirection:
-      namePosition === "above" || namePosition === "below" ? "column" : "row",
-    alignItems: "center",
-    cursor: "pointer",
-    fontSize: "var(--text-size)",
-    color: "var(--text-color)",
+      namePosition === 'above' || namePosition === 'below' ? 'column' : 'row',
+    alignItems: 'center',
+    cursor: 'pointer',
+    fontSize: 'var(--text-size)',
+    color: 'var(--text-color)',
   };
 
   const nameStyle: React.CSSProperties = {
-    whiteSpace: "nowrap",
+    whiteSpace: 'nowrap',
     display:
-      namePosition === "right" || namePosition === "left"
-        ? "inline-block"
-        : "block",
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    marginLeft: namePosition === "right" ? "7.8vw" : "0",
-    maxWidth: "7vw",
+      namePosition === 'right' || namePosition === 'left'
+        ? 'inline-block'
+        : 'block',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    marginLeft: namePosition === 'right' ? '7.8vw' : '0',
+    maxWidth: '7vw',
   };
 
   return (
@@ -44,41 +44,41 @@ const StudentAvatar: React.FC<{
       style={containerStyle}
       className={`student-avatar-${namePosition}`}
     >
-      {namePosition === "above" &&
+      {namePosition === 'above' &&
         (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
-            {t("Me")}
+            {t('Me')}
             {nameLabel}
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name || ""} {nameLabel}
+            {student.name || ''} {nameLabel}
           </span>
         ))}
       <img
         style={{ width: width }}
         className="student-avatar-img"
-        src={"assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"}
+        src={'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'}
         alt=""
       />
-      {(namePosition === "right" || namePosition === "left") &&
+      {(namePosition === 'right' || namePosition === 'left') &&
         (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
-            {t("Me")} {nameLabel}
+            {t('Me')} {nameLabel}
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name || ""} {nameLabel}
+            {student.name || ''} {nameLabel}
           </span>
         ))}
-      {namePosition === "below" &&
+      {namePosition === 'below' &&
         (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
-            {t("Me")} {nameLabel}
+            {t('Me')} {nameLabel}
           </p>
         ) : (
           <span style={nameStyle} className="student-avatar-name-below">
-            {student.name || ""} {nameLabel}
+            {student.name || ''} {nameLabel}
           </span>
         ))}
     </div>

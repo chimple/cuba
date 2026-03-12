@@ -1,23 +1,22 @@
 .stars-icon {
-    margin: 10px 0% 2% 0%;
+  margin: 10px 0% 2% 0%;
 }
 
-.star-icon-image{
-    display: flex;
-    justify-content: space-evenly;
-    padding: 1% 35%;
+.star-icon-image {
+  display: flex;
+  justify-content: space-evenly;
+  padding: 1% 35%;
 }
 
 .score-card-first-star {
   width: 28px;
   height: 27px;
- 
 }
 
 .score-card-middle-star {
   width: 28px;
   height: 27px;
-  
+
   margin: 0 2px;
   transform: translateY(20px);
 }

@@ -1,30 +1,30 @@
-import React, { useEffect, useState } from "react";
-import "./StudentProfile.css";
-import { PAGES, PROFILETYPE, TableTypes } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Header from "../components/homePage/Header";
-import { IonPage } from "@ionic/react";
-import UserProfile from "../components/studentProfile/UserProfile";
-import { t } from "i18next";
-import { Util } from "../../utility/util";
-import { subDays } from "date-fns";
-import { useHistory } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import './StudentProfile.css';
+import { PAGES, PROFILETYPE, TableTypes } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import Header from '../components/homePage/Header';
+import { IonPage } from '@ionic/react';
+import UserProfile from '../components/studentProfile/UserProfile';
+import { t } from 'i18next';
+import { Util } from '../../utility/util';
+import { subDays } from 'date-fns';
+import { useHistory } from 'react-router-dom';
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
   const state = (history.location.state ?? {}) as {
-    classDoc?: TableTypes<"class">;
+    classDoc?: TableTypes<'class'>;
     studentId?: string;
   };
-  const [student, setStudent] = useState<TableTypes<"user">>();
-  const [school, setSchool] = useState<TableTypes<"school">>();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [student, setStudent] = useState<TableTypes<'user'>>();
+  const [school, setSchool] = useState<TableTypes<'school'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
   const [isEditing, setIsEditing] = useState(false);
-  const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
+  const [allClasses, setAllClasses] = useState<TableTypes<'class'>[]>([]);
   const tempClass = state.classDoc;
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const paramStudentId = state.studentId ?? "";
+  const paramStudentId = state.studentId ?? '';
   const api = ServiceConfig.getI()?.apiHandler;
   const auth = ServiceConfig.getI()?.authHandler;
 
@@ -57,7 +57,7 @@ const StudentProfile: React.FC = () => {
     if (tempSchool) {
       const fetchedClasses = await api.getClassesForSchool(
         tempSchool.id,
-        user.id
+        user.id,
       );
       setAllClasses(fetchedClasses);
     }
@@ -69,10 +69,13 @@ const StudentProfile: React.FC = () => {
 
   const handleUpdateClick = async () => {
     if (student) {
-
       let imageURL = student.image;
       if (selectedFile) {
-        imageURL = await api.addProfileImages(student.id, selectedFile, PROFILETYPE.USER);
+        imageURL = await api.addProfileImages(
+          student.id,
+          selectedFile,
+          PROFILETYPE.USER,
+        );
       }
       try {
         const updatedStudent = await api.updateStudentFromSchoolMode(
@@ -86,12 +89,12 @@ const StudentProfile: React.FC = () => {
           student.grade_id!,
           student.language_id!,
           student.student_id!,
-          currentClass?.id!
+          currentClass?.id!,
         );
         setStudent(updatedStudent);
         setIsEditing(false);
       } catch (error) {
-        console.error("Failed to update student:", error);
+        console.error('Failed to update student:', error);
       }
     }
   };
@@ -132,11 +135,11 @@ const StudentProfile: React.FC = () => {
             onClick={handleViewProgressClick}
             className="view-progress-btn"
           >
-            {t("View Progress")}
+            {t('View Progress')}
           </button>
         ) : (
           <button className="view-progress-btn" onClick={handleUpdateClick}>
-            {t("Update")}
+            {t('Update')}
           </button>
         )}
       </div>

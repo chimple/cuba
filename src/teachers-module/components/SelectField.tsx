@@ -1,7 +1,7 @@
-import React from "react";
-import { IonSelect, IonSelectOption, IonIcon } from "@ionic/react";
-import { chevronDownOutline } from "ionicons/icons";
-import "./SelectField.css";
+import React from 'react';
+import { IonSelect, IonSelectOption, IonIcon } from '@ionic/react';
+import { chevronDownOutline } from 'ionicons/icons';
+import './SelectField.css';
 
 interface SelectFieldProps {
   label: string;
@@ -26,9 +26,9 @@ const SelectField: React.FC<SelectFieldProps> = ({
       <div className="select-field-wrapper">
         <div
           className="select-field-display"
-          style={{ color: value ? "#4A4949" : "transparent" }}
+          style={{ color: value ? '#4A4949' : 'transparent' }}
         >
-          {value || placeholder || "Select..."}
+          {value || placeholder || 'Select...'}
         </div>
 
         <IonSelect

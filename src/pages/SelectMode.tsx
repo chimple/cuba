@@ -1,8 +1,8 @@
-import { IonPage } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
-import Loading from "../components/Loading";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { useHistory } from "react-router";
+import { IonPage } from '@ionic/react';
+import { FC, useEffect, useState } from 'react';
+import Loading from '../components/Loading';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory } from 'react-router';
 import {
   LANGUAGE,
   AVATARS,
@@ -17,19 +17,25 @@ import {
   STAGES,
   CURRENT_CLASS,
   IS_OPS_USER,
-} from "../common/constants";
-import SelectModeButton from "../components/selectMode/SelectModeButton";
-import { IoMdPeople } from "react-icons/io";
-import { GiTeacher } from "react-icons/gi";
-import { t } from "i18next";
-import "./SelectMode.css";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import i18n from "../i18n";
-import DropDown from "../components/DropDown";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { RootState } from "../redux/store";
-import { AuthState, setAuthUser, setIsOpsUser, setRoles, setUser } from "../redux/slices/auth/authSlice";
+} from '../common/constants';
+import SelectModeButton from '../components/selectMode/SelectModeButton';
+import { IoMdPeople } from 'react-icons/io';
+import { GiTeacher } from 'react-icons/gi';
+import { t } from 'i18next';
+import './SelectMode.css';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import i18n from '../i18n';
+import DropDown from '../components/DropDown';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { RootState } from '../redux/store';
+import {
+  AuthState,
+  setAuthUser,
+  setIsOpsUser,
+  setRoles,
+  setUser,
+} from '../redux/slices/auth/authSlice';
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -37,23 +43,23 @@ const SelectMode: FC = () => {
     {
       id: string;
       displayName: string;
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
     }[]
   >([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
-  const [currentClasses, setCurrentClasses] = useState<TableTypes<"class">[]>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
+  const [currentClasses, setCurrentClasses] = useState<TableTypes<'class'>[]>();
   const [currentStudents, setCurrentStudents] =
-    useState<TableTypes<"user">[]>();
-  const [currStudent, setCurrStudent] = useState<TableTypes<"user">>();
-  const [currClass, setCurrClass] = useState<TableTypes<"class">>();
+    useState<TableTypes<'user'>[]>();
+  const [currStudent, setCurrStudent] = useState<TableTypes<'user'>>();
+  const [currClass, setCurrClass] = useState<TableTypes<'class'>>();
   let count = 1;
   const tempSchoolList: {
     id: string;
     displayName: string;
-    school: TableTypes<"school">;
+    school: TableTypes<'school'>;
   }[] = [];
   useEffect(() => {
     restoreAuth();
@@ -70,9 +76,11 @@ const SelectMode: FC = () => {
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const dispatch = useAppDispatch();
-  const { authUser, user: reduxUser, roles } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
+  const {
+    authUser,
+    user: reduxUser,
+    roles,
+  } = useAppSelector((state: RootState) => state.auth as AuthState);
   useEffect(() => {
     if (currClass && stage === STAGES.STUDENT) {
       displayStudents(currClass);
@@ -80,7 +88,7 @@ const SelectMode: FC = () => {
   }, [currClass, stage]);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const setTab = urlParams.get("tab");
+    const setTab = urlParams.get('tab');
     const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
@@ -141,14 +149,17 @@ const SelectMode: FC = () => {
     const allSchool = await api.getSchoolsForUser(currUser.id);
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
-    const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds,currUser.id);
+    const filteredSchools = await api.getSchoolsWithRoleAutouser(
+      schoolIds,
+      currUser.id,
+    );
     const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
     // Filter allSchool to include only schools that are in filteredSchools
     const matchedSchools = allSchool.filter((entry) =>
-      filteredSchoolIds.includes(entry.school.id)
+      filteredSchoolIds.includes(entry.school.id),
     );
 
-    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+    const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
     // If user is ops or program user
     if (isOpsUser) {
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
@@ -194,7 +205,7 @@ const SelectMode: FC = () => {
         }
       } else if (allSchool.length === 0) {
         onParentSelect();
-      }else {
+      } else {
         // Teacher logic
         schoolUtil.setCurrMode(MODES.TEACHER);
         history.replace(PAGES.DISPLAY_SCHOOLS);
@@ -207,23 +218,23 @@ const SelectMode: FC = () => {
 
   const setUserRoles = async (userId: string) => {
     try {
-      if(roles.length > 0) return; // If roles are already set in Redux, skip fetching again
+      if (roles.length > 0) return; // If roles are already set in Redux, skip fetching again
       const userRoles = await api.getUserSpecialRoles(userId);
 
       if (userRoles.length > 0) {
         dispatch(setRoles(userRoles));
       }
     } catch (e) {
-      console.error("Error fetching user roles:", e);
+      console.error('Error fetching user roles:', e);
     }
   };
   const restoreAuth = async () => {
-    if(!reduxUser?.id) {
+    if (!reduxUser?.id) {
       const user = await auth.getCurrentUser();
       if (!user) return;
       dispatch(setUser(user));
 
-      if(!authUser || !authUser.id) {
+      if (!authUser || !authUser.id) {
         const { data } = await ServiceConfig.getI().authHandler.getUser();
         dispatch(setAuthUser(data.user));
       }
@@ -258,8 +269,8 @@ const SelectMode: FC = () => {
   };
 
   const displayClasses = async (
-    school?: TableTypes<"school">,
-    user?: TableTypes<"user">
+    school?: TableTypes<'school'>,
+    user?: TableTypes<'user'>,
   ) => {
     const activeSchool = currentSchool ?? school;
     const activeUser = currentUser ?? user;
@@ -269,7 +280,7 @@ const SelectMode: FC = () => {
     try {
       const element = await api.getClassesForSchool(
         activeSchool.id,
-        activeUser.id
+        activeUser.id,
       );
       if (!element || element.length === 0) {
         return;
@@ -277,10 +288,10 @@ const SelectMode: FC = () => {
       setCurrentClasses(element);
       localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
     } catch (error) {
-      console.error("Error fetching classes:", error);
+      console.error('Error fetching classes:', error);
     }
   };
-  const displayStudents = async (curClass: TableTypes<"class">) => {
+  const displayStudents = async (curClass: TableTypes<'class'>) => {
     // if(!currClass) return;
     const element = await api.getStudentsForClass(curClass.id);
     if (!element) return;
@@ -288,7 +299,7 @@ const SelectMode: FC = () => {
     // localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
-  const onStudentClick = async (student: TableTypes<"user">) => {
+  const onStudentClick = async (student: TableTypes<'user'>) => {
     await Util.ensureLidoCommonAudioForStudent(student);
     await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
@@ -305,17 +316,17 @@ const SelectMode: FC = () => {
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
                 <span className="select-mode-text">
-                  {t("How would you like to join?")}
+                  {t('How would you like to join?')}
                 </span>
 
                 <SelectModeButton
-                  text={t("Parent")}
+                  text={t('Parent')}
                   icon={IoMdPeople}
                   onClick={onParentSelect}
                 />
 
                 <SelectModeButton
-                  text={t("Teacher")}
+                  text={t('Teacher')}
                   icon={GiTeacher}
                   onClick={onTeacherSelect}
                 />
@@ -327,13 +338,13 @@ const SelectMode: FC = () => {
             {stage === STAGES.SCHOOL && (
               <div className="select-school-main">
                 <span className="select-school-text">
-                  {t("Choose the School")}
+                  {t('Choose the School')}
                 </span>
                 <DropDown
-                  placeholder={t("Select the School").toString()}
+                  placeholder={t('Select the School').toString()}
                   onValueChange={async (selectedSchoolDocId) => {
                     const currSchool = schoolList.find(
-                      (element) => element.id === selectedSchoolDocId
+                      (element) => element.id === selectedSchoolDocId,
                     )?.school;
 
                     if (!currSchool) {
@@ -343,7 +354,7 @@ const SelectMode: FC = () => {
                     setCurrentSchool(currSchool);
                     localStorage.setItem(
                       CURRENT_SCHOOL_NAME,
-                      JSON.stringify(currSchool.name)
+                      JSON.stringify(currSchool.name),
                     );
                     setCurrentSchoolName(currSchool.name);
                     setCurrentSchoolId(currSchool.id);
@@ -356,7 +367,7 @@ const SelectMode: FC = () => {
                 />
                 <button
                   className={`okay-btn ${
-                    isOkayButtonDisabled ? "okay-btn-disabled" : ""
+                    isOkayButtonDisabled ? 'okay-btn-disabled' : ''
                   }`}
                   onClick={async function () {
                     // history.replace(PAGES.SELECT_CLASS);
@@ -366,7 +377,7 @@ const SelectMode: FC = () => {
                   }}
                   disabled={isOkayButtonDisabled}
                 >
-                  {t("Okay")}
+                  {t('Okay')}
                 </button>
               </div>
             )}
@@ -377,7 +388,6 @@ const SelectMode: FC = () => {
               <div className="class-main">
                 <div className="class-header">
                   <div></div>
-                  
 
                   <div className="selectmode-schoolname-header">
                     {currentSchool?.name}
@@ -391,12 +401,12 @@ const SelectMode: FC = () => {
                       key={tempClass.id}
                       onClick={async () => {
                         if (!tempClass) return;
-                        
+
                         schoolUtil.setCurrentClass(tempClass);
                         setCurrClass(tempClass);
                         localStorage.setItem(
                           CURRENT_CLASS_NAME,
-                          JSON.stringify(tempClass)
+                          JSON.stringify(tempClass),
                         );
                         await displayStudents(tempClass);
                         setStage(STAGES.STUDENT);
@@ -423,7 +433,6 @@ const SelectMode: FC = () => {
                       src="/assets/icons/BackButtonIcon.svg"
                       alt="BackButtonIcon"
                       onClick={() => {
-                        
                         localStorage.removeItem(SELECTED_STUDENTS);
                         localStorage.removeItem(CURRENT_CLASS);
                         localStorage.removeItem(CURRENT_CLASS_NAME);
@@ -434,7 +443,7 @@ const SelectMode: FC = () => {
                   </div>
 
                   <div className="selectmode-schoolClassname-header">
-                    {currentSchool?.name + ", " + currClass?.name}
+                    {currentSchool?.name + ', ' + currClass?.name}
                   </div>
                   <div></div>
                 </div>
@@ -445,10 +454,9 @@ const SelectMode: FC = () => {
                       key={tempStudent.id}
                       onClick={() => {
                         setCurrStudent(tempStudent);
-                        
-                        localStorage.setItem(USER_SELECTION_STAGE, "true");
+
+                        localStorage.setItem(USER_SELECTION_STAGE, 'true');
                         onStudentClick(tempStudent);
-                        
                       }}
                       className="class-avatar"
                     >
@@ -462,9 +470,9 @@ const SelectMode: FC = () => {
                         <img
                           className="class-avatar-img"
                           src={
-                            "assets/avatars/" +
+                            'assets/avatars/' +
                             (tempStudent.avatar ?? AVATARS[randomValue()]) +
-                            ".png"
+                            '.png'
                           }
                           alt=""
                         />

@@ -1,39 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes } from "../../common/constants";
-import { IonPage } from "@ionic/react";
-import Sidebar from "../components/Sidebar";
-import {
-  Switch,
-  useRouteMatch,
-  Redirect,
-  useParams,
-} from "react-router-dom";
-import ProtectedRoute from "../../ProtectedRoute";
-import "./SidebarPage.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import ProgramsPage from "./ProgramPage";
-import SchoolList from "./SchoolList";
-import SchoolDetailsPage from "./SchoolDetailsPage";
-import ProgramDetailsPage from "./ProgramDetailsPage";
-import UsersPage from "./UsersPage";
-import NewProgram from "../components/NewProgram";
-import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
-import NewUserPage from "./NewUserPageOps";
-import UserDetailsPage from "./UserDetailsPage";
-import RequestList from "./RequestList";
-import StudentPendingRequest from "./StudentPendingRequest";
-import SchoolPendingRequest from "./SchoolPendingRequest";
-import SchoolApprovedRequest from "./SchoolApprovedRequest";
-import SchoolRejectedRequest from "./SchoolRejectedRequest";
-import SchoolFormPage from "./SchoolFormPage";
-import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
-import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
-import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
-import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
-import AddSchoolPage from "./AddSchoolPage";
-import ActivitiesPage from "./ActivitiesPage";
-import SchoolActivities from "./SchoolActivities";
-import MigrateSchoolsPage from "./MigrateSchoolsPage";
+import React, { useEffect, useState } from 'react';
+import { PAGES, TableTypes } from '../../common/constants';
+import { IonPage } from '@ionic/react';
+import Sidebar from '../components/Sidebar';
+import { Switch, useRouteMatch, Redirect, useParams } from 'react-router-dom';
+import ProtectedRoute from '../../ProtectedRoute';
+import './SidebarPage.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import ProgramsPage from './ProgramPage';
+import SchoolList from './SchoolList';
+import SchoolDetailsPage from './SchoolDetailsPage';
+import ProgramDetailsPage from './ProgramDetailsPage';
+import UsersPage from './UsersPage';
+import NewProgram from '../components/NewProgram';
+import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import NewUserPage from './NewUserPageOps';
+import UserDetailsPage from './UserDetailsPage';
+import RequestList from './RequestList';
+import StudentPendingRequest from './StudentPendingRequest';
+import SchoolPendingRequest from './SchoolPendingRequest';
+import SchoolApprovedRequest from './SchoolApprovedRequest';
+import SchoolRejectedRequest from './SchoolRejectedRequest';
+import SchoolFormPage from './SchoolFormPage';
+import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
+import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
+import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
+import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
+import AddSchoolPage from './AddSchoolPage';
+import ActivitiesPage from './ActivitiesPage';
+import SchoolActivities from './SchoolActivities';
+import MigrateSchoolsPage from './MigrateSchoolsPage';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -53,8 +48,8 @@ const ProgramConnectedSchoolRoute: React.FC = () => {
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
 
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
 
   useEffect(() => {
@@ -65,13 +60,13 @@ const SidebarPage: React.FC = () => {
     try {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error("No user is logged in.");
+        console.error('No user is logged in.');
         return;
       }
 
       setCurrentUser(user);
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error('Error fetching user data:', error);
     }
   };
 
@@ -79,9 +74,9 @@ const SidebarPage: React.FC = () => {
     <IonPage>
       <div className="sidebarpage-rightSide">
         <Sidebar
-          name={currentUser?.name || ""}
-          email={currentUser?.email || ""}
-          photo={currentUser?.image || ""}
+          name={currentUser?.name || ''}
+          email={currentUser?.email || ''}
+          photo={currentUser?.image || ''}
         />
         <div className="sidebarpage-render">
           <Switch>

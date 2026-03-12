@@ -1,41 +1,45 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import SchoolDetail from "../../components/malta/school/SchoolDetail";
+import type { Meta, StoryObj } from '@storybook/react';
+import SchoolDetail from '../../components/malta/school/SchoolDetail';
 
 const meta = {
-  title: "Component/malta/school/schoolDetail",
+  title: 'Component/malta/school/schoolDetail',
   component: SchoolDetail,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     schoolName: {
-      options: Object.values(""),
-      mapping: Object.values(""),
+      options: Object.values(''),
+      mapping: Object.values(''),
       control: {
-        type: "text",
-        labels: Object.keys(""),
+        type: 'text',
+        labels: Object.keys(''),
       },
     },
     cityName: {
-      options: Object.values(""),
-      mapping: Object.values(""),
+      options: Object.values(''),
+      mapping: Object.values(''),
       control: {
-        type: "text",
-        labels: Object.keys(""),
+        type: 'text',
+        labels: Object.keys(''),
       },
     },
     stateName: {
-        options: Object.values(""),
-        mapping: Object.values(""),
-        control: {
-          type: "text",
-          labels: Object.keys(""),
-        },
+      options: Object.values(''),
+      mapping: Object.values(''),
+      control: {
+        type: 'text',
+        labels: Object.keys(''),
       },
+    },
   },
-  args: {schoolName:'School1', cityName: 'Bengaluru', stateName: 'Karnataka'},
+  args: {
+    schoolName: 'School1',
+    cityName: 'Bengaluru',
+    stateName: 'Karnataka',
+  },
 } satisfies Meta<typeof SchoolDetail>;
 
 export default meta;
@@ -45,6 +49,6 @@ export const schoolDetail: Story = {
   args: {
     schoolName: 'Bharthiya Vidhya Mandir',
     cityName: 'Bengaluru',
-    stateName: 'Karnataka'
+    stateName: 'Karnataka',
   },
 };

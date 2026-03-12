@@ -1,60 +1,60 @@
-import type { RefObject } from "react";
-import { useEffect, useRef, useState } from "react";
-import { compressMediaForUpload } from "./mediaactionscompressor";
+import type { RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { compressMediaForUpload } from './mediaactionscompressor';
 
 export type MediaUploadItem = {
   id: string;
   file: File;
   previewUrl: string;
-  mediaType: "image" | "video" | "file";
+  mediaType: 'image' | 'video' | 'file';
   progress: number;
-  status: "compressing" | "uploading" | "done";
+  status: 'compressing' | 'uploading' | 'done';
   uploadedUrl?: string | null;
 };
 
 const MAX_VIDEO_UPLOAD_MB = 25;
 const MAX_VIDEO_UPLOAD_BYTES = MAX_VIDEO_UPLOAD_MB * 1024 * 1024;
 
-const inferMediaType = (file: File): MediaUploadItem["mediaType"] => {
-  const type = (file.type || "").toLowerCase();
-  if (type.startsWith("image/")) return "image";
-  if (type.startsWith("video/")) return "video";
+const inferMediaType = (file: File): MediaUploadItem['mediaType'] => {
+  const type = (file.type || '').toLowerCase();
+  if (type.startsWith('image/')) return 'image';
+  if (type.startsWith('video/')) return 'video';
 
-  const name = (file.name || "").toLowerCase();
-  const ext = name.includes(".") ? name.split(".").pop() ?? "" : "";
+  const name = (file.name || '').toLowerCase();
+  const ext = name.includes('.') ? (name.split('.').pop() ?? '') : '';
   const imageExts = new Set([
-    "jpg",
-    "jpeg",
-    "png",
-    "webp",
-    "gif",
-    "bmp",
-    "heic",
-    "heif",
-    "avif",
-    "tif",
-    "tiff",
-    "svg",
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'gif',
+    'bmp',
+    'heic',
+    'heif',
+    'avif',
+    'tif',
+    'tiff',
+    'svg',
   ]);
   const videoExts = new Set([
-    "mp4",
-    "mov",
-    "m4v",
-    "webm",
-    "mkv",
-    "avi",
-    "3gp",
-    "3gpp",
-    "3g2",
-    "ogg",
-    "ogv",
+    'mp4',
+    'mov',
+    'm4v',
+    'webm',
+    'mkv',
+    'avi',
+    '3gp',
+    '3gpp',
+    '3g2',
+    'ogg',
+    'ogv',
   ]);
-  if (imageExts.has(ext)) return "image";
-  if (videoExts.has(ext)) return "video";
-  return "file";
+  if (imageExts.has(ext)) return 'image';
+  if (videoExts.has(ext)) return 'video';
+  return 'file';
 };
 
-type CameraUiMode = "desktop" | "mobile";
+type CameraUiMode = 'desktop' | 'mobile';
 
 type UseMediaActionsOptions = {
   t?: (key: string) => string;
@@ -68,7 +68,9 @@ export type UseMediaActionsResult = {
   addMediaFiles: (files: FileList | null) => void;
   removeMedia: (id: string) => void;
   resetMedia: () => void;
-  uploadAllMedia: (uploadFn: (file: File) => Promise<string>) => Promise<string[]>;
+  uploadAllMedia: (
+    uploadFn: (file: File) => Promise<string>,
+  ) => Promise<string[]>;
 
   captureAnyInputRef: RefObject<HTMLInputElement | null>;
   captureImageInputRef: RefObject<HTMLInputElement | null>;
@@ -101,7 +103,7 @@ export type UseMediaActionsResult = {
 const defaultTranslate = (key: string) => key;
 
 export function useMediaActions(
-  options: UseMediaActionsOptions = {}
+  options: UseMediaActionsOptions = {},
 ): UseMediaActionsResult {
   const translate = options.t ?? defaultTranslate;
   const schoolId = options.schoolId;
@@ -122,11 +124,11 @@ export function useMediaActions(
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [cameraUiMode, setCameraUiMode] = useState<CameraUiMode>("desktop");
+  const [cameraUiMode, setCameraUiMode] = useState<CameraUiMode>('desktop');
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState<number | null>(
-    null
-  );
+  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState<
+    number | null
+  >(null);
   const recordingTimerRef = useRef<number | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -147,36 +149,36 @@ export function useMediaActions(
 
   const createShortId = () => {
     const maybeUuid = globalThis.crypto?.randomUUID?.();
-    if (maybeUuid) return maybeUuid.replace(/-/g, "").slice(0, 5);
+    if (maybeUuid) return maybeUuid.replace(/-/g, '').slice(0, 5);
     return Math.random().toString(36).slice(2, 7);
   };
 
   const getFileExtension = (file: File) => {
-    const type = (file.type || "").toLowerCase();
-    if (type === "image/jpeg") return "jpg";
-    if (type === "image/png") return "png";
-    if (type === "image/webp") return "webp";
-    if (type === "image/heic") return "heic";
-    if (type === "image/heif") return "heif";
-    if (type === "image/avif") return "avif";
-    if (type === "image/gif") return "gif";
-    if (type === "video/mp4") return "mp4";
-    if (type === "video/webm") return "webm";
-    if (type === "video/quicktime") return "mov";
-    if (type === "video/x-matroska") return "mkv";
-    if (type === "video/3gpp") return "3gp";
-    if (type === "video/ogg") return "ogv";
+    const type = (file.type || '').toLowerCase();
+    if (type === 'image/jpeg') return 'jpg';
+    if (type === 'image/png') return 'png';
+    if (type === 'image/webp') return 'webp';
+    if (type === 'image/heic') return 'heic';
+    if (type === 'image/heif') return 'heif';
+    if (type === 'image/avif') return 'avif';
+    if (type === 'image/gif') return 'gif';
+    if (type === 'video/mp4') return 'mp4';
+    if (type === 'video/webm') return 'webm';
+    if (type === 'video/quicktime') return 'mov';
+    if (type === 'video/x-matroska') return 'mkv';
+    if (type === 'video/3gpp') return '3gp';
+    if (type === 'video/ogg') return 'ogv';
 
     const fromName =
-      file.name && file.name.includes(".")
-        ? (file.name.split(".").pop() ?? "").toLowerCase()
-        : "";
-    const safeFromName = fromName.replace(/[^a-z0-9]/g, "");
-    return safeFromName || "bin";
+      file.name && file.name.includes('.')
+        ? (file.name.split('.').pop() ?? '').toLowerCase()
+        : '';
+    const safeFromName = fromName.replace(/[^a-z0-9]/g, '');
+    return safeFromName || 'bin';
   };
 
   const renameFileForUpload = (file: File) => {
-    const safeSchoolId = (schoolId || "schoolid").replace(/[^a-z0-9_-]/gi, "-");
+    const safeSchoolId = (schoolId || 'schoolid').replace(/[^a-z0-9_-]/gi, '-');
     const shortId = createShortId();
     const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     const ext = getFileExtension(file);
@@ -234,13 +236,13 @@ export function useMediaActions(
         const idx = prev.findIndex((x) => x.id === id);
         if (idx === -1) return prev;
         const cur = prev[idx];
-        if (cur.status !== "uploading") return prev;
+        if (cur.status !== 'uploading') return prev;
         const nextProgress = Math.min(
           100,
-          cur.progress + 8 + Math.floor(Math.random() * 10)
+          cur.progress + 8 + Math.floor(Math.random() * 10),
         );
-        const nextStatus = nextProgress >= 100 ? "done" : "uploading";
-        completed = nextStatus === "done";
+        const nextStatus = nextProgress >= 100 ? 'done' : 'uploading';
+        completed = nextStatus === 'done';
         const next = [...prev];
         next[idx] = { ...cur, progress: nextProgress, status: nextStatus };
         return next;
@@ -251,7 +253,7 @@ export function useMediaActions(
   };
 
   const setMediaUploadsAndRef = (
-    updater: (prev: MediaUploadItem[]) => MediaUploadItem[]
+    updater: (prev: MediaUploadItem[]) => MediaUploadItem[],
   ) => {
     setMediaUploads((prev) => {
       const next = updater(prev);
@@ -262,12 +264,12 @@ export function useMediaActions(
 
   const addMediaFile = (file: File) => {
     const mediaType = inferMediaType(file);
-    if (mediaType === "video" && file.size > MAX_VIDEO_UPLOAD_BYTES) {
+    if (mediaType === 'video' && file.size > MAX_VIDEO_UPLOAD_BYTES) {
       const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
       setMediaError(
         translate(
-          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`
-        )
+          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`,
+        ),
       );
       return;
     }
@@ -282,7 +284,7 @@ export function useMediaActions(
       previewUrl,
       mediaType,
       progress: 0,
-      status: "compressing",
+      status: 'compressing',
       uploadedUrl: null,
     };
     setMediaUploadsAndRef((prev) => [...prev, item]);
@@ -297,7 +299,7 @@ export function useMediaActions(
         const idx = prev.findIndex((x) => x.id === id);
         if (idx === -1) return prev;
         const cur = prev[idx];
-        if (cur.status !== "compressing") return prev;
+        if (cur.status !== 'compressing') return prev;
         const nextProgress = Math.min(compressionMaxProgress, cur.progress + 1);
         if (nextProgress === cur.progress) return prev;
         const next = [...prev];
@@ -312,16 +314,16 @@ export function useMediaActions(
       try {
         compressed = await compressMediaForUpload(file, {
           signal: abortController.signal,
-          logTag: "media",
+          logTag: 'media',
           onProgress: (p) => {
             const mapped = Math.round(
-              Math.max(0, Math.min(1, p)) * compressionMaxProgress
+              Math.max(0, Math.min(1, p)) * compressionMaxProgress,
             );
             setMediaUploadsAndRef((prev) => {
               const idx = prev.findIndex((x) => x.id === id);
               if (idx === -1) return prev;
               const cur = prev[idx];
-              if (cur.status !== "compressing") return prev;
+              if (cur.status !== 'compressing') return prev;
               if (mapped <= cur.progress) return prev;
               const next = [...prev];
               next[idx] = {
@@ -333,8 +335,8 @@ export function useMediaActions(
           },
         });
       } catch (e) {
-        if ((e as any)?.name === "AbortError") return;
-        console.error("Failed to compress media:", e);
+        if ((e as any)?.name === 'AbortError') return;
+        console.error('Failed to compress media:', e);
       } finally {
         stopCompressionTimer(id);
         compressionAbortRef.current.delete(id);
@@ -346,7 +348,7 @@ export function useMediaActions(
         const idx = prev.findIndex((x) => x.id === id);
         if (idx === -1) return prev;
         const cur = prev[idx];
-        if (cur.status !== "compressing") return prev;
+        if (cur.status !== 'compressing') return prev;
 
         let nextPreviewUrl = cur.previewUrl;
         if (finalFile !== cur.file) {
@@ -365,7 +367,7 @@ export function useMediaActions(
           previewUrl: nextPreviewUrl,
           mediaType: inferMediaType(finalFile),
           progress: 100,
-          status: "done",
+          status: 'done',
           uploadedUrl: null,
         };
         return next;
@@ -403,7 +405,7 @@ export function useMediaActions(
     const recorder = mediaRecorderRef.current;
     if (recorder) {
       try {
-        if (recorder.state !== "inactive") {
+        if (recorder.state !== 'inactive') {
           discardRecordingRef.current = true;
           recorder.stop();
         }
@@ -459,7 +461,7 @@ export function useMediaActions(
   };
 
   const uploadAllMedia = async (
-    uploadFn: (file: File) => Promise<string>
+    uploadFn: (file: File) => Promise<string>,
   ): Promise<string[]> => {
     const pending = Array.from(compressionPromisesRef.current.values());
     if (pending.length > 0) {
@@ -476,10 +478,13 @@ export function useMediaActions(
         continue;
       }
 
-      if (inferMediaType(item.file) === "video" && item.file.size > MAX_VIDEO_UPLOAD_BYTES) {
+      if (
+        inferMediaType(item.file) === 'video' &&
+        item.file.size > MAX_VIDEO_UPLOAD_BYTES
+      ) {
         const sizeMb = (item.file.size / (1024 * 1024)).toFixed(2);
         const msg = translate(
-          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`
+          `Video must be ${MAX_VIDEO_UPLOAD_MB}MB or less. Selected: ${sizeMb}MB.`,
         );
         setMediaError(msg);
         throw new Error(msg);
@@ -493,7 +498,7 @@ export function useMediaActions(
         const next = [...prev];
         next[idx] = {
           ...cur,
-          status: "uploading",
+          status: 'uploading',
           progress: cur.progress,
         };
         return next;
@@ -505,11 +510,11 @@ export function useMediaActions(
           const idx = prev.findIndex((x) => x.id === item.id);
           if (idx === -1) return prev;
           const cur = prev[idx];
-          if (cur.status !== "uploading") return prev;
+          if (cur.status !== 'uploading') return prev;
           const cap = Math.max(95, cur.progress);
           const nextProgress = Math.min(
             cap,
-            cur.progress + 4 + Math.floor(Math.random() * 6)
+            cur.progress + 4 + Math.floor(Math.random() * 6),
           );
           if (nextProgress <= cur.progress) return prev;
           const next = [...prev];
@@ -530,7 +535,7 @@ export function useMediaActions(
           const next = [...prev];
           next[idx] = {
             ...cur,
-            status: "done",
+            status: 'done',
             progress: 100,
             uploadedUrl: url,
           };
@@ -543,7 +548,7 @@ export function useMediaActions(
           if (idx === -1) return prev;
           const cur = prev[idx];
           const next = [...prev];
-          next[idx] = { ...cur, status: "done", progress: 100 };
+          next[idx] = { ...cur, status: 'done', progress: 100 };
           return next;
         });
         throw e;
@@ -555,25 +560,25 @@ export function useMediaActions(
 
   const openCamera = async () => {
     discardRecordingRef.current = false;
-    const ua = (navigator.userAgent ?? "").toLowerCase();
+    const ua = (navigator.userAgent ?? '').toLowerCase();
     const isLikelyMobile =
       /android|iphone|ipad|ipod|mobi/.test(ua) || navigator.maxTouchPoints > 1;
 
     setCameraError(null);
-    setCameraUiMode(isLikelyMobile ? "mobile" : "desktop");
+    setCameraUiMode(isLikelyMobile ? 'mobile' : 'desktop');
     setIsCameraOpen(true);
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraUiMode("mobile");
+      setCameraUiMode('mobile');
       return;
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: { facingMode: { ideal: 'environment' } },
         audio: false,
       });
-      setCameraUiMode("desktop");
+      setCameraUiMode('desktop');
       setCameraStream(stream);
     } catch {
       try {
@@ -581,16 +586,16 @@ export function useMediaActions(
           video: true,
           audio: false,
         });
-        setCameraUiMode("desktop");
+        setCameraUiMode('desktop');
         setCameraStream(stream);
       } catch (err2) {
-        console.error("Failed to access camera:", err2);
+        console.error('Failed to access camera:', err2);
         setCameraError(
           translate(
-            "Camera access was blocked. Please allow permission or upload media."
-          )
+            'Camera access was blocked. Please allow permission or upload media.',
+          ),
         );
-        setCameraUiMode("mobile");
+        setCameraUiMode('mobile');
       }
     }
   };
@@ -616,7 +621,7 @@ export function useMediaActions(
     const height = video.videoHeight || 720;
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) {
       closeCamera();
       captureImageInputRef.current?.click();
@@ -625,7 +630,7 @@ export function useMediaActions(
     ctx.drawImage(video, 0, 0, width, height);
 
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/jpeg", 0.9);
+      canvas.toBlob(resolve, 'image/jpeg', 0.9);
     });
     if (!blob) {
       closeCamera();
@@ -633,7 +638,7 @@ export function useMediaActions(
       return;
     }
 
-    const safeTs = new Date().toISOString().replace(/[:.]/g, "-");
+    const safeTs = new Date().toISOString().replace(/[:.]/g, '-');
     const file = new File([blob], `capture-${safeTs}.jpg`, { type: blob.type });
     addMediaFile(file);
     closeCamera();
@@ -654,14 +659,14 @@ export function useMediaActions(
     }
 
     const preferredTypes = [
-      "video/webm;codecs=vp9",
-      "video/webm;codecs=vp8",
-      "video/webm",
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
     ];
     const supportedType =
       preferredTypes.find((mt) =>
-        (window as any).MediaRecorder?.isTypeSupported?.(mt)
-      ) ?? "";
+        (window as any).MediaRecorder?.isTypeSupported?.(mt),
+      ) ?? '';
 
     try {
       recordedChunksRef.current = [];
@@ -674,20 +679,20 @@ export function useMediaActions(
       (recordingOptions as any).videoBitsPerSecond = 1_600_000;
       const recorder = new MediaRecorder(
         cameraStream,
-        Object.keys(recordingOptions).length > 0 ? recordingOptions : undefined
+        Object.keys(recordingOptions).length > 0 ? recordingOptions : undefined,
       );
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
         const blob = new Blob(recordedChunksRef.current, {
-          type: recorder.mimeType || "video/webm",
+          type: recorder.mimeType || 'video/webm',
         });
         recordedChunksRef.current = [];
         const shouldDiscard = discardRecordingRef.current;
         discardRecordingRef.current = false;
         if (!shouldDiscard && blob.size > 0) {
-          const safeTs = new Date().toISOString().replace(/[:.]/g, "-");
+          const safeTs = new Date().toISOString().replace(/[:.]/g, '-');
           const file = new File([blob], `capture-${safeTs}.webm`, {
             type: blob.type,
           });
@@ -727,7 +732,7 @@ export function useMediaActions(
         }
       }, 1000);
     } catch (e) {
-      console.error("Failed to start recording:", e);
+      console.error('Failed to start recording:', e);
       closeCamera();
       captureVideoInputRef.current?.click();
     }
@@ -736,7 +741,7 @@ export function useMediaActions(
   const stopRecording = () => {
     const recorder = mediaRecorderRef.current;
     if (!recorder) return;
-    if (recorder.state === "inactive") return;
+    if (recorder.state === 'inactive') return;
     try {
       stopRecordingTimer();
       try {
@@ -746,7 +751,7 @@ export function useMediaActions(
       }
       recorder.stop();
     } catch (e) {
-      console.error("Failed to stop recording:", e);
+      console.error('Failed to stop recording:', e);
       setIsRecording(false);
     }
   };
@@ -842,7 +847,7 @@ export function useMediaActions(
       stopRecordingTimer({ updateState: false });
       if (mediaRecorderRef.current) {
         try {
-          if (mediaRecorderRef.current.state !== "inactive") {
+          if (mediaRecorderRef.current.state !== 'inactive') {
             discardRecordingRef.current = true;
             mediaRecorderRef.current.stop();
           }

@@ -1,13 +1,13 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import TeacherAssignment from "../../components/homePage/assignment/TeacherAssignment";
+import type { Meta, StoryObj } from '@storybook/react';
+import TeacherAssignment from '../../components/homePage/assignment/TeacherAssignment';
 const meta: Meta = {
-  title: "teachers-module/components/homePage/assignment/TeacherAssignment",
+  title: 'teachers-module/components/homePage/assignment/TeacherAssignment',
   component: TeacherAssignment,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 } satisfies Meta<typeof TeacherAssignment>;
 
@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 export const Default = () => (
   <TeacherAssignment
     onLibraryClick={function (): void {
-      throw new Error("Function not implemented.");
+      throw new Error('Function not implemented.');
     }}
   />
 );

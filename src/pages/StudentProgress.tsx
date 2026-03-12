@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { IonCol, IonRow } from "@ionic/react";
-import "../components/studentProgress/CustomAppBar.css";
-import "./StudentProgress.css";
-import { PAGES, TableTypes } from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { useHistory } from "react-router-dom";
-import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import { t } from "i18next";
-import { Util } from "../utility/util";
-import SkeltonLoading from "../components/SkeltonLoading";
+import React, { useEffect, useState } from 'react';
+import { IonCol, IonRow } from '@ionic/react';
+import '../components/studentProgress/CustomAppBar.css';
+import './StudentProgress.css';
+import { PAGES, TableTypes } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory } from 'react-router-dom';
+import CustomAppBar from '../components/studentProgress/CustomAppBar';
+import { t } from 'i18next';
+import { Util } from '../utility/util';
+import SkeltonLoading from '../components/SkeltonLoading';
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,12 +17,12 @@ const StudentProgress: React.FC = () => {
     useState<HeaderIconConfig[]>([]);
   const [headerContent, setHeaderContent] = useState<string[]>([]);
   const [dataContent, setDataContent] = useState<string[][]>([]);
-  const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
-  const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
+  const [currentStudent, setCurrentStudent] = useState<TableTypes<'user'>>();
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>([]);
   const [lessonsResults, setLessonsResults] = useState<
     Record<
       string,
-      (TableTypes<"result"> & {
+      (TableTypes<'result'> & {
         lesson_name?: string;
         chapter_name?: string;
       })[]
@@ -42,7 +42,7 @@ const StudentProgress: React.FC = () => {
     displayName: React.ReactNode;
     iconSrc: string;
     header: string | null;
-    course: TableTypes<"course">;
+    course: TableTypes<'course'>;
   }
   const handleBackButton = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
@@ -51,7 +51,7 @@ const StudentProgress: React.FC = () => {
   async function init() {
     const currentStudent = await Util.getCurrentStudent();
     if (currentStudent) {
-      setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
+      setHeaderContent(['Lesson Name', 'Chapter Name', 'Score', 'Time Spent']);
       setCurrentStudent(currentStudent);
       const courses = await getCourses(currentStudent);
       setCourses(courses);
@@ -61,7 +61,7 @@ const StudentProgress: React.FC = () => {
           courses.map(async (course) => {
             const gradeDoc = await api.getGradeById(course.grade_id!);
             const curriculumDoc = await api.getCurriculumById(
-              course.curriculum_id!
+              course.curriculum_id!,
             );
             return {
               courseId: course.id,
@@ -78,11 +78,11 @@ const StudentProgress: React.FC = () => {
                   )}
                 </div>
               ),
-              iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
+              iconSrc: course.image ?? 'assets/icons/EnglishIcon.svg',
               header: course.code,
               course: course,
             };
-          })
+          }),
         );
 
         setStudentProgressHeaderIconList(updatedHeaderIconList);
@@ -103,8 +103,8 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getCourses(
-    currentStudent: TableTypes<"user">
-  ): Promise<TableTypes<"course">[]> {
+    currentStudent: TableTypes<'user'>,
+  ): Promise<TableTypes<'course'>[]> {
     const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
     // Declare currClass with the correct type
     let currClass: {
@@ -150,7 +150,7 @@ const StudentProgress: React.FC = () => {
         )}
         {!isLoading && dataContent.length === 0 ? (
           <p id="student-progress-display-progress-no-data-message">
-            {t("No Data ")}
+            {t('No Data ')}
           </p>
         ) : null}
         {!isLoading && dataContent.length > 0 && (
@@ -176,11 +176,11 @@ const StudentProgress: React.FC = () => {
     selectedCourseId: string,
     lessonsResults: Record<
       string,
-      (TableTypes<"result"> & {
+      (TableTypes<'result'> & {
         lesson_name?: string;
         chapter_name?: string;
       })[]
-    >
+    >,
   ) {
     setIsLoading(true);
     let isDataAvailable: boolean = false;
@@ -194,8 +194,8 @@ const StudentProgress: React.FC = () => {
           const computeMinutes = Math.floor(timeSpent / 60);
           const computeSeconds = timeSpent % 60;
           tempDataContent.push([
-            result.lesson_name ?? "",
-            result.chapter_name ?? "",
+            result.lesson_name ?? '',
+            result.chapter_name ?? '',
             Math.floor(result.score ?? 0).toString(),
             `${computeMinutes}:${computeSeconds}`,
           ]);
@@ -210,18 +210,18 @@ const StudentProgress: React.FC = () => {
   const handleChange = (newValue: string) => {
     setTabIndex(newValue);
     const selectedHeader = studentProgressHeaderIconList.find(
-      (iconConfig) => iconConfig.courseId === newValue
+      (iconConfig) => iconConfig.courseId === newValue,
     );
 
     if (selectedHeader && lessonsResults) {
       setCurrentHeader(selectedHeader.header);
       getResultsForStudentForSelectedHeader(
         selectedHeader.courseId,
-        lessonsResults
+        lessonsResults,
       );
     }
   };
-  const [tabIndex, setTabIndex] = useState<string>("");
+  const [tabIndex, setTabIndex] = useState<string>('');
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {

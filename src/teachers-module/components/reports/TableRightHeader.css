@@ -1,18 +1,18 @@
 .tableRightHeader {
   position: relative;
   text-align: center;
-  height: 120px; 
+  height: 120px;
   overflow: hidden;
 }
- 
+
 .tableRightHeaderText {
-  color: #4A4949;
+  color: #4a4949;
   font-weight: 400;
   writing-mode: vertical-rl;
   width: fit-content;
   height: 80%;
-  margin: 0 auto;                 
-  
+  margin: 0 auto;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -21,7 +21,8 @@
   font-style: normal;
 }
 
-.aboveText, .belowText {
+.aboveText,
+.belowText {
   transform: rotate(180deg);
   font-size: 10px;
   position: absolute;

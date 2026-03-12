@@ -1,5 +1,5 @@
-import { FC, useState, useEffect } from "react";
-import "./SelectIconImage.css";
+import { FC, useState, useEffect } from 'react';
+import './SelectIconImage.css';
 
 const SelectIconImage: FC<{
   localSrc?: string;
@@ -13,12 +13,12 @@ const SelectIconImage: FC<{
   localSrc,
   defaultSrc,
   webSrc,
-  imageWidth = "100%",
-  imageHeight = "100%",
-  webImageWidth = "100%",
-  webImageHeight = "100%",
+  imageWidth = '100%',
+  imageHeight = '100%',
+  webImageWidth = '100%',
+  webImageHeight = '100%',
 }) => {
-  const [activeSrc, setActiveSrc] = useState<string>("");
+  const [activeSrc, setActiveSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -56,11 +56,11 @@ const SelectIconImage: FC<{
           localLoaded && localSrc
             ? localSrc
             : webLoaded && webSrc
-            ? webSrc
-            : defaultSrc
+              ? webSrc
+              : defaultSrc,
         );
       } catch (error) {
-        console.error("Image loading failed:", error);
+        console.error('Image loading failed:', error);
         setActiveSrc(defaultSrc);
       } finally {
         setIsLoading(false);
@@ -72,18 +72,18 @@ const SelectIconImage: FC<{
 
   return (
     <div
-      style={{ position: "relative", width: imageWidth, height: imageHeight }}
+      style={{ position: 'relative', width: imageWidth, height: imageHeight }}
     >
       {isLoading && <div className="placeholder" />}
       {activeSrc && (
         <img
           src={activeSrc}
           alt=""
-          className={`select-icon-image ${!isLoading ? "imageLoaded" : ""}`}
+          className={`select-icon-image ${!isLoading ? 'imageLoaded' : ''}`}
           style={{
             width: imageWidth,
             height: imageHeight,
-            objectFit: "contain",
+            objectFit: 'contain',
           }}
           onLoad={() => setIsLoading(false)}
         />

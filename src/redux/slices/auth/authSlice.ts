@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TableTypes } from "../../../common/constants";
-import { RoleType } from "../../../interface/modelInterfaces";
-import { createTransform } from "redux-persist";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { TableTypes } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { createTransform } from 'redux-persist';
 
 export interface AuthErrors {
   phone: string | null;
@@ -13,7 +13,7 @@ export interface AuthErrors {
 
 export interface AuthState {
   authUser: any | null; // Supabase auth user
-  user: TableTypes<"user"> | null; // App DB user
+  user: TableTypes<'user'> | null; // App DB user
   refreshToken: string | null;
   isOpsUser: boolean;
   roles: string[];
@@ -40,7 +40,7 @@ const initialState: AuthState = {
 };
 
 export const authSlice = createSlice({
-  name: "auth",
+  name: 'auth',
   initialState,
   reducers: {
     setAuthLoading: (state, action: PayloadAction<boolean>) => {
@@ -64,7 +64,7 @@ export const authSlice = createSlice({
       state.authUser = action.payload;
     },
 
-    setUser: (state, action: PayloadAction<TableTypes<"user"> | null>) => {
+    setUser: (state, action: PayloadAction<TableTypes<'user'> | null>) => {
       state.user = action.payload;
     },
 
@@ -114,7 +114,7 @@ export const authTransform = createTransform(
     },
     loading: false,
   }),
-  { whitelist: ["auth"] },
+  { whitelist: ['auth'] },
 );
 
 export const {

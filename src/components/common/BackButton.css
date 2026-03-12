@@ -1,16 +1,15 @@
 #common-back-button {
-    width: clamp(30px,12vh,44px);
-    height: clamp(30px,12vh,44px);
-    
-    color: black;
-    
-    background-color: white;
-    border-radius: 100%;
-       
+  width: clamp(30px, 12vh, 44px);
+  height: clamp(30px, 12vh, 44px);
+
+  color: black;
+
+  background-color: white;
+  border-radius: 100%;
 }
 .back-button {
-    width: clamp(30px,15vh,50px);
-    height: clamp(30px,15vh,50px); 
-    color: var(--text-color);
-    cursor: pointer;
-  }
+  width: clamp(30px, 15vh, 50px);
+  height: clamp(30px, 15vh, 50px);
+  color: var(--text-color);
+  cursor: pointer;
+}

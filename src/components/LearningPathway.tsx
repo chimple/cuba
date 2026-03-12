@@ -1,21 +1,24 @@
-import { useEffect, useState } from "react";
-import { Util } from "../utility/util";
-import ChapterLessonBox from "./learningPathway/chapterLessonBox";
-import PathwayStructure from "./learningPathway/PathwayStructure";
-import "./LearningPathway.css";
-import DropdownMenu from "./Home/DropdownMenu";
-import Loading from "./Loading";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { schoolUtil } from "../utility/schoolUtil";
+import { useEffect, useState } from 'react';
+import { Util } from '../utility/util';
+import ChapterLessonBox from './learningPathway/chapterLessonBox';
+import PathwayStructure from './learningPathway/PathwayStructure';
+import './LearningPathway.css';
+import DropdownMenu from './Home/DropdownMenu';
+import Loading from './Loading';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { schoolUtil } from '../utility/schoolUtil';
 import {
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
-} from "../common/constants";
-import { useGrowthBook } from "@growthbook/growthbook-react";
-import { sortCoursesByStudentLanguage, useLearningPath } from "../hooks/useLearningPath";
+} from '../common/constants';
+import { useGrowthBook } from '@growthbook/growthbook-react';
+import {
+  sortCoursesByStudentLanguage,
+  useLearningPath,
+} from '../hooks/useLearningPath';
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -24,9 +27,7 @@ const LearningPathway: React.FC = () => {
   const gb = useGrowthBook();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [mode, setMode] = useState<string>(
-    LEARNING_PATHWAY_MODE.DISABLED,
-  );
+  const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
   const [isModeResolved, setIsModeResolved] = useState(false);
 
   let student = Util.getCurrentStudent();
@@ -47,7 +48,7 @@ const LearningPathway: React.FC = () => {
       school_ids: [currentClass?.school_id],
     });
     const resolvedMode = gb.getFeatureValue(
-      "learning-pathway-mode",
+      'learning-pathway-mode',
       LEARNING_PATHWAY_MODE.DISABLED,
     ) as string;
     setMode(resolvedMode);
@@ -78,7 +79,10 @@ const LearningPathway: React.FC = () => {
           ? await api.getCoursesForClassStudent(currClass.id)
           : await api.getCoursesForPathway(student.id);
 
-        const sortedCourses = await sortCoursesByStudentLanguage(courses, student.language_id);
+        const sortedCourses = await sortCoursesByStudentLanguage(
+          courses,
+          student.language_id,
+        );
         const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
         const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
         updateStarCount(student);
@@ -88,7 +92,7 @@ const LearningPathway: React.FC = () => {
           classId: currClass?.id,
         });
       } catch (e) {
-        console.error("Error in init() learningPathway", e);
+        console.error('Error in init() learningPathway', e);
       } finally {
         setLoading(false);
       }
@@ -97,16 +101,16 @@ const LearningPathway: React.FC = () => {
     init();
   }, [student?.id, isModeResolved, mode]);
 
-  const updateStarCount = async (currentStudent: TableTypes<"user">) => {
+  const updateStarCount = async (currentStudent: TableTypes<'user'>) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
     const localStorageStars = parseInt(
-      storedStarsMap[currentStudent.id] || "0",
+      storedStarsMap[currentStudent.id] || '0',
       10,
     );
 
     const latestLocalStars = parseInt(
-      localStorage.getItem(LATEST_STARS(currentStudent.id)) || "0",
+      localStorage.getItem(LATEST_STARS(currentStudent.id)) || '0',
       10,
     );
     const dbStars = currentStudent.stars || 0;
@@ -123,16 +127,13 @@ const LearningPathway: React.FC = () => {
     }
 
     if (latestLocalStars <= dbStars) {
-      localStorage.setItem(
-        LATEST_STARS(currentStudent.id),
-        dbStars.toString(),
-      );
+      localStorage.setItem(LATEST_STARS(currentStudent.id), dbStars.toString());
     } else {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
   };
 
-  if (loading)  return <Loading isLoading={true} />;
+  if (loading) return <Loading isLoading={true} />;
 
   return (
     <div className="learning-pathway-container">
@@ -144,7 +145,7 @@ const LearningPathway: React.FC = () => {
       <div className="chapter-egg-container">
         <ChapterLessonBox
           containerStyle={{
-            width: "35vw",
+            width: '35vw',
           }}
         />
       </div>

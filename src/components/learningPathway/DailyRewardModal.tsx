@@ -1,8 +1,8 @@
-import { useRef } from "react";
-import "./DailyRewardModal.css";
-import { t } from "i18next";
-import RewardRive from "./RewardRive";
-import { RewardBoxState } from "../../common/constants";
+import { useRef } from 'react';
+import './DailyRewardModal.css';
+import { t } from 'i18next';
+import RewardRive from './RewardRive';
+import { RewardBoxState } from '../../common/constants';
 
 interface RewardModalProps {
   text: string;
@@ -15,20 +15,22 @@ const DailyRewardModal: React.FC<RewardModalProps> = ({
   onClose,
   onPlay,
 }) => {
-
   const ref = useRef<HTMLDivElement>(null);
 
   // Close modal when clicking on overlay (outside modal content)
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && (e.target as HTMLElement).classList.contains('RewardModal-overlay')) {
+    if (
+      e.target === e.currentTarget &&
+      (e.target as HTMLElement).classList.contains('RewardModal-overlay')
+    ) {
       e.stopPropagation();
       onClose();
     }
   };
-  
+
   return (
     <div className="RewardModal-overlay" onClick={handleOverlayClick}>
-      <div className="RewardModal-content" ref={ref} >
+      <div className="RewardModal-content" ref={ref}>
         <button className="RewardModal-close" onClick={onClose}>
           <img src="pathwayAssets/menuCross.svg" alt="close-icon" />
         </button>
