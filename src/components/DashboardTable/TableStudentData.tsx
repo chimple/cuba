@@ -1,10 +1,10 @@
 import React from 'react';
 import "./TableStudentData.css"
 interface TableStudentDataProps {
-    studentData
+    studentData: Record<string, number | null>;
 }
 
-function getColor(score) {
+function getColor(score: number | null) {
     if (score == null) {
         return 'white'
     }

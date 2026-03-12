@@ -15,6 +15,19 @@ interface BadgeInfo {
   isNextUnlock?: boolean;
   isUpcomingBadge?: boolean;
 }
+type RewardEntry = {
+  id: string;
+  type: string;
+};
+
+type WeeklyRewards = Record<string, RewardEntry[]>;
+
+const toWeeklyRewards = (weekly: TableTypes<"reward">["weekly"]): WeeklyRewards => {
+  if (weekly && typeof weekly === "object" && !Array.isArray(weekly)) {
+    return weekly as WeeklyRewards;
+  }
+  return {};
+};
 
 const LeaderboardBadges: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
@@ -99,9 +112,9 @@ const LeaderboardBadges: FC = () => {
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const badgeIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
     if (weeklyData[nextWeek.toString()]) {
-      weeklyData[nextWeek.toString()].forEach((value) => {
+      weeklyData[nextWeek.toString()].forEach((value: RewardEntry) => {
         if (value.type === LeaderboardRewardsType.BADGE) {
           badgeIds.push(value.id);
         }
@@ -118,7 +131,7 @@ const LeaderboardBadges: FC = () => {
     const matchingDocIds: string[] = [];
     const date = new Date();
     const currentWeek = Util.getCurrentWeekNumber();
-    const rewardsDoc: any = await api.getRewardsById(
+    const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
       "weekly"
     );
@@ -128,10 +141,11 @@ const LeaderboardBadges: FC = () => {
       return [];
     }
 
-    for (const key in rewardsDoc.weekly) {
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
+    for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
-        rewardsDoc.weekly[key].forEach((item) => {
+        weeklyData[key].forEach((item: RewardEntry) => {
           if (item.type === LeaderboardRewardsType.BADGE) {
             matchingDocIds.push(item.id);
           }
@@ -188,12 +202,12 @@ const LeaderboardBadges: FC = () => {
     }
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
 
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: RewardEntry) => {
           if (item.type === LeaderboardRewardsType.BADGE) {
             badgeIds.push(item.id);
           }
@@ -216,9 +230,9 @@ const LeaderboardBadges: FC = () => {
 
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
-    const weeklyData = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
     if (weeklyData[currentWeek.toString()]) {
-      weeklyData[currentWeek.toString()].forEach((value) => {
+      weeklyData[currentWeek.toString()].forEach((value: RewardEntry) => {
         if (value.type === LeaderboardRewardsType.BADGE) {
           badgeIds.push(value.id);
         }

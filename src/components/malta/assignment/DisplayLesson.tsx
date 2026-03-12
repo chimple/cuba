@@ -10,7 +10,7 @@ import { TableTypes } from "../../../common/constants";
 
 const DisplayLesson: FC<{
   lessons: TableTypes<"lesson">[];
-  onLessonSelect;
+  onLessonSelect: (lesson: { lesson: TableTypes<"lesson">; selected: boolean }) => void;
   currentChapterId: string | undefined;
 }> = ({ lessons, onLessonSelect, currentChapterId }) => {
   let currentChapterRef = useRef<any>(null);

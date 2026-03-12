@@ -11,9 +11,9 @@ import { TableTypes } from "../../../common/constants";
 const QuizTab: FC<{
   liveQuizLessons: TableTypes<"lesson">[];
   courses: TableTypes<"course">[];
-  onCourseChange;
-  onChapterChange;
-  onLessonSelect;
+  onCourseChange: (courseId: string) => void;
+  onChapterChange: (chapterId: string) => void;
+  onLessonSelect: (lesson: TableTypes<"lesson">) => void;
 }> = ({
   liveQuizLessons,
   courses,

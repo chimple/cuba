@@ -50,10 +50,22 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
           updatedClass.group_id,
           bot,
         );
-        setGroupName(group.name);
-        setEditedGroupName(group.name);
-        setMembers(group.members.length);
-        setInviteLink(group.inviteLink);
+        const parsedGroup =
+          typeof group === "object" && group !== null && !Array.isArray(group)
+            ? (group as {
+                name?: string;
+                members?: string[];
+                inviteLink?: string;
+              })
+            : null;
+        const parsedMembers = Array.isArray(parsedGroup?.members)
+          ? (parsedGroup?.members ?? [])
+          : [];
+
+        setGroupName(parsedGroup?.name ?? null);
+        setEditedGroupName(parsedGroup?.name ?? "");
+        setMembers(parsedMembers.length);
+        setInviteLink(parsedGroup?.inviteLink ?? null);
       } catch (err) {
         console.error("Failed to fetch data:", err);
       }

@@ -8,20 +8,21 @@ import DashBoardStudentProgres from "../components/homePage/DashBoardStudentProg
 import { Util } from "../../utility/util";
 
 interface DashBoardDetailsProps {}
+type DashBoardDetailsState = {
+  bandcolor?: string;
+  studentProgress?: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[];
+  studentLength?: string;
+};
 const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const history = useHistory();
-  const bandcolor: string = history.location.state!["bandcolor"] as string;
+  const state = (history.location.state ?? {}) as DashBoardDetailsState;
+  const bandcolor: string = state.bandcolor ?? "";
   const studentsProgress: Map<
     string,
     TableTypes<"user"> | TableTypes<"result">[]
-  >[] = history.location.state!["studentProgress"] as Map<
-    string,
-    TableTypes<"user"> | TableTypes<"result">[]
-  >[];
-  const studentLength: string = history.location.state![
-    "studentLength"
-  ] as string;
+  >[] = state.studentProgress ?? [];
+  const studentLength: string = state.studentLength ?? "";
   
   const currentSchool = Util.getCurrentSchool();
 

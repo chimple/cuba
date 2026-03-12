@@ -26,17 +26,13 @@ const AddSchoolUser: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { school, role } = (location.state as SchoolWithRole) || {};
   const api = ServiceConfig.getI()?.apiHandler;
-  let currentRole;
-  if (location) {
-    const path = location.pathname;
-
-    currentRole =
-      path === PAGES.ADD_PRINCIPAL
-        ? RoleType.PRINCIPAL
-        : path === PAGES.ADD_COORDINATOR
-          ? RoleType.COORDINATOR
-          : RoleType.SPONSOR;
-  }
+  const path = location.pathname;
+  const currentRole: RoleType =
+    path === PAGES.ADD_PRINCIPAL
+      ? RoleType.PRINCIPAL
+      : path === PAGES.ADD_COORDINATOR
+        ? RoleType.COORDINATOR
+        : RoleType.SPONSOR;
 
   const tempTabName =
     currentRole === RoleType.PRINCIPAL

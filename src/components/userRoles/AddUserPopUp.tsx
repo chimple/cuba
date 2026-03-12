@@ -7,7 +7,7 @@ import './AddUserPopUp.css'
 import { IoCloseCircle } from 'react-icons/io5';
 interface AddUserPopUpProps {
     showDialogBox: boolean;
-    handleClose
+    handleClose: () => void;
 }
 
 const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose }) => {

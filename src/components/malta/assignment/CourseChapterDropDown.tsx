@@ -6,10 +6,12 @@ import { TableTypes } from "../../../common/constants";
 const CourseChapterDropDown: React.FC<{
   courses: TableTypes<"course">[];
   currentCourse: TableTypes<"course">;
-  onCourseChange;
+  onCourseChange: (course: TableTypes<"course">) => void;
   chapters: TableTypes<"chapter">[];
   currentChapter: TableTypes<"chapter">;
-  onChapterChange;
+  onChapterChange: (
+    chapter: TableTypes<"chapter"> | TableTypes<"course">
+  ) => void;
 }> = ({
   courses,
   currentCourse,

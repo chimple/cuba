@@ -26,7 +26,7 @@ jest.mock("../i18n", () => ({
 
 jest.mock("../components/Loading", () => ({
   __esModule: true,
-  default: (props) => {
+  default: (props: { isLoading: boolean }) => {
     const R = require("react");
     return props.isLoading
       ? R.createElement("div", { "data-testid": "loading" }, "loading")
@@ -36,7 +36,7 @@ jest.mock("../components/Loading", () => ({
 
 jest.mock("../components/common/NextButton", () => ({
   __esModule: true,
-  default: (props) => {
+  default: (props: { onClicked: () => void; disabled?: boolean }) => {
     const R = require("react");
     return R.createElement(
       "button",
@@ -48,9 +48,13 @@ jest.mock("../components/common/NextButton", () => ({
 
 jest.mock("../components/DropDown", () => ({
   __esModule: true,
-  default: (props) => {
+  default: (props: {
+    optionList?: { id: string; displayName: string }[];
+    currentValue?: string | null;
+    onValueChange: (value: string | null) => void;
+  }) => {
     const R = require("react");
-    var options = (props.optionList || []).map(function (opt) {
+    var options = (props.optionList || []).map(function (opt: { id: string; displayName: string }) {
       return R.createElement("option", { key: opt.id, value: opt.id }, opt.displayName);
     });
     return R.createElement(
@@ -58,7 +62,7 @@ jest.mock("../components/DropDown", () => ({
       {
         "data-testid": "dropdown",
         value: props.currentValue || "",
-        onChange: function (e) { props.onValueChange(e.target.value || null); },
+        onChange: function (e: React.ChangeEvent<HTMLSelectElement>) { props.onValueChange(e.target.value || null); },
       },
       R.createElement("option", { value: "" }, "None"),
       ...options
@@ -75,7 +79,7 @@ describe("AppLangSelection", function () {
     jest.clearAllMocks();
     localStorage.clear();
     // Re-setup i18n mocks (resetMocks: true in craco config clears implementations)
-    i18n.t.mockImplementation(function (str) { return str; });
+    i18n.t.mockImplementation(function (str: string) { return str; });
     i18n.changeLanguage.mockResolvedValue(undefined);
   });
 

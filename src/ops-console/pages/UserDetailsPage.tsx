@@ -92,7 +92,7 @@ const UserDetailsPage: React.FC = () => {
         PROFILETYPE.USER
       );
       if (imageUrl) {
-        setUser((prev) => ({ ...prev, image: imageUrl }));
+        setUser({ ...user, image: imageUrl });
       }
     }
 

@@ -8,7 +8,7 @@ import { AppBar, Box } from '@mui/material';
 
 interface ClassTabsProps {
     userType: USERTYPES;
-    onChange: (event, newValu) => void;
+    onChange: (event: React.SyntheticEvent, newValu: USERTYPES) => void;
 }
 
 const ClassTabs: React.FC<ClassTabsProps> = ({ userType: value, onChange }) => {

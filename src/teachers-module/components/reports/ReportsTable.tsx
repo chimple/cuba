@@ -25,13 +25,37 @@ import { useHistory } from "react-router";
 import ImageDropdown from "../imageDropdown";
 
 interface ReportTableProps {
-  handleButtonClick;
-  startDateProp;
-  endDateProp;
-  selectedTypeProp;
-  isAssignmentsProp;
-  sortTypeProp;
+  handleButtonClick?: (isOpen: boolean) => void;
+  startDateProp?: Date;
+  endDateProp?: Date;
+  selectedTypeProp?: TABLEDROPDOWN;
+  isAssignmentsProp?: boolean;
+  sortTypeProp?: TABLESORTBY;
 }
+
+type SubjectSelection =
+  | TableTypes<"course">
+  | {
+      id: string;
+      name: string;
+      icon?: string;
+      subjectDetail?: string;
+      code?: string;
+      disabled?: boolean;
+    };
+
+type DropdownOption = {
+  id: string | number;
+  name: string;
+  icon?: string;
+  subjectDetail?: string;
+};
+
+type DateRangeValue = {
+  startDate: Date;
+  endDate: Date;
+  isStudentProfilePage?: boolean;
+};
 
 type AssignmentHeader = {
   headerName: string;
@@ -50,9 +74,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
   isAssignmentsProp,
   sortTypeProp,
 }) => {
-  const [expandedRow, setExpandedRow] = useState(null);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] =
-    useState<TableTypes<"course">>();
+    useState<SubjectSelection>();
   const [selectedChapter, setSelectedChapter] =
     useState<TableTypes<"chapter">>();
   const [selectedType, setSelectedType] = useState<TABLEDROPDOWN>(
@@ -88,7 +112,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
   >([]);
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
     startDate:
       startDateProp ??
       (selectedType == TABLEDROPDOWN.MONTHLY
@@ -267,15 +291,26 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setIsLoading(false);
   };
 
-  const handleSelectSubject = async (subject) => {
+  const handleSelectSubject = (subject: DropdownOption) => {
     var current_class = Util.getCurrentClass();
     if (subject) {
-      setSelectedSubject(subject);
-      Util.setCurrentCourse(current_class?.id, subject);
+      const selectedCourse =
+        subjects?.find((item) => item.id === String(subject.id)) ?? undefined;
+      setSelectedSubject(
+        selectedCourse ?? {
+          ...subject,
+          id: String(subject.id),
+        },
+      );
+      if (selectedCourse) {
+        Util.setCurrentCourse(current_class?.id, selectedCourse);
+      }
     }
   };
-  const handleSelectChapter = async (chapter) => {
-    if (chapter) setSelectedChapter(chapter);
+  const handleSelectChapter = (chapter: { id: string | number; name: string }) => {
+    if (!chapter) return;
+    const selected = chapters?.find((item) => item.id === String(chapter.id));
+    if (selected) setSelectedChapter(selected);
   };
   const handleViewClickDetails = (student: TableTypes<"user">) => {
     history.replace(PAGES.STUDENT_REPORT, {
@@ -288,31 +323,37 @@ const ReportTable: React.FC<ReportTableProps> = ({
     });
   };
 
-  const handleTypeSelect = async (type) => {
+  const handleTypeSelect = (type: { id: string | number; name: string }) => {
     if (type) {
       if (type.name === TABLEDROPDOWN.CHAPTER) {
-        const _chapters = await api.getChaptersForCourse(
-          selectedSubject?.id ?? ""
-        );
-        setChapters(_chapters);
-        setSelectedChapter(_chapters[0]);
+        api.getChaptersForCourse(selectedSubject?.id ?? "").then((_chapters) => {
+          setChapters(_chapters);
+          setSelectedChapter(_chapters[0]);
+        });
       }
-      setSelectedType(type.name);
+      setSelectedType(type.name as TABLEDROPDOWN);
     }
   };
 
-  const handleNameSort = async (type) => {
+  const handleNameSort = (type: { id: string; name: TABLESORTBY }) => {
     if (type) {
       setSortType(type.name);
     }
   };
-  const handleIsAssignmets = (_isAssignments) => {
+  const handleIsAssignmets = (_isAssignments: boolean) => {
     setIsAssignments(_isAssignments);
   };
-  const handleDateSelect = (dateRange) => {
-    setDateRange(dateRange);
+  const handleDateSelect = (dateRange: {
+    startDate: Date;
+    endDate: Date;
+  }) => {
+    setDateRange((prev) => ({
+      ...prev,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    }));
   };
-  const handleRowClick = (key) => {
+  const handleRowClick = (key: string) => {
     if (expandedRow === key) {
       setExpandedRow(null);
     } else {
@@ -521,7 +562,10 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       "If you would like to assign assignments, please go to the"
                     )}{" "}
                   </div>
-                  <div onClick={handleButtonClick} className="library-button">
+                  <div
+                    onClick={() => handleButtonClick?.(true)}
+                    className="library-button"
+                  >
                     {t("Library")}
                   </div>
                 </div>

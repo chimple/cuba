@@ -3,7 +3,12 @@ import { createElement, Fragment, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import "./Autocomplete.css";
 
-export function Autocomplete(props) {
+type AutocompleteProps = Omit<
+  Parameters<typeof autocomplete>[0],
+  "container" | "renderer" | "render"
+>;
+
+export function Autocomplete(props: AutocompleteProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const panelRootRef = useRef<any>(null);
   const rootRef = useRef<any>(null);

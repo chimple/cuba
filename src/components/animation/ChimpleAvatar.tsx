@@ -36,7 +36,7 @@ export enum CourseNames {
 const ChimpleAvatar: FC<{
   recommadedSuggestion: TableTypes<"lesson">[];
   assignments: TableTypes<"assignment">[];
-  style;
+  style: React.CSSProperties;
   isUnlocked?: boolean;
 }> = ({ recommadedSuggestion, assignments, style }) => {
   let avatarObj = AvatarObj.getInstance();
@@ -209,10 +209,10 @@ const ChimpleAvatar: FC<{
       return;
     }
   }
-  let cCourse: TableTypes<"course">,
-    cChapter: TableTypes<"chapter">,
+  let cCourse: TableTypes<"course"> | undefined,
+    cChapter: TableTypes<"chapter"> | undefined,
     cLesson: TableTypes<"lesson"> | undefined,
-    cAllCourses: TableTypes<"course">[];
+    cAllCourses: TableTypes<"course">[] | undefined;
   const handleButtonClick = async (choice: boolean, option = "") => {
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
@@ -286,10 +286,13 @@ const ChimpleAvatar: FC<{
             if (choice) {
               await onClickYes();
               setCurrentStageMode(AvatarModes.LessonSuggestion);
-              cLesson = await getRecommendedLesson(
-                currentChapter || cChapter[0],
-                cCourse || currentCourse
-              );
+              const chapterForRecommendation = currentChapter || cChapter;
+              if (chapterForRecommendation) {
+                cLesson = await getRecommendedLesson(
+                  chapterForRecommendation,
+                  cCourse || currentCourse
+                );
+              }
               setCurrentLesson(cLesson);
               const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
@@ -316,10 +319,13 @@ const ChimpleAvatar: FC<{
               // await loadNextSuggestion();
             } else {
               await onClickNo();
-              cLesson = await getRecommendedLesson(
-                currentChapter || cChapter[0],
-                cCourse || currentCourse
-              );
+              const chapterForRecommendation = currentChapter || cChapter;
+              if (chapterForRecommendation) {
+                cLesson = await getRecommendedLesson(
+                  chapterForRecommendation,
+                  cCourse || currentCourse
+                );
+              }
               setCurrentLesson(cLesson);
               const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
@@ -362,10 +368,10 @@ const ChimpleAvatar: FC<{
         } else {
           await onClickNo();
           avatarObj.currentLessonSuggestionIndex++;
-          let recomLesson: any = await getRecommendedLesson(
-            cChapter,
-            currentCourse
-          );
+          let recomLesson: TableTypes<"lesson"> | undefined;
+          if (cChapter) {
+            recomLesson = await getRecommendedLesson(cChapter, currentCourse);
+          }
           setCurrentLesson(recomLesson);
           const x3 = recomLesson?.name || "";
           message = t(`Do you want to play 'x3' lesson?`)
@@ -386,7 +392,7 @@ const ChimpleAvatar: FC<{
   async function playCurrentLesson() {
     await stop();
     if (currentLesson) {
-      const assignmentMap = {};
+      const assignmentMap: Record<string, string> = {};
       const assignmentFound = assignments?.find(
         (val) =>
           val.lesson_id === currentLesson.id && assignmentMap[val.id] == null
@@ -440,7 +446,7 @@ const ChimpleAvatar: FC<{
       );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
-      return allCourses[0] || cAllCourses[0];
+      return allCourses[0] || cAllCourses?.[0];
     }
   }
 

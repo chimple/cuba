@@ -39,8 +39,11 @@ const DownloadLesson: React.FC<{
   }, [downloadButtonLoading]);
 
   useEffect(() => {
-    const handleLessonDownloaded = (lessonDownloaded) => {
-      const downloadedLessonId = lessonDownloaded.detail.lessonId;
+    const handleLessonDownloaded = (
+      lessonDownloaded: Event
+    ) => {
+      const lessonEvent = lessonDownloaded as CustomEvent<{ lessonId: string }>;
+      const downloadedLessonId = lessonEvent.detail.lessonId;
 
       if (downloadedLessonId === lessonId) {
         setShowIcon(false);
@@ -51,9 +54,10 @@ const DownloadLesson: React.FC<{
       }
     };
 
-    const chapterDownloaded = (event) => {
+    const chapterDownloaded = (event: Event) => {
+      const chapterEvent = event as CustomEvent<{ chapterId: string }>;
       if (chapter) {
-        if (chapter?.id === event.detail.chapterId) {
+        if (chapter?.id === chapterEvent.detail.chapterId) {
           setLoading(false);
           setShowIcon(false);
         }
@@ -192,7 +196,8 @@ const DownloadLesson: React.FC<{
     <div
       className="download-or-delete-button"
       onClick={(event) => {
-        event.stopPropagation();
+        const mouseEvent = event as React.MouseEvent<HTMLDivElement>;
+        mouseEvent.stopPropagation();
         handleDownload();
       }}
     >
@@ -210,11 +215,13 @@ const DownloadLesson: React.FC<{
             setShowDialogBox(false);
           }}
           onNoButtonClicked={(event) => {
-            event.stopPropagation();
+            const mouseEvent = event as React.MouseEvent;
+            mouseEvent.stopPropagation();
             setShowDialogBox(false);
           }}
           onYesButtonClicked={(event) => {
-            event.stopPropagation();
+            const mouseEvent = event as React.MouseEvent;
+            mouseEvent.stopPropagation();
             setShowDialogBox(false);
             handleDelete();
           }}
@@ -230,7 +237,8 @@ const DownloadLesson: React.FC<{
       ) : (
         <div
           onClick={(event) => {
-            event.stopPropagation();
+            const mouseEvent = event as React.MouseEvent<HTMLDivElement>;
+            mouseEvent.stopPropagation();
             setShowDialogBox(!showDialogBox);
           }}
         >

@@ -47,8 +47,16 @@ const SchoolUsers: React.FC = () => {
     }
   };
 
-  const handleTabSelect = (tab) => {
-    setSelectedTab(tab);
+  const handleTabSelect = (tab: string) => {
+    if (tab === SCHOOL_USERS.COORDINATORS) {
+      setSelectedTab(SCHOOL_USERS.COORDINATORS);
+      return;
+    }
+    if (tab === SCHOOL_USERS.SPONSORS) {
+      setSelectedTab(SCHOOL_USERS.SPONSORS);
+      return;
+    }
+    setSelectedTab(SCHOOL_USERS.PRINCIPALS);
   };
   const addPrincipal = () => {
     history.replace(PAGES.ADD_PRINCIPAL, {

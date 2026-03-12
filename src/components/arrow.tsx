@@ -9,7 +9,7 @@ const Arrow: React.FC<{
     height: string;
     isForward: boolean;
     currentChapter: Chapter;
-    onChapterChange;
+    onChapterChange: (chapterId: string, isForward: boolean) => void;
 }> = ({  
     width,
     height,isForward, currentChapter,onChapterChange }) => {

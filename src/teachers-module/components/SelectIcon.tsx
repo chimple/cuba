@@ -3,7 +3,7 @@ import "./SelectIcon.css";
 import { t } from "i18next";
 interface SelectIconProps {
   isSelected: boolean;
-  onClick;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
 }
 const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
   return (

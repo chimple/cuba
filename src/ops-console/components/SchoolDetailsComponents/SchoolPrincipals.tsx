@@ -314,7 +314,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     {
       key: "name",
       label: t("Principal Name"),
-      renderCell: (p) => (
+      renderCell: (p: DisplayPrincipal) => (
         <Typography variant="body2" className="principal-name-data">
           {p.name}
         </Typography>
@@ -351,7 +351,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     {
       key: "phoneEmailDisplay", // 🔹 use merged column
       label: t("Phone / Email"),
-      renderCell: (row) => (
+      renderCell: (row: DisplayPrincipal) => (
         <Typography variant="body2" className="truncate-text">
           {row.phoneEmailDisplay}
         </Typography>
