@@ -171,6 +171,7 @@ import ColoringBoard from "./components/coloring/ColoringBoard";
 import PostSuccess from "./teachers-module/pages/PostSuccess";
 import QRAssignments from "./teachers-module/components/homePage/assignment/QRAssignments";
 import TeacherRecommendedAssignments from "./teachers-module/components/homePage/assignment/TeacherRecommendedAssignments";
+import StickerBook from "./pages/StickerBook";
 
 setupIonicReact();
 interface ExtraData {
@@ -403,7 +404,7 @@ const App: React.FC = () => {
       JSON.stringify(shouldShowHomeworkRemoteAssets),
     );
 
-    if(Capacitor.isNativePlatform()){
+    if (Capacitor.isNativePlatform()) {
       try {
         Filesystem.mkdir({
           path: CACHE_IMAGE,
@@ -718,9 +719,12 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
               <SchoolProfile />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.COLORING_BOARD} exact>={true}
-  <ColoringBoard />
-</ProtectedRoute>
+            <ProtectedRoute path={PAGES.COLORING_BOARD} exact={true}>
+              <ColoringBoard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STICKER_BOOK} exact={true}>
+              <StickerBook />
+            </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
 
                 <EditSchool />
