@@ -1,11 +1,18 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import PathwayStructure from "./PathwayStructure";
 import { usePathwayData } from "../../hooks/usePathwayData";
 import { usePathwaySVG } from "../../hooks/usePathwaySVG";
+import { Util } from "../../utility/util";
 
 jest.mock("../../hooks/usePathwayData");
 jest.mock("../../hooks/usePathwaySVG");
+jest.mock("../../utility/util", () => ({
+  Util: {
+    logEvent: jest.fn(),
+    getCurrentStudent: jest.fn(() => ({ id: "student-1" })),
+  },
+}));
 
 jest.mock("./ChimpleRiveMascot", () => () => <div data-testid="chimple-mascot" />);
 jest.mock("./RewardRive", () => () => <div data-testid="reward-rive" />);
@@ -18,6 +25,17 @@ jest.mock("./DailyRewardModal", () => (props: any) => (
   <div data-testid="daily-reward-modal">
     <button onClick={props.onClose}>close</button>
     <button onClick={props.onPlay}>play</button>
+  </div>
+));
+jest.mock("./StickerBookPreviewModal", () => (props: any) => (
+  <div data-testid="sticker-book-preview-modal">
+    <div data-testid="sticker-book-preview-next-id">{props.data?.nextStickerId}</div>
+    <button
+      data-testid="sticker-book-preview-close"
+      onClick={() => props.onClose("close_button")}
+    >
+      close-sticker-preview
+    </button>
   </div>
 ));
 
@@ -82,7 +100,7 @@ describe("PathwayStructure", () => {
 
   test("renders base pathway container", () => {
     const { container } = render(<PathwayStructure />);
-    expect(container.querySelector(".pathway-structure-div")).toBeInTheDocument();
+    expect(container.querySelector(".PathwayStructure-div")).toBeInTheDocument();
   });
 
   test("renders inactive-assessment popup and handles close/confirm", () => {
@@ -299,6 +317,50 @@ describe("PathwayStructure", () => {
 
   test("pathway root div renders exactly once", () => {
     const { container } = render(<PathwayStructure />);
-    expect(container.querySelectorAll(".pathway-structure-div")).toHaveLength(1);
+    expect(container.querySelectorAll(".PathwayStructure-div")).toHaveLength(1);
+  });
+
+  test("opens sticker preview modal when usePathwaySVG triggers onStickerPreviewReady", () => {
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerPreviewReady({
+        source: "learning_pathway",
+        stickerBookId: "book-1",
+        stickerBookTitle: "Book 1",
+        stickerBookSvgUrl: "https://example.com/book.svg",
+        collectedStickerIds: ["slot-1"],
+        nextStickerId: "slot-2",
+        nextStickerName: "Star",
+        nextStickerImage: "https://example.com/star.png",
+      });
+    });
+
+    expect(screen.getByTestId("sticker-book-preview-modal")).toBeInTheDocument();
+    expect(screen.getByTestId("sticker-book-preview-next-id")).toHaveTextContent(
+      "slot-2",
+    );
+  });
+
+  test("closes sticker preview modal and logs close event", () => {
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerPreviewReady({
+        source: "learning_pathway",
+        stickerBookId: "book-2",
+        stickerBookTitle: "Book 2",
+        stickerBookSvgUrl: "https://example.com/book-2.svg",
+        collectedStickerIds: [],
+        nextStickerId: "slot-9",
+        nextStickerName: "Moon",
+      });
+    });
+
+    fireEvent.click(screen.getByTestId("sticker-book-preview-close"));
+    expect(screen.queryByTestId("sticker-book-preview-modal")).not.toBeInTheDocument();
+    expect((Util.logEvent as jest.Mock).mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 });

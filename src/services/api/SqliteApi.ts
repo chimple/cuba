@@ -8232,8 +8232,11 @@ order by
     return await this._serverApi.getUserWonStickerBooks(userId);
   }
 
-  async getNextWinnableSticker(stickerBookId: string): Promise<string | null> {
-    return await this._serverApi.getNextWinnableSticker(stickerBookId);
+  async getNextWinnableSticker(
+    stickerBookId: string,
+    userId?: string,
+  ): Promise<string | null> {
+    return await this._serverApi.getNextWinnableSticker(stickerBookId, userId);
   }
 
   async updateStickerWon(
