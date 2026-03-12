@@ -9,8 +9,7 @@ const NoSchoolsFound: FC = () => {
   const history = useHistory();
 
   const handleCreateSchool = () => {
-    // Navigate to the page for creating/requesting a new school
-    // history.push(PAGES.REQ_ADD_SCHOOL, { origin: PAGES.CREATESCHOOL } );
+    
   };
 
   return (

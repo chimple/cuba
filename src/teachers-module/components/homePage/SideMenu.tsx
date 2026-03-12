@@ -132,11 +132,6 @@ const SideMenu: React.FC<{
           return;
         }
 
-        // setClassData(classMap);
-        // const tempClass = Util.getCurrentClass();
-        // if (!tempClass) {
-        //   return;
-        // }
         setCurrentClassId(updatedClass.id);
         setcurrentClassDetail({
           id: updatedClass.id,

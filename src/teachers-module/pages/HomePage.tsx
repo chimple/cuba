@@ -286,20 +286,7 @@ const HomePage: React.FC = () => {
               />
             }
           />
-          {/* <BottomNavigationAction
-            label={t("Library")}
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  tabValue === 1
-                    ? "assets/icons/bookSelected.png"
-                    : "assets/icons/book.png"
-                }
-                alt=""
-              />
-            }
-          /> */}
+         
           <BottomNavigationAction
             value={2}
             label={t("Assign")}

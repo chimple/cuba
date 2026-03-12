@@ -1,12 +1,11 @@
 #leaderboard-page {
-  /* padding: 1%; */
+  
   align-items: center;
-  /* margin: var(--margin); */
-  /* margin-bottom: 0; */
+  
 }
 
 #LeaderBoard-AppBar {
-  /* padding: 1vh 1vw; */
+ 
   padding: 0%;
   background-color: transparent !important;
 }
@@ -42,9 +41,6 @@
   flex-direction: column;
 }
 
-/* #leaderboard-left-UI {
-  width: 40vw;
-} */
 
 #leaderboard-left-UI-content {
   text-align: left;
@@ -67,7 +63,7 @@
 
 #leaderboard-left-note-message {
   max-width: 27vw;
-  /* background-color: white; */
+  
   margin: 0vw 1vw;
   font-size: 10px;
   position: absolute;
@@ -79,8 +75,7 @@
 }
 
 #leaderboard-right-UI-content {
-  /* width: 10vw; */
-  /* text-align: left; */
+  
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -132,8 +127,7 @@
   font-size: 11px;
   white-space: nowrap;
   display: block;
-  /* max-width: 20vh; */
-  /* text-overflow: ellipsis; */
+  
   overflow: hidden;
 }
 

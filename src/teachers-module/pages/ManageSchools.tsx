@@ -164,19 +164,6 @@ const ManageSchools: React.FC = () => {
         )}
       </IonContent>
 
-      {/* Original commented out code */}
-      {/* {isManagerOrDirector && (
-        <UploadButton
-          onClick={() => {
-            history.replace(PAGES.UPLOAD_PAGE);
-          }}
-        />
-      )} */}
-      {/* <AddButton
-        onClick={() => {
-          history.replace(PAGES.REQ_ADD_SCHOOL);
-        }}
-      /> */}
     </IonPage>
   );
 };

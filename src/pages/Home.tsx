@@ -72,7 +72,7 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    // const canShowAvatarValue = await Util.getCanShowAvatar();
+    
 
     setCanShowAvatar(true);
   };

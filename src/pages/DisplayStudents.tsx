@@ -85,17 +85,15 @@ const DisplayStudents: FC<{}> = () => {
       await schoolUtil.setCurrentClass(undefined);
     }
     if (
-      // !student.curriculum_id ||
+     
       !student.language_id
-      //  ||
-      // !student.grade_id ||
-      // !student.courses
+      
     ) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
-      // Util.setPathToBackButton(PAGES.HOME + history.location.search, history);
+      
       history.replace(PAGES.HOME + window.location.search);
     }
   };
@@ -127,27 +125,19 @@ const DisplayStudents: FC<{}> = () => {
       {/* <IonContent> */}
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon">
-          {/* {Util.getCurrentStudent() && (
-            <img
-              src="/assets/icons/BackButtonIcon.svg"
-              alt="BackButtonIcon"
-              onClick={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            />
-          )} */}
+          
         </div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
             t("Select the child’s profile"),
-            // t("where curiosity meets education!"),
+            
           ]}
         />
         <button
           id="display-students-parent-button"
           onClick={() => {
-            // history.replace(PAGES.PARENT);
+            
             setShowDialogBox(true);
           }}
         >
@@ -181,16 +171,7 @@ const DisplayStudents: FC<{}> = () => {
               </div>
             ))}
           </div>
-          {/* {students.length < MAX_STUDENTS_ALLOWED && (
-            <div className="add-new-button">
-              <IoAddCircleSharp
-                color="white"
-                size="10vh"
-                onClick={onCreateNewStudent}
-              />
-              {t("Create a New Child Profile")}
-            </div>
-          )} */}
+          
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
@@ -205,7 +186,7 @@ const DisplayStudents: FC<{}> = () => {
         </div>
       )}
       <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT} />
-      {/* </IonContent> */}
+      
     </IonPage>
   );
 };

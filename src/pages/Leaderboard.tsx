@@ -221,11 +221,9 @@ const Leaderboard: React.FC = () => {
     updateLocalAttributes(leaderboardAttributes);
     setGbUpdated(true);
 
-    // if (isWeeklyFlag) {
-    //   setLeaderboardDataInfo(tempLeaderboardData);
-    // } else {
+    
     setLeaderboardDataInfo(tempLeaderboardData);
-    // }
+    
 
     const tempData =
       leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
@@ -259,7 +257,7 @@ const Leaderboard: React.FC = () => {
       if (currentStudent.id == element.userId) {
         isCurrentStudentDataFetched = true;
         tempCurrentUserDataContent = [
-          // ["Name", element.name],
+          
           [t("Rank"), i + 1],
           [t("Lessons Played"), element.lessonsPlayed],
           [t("Score"), Math.round(element.score)],
@@ -332,24 +330,23 @@ const Leaderboard: React.FC = () => {
             currentValue={weeklySelectedValue || weeklyList[0]?.id}
             width="26vw"
             onValueChange={(selectedValue) => {
-              // if (weekOptionsList[0] != weekOptionsList[selectedValue]) {
-              // setIsWeeklyFlag(true);
+              
               if (weeklyList[selectedValue]?.displayName != undefined) {
                 setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
-                  // weeklyList[0] === weeklyList[selectedValue],
+                  
                   weeklyList[selectedValue].type ??
                     LeaderboardDropdownList.WEEKLY,
                   currentClassAndSchool?.classes[0].id || "",
                 );
-                //  }
+                
               }
             }}
           ></DropDown>
           <div
             key={currentStudent?.id}
-            // onClick={() => onStudentClick(student)}
+            
             className="avatar"
             id="leaderboard-avatar"
           >
@@ -422,12 +419,10 @@ const Leaderboard: React.FC = () => {
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
-            // if (currentUserDataContent[0][1] === i.toString()) {
-            //   // headerRowIndicator = true;
-            // }
+            
 
             return (
-              // <IonGrid>
+              
               <IonRow
                 style={{
                   backgroundColor:
@@ -621,12 +616,7 @@ const Leaderboard: React.FC = () => {
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
-                // Util.setCurrentStudent(null);
-                // localStorage.removeItem(CURRENT_STUDENT);
-                // if (studentMode !== MODES.SCHOOL) {
-                //   schoolUtil.removeCurrentClass();
-                // }
-                // await Util.setCurrentStudent(null);
+                
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
                 if (!!user && !!user.language_id) {
@@ -664,7 +654,7 @@ const Leaderboard: React.FC = () => {
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {/* {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>} */}
+            
             {tabIndex === LEADERBOARDHEADERLIST.REWARDS && (
               <Box>
                 <LeaderboardRewards />

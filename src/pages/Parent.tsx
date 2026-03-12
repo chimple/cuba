@@ -14,7 +14,6 @@ import {
 import ProfileCard from "../components/parent/ProfileCard";
 import ToggleButton from "../components/parent/ToggleButton";
 
-// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
   EmailShareButton,
@@ -47,10 +46,7 @@ const Parent: React.FC = () => {
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
   const dispatch = useAppDispatch();
-  // Commented out because Debug Mode has been moved to the Leaderboard page
-  // const clickCount = useRef(0);
-  // const [showDialogBox, setShowDialogBox] = useState(false);
-  // const [showDebug, setShowDebug] = useState(false);
+  
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -59,7 +55,7 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-  //  const [localLangDocId, setLocalLangDocId] = useState<any>();
+  
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [currentUser, setCurrentUser] = useState<
@@ -75,7 +71,7 @@ const Parent: React.FC = () => {
     id: string;
     displayName: string;
   }[] = [];
-  // let langDocIds: Map<string, string> = new Map();
+  
   const localAppLang = localStorage.getItem(LANGUAGE);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -169,13 +165,9 @@ const Parent: React.FC = () => {
     }
   }
 
-  // function onHeaderIconClick(selectedHeader: any) {
-  //   setCurrentHeader(selectedHeader);
-  // }
 
   function profileUI() {
-    // setIsLoading(false);
-
+    
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
@@ -244,7 +236,7 @@ const Parent: React.FC = () => {
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }
-                // window.location.reload();
+                
               }}
             />
           </div>
@@ -263,46 +255,10 @@ const Parent: React.FC = () => {
                     v.detail?.checked,
                   );
                 }
-                // Commented out because Debug Mode has been moved to the Leaderboard page
-                // clickCount.current += 1;
-                // // If clicked 7 times, show popup for debug mode
-                // if (clickCount.current === 7) {
-                //   setShowDialogBox(true);
-                //   clickCount.current = 0;
-                // }
+               
               }}
             ></ToggleButton>
-            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
-            {/* {showDialogBox && (
-              <DialogBoxButtons
-                width={"40vw"}
-                height={"30vh"}
-                message={t("Do you want to Open Debug Mode?")}
-                showDialogBox={true}
-                yesText={t("Cancel")}
-                noText={t("debugMode")}
-                handleClose={() => {
-                  setShowDialogBox(true);
-                }}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                }}
-                onNoButtonClicked={() => {
-                  setShowDebug(true);
-                  parentHeaderIconList.push({
-                    header: "debugMode",
-                    displayName: t("debugMode"),
-                  });
-
-                  setTabs((prevTabs: any) => ({
-                    ...prevTabs,
-                    [t("debugMode")]: t("debugMode"),
-                  }));
-                  setTabIndex(t("debugMode"));
-                  setShowDialogBox(false);
-                }}
-              />
-            )} */}
+            
 
             <ToggleButton
               flag={musicFlag!}
@@ -388,15 +344,7 @@ const Parent: React.FC = () => {
                   );
                 }}
               >
-                {/* <WhatsappShareButton
-              // https://api.whatsapp.com/send?phone=917981611434&text=${message}
-              url={"send?phone=917981611434&"}
-              title={"hi"}
-              className="Demo__some-network__share-button"
-            >
-              WhatsApp Us
-            </WhatsappShareButton> */}
-                {/* WhatsApp Us */}
+              
                 {t("WhatsApp Us")}
                 <WhatsappIcon size={"2vw"} round />
               </div>
@@ -408,11 +356,10 @@ const Parent: React.FC = () => {
                   id="parent-page-help-title-e2-video-youtude"
                   className="embed-responsive-item"
                   allowFullScreen={true}
-                  // width="50%"
-                  // height="50%"
+                 
                   src="https://www.youtube.com/embed/Ez9oouE2pOE"
                   title="YouTube video player"
-                  // frameborder="0"
+                  
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   // allowfullscreen
                 ></iframe>
@@ -439,36 +386,23 @@ const Parent: React.FC = () => {
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
+                  
                   window.open(`https://www.facebook.com/chimple`, "_system");
                 }}
               >
-                {/* <FacebookShareButton
-              url={"https://www.facebook.com/chimple"}
-              quote={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Fackbook
-            </FacebookShareButton> */}
-                {/* Facebook */}
+                
                 {t("Facebook")}
                 <FacebookIcon size={"2vw"} round />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
+                  
                   window.open(`https://twitter.com/chimple_org`, "_system");
                 }}
               >
-                {/* <TwitterShareButton
-              url={"https://twitter.com/chimple_org"}
-              title={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Twitter
-            </TwitterShareButton> */}
-                {/* Twitter */}
+                
+                
                 {t("Twitter")}
                 <TwitterIcon size={"2vw"} round />
               </div>
@@ -495,9 +429,7 @@ const Parent: React.FC = () => {
     );
   }
 
-  // function debugModeUI() {
-  //   return <DebugMode />;
-  // }
+  
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue,
@@ -539,8 +471,7 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
-        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
+        
       </div>
     </Box>
   );

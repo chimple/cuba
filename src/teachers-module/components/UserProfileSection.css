@@ -36,12 +36,11 @@
   background-color: #fffbec;
   width: 100%;
   margin-top: 0;
-  /* padding-bottom: 3vh; */
+  
 }
 
 .title {
-  /* padding: 0.001vw; */
-  /* font-size: 250%; */
+  
   margin: 0.2%;
   align-items: center;
   white-space: nowrap;
@@ -108,8 +107,7 @@
 .profile-pic {
   width: 20vw;
   height: 20vw;
-  /* max-width: 100px; */
-  /* max-height: 100px; */
+  
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
@@ -122,10 +120,10 @@
 }
 
 .input-group label {
-  /* margin-bottom: 1vh; */
+ 
   color: #707070;
   font-size: var(--text-sizeL);
-  /* font-family: "BalooExtraBold"; */
+  
   font-weight: 400;
 }
 
@@ -245,7 +243,7 @@ ion-radio.radio-checked::part(mark) {
 .input-group {
   display: flex;
   flex-direction: column;
-  /* gap: 1.5vh; Spacing between form elements */
+  
   font-size: 2vh;
 }
 

@@ -28,11 +28,11 @@
 .group-wise-content {
   position: relative;
   display: flex;
-  /* align-items: center; */
+  
   height: auto;
   overflow-x: scroll;
   flex: 5;
-  /* padding: 2px 0px; */
+ 
 }
 .student-avatar-container {
   display: flex;
@@ -65,7 +65,7 @@
 
 .avatars-wrapper {
   display: flex;
-  /* align-items: center; */
+  
   overflow-x: auto;         
   padding-left: 6px;
   width: 90%;

@@ -50,12 +50,6 @@ const AddCourses: React.FC = () => {
     await getCourses();
   };
 
-  // function addDataToLocalStorage() {
-  //   localStorage.setItem(
-  //     DISPLAY_SUBJECTS_STORE,
-  //     JSON.stringify(localStorageData)
-  //   );
-  // }
 
   const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
@@ -68,7 +62,7 @@ const AddCourses: React.FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
-    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    
     const currClass = schoolUtil.getCurrentClass();
     const currMode = await schoolUtil.getCurrMode();
 
@@ -76,7 +70,7 @@ const AddCourses: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    // addDataToLocalStorage();
+    
     setIsLoading(false);
     return courses;
   };
@@ -87,21 +81,13 @@ const AddCourses: React.FC = () => {
       await api.addCourseForParentsStudent(selectedCourses, currentStudent);
     }
     const eventParams = {
-      // user_id: currentStudent?.id,
-      // user_type: currentStudent?.role,
-      // user_name: currentStudent?.name,
-      // user_gender: currentStudent?.gender!,
-      // user_age: currentStudent?.age!,
-      // phone_number: currentStudent?.username,
-      // parent_id: currentStudent?.uid,
-      // parent_username: currentStudent?.username,
-      // action_type: ACTION.UPDATE,
+      
     };
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     switch (stage) {
       case STAGES.SUBJECTS:
-        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        
         history.replace(PAGES.HOME);
         break;
       default:
@@ -113,7 +99,7 @@ const AddCourses: React.FC = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        
         history.replace(PAGES.HOME);
         break;
       default:
@@ -155,7 +141,7 @@ const AddCourses: React.FC = () => {
             }}
           />
         </div>
-        {/* {stage !== STAGES.CHAPTERS && <div className="button-right" />} */}
+        
       </div>
       <div id="add-courses-subjects-page">
         <SkeltonLoading

@@ -7,21 +7,11 @@ import "../pages/TermsAndConditions.css";
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
-  // const [iframeSrc, setIframeSrc] = useState('');
-  // const setIframeSrcAsync = async () => {
-  //   try {
-  //     const tcUrl = await RemoteConfig.getString(
-  //       REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL
-  //     );
-  //     setIframeSrc(tcUrl);
-  //   } catch (error) {
-  //     console.error('Error fetching URL:', error);
-  //   }
-  // };
+ 
 
   useEffect(() => {
     checkAuth();
-    // setIframeSrcAsync();
+   
   }, []);
   const checkAuth = async () => {
     try {

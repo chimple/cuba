@@ -25,16 +25,7 @@ const SchoolProfileContent: React.FC<{
         <div className="schoolProfile-top-div">
           <div className="school-address-div">{t("School Address")}</div>
           <div className="schoolProfile-edit-icon-container">
-            {/* <IonIcon
-              icon={pencilSharp}
-              className="schoolProfile-edit-icon"
-              onClick={() => {
-                history.replace(PAGES.EDIT_SCHOOL, {
-                  school: school,
-                  role: role,
-                });
-              }}
-            /> */}
+           
           </div>
         </div>
         <div className="profile-row">

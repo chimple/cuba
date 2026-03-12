@@ -42,10 +42,7 @@ const DisplayChapters: FC<{}> = () => {
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
   const [chapters, setChapters] = useState<TableTypes<"chapter">[]>([]);
 
-  // const [gradesMap, setGradesMap] = useState<{
-  //   grades: TableTypes<"grade">[];
-  //   courses: Course[];
-  // }>();
+  
   const [localGradeMap, setLocalGradeMap] = useState<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
@@ -86,7 +83,7 @@ const DisplayChapters: FC<{}> = () => {
           const { grades } =
             await api.getDifferentGradesForCourse(currentCourse);
           localData.gradesMap = { grades, courses: [currentCourse] };
-          // addDataToLocalStorage();
+          
           setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         };
@@ -128,7 +125,7 @@ const DisplayChapters: FC<{}> = () => {
 
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       setStage(STAGES.LESSONS);
-      // localStorage.setItem("stage", JSON.stringify(STAGES.LESSONS));
+      
       addStateTolocalStorage(STAGES.LESSONS);
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
@@ -190,23 +187,17 @@ const DisplayChapters: FC<{}> = () => {
     }
   }
 
-  // function addDataToLocalStorage() {
-  //   localStorage.setItem(
-  //     DISPLAY_SUBJECTS_STORE,
-  //     JSON.stringify(localStorageData)
-  //   );
-  // }
 
   const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
-      // history.replace(PAGES.DISPLAY_STUDENT);
+      
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
 
-    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
 
@@ -223,7 +214,7 @@ const DisplayChapters: FC<{}> = () => {
     localData.courses = courses;
 
     setCourses(courses);
-    // addDataToLocalStorage();
+    
     setIsLoading(false);
     return courses;
   };
@@ -258,15 +249,12 @@ const DisplayChapters: FC<{}> = () => {
     if (now - lastBackPressAtRef.current < 150) return true;
     lastBackPressAtRef.current = now;
     switch (stage) {
-      // case STAGES.SUBJECTS:
-      //   localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
-      //   history.replace(PAGES.HOME);
-      //   break;
+      
       case STAGES.CHAPTERS:
         delete localData.currentChapter;
-        // delete localStorageData.currentChapterId;
+        
         setCurrentChapter(undefined);
-        // addDataToLocalStorage();
+        
         localStorage.removeItem(CURRENT_SELECTED_COURSE);
         localStorage.removeItem(CURRENT_SELECTED_GRADE);
         addStateTolocalStorage(STAGES.SUBJECTS);
@@ -461,12 +449,7 @@ const DisplayChapters: FC<{}> = () => {
         {stage !== STAGES.CHAPTERS && <div className="button-right" />}
       </div>
       <div className="chapters-content">
-        {/* {!isLoading &&
-          stage === STAGES.SUBJECTS &&
-          courses &&
-          courses.length > 0 && (
-            <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
-          )} */}
+        
 
         {stage === STAGES.CHAPTERS &&
           currentCourse &&

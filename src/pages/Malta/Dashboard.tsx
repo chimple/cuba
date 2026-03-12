@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
         </div>
         <DashboardStats />
       </div>
-      {/* <DashboardTable studentsData={{}} headerData={[]}/> */}
+      
       <button className="floating-button">+</button>
     </>
   );
