@@ -34,6 +34,7 @@ export type CoursePath = {
 export type LessonNode = {
   lesson_id: string;
   chapter_id?: string | undefined;
+  skill_id?: string | undefined;
   is_assessment: boolean;
   isPlayed: boolean;
 };
@@ -164,6 +165,7 @@ export async function recommendNextLesson({
       return {
         lesson_id: palLesson.lesson_id,
         chapter_id: palLesson.chapter_id,
+        skill_id: palLesson.skill_id,
         is_assessment: false,
         isPlayed: false,
       };
@@ -597,6 +599,7 @@ export const useLearningPath = (opts?: {
         return {
           lesson_id: l.lesson_id,
           chapter_id: l.chapter_id,
+          skill_id: l.skill_id,
           isPlayed: absIndex < activeAbsIndex,
           is_assessment: !!l.is_assessment,
         };

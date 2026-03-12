@@ -440,11 +440,10 @@ export function usePathwaySVG({
 
             activeGroup.style.cursor = 'pointer';
             activeGroup.addEventListener('click', () => {
-              const pathEntry = course.path[startIndex + idx];
               handleLessonClick(
                 lesson,
                 course,
-                pathEntry?.skill_id,
+                pathItem?.skill_id,
                 isAssessment,
                 assessmentId,
               );
