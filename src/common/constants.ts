@@ -895,6 +895,8 @@ export enum EVENTS {
   STICKER_PREVIEW_BOX_CLICKED = 'sticker_preview_box_clicked',
   STICKER_PREVIEW_POPUP_SHOWN = 'sticker_preview_popup_shown',
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
+  STICKER_BOOK_NOTIFICATION_SHOWN = 'sticker_book_notification_shown',
+  STICKER_BOOK_NOTIFICATION_CLEARED = 'sticker_book_notification_cleared',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
 }
@@ -1313,3 +1315,5 @@ export enum RESULT_STATUS {
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
+export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
+  'sticker-book-notification-dot-enabled';

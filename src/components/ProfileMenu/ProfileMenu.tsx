@@ -10,6 +10,7 @@ import {
   LEADERBOARDHEADERLIST,
   MODES,
   PAGES,
+  STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   TableTypes,
 } from '../../common/constants';
 import { useHistory } from 'react-router';
@@ -44,15 +45,18 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
   const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
+  const isStickerBookNotificationDotEnabled = useFeatureIsOn(
+    STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
+  );
 
   const { user: reduxUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
-  const shouldShowStickerBookNotification = hasStickerBookNotification(
-    student?.id,
-  );
+  const shouldShowStickerBookNotification =
+    hasStickerBookNotification(student?.id) &&
+    isStickerBookNotificationDotEnabled;
 
   useEffect(() => {
     loadProfileData();
