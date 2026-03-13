@@ -28,6 +28,7 @@ import i18n from '../../i18n';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
+import { hasStickerBookNotification } from '../../utility/stickerBookNotification';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -49,6 +50,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   );
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
+  const shouldShowStickerBookNotification = hasStickerBookNotification(
+    student?.id,
+  );
 
   useEffect(() => {
     loadProfileData();
@@ -254,7 +258,13 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                 alt={item.label}
                 className="profile-menu-icon"
               />
-              <span className="profile-menu-label">{t(item.label)}</span>
+              <div className="profile-menu-label-with-dot">
+                <span className="profile-menu-label">{t(item.label)}</span>
+                {item.label === 'Sticker Book' &&
+                  shouldShowStickerBookNotification && (
+                    <span className="profile-menu-notification-dot" />
+                  )}
+              </div>
             </div>
             <hr className="profile-menu-horizontal-line" />
           </div>
