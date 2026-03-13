@@ -1,8 +1,5 @@
-import React, { FC } from "react";
-import {
-  IonAlert,
-  IonIcon,
-} from "@ionic/react";
+import React, { FC } from 'react';
+import { IonAlert, IonIcon } from '@ionic/react';
 interface CommonDialogProps {
   children?: React.ReactNode | React.ReactNode[];
   alertMsg: string;
@@ -16,22 +13,20 @@ const CommonDialog: FC<CommonDialogProps> = ({ alertMsg, ionIcon }) => {
 
       <IonAlert
         header={alertMsg}
-        isOpen = {true}
+        isOpen={true}
         buttons={[
           {
-            text: "Cancel",
-            role: "cancel",
+            text: 'Cancel',
+            role: 'cancel',
             handler: () => {},
           },
           {
-            text: "OK",
-            role: "confirm",
+            text: 'OK',
+            role: 'confirm',
             handler: () => {},
           },
         ]}
-        onDidDismiss={({ detail }) =>
-          {}
-        }
+        onDidDismiss={({ detail }) => {}}
       ></IonAlert>
     </>
   );

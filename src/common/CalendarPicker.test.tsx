@@ -1,16 +1,16 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import CalendarPicker from "./CalendarPicker";
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import CalendarPicker from './CalendarPicker';
 
-jest.mock("@ionic/react", () => {
-  const React = require("react");
+jest.mock('@ionic/react', () => {
+  const React = require('react');
 
   return {
     IonDatetime: React.forwardRef((props: any, ref: any) => (
       <input
         data-testid="ion-datetime"
         ref={ref}
-        value={props.value || ""}
+        value={props.value || ''}
         min={props.min}
         max={props.max}
         className={props.className}
@@ -47,23 +47,23 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("CalendarPicker Component", () => {
+describe('CalendarPicker Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test("renders calendar picker container", () => {
+  test('renders calendar picker container', () => {
     renderComponent();
-    expect(document.querySelector(".calendar-picker")).toBeInTheDocument();
+    expect(document.querySelector('.calendar-picker')).toBeInTheDocument();
   });
 
-  test("renders IonDatetime", () => {
+  test('renders IonDatetime', () => {
     renderComponent();
-    expect(screen.getByTestId("ion-datetime")).toBeInTheDocument();
+    expect(screen.getByTestId('ion-datetime')).toBeInTheDocument();
   });
 
-  test("updates currentValue when value prop changes", () => {
-    const { rerender } = renderComponent({ value: "2024-01-01" });
+  test('updates currentValue when value prop changes', () => {
+    const { rerender } = renderComponent({ value: '2024-01-01' });
 
     rerender(
       <CalendarPicker
@@ -74,200 +74,200 @@ describe("CalendarPicker Component", () => {
       />,
     );
 
-    expect(screen.getByDisplayValue("2024-02-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2024-02-01')).toBeInTheDocument();
   });
 
-  test("sets min date correctly in start mode", () => {
-    renderComponent({ minDate: "2020-01-01" });
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "min",
-      "2020-01-01",
+  test('sets min date correctly in start mode', () => {
+    renderComponent({ minDate: '2020-01-01' });
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'min',
+      '2020-01-01',
     );
   });
 
-  test("sets min date to startDate in end mode", () => {
+  test('sets min date to startDate in end mode', () => {
     renderComponent({
-      mode: "end",
-      startDate: "2022-01-01",
+      mode: 'end',
+      startDate: '2022-01-01',
     });
 
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "min",
-      "2022-01-01",
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'min',
+      '2022-01-01',
     );
   });
 
-  test("uses fallback min date if none provided", () => {
-    renderComponent({ mode: "end" });
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "min",
-      "1900-01-01",
+  test('uses fallback min date if none provided', () => {
+    renderComponent({ mode: 'end' });
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'min',
+      '1900-01-01',
     );
   });
 
-  test("respects maxDate prop", () => {
-    renderComponent({ maxDate: "2030-01-01" });
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "max",
-      "2030-01-01",
+  test('respects maxDate prop', () => {
+    renderComponent({ maxDate: '2030-01-01' });
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'max',
+      '2030-01-01',
     );
   });
 
-  test("handles valid date change inside range", () => {
-    renderComponent({ minDate: "2020-01-01", maxDate: "2030-01-01" });
+  test('handles valid date change inside range', () => {
+    renderComponent({ minDate: '2020-01-01', maxDate: '2030-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2025-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2025-01-01' },
     });
 
-    expect(screen.getByDisplayValue("2025-01-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2025-01-01')).toBeInTheDocument();
   });
 
-  test("rejects date lower than min", () => {
-    renderComponent({ minDate: "2020-01-01" });
+  test('rejects date lower than min', () => {
+    renderComponent({ minDate: '2020-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2010-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2010-01-01' },
     });
 
-    expect(screen.getByDisplayValue("")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  test("rejects date higher than max", () => {
-    renderComponent({ maxDate: "2020-01-01" });
+  test('rejects date higher than max', () => {
+    renderComponent({ maxDate: '2020-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2030-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2030-01-01' },
     });
 
-    expect(screen.getByDisplayValue("")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  test("accepts boundary min date", () => {
-    renderComponent({ minDate: "2020-01-01" });
+  test('accepts boundary min date', () => {
+    renderComponent({ minDate: '2020-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2020-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2020-01-01' },
     });
 
-    expect(screen.getByDisplayValue("2020-01-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2020-01-01')).toBeInTheDocument();
   });
 
-  test("accepts boundary max date", () => {
-    renderComponent({ maxDate: "2030-01-01" });
+  test('accepts boundary max date', () => {
+    renderComponent({ maxDate: '2030-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2030-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2030-01-01' },
     });
 
-    expect(screen.getByDisplayValue("2030-01-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2030-01-01')).toBeInTheDocument();
   });
-  test("component mounts without crashing", () => {
+  test('component mounts without crashing', () => {
     expect(() => renderComponent()).not.toThrow();
   });
 
-  test("component unmounts without crashing", () => {
+  test('component unmounts without crashing', () => {
     const { unmount } = renderComponent();
     expect(() => unmount()).not.toThrow();
   });
 
-  test("initial value prop is reflected in input", () => {
-    renderComponent({ value: "2024-03-15" });
-    expect(screen.getByTestId("ion-datetime")).toHaveValue("2024-03-15");
+  test('initial value prop is reflected in input', () => {
+    renderComponent({ value: '2024-03-15' });
+    expect(screen.getByTestId('ion-datetime')).toHaveValue('2024-03-15');
   });
 
-  test("value null renders empty input", () => {
+  test('value null renders empty input', () => {
     renderComponent({ value: null });
-    expect(screen.getByDisplayValue("")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  test("changing to same valid date keeps value", () => {
-    renderComponent({ minDate: "2020-01-01", maxDate: "2030-01-01" });
+  test('changing to same valid date keeps value', () => {
+    renderComponent({ minDate: '2020-01-01', maxDate: '2030-01-01' });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2025-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2025-01-01' },
     });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2025-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2025-01-01' },
     });
 
-    expect(screen.getByDisplayValue("2025-01-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2025-01-01')).toBeInTheDocument();
   });
 
-  test("changing date does not trigger confirm automatically", () => {
+  test('changing date does not trigger confirm automatically', () => {
     renderComponent();
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2024-08-08" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2024-08-08' },
     });
 
     expect(mockConfirm).not.toHaveBeenCalled();
   });
 
-  test("invalid lower date does not overwrite existing valid value", () => {
+  test('invalid lower date does not overwrite existing valid value', () => {
     renderComponent({
-      value: "2024-01-01",
-      minDate: "2020-01-01",
-      maxDate: "2030-01-01",
+      value: '2024-01-01',
+      minDate: '2020-01-01',
+      maxDate: '2030-01-01',
     });
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "2010-01-01" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '2010-01-01' },
     });
 
-    expect(screen.getByDisplayValue("2024-01-01")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2024-01-01')).toBeInTheDocument();
   });
 
-  test("empty string change is handled safely", () => {
+  test('empty string change is handled safely', () => {
     renderComponent();
 
-    fireEvent.change(screen.getByTestId("ion-datetime"), {
-      target: { value: "" },
+    fireEvent.change(screen.getByTestId('ion-datetime'), {
+      target: { value: '' },
     });
 
-    expect(screen.getByDisplayValue("")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  test("start mode keeps explicit minDate", () => {
-    renderComponent({ mode: "start", minDate: "2010-01-01" });
+  test('start mode keeps explicit minDate', () => {
+    renderComponent({ mode: 'start', minDate: '2010-01-01' });
 
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "min",
-      "2010-01-01",
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'min',
+      '2010-01-01',
     );
   });
 
-  test("end mode prefers provided minDate over startDate", () => {
+  test('end mode prefers provided minDate over startDate', () => {
     renderComponent({
-      mode: "end",
-      startDate: "2022-01-01",
-      minDate: "2020-01-01",
+      mode: 'end',
+      startDate: '2022-01-01',
+      minDate: '2020-01-01',
     });
 
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute(
-      "min",
-      "2020-01-01",
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute(
+      'min',
+      '2020-01-01',
     );
   });
 
-  test("end mode without startDate still renders safely", () => {
-    renderComponent({ mode: "end" });
-    expect(screen.getByTestId("ion-datetime")).toBeInTheDocument();
+  test('end mode without startDate still renders safely', () => {
+    renderComponent({ mode: 'end' });
+    expect(screen.getByTestId('ion-datetime')).toBeInTheDocument();
   });
 
-  test("min attribute always exists", () => {
+  test('min attribute always exists', () => {
     renderComponent();
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute("min");
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute('min');
   });
 
-  test("max attribute always exists", () => {
+  test('max attribute always exists', () => {
     renderComponent();
-    expect(screen.getByTestId("ion-datetime")).toHaveAttribute("max");
+    expect(screen.getByTestId('ion-datetime')).toHaveAttribute('max');
   });
 
-  test("rerender with new value updates input", () => {
-    const { rerender } = renderComponent({ value: "2023-01-01" });
+  test('rerender with new value updates input', () => {
+    const { rerender } = renderComponent({ value: '2023-01-01' });
 
     rerender(
       <CalendarPicker
@@ -278,6 +278,6 @@ describe("CalendarPicker Component", () => {
       />,
     );
 
-    expect(screen.getByDisplayValue("2023-12-31")).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2023-12-31')).toBeInTheDocument();
   });
 });

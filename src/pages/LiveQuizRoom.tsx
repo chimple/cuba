@@ -1,43 +1,43 @@
-import { IonButton, IonPage } from "@ionic/react";
-import { useEffect, useState } from "react";
-import { Util } from "../utility/util";
-import { useHistory } from "react-router";
-import StudentAvatar from "../components/common/StudentAvatar";
-import { PAGES, TableTypes } from "../common/constants";
-import "./LiveQuizRoom.css";
-import { t } from "i18next";
-import BarLoader from "react-spinners/BarLoader";
-import { FaHeart } from "react-icons/fa";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import BackButton from "../components/common/BackButton";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { IonButton, IonPage } from '@ionic/react';
+import { useEffect, useState } from 'react';
+import { Util } from '../utility/util';
+import { useHistory } from 'react-router';
+import StudentAvatar from '../components/common/StudentAvatar';
+import { PAGES, TableTypes } from '../common/constants';
+import './LiveQuizRoom.css';
+import { t } from 'i18next';
+import BarLoader from 'react-spinners/BarLoader';
+import { FaHeart } from 'react-icons/fa';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import BackButton from '../components/common/BackButton';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { ServiceConfig } from '../services/ServiceConfig';
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(
-    new Map<String, TableTypes<"user">>()
+    new Map<String, TableTypes<'user'>>(),
   );
   const [prevPlayedStudents, setPrevPlayedStudents] = useState<
-    TableTypes<"user">[]
+    TableTypes<'user'>[]
   >([]);
   const [notPlayedStudents, setNotPlayedStudents] = useState<
-    TableTypes<"user">[]
+    TableTypes<'user'>[]
   >([]);
   const [currentAssignment, setCurrentAssignment] =
-    useState<TableTypes<"assignment">>();
+    useState<TableTypes<'assignment'>>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const paramAssignmentId = urlSearchParams.get("assignmentId") ?? "";
+  const paramAssignmentId = urlSearchParams.get('assignmentId') ?? '';
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [lesson, setLesson] = useState<TableTypes<"lesson"> | undefined>();
-  const [course, setCourse] = useState<TableTypes<"course"> | undefined>();
+  const [lesson, setLesson] = useState<TableTypes<'lesson'> | undefined>();
+  const [course, setCourse] = useState<TableTypes<'course'> | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   let lessonId: string | undefined;
   let courseId: string | undefined;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [assignmentResult, setAssignmentResult] =
-    useState<TableTypes<"result">[]>();
+    useState<TableTypes<'result'>[]>();
 
   const state = (history.location.state ?? {}) as {
     assignment?: string;
@@ -53,8 +53,8 @@ const LiveQuizRoom: React.FC = () => {
     if (!currentStudent) return;
     let assignment;
     if (!!state?.assignment) {
-      const tempAssignment: TableTypes<"assignment"> = JSON.parse(
-        state.assignment
+      const tempAssignment: TableTypes<'assignment'> = JSON.parse(
+        state.assignment,
       );
       if (
         tempAssignment?.created_by &&
@@ -89,7 +89,7 @@ const LiveQuizRoom: React.FC = () => {
     if (!linked) return;
 
     const studentResult = await api.getStudentClassesAndSchools(
-      currentStudent.id
+      currentStudent.id,
     );
     if (
       !studentResult ||
@@ -102,19 +102,19 @@ const LiveQuizRoom: React.FC = () => {
     const results =
       await api.getStudentResultsByAssignmentId(paramAssignmentId);
     const studentsData = results[0];
-    const tempStudentMap = new Map<String, TableTypes<"user">>();
+    const tempStudentMap = new Map<String, TableTypes<'user'>>();
     studentsData.user_data.map((student) => {
       tempStudentMap.set(student.id, student);
     });
     setStudents(tempStudentMap);
 
     const allStudents = tempStudentMap ?? students;
-    let tempPrevPlayedStudents: TableTypes<"user">[] = prevPlayedStudents;
-    let tempNotPlayedStudents: TableTypes<"user">[] = [];
+    let tempPrevPlayedStudents: TableTypes<'user'>[] = prevPlayedStudents;
+    let tempNotPlayedStudents: TableTypes<'user'>[] = [];
     // const tempLiveStudents: User[] = [];
     if (tempPrevPlayedStudents.length < 1) {
-      let resultData: TableTypes<"result">[] | null = studentsData.result_data;
-      let userData: TableTypes<"user">[] | null = studentsData.user_data;
+      let resultData: TableTypes<'result'>[] | null = studentsData.result_data;
+      let userData: TableTypes<'user'>[] | null = studentsData.user_data;
       if (results) {
         setAssignmentResult(resultData);
         const uniqueUserIds = new Set<string>();
@@ -133,10 +133,10 @@ const LiveQuizRoom: React.FC = () => {
     tempNotPlayedStudents = Array.from(allStudents.values()).filter(
       (student) => {
         const hasPlayedBefore = tempPrevPlayedStudents.some(
-          (prevStudent) => prevStudent.id === student.id
+          (prevStudent) => prevStudent.id === student.id,
         );
         return !hasPlayedBefore;
-      }
+      },
     );
     setPrevPlayedStudents(tempPrevPlayedStudents);
     setNotPlayedStudents(tempNotPlayedStudents);
@@ -155,7 +155,7 @@ const LiveQuizRoom: React.FC = () => {
       history.replace(PAGES.LIVE_QUIZ_JOIN);
       return;
     } else {
-      history.replace(PAGES.LIVE_QUIZ_GAME + "?liveRoomId=" + res);
+      history.replace(PAGES.LIVE_QUIZ_GAME + '?liveRoomId=' + res);
       setIsJoining(false);
       return;
     }
@@ -171,12 +171,12 @@ const LiveQuizRoom: React.FC = () => {
           />
         </div>
         <div className="main-header-text">
-          <p id="header-text-1">{t("Live Challenge")}</p>
+          <p id="header-text-1">{t('Live Challenge')}</p>
           <p id="header-text-2">
             {course?.name +
-              " | " +
+              ' | ' +
               // lesson?.chapterTitle +
-              " | " +
+              ' | ' +
               lesson?.name}
           </p>
         </div>
@@ -190,7 +190,7 @@ const LiveQuizRoom: React.FC = () => {
       <div className="students-container">
         <div className="played-students">
           <div className="status-text-container">
-            <p className="status-text-1">{t("Already Played")}</p>
+            <p className="status-text-1">{t('Already Played')}</p>
           </div>
           <div
             className="student-container-1"
@@ -198,9 +198,9 @@ const LiveQuizRoom: React.FC = () => {
               justifyContent:
                 prevPlayedStudents.length > 0
                   ? prevPlayedStudents.length > 3
-                    ? "space-between"
-                    : "space-evenly"
-                  : "center",
+                    ? 'space-between'
+                    : 'space-evenly'
+                  : 'center',
             }}
           >
             {!!isLoading ? (
@@ -212,10 +212,10 @@ const LiveQuizRoom: React.FC = () => {
               prevPlayedStudents
                 .sort((a, b) => {
                   const resultA = assignmentResult?.find(
-                    (result) => result.student_id === a.id
+                    (result) => result.student_id === a.id,
                   );
                   const resultB = assignmentResult?.find(
-                    (result) => result.student_id === b.id
+                    (result) => result.student_id === b.id,
                   );
                   const scoreA = resultA?.score || 0;
                   const scoreB = resultB?.score || 0;
@@ -236,16 +236,16 @@ const LiveQuizRoom: React.FC = () => {
                         student={student}
                         onClicked={() => {}}
                         width={70}
-                        namePosition={"below"}
+                        namePosition={'below'}
                       />
                       {assignmentResult?.some(
-                        (result) => result.student_id === student.id
+                        (result) => result.student_id === student.id,
                       ) && (
                         <p className="student-score">
                           {Math.round(
                             assignmentResult.find(
-                              (result) => result.student_id === student.id
-                            )?.score || 0
+                              (result) => result.student_id === student.id,
+                            )?.score || 0,
                           )}
                         </p>
                       )}
@@ -253,13 +253,13 @@ const LiveQuizRoom: React.FC = () => {
                   </div>
                 ))
             ) : (
-              <p id="container-text">{t("No students have played yet.")}</p>
+              <p id="container-text">{t('No students have played yet.')}</p>
             )}
           </div>
         </div>
         <div className="not-played-students">
           <div className="status-text-container-2">
-            <p className="status-text-2">{t("Not Played")}</p>
+            <p className="status-text-2">{t('Not Played')}</p>
           </div>
           <div
             className="student-container-2"
@@ -267,9 +267,9 @@ const LiveQuizRoom: React.FC = () => {
               justifyContent:
                 notPlayedStudents.length > 0
                   ? notPlayedStudents.length > 3
-                    ? "space-between"
-                    : "space-evenly"
-                  : "center",
+                    ? 'space-between'
+                    : 'space-evenly'
+                  : 'center',
             }}
           >
             {!!isLoading ? (
@@ -290,7 +290,7 @@ const LiveQuizRoom: React.FC = () => {
                     student={student}
                     onClicked={() => {}}
                     width={70}
-                    namePosition={"below"}
+                    namePosition={'below'}
                   />
                 </div>
               ))
@@ -312,13 +312,13 @@ const LiveQuizRoom: React.FC = () => {
               if (!online) {
                 presentToast({
                   message: t(`Device is offline. Cannot join live quiz`),
-                  color: "danger",
+                  color: 'danger',
                   duration: 3000,
-                  position: "bottom",
+                  position: 'bottom',
                   buttons: [
                     {
-                      text: "Dismiss",
-                      role: "cancel",
+                      text: 'Dismiss',
+                      role: 'cancel',
                     },
                   ],
                 });
@@ -329,7 +329,7 @@ const LiveQuizRoom: React.FC = () => {
               }
             }}
           >
-            {isJoining ? t("Joining...") : t("Join Now")}
+            {isJoining ? t('Joining...') : t('Join Now')}
           </IonButton>
         ) : (
           <BarLoader

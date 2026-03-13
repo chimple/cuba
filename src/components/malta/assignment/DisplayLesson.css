@@ -20,7 +20,7 @@
 }
 .lesson-icon {
   background-color: rgba(248, 235, 235, 0.938);
-  
+
   background-repeat: no-repeat;
   background-position: 50%;
   width: min(25vh, 70px);
@@ -30,11 +30,11 @@
 
 .lesson-icon-in-avatar-image-option {
   background-color: white;
-  
+
   background-repeat: no-repeat;
   background-position: 50%;
   width: min(70vh, 130px);
-  
+
   border-radius: 50%;
 }
 
@@ -59,7 +59,7 @@
 }
 .lesson-download {
   position: absolute;
-  
+
   top: 58%;
 }
 .lesson-icon-container {

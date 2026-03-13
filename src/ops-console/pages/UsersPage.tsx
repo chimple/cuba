@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -9,19 +9,19 @@ import {
   useTheme,
   useMediaQuery,
   Skeleton,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import DataTableBody from "../components/DataTableBody";
-import DataTablePagination from "../components/DataTablePagination";
-import { PAGES } from "../../common/constants";
-import { t } from "i18next";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
-import "./UsersPage.css";
-import { useHistory, useLocation } from "react-router-dom";
-import queryString from "query-string";
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import DataTableBody from '../components/DataTableBody';
+import DataTablePagination from '../components/DataTablePagination';
+import { PAGES } from '../../common/constants';
+import { t } from 'i18next';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { RoleLabels, RoleType } from '../../interface/modelInterfaces';
+import './UsersPage.css';
+import { useHistory, useLocation } from 'react-router-dom';
+import queryString from 'query-string';
 
 interface User {
   fullName: string;
@@ -29,8 +29,8 @@ interface User {
 }
 
 const columns = [
-  { key: "fullName", label: "Full Name", width: "30%" },
-  { key: "role", label: "Roles", width: "70%" },
+  { key: 'fullName', label: 'Full Name', width: '30%' },
+  { key: 'role', label: 'Roles', width: '70%' },
 ];
 
 const ROWS_PER_PAGE = 8;
@@ -46,7 +46,7 @@ function useDebouncedValue<T>(value: T, delay = 300): T {
 
 const UsersPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
@@ -60,12 +60,12 @@ const UsersPage: React.FC = () => {
   } = queryString.parse(location.search);
 
   const [page, setPage] = useState(Number(qPage) || 1);
-  const [search, setSearch] = useState((qSearch as string) || "");
+  const [search, setSearch] = useState((qSearch as string) || '');
   const [sortBy, setSortBy] = useState<string | null>(
-    (qSortBy as string) || null
+    (qSortBy as string) || null,
   );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
-    (qSortOrder as "asc" | "desc") || "asc"
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
+    (qSortOrder as 'asc' | 'desc') || 'asc',
   );
 
   const debouncedSearch = useDebouncedValue(search, 300);
@@ -88,10 +88,10 @@ const UsersPage: React.FC = () => {
       setLoading(true);
       const result = await api.getManagersAndCoordinators(
         page,
-        debouncedSearch.length >= 3 ? debouncedSearch : "",
+        debouncedSearch.length >= 3 ? debouncedSearch : '',
         ROWS_PER_PAGE,
-        sortBy === "fullName" || !sortBy ? "name" : "name",
-        sortOrder
+        sortBy === 'fullName' || !sortBy ? 'name' : 'name',
+        sortOrder,
       );
 
       if (result) {
@@ -102,7 +102,7 @@ const UsersPage: React.FC = () => {
             userRole: u.role,
             fullName: u.user?.name,
             role: RoleLabels[u.role as RoleType] || u.role,
-          }))
+          })),
         );
         const totalPages = Math.ceil(result.totalCount / ROWS_PER_PAGE);
         setPageCount(totalPages);
@@ -135,7 +135,7 @@ const UsersPage: React.FC = () => {
             <>
               <Box sx={{ width: 40 }} />
               <Typography className="user-title-mobile">
-                {t("Users")}
+                {t('Users')}
               </Typography>
               <IconButton className="user-icon-button">
                 <NotificationsIcon />
@@ -143,7 +143,7 @@ const UsersPage: React.FC = () => {
             </>
           ) : (
             <>
-              <Typography className="user-title">{t("Users")}</Typography>
+              <Typography className="user-title">{t('Users')}</Typography>
               <IconButton className="user-icon-button">
                 <NotificationsIcon />
               </IconButton>
@@ -163,7 +163,7 @@ const UsersPage: React.FC = () => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "grey.600" }} />
+                    <SearchIcon sx={{ color: 'grey.600' }} />
                   </InputAdornment>
                 ),
               }}
@@ -180,11 +180,11 @@ const UsersPage: React.FC = () => {
           <Box className="user-desktop-actions">
             <Button
               variant="outlined"
-              startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
+              startIcon={<AddIcon sx={{ color: '#1976d2', fontSize: 25 }} />}
               className="user-add-desktop"
               onClick={navigateToNewUser}
             >
-              {t("New User")}
+              {t('New User')}
             </Button>
             <TextField
               placeholder="Search"
@@ -196,7 +196,7 @@ const UsersPage: React.FC = () => {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "grey.600" }} />
+                    <SearchIcon sx={{ color: 'grey.600' }} />
                   </InputAdornment>
                 ),
               }}
@@ -220,7 +220,7 @@ const UsersPage: React.FC = () => {
         ) : users.length === 0 ? (
           <Box padding={4} textAlign="center">
             <Typography variant="h6" color="text.secondary">
-              {t("No users found")}
+              {t('No users found')}
             </Typography>
           </Box>
         ) : (
@@ -230,8 +230,8 @@ const UsersPage: React.FC = () => {
             orderBy={sortBy ? sortBy : null}
             order={sortOrder}
             onSort={(key) => {
-              if (key === "fullName") {
-                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+              if (key === 'fullName') {
+                setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
                 setSortBy(key as keyof User);
               }
             }}

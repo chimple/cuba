@@ -16,13 +16,13 @@ import {
   WorkerResponse,
   WorkerStreamErrorMessage,
   WorkerStreamRequest,
-} from "./background.worker.types";
+} from './background.worker.types';
 
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope;
-let xlsxModulePromise: Promise<typeof import("xlsx-js-style")> | null = null;
-const getXlsx = async (): Promise<typeof import("xlsx-js-style")> => {
+let xlsxModulePromise: Promise<typeof import('xlsx-js-style')> | null = null;
+const getXlsx = async (): Promise<typeof import('xlsx-js-style')> => {
   if (!xlsxModulePromise) {
-    xlsxModulePromise = import("xlsx-js-style");
+    xlsxModulePromise = import('xlsx-js-style');
   }
   return xlsxModulePromise;
 };
@@ -47,20 +47,20 @@ const buildStatementsForRows = (
     if (!fieldNames.length) {
       continue;
     }
-    const placeholders = fieldNames.map(() => "?").join(", ");
+    const placeholders = fieldNames.map(() => '?').join(', ');
     const values = fieldNames.map((name) => row[name]);
-    const updateColumns = fieldNames.filter((name) => name !== "id");
+    const updateColumns = fieldNames.filter((name) => name !== 'id');
     const updateSetClause = updateColumns
       .map((name) => `${name} = excluded.${name}`)
-      .join(", ");
+      .join(', ');
 
     const onConflictClause = updateSetClause
       ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${resolvedTableName}.updated_at`
-      : "ON CONFLICT(id) DO NOTHING";
+      : 'ON CONFLICT(id) DO NOTHING';
 
     statementsForTable.push({
       statement: `
-          INSERT INTO ${resolvedTableName} (${fieldNames.join(", ")})
+          INSERT INTO ${resolvedTableName} (${fieldNames.join(', ')})
           VALUES (${placeholders})
           ${onConflictClause};
         `,
@@ -77,8 +77,13 @@ const buildSyncBatches = (
   rowCountByTable: Record<string, number>;
   payloadSizeBytes: number;
 } => {
-  const { tables, tableColumns, defaultBatchSize, userTableBatchSize, userTableName } =
-    payload;
+  const {
+    tables,
+    tableColumns,
+    defaultBatchSize,
+    userTableBatchSize,
+    userTableName,
+  } = payload;
   const tableBatches: Record<string, SqlStatement[][]> = {};
   const rowCountByTable: Record<string, number> = {};
 
@@ -124,8 +129,8 @@ const buildSyncBatches = (
 
 const toHex = (buffer: ArrayBuffer): string =>
   Array.from(new Uint8Array(buffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 
 const prepareBinaryFromBase64 = async (
   payload: PrepareBinaryFromBase64Payload,
@@ -139,7 +144,7 @@ const prepareBinaryFromBase64 = async (
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  const algorithm = payload.algorithm ?? "SHA-256";
+  const algorithm = payload.algorithm ?? 'SHA-256';
   const hashBuffer = await crypto.subtle.digest(algorithm, bytes);
   return {
     byteLength: bytes.byteLength,
@@ -225,7 +230,7 @@ const buildGrowthBookAttributes = (payload: GrowthBookAttributesPayload) => {
     school_ids: schools,
     school_name,
     class_ids: classes,
-    language: payload.language || "en",
+    language: payload.language || 'en',
     pending_live_quiz: liveQuizCount,
     pending_assignments: assignmentCount,
     last_assignment_played_at,
@@ -260,7 +265,7 @@ const buildGrowthBookAttributes = (payload: GrowthBookAttributesPayload) => {
 };
 
 const getSchoolKey = (row: any): string =>
-  row["SCHOOL ID"]?.toString().trim() || row["SCHOOL NAME"]?.toString().trim();
+  row['SCHOOL ID']?.toString().trim() || row['SCHOOL NAME']?.toString().trim();
 
 const buildBulkUploadPayload = (payload: {
   schoolData: any[];
@@ -268,8 +273,12 @@ const buildBulkUploadPayload = (payload: {
   teacherData: any[];
   studentData: any[];
 }) => {
-  const { schoolData = [], classData = [], teacherData = [], studentData = [] } =
-    payload;
+  const {
+    schoolData = [],
+    classData = [],
+    teacherData = [],
+    studentData = [],
+  } = payload;
   const map = new Map<string, any>();
 
   const ensureSchoolEntry = (row: any) => {
@@ -277,39 +286,41 @@ const buildBulkUploadPayload = (payload: {
     if (!map.has(key)) {
       map.set(key, {
         school: {
-          id: row["SCHOOL ID"]?.toString().trim(),
-          name: row["SCHOOL NAME"]?.toString().trim(),
-          state: row["STATE"]?.toString().trim() || "",
-          district: row["DISTRICT"]?.toString().trim() || "",
-          block: row["BLOCK"]?.toString().trim() || "",
-          cluster: row["CLUSTER"]?.toString().trim() || "",
+          id: row['SCHOOL ID']?.toString().trim(),
+          name: row['SCHOOL NAME']?.toString().trim(),
+          state: row['STATE']?.toString().trim() || '',
+          district: row['DISTRICT']?.toString().trim() || '',
+          block: row['BLOCK']?.toString().trim() || '',
+          cluster: row['CLUSTER']?.toString().trim() || '',
           instruction_language:
-            row["SCHOOL INSTRUCTION LANGUAGE"]?.toString().trim() || "",
-          student_login_type: row["STUDENT LOGIN TYPE"]?.toString().trim() || "",
-          academic_years: row["SCHOOL ACADEMIC YEAR"]
-            ? [row["SCHOOL ACADEMIC YEAR"]?.toString().trim()]
+            row['SCHOOL INSTRUCTION LANGUAGE']?.toString().trim() || '',
+          student_login_type:
+            row['STUDENT LOGIN TYPE']?.toString().trim() || '',
+          academic_years: row['SCHOOL ACADEMIC YEAR']
+            ? [row['SCHOOL ACADEMIC YEAR']?.toString().trim()]
             : [],
         },
         principal:
-          row["PRINCIPAL NAME"] || row["PRINCIPAL PHONE NUMBER OR EMAIL ID"]
+          row['PRINCIPAL NAME'] || row['PRINCIPAL PHONE NUMBER OR EMAIL ID']
             ? {
-                name: row["PRINCIPAL NAME"]?.toString().trim() || "",
+                name: row['PRINCIPAL NAME']?.toString().trim() || '',
                 contact:
-                  row["PRINCIPAL PHONE NUMBER OR EMAIL ID"]?.toString().trim() ||
-                  "",
-                role: "principal",
+                  row['PRINCIPAL PHONE NUMBER OR EMAIL ID']
+                    ?.toString()
+                    .trim() || '',
+                role: 'principal',
               }
             : null,
         school_coordinator:
-          row["SCHOOL COORDINATOR NAME"] ||
-          row["SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"]
+          row['SCHOOL COORDINATOR NAME'] ||
+          row['SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID']
             ? {
-                name: row["SCHOOL COORDINATOR NAME"]?.toString().trim() || "",
+                name: row['SCHOOL COORDINATOR NAME']?.toString().trim() || '',
                 contact:
-                  row["SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"]
+                  row['SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID']
                     ?.toString()
-                    .trim() || "",
-                role: "coordinator",
+                    .trim() || '',
+                role: 'coordinator',
               }
             : null,
         programs: [],
@@ -322,22 +333,23 @@ const buildBulkUploadPayload = (payload: {
 
   for (const row of schoolData) {
     const key = ensureSchoolEntry(row);
-    if (row["PROGRAM NAME"]) {
+    if (row['PROGRAM NAME']) {
       map.get(key).programs.push({
-        name: row["PROGRAM NAME"].toString().trim(),
-        model: row["PROGRAM MODEL"]?.toString().trim() || "",
+        name: row['PROGRAM NAME'].toString().trim(),
+        model: row['PROGRAM MODEL']?.toString().trim() || '',
       });
       map.get(key).program_users.push(
         {
           contact:
-            row["PROGRAM MANAGER EMAIL OR PHONE NUMBER"]?.toString().trim() || "",
-          role: "program_manager",
+            row['PROGRAM MANAGER EMAIL OR PHONE NUMBER']?.toString().trim() ||
+            '',
+          role: 'program_manager',
         },
         {
           contact:
-            row["FIELD COORDINATOR EMAIL OR PHONE NUMBER"]?.toString().trim() ||
-            "",
-          role: "field_coordinator",
+            row['FIELD COORDINATOR EMAIL OR PHONE NUMBER']?.toString().trim() ||
+            '',
+          role: 'field_coordinator',
         },
       );
     }
@@ -346,14 +358,14 @@ const buildBulkUploadPayload = (payload: {
   for (const row of classData) {
     const key = ensureSchoolEntry(row);
     map.get(key).classes.push({
-      grade: row["GRADE"]?.toString().trim() || "",
-      section: row["CLASS SECTION"]?.toString().trim() || "",
-      student_count: row["STUDENTS COUNT IN CLASS"]?.toString().trim() || "",
+      grade: row['GRADE']?.toString().trim() || '',
+      section: row['CLASS SECTION']?.toString().trim() || '',
+      student_count: row['STUDENTS COUNT IN CLASS']?.toString().trim() || '',
       subjects: [
         {
-          grade_level: row["SUBJECT GRADE"]?.toString().trim() || "",
-          curricul: row["CURRICULUM"]?.toString().trim() || "",
-          sub: row["SUBJECT"]?.toString().trim() || "",
+          grade_level: row['SUBJECT GRADE']?.toString().trim() || '',
+          curricul: row['CURRICULUM']?.toString().trim() || '',
+          sub: row['SUBJECT']?.toString().trim() || '',
         },
       ],
       teachers: [],
@@ -363,11 +375,11 @@ const buildBulkUploadPayload = (payload: {
 
   for (const row of teacherData) {
     const key = ensureSchoolEntry(row);
-    const grade = row["GRADE"]?.toString().trim();
-    const section = row["CLASS SECTION"]?.toString().trim() || "";
+    const grade = row['GRADE']?.toString().trim();
+    const section = row['CLASS SECTION']?.toString().trim() || '';
     const teacher = {
-      name: row["TEACHER NAME"]?.toString().trim() || "",
-      contact: row["TEACHER PHONE NUMBER OR EMAIL"]?.toString().trim() || "",
+      name: row['TEACHER NAME']?.toString().trim() || '',
+      contact: row['TEACHER PHONE NUMBER OR EMAIL']?.toString().trim() || '',
     };
     const school = map.get(key);
     let cls = school.classes.find(
@@ -377,7 +389,7 @@ const buildBulkUploadPayload = (payload: {
       cls = {
         grade,
         section,
-        student_count: "",
+        student_count: '',
         subjects: [],
         teachers: [],
         students: [],
@@ -389,16 +401,16 @@ const buildBulkUploadPayload = (payload: {
 
   for (const row of studentData) {
     const key = ensureSchoolEntry(row);
-    const grade = row["GRADE"]?.toString().trim();
-    const section = row["CLASS SECTION"]?.toString().trim() || "";
+    const grade = row['GRADE']?.toString().trim();
+    const section = row['CLASS SECTION']?.toString().trim() || '';
     const student = {
-      id: row["STUDENT ID"]?.toString().trim() || "",
-      name: row["STUDENT NAME"]?.toString().trim() || "",
-      gender: row["GENDER"]?.toString().trim() || "",
-      age: row["AGE"]?.toString().trim() || "",
-      grade: grade || "",
+      id: row['STUDENT ID']?.toString().trim() || '',
+      name: row['STUDENT NAME']?.toString().trim() || '',
+      gender: row['GENDER']?.toString().trim() || '',
+      age: row['AGE']?.toString().trim() || '',
+      grade: grade || '',
       parent_contact:
-        row["PARENT PHONE NUMBER OR LOGIN ID"]?.toString().trim() || "",
+        row['PARENT PHONE NUMBER OR LOGIN ID']?.toString().trim() || '',
     };
     const school = map.get(key);
     let cls = school.classes.find(
@@ -408,7 +420,7 @@ const buildBulkUploadPayload = (payload: {
       cls = {
         grade,
         section,
-        student_count: "",
+        student_count: '',
         subjects: [],
         teachers: [],
         students: [],
@@ -428,13 +440,13 @@ const parseXlsxSheets = async (
   sheets: Record<string, Record<string, any>[]>;
 }> => {
   const XLSX = await getXlsx();
-  const workbook = XLSX.read(payload.fileBuffer, { type: "array" });
+  const workbook = XLSX.read(payload.fileBuffer, { type: 'array' });
   const sheets: Record<string, Record<string, any>[]> = {};
   for (const sheetName of workbook.SheetNames) {
     const worksheet = workbook.Sheets[sheetName];
     sheets[sheetName] = XLSX.utils.sheet_to_json(worksheet, {
       raw: false,
-      defval: "",
+      defval: '',
     }) as Record<string, any>[];
   }
   return {
@@ -454,13 +466,13 @@ const toArrayBuffer = (value: unknown): ArrayBuffer => {
     copy.set(bytes);
     return copy.buffer;
   }
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const encoded = new TextEncoder().encode(value);
     const copy = new Uint8Array(encoded.byteLength);
     copy.set(encoded);
     return copy.buffer;
   }
-  throw new Error("Unsupported XLSX write output type");
+  throw new Error('Unsupported XLSX write output type');
 };
 
 const buildXlsxFile = async (
@@ -476,8 +488,8 @@ const buildXlsxFile = async (
     XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
   }
   const output = XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "array",
+    bookType: 'xlsx',
+    type: 'array',
   });
   return {
     fileBuffer: toArrayBuffer(output),
@@ -486,13 +498,14 @@ const buildXlsxFile = async (
 
 const handlers: {
   [K in BackgroundWorkerTask]: (
-    payload: WorkerRequest<K>["payload"],
+    payload: WorkerRequest<K>['payload'],
   ) => Promise<unknown> | unknown;
 } = {
   PREPARE_SYNC_BATCHES: (payload) => buildSyncBatches(payload),
   PREPARE_BINARY_FROM_BASE64: (payload) => prepareBinaryFromBase64(payload),
   PLAN_HOT_UPDATE_FILES: (payload) => planHotUpdateFiles(payload),
-  PREPARE_GROWTHBOOK_ATTRIBUTES: (payload) => buildGrowthBookAttributes(payload),
+  PREPARE_GROWTHBOOK_ATTRIBUTES: (payload) =>
+    buildGrowthBookAttributes(payload),
   PREPARE_BULK_UPLOAD_PAYLOAD: (payload) => buildBulkUploadPayload(payload),
   PARSE_XLSX_SHEETS: (payload) => parseXlsxSheets(payload),
   BUILD_XLSX_FILE: (payload) => buildXlsxFile(payload),
@@ -506,7 +519,7 @@ const waitForAck = (id: string): Promise<void> =>
 const emitBatchReady = (id: string, batch: SqlStatement[]) => {
   const message: WorkerBatchReadyMessage = {
     id,
-    type: "BATCH_READY",
+    type: 'BATCH_READY',
     batch,
   };
   workerScope.postMessage(message);
@@ -515,8 +528,13 @@ const emitBatchReady = (id: string, batch: SqlStatement[]) => {
 const streamSyncBatches = async (request: WorkerStreamRequest) => {
   const payload: StreamSyncBatchesPayload = request.payload;
   const rowsPerChunk = Math.max(payload.rowsPerChunk ?? 200, 1);
-  const { tables, tableColumns, defaultBatchSize, userTableBatchSize, userTableName } =
-    payload;
+  const {
+    tables,
+    tableColumns,
+    defaultBatchSize,
+    userTableBatchSize,
+    userTableName,
+  } = payload;
 
   for (const [tableName, rows] of Object.entries(tables)) {
     const resolvedTableName = safeTableName(tableName);
@@ -550,7 +568,7 @@ workerScope.onmessage = async (
   event: MessageEvent<WorkerRequest | WorkerStreamRequest | WorkerAckMessage>,
 ) => {
   const request = event.data;
-  if (request.type === "ACK") {
+  if (request.type === 'ACK') {
     const resolver = pendingAckResolvers.get(request.id);
     if (resolver) {
       pendingAckResolvers.delete(request.id);
@@ -559,11 +577,11 @@ workerScope.onmessage = async (
     return;
   }
   try {
-    if (request.type === "STREAM_SYNC_BATCHES") {
+    if (request.type === 'STREAM_SYNC_BATCHES') {
       await streamSyncBatches(request);
       const doneMessage: WorkerDoneMessage = {
         id: request.id,
-        type: "DONE",
+        type: 'DONE',
       };
       workerScope.postMessage(doneMessage);
       return;
@@ -574,10 +592,10 @@ workerScope.onmessage = async (
     }
     const result = await handler(request.payload as never);
     if (
-      request.type === "PREPARE_BINARY_FROM_BASE64" &&
+      request.type === 'PREPARE_BINARY_FROM_BASE64' &&
       result &&
-      typeof result === "object" &&
-      "arrayBuffer" in result
+      typeof result === 'object' &&
+      'arrayBuffer' in result
     ) {
       const response: WorkerResponse = {
         id: request.id,
@@ -591,10 +609,10 @@ workerScope.onmessage = async (
       return;
     }
     if (
-      request.type === "BUILD_XLSX_FILE" &&
+      request.type === 'BUILD_XLSX_FILE' &&
       result &&
-      typeof result === "object" &&
-      "fileBuffer" in result
+      typeof result === 'object' &&
+      'fileBuffer' in result
     ) {
       const response: WorkerResponse = {
         id: request.id,
@@ -614,12 +632,11 @@ workerScope.onmessage = async (
       result: result as never,
     };
     workerScope.postMessage(response);
-
   } catch (error) {
-    if (request.type === "STREAM_SYNC_BATCHES") {
+    if (request.type === 'STREAM_SYNC_BATCHES') {
       const response: WorkerStreamErrorMessage = {
         id: request.id,
-        type: "ERROR",
+        type: 'ERROR',
         error: error instanceof Error ? error.message : String(error),
       };
       workerScope.postMessage(response);

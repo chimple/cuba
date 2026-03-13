@@ -1,12 +1,12 @@
-import { FC, useState } from "react";
-import EditSchool from "./EditSchool";
-import AddSchool from "./AddSchool";
-import SchoolDetail from "./SchoolDetail";
-import SwitchSchool from "./SwitchSchool";
-import CommonButton from "../common/CommonButton";
-import AddEditDeleteFab from "./AddEditDeleteFab";
-import { t } from "i18next";
-import School from "../../../models/school";
+import { FC, useState } from 'react';
+import EditSchool from './EditSchool';
+import AddSchool from './AddSchool';
+import SchoolDetail from './SchoolDetail';
+import SwitchSchool from './SwitchSchool';
+import CommonButton from '../common/CommonButton';
+import AddEditDeleteFab from './AddEditDeleteFab';
+import { t } from 'i18next';
+import School from '../../../models/school';
 
 interface SchoolTabProps {
   isSchoolEdit: boolean;
@@ -63,7 +63,7 @@ const SchoolTab: FC<SchoolTabProps> = ({
       )}
       <SwitchSchool schools={schools}></SwitchSchool>
       <CommonButton
-        title={t("Switch School")}
+        title={t('Switch School')}
         disabled={isSchoolAdd || isSchoolEdit ? true : false}
         onClicked={() => {}}
       />

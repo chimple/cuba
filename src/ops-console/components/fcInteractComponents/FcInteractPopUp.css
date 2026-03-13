@@ -113,7 +113,7 @@
   font-size: 14px;
   cursor: pointer;
 }
-.fc-interact-popup-radio-group input[type="radio"] {
+.fc-interact-popup-radio-group input[type='radio'] {
   accent-color: #3b82f6;
   color-scheme: light;
 }
@@ -491,7 +491,8 @@
   border: 3px solid #111827;
 }
 
-.fc-interact-popup-camera-shutter-recording .fc-interact-popup-camera-shutter-inner {
+.fc-interact-popup-camera-shutter-recording
+  .fc-interact-popup-camera-shutter-inner {
   background: #ef4444;
   border-color: #ef4444;
 }

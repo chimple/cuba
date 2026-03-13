@@ -1,26 +1,26 @@
-import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router";
+import { useTranslation } from 'react-i18next';
+import { useHistory } from 'react-router';
 import {
   CURRENT_STUDENT,
   AVATARS,
   LANG,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import IconButton from "./IconButton";
-import "./ProfileHeader.css";
-import { ServiceConfig } from "../services/ServiceConfig";
-import i18n from "../i18n";
-import BackButton from "./common/BackButton";
-import { Util } from "../utility/util";
-import { useEffect, useState } from "react";
+} from '../common/constants';
+import IconButton from './IconButton';
+import './ProfileHeader.css';
+import { ServiceConfig } from '../services/ServiceConfig';
+import i18n from '../i18n';
+import BackButton from './common/BackButton';
+import { Util } from '../utility/util';
+import { useEffect, useState } from 'react';
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const [student, setStudent] = useState<TableTypes<"user">>();
+  const [student, setStudent] = useState<TableTypes<'user'>>();
   async function init() {
     const student = Util.getCurrentStudent();
     if (!student) {
@@ -44,11 +44,11 @@ const ProfileHeader: React.FC = () => {
       />
 
       <IconButton
-        name={student?.name ?? "Chimp"}
-        iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
+        name={student?.name ?? 'Chimp'}
+        iconSrc={'assets/avatars/' + (student?.avatar ?? AVATARS[0]) + '.png'}
       />
       <IconButton
-        name={t("Sign Out")}
+        name={t('Sign Out')}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
           localStorage.removeItem(CURRENT_STUDENT);
@@ -60,7 +60,7 @@ const ProfileHeader: React.FC = () => {
               await i18n.changeLanguage(tempLangCode);
             }
           }
-          
+
           history.replace(PAGES.SELECT_MODE);
         }}
       />

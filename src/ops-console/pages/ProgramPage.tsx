@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import DataTableBody, { Column } from "../components/DataTableBody";
-import DataTablePagination from "../components/DataTablePagination";
+import React, { useEffect, useMemo, useState } from 'react';
+import DataTableBody, { Column } from '../components/DataTableBody';
+import DataTablePagination from '../components/DataTablePagination';
 import {
   Box,
   Typography,
@@ -8,27 +8,27 @@ import {
   CircularProgress,
   useMediaQuery,
   IconButton,
-} from "@mui/material";
-import "./ProgramPage.css";
-import FilterSlider from "../components/FilterSlider";
-import SelectedFilters from "../components/SelectedFilters";
-import SearchAndFilter from "../components/SearchAndFilter";
-import HeaderTab from "../components/HeaderTab";
-import { Add } from "@mui/icons-material";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { useHistory, useLocation } from "react-router";
+} from '@mui/material';
+import './ProgramPage.css';
+import FilterSlider from '../components/FilterSlider';
+import SelectedFilters from '../components/SelectedFilters';
+import SearchAndFilter from '../components/SearchAndFilter';
+import HeaderTab from '../components/HeaderTab';
+import { Add } from '@mui/icons-material';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import { useHistory, useLocation } from 'react-router';
 import {
   PAGES,
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
   TabType,
-} from "../../common/constants";
-import { RoleType } from "../../interface/modelInterfaces";
-import { BsFillBellFill } from "react-icons/bs";
-import { useAppSelector } from "../../redux/hooks";
-import { RootState } from "../../redux/store";
-import { AuthState } from "../../redux/slices/auth/authSlice";
+} from '../../common/constants';
+import { RoleType } from '../../interface/modelInterfaces';
+import { BsFillBellFill } from 'react-icons/bs';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 type ProgramRow = {
   programName: any;
@@ -40,25 +40,25 @@ type ProgramRow = {
 
 const columns: Column<ProgramRow>[] = [
   {
-    key: "programName",
-    label: "Program Name",
-    align: "left",
-    width: "30%",
+    key: 'programName',
+    label: 'Program Name',
+    align: 'left',
+    width: '30%',
     sortable: true,
   },
   {
-    key: "schools",
-    label: "No. of Schools",
-    align: "left",
+    key: 'schools',
+    label: 'No. of Schools',
+    align: 'left',
     sortable: true,
   },
-  { key: "students", label: "No. of Students", align: "left", sortable: true },
-  { key: "devices", label: "No. of Devices", align: "left", sortable: true },
+  { key: 'students', label: 'No. of Students', align: 'left', sortable: true },
+  { key: 'devices', label: 'No. of Devices', align: 'left', sortable: true },
   {
-    key: "manager",
-    label: "Program Manager",
-    align: "left",
-    width: "25%",
+    key: 'manager',
+    label: 'Program Manager',
+    align: 'left',
+    width: '25%',
     sortable: false,
   },
 ];
@@ -69,11 +69,11 @@ const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
 }));
 
 const orderByMap: Record<string, string> = {
-  programName: "name",
-  schools: "institutes_count",
-  students: "students_count",
-  devices: "devices_count",
-  manager: "manager_names",
+  programName: 'name',
+  schools: 'institutes_count',
+  students: 'students_count',
+  devices: 'devices_count',
+  manager: 'manager_names',
 };
 
 const PAGE_SIZE = 8;
@@ -82,8 +82,10 @@ const ProgramsPage: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const isSmallScreen = useMediaQuery("(max-width: 900px)");
-  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const isSmallScreen = useMediaQuery('(max-width: 900px)');
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   const userRole = roles || [];
 
   const location = useLocation();
@@ -98,30 +100,30 @@ const ProgramsPage: React.FC = () => {
   }
 
   const [activeTabIndex, setActiveTabIndex] = useState(() => {
-    const n = parseInt(qs.get("tab") || "", 10);
+    const n = parseInt(qs.get('tab') || '', 10);
     return isNaN(n) ? 0 : n;
   });
   const [filters, setFilters] = useState<Record<string, string[]>>(() =>
-    parseJSONParam(qs.get("filters"), {})
+    parseJSONParam(qs.get('filters'), {}),
   );
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
-  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const [programs, setPrograms] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isProgramManager, setIsProgramManager] = useState(false);
   const [isOpsRole, setIsOpsRole] = useState(false);
   const [page, setPage] = useState(() => {
-    const p = parseInt(qs.get("page") || "", 10);
+    const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
-  const [orderBy, setOrderBy] = useState("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const tab: TabType = tabOptions[activeTabIndex].value;
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
@@ -141,7 +143,7 @@ const ProgramsPage: React.FC = () => {
         setFilterOptions(filterResponse);
         setIsProgramManager(!!isManager);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error('Failed to fetch data:', error);
         setIsProgramManager(false);
       } finally {
         setLoadingFilters(false);
@@ -158,11 +160,11 @@ const ProgramsPage: React.FC = () => {
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (page !== 1) params.set("page", String(page));
-    if (searchTerm) params.set("search", searchTerm);
+    if (page !== 1) params.set('page', String(page));
+    if (searchTerm) params.set('search', searchTerm);
     if (Object.values(filters).some((arr) => arr.length))
-      params.set("filters", JSON.stringify(filters));
-    if (activeTabIndex !== 0) params.set("tab", String(activeTabIndex));
+      params.set('filters', JSON.stringify(filters));
+    if (activeTabIndex !== 0) params.set('tab', String(activeTabIndex));
     history.replace({ search: params.toString() });
   }, [page, searchTerm, filters, activeTabIndex, history]);
 
@@ -190,7 +192,7 @@ const ProgramsPage: React.FC = () => {
         setPrograms(data);
         setTotalCount(data.length > 0 ? data[0].total_count : 0);
       } catch (error) {
-        console.error("Failed to fetch programs:", error);
+        console.error('Failed to fetch programs:', error);
         setPrograms([]);
         setTotalCount(0);
       } finally {
@@ -213,7 +215,7 @@ const ProgramsPage: React.FC = () => {
               <Typography
                 variant="body2"
                 color="text.secondary"
-                textAlign={"left"}
+                textAlign={'left'}
               >
                 {row.state}
               </Typography>
@@ -221,26 +223,26 @@ const ProgramsPage: React.FC = () => {
           ),
         },
         schools:
-          typeof row.institutes_count === "number" ? row.institutes_count : "—",
+          typeof row.institutes_count === 'number' ? row.institutes_count : '—',
         students:
-          typeof row.students_count === "number" ? row.students_count : "—",
+          typeof row.students_count === 'number' ? row.students_count : '—',
         devices:
-          typeof row.devices_count === "number" ? row.devices_count : "—",
+          typeof row.devices_count === 'number' ? row.devices_count : '—',
         manager:
-          row.manager_names && row.manager_names.trim() !== ""
+          row.manager_names && row.manager_names.trim() !== ''
             ? row.manager_names
-            : "—",
+            : '—',
       })),
-    [programs]
+    [programs],
   );
 
   const handleSort = (col: string) => {
-    const backendOrderBy = orderByMap[col] || "name";
+    const backendOrderBy = orderByMap[col] || 'name';
     if (orderBy === backendOrderBy) {
-      setOrder(order === "asc" ? "desc" : "asc");
+      setOrder(order === 'asc' ? 'desc' : 'asc');
     } else {
       setOrderBy(backendOrderBy);
-      setOrder("desc");
+      setOrder('desc');
     }
     setPage(1);
   };
@@ -300,17 +302,17 @@ const ProgramsPage: React.FC = () => {
   };
 
   const autocompleteStyles = {
-    "& .MuiOutlinedInput-root": { padding: "6px!important" },
-    "& .MuiAutocomplete-paper": { boxShadow: "none", border: "none" },
-    "& .MuiAutocomplete-listbox": { padding: 0 },
+    '& .MuiOutlinedInput-root': { padding: '6px!important' },
+    '& .MuiAutocomplete-paper': { boxShadow: 'none', border: 'none' },
+    '& .MuiAutocomplete-listbox': { padding: 0 },
   };
 
   const filterConfigsForProgram = [
-    { key: "Partner", label: t("Select Partner") },
-    { key: "Program Manager", label: t("Select Program Manager") },
-    { key: "Program Type", label: t("Select Program Type") },
-    { key: "state", label: t("Select State") },
-    { key: "district", label: t("Select District") },
+    { key: 'Partner', label: t('Select Partner') },
+    { key: 'Program Manager', label: t('Select Program Manager') },
+    { key: 'Program Type', label: t('Select Program Type') },
+    { key: 'state', label: t('Select State') },
+    { key: 'district', label: t('Select District') },
     // { key: "block", label: t("Select Block") },
     // { key: "cluster", label: t("Select Cluster") },
   ];
@@ -318,8 +320,8 @@ const ProgramsPage: React.FC = () => {
   return (
     <div className="program-page">
       <div className="program-page-header">
-        <span className="program-page-header-title">{t("Programs")}</span>
-        <IconButton className="bell-icon" sx={{ color: "black" }}>
+        <span className="program-page-header-title">{t('Programs')}</span>
+        <IconButton className="bell-icon" sx={{ color: 'black' }}>
           <BsFillBellFill />
         </IconButton>
       </div>
@@ -341,19 +343,19 @@ const ProgramsPage: React.FC = () => {
                   history.replace(PAGES.SIDEBAR_PAGE + PAGES.NEW_PROGRAM)
                 }
                 sx={{
-                  borderColor: "#e0e0e0",
-                  border: "1px solid",
+                  borderColor: '#e0e0e0',
+                  border: '1px solid',
                   borderRadius: 20,
-                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-                  height: "36px",
-                  minWidth: isSmallScreen ? "48px" : "auto",
-                  padding: isSmallScreen ? 0 : "6px 16px",
-                  textTransform: "none",
+                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+                  height: '36px',
+                  minWidth: isSmallScreen ? '48px' : 'auto',
+                  padding: isSmallScreen ? 0 : '6px 16px',
+                  textTransform: 'none',
                 }}
               >
                 <Add />
                 {!isSmallScreen && (
-                  <span style={{ color: "black" }}>{t("New Program")}</span>
+                  <span style={{ color: 'black' }}>{t('New Program')}</span>
                 )}
               </Button>
             )}
@@ -393,7 +395,7 @@ const ProgramsPage: React.FC = () => {
         {programs.length === 0 && !loadingPrograms ? (
           <Box padding={4} textAlign="center">
             <Typography variant="h6" color="text.secondary">
-              {t("No programs found")}
+              {t('No programs found')}
             </Typography>
           </Box>
         ) : (
@@ -416,7 +418,7 @@ const ProgramsPage: React.FC = () => {
           pageCount={Math.ceil(totalCount / PAGE_SIZE)}
           onPageChange={(newPage) => {
             setPage(newPage);
-            tableScrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+            tableScrollRef.current?.scrollTo?.({ top: 0, behavior: 'smooth' });
           }}
         />
       </div>

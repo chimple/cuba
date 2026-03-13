@@ -1,16 +1,15 @@
-
-#rectangular-icon-button{
-    display: flex;
-    padding-top: 0px;
-    margin: 0%;
-    align-items: center;
-/* below code from parent.tsx */
+#rectangular-icon-button {
+  display: flex;
+  padding-top: 0px;
+  margin: 0%;
+  align-items: center;
+  /* below code from parent.tsx */
   margin-right: 4vh;
   font-size: var(--text-size);
   font-weight: bold;
   width: 15vw;
-  font-family: "BalooRegular";
+  font-family: 'BalooRegular';
 
-  margin-left:17vh;
+  margin-left: 17vh;
   color: #000000;
 }

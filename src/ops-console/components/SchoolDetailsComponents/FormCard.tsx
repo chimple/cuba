@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
-import "./FormCard.css";
-import { PhoneInput } from "react-international-phone";
-import "react-international-phone/style.css";
-import { t } from "i18next";
-import CheckIcon from "@mui/icons-material/Check";
+import React, { useEffect, useState, useMemo } from 'react';
+import './FormCard.css';
+import { PhoneInput } from 'react-international-phone';
+import 'react-international-phone/style.css';
+import { t } from 'i18next';
+import CheckIcon from '@mui/icons-material/Check';
 
-export type FieldKind = "text" | "email" | "phone" | "select";
+export type FieldKind = 'text' | 'email' | 'phone' | 'select';
 export type FieldColumn = 0 | 1 | 2; // 0 = left, 1 = right, 2 = full row
 
 export interface FieldConfig {
@@ -20,7 +20,7 @@ export interface FieldConfig {
   disabled?: boolean;
 }
 
-export type MessageType = "error" | "warning" | "info" | "success";
+export type MessageType = 'error' | 'warning' | 'info' | 'success';
 
 export interface MessageConfig {
   text: string;
@@ -51,37 +51,37 @@ const FormCard: React.FC<EntityModalProps> = ({
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
-  const [initialSnapshot, setInitialSnapshot] =
-  useState<Record<string, string>>({});
+  const [initialSnapshot, setInitialSnapshot] = useState<
+    Record<string, string>
+  >({});
 
-const isEditMode = Boolean(initialValues);
+  const isEditMode = Boolean(initialValues);
 
-const isDirty = useMemo(() => {
-  if (!isEditMode) return true; // Add form → always enabled
+  const isDirty = useMemo(() => {
+    if (!isEditMode) return true; // Add form → always enabled
 
-  return Object.keys(initialSnapshot).some(
-    (key) => initialSnapshot[key] !== values[key]
-  );
-}, [isEditMode, initialSnapshot, values]);
+    return Object.keys(initialSnapshot).some(
+      (key) => initialSnapshot[key] !== values[key],
+    );
+  }, [isEditMode, initialSnapshot, values]);
 
   useEffect(() => {
-  if (!open) return;
+    if (!open) return;
 
-  const init: Record<string, string> = {};
+    const init: Record<string, string> = {};
 
-  fields.forEach((f) => {
-    init[f.name] = initialValues?.[f.name] ?? "";
-  });
+    fields.forEach((f) => {
+      init[f.name] = initialValues?.[f.name] ?? '';
+    });
 
-  setValues(init);
-  if (isEditMode) {
-    setInitialSnapshot(init);
-  } else {
-    setInitialSnapshot({});
-  }
-  setOpenSelect(null);
-}, [open, fields, initialValues]);
-
+    setValues(init);
+    if (isEditMode) {
+      setInitialSnapshot(init);
+    } else {
+      setInitialSnapshot({});
+    }
+    setOpenSelect(null);
+  }, [open, fields, initialValues]);
 
   if (!open) return null;
 
@@ -98,36 +98,36 @@ const isDirty = useMemo(() => {
     const commonInputProps = {
       id: field.name,
       name: field.name,
-      value: values[field.name] ?? "",
+      value: values[field.name] ?? '',
       required: field.required,
       placeholder: field.placeholder,
     };
 
     switch (field.kind) {
-      case "select":
+      case 'select':
         const isThisSelectOpen = openSelect === field.name;
 
         if (field.multi) {
-          const currentVal = values[field.name] || "";
+          const currentVal = values[field.name] || '';
           const selectedIds = currentVal
-            ? currentVal.split(",").filter(Boolean)
+            ? currentVal.split(',').filter(Boolean)
             : [];
           const displayText = selectedIds
             .map((id) => {
               const opt = field.options?.find((o) => o.value === id);
               return opt ? t(opt.label) : id;
             })
-            .join(", ");
+            .join(', ');
 
           return (
             <div
               className={`formcard-select-wrapper ${
-                isThisSelectOpen ? "formcard-select-open" : ""
+                isThisSelectOpen ? 'formcard-select-open' : ''
               }`}
             >
               <input
                 className="formcard-placeholder-validator"
-                value={values[field.name] || ""}
+                value={values[field.name] || ''}
                 required={field.required}
                 onChange={() => {}}
                 tabIndex={-1}
@@ -156,7 +156,7 @@ const isDirty = useMemo(() => {
                   <span className="formcard-multiselect-trigger-text formcard-multiselect-trigger-placeholder">
                     {field.placeholder
                       ? t(field.placeholder)
-                      : `${t("Select ")} ${t(field.label)}`}
+                      : `${t('Select ')} ${t(field.label)}`}
                   </span>
                 )}
                 <span className="formcard-select-arrow-flipper">
@@ -172,20 +172,20 @@ const isDirty = useMemo(() => {
                       <div
                         key={opt.value}
                         className={`formcard-multiselect-option ${
-                          isSelected ? "selected" : ""
+                          isSelected ? 'selected' : ''
                         }`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           const newSelected = isSelected
                             ? selectedIds.filter((id) => id !== opt.value)
                             : [...selectedIds, opt.value];
-                          handleChange(field.name, newSelected.join(","));
+                          handleChange(field.name, newSelected.join(','));
                         }}
                       >
                         <div className="formcard-multiselect-checkbox">
                           {isSelected && (
                             <CheckIcon
-                              style={{ fontSize: 12, color: "white" }}
+                              style={{ fontSize: 12, color: 'white' }}
                             />
                           )}
                         </div>
@@ -202,21 +202,21 @@ const isDirty = useMemo(() => {
         const shouldUseCustomDropdown = (field.options?.length || 0) > 3;
 
         if (shouldUseCustomDropdown) {
-          const currentValue = values[field.name] || "";
+          const currentValue = values[field.name] || '';
           const selectedOption = field.options?.find(
-            (o) => o.value === currentValue
+            (o) => o.value === currentValue,
           );
-          const displayText = selectedOption ? t(selectedOption.label) : "";
+          const displayText = selectedOption ? t(selectedOption.label) : '';
 
           return (
             <div
               className={`formcard-select-wrapper ${
-                isThisSelectOpen ? "formcard-select-open" : ""
+                isThisSelectOpen ? 'formcard-select-open' : ''
               }`}
             >
               <input
                 className="formcard-placeholder-validator"
-                value={values[field.name] || ""}
+                value={values[field.name] || ''}
                 required={field.required}
                 onChange={() => {}}
                 tabIndex={-1}
@@ -248,7 +248,7 @@ const isDirty = useMemo(() => {
                   <span className="formcard-multiselect-trigger-text formcard-multiselect-trigger-placeholder">
                     {field.placeholder
                       ? t(field.placeholder)
-                      : `${t("Select ")} ${t(field.label)}`}
+                      : `${t('Select ')} ${t(field.label)}`}
                   </span>
                 )}
                 <span className="formcard-select-arrow-flipper">
@@ -264,7 +264,7 @@ const isDirty = useMemo(() => {
                       <div
                         key={opt.value}
                         className={`formcard-multiselect-option ${
-                          isSelected ? "selected" : ""
+                          isSelected ? 'selected' : ''
                         }`}
                         onMouseDown={(e) => {
                           e.preventDefault();
@@ -285,7 +285,7 @@ const isDirty = useMemo(() => {
         return (
           <div
             className={`formcard-select-wrapper ${
-              isThisSelectOpen ? "formcard-select-open" : ""
+              isThisSelectOpen ? 'formcard-select-open' : ''
             }`}
           >
             <select
@@ -305,7 +305,7 @@ const isDirty = useMemo(() => {
               <option value="">
                 {field.placeholder
                   ? t(field.placeholder)
-                  : `${t("Select ")} ${t(field.label)}`}
+                  : `${t('Select ')} ${t(field.label)}`}
               </option>
               {field.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -320,11 +320,11 @@ const isDirty = useMemo(() => {
           </div>
         );
 
-      case "phone":
+      case 'phone':
         return (
           <PhoneInput
             defaultCountry="in"
-            value={values[field.name] ?? ""}
+            value={values[field.name] ?? ''}
             onChange={(value) => handleChange(field.name, value)}
             disabled={field.disabled}
             disableCountryGuess
@@ -334,7 +334,7 @@ const isDirty = useMemo(() => {
               id: field.name,
               name: field.name,
               required: field.required,
-              placeholder: field.placeholder ?? "",
+              placeholder: field.placeholder ?? '',
               onKeyDown: (e) => {
                 const input = e.currentTarget as HTMLInputElement;
                 const selectionStart = input.selectionStart ?? 0;
@@ -342,7 +342,7 @@ const isDirty = useMemo(() => {
                 const prefixLength = prefixMatch ? prefixMatch[0].length : 0;
                 if (
                   selectionStart <= prefixLength &&
-                  (e.key === "Backspace" || e.key === "Delete")
+                  (e.key === 'Backspace' || e.key === 'Delete')
                 ) {
                   e.preventDefault();
                 }
@@ -351,7 +351,7 @@ const isDirty = useMemo(() => {
           />
         );
 
-      case "email":
+      case 'email':
         return (
           <input
             type="email"
@@ -360,7 +360,7 @@ const isDirty = useMemo(() => {
           />
         );
 
-      case "text":
+      case 'text':
       default:
         return (
           <input
@@ -375,18 +375,18 @@ const isDirty = useMemo(() => {
 
   const getFieldClassName = (field: FieldConfig) => {
     const col = field.column ?? 2;
-    if (col === 0) return "formcard-form-group formcard-col-left";
-    if (col === 1) return "formcard-form-group formcard-col-right";
-    return "formcard-form-group formcard-col-full";
+    if (col === 0) return 'formcard-form-group formcard-col-left';
+    if (col === 1) return 'formcard-form-group formcard-col-right';
+    return 'formcard-form-group formcard-col-full';
   };
 
   const renderMessage = () => {
     if (!message) return null;
 
     const messageConfig: MessageConfig =
-      typeof message === "string" ? { text: message, type: "info" } : message;
+      typeof message === 'string' ? { text: message, type: 'info' } : message;
 
-    const messageType = messageConfig.type || "info";
+    const messageType = messageConfig.type || 'info';
 
     return (
       <div className="formcard-message-wrapper">
@@ -431,9 +431,13 @@ const isDirty = useMemo(() => {
               className="formcard-btn formcard-btn-text"
               onClick={onClose}
             >
-              {t("Cancel")}
+              {t('Cancel')}
             </button>
-            <button type="submit" className="formcard-btn formcard-btn-primary" disabled={isEditMode && !isDirty}>
+            <button
+              type="submit"
+              className="formcard-btn formcard-btn-primary"
+              disabled={isEditMode && !isDirty}
+            >
               {submitLabel}
             </button>
           </div>

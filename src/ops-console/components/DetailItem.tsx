@@ -1,5 +1,5 @@
-import React from "react";
-import "./DetailItem.css";
+import React from 'react';
+import './DetailItem.css';
 
 export interface DetailItemProps {
   label: string;

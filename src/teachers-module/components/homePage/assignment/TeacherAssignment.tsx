@@ -1,26 +1,26 @@
-import { FC, useEffect, useState } from "react";
-import { useHistory } from "react-router";
-import "./TeacherAssignment.css";
-import { ServiceConfig } from "../../../../services/ServiceConfig";
-import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
+import { FC, useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
+import './TeacherAssignment.css';
+import { ServiceConfig } from '../../../../services/ServiceConfig';
+import SelectIconImage from '../../../../components/displaySubjects/SelectIconImage';
 import {
   AssignmentSource,
   COURSES,
   PAGES,
   TableTypes,
-} from "../../../../common/constants";
-import { Util } from "../../../../utility/util";
-import { t } from "i18next";
-import { Toast } from "@capacitor/toast";
-import AssignmentNextButton from "./AssignmentNextButton";
+} from '../../../../common/constants';
+import { Util } from '../../../../utility/util';
+import { t } from 'i18next';
+import { Toast } from '@capacitor/toast';
+import AssignmentNextButton from './AssignmentNextButton';
 import {
   CapacitorBarcodeScanner,
   CapacitorBarcodeScannerTypeHint,
-} from "@capacitor/barcode-scanner";
-import QrCode2Icon from "@mui/icons-material/QrCode2";
-import Loading from "../../../../components/Loading";
-import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
-import { IonIcon } from "@ionic/react";
+} from '@capacitor/barcode-scanner';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import Loading from '../../../../components/Loading';
+import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+import { IonIcon } from '@ionic/react';
 
 declare global {
   interface Window {
@@ -29,11 +29,11 @@ declare global {
 }
 
 export enum TeacherAssignmentPageType {
-  MANUAL = "manual",
-  RECOMMENDED = "recommended",
+  MANUAL = 'manual',
+  RECOMMENDED = 'recommended',
 }
 
-type AssignmentLesson = TableTypes<"lesson"> & {
+type AssignmentLesson = TableTypes<'lesson'> & {
   selected?: boolean;
   source?: string;
 };
@@ -69,7 +69,7 @@ const TeacherAssignment: FC<{
 
   const [manualAssignments, setManualAssignments] = useState<any>({});
   const [recommendedAssignments, setRecommendedAssignments] = useState<any>({});
-  const [currentUser, setCurrentuser] = useState<TableTypes<"user"> | null>(
+  const [currentUser, setCurrentuser] = useState<TableTypes<'user'> | null>(
     null,
   );
   const [loading, setLoading] = useState(false);
@@ -78,8 +78,8 @@ const TeacherAssignment: FC<{
   const [recommendedCollapsed, setRecommendedCollapsed] = useState(true);
   const [selectedLessonsCount, setSelectedLessonsCount] =
     useState<SelectedLessonsCountState>({
-    [TeacherAssignmentPageType.MANUAL]: { count: 0 },
-    [TeacherAssignmentPageType.RECOMMENDED]: { count: 0 },
+      [TeacherAssignmentPageType.MANUAL]: { count: 0 },
+      [TeacherAssignmentPageType.RECOMMENDED]: { count: 0 },
     });
   const auth = ServiceConfig.getI().authHandler;
 
@@ -87,17 +87,17 @@ const TeacherAssignment: FC<{
     init();
   }, []);
   useEffect(() => {
-  if (autoStartScan) {
-    startScan();
-    onScanHandled?.();
-  }
-}, [autoStartScan]);
+    if (autoStartScan) {
+      startScan();
+      onScanHandled?.();
+    }
+  }, [autoStartScan]);
 
   const init = async () => {
     let tempLessons: any = {};
     const current_class = await Util.getCurrentClass();
     const currUser = await auth.getCurrentUser();
-    setCurrentuser(currUser as TableTypes<"user">);
+    setCurrentuser(currUser as TableTypes<'user'>);
     if (!current_class || !current_class.id) {
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
@@ -129,7 +129,7 @@ const TeacherAssignment: FC<{
           // 🟡 Old format — directly lesson ID array
           sourceMapOrArray.forEach((id: string) => allLessonIdsSet.add(id));
         } else if (
-          typeof sourceMapOrArray === "object" &&
+          typeof sourceMapOrArray === 'object' &&
           sourceMapOrArray !== null
         ) {
           // ✅ New format — source-keyed map (manual/qr_code)
@@ -148,7 +148,7 @@ const TeacherAssignment: FC<{
         for (const lessonId of allLessonIdsSet) {
           const l: {
             lesson: any[];
-            course: TableTypes<"course">[];
+            course: TableTypes<'course'>[];
           } = await api.getLessonFromChapter(chapterId, lessonId);
 
           const courseId = l.course[0].id;
@@ -176,7 +176,7 @@ const TeacherAssignment: FC<{
 
       setManualAssignments(tempLessons);
     }
-    const lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined =
+    const lastAssignmentsCourseWise: TableTypes<'assignment'>[] | undefined =
       await api.getLastAssignmentsForRecommendations(current_class.id);
     getRecommendedAssignments(
       courseList,
@@ -186,8 +186,8 @@ const TeacherAssignment: FC<{
   };
 
   const getRecommendedAssignments = async (
-    courseList: TableTypes<"course">[],
-    lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined,
+    courseList: TableTypes<'course'>[],
+    lastAssignmentsCourseWise: TableTypes<'assignment'>[] | undefined,
     tempLessons: any,
   ) => {
     let recommendedAssignments: any = {};
@@ -212,7 +212,7 @@ const TeacherAssignment: FC<{
       }
       const chapterId = lastAssignment
         ? lastAssignment.chapter_id
-        : (courseChapters[0]?.id ?? "");
+        : (courseChapters[0]?.id ?? '');
       if (chapterId) {
         const lessonList = await api.getLessonsForChapter(chapterId);
 
@@ -236,7 +236,7 @@ const TeacherAssignment: FC<{
           const nextChapter = allChapters[i + 1];
 
           if (!nextChapter) {
-            console.warn("No next chapter found for course", course.id);
+            console.warn('No next chapter found for course', course.id);
             continue;
           }
 
@@ -320,7 +320,7 @@ const TeacherAssignment: FC<{
       subjectId: string,
     ): SelectedSubjectCount => {
       const currentValue = data[subjectId];
-      if (!currentValue || typeof currentValue === "number") {
+      if (!currentValue || typeof currentValue === 'number') {
         data[subjectId] = { count: [] };
         return data[subjectId] as SelectedSubjectCount;
       }
@@ -463,16 +463,15 @@ const TeacherAssignment: FC<{
             <img
               src="assets/icons/iconDown.png"
               alt="DropDown_Icon"
-              style={{ width: "16px", height: "16px", marginLeft: "auto" }}
+              style={{ width: '16px', height: '16px', marginLeft: 'auto' }}
             />
           ) : (
             <img
               src="assets/icons/iconDown.png"
               alt="DropDown_Icon"
-              style={{ width: "16px", height: "16px", marginLeft: "auto" }}
+              style={{ width: '16px', height: '16px', marginLeft: 'auto' }}
             />
           )}
-          
         </div>
         {!assignments[subjectId].isCollapsed && (
           <div>
@@ -483,21 +482,21 @@ const TeacherAssignment: FC<{
                 return (
                   <div key={index} className="assignment-list-item">
                     <SelectIconImage
-                      defaultSrc={"assets/icons/DefaultIcon.png"}
+                      defaultSrc={'assets/icons/DefaultIcon.png'}
                       webSrc={assignment?.image}
                       imageWidth="100px"
                       imageHeight="100px"
                     />
                     <span className="assignment-list-item-name">
                       {courseCode === COURSES.ENGLISH
-                        ? (assignment?.name ?? "")
-                        : t(assignment?.name ?? "")}
+                        ? (assignment?.name ?? '')
+                        : t(assignment?.name ?? '')}
                     </span>
 
                     <IonIcon
                       icon={isSelected ? checkmarkCircle : ellipseOutline}
                       id="checkbox-subject"
-                      className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
+                      className={`subject-page-checkbox ${isSelected ? 'selected' : ''}`}
                       onClick={() =>
                         toggleAssignmentSelection(
                           type,
@@ -530,10 +529,10 @@ const TeacherAssignment: FC<{
       if (result.ScanResult) {
         await processScannedData(result.ScanResult);
       } else {
-        Toast.show({ text: "No QR code detected." });
+        Toast.show({ text: 'No QR code detected.' });
       }
     } catch (err) {
-      console.error("Scan failed:", err);
+      console.error('Scan failed:', err);
     } finally {
       setLoading(false);
     }
@@ -542,28 +541,28 @@ const TeacherAssignment: FC<{
     try {
       // Ensure scannedText uses https if it starts with http
       let processedText = scannedText;
-      if (processedText.startsWith("http://")) {
-        processedText = processedText.replace(/^http:\/\//, "https://");
+      if (processedText.startsWith('http://')) {
+        processedText = processedText.replace(/^http:\/\//, 'https://');
       }
 
       const result = await api.getChapterIdbyQrLink(processedText);
       if (!result?.chapter_id) {
-        Toast.show({ text: t("Chapter Not Found") });
+        Toast.show({ text: t('Chapter Not Found') });
         return;
       }
       const lessonList = await api.getLessonsForChapter(result?.chapter_id);
       if (!lessonList || lessonList.length < 1) {
-        Toast.show({ text: t("No lessons found for this chapter") });
+        Toast.show({ text: t('No lessons found for this chapter') });
         return;
       }
       // Get course info for this chapter
-      const course = await api.getCourse(result.course_id ?? "");
+      const course = await api.getCourse(result.course_id ?? '');
       if (!course) {
-        Toast.show({ text: t("Course not found for this chapter") });
+        Toast.show({ text: t('Course not found for this chapter') });
         return;
       }
       const current_class = await Util.getCurrentClass();
-      const classId = current_class?.id ?? "";
+      const classId = current_class?.id ?? '';
       // Step 1: Load existing assignment cart
       const previousCart = currentUser?.id
         ? await api.getUserAssignmentCart(currentUser?.id)
@@ -628,8 +627,8 @@ const TeacherAssignment: FC<{
       });
       // await init();
     } catch (error) {
-      Toast.show({ text: t("Something Went wrong") });
-      console.error("Error processing scanned data:", error);
+      Toast.show({ text: t('Something Went wrong') });
+      console.error('Error processing scanned data:', error);
     }
   };
   return (
@@ -638,7 +637,7 @@ const TeacherAssignment: FC<{
         <Loading isLoading={loading} />
       ) : (
         <div className="teacher-assignments-page">
-          <p id="assignment-page-heading">{t("Assignments")}</p>
+          <p id="assignment-page-heading">{t('Assignments')}</p>
           <div className="manual-assignments">
             <div
               className="manual-assignments-header"
@@ -648,22 +647,22 @@ const TeacherAssignment: FC<{
             >
               <p
                 className="recommended-assignments-headings"
-                style={{ width: !manualCollapsed ? "60%" : "100%" }}
+                style={{ width: !manualCollapsed ? '60%' : '100%' }}
                 id="manual-assignments-heading"
               >
-                {t("Manual Assignments")}
+                {t('Manual Assignments')}
               </p>
               <div>
                 {manualCollapsed ? (
                   <img
                     src="assets/icons/iconDown.png"
                     alt="DropDown_Icon"
-                    style={{ width: "16px", height: "16px" }}
+                    style={{ width: '16px', height: '16px' }}
                   />
                 ) : (
                   <div className="select-all-container">
                     <label className="recommended-assignments-headings">
-                      {t("Select All")}
+                      {t('Select All')}
                     </label>
                     <input
                       className="select-all-container-checkbox"
@@ -696,7 +695,7 @@ const TeacherAssignment: FC<{
                   <div className="TeacherAssignment-Add-moreAssignments">
                     <p>
                       {t(
-                        "To add more assignments. Please use the buttons below to add assignments.",
+                        'To add more assignments. Please use the buttons below to add assignments.',
                       )}
                     </p>
                     <div className="TeacherAssignment-add-moreAssignments-button">
@@ -712,11 +711,11 @@ const TeacherAssignment: FC<{
                         <span
                           style={{
                             fontWeight: 500,
-                            color: "#444",
+                            color: '#444',
                             fontSize: 16,
                           }}
                         >
-                          {t("Library")}
+                          {t('Library')}
                         </span>
                       </div>
                       <div
@@ -724,17 +723,17 @@ const TeacherAssignment: FC<{
                         onClick={startScan}
                       >
                         <QrCode2Icon
-                          sx={{ color: "#7C5DB0" }}
+                          sx={{ color: '#7C5DB0' }}
                           className="TeacherAssignment-addAssignment-icon2"
                         />
                         <span
                           style={{
                             fontWeight: 500,
-                            color: "#444",
+                            color: '#444',
                             fontSize: 16,
                           }}
                         >
-                          {t("Scan QR")}
+                          {t('Scan QR')}
                         </span>
                       </div>
                     </div>
@@ -744,7 +743,7 @@ const TeacherAssignment: FC<{
                 <div className="TeacherAssignment-Add-moreAssignments">
                   <p>
                     {t(
-                      "You have not chosen any assignments. Please use the buttons below to add assignments.",
+                      'You have not chosen any assignments. Please use the buttons below to add assignments.',
                     )}
                   </p>
                   <div className="TeacherAssignment-add-moreAssignments-button">
@@ -758,9 +757,9 @@ const TeacherAssignment: FC<{
                         className="TeacherAssignment-addAssignment-icon1"
                       />
                       <span
-                        style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                        style={{ fontWeight: 500, color: '#444', fontSize: 16 }}
                       >
-                        {t("Library")}
+                        {t('Library')}
                       </span>
                     </div>
                     <div
@@ -768,13 +767,13 @@ const TeacherAssignment: FC<{
                       onClick={startScan}
                     >
                       <QrCode2Icon
-                        sx={{ color: "#7C5DB0" }}
+                        sx={{ color: '#7C5DB0' }}
                         className="TeacherAssignment-addAssignment-icon2"
                       />
                       <span
-                        style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                        style={{ fontWeight: 500, color: '#444', fontSize: 16 }}
                       >
-                        {t("Scan QR")}
+                        {t('Scan QR')}
                       </span>
                     </div>
                   </div>
@@ -791,23 +790,22 @@ const TeacherAssignment: FC<{
             >
               <p
                 className="recommended-assignments-headings"
-                style={{ width: !recommendedCollapsed ? "60%" : "100%" }}
+                style={{ width: !recommendedCollapsed ? '60%' : '100%' }}
                 id="recommended-assignments-heading"
               >
-                {t("Recommended Assignments")}
+                {t('Recommended Assignments')}
               </p>
               <div>
                 {recommendedCollapsed ? (
                   <img
                     src="assets/icons/iconDown.png"
                     alt="DropDown_Icon"
-                    style={{ width: "16px", height: "16px" }}
+                    style={{ width: '16px', height: '16px' }}
                   />
                 ) : (
                   <div className="select-all-container">
-                   
                     <label className="recommended-assignments-headings">
-                      {t("Select All")}
+                      {t('Select All')}
                     </label>
                     <input
                       className="select-all-container-checkbox"
@@ -855,8 +853,8 @@ const TeacherAssignment: FC<{
                 });
               } else {
                 await Toast.show({
-                  text: t("Please select the Assignment") || "",
-                  duration: "long",
+                  text: t('Please select the Assignment') || '',
+                  duration: 'long',
                 });
               }
             }}

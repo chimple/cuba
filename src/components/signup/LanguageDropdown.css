@@ -61,7 +61,7 @@
   left: 0;
   width: 100%;
   background: #fff;
-  border: 2px solid #F34D08;
+  border: 2px solid #f34d08;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   max-height: 220px;
@@ -72,7 +72,9 @@
   opacity: 0;
   transform: scaleY(0.95);
   transform-origin: top;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   z-index: 100;
   pointer-events: none;
 }

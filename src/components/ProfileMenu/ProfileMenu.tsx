@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import "./ProfileMenu.css";
+import { useEffect, useState } from 'react';
+import './ProfileMenu.css';
 import {
   AVATARS,
   CURRENT_MODE,
@@ -11,23 +11,23 @@ import {
   MODES,
   PAGES,
   TableTypes,
-} from "../../common/constants";
-import { useHistory } from "react-router";
-import { Util } from "../../utility/util";
-import { AvatarObj } from "../animation/Avatar";
-import ParentalLock from "../parent/ParentalLock";
-import { t } from "i18next";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '../../common/constants';
+import { useHistory } from 'react-router';
+import { Util } from '../../utility/util';
+import { AvatarObj } from '../animation/Avatar';
+import ParentalLock from '../parent/ParentalLock';
+import { t } from 'i18next';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   updateLocalAttributes,
   useGbContext,
-} from "../../growthbook/Growthbook";
-import { schoolUtil } from "../../utility/schoolUtil";
-import i18n from "../../i18n";
-import { useAppSelector } from "../../redux/hooks";
-import { AuthState } from "../../redux/slices/auth/authSlice";
-import { RootState } from "../../redux/store";
+} from '../../growthbook/Growthbook';
+import { schoolUtil } from '../../utility/schoolUtil';
+import i18n from '../../i18n';
+import { useAppSelector } from '../../redux/hooks';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -35,9 +35,9 @@ type ProfileMenuProps = {
 
 const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const history = useHistory();
-  const [student, setStudent] = useState<TableTypes<"user">>();
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
+  const [student, setStudent] = useState<TableTypes<'user'>>();
+  const [className, setClassName] = useState<string>('');
+  const [schoolName, setSchoolName] = useState<string>('');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
   const { setGbUpdated } = useGbContext();
@@ -83,7 +83,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const onStickerBook = () => {
     Util.logEvent(EVENTS.STICKER_BOOK_MENU_TAP, {
       user_id: student?.id,
-      source: "profile_menu",
+      source: 'profile_menu',
     });
     history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };
@@ -113,49 +113,49 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const allMenuItems = [
     {
-      icon: "/assets/icons/StickerBook.svg",
-      label: "Sticker Book",
+      icon: '/assets/icons/StickerBook.svg',
+      label: 'Sticker Book',
       onClick: onStickerBook,
     },
     {
-      icon: "/assets/icons/Ranking.svg",
-      label: "Leaderboard",
+      icon: '/assets/icons/Ranking.svg',
+      label: 'Leaderboard',
       onClick: onLeaderboard,
     },
     {
-      icon: "/assets/icons/TreasureChest.svg",
-      label: "Rewards",
+      icon: '/assets/icons/TreasureChest.svg',
+      label: 'Rewards',
       onClick: onReward,
     },
     {
-      icon: "/assets/icons/Pencil.svg",
-      label: "Edit Profile",
+      icon: '/assets/icons/Pencil.svg',
+      label: 'Edit Profile',
       onClick: onEdit,
     },
     {
-      icon: "/assets/icons/Account.svg",
-      label: "Parents Section",
+      icon: '/assets/icons/Account.svg',
+      label: 'Parents Section',
       onClick: () => setShowDialogBox(true),
     },
     {
-      icon: "/assets/icons/UserSwitch1.svg",
-      label: "Switch Profile",
+      icon: '/assets/icons/UserSwitch1.svg',
+      label: 'Switch Profile',
       onClick: onSwichUser,
     },
   ];
 
-  const HIDE_IN_SCHOOL = new Set(["Parents Section", "Edit Profile"]);
+  const HIDE_IN_SCHOOL = new Set(['Parents Section', 'Edit Profile']);
 
   const menuItems = allMenuItems
     .filter((item) =>
-      item.label === "Sticker Book" ? isStickerBookEnabled : true,
+      item.label === 'Sticker Book' ? isStickerBookEnabled : true,
     )
     .filter(
       (item) =>
         !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label)),
     )
     .map((item) =>
-      currentMode === MODES.SCHOOL && item.label === "Switch Profile"
+      currentMode === MODES.SCHOOL && item.label === 'Switch Profile'
         ? {
             ...item,
             onClick: () =>
@@ -170,7 +170,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   return (
     <div
       className={`profile-menu ${
-        isClosing ? "slide-out-right" : "slide-in-right"
+        isClosing ? 'slide-out-right' : 'slide-in-right'
       }`}
       onAnimationEnd={() => {
         if (isClosing) onClose();
@@ -181,7 +181,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         style={{
           background:
             'url("/pathwayAssets/pathwayBackground.svg") no-repeat center/cover',
-          borderRadius: "20px 0 0 0",
+          borderRadius: '20px 0 0 0',
         }}
       >
         <div
@@ -206,9 +206,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           <div className="profile-details">
             <span
               className="profile-header-name text-truncate"
-              style={{ marginBottom: hasDetails ? "8px" : "60px" }}
+              style={{ marginBottom: hasDetails ? '8px' : '60px' }}
             >
-              {student?.name ?? "Profile"}
+              {student?.name ?? 'Profile'}
             </span>
 
             {className && (
@@ -217,7 +217,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                   src="/assets/icons/classIcon.svg"
                   alt="class"
                   className="info-icon"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
                 <span className="sub-text text-truncate">{className}</span>
               </div>
@@ -229,7 +229,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                   src="/assets/icons/schoolIcon.svg"
                   alt="school"
                   className="info-icon"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
                 <span className="sub-text text-truncate">{schoolName}</span>
               </div>

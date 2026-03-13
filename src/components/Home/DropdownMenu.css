@@ -166,8 +166,10 @@
   opacity: 0;
   max-height: 0;
   pointer-events: none; /* avoid clicks when closed */
-  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
-    opacity 0.18s ease, max-height 0.28s ease;
+  transition:
+    transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
+    opacity 0.18s ease,
+    max-height 0.28s ease;
   will-change: transform, opacity, max-height;
 }
 
@@ -183,7 +185,9 @@
 .dropdownmenu-menu-item {
   opacity: 0;
   transform: translateY(-6px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 
 /* Use descendant selector so items animate only when list is open */

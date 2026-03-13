@@ -16,7 +16,6 @@
   height: 100vh;
 }
 .course-icon {
-  
   margin-top: 3vh;
   width: clamp(26vh, 28vh, 37vh);
   height: clamp(13vh, 49vh, 71vh);
@@ -52,7 +51,7 @@
 
 .subject-header {
   display: flex;
-  
+
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;

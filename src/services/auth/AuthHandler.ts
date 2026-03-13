@@ -1,6 +1,6 @@
-import { ServiceAuth } from "./ServiceAuth";
-import { TableTypes } from "../../common/constants";
-import { Session, User, UserAttributes } from "@supabase/supabase-js";
+import { ServiceAuth } from './ServiceAuth';
+import { TableTypes } from '../../common/constants';
+import { Session, User, UserAttributes } from '@supabase/supabase-js';
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -21,16 +21,16 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user"> | null;
+    userData?: TableTypes<'user'> | null;
   }> {
     return await this.s.googleSign();
   }
 
-  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
     return await this.s.getCurrentUser();
   }
 
-  public set currentUser(user: TableTypes<"user">) {
+  public set currentUser(user: TableTypes<'user'>) {
     this.s.currentUser = user;
   }
 
@@ -63,7 +63,7 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user"> | null;
+    userData?: TableTypes<'user'> | null;
   }> {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
@@ -76,7 +76,7 @@ export class AuthHandler implements ServiceAuth {
         user: User | null;
         isUserExist: boolean;
         isSpl: boolean;
-        userData?: TableTypes<"user"> | null;
+        userData?: TableTypes<'user'> | null;
       }
     | undefined
   > {
@@ -100,7 +100,7 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user">;
+    userData?: TableTypes<'user'>;
   }> {
     return await this.s.signInWithEmail(email, password);
   }

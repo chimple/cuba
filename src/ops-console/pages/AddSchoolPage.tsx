@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
-import Breadcrumb from "../components/Breadcrumb";
-import { Box, Grid, Typography, FormLabel, TextField } from "@mui/material";
-import ContactFormSection from "../components/SchoolRequestComponents/ContactFormSection";
-import "./AddSchoolPage.css";
-import { t } from "i18next";
-import { PAGES } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory, useLocation } from "react-router-dom";
-import { RoleType } from "../../interface/modelInterfaces";
-import DropdownField from "../components/DropdownField";
+import React, { useEffect, useState } from 'react';
+import Breadcrumb from '../components/Breadcrumb';
+import { Box, Grid, Typography, FormLabel, TextField } from '@mui/material';
+import ContactFormSection from '../components/SchoolRequestComponents/ContactFormSection';
+import './AddSchoolPage.css';
+import { t } from 'i18next';
+import { PAGES } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory, useLocation } from 'react-router-dom';
+import { RoleType } from '../../interface/modelInterfaces';
+import DropdownField from '../components/DropdownField';
 
-const DEFAULT_COUNTRY = "INDIA";
+const DEFAULT_COUNTRY = 'INDIA';
 
 const AddSchoolPage: React.FC = () => {
   const history = useHistory();
@@ -18,15 +18,15 @@ const AddSchoolPage: React.FC = () => {
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState(true);
-  const [schoolName, setSchoolName] = useState("");
-  const [udise, setUdise] = useState("");
-  const [schoolModel, setSchoolModel] = useState("");
+  const [schoolName, setSchoolName] = useState('');
+  const [udise, setUdise] = useState('');
+  const [schoolModel, setSchoolModel] = useState('');
 
   const [program, setProgram] = useState<any>(null);
   const [programs, setPrograms] = useState<any[]>([]);
   const [fieldCoordinator, setFieldCoordinator] = useState<any>(null);
   const [fieldCoordinators, setFieldCoordinators] = useState<any[]>([]);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const [lockDropdowns, setLockDropdowns] = useState(false);
   const [states, setStates] = useState<string[]>([]);
   const [districts, setDistricts] = useState<string[]>([]);
@@ -39,28 +39,28 @@ const AddSchoolPage: React.FC = () => {
   const [initialData, setInitialData] = useState<any>(null);
 
   const [address, setAddress] = useState({
-    state: "",
-    district: "",
-    block: "",
-    cluster: "",
-    address: "",
-    link: "",
+    state: '',
+    district: '',
+    block: '',
+    cluster: '',
+    address: '',
+    link: '',
   });
 
   const [contacts, setContacts] = useState([
     {
-      subheader: t("Contact") + " 1",
+      subheader: t('Contact') + ' 1',
       required: true,
       fields: [
-        { label: t("Name"), name: "name", value: "", required: true },
-        { label: t("Phone Number"), name: "phone", value: "", required: true },
+        { label: t('Name'), name: 'name', value: '', required: true },
+        { label: t('Phone Number'), name: 'phone', value: '', required: true },
       ],
     },
     {
-      subheader: t("Contact") + " 2",
+      subheader: t('Contact') + ' 2',
       fields: [
-        { label: t("Name"), name: "name", value: "" },
-        { label: t("Phone Number"), name: "phone", value: "" },
+        { label: t('Name'), name: 'name', value: '' },
+        { label: t('Phone Number'), name: 'phone', value: '' },
       ],
     },
   ]);
@@ -70,17 +70,17 @@ const AddSchoolPage: React.FC = () => {
 
     const school = editData.schoolData;
 
-    setSchoolName(school?.name || "");
-    setUdise(school?.udise || "");
-    setSchoolModel(school?.model || "");
+    setSchoolName(school?.name || '');
+    setUdise(school?.udise || '');
+    setSchoolModel(school?.model || '');
 
     setAddress({
-      state: school?.group1 || "",
-      district: school?.group2 || "",
-      block: school?.group3 || "",
-      cluster: school?.group4 || "",
-      address: school?.address || "",
-      link: school?.location_link || "",
+      state: school?.group1 || '',
+      district: school?.group2 || '',
+      block: school?.group3 || '',
+      cluster: school?.group4 || '',
+      address: school?.address || '',
+      link: school?.location_link || '',
     });
 
     const rawKeyContacts = school?.key_contacts;
@@ -88,7 +88,7 @@ const AddSchoolPage: React.FC = () => {
     if (rawKeyContacts) {
       try {
         parsedKeyContacts =
-          typeof rawKeyContacts === "string"
+          typeof rawKeyContacts === 'string'
             ? JSON.parse(rawKeyContacts)
             : rawKeyContacts;
         if (!Array.isArray(parsedKeyContacts)) parsedKeyContacts = [];
@@ -109,19 +109,19 @@ const AddSchoolPage: React.FC = () => {
           required: i === 0,
           fields: [
             {
-              label: t("Name"),
-              name: "name",
-              value: c.name || "",
+              label: t('Name'),
+              name: 'name',
+              value: c.name || '',
               required: i === 0,
             },
             {
-              label: t("Phone Number"),
-              name: "phone",
-              value: c.phone || "",
+              label: t('Phone Number'),
+              name: 'phone',
+              value: c.phone || '',
               required: i === 0,
             },
           ],
-        }))
+        })),
       );
     }
 
@@ -148,20 +148,20 @@ const AddSchoolPage: React.FC = () => {
     const school = editData.schoolData;
 
     setInitialData({
-      schoolName: school?.name || "",
-      udise: school?.udise || "",
-      schoolModel: school?.model || "",
+      schoolName: school?.name || '',
+      udise: school?.udise || '',
+      schoolModel: school?.model || '',
       address: {
-        state: school?.group1 || "",
-        district: school?.group2 || "",
-        block: school?.group3 || "",
-        cluster: school?.group4 || "",
-        address: school?.address || "",
-        link: school?.location_link || "",
+        state: school?.group1 || '',
+        district: school?.group2 || '',
+        block: school?.group3 || '',
+        cluster: school?.group4 || '',
+        address: school?.address || '',
+        link: school?.location_link || '',
       },
       programId: editData.programData?.id || null,
       fieldCoordinatorId: fieldCoordinator?.id || null,
-      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || '')),
     });
   }, [editData, program, fieldCoordinator]);
 
@@ -174,7 +174,7 @@ const AddSchoolPage: React.FC = () => {
       address,
       programId: program?.id,
       fieldCoordinatorId: fieldCoordinator?.id,
-      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || '')),
     };
 
     return JSON.stringify(initialData) !== JSON.stringify(currentData);
@@ -184,17 +184,17 @@ const AddSchoolPage: React.FC = () => {
     setAddress((prev) => {
       const updated = { ...prev, [name]: value };
 
-      if (name === "state") {
-        updated.district = "";
-        updated.block = "";
-        updated.cluster = "";
+      if (name === 'state') {
+        updated.district = '';
+        updated.block = '';
+        updated.cluster = '';
       }
-      if (name === "district") {
-        updated.block = "";
-        updated.cluster = "";
+      if (name === 'district') {
+        updated.block = '';
+        updated.cluster = '';
       }
-      if (name === "block") {
-        updated.cluster = "";
+      if (name === 'block') {
+        updated.cluster = '';
       }
       return updated;
     });
@@ -203,12 +203,12 @@ const AddSchoolPage: React.FC = () => {
   const handleContactChange = (
     contactIndex: number,
     fieldName: string,
-    value: string
+    value: string,
   ) => {
     setContacts((prev) => {
       const updated = [...prev];
       updated[contactIndex].fields = updated[contactIndex].fields.map((f) =>
-        f.name === fieldName ? { ...f, value } : f
+        f.name === fieldName ? { ...f, value } : f,
       );
       return updated;
     });
@@ -225,23 +225,24 @@ const AddSchoolPage: React.FC = () => {
       !!fieldCoordinator &&
       !!contacts[0].fields[0].value &&
       !!contacts[0].fields[1].value &&
-      (contacts[0].fields[1].value?.length === 10) &&
-      (contacts[1].fields[1].value?.length === 0 || contacts[1].fields[1].value?.length === 10)&&
+      contacts[0].fields[1].value?.length === 10 &&
+      (contacts[1].fields[1].value?.length === 0 ||
+        contacts[1].fields[1].value?.length === 10) &&
       !errorMessage;
 
     return editData ? !isFormValid || !hasChanges() : !isFormValid;
   };
 
   const handleUdiseChange = async (value: string) => {
-    value = value.replace(/\D/g, "").slice(0, 11);
+    value = value.replace(/\D/g, '').slice(0, 11);
     setUdise(value);
-    setErrorMessage("");
+    setErrorMessage('');
 
     if (value.length === 11) {
       try {
         const exist = await api.getSchoolDetailsByUdise(value);
-        if (exist &&  (!editData || editData.schoolData.udise !== value)) {
-          setErrorMessage("A school with this UDISE code already exists.");
+        if (exist && (!editData || editData.schoolData.udise !== value)) {
+          setErrorMessage('A school with this UDISE code already exists.');
           return;
         }
         const res = await api.getSchoolDataByUdise(value);
@@ -257,7 +258,7 @@ const AddSchoolPage: React.FC = () => {
           }));
         }
       } catch (err) {
-        console.error("UDISE fetch error:", err);
+        console.error('UDISE fetch error:', err);
       }
     }
   };
@@ -382,28 +383,28 @@ const AddSchoolPage: React.FC = () => {
           address.cluster,
           program.id,
           udise,
-          address.address
+          address.address,
         );
         await api.insertSchoolDetails(
           editData.schoolData.id,
           schoolModel,
           address.link,
-          keyContacts
+          keyContacts,
         );
-        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
           await api.createAtSchoolUser(
             editData.schoolData.id,
             schoolName,
             udise,
             RoleType.AUTOUSER,
-            true
+            true,
           );
         }
-        if (!lockDropdowns && schoolModel !== "at_school") {
+        if (!lockDropdowns && schoolModel !== 'at_school') {
           await api.addUserToSchool(
             editData.schoolData.id,
             fieldCoordinator,
-            RoleType.FIELD_COORDINATOR
+            RoleType.FIELD_COORDINATOR,
           );
         }
       } else {
@@ -419,36 +420,36 @@ const AddSchoolPage: React.FC = () => {
           address.address,
           DEFAULT_COUNTRY,
           true,
-          false
+          false,
         );
         await api.insertSchoolDetails(
           school.id,
           schoolModel,
           address.link,
-          keyContacts
+          keyContacts,
         );
-        if(schoolModel=="at_school" || schoolModel=="hybrid") {
+        if (schoolModel == 'at_school' || schoolModel == 'hybrid') {
           await api.createAtSchoolUser(
             school.id,
             schoolName,
             udise,
             RoleType.AUTOUSER,
-            true
+            true,
           );
         }
 
-        if(schoolModel !== "at_school") {
+        if (schoolModel !== 'at_school') {
           await api.addUserToSchool(
             school.id,
             fieldCoordinator,
-            RoleType.FIELD_COORDINATOR
+            RoleType.FIELD_COORDINATOR,
           );
         }
       }
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
-      console.error("Save error:", err);
+      console.error('Save error:', err);
     } finally {
       setIsSaving(false);
     }
@@ -462,15 +463,15 @@ const AddSchoolPage: React.FC = () => {
             !editData
               ? [
                   {
-                    label: t("Schools"),
+                    label: t('Schools'),
                     onClick: () =>
                       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
                   },
-                  { label: t("Add School") },
+                  { label: t('Add School') },
                 ]
               : [
                   {
-                    label: "Schools",
+                    label: 'Schools',
                     onClick: () =>
                       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
                   },
@@ -479,7 +480,7 @@ const AddSchoolPage: React.FC = () => {
                     onClick: () => history.goBack(),
                   },
                   {
-                    label: "Edit",
+                    label: 'Edit',
                   },
                 ]
           }
@@ -489,37 +490,37 @@ const AddSchoolPage: React.FC = () => {
       <div className="add-school-container">
         <Box
           sx={{
-            borderRadius: "8px",
-            padding: "10px",
-            marginBottom: "20px",
-            backgroundColor: "#f9fbfd",
+            borderRadius: '8px',
+            padding: '10px',
+            marginBottom: '20px',
+            backgroundColor: '#f9fbfd',
           }}
         >
           <Typography
             variant="subtitle2"
             fontWeight="bold"
-            sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}
+            sx={{ marginBottom: '16px', fontSize: '1rem', color: '#111827' }}
           >
-            {t("School Details")}
+            {t('School Details')}
           </Typography>
 
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4.5 }}>
-              <FormLabel sx={{ color: "#111827" }}>
-                {t("School Name")} <span className="add-school-requird">*</span>
+              <FormLabel sx={{ color: '#111827' }}>
+                {t('School Name')} <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
                 fullWidth
                 size="small"
                 value={schoolName}
-                placeholder={t("School Name") ?? ""}
+                placeholder={t('School Name') ?? ''}
                 onChange={(e) => setSchoolName(e.target.value)}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 4.5 }}>
-              <FormLabel sx={{ color: "#111827" }}>
-                {t("School ID (UDISE)")}{" "}
+              <FormLabel sx={{ color: '#111827' }}>
+                {t('School ID (UDISE)')}{' '}
                 <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
@@ -528,10 +529,10 @@ const AddSchoolPage: React.FC = () => {
                 value={udise}
                 inputProps={{
                   maxLength: 11,
-                  inputMode: "numeric",
-                  pattern: "[0-9]*",
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
                 }}
-                placeholder={t("Enter 11 digit UDISE code") ?? ""}
+                placeholder={t('Enter 11 digit UDISE code') ?? ''}
                 onChange={(e) => handleUdiseChange(e.target.value)}
               />
               {errorMessage && (
@@ -541,15 +542,15 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 3 }}>
               <DropdownField
-                label={t("School") + " " + t("Model")}
+                label={t('School') + ' ' + t('Model')}
                 required
                 value={schoolModel}
                 onChange={setSchoolModel}
-                placeholder={t("Select Model") ?? ""}
+                placeholder={t('Select Model') ?? ''}
                 options={[
-                  { label: t("At Home"), value: "at_home" },
-                  { label: t("At School"), value: "at_school" },
-                  { label: t("Hybrid"), value: "hybrid" },
+                  { label: t('At Home'), value: 'at_home' },
+                  { label: t('At School'), value: 'at_school' },
+                  { label: t('Hybrid'), value: 'hybrid' },
                 ]}
                 openDirection="down"
               />
@@ -558,29 +559,29 @@ const AddSchoolPage: React.FC = () => {
         </Box>
         <Box
           sx={{
-            borderRadius: "8px",
-            padding: "10px",
-            marginBottom: "20px",
-            backgroundColor: "#f9fbfd",
+            borderRadius: '8px',
+            padding: '10px',
+            marginBottom: '20px',
+            backgroundColor: '#f9fbfd',
           }}
         >
           <Typography
             variant="subtitle2"
             fontWeight="bold"
-            sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}
+            sx={{ marginBottom: '16px', fontSize: '1rem', color: '#111827' }}
           >
-            {t("Address & Location")}
+            {t('Address & Location')}
           </Typography>
 
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 6 }}>
               <DropdownField
-                label={t("State")}
+                label={t('State')}
                 required
                 value={address.state}
-                onChange={(val) => handleAddressChange("state", val)}
+                onChange={(val) => handleAddressChange('state', val)}
                 options={states}
-                placeholder={t("Select State") ?? ""}
+                placeholder={t('Select State') ?? ''}
                 loading={isStatesLoading}
                 disabled={isStatesLoading}
                 openDirection="down"
@@ -589,12 +590,12 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <DropdownField
-                label={t("District")}
+                label={t('District')}
                 required
                 value={address.district}
-                onChange={(val) => handleAddressChange("district", val)}
+                onChange={(val) => handleAddressChange('district', val)}
                 options={districts}
-                placeholder={t("Select District") ?? ""}
+                placeholder={t('Select District') ?? ''}
                 disabled={!address.state}
                 loading={isDistrictsLoading}
                 openDirection="down"
@@ -602,14 +603,14 @@ const AddSchoolPage: React.FC = () => {
             </Grid>
           </Grid>
 
-          <Grid container spacing={2} sx={{ marginTop: "8px" }}>
+          <Grid container spacing={2} sx={{ marginTop: '8px' }}>
             <Grid size={{ xs: 12, md: 6 }}>
               <DropdownField
-                label={t("Block")}
+                label={t('Block')}
                 value={address.block}
-                onChange={(val) => handleAddressChange("block", val)}
+                onChange={(val) => handleAddressChange('block', val)}
                 options={blocks}
-                placeholder={t("Select Block") ?? ""}
+                placeholder={t('Select Block') ?? ''}
                 disabled={!address.district}
                 loading={isBlocksLoading}
                 openDirection="down"
@@ -618,15 +619,15 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <FormLabel
-                sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
+                sx={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}
               >
-                {t("Cluster")}
+                {t('Cluster')}
               </FormLabel>
               <TextField
                 fullWidth
-                placeholder={t("Enter Cluster") ?? ""}
+                placeholder={t('Enter Cluster') ?? ''}
                 value={address.cluster}
-                onChange={(e) => handleAddressChange("cluster", e.target.value)}
+                onChange={(e) => handleAddressChange('cluster', e.target.value)}
                 variant="outlined"
                 size="small"
               />
@@ -634,14 +635,14 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 6 }}>
               <FormLabel
-                sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
+                sx={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}
               >
-                {t("Location link")}
+                {t('Location link')}
               </FormLabel>
               <TextField
                 fullWidth
                 value={address.link}
-                onChange={(e) => handleAddressChange("link", e.target.value)}
+                onChange={(e) => handleAddressChange('link', e.target.value)}
                 variant="outlined"
                 size="small"
               />
@@ -650,28 +651,28 @@ const AddSchoolPage: React.FC = () => {
         </Box>
 
         <ContactFormSection
-          title={t("Key Contacts")}
+          title={t('Key Contacts')}
           fields={contacts}
           onChange={handleContactChange}
         />
 
         <Box className="add-school-dropdown-container">
           <Typography variant="h6" className="add-school-dropdown-title">
-            {t("Program Details")}
+            {t('Program Details')}
           </Typography>
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 3.5 }}>
               <DropdownField
-                label={t("Program Name")}
+                label={t('Program Name')}
                 required
-                value={program?.id || ""}
+                value={program?.id || ''}
                 onChange={(val) => {
                   const selected = programs.find((p) => p.id === val);
                   setProgram(selected || null);
                 }}
                 options={programs.map((p) => ({ label: p.name, value: p.id }))}
-                placeholder={t("Select Program") ?? ""}
+                placeholder={t('Select Program') ?? ''}
                 disabled={lockDropdowns}
                 openDirection="down"
               />
@@ -679,9 +680,9 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 3.5 }}>
               <DropdownField
-                label={t("Field Coordinator")}
+                label={t('Field Coordinator')}
                 required
-                value={fieldCoordinator?.id || ""}
+                value={fieldCoordinator?.id || ''}
                 onChange={(val) => {
                   const selected = fieldCoordinators.find((f) => f.id === val);
                   setFieldCoordinator(selected || null);
@@ -690,7 +691,7 @@ const AddSchoolPage: React.FC = () => {
                   label: fc.name,
                   value: fc.id,
                 }))}
-                placeholder={t("Select Field Coordinator") ?? ""}
+                placeholder={t('Select Field Coordinator') ?? ''}
                 disabled={lockDropdowns}
                 openDirection="down"
               />
@@ -703,7 +704,7 @@ const AddSchoolPage: React.FC = () => {
             className="add-school-cancel-btn"
             onClick={() => history.goBack()}
           >
-            {t("Cancel")}
+            {t('Cancel')}
           </button>
 
           <button
@@ -711,7 +712,7 @@ const AddSchoolPage: React.FC = () => {
             onClick={handleApprove}
             disabled={isSaveDisabled() || isSaving}
           >
-            {isSaving ? t("Saving") + "..." : t("Save")}
+            {isSaving ? t('Saving') + '...' : t('Save')}
           </button>
         </div>
       </div>

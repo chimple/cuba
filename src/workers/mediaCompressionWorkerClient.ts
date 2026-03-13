@@ -3,7 +3,7 @@ import {
   CompressWorkerRequest,
   CompressWorkerResponse,
   VideoQuality,
-} from "./mediaCompression.worker.types";
+} from './mediaCompression.worker.types';
 
 type CompressOptions = {
   signal?: AbortSignal;
@@ -35,7 +35,7 @@ const getWorker = (): Worker => {
     return workerInstance;
   }
   workerInstance = new Worker(
-    new URL("./mediaCompression.worker.ts", import.meta.url),
+    new URL('./mediaCompression.worker.ts', import.meta.url),
   );
   workerInstance.onmessage = (event: MessageEvent<CompressWorkerResponse>) => {
     const response = event.data;
@@ -43,21 +43,21 @@ const getWorker = (): Worker => {
     if (!pending) {
       return;
     }
-    if ("progress" in response) {
+    if ('progress' in response) {
       const progressEvent = response as CompressWorkerProgressResponse;
       pending.onProgress?.(Math.max(0, Math.min(1, progressEvent.progress)));
       return;
     }
     pendingTasks.delete(response.id);
     if (pending.signal && pending.abortListener) {
-      pending.signal.removeEventListener("abort", pending.abortListener);
+      pending.signal.removeEventListener('abort', pending.abortListener);
     }
     if (!response.ok) {
       pending.reject(new Error(response.error));
       return;
     }
-    if (!("done" in response) || !response.done) {
-      pending.reject(new Error("Unexpected media worker response"));
+    if (!('done' in response) || !response.done) {
+      pending.reject(new Error('Unexpected media worker response'));
       return;
     }
     const { result } = response;
@@ -66,10 +66,10 @@ const getWorker = (): Worker => {
     );
   };
   workerInstance.onerror = (event: ErrorEvent) => {
-    const error = new Error(event.message || "Media compression worker error");
+    const error = new Error(event.message || 'Media compression worker error');
     for (const [, pending] of pendingTasks) {
       if (pending.signal && pending.abortListener) {
-        pending.signal.removeEventListener("abort", pending.abortListener);
+        pending.signal.removeEventListener('abort', pending.abortListener);
       }
       pending.reject(error);
     }
@@ -78,49 +78,50 @@ const getWorker = (): Worker => {
   return workerInstance;
 };
 
-const fileToArrayBuffer = async (file: File): Promise<ArrayBuffer> => file.arrayBuffer();
+const fileToArrayBuffer = async (file: File): Promise<ArrayBuffer> =>
+  file.arrayBuffer();
 
 export const runMediaCompressionTask = async (
-  type: CompressWorkerRequest["type"],
+  type: CompressWorkerRequest['type'],
   file: File,
   options: CompressOptions = {},
 ): Promise<File> => {
   if (options.signal?.aborted) {
-    throw new DOMException("Aborted", "AbortError");
+    throw new DOMException('Aborted', 'AbortError');
   }
   const worker = getWorker();
   const id = createRequestId();
   const buffer = await fileToArrayBuffer(file);
   const payloadBase = {
     fileName: file.name,
-    mimeType: file.type || "application/octet-stream",
+    mimeType: file.type || 'application/octet-stream',
     buffer,
   };
   const request: CompressWorkerRequest =
-    type === "COMPRESS_VIDEO"
+    type === 'COMPRESS_VIDEO'
       ? {
           id,
           type,
           payload: {
             ...payloadBase,
-            quality: options.videoQuality ?? "medium",
+            quality: options.videoQuality ?? 'medium',
           },
         }
-      : type === "COMPRESS_IMAGE_CANVAS"
-      ? {
-          id,
-          type,
-          payload: {
-            ...payloadBase,
-            maxImageDimension: options.maxImageDimension ?? 1080,
-            imageQuality: options.imageQuality ?? 0.72,
-          },
-        }
-      : {
-          id,
-          type,
-          payload: payloadBase,
-        };
+      : type === 'COMPRESS_IMAGE_CANVAS'
+        ? {
+            id,
+            type,
+            payload: {
+              ...payloadBase,
+              maxImageDimension: options.maxImageDimension ?? 1080,
+              imageQuality: options.imageQuality ?? 0.72,
+            },
+          }
+        : {
+            id,
+            type,
+            payload: payloadBase,
+          };
 
   return new Promise<File>((resolve, reject) => {
     const task: PendingMediaTask = {
@@ -131,11 +132,11 @@ export const runMediaCompressionTask = async (
     };
     const abortListener = () => {
       pendingTasks.delete(id);
-      reject(new DOMException("Aborted", "AbortError"));
+      reject(new DOMException('Aborted', 'AbortError'));
     };
     if (options.signal) {
       task.abortListener = abortListener;
-      options.signal.addEventListener("abort", abortListener, { once: true });
+      options.signal.addEventListener('abort', abortListener, { once: true });
     }
     pendingTasks.set(id, task);
     worker.postMessage(request, [request.payload.buffer]);
@@ -150,9 +151,9 @@ export const terminateMediaCompressionWorker = () => {
   workerInstance = null;
   for (const [, pending] of pendingTasks) {
     if (pending.signal && pending.abortListener) {
-      pending.signal.removeEventListener("abort", pending.abortListener);
+      pending.signal.removeEventListener('abort', pending.abortListener);
     }
-    pending.reject(new Error("Media compression worker terminated"));
+    pending.reject(new Error('Media compression worker terminated'));
   }
   pendingTasks.clear();
 };

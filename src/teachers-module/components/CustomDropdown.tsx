@@ -1,12 +1,8 @@
-import React from "react";
-import {
-  IonIcon,
-  IonSelect,
-  IonSelectOption,
-} from "@ionic/react";
-import "./CustomDropdown.css";
-import { arrowDown, caretDownSharp } from "ionicons/icons";
-import { t } from "i18next";
+import React from 'react';
+import { IonIcon, IonSelect, IonSelectOption } from '@ionic/react';
+import './CustomDropdown.css';
+import { arrowDown, caretDownSharp } from 'ionicons/icons';
+import { t } from 'i18next';
 interface CustomDropdownProps extends React.ComponentProps<typeof IonSelect> {
   icon?: string;
   options: { id: string | number; name: string }[];
@@ -28,17 +24,19 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   return (
     <div
       className="custom-dropdown-container"
-      style={{ borderBottom: !isDownBorder ? "0px" : "none" }}
+      style={{ borderBottom: !isDownBorder ? '0px' : 'none' }}
     >
       <IonSelect
         value={selectedValue.id}
         placeholder={selectProps.placeholder}
         onIonChange={(e) =>
-          onOptionSelect(options.find((option) => option.id === e.detail.value)!)
+          onOptionSelect(
+            options.find((option) => option.id === e.detail.value)!,
+          )
         }
         interface="popover" // or "action-sheet", "alert"
         className="customdropdown-select"
-        {...selectProps} 
+        {...selectProps}
       >
         {options.map((option) => (
           <IonSelectOption

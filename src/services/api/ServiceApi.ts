@@ -1,7 +1,7 @@
-import User from "../../models/user";
-import Course from "../../models/course";
-import Lesson from "../../models/lesson";
-import { StudentLessonResult } from "../../common/courseConstants";
+import User from '../../models/user';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
+import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
   CoordinatorAPIResponse,
@@ -26,25 +26,25 @@ import {
   SchoolVisitAction,
   SchoolVisitType,
   RESULT_STATUS,
-} from "../../common/constants";
-import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData } from "firebase/firestore";
+} from '../../common/constants';
+import { AvatarObj } from '../../components/animation/Avatar';
+import { DocumentData } from 'firebase/firestore';
 import {
   RoleType,
   CreateSchoolNoteInput,
   SchoolNote,
-} from "../../interface/modelInterfaces";
+} from '../../interface/modelInterfaces';
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
-} from "../../ops-console/pages/NewUserPageOps";
-import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
+} from '../../ops-console/pages/NewUserPageOps';
+import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import {
   PaginatedResponse,
   StickerBook,
   UserStickerProgress,
-} from "../../interface/modelInterfaces";
-import { Json } from "../database";
+} from '../../interface/modelInterfaces';
+import { Json } from '../database';
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -81,7 +81,7 @@ export type GetSchoolsWithProgramAccessParams = {
   page?: number;
   pageSize?: number;
   orderBy?: string;
-  orderDir?: "asc" | "desc";
+  orderDir?: 'asc' | 'desc';
   search?: string;
   includeMigratedCounts?: boolean;
 };
@@ -102,7 +102,7 @@ export type SchoolProgramAccessResponse = {
 };
 
 type OpsRequestsResponse = {
-  data: Array<TableTypes<"ops_requests"> | Record<string, Json>>;
+  data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
   total: number;
   totalPages: number;
   page: number;
@@ -120,7 +120,7 @@ type RequestFilterOptions = {
 };
 
 type FcUserFormSaveResult = {
-  data: TableTypes<"fc_user_forms"> | null;
+  data: TableTypes<'fc_user_forms'> | null;
   error: object | null;
 };
 
@@ -166,7 +166,7 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
   /**
    * Creates a new school and returns the created school object.
    * @param {string} name - Name of the school.
@@ -194,7 +194,7 @@ export interface ServiceApi {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
-  ): Promise<TableTypes<"school">>;
+  ): Promise<TableTypes<'school'>>;
   /**
    * Updates the school details and returns the updated school object.
    * @param {TableTypes<"school">} school - The existing school object.
@@ -210,7 +210,7 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"school">>} The updated school object.
    */
   updateSchoolProfile(
-    school: TableTypes<"school">,
+    school: TableTypes<'school'>,
     name: string,
     group1: string,
     group2: string,
@@ -220,7 +220,7 @@ export interface ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-  ): Promise<TableTypes<"school">>;
+  ): Promise<TableTypes<'school'>>;
 
   /**
    * Updates the school's location (coordinates).
@@ -250,11 +250,11 @@ export interface ServiceApi {
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
-  ): Promise<TableTypes<"fc_school_visit"> | null>;
+  ): Promise<TableTypes<'fc_school_visit'> | null>;
 
   getLastSchoolVisit(
     schoolId: string,
-  ): Promise<TableTypes<"fc_school_visit"> | null>;
+  ): Promise<TableTypes<'fc_school_visit'> | null>;
 
   /**
    * Clears all rows from the specified tables in the local SQLite database.
@@ -273,7 +273,7 @@ export interface ServiceApi {
     city: string,
     image: File | null,
     udise_id?: string,
-  ): Promise<TableTypes<"req_new_school"> | null>;
+  ): Promise<TableTypes<'req_new_school'> | null>;
 
   /**
    * Soft-deletes all approved ops requests for a specific user.
@@ -297,7 +297,7 @@ export interface ServiceApi {
 
   getExistingSchoolRequest(
     requested_by: string,
-  ): Promise<TableTypes<"ops_requests"> | null>;
+  ): Promise<TableTypes<'ops_requests'> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
@@ -337,7 +337,7 @@ export interface ServiceApi {
     classId: string,
     role: string,
     studentId: string,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   updateClassCourseSelection(
     classId: string,
@@ -349,11 +349,11 @@ export interface ServiceApi {
     selectedCourseIds: string[],
   ): Promise<void>;
 
-  getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
+  getCoursesByClassId(classId: string): Promise<TableTypes<'class_course'>[]>;
 
   getCoursesBySchoolId(
     schoolId: string,
-  ): Promise<TableTypes<"school_course">[]>;
+  ): Promise<TableTypes<'school_course'>[]>;
 
   /**
    * To delete 'courses' with given class IDs from the class_course table.
@@ -395,64 +395,64 @@ export interface ServiceApi {
    * Gives all `Curriculums` available on database
    * @returns {Curriculum[]} Array of `Curriculum` objects
    */
-  getAllCurriculums(): Promise<TableTypes<"curriculum">[]>;
+  getAllCurriculums(): Promise<TableTypes<'curriculum'>[]>;
 
   /**
    * Gives all `Grades` available on database
    * @returns {Grade[]} Array of `Grade` objects
    */
-  getAllGrades(): Promise<TableTypes<"grade">[]>;
+  getAllGrades(): Promise<TableTypes<'grade'>[]>;
   /**
    * @param id - The ID of the grade.
    * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `id`
    */
-  getGradeById(id: string): Promise<TableTypes<"grade"> | undefined>;
+  getGradeById(id: string): Promise<TableTypes<'grade'> | undefined>;
   /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */
-  getGradesByIds(ids: string[]): Promise<TableTypes<"grade">[]>;
+  getGradesByIds(ids: string[]): Promise<TableTypes<'grade'>[]>;
 
   /**
    * @param id - The ID of the curriculum.
    * @returns {TableTypes<"curriculum">} or `undefined` if it could not find the curriculum with given `id`
    */
-  getCurriculumById(id: string): Promise<TableTypes<"curriculum"> | undefined>;
+  getCurriculumById(id: string): Promise<TableTypes<'curriculum'> | undefined>;
   /**
    * @param ids - IDs of the curriculum.
    * @returns {TableTypes<"curriculum">} or [] if it could not find the curriculum with given `ids`
    */
-  getCurriculumsByIds(ids: string[]): Promise<TableTypes<"curriculum">[]>;
+  getCurriculumsByIds(ids: string[]): Promise<TableTypes<'curriculum'>[]>;
 
   /**
    * Gives all `Languages` available on database
    * @returns {Language[]} Array of `Language` objects
    */
-  getAllLanguages(): Promise<TableTypes<"language">[]>;
+  getAllLanguages(): Promise<TableTypes<'language'>[]>;
 
   /**
    * Gives all `student` profiles available for a parent
    * @returns {User[]} Array of `User` objects
    */
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
+  getParentStudentProfiles(): Promise<TableTypes<'user'>[]>;
   getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
     boardDocId: string | null | undefined,
-  ): Promise<TableTypes<"course">[]>;
+  ): Promise<TableTypes<'course'>[]>;
 
-  get currentStudent(): TableTypes<"user"> | undefined;
+  get currentStudent(): TableTypes<'user'> | undefined;
 
-  set currentStudent(value: TableTypes<"user"> | undefined);
-  get currentClass(): TableTypes<"class"> | undefined;
-  set currentClass(value: TableTypes<"class"> | undefined);
+  set currentStudent(value: TableTypes<'user'> | undefined);
+  get currentClass(): TableTypes<'class'> | undefined;
+  set currentClass(value: TableTypes<'class'> | undefined);
   get currentCourse():
-    | Map<string, TableTypes<"course"> | undefined>
+    | Map<string, TableTypes<'course'> | undefined>
     | undefined;
   set currentCourse(
-    value: Map<string, TableTypes<"course"> | undefined> | undefined,
+    value: Map<string, TableTypes<'course'> | undefined> | undefined,
   );
-  get currentSchool(): TableTypes<"school"> | undefined;
-  set currentSchool(value: TableTypes<"school"> | undefined);
+  get currentSchool(): TableTypes<'school'> | undefined;
+  set currentSchool(value: TableTypes<'school'> | undefined);
   updateSoundFlag(userId: string, value: boolean): Promise<void>;
   updateMusicFlag(userId: string, value: boolean): Promise<void>;
   updateLanguage(userId: string, value: string): Promise<void>;
@@ -464,7 +464,7 @@ export interface ServiceApi {
    * @param {string} id - Language firebase doc id
    * @returns {Language | undefined}`Language` or `undefined` if it could not find the Language with given `id`
    */
-  getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined>;
+  getLanguageWithId(id: string): Promise<TableTypes<'language'> | undefined>;
 
   /**
    * Gives Lesson for a given CocosLesson Id
@@ -473,7 +473,7 @@ export interface ServiceApi {
    */
   getLessonWithCocosLessonId(
     lessonId: string,
-  ): Promise<TableTypes<"lesson"> | null>;
+  ): Promise<TableTypes<'lesson'> | null>;
 
   /**
    * Gives List of subjects for given a student for Home user
@@ -482,14 +482,14 @@ export interface ServiceApi {
    */
   getCoursesForParentsStudent(
     studentId: string,
-  ): Promise<TableTypes<"course">[]>;
+  ): Promise<TableTypes<'course'>[]>;
 
   /**
    * Gives List of optional subjects for given a student for Home user
    * @param {User} student - Student User object
    * @returns {Course[]} Array of `Course` objects
    */
-  getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]>;
+  getAdditionalCourses(studentId: string): Promise<TableTypes<'course'>[]>;
 
   /**
    * Add subject for given a student for Home user
@@ -497,46 +497,46 @@ export interface ServiceApi {
    * @returns {Course} `Course` object
    */
   addCourseForParentsStudent(
-    courses: TableTypes<"course">[],
-    student: TableTypes<"user">,
-  ): Promise<TableTypes<"course">[] | void>;
+    courses: TableTypes<'course'>[],
+    student: TableTypes<'user'>,
+  ): Promise<TableTypes<'course'>[] | void>;
 
   /**
    * Gives List of subjects for given a student for Home user
    * @param {Class} currClass - Class User object
    * @returns {Course[]} Array of `Course` objects
    */
-  getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]>;
+  getCoursesForClassStudent(classId: string): Promise<TableTypes<'course'>[]>;
   /**
    * Gives Lesson for given a lesson firebase doc Id
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getLesson(id: string): Promise<TableTypes<"lesson"> | undefined>;
-  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>;
+  getLesson(id: string): Promise<TableTypes<'lesson'> | undefined>;
+  getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * Gives Chapter for given a chapter doc Id
    * @param id  -chapter id
    * @returns {Chapter | undefined}`Chapter` or `undefined` if it could not find the lesson with given `id`
    */
-  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined>;
+  getChapterById(id: string): Promise<TableTypes<'chapter'> | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
    * @param {Chapter} chapter - Chapter to which we need `Lesson` objects
    * @returns {Lesson[]} Array of lessons, all the lessons in the chapter
    */
-  getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[]>;
+  getLessonsForChapter(chapterId: string): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * Gives all Different grades available fora given chapter
    * @param {Course} course - course to which we need `Grades`
    * @returns {{ grades: Grade[]; courses: Course[] }} Object with `grades` and `courses` arrays
    */
-  getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
-    grades: TableTypes<"grade">[];
-    courses: TableTypes<"course">[];
+  getDifferentGradesForCourse(course: TableTypes<'course'>): Promise<{
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
   }>;
 
   /**
@@ -564,7 +564,7 @@ export interface ServiceApi {
   getLiveQuizLessons(
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<"assignment">[]>;
+  ): Promise<TableTypes<'assignment'>[]>;
   /**
    * This function gets the document of the live quiz room
    * @param liveQuizRoomDocId firebase doc id
@@ -572,7 +572,7 @@ export interface ServiceApi {
    */
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string,
-  ): Promise<TableTypes<"live_quiz_room"> | undefined>;
+  ): Promise<TableTypes<'live_quiz_room'> | undefined>;
 
   /**
    * Create a Row in FavoriteLesson with given params
@@ -582,7 +582,7 @@ export interface ServiceApi {
   updateFavoriteLesson(
     studentId: string,
     lessonId: string,
-  ): Promise<TableTypes<"favorite_lesson">>;
+  ): Promise<TableTypes<'favorite_lesson'>>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -598,7 +598,7 @@ export interface ServiceApi {
    * @returns {Result}} Updated result Object
    */
   updateResult(
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -624,7 +624,7 @@ export interface ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
-  ): Promise<TableTypes<"result">>;
+  ): Promise<TableTypes<'result'>>;
 
   /**
    * Update the student profile for a parent and returns the student object
@@ -638,7 +638,7 @@ export interface ServiceApi {
    * @returns {User} Updated Student User Object
    */
   updateStudent(
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     name: string,
     age: number,
     gender: string,
@@ -647,10 +647,10 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   updateStudentFromSchoolMode(
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     name: string,
     age: number,
     gender: string,
@@ -661,10 +661,10 @@ export interface ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   updateUserProfile(
-    user: TableTypes<"user">,
+    user: TableTypes<'user'>,
     fullName: string,
     email: string,
     phoneNum: string,
@@ -674,28 +674,28 @@ export interface ServiceApi {
       age?: string;
       gender?: string;
     },
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   /**
    * Gives Subject for given a Subject firebase doc Id
    * @param {string} id - Subject firebase doc id
    * @returns {Subject | undefined}`Subject` or `undefined` if it could not find the Subject with given `id`
    */
-  getSubject(id: string): Promise<TableTypes<"subject"> | undefined>;
+  getSubject(id: string): Promise<TableTypes<'subject'> | undefined>;
 
   /**
    * Gives Course for given a Course firebase doc Id
    * @param {string} id - Course firebase doc id
    * @returns {Course | undefined}`Course` or `undefined` if it could not find the Course with given `id`
    */
-  getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
+  getCourse(id: string): Promise<TableTypes<'course'> | undefined>;
 
   /**
    * Gives Courses for given a CourseIds
    * @param  {courseIds: string[]} - CourseIds
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
-  getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
+  getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]>;
 
   /**
    * Fetches domains for a given subject and framework.
@@ -703,26 +703,26 @@ export interface ServiceApi {
   getDomainsBySubjectAndFramework(
     subjectId: string,
     frameworkId: string,
-  ): Promise<TableTypes<"domain">[]>;
+  ): Promise<TableTypes<'domain'>[]>;
 
   /**
    * Fetches competencies linked to the given domain ids.
    */
   getCompetenciesByDomainIds(
     domainIds: string[],
-  ): Promise<TableTypes<"competency">[]>;
+  ): Promise<TableTypes<'competency'>[]>;
 
   /**
    * Fetches outcomes linked to the given competency ids.
    */
   getOutcomesByCompetencyIds(
     competencyIds: string[],
-  ): Promise<TableTypes<"outcome">[]>;
+  ): Promise<TableTypes<'outcome'>[]>;
 
   /**
    * Fetches skills linked to the given outcome ids.
    */
-  getSkillsByOutcomeIds(outcomeIds: string[]): Promise<TableTypes<"skill">[]>;
+  getSkillsByOutcomeIds(outcomeIds: string[]): Promise<TableTypes<'skill'>[]>;
 
   /**
    * Fetches results for the given student and skill ids.
@@ -730,21 +730,21 @@ export interface ServiceApi {
   getResultsBySkillIds(
     studentId: string,
     skillIds: string[],
-  ): Promise<TableTypes<"result">[]>;
+  ): Promise<TableTypes<'result'>[]>;
 
   /**
    * Fetches prerequisite relations where target skill is in the provided list.
    */
   getSkillRelationsByTargetIds(
     targetSkillIds: string[],
-  ): Promise<TableTypes<"skill_relation">[]>;
+  ): Promise<TableTypes<'skill_relation'>[]>;
 
   /**
    * Fetches skill-lesson mapping rows for the given skills.
    */
   getSkillLessonsBySkillIds(
     skillIds: string[],
-  ): Promise<TableTypes<"skill_lesson">[]>;
+  ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -755,7 +755,7 @@ export interface ServiceApi {
   getStudentResult(
     studentId: string,
     fromCache?: boolean,
-  ): Promise<TableTypes<"result">[]>;
+  ): Promise<TableTypes<'result'>[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -763,12 +763,10 @@ export interface ServiceApi {
    * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
 
-  getStudentProgress(
-    studentId: string,
-  ): Promise<
+  getStudentProgress(studentId: string): Promise<
     Record<
       string,
-      (TableTypes<"result"> & {
+      (TableTypes<'result'> & {
         lesson_name?: string;
         chapter_name?: string;
       })[]
@@ -780,21 +778,21 @@ export interface ServiceApi {
    */
   getStudentResultInMap(
     studentId: string,
-  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }>;
+  ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }>;
 
   /**
    * Gives Class for given a Class firebase doc Id
    * @param {string} id - Class firebase doc id
    * @returns {Class | undefined}`Class` or `undefined` if it could not find the Class with given `id`
    */
-  getClassById(id: string): Promise<TableTypes<"class"> | undefined>;
+  getClassById(id: string): Promise<TableTypes<'class'> | undefined>;
 
   /**
    * Gives School for given a School firebase doc Id
    * @param {string} id - School firebase doc id
    * @returns {School | undefined}`School` or `undefined` if it could not find the School with given `id`
    */
-  getSchoolById(id: string): Promise<TableTypes<"school"> | undefined>;
+  getSchoolById(id: string): Promise<TableTypes<'school'> | undefined>;
 
   /**
    * Gives `boolean` whether the student is connected to any class, for given a Student firebase doc Id
@@ -814,7 +812,7 @@ export interface ServiceApi {
   getPendingAssignments(
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<"assignment">[]>;
+  ): Promise<TableTypes<'assignment'>[]>;
   /**
    * Gets schools for a user (teacher, principal, or ops user).
    * returns all schools for the user (legacy behavior).
@@ -825,7 +823,7 @@ export interface ServiceApi {
   getSchoolsForUser(
     userId: string,
     options?: { page?: number; page_size?: number; search?: string },
-  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
 
   /**
    * Get a user's role for a given school.
@@ -865,14 +863,14 @@ export interface ServiceApi {
   getClassesForSchool(
     schoolId: string,
     userId: string,
-  ): Promise<TableTypes<"class">[]>;
+  ): Promise<TableTypes<'class'>[]>;
 
   /**
    * This function gets all the students for the class.
    * @param {string} classId class firebase documentId;
    * @return A promise to an array of students.
    */
-  getStudentsForClass(classId: string): Promise<TableTypes<"user">[]>;
+  getStudentsForClass(classId: string): Promise<TableTypes<'user'>[]>;
 
   /**
    * This function gets data by invite code.
@@ -919,7 +917,7 @@ export interface ServiceApi {
    * @param course Course object of the student
    * @returns A promise that resolves to the course.
    */
-  getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]>;
+  getAllLessonsForCourse(courseId: string): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * This function gives lesson objects for given LessonId
@@ -944,16 +942,16 @@ export interface ServiceApi {
     chapterId: string,
     lessonId: string,
   ): Promise<{
-    lesson: TableTypes<"lesson">[];
-    course: TableTypes<"course">[];
+    lesson: TableTypes<'lesson'>[];
+    course: TableTypes<'course'>[];
   }>;
 
   /**
    * Gives all `Course` available on database
    * @returns {Course[]} Array of `Course` objects
    */
-  getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]>;
-  getAllCourses(): Promise<TableTypes<"course">[]>;
+  getCoursesByGrade(gradeDocId: any): Promise<TableTypes<'course'>[]>;
+  getAllCourses(): Promise<TableTypes<'course'>[]>;
 
   /**
    * Deletes all the data related to user from database.
@@ -964,7 +962,7 @@ export interface ServiceApi {
    *
    * It will get Course Object using lesson cocosSubjectcode from all courses
    */
-  getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]>;
+  getCoursesFromLesson(lessonId: string): Promise<TableTypes<'course'>[]>;
 
   /**
    * Establishes a real-time listener for changes in a live quiz room document.
@@ -976,7 +974,7 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void,
+    onDataChange: (roomDoc: TableTypes<'live_quiz_room'> | undefined) => void,
   ): void;
   /**
    * Removes LiveQuizChannel after live quiz completion;
@@ -992,7 +990,7 @@ export interface ServiceApi {
 
   assignmentUserListner(
     studentId: string,
-    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void,
+    onDataChange: (roomDoc: TableTypes<'assignment_user'> | undefined) => void,
   ): void;
 
   /**
@@ -1007,7 +1005,7 @@ export interface ServiceApi {
 
   assignmentListner(
     classId: string,
-    onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void,
+    onDataChange: (roomDoc: TableTypes<'assignment'> | undefined) => void,
   ): void;
 
   /**
@@ -1053,8 +1051,8 @@ export interface ServiceApi {
    */
   getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
-      result_data: TableTypes<"result">[];
-      user_data: TableTypes<"user">[];
+      result_data: TableTypes<'result'>[];
+      user_data: TableTypes<'user'>[];
     }[]
   >;
   /**
@@ -1062,27 +1060,27 @@ export interface ServiceApi {
    * @param {string} id - Assignment firebase doc id
    * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
    */
-  getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined>;
+  getAssignmentById(id: string): Promise<TableTypes<'assignment'> | undefined>;
   /**
    * Gives Assignments for given assignment doc ids
    * @param {string[]} ids - Assignment doc ids
    * @returns {Assignment[]} Array of assignments matched by ids
    */
-  getAssignmentsByIds(ids: string[]): Promise<TableTypes<"assignment">[]>;
+  getAssignmentsByIds(ids: string[]): Promise<TableTypes<'assignment'>[]>;
 
   /**
    * Gives Badge for given a Badge firebase doc Id
    * @param {string} id - Badge firebase doc id
    * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
    */
-  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>;
+  getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]>;
 
   /**
    * Gives Sticker for given a Sticker firebase doc Id
    * @param {string} id - Sticker firebase doc id
    * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
    */
-  getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]>;
+  getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]>;
   /**
    * Gives Rewards for given a Rewards firebase doc Id
    * @param {string} id - Rewards firebase doc id
@@ -1091,7 +1089,7 @@ export interface ServiceApi {
   getRewardsById(
     id: number,
     periodType: string,
-  ): Promise<TableTypes<"reward"> | undefined>;
+  ): Promise<TableTypes<'reward'> | undefined>;
 
   /**
    * Retrieves all stickers associated with a specified user.
@@ -1100,7 +1098,7 @@ export interface ServiceApi {
    * Note: The userId must be valid and correspond to an existing user.
    * Note: If the user has no stickers, the returned Promise resolves to an empty array.
    */
-  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>;
+  getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]>;
 
   /**
    * Retrieves all bonuses associated with a specified user.
@@ -1109,7 +1107,7 @@ export interface ServiceApi {
    * Note: The userId must be valid and correspond to an existing user.
    * Note: If the user has no bonuses, the returned Promise resolves to an empty users.
    */
-  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]>;
+  getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]>;
 
   /**
    * Retrieves all badges associated with a specified user.
@@ -1118,7 +1116,7 @@ export interface ServiceApi {
    * Note: The userId must be valid and correspond to an existing user.
    * Note: If the user has no badges, the returned Promise resolves to an empty array.
    */
-  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]>;
+  getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
@@ -1132,7 +1130,7 @@ export interface ServiceApi {
    * @param studentId - The ID of the current student.
    * @returns A Promise that resolves with void when the update is complete.
    */
-  getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByDocId(studentId: string): Promise<TableTypes<'user'> | undefined>;
 
   /**
    * update student reward in server
@@ -1151,7 +1149,7 @@ export interface ServiceApi {
    * @returns An array of chapters associated with the given course.
    * Note: Ensure courseId is valid and corresponds to an existing course.
    */
-  getChaptersForCourse(courseId: string): Promise<TableTypes<"chapter">[]>;
+  getChaptersForCourse(courseId: string): Promise<TableTypes<'chapter'>[]>;
 
   /**
    * Retrieves pending assignments for the specified lesson, class, and student.
@@ -1166,21 +1164,21 @@ export interface ServiceApi {
     lessonId: string,
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<"assignment"> | undefined>;
+  ): Promise<TableTypes<'assignment'> | undefined>;
 
   /**
    * Retrieves Array of Favourite lessons for the specified user
    * @param user_id The unique identifier of the user
    */
-  getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]>;
+  getFavouriteLessons(userId: string): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * Retrieves Array of classes for the specified user
    * @param user_id The unique identifier of the user
    */
   getStudentClassesAndSchools(userId: string): Promise<{
-    classes: TableTypes<"class">[];
-    schools: TableTypes<"school">[];
+    classes: TableTypes<'class'>[];
+    schools: TableTypes<'school'>[];
   }>;
 
   /**
@@ -1190,8 +1188,8 @@ export interface ServiceApi {
    * @returns A promise containing the created user object or undefined.
    */
   createUserDoc(
-    user: TableTypes<"user">,
-  ): Promise<TableTypes<"user"> | undefined>;
+    user: TableTypes<'user'>,
+  ): Promise<TableTypes<'user'> | undefined>;
 
   /* Synchronizes the local database with an external data source asynchronously.
    * This method ensures that the local database reflects the latest data from the external source.
@@ -1217,7 +1215,7 @@ export interface ServiceApi {
   getRecommendedLessons(
     studentId: string,
     classId?: string,
-  ): Promise<TableTypes<"lesson">[]>;
+  ): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
@@ -1236,7 +1234,7 @@ export interface ServiceApi {
    *   .catch(error => console.error(error));
    */
 
-  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>;
+  searchLessons(searchString: string): Promise<TableTypes<'lesson'>[]>;
 
   /**
    * Create Assignment Cart when the user added the lessons to his cart
@@ -1280,7 +1278,7 @@ export interface ServiceApi {
     isClassWise: boolean,
     isLiveQuiz: boolean,
     allAssignments: boolean,
-  ): Promise<TableTypes<"assignment">[] | undefined>;
+  ): Promise<TableTypes<'assignment'>[] | undefined>;
 
   /**
    * Get Student Result of 10 activities either assignments or self played
@@ -1292,7 +1290,7 @@ export interface ServiceApi {
     courseIds: string[],
     assignmentIds: string[],
     classId: string,
-  ): Promise<TableTypes<"result">[]>;
+  ): Promise<TableTypes<'result'>[]>;
   /**
    * Creates a class for the given school
    * @param schoolId
@@ -1305,7 +1303,7 @@ export interface ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
-  ): Promise<TableTypes<"class">>;
+  ): Promise<TableTypes<'class'>>;
   /**
    * Updates a class name for given classId
    * @param classId
@@ -1330,7 +1328,7 @@ export interface ServiceApi {
    */
   getResultByAssignmentIds(
     assignmentIds: string[],
-  ): Promise<TableTypes<"result">[] | undefined>;
+  ): Promise<TableTypes<'result'>[] | undefined>;
 
   /**
    * Get results by assignment ids for students currently in the specified class
@@ -1340,7 +1338,7 @@ export interface ServiceApi {
   getResultByAssignmentIdsForCurrentClassMembers(
     assignmentIds: string[],
     classId: string,
-  ): Promise<TableTypes<"result">[] | undefined>;
+  ): Promise<TableTypes<'result'>[] | undefined>;
 
   /**
    *  Get the last assignments by course wise
@@ -1348,11 +1346,11 @@ export interface ServiceApi {
    */
   getLastAssignmentsForRecommendations(
     classId: string,
-  ): Promise<TableTypes<"assignment">[] | undefined>;
+  ): Promise<TableTypes<'assignment'>[] | undefined>;
 
   getAssignmentUserByAssignmentIds(
     assignmentIds: string[],
-  ): Promise<TableTypes<"assignment_user">[]>;
+  ): Promise<TableTypes<'assignment_user'>[]>;
 
   /**
    * Creates a assignment object
@@ -1389,21 +1387,21 @@ export interface ServiceApi {
    */
   getTeachersForClass(
     classId: string,
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<TableTypes<'user'>[] | undefined>;
 
   /**
    * This function gets the user by email.
    * @param {string} email email;
    * @return user object.
    */
-  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByEmail(email: string): Promise<TableTypes<'user'> | undefined>;
 
   /**
    * This function gets the user by phonenumber.
    * @param {string} phone phonenumber;
    * @return user object.
    */
-  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<'user'> | undefined>;
 
   /**
    * Adding a teacher to class.
@@ -1415,7 +1413,7 @@ export interface ServiceApi {
   addTeacherToClass(
     schoolId: string,
     classId: string,
-    user: TableTypes<"user">,
+    user: TableTypes<'user'>,
   ): Promise<void>;
 
   /**
@@ -1464,8 +1462,8 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
   ): Promise<{
-    classWiseAssignments: TableTypes<"assignment">[];
-    individualAssignments: TableTypes<"assignment">[];
+    classWiseAssignments: TableTypes<'assignment'>[];
+    individualAssignments: TableTypes<'assignment'>[];
   }>;
 
   /**
@@ -1477,7 +1475,7 @@ export interface ServiceApi {
   getTeacherJoinedDate(
     userId: string,
     classId: string,
-  ): Promise<TableTypes<"class_user"> | undefined>;
+  ): Promise<TableTypes<'class_user'> | undefined>;
 
   /**
    * Gets student ids for individual assignments.
@@ -1497,7 +1495,7 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
     classId: string,
-  ): Promise<TableTypes<"result">[] | undefined>;
+  ): Promise<TableTypes<'result'>[] | undefined>;
 
   /**
    * Get the Lessons with LessonIds
@@ -1505,7 +1503,7 @@ export interface ServiceApi {
    */
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
-  ): Promise<TableTypes<"lesson">[] | undefined>;
+  ): Promise<TableTypes<'lesson'>[] | undefined>;
   /**
    * To delete `teacher` from class for given class id and teacher id
    * @param {string } classId - Class Id
@@ -1531,7 +1529,7 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
     classId: string,
-  ): Promise<TableTypes<"result">[] | undefined>;
+  ): Promise<TableTypes<'result'>[] | undefined>;
 
   /**
    * Get unique assignment IDs for a given class + course(subject) + chapter(s).
@@ -1558,7 +1556,7 @@ export interface ServiceApi {
   getSchoolsWithRoleAutouser(
     schoolIds: string[],
     userId: string,
-  ): Promise<TableTypes<"school">[] | undefined>;
+  ): Promise<TableTypes<'school'>[] | undefined>;
   /**
    * This function gets all the teachers for the school.
    * @param {string} schoolId school Id;
@@ -1566,7 +1564,7 @@ export interface ServiceApi {
    */
   getPrincipalsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<TableTypes<'user'>[] | undefined>;
   /**
    * Fetches a paginated list of principal for a given school.
    * @param {string} schoolId - The ID of the school.
@@ -1586,7 +1584,7 @@ export interface ServiceApi {
    */
   getCoordinatorsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<TableTypes<'user'>[] | undefined>;
   /**
    * Fetches a paginated list of coordinators for a given school.
    * @param {string} schoolId - The ID of the school.
@@ -1606,7 +1604,7 @@ export interface ServiceApi {
    */
   getSponsorsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<TableTypes<'user'>[] | undefined>;
   /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id
@@ -1616,7 +1614,7 @@ export interface ServiceApi {
    */
   addUserToSchool(
     schoolId: string,
-    user: TableTypes<"user">,
+    user: TableTypes<'user'>,
     role: RoleType,
   ): Promise<void>;
   /**
@@ -1628,8 +1626,8 @@ export interface ServiceApi {
   deleteUserFromSchool(
     schoolId: string,
     userId: string,
-    role: RoleType
-  ): Promise<{ success: boolean; message: string }> ;
+    role: RoleType,
+  ): Promise<{ success: boolean; message: string }>;
 
   /**
    * updates a school LastModified time and Date
@@ -1842,23 +1840,23 @@ export interface ServiceApi {
    * getting class for the user, user id can be Student id or teacher id
    * @param {string } userId - user id
    */
-  getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
+  getClassByUserId(userId: string): Promise<TableTypes<'class'> | undefined>;
 
   /**
    * getting courses for the student sorted with sort_index
    * @param {string } studentId - student id
    */
-  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  getCoursesForPathway(studentId: string): Promise<TableTypes<'course'>[]>;
   /**
    * Updates the learning path for a student.
    * @param {string} learningPath - The new learning path to be set.
    * @returns {User} Updated Student User Object
    */
   updateLearningPath(
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     learning_path: string,
     is_immediate_sync?: boolean,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   /**
    * Fetches available program filter options.
@@ -1889,7 +1887,7 @@ export interface ServiceApi {
     limit?: number;
     offset?: number;
     orderBy?: string;
-    order?: "asc" | "desc";
+    order?: 'asc' | 'desc';
   }): Promise<{ data: any[] }>;
 
   /**
@@ -1922,7 +1920,7 @@ export interface ServiceApi {
    */
   getProgramForSchool(
     schoolId: string,
-  ): Promise<TableTypes<"program"> | undefined>;
+  ): Promise<TableTypes<'program'> | undefined>;
 
   /**
    * This function gets all program managers (users) for the given school.
@@ -1932,7 +1930,7 @@ export interface ServiceApi {
   // In ServiceApi
   getProgramManagersForSchool(
     schoolId: string,
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<TableTypes<'user'>[] | undefined>;
   /**
    * Updates the total stars for a student.
    * @param {string} studentId - student Id.
@@ -1946,7 +1944,7 @@ export interface ServiceApi {
    */
   getChapterIdbyQrLink(
     link: string,
-  ): Promise<TableTypes<"chapter_links"> | undefined>;
+  ): Promise<TableTypes<'chapter_links'> | undefined>;
   /**
    * Fetches all schools available to the admin user with pagination.
    * @param {number} limit - Number of schools to fetch.
@@ -1956,7 +1954,7 @@ export interface ServiceApi {
   getSchoolsForAdmin(
     limit: number,
     offset: number,
-  ): Promise<TableTypes<"school">[]>;
+  ): Promise<TableTypes<'school'>[]>;
 
   /**
    * Retrieves teachers for each given school.
@@ -1994,10 +1992,10 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools filtered by model.
    */
   getSchoolsByModel(
-    model: EnumType<"program_model">,
+    model: EnumType<'program_model'>,
     limit: number,
     offset: number,
-  ): Promise<TableTypes<"school">[]>;
+  ): Promise<TableTypes<'school'>[]>;
 
   /**
    * Fetch detailed information for a given program by ID.
@@ -2048,7 +2046,7 @@ export interface ServiceApi {
     page?: number;
     page_size?: number;
     order_by?: string;
-    order_dir?: "asc" | "desc";
+    order_dir?: 'asc' | 'desc';
     search?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
@@ -2139,7 +2137,7 @@ export interface ServiceApi {
    * @param {string} studentId - The ID of the student to fetch.
    * @returns Promise resolving to an array of parents.
    */
-  getParentsByStudentId(studentId: string): Promise<TableTypes<"user">[]>;
+  getParentsByStudentId(studentId: string): Promise<TableTypes<'user'>[]>;
 
   /**
    * Merge a new student into an existing student record in SQLite.
@@ -2153,7 +2151,7 @@ export interface ServiceApi {
     existingStudentId: string,
     newStudentId: string,
     requestId?: string | undefined,
-    respondedBy?: string | undefined
+    respondedBy?: string | undefined,
   ): Promise<{ success: boolean; message: string }>;
 
   /**
@@ -2162,12 +2160,12 @@ export interface ServiceApi {
    * @param {string} newStudentId - The student ID being merged and marked as deleted.
    * @returns  {success: boolean; message: string }Promise resolving when the merge is complete.
    */
-    mergeUserPathway(
+  mergeUserPathway(
     existingStudentId: string,
     newStudentId: string,
-  ): Promise<{ success: boolean; message: string }>
+  ): Promise<{ success: boolean; message: string }>;
 
-  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]>;
 
   /**
    * Creates a auto student profile for a parent and returns the student object
@@ -2176,7 +2174,7 @@ export interface ServiceApi {
    */
   createAutoProfile(
     languageDocId: string | undefined,
-  ): Promise<TableTypes<"user">>;
+  ): Promise<TableTypes<'user'>>;
 
   /**
    * Checks if the current user is a program user.
@@ -2224,10 +2222,10 @@ export interface ServiceApi {
     page?: number,
     search?: string,
     limit?: number,
-    sortBy?: keyof TableTypes<"user">,
-    sortOrder?: "asc" | "desc",
+    sortBy?: keyof TableTypes<'user'>,
+    sortOrder?: 'asc' | 'desc',
   ): Promise<{
-    data: { user: TableTypes<"user">; role: string }[];
+    data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;
   }>;
 
@@ -2307,13 +2305,13 @@ export interface ServiceApi {
    */
   getSchoolDataByUdise(
     udiseCode: string,
-  ): Promise<TableTypes<"school_data"> | null>;
+  ): Promise<TableTypes<'school_data'> | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
    * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
    */
-  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<'chapter'>[]>;
   /**
    * Adds Parent to new class (new classUser record).
    * @param {string} classID
@@ -2335,11 +2333,11 @@ export interface ServiceApi {
    * @returns {Promise<{ data: any[]; total: number }>} - Paginated list of requests and total count.
    */
   getOpsRequests(
-    requestStatus: EnumType<"ops_request_status">,
+    requestStatus: EnumType<'ops_request_status'>,
     page: number,
     limit: number,
     orderBy: string,
-    orderDir: "asc" | "desc",
+    orderDir: 'asc' | 'desc',
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string,
   ): Promise<OpsRequestsResponse>;
@@ -2382,7 +2380,7 @@ export interface ServiceApi {
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
     classId?: string,
-  ): Promise<TableTypes<"ops_requests"> | undefined>;
+  ): Promise<TableTypes<'ops_requests'> | undefined>;
 
   /**
    * update the ops_request to approved or rejected .
@@ -2398,7 +2396,7 @@ export interface ServiceApi {
     status: (typeof STATUS)[keyof typeof STATUS],
     rejectedReasonType?: string,
     rejectedReasonDescription?: string,
-  ): Promise<TableTypes<"ops_requests"> | undefined>;
+  ): Promise<TableTypes<'ops_requests'> | undefined>;
 
   /**
    * fetch all field coordintaors connected to the program.
@@ -2406,13 +2404,13 @@ export interface ServiceApi {
    */
   getFieldCoordinatorsByProgram(
     programId: string,
-  ): Promise<{ data: TableTypes<"user">[] }>;
+  ): Promise<{ data: TableTypes<'user'>[] }>;
 
   /**
    * fetch all the programs for the ops_director and super admin.
    * for program manager it will fetch only their programs.
    */
-  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }>;
+  getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }>;
 
   /**
    * Update school status to rejected or active .
@@ -2456,7 +2454,7 @@ export interface ServiceApi {
   getLocaleByIdOrCode(
     locale_id?: string,
     locale_code?: string,
-  ): Promise<TableTypes<"locale"> | null>;
+  ): Promise<TableTypes<'locale'> | null>;
 
   /**
    * Fetches a list of schools based on  locations (countries, states, districts, etc.).
@@ -2480,18 +2478,18 @@ export interface ServiceApi {
    * Get all classes connected to school using rpc call
    * @param {string} schoolId - school Id
    */
-  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]>;
   /**
    * Fetch reward by rewardId
    * @param rewardId reward ID
    */
   getRewardById(
     rewardId: string,
-  ): Promise<TableTypes<"rive_reward"> | undefined>;
+  ): Promise<TableTypes<'rive_reward'> | undefined>;
   /**
    * Fetch all rive_rewards
    */
-  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []>;
+  getAllRewards(): Promise<TableTypes<'rive_reward'>[] | []>;
   /**
    * update user reward by userId and rewardId
    */
@@ -2583,9 +2581,9 @@ export interface ServiceApi {
    * @returns A promise that resolves to an array of FC question objects (TableTypes<"fc_question">) or an empty array if no questions found.
    */
   getFilteredFcQuestions(
-    type: EnumType<"fc_support_level"> | null,
-    targetType: EnumType<"fc_engagement_target">,
-  ): Promise<TableTypes<"fc_question">[] | []>;
+    type: EnumType<'fc_support_level'> | null,
+    targetType: EnumType<'fc_engagement_target'>,
+  ): Promise<TableTypes<'fc_question'>[] | []>;
 
   /**
    * Saves the FC user interaction form.
@@ -2615,10 +2613,10 @@ export interface ServiceApi {
     schoolId: string;
     classId?: string | null;
     contactUserId?: string | null;
-    contactTarget: EnumType<"fc_engagement_target">;
-    contactMethod: EnumType<"fc_contact_method">;
-    callStatus?: EnumType<"fc_call_result"> | null;
-    supportLevel?: EnumType<"fc_support_level"> | null;
+    contactTarget: EnumType<'fc_engagement_target'>;
+    contactMethod: EnumType<'fc_contact_method'>;
+    callStatus?: EnumType<'fc_call_result'> | null;
+    supportLevel?: EnumType<'fc_support_level'> | null;
     questionResponse: Record<string, string>;
     techIssuesReported: boolean;
     comment?: string | null;
@@ -2642,7 +2640,7 @@ export interface ServiceApi {
    */
   getActivitiesBySchoolId(
     schoolId: string,
-  ): Promise<TableTypes<"fc_user_forms">[]>;
+  ): Promise<TableTypes<'fc_user_forms'>[]>;
 
   /**
    * Fetch school visit details for a given visit ID.
@@ -2651,7 +2649,7 @@ export interface ServiceApi {
    */
   getSchoolVisitById(
     visitIds: string[],
-  ): Promise<TableTypes<"fc_school_visit">[]>;
+  ): Promise<TableTypes<'fc_school_visit'>[]>;
 
   /**
    * Fetch filter options for FC activities.
@@ -2695,7 +2693,7 @@ export interface ServiceApi {
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: "createdAt" | "createdBy",
+    sortBy?: 'createdAt' | 'createdBy',
   ): Promise<PaginatedResponse<SchoolNote>>;
   /**
    * Get interactions metrics for a school.
@@ -2714,17 +2712,17 @@ export interface ServiceApi {
 
   getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<"user">,
-  ): Promise<TableTypes<"subject_lesson"> | null>;
+    student?: TableTypes<'user'>,
+  ): Promise<TableTypes<'subject_lesson'> | null>;
 
-  getSkillById(skillId: string): Promise<TableTypes<"skill"> | undefined>;
+  getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     courseId?: string,
-  ): Promise<TableTypes<"assignment">[]>;
+  ): Promise<TableTypes<'assignment'>[]>;
 
   /**
    * Fetch WhatsApp group details from Periskope for a given group and bot number.

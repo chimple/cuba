@@ -36,11 +36,9 @@
   background-color: #fffbec;
   width: 100%;
   margin-top: 0;
-  
 }
 
 .title {
-  
   margin: 0.2%;
   align-items: center;
   white-space: nowrap;
@@ -107,7 +105,7 @@
 .profile-pic {
   width: 20vw;
   height: 20vw;
-  
+
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
@@ -120,10 +118,9 @@
 }
 
 .input-group label {
- 
   color: #707070;
   font-size: var(--text-sizeL);
-  
+
   font-weight: 400;
 }
 
@@ -243,7 +240,7 @@ ion-radio.radio-checked::part(mark) {
 .input-group {
   display: flex;
   flex-direction: column;
-  
+
   font-size: 2vh;
 }
 
