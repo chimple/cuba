@@ -1,7 +1,7 @@
-import React from "react";
-import { Dialog, DialogContent, IconButton, Typography } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import "./CommonPopup.css";
+import React from 'react';
+import { Dialog, DialogContent, IconButton, Typography } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import './CommonPopup.css';
 
 type CommonPopupProps = {
   open: boolean;
@@ -27,7 +27,10 @@ const CommonPopup: React.FC<CommonPopupProps> = ({
       id="ops-common-popup-dialog"
       className="ops-common-popup-dialog"
     >
-      <DialogContent id="ops-common-popup-content" className="ops-common-popup-content">
+      <DialogContent
+        id="ops-common-popup-content"
+        className="ops-common-popup-content"
+      >
         <IconButton
           size="small"
           onClick={onClose}
@@ -37,10 +40,23 @@ const CommonPopup: React.FC<CommonPopupProps> = ({
         >
           <CloseIcon />
         </IconButton>
-        <div id="ops-common-popup-container" className="ops-common-popup-container">
-          <div id="ops-common-popup-icon" className="ops-common-popup-icon">{icon}</div>
-          <Typography id="ops-common-popup-title" className="ops-common-popup-title">{title}</Typography>
-          <Typography id="ops-common-popup-subtitle" className="ops-common-popup-subtitle">
+        <div
+          id="ops-common-popup-container"
+          className="ops-common-popup-container"
+        >
+          <div id="ops-common-popup-icon" className="ops-common-popup-icon">
+            {icon}
+          </div>
+          <Typography
+            id="ops-common-popup-title"
+            className="ops-common-popup-title"
+          >
+            {title}
+          </Typography>
+          <Typography
+            id="ops-common-popup-subtitle"
+            className="ops-common-popup-subtitle"
+          >
             {subtitle}
           </Typography>
         </div>

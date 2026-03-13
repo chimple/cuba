@@ -1,6 +1,6 @@
-import { ServiceAuth } from "./ServiceAuth";
-import { TableTypes } from "../../common/constants";
-import { Session, User, UserAttributes } from "@supabase/supabase-js";
+import { ServiceAuth } from './ServiceAuth';
+import { TableTypes } from '../../common/constants';
+import { Session, User, UserAttributes } from '@supabase/supabase-js';
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -21,16 +21,16 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user"> | null;
+    userData?: TableTypes<'user'> | null;
   }> {
     return await this.s.googleSign();
   }
 
-  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
     return await this.s.getCurrentUser();
   }
 
-  public set currentUser(user: TableTypes<"user">) {
+  public set currentUser(user: TableTypes<'user'>) {
     this.s.currentUser = user;
   }
 
@@ -38,7 +38,10 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.isUserLoggedIn();
   }
 
-  public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
+  public async phoneNumberSignIn(
+    phoneNumber: string,
+    recaptchaVerifier: object,
+  ): Promise<any> {
     return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
   }
   public async generateOtp(
@@ -60,20 +63,20 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user"> | null;
+    userData?: TableTypes<'user'> | null;
   }> {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
 
   public async proceedWithVerificationCode(
-    verificationId,
-    verificationCode,
+    verificationId: string,
+    verificationCode: string,
   ): Promise<
     | {
         user: User | null;
         isUserExist: boolean;
         isSpl: boolean;
-        userData?: TableTypes<"user"> | null;
+        userData?: TableTypes<'user'> | null;
       }
     | undefined
   > {
@@ -97,7 +100,7 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<"user">;
+    userData?: TableTypes<'user'>;
   }> {
     return await this.s.signInWithEmail(email, password);
   }

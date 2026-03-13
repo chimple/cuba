@@ -1,7 +1,7 @@
-﻿import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import DataTableBody, { Column } from "../DataTableBody";
-import DataTablePagination from "../DataTablePagination";
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import DataTableBody, { Column } from '../DataTableBody';
+import DataTablePagination from '../DataTablePagination';
 import {
   Button as MuiButton,
   Typography,
@@ -15,14 +15,14 @@ import {
   DialogContent,
   DialogActions,
   Button,
-} from "@mui/material";
-import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
-import { t } from "i18next";
-import SearchAndFilter from "../SearchAndFilter";
-import FilterSlider from "../FilterSlider";
-import SelectedFilters from "../SelectedFilters";
-import "./SchoolStudents.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
+} from '@mui/material';
+import { Add as AddIcon, MoreHoriz } from '@mui/icons-material';
+import { t } from 'i18next';
+import SearchAndFilter from '../SearchAndFilter';
+import FilterSlider from '../FilterSlider';
+import SelectedFilters from '../SelectedFilters';
+import './SchoolStudents.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
   AGE_OPTIONS,
   GENDER,
@@ -36,30 +36,28 @@ import {
   WHATSAPP_GROUP_STATUS_KEYS,
   WHATSAPP_GROUP_STATUS,
   WHATSAPP_GROUP_TICK_ICON,
-} from "../../../common/constants";
-import CloseIcon from "@mui/icons-material/Close";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+} from '../../../common/constants';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import {
   getGradeOptions,
   filterBySearchAndFilters,
-  sortSchoolTeachers,
-  paginateSchoolTeachers,
-} from "../../OpsUtility/SearchFilterUtility";
-import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
-import { normalizePhone10 } from "../../pages/NewUserPageOps";
-import { ClassRow, SchoolData, SchoolDetailsData } from "./SchoolClass";
-import { ClassUtil } from "../../../utility/classUtil";
-import ActionMenu from "./ActionMenu";
-import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
-import BorderColorIcon from "@mui/icons-material/BorderColor";
-import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
-import MergeOutlinedIcon from "@mui/icons-material/MergeOutlined";
-import CardListModal from "./CardListModal";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import OpsGenericPopup from "../../common/OpsGenericPopup";
-import verifiedIcon from "../../assets/icons/verifiedicon.svg";
-import ErrorIcon from "../../assets/icons/erroricon.svg";
-import DeleteIcon from "../../assets/icons/deleteicon.svg";
+} from '../../OpsUtility/SearchFilterUtility';
+import FormCard, { FieldConfig, MessageConfig } from './FormCard';
+import { normalizePhone10 } from '../../pages/NewUserPageOps';
+import { ClassRow, SchoolData } from './SchoolClass';
+import { ClassUtil } from '../../../utility/classUtil';
+import ActionMenu from './ActionMenu';
+import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import FcInteractPopUp from '../fcInteractComponents/FcInteractPopUp';
+import MergeOutlinedIcon from '@mui/icons-material/MergeOutlined';
+import CardListModal from './CardListModal';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import OpsGenericPopup from '../../common/OpsGenericPopup';
+import verifiedIcon from '../../assets/icons/verifiedicon.svg';
+import ErrorIcon from '../../assets/icons/erroricon.svg';
+import DeleteIcon from '../../assets/icons/deleteicon.svg';
 
 type ApiStudentData = StudentInfo;
 
@@ -85,17 +83,17 @@ interface DisplayStudent {
 const getPerformanceChipClass = (schstudents_performance: string): string => {
   const normalizedPerf = schstudents_performance
     .toLowerCase()
-    .replace(/ /g, "_");
+    .replace(/ /g, '_');
   switch (normalizedPerf) {
     case PerformanceLevel.DOING_GOOD:
-      return "performance-chip-doing-good";
+      return 'performance-chip-doing-good';
     case PerformanceLevel.NEED_HELP:
-      return "performance-chip-need-help";
+      return 'performance-chip-need-help';
     case PerformanceLevel.STILL_LEARNING:
-      return "performance-chip-still-learning";
+      return 'performance-chip-still-learning';
     case PerformanceLevel.NOT_TRACKED:
     default:
-      return "performance-chip-not-tracked";
+      return 'performance-chip-not-tracked';
   }
 };
 
@@ -103,14 +101,14 @@ const getPerformanceChipClass = (schstudents_performance: string): string => {
 const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
-      return "schoolstudents-whatsapp-chip-in-group";
+      return 'schoolstudents-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
-      return "schoolstudents-whatsapp-chip-not-in-group";
+      return 'schoolstudents-whatsapp-chip-not-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
-      return "schoolstudents-whatsapp-chip-not-on-whatsapp";
+      return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
     default:
-      return "schoolstudents-whatsapp-chip-not-checked";
+      return 'schoolstudents-whatsapp-chip-not-checked';
   }
 };
 
@@ -134,21 +132,21 @@ const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
       className={`schoolstudents-whatsapp-chip ${getWhatsappChipClass(key)}`}
       sx={{
         fontWeight: 500,
-        fontSize: "0.75rem",
+        fontSize: '0.75rem',
         height: 24,
-        borderRadius: "9999px",
+        borderRadius: '9999px',
       }}
     />
   );
 };
 
 // Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
-const normalizeWhatsappContactFlag = (value: unknown): "yes" | "no" | null => {
+const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   if (value == null) return null;
-  if (typeof value === "boolean") return value ? "yes" : "no";
+  if (typeof value === 'boolean') return value ? 'yes' : 'no';
   const normalized = String(value).trim().toLowerCase();
-  if (normalized === "yes" || normalized === "true") return "yes";
-  if (normalized === "no" || normalized === "false") return "no";
+  if (normalized === 'yes' || normalized === 'true') return 'yes';
+  if (normalized === 'no' || normalized === 'false') return 'no';
   return null;
 };
 
@@ -171,10 +169,10 @@ interface SchoolStudentsProps {
 const ROWS_PER_PAGE = 20;
 
 const sameSection = (a?: string, b?: string) =>
-  String(a ?? "")
+  String(a ?? '')
     .trim()
     .toUpperCase() ===
-  String(b ?? "")
+  String(b ?? '')
     .trim()
     .toUpperCase();
 
@@ -190,7 +188,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 }) => {
   const [openPopup, setOpenPopup] = useState(false);
   const history = useHistory();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const [students, setStudents] = useState<ApiStudentData[]>(
     data.students || [],
   );
@@ -201,19 +199,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     Array.isArray(data?.students) && data.students.length > 0;
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
     grade: [],
     section: [],
   });
-  const [orderBy, setOrderBy] = useState<string | null>("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<string | null>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
     grade: [],
     section: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -223,7 +221,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
   const [studentData, setStudentData] = useState<StudentInfo>();
   const [studentStatus, setStudentStatus] =
-    useState<EnumType<"fc_support_level">>();
+    useState<EnumType<'fc_support_level'>>();
   const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
   const [isMergeStudentModalOpen, setIsMergeStudentModalOpen] = useState(false);
   const [editStudentData, setEditStudentData] = useState<StudentInfo | null>(
@@ -240,21 +238,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [popup, setPopup] = useState({
     open: false,
-    image: "",
-    heading: "",
-    text: "",
+    image: '',
+    heading: '',
+    text: '',
     autoCloseSeconds: 0,
   });
 
   let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
   const isAtSchool = useMemo(() => {
-    const raw = (data?.schoolData?.model ?? "").toString();
+    const raw = (data?.schoolData?.model ?? '').toString();
     const norm = raw
       .trim()
       .toLowerCase()
-      .replace(/[\s-]+/g, "_");
-    return norm === "at_school";
+      .replace(/[\s-]+/g, '_');
+    return norm === 'at_school';
   }, [data?.schoolData?.model]);
 
   useEffect(() => {
@@ -274,7 +272,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const api = ServiceConfig.getI().apiHandler;
       try {
         let response;
-        if (search && search.trim() !== "") {
+        if (search && search.trim() !== '') {
           response = await api.searchStudentsInSchool(
             schoolId,
             search,
@@ -295,7 +293,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setTotalCount(response.total);
         }
       } catch (error) {
-        console.error("Failed to fetch students:", error);
+        console.error('Failed to fetch students:', error);
       } finally {
         setIsLoading(false);
       }
@@ -305,11 +303,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const issTotal = isTotal ?? true;
   const issFilter = isFilter ?? true;
-  const custoomTitle = customTitle ?? "Students";
+  const custoomTitle = customTitle ?? 'Students';
 
   // Fetch fresh data when the component mounts
   useEffect(() => {
-    fetchStudents(1, "", true);
+    fetchStudents(1, '', true);
   }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
 
   useEffect(() => {
@@ -340,8 +338,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   };
 
   const handleSort = (key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === key && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(key);
     setPage(1);
   };
@@ -369,9 +367,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     const gradeOn =
       optionalGrade !== undefined &&
       optionalGrade !== null &&
-      String(optionalGrade).trim() !== "";
+      String(optionalGrade).trim() !== '';
     const sectionOn =
-      optionalSection !== undefined && String(optionalSection).trim() !== "";
+      optionalSection !== undefined && String(optionalSection).trim() !== '';
     if (!gradeOn && !sectionOn) return students;
     return students.filter((row: any) => {
       const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
@@ -394,12 +392,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             email: user.email ?? undefined,
             student_id: user.student_id ?? undefined,
             phone: user.phone ?? undefined,
-            gender: user.gender ?? "N/A",
+            gender: user.gender ?? 'N/A',
           },
-          className: s.classSection ?? "N/A",
+          className: s.classSection ?? 'N/A',
           parent: s.parent ?? {
             id: s.parent_id ?? undefined,
-            name: s.parent_name ?? "",
+            name: s.parent_name ?? '',
             phone: s.parent_phone ?? s.phone ?? undefined,
             email: s.parent_email ?? s.email ?? undefined,
           },
@@ -417,7 +415,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           section: (filters.section ?? []).map((s) => String(s).trim()),
         },
         searchTerm,
-        "student",
+        'student',
       ),
     [normalizedStudents, filters, searchTerm],
   );
@@ -427,17 +425,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     return [...filteredStudents].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
-        case "studentIdDisplay":
-          aValue = a.user.student_id || "";
-          bValue = b.user.student_id || "";
-          return order === "asc"
+        case 'studentIdDisplay':
+          aValue = a.user.student_id || '';
+          bValue = b.user.student_id || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "name":
-          aValue = a.user.name || "";
-          bValue = b.user.name || "";
+        case 'name':
+          aValue = a.user.name || '';
+          bValue = b.user.name || '';
 
-          if (order === "asc") {
+          if (order === 'asc') {
             if (aValue > bValue) return 1;
             if (aValue < bValue) return -1;
             return 0;
@@ -446,26 +444,26 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             if (aValue > bValue) return -1;
             return 0;
           }
-        case "gender":
-          aValue = a.user.gender || "";
-          bValue = b.user.gender || "";
-          return order === "asc"
+        case 'gender':
+          aValue = a.user.gender || '';
+          bValue = b.user.gender || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "grade":
+        case 'grade':
           aValue = a.grade || 0;
           bValue = b.grade || 0;
-          return order === "asc" ? aValue - bValue : bValue - aValue;
-        case "classSection":
-          aValue = a.classSection || "";
-          bValue = b.classSection || "";
-          return order === "asc"
+          return order === 'asc' ? aValue - bValue : bValue - aValue;
+        case 'classSection':
+          aValue = a.classSection || '';
+          bValue = b.classSection || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "phoneNumber":
-          aValue = a.parent?.phone || "";
-          bValue = b.parent?.phone || "";
-          return order === "asc"
+        case 'phoneNumber':
+          aValue = a.parent?.phone || '';
+          bValue = b.parent?.phone || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         default:
@@ -483,7 +481,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   >(new Map());
 
   const studentIdsKey = useMemo(
-    () => sortedStudents.map((s) => s.user.id).join(","),
+    () => sortedStudents.map((s) => s.user.id).join(','),
     [sortedStudents],
   );
   const classDataRef = useMemo(() => {
@@ -492,18 +490,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
-    if (!issTotal) return "";
+    if (!issTotal) return '';
     const classes = Array.isArray(data.classData) ? data.classData : [];
     return classes
-      .map((row) => `${row?.id ?? ""}:${row?.group_id ?? ""}`)
-      .join("|");
+      .map((row) => `${row?.id ?? ''}:${row?.group_id ?? ''}`)
+      .join('|');
   }, [data.classData, issTotal]);
 
   const classGroupIdMap = useMemo(() => {
     const map = new Map<string, string>();
     const classes = Array.isArray(data.classData) ? data.classData : [];
     classes.forEach((row) => {
-      if (row?.id) map.set(row.id, String(row?.group_id ?? "").trim());
+      if (row?.id) map.set(row.id, String(row?.group_id ?? '').trim());
     });
     return map;
   }, [data.classData]);
@@ -519,7 +517,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? [classDataRef]
         : [];
     const groupTargets = classes.filter(
-      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== "",
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
     // No bot or no linked groups: clear cache so pills show "Not Checked".
@@ -540,7 +538,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               );
               return [row.id as string, group] as const;
             } catch (error) {
-              console.error("Failed to fetch WhatsApp group members:", error);
+              console.error('Failed to fetch WhatsApp group members:', error);
               return [row.id as string, null] as const;
             }
           }),
@@ -549,7 +547,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         if (cancelled) return;
         const next = new Map<string, Set<string>>();
         results.forEach(([classId, group]) => {
-          const members = Array.isArray(group?.members) ? group.members : [];
+          const parsedGroup =
+            typeof group === 'object' && group !== null && !Array.isArray(group)
+              ? (group as { members?: string[] })
+              : null;
+          const members = Array.isArray(parsedGroup?.members)
+            ? (parsedGroup?.members ?? [])
+            : [];
           // Normalize to 10-digit numbers so comparisons are consistent.
           const normalizedMembers = new Set<string>(
             members
@@ -560,7 +564,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         });
         setWhatsappMembersByClass(next);
       } catch (error) {
-        console.error("Failed to fetch WhatsApp group members:", error);
+        console.error('Failed to fetch WhatsApp group members:', error);
         if (!cancelled) {
           setWhatsappMembersByClass(new Map());
         }
@@ -581,11 +585,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const getGroupIdForClass = useCallback(
     (classId?: string) => {
-      if (!classId) return "";
+      if (!classId) return '';
       if (!issTotal && classDataRef?.group_id != null) {
-        return String(classDataRef.group_id ?? "").trim();
+        return String(classDataRef.group_id ?? '').trim();
       }
-      return String(classGroupIdMap.get(classId) ?? "").trim();
+      return String(classGroupIdMap.get(classId) ?? '').trim();
     },
     [classDataRef?.group_id, classGroupIdMap, issTotal],
   );
@@ -599,7 +603,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       if (!classId) return false;
       const members = whatsappMembersByClass.get(classId);
       if (!members || members.size === 0) return false;
-      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ""));
+      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ''));
       return !!parentPhone && members.has(parentPhone);
     },
     [classDataRef?.id, issTotal, whatsappMembersByClass],
@@ -619,12 +623,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         (student.parent as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
         null;
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
-      if (waContact === "yes") {
+      if (waContact === 'yes') {
         return isStudentInWhatsappGroup(student)
           ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
           : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
-      if (waContact === "no") {
+      if (waContact === 'no') {
         return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
       }
       return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
@@ -639,7 +643,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
 
       const currentClass = classDataRef;
-      const classId = currentClass?.id ?? "";
+      const classId = currentClass?.id ?? '';
       if (!classId || sortedStudents.length === 0) {
         return;
       }
@@ -652,7 +656,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           currentClass?.courses?.map((course) => course.id) ?? [];
         if (courseIds.length === 0) {
           sortedStudents.forEach((student) => {
-            performanceMap.set(student.user.id, "Not Tracked");
+            performanceMap.set(student.user.id, 'Not Tracked');
           });
           setStudentPerformanceMap(performanceMap);
           return;
@@ -665,7 +669,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           const group = groups.get(band);
           if (group && Array.isArray(group)) {
             group.forEach((item: any) => {
-              const student = item.get("student");
+              const student = item.get('student');
               if (student && student.id) {
                 performanceMap.set(student.id, status);
               }
@@ -673,16 +677,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           }
         };
 
-        processGroup(BANDS.GREENGROUP, "Doing Good");
-        processGroup(BANDS.YELLOWGROUP, "Still Learning");
-        processGroup(BANDS.REDGROUP, "Need Help");
-        processGroup(BANDS.GREYGROUP, "Not Tracked");
+        processGroup(BANDS.GREENGROUP, 'Doing Good');
+        processGroup(BANDS.YELLOWGROUP, 'Still Learning');
+        processGroup(BANDS.REDGROUP, 'Need Help');
+        processGroup(BANDS.GREYGROUP, 'Not Tracked');
 
         setStudentPerformanceMap(performanceMap);
       } catch (error) {
-        console.error("Error fetching student performance data:", error);
+        console.error('Error fetching student performance data:', error);
         sortedStudents.forEach((student) => {
-          performanceMap.set(student.user.id, "Not Tracked");
+          performanceMap.set(student.user.id, 'Not Tracked');
         });
         setStudentPerformanceMap(performanceMap);
       } finally {
@@ -709,9 +713,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       };
 
       const resolvedClassId =
-        source.classWithidname?.id || source.classId || source.class_id || "";
+        source.classWithidname?.id || source.classId || source.class_id || '';
       const resolvedClassName =
-        source.classWithidname?.class_name || source.class_name || "";
+        source.classWithidname?.class_name || source.class_name || '';
 
       return {
         ...source,
@@ -731,15 +735,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
         original: s_api,
-        studentIdDisplay: s_api.user.student_id ?? "N/A",
-        name: s_api.user.name ?? "N/A",
-        gender: s_api.user.gender ?? "N/A",
+        studentIdDisplay: s_api.user.student_id ?? 'N/A',
+        name: s_api.user.name ?? 'N/A',
+        gender: s_api.user.gender ?? 'N/A',
         grade: s_api.grade ?? 0,
-        classSection: s_api.classSection ?? "N/A",
-        phoneNumber: s_api.parent?.phone || s_api.parent?.email || "N/A", //here
-        class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
+        classSection: s_api.classSection ?? 'N/A',
+        phoneNumber: s_api.parent?.phone || s_api.parent?.email || 'N/A', //here
+        class: (s_api.grade ?? 0) + (s_api.classSection ?? ''),
         schstudents_performance:
-          studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
+          studentPerformanceMap.get(s_api.user.id) ?? 'Not Tracked',
         // Status is derived from parent is_wa_contact + class group membership.
         whatsappGroupStatus: getWhatsappGroupStatus(s_api),
       }),
@@ -749,7 +753,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filtered = filtered.filter((student) => {
         const perf = student.schstudents_performance
           ?.toLowerCase()
-          .replace(" ", "_");
+          .replace(' ', '_');
         return perf === performanceFilter;
       });
     }
@@ -767,7 +771,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
-    searchTerm.trim() !== "" ||
+    searchTerm.trim() !== '' ||
     Object.values(filters).some((f) => f.length > 0);
 
   const handleFilterIconClick = useCallback(() => {
@@ -799,32 +803,32 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const columns: Column<DisplayStudent>[] = useMemo(() => {
     const actionColumn: Column<DisplayStudent>[] = [
       {
-        key: "schstudents_actions",
-        label: "",
+        key: 'schstudents_actions',
+        label: '',
         sortable: false,
         render: (s) => (
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
           >
             <ActionMenu
               items={[
                 {
-                  name: t("Send Message"),
+                  name: t('Send Message'),
                   icon: (
                     <ChatBubbleOutlineOutlined
                       fontSize="small"
-                      sx={{ color: "black" }}
+                      sx={{ color: 'black' }}
                     />
                   ),
                 },
                 {
-                  name: t("Edit Details"),
+                  name: t('Edit Details'),
                   icon: (
-                    <BorderColorIcon fontSize="small" sx={{ color: "black" }} />
+                    <BorderColorIcon fontSize="small" sx={{ color: 'black' }} />
                   ),
                   onClick: () => {
                     const fullStudent = getStudentInfoById(s.id);
@@ -834,12 +838,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   },
                 },
                 {
-                  name: t("Merge"),
+                  name: t('Merge'),
                   icon: (
                     <MergeOutlinedIcon
                       fontSize="small"
-                      sx={{ color: "black" }}
-                      style={{ transform: "rotate(90deg)" }}
+                      sx={{ color: 'black' }}
+                      style={{ transform: 'rotate(90deg)' }}
                     />
                   ),
                   onClick: () => {
@@ -848,11 +852,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   },
                 },
                 {
-                  name: t("Delete"),
+                  name: t('Delete'),
                   icon: (
                     <DeleteOutlineIcon
                       fontSize="small"
-                      sx={{ color: "black" }}
+                      sx={{ color: 'black' }}
                     />
                   ),
                   onClick: () => {
@@ -869,8 +873,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                     open(e);
                   }}
                   sx={{
-                    color: "#6B7280",
-                    "&:hover": { bgcolor: "#F3F4F6" },
+                    color: '#6B7280',
+                    '&:hover': { bgcolor: '#F3F4F6' },
                   }}
                 >
                   <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
@@ -883,14 +887,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     ];
     const commonColumns: Column<DisplayStudent>[] = [
       {
-        key: "studentIdDisplay",
-        label: t("Student ID"),
+        key: 'studentIdDisplay',
+        label: t('Student ID'),
         sortable: !issTotal ? false : undefined,
       },
       {
-        key: "name",
-        label: t("Student Name"),
-        align: "left",
+        key: 'name',
+        label: t('Student Name'),
+        align: 'left',
         render: (s) => (
           <Typography variant="body2" className="student-name-data">
             {s.name}
@@ -902,15 +906,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return [
         ...commonColumns,
         {
-          key: "schstudents_interact",
-          label: t("Interact"),
+          key: 'schstudents_interact',
+          label: t('Interact'),
           sortable: false,
           render: (s) => (
             <Box
               sx={{
-                display: "flex",
-                justifyContent: "left",
-                alignItems: "left",
+                display: 'flex',
+                justifyContent: 'left',
+                alignItems: 'left',
               }}
             >
               <IconButton
@@ -939,41 +943,41 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ),
         },
         {
-          key: "gender",
-          label: t("Gender"),
+          key: 'gender',
+          label: t('Gender'),
           sortable: false,
           render: (s) => (
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
                   s.gender.slice(1).toLowerCase()
-                : ""}
+                : ''}
             </Typography>
           ),
         },
         {
-          key: "schstudents_performance",
-          label: t("Performance"),
+          key: 'schstudents_performance',
+          label: t('Performance'),
           sortable: false,
           render: (s) => (
             <Chip
-              label={t(s.schstudents_performance || "Not Tracked")}
+              label={t(s.schstudents_performance || 'Not Tracked')}
               size="small"
               className={getPerformanceChipClass(
-                s.schstudents_performance || "Not Tracked",
+                s.schstudents_performance || 'Not Tracked',
               )}
               sx={{
                 fontWeight: 500,
-                fontSize: "0.75rem",
+                fontSize: '0.75rem',
                 height: 24,
-                borderRadius: "4px",
+                borderRadius: '4px',
               }}
             />
           ),
         },
         {
-          key: "whatsappGroupStatus",
-          label: t("WhatsApp Group"),
+          key: 'whatsappGroupStatus',
+          label: t('WhatsApp Group'),
           sortable: false,
           render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
         },
@@ -983,22 +987,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return [
         ...commonColumns,
         {
-          key: "gender",
-          label: t("Gender"),
+          key: 'gender',
+          label: t('Gender'),
           render: (s) => (
             <Typography variant="body2" className="student-name-data">
               {s.gender
                 ? s.gender.charAt(0).toUpperCase() +
                   s.gender.slice(1).toLowerCase()
-                : ""}
+                : ''}
             </Typography>
           ),
         },
         // { key: "phoneNumber", label: t("Phone Number / Email") },
-        { key: "class", label: t("Class") },
+        { key: 'class', label: t('Class') },
         {
-          key: "whatsappGroupStatus",
-          label: t("WhatsApp Group"),
+          key: 'whatsappGroupStatus',
+          label: t('WhatsApp Group'),
           sortable: false,
           render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
         },
@@ -1054,74 +1058,74 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     if (issTotal) {
       const fields: FieldConfig[] = [
         {
-          name: "studentName",
-          label: "Student Name",
-          kind: "text" as const,
+          name: 'studentName',
+          label: 'Student Name',
+          kind: 'text' as const,
           required: true,
-          placeholder: "Enter Student Name",
+          placeholder: 'Enter Student Name',
           column: 2 as const,
         },
         {
-          name: "studentID",
-          label: "Student ID",
-          kind: "text" as const,
-          placeholder: "Enter Student ID",
+          name: 'studentID',
+          label: 'Student ID',
+          kind: 'text' as const,
+          placeholder: 'Enter Student ID',
           column: 0 as const,
         },
         {
-          name: "gender",
-          label: "Gender",
-          kind: "select" as const,
+          name: 'gender',
+          label: 'Gender',
+          kind: 'select' as const,
           required: true,
           column: 1 as const,
           options: [
-            { label: t("GIRL"), value: GENDER.GIRL },
-            { label: t("BOY"), value: GENDER.BOY },
+            { label: t('GIRL'), value: GENDER.GIRL },
+            { label: t('BOY'), value: GENDER.BOY },
             {
-              label: t("UNSPECIFIED"),
+              label: t('UNSPECIFIED'),
               value: GENDER.OTHER,
             },
           ],
         },
         {
-          name: "class",
-          label: "Class",
-          kind: "select" as const,
+          name: 'class',
+          label: 'Class',
+          kind: 'select' as const,
           required: true,
           column: 0 as const,
           options: classOptions,
         },
         {
-          name: "ageGroup",
-          label: "Age",
-          kind: "select" as const,
+          name: 'ageGroup',
+          label: 'Age',
+          kind: 'select' as const,
           required: true,
-          placeholder: "Select Age Group",
+          placeholder: 'Select Age Group',
           column: 1 as const,
           options: [
             {
               value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-              label: `≤${t("4 years")}`,
+              label: `≤${t('4 years')}`,
             },
-            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-            { value: AGE_OPTIONS.SIX, label: t("6 years") },
-            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+            { value: AGE_OPTIONS.SIX, label: t('6 years') },
+            { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+            { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+            { value: AGE_OPTIONS.NINE, label: t('9 years') },
             {
               value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-              label: `≥${t("10 years")}`,
+              label: `≥${t('10 years')}`,
             },
           ],
         },
       ];
       if (!isAtSchool) {
         fields.push({
-          name: "phone",
-          label: "Phone Number",
-          kind: "phone" as const,
+          name: 'phone',
+          label: 'Phone Number',
+          kind: 'phone' as const,
           required: true,
-          placeholder: "Enter phone number",
+          placeholder: 'Enter phone number',
           column: 2 as const,
         });
       }
@@ -1129,66 +1133,66 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     } else {
       const fields: FieldConfig[] = [
         {
-          name: "studentName",
-          label: "Student Name",
-          kind: "text" as const,
+          name: 'studentName',
+          label: 'Student Name',
+          kind: 'text' as const,
           required: true,
-          placeholder: "Enter Student Name",
+          placeholder: 'Enter Student Name',
           column: 0 as const,
         },
         {
-          name: "studentID",
-          label: "Student ID",
-          kind: "text" as const,
-          placeholder: "Enter Student ID",
+          name: 'studentID',
+          label: 'Student ID',
+          kind: 'text' as const,
+          placeholder: 'Enter Student ID',
           column: 1 as const,
         },
         {
-          name: "gender",
-          label: "Gender",
-          kind: "select" as const,
+          name: 'gender',
+          label: 'Gender',
+          kind: 'select' as const,
           required: true,
           column: 0 as const,
           options: [
-            { label: t("GIRL"), value: GENDER.GIRL },
-            { label: t("BOY"), value: GENDER.BOY },
+            { label: t('GIRL'), value: GENDER.GIRL },
+            { label: t('BOY'), value: GENDER.BOY },
             {
-              label: t("UNSPECIFIED"),
+              label: t('UNSPECIFIED'),
               value: GENDER.OTHER,
             },
           ],
         },
         {
-          name: "ageGroup",
-          label: "Age",
-          kind: "select" as const,
+          name: 'ageGroup',
+          label: 'Age',
+          kind: 'select' as const,
           required: true,
-          placeholder: "Select Age Group",
+          placeholder: 'Select Age Group',
           column: 1 as const,
           options: [
             {
               value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-              label: `≤${t("4 years")}`,
+              label: `≤${t('4 years')}`,
             },
-            { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-            { value: AGE_OPTIONS.SIX, label: t("6 years") },
-            { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-            { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-            { value: AGE_OPTIONS.NINE, label: t("9 years") },
+            { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+            { value: AGE_OPTIONS.SIX, label: t('6 years') },
+            { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+            { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+            { value: AGE_OPTIONS.NINE, label: t('9 years') },
             {
               value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-              label: `≥${t("10 years")}`,
+              label: `≥${t('10 years')}`,
             },
           ],
         },
       ];
       if (!isAtSchool) {
         fields.push({
-          name: "phone",
-          label: "Phone Number",
-          kind: "phone" as const,
+          name: 'phone',
+          label: 'Phone Number',
+          kind: 'phone' as const,
           required: true,
-          placeholder: "Enter phone number",
+          placeholder: 'Enter phone number',
           column: 2 as const,
         });
       }
@@ -1198,48 +1202,48 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const editStudentFields: FieldConfig[] = [
     {
-      name: "studentName",
-      label: "Student Name",
-      kind: "text",
+      name: 'studentName',
+      label: 'Student Name',
+      kind: 'text',
       required: true,
       column: 2,
     },
 
     // 2️⃣ Student ID – left
     {
-      name: "studentID",
-      label: "Student ID",
-      kind: "text",
+      name: 'studentID',
+      label: 'Student ID',
+      kind: 'text',
       column: 0,
       disabled: true,
     },
 
     {
-      name: "gender",
-      label: "Gender",
-      kind: "select",
+      name: 'gender',
+      label: 'Gender',
+      kind: 'select',
       required: true,
       column: 1,
       options: [
-        { label: t("FEMALE"), value: GENDER.GIRL },
-        { label: t("MALE"), value: GENDER.BOY },
-        { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+        { label: t('FEMALE'), value: GENDER.GIRL },
+        { label: t('MALE'), value: GENDER.BOY },
+        { label: t('UNSPECIFIED'), value: GENDER.OTHER },
       ],
     },
     // 3️⃣ Class & Section – right
     {
-      name: "classAndSection",
-      label: "Class And Section",
-      kind: "text",
+      name: 'classAndSection',
+      label: 'Class And Section',
+      kind: 'text',
       column: 0,
       disabled: true,
     },
 
     // 5️⃣ Age – right
     {
-      name: "ageGroup",
-      label: "Age",
-      kind: "select",
+      name: 'ageGroup',
+      label: 'Age',
+      kind: 'select',
       required: true,
       column: 1,
       options: Object.values(AGE_OPTIONS).map((v) => ({
@@ -1250,16 +1254,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
     // 6️⃣ Phone – full width
     {
-      name: "phone",
-      label: "Phone Number",
-      kind: "text",
+      name: 'phone',
+      label: 'Phone Number',
+      kind: 'text',
       column: 2,
       disabled: true,
     },
   ];
 
   const getRandomAvatar = () => {
-    if (AVATARS.length === 0) return "";
+    if (AVATARS.length === 0) return '';
     const randomIndex = Math.floor(Math.random() * AVATARS.length);
     return AVATARS[randomIndex];
   };
@@ -1269,18 +1273,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setErrorMessage(undefined);
   }, [history]);
 
-  const handleEditSubmit = async (values) => {
+  const handleEditSubmit = async (values: Record<string, string>) => {
     if (!editStudentData) return; // ✅ null safety
 
     const user = editStudentData.user;
     const classId = editStudentData.classWithidname?.id;
     const avatarToSend =
-      user.avatar && user.avatar.trim() !== ""
+      user.avatar && user.avatar.trim() !== ''
         ? user.avatar
         : getRandomAvatar();
 
     if (!classId) {
-      console.error("Class ID missing for student");
+      console.error('Class ID missing for student');
       return;
     }
     await api.updateStudentFromSchoolMode(
@@ -1289,7 +1293,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       Number(values.ageGroup),
       values.gender,
       avatarToSend,
-      user.image || "",
+      user.image || '',
       user.curriculum_id || user.curriculum_id!,
       user.grade_id || user.grade_id!,
       user.language_id || user.language_id!,
@@ -1313,46 +1317,46 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setErrorMessage(undefined);
 
       const fail = (text: string) => {
-        setErrorMessage({ text, type: "error" });
+        setErrorMessage({ text, type: 'error' });
         setIsSubmitting(false);
       };
 
-      const rawPhone = (formValues.phone ?? "").toString();
-      let digits = rawPhone.replace(/\D/g, "");
-      if (digits === "" || digits === "91") digits = "";
-      if (digits.length === 12 && digits.startsWith("91"))
+      const rawPhone = (formValues.phone ?? '').toString();
+      let digits = rawPhone.replace(/\D/g, '');
+      if (digits === '' || digits === '91') digits = '';
+      if (digits.length === 12 && digits.startsWith('91'))
         digits = digits.slice(2);
-      if (digits.length === 11 && digits.startsWith("0"))
+      if (digits.length === 11 && digits.startsWith('0'))
         digits = digits.slice(1);
       // Phone validation
       if (!isAtSchool) {
         if (digits.length !== 10)
-          return fail("Phone number must be 10 digits.");
+          return fail('Phone number must be 10 digits.');
       } else {
         if (digits.length !== 0 && digits.length !== 10) {
-          return fail("Phone number must be 10 digits when provided.");
+          return fail('Phone number must be 10 digits when provided.');
         }
       }
       // Class validation (this is needed for BOTH flows)
       const classId = issTotal ? formValues.class : currentClass?.id;
-      if (!classId) return fail("Please select a class.");
+      if (!classId) return fail('Please select a class.');
       const normalizedPhone = digits.length === 10 ? digits : undefined;
       try {
         const payload: any = {
           phone: normalizedPhone,
-          name: formValues.studentName || "",
-          gender: formValues.gender || "",
-          age: formValues.ageGroup || "",
+          name: formValues.studentName || '',
+          gender: formValues.gender || '',
+          age: formValues.ageGroup || '',
           classId: classId,
           schoolId: schoolId,
-          studentID: formValues.studentID || "",
+          studentID: formValues.studentID || '',
           atSchool: isAtSchool,
         };
         const result = await api.addStudentWithParentValidation(payload);
         if (result.success) {
           setErrorMessage({
-            text: "Student added successfully.",
-            type: "success",
+            text: 'Student added successfully.',
+            type: 'success',
           });
           setTimeout(() => {
             setIsAddStudentModalOpen(false);
@@ -1361,13 +1365,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setPage(1);
           fetchStudents(1, debouncedSearchTerm);
         } else {
-          setErrorMessage({ text: result.message, type: "error" });
+          setErrorMessage({ text: result.message, type: 'error' });
         }
       } catch (error) {
-        console.error("Error adding student:", error);
+        console.error('Error adding student:', error);
         setErrorMessage({
-          text: "An unexpected error occurred. Please try again.",
-          type: "error",
+          text: 'An unexpected error occurred. Please try again.',
+          type: 'error',
         });
       } finally {
         setIsSubmitting(false);
@@ -1394,28 +1398,28 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const studentId =
         deleteTargetStudent.user?.id ||
         (deleteTargetStudent as { id?: string }).id ||
-        "";
+        '';
       const classId =
         deleteTargetStudent.classWithidname?.id ||
         (deleteTargetStudent as { classId?: string }).classId ||
         (deleteTargetStudent as { class_id?: string }).class_id ||
-        "";
+        '';
 
       if (!studentId || !classId) {
-        console.error("Missing studentId or classId");
+        console.error('Missing studentId or classId');
         return;
       }
       const studentName = deleteTargetStudent?.user?.name;
       const message = t(
         "{{studentName}}'s profile has been deleted and is no longer available.",
-        { studentName: studentName ?? "" },
+        { studentName: studentName ?? '' },
       );
       const res = await api.deleteUserFromClass(studentId, classId);
       if (res) {
         setPopup({
           open: true,
           image: DeleteIcon,
-          heading: "Profile Deleted Successfully",
+          heading: 'Profile Deleted Successfully',
           text: message, // dynamic
           autoCloseSeconds: 5,
         });
@@ -1427,20 +1431,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
       fetchStudents(page, debouncedSearchTerm);
     } catch (error) {
-      console.error("Delete failed:", error);
+      console.error('Delete failed:', error);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
+  const filterConfigsForSchool = [{ key: 'grade', label: 'Grade' }];
 
   const performanceFilters = [
-    { key: PerformanceLevel.ALL, label: t("All") },
-    { key: PerformanceLevel.NEED_HELP, label: t("Need Help") },
-    { key: PerformanceLevel.DOING_GOOD, label: t("Doing Good") },
-    { key: PerformanceLevel.STILL_LEARNING, label: t("Still Learning") },
-    { key: PerformanceLevel.NOT_TRACKED, label: t("Not Tracked") },
+    { key: PerformanceLevel.ALL, label: t('All') },
+    { key: PerformanceLevel.NEED_HELP, label: t('Need Help') },
+    { key: PerformanceLevel.DOING_GOOD, label: t('Doing Good') },
+    { key: PerformanceLevel.STILL_LEARNING, label: t('Still Learning') },
+    { key: PerformanceLevel.NOT_TRACKED, label: t('Not Tracked') },
   ];
   async function handleMergeStudents(student: any): Promise<void> {
     try {
@@ -1451,11 +1455,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const fromName = student?.user?.fullName || student?.user?.name;
       const toName = mergePrimaryStudent.name;
       if (!oldId || !newId) {
-        console.error("Invalid student IDs");
+        console.error('Invalid student IDs');
         return;
       }
       if (oldId === newId) {
-        console.error("Cannot merge same student");
+        console.error('Cannot merge same student');
         return;
       }
 
@@ -1465,14 +1469,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         const mergeMessage = t(
           "{{fromName}}\nhas been merged into {{toName}}'s profile",
           {
-            fromName: fromName ?? "",
-            toName: toName ?? "",
+            fromName: fromName ?? '',
+            toName: toName ?? '',
           },
         );
         setPopup({
           open: true,
           image: verifiedIcon,
-          heading: "Successfully Merged",
+          heading: 'Successfully Merged',
           text: mergeMessage, // dynamic
           autoCloseSeconds: 5,
         });
@@ -1480,9 +1484,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setPopup({
           open: true,
           image: ErrorIcon,
-          heading: "Something went wrong",
-          text:
-            mergeResult.message || t("Failed to merge student profile."),
+          heading: 'Something went wrong',
+          text: mergeResult.message || t('Failed to merge student profile.'),
           autoCloseSeconds: 5,
         });
       }
@@ -1504,12 +1507,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsMergeStudentModalOpen(false);
       setMergePrimaryStudent(null);
     } catch (error: any) {
-      console.error("Merge failed:", error);
+      console.error('Merge failed:', error);
       setPopup({
         open: true,
         image: ErrorIcon,
-        heading: "Something went wrong",
-        text: error?.message || t("Unexpected error while merging."),
+        heading: 'Something went wrong',
+        text: error?.message || t('Unexpected error while merging.'),
         autoCloseSeconds: 5,
       });
       setShowSuccessPopup(true);
@@ -1539,10 +1542,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         open={isAddStudentModalOpen}
         title={
           !issTotal && currentClass
-            ? `${t("Add New Student")} - ${currentClass.name}`
-            : t("Add New Student")
+            ? `${t('Add New Student')} - ${currentClass.name}`
+            : t('Add New Student')
         }
-        submitLabel={isSubmitting ? t("Adding...") : t("Add Student")}
+        submitLabel={isSubmitting ? t('Adding...') : t('Add Student')}
         fields={addStudentFields}
         onClose={handleCloseAddStudentModal}
         onSubmit={handleSubmitAddStudentModal}
@@ -1550,18 +1553,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       />
       <FormCard
         open={isEditStudentModalOpen}
-        title={t("Edit Student Details")}
-        submitLabel={t("Save Changes")}
+        title={t('Edit Student Details')}
+        submitLabel={t('Save Changes')}
         fields={editStudentFields}
         initialValues={{
-          studentName: editStudentData?.user?.name ?? "",
-          gender: editStudentData?.user?.gender ?? "",
-          ageGroup: String(editStudentData?.user?.age ?? ""),
-          studentID: editStudentData?.user?.student_id ?? "",
-          classAndSection: `${editStudentData?.grade ?? ""}${
-            editStudentData?.classSection ?? ""
+          studentName: editStudentData?.user?.name ?? '',
+          gender: editStudentData?.user?.gender ?? '',
+          ageGroup: String(editStudentData?.user?.age ?? ''),
+          studentID: editStudentData?.user?.student_id ?? '',
+          classAndSection: `${editStudentData?.grade ?? ''}${
+            editStudentData?.classSection ?? ''
           }`,
-          phone: editStudentData?.parent?.phone ?? "",
+          phone: editStudentData?.parent?.phone ?? '',
         }}
         onClose={() => {
           setIsEditStudentModalOpen(false);
@@ -1586,7 +1589,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: "12px",
+            borderRadius: '12px',
             padding: 1,
           },
         }}
@@ -1594,16 +1597,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         {/* Header */}
         <DialogTitle
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             fontWeight: 600,
-            fontSize: "18px",
+            fontSize: '18px',
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <ErrorOutlineIcon sx={{ color: "#dc2626", fontSize: 20 }} />
-            {t("Delete Student?")}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <ErrorOutlineIcon sx={{ color: '#dc2626', fontSize: 20 }} />
+            {t('Delete Student?')}
           </Box>
 
           <IconButton size="small" onClick={() => setIsDeleteModalOpen(false)}>
@@ -1611,38 +1614,38 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 0, textAlign: "left" }}>
+        <DialogContent sx={{ pt: 0, textAlign: 'left' }}>
           <Typography
             variant="body2"
-            sx={{ mb: 2, color: "#4B5563", textAlign: "left", width: "100%" }}
+            sx={{ mb: 2, color: '#4B5563', textAlign: 'left', width: '100%' }}
           >
             {t(
               "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
-              { name: deleteTargetStudent?.user?.name ?? "" },
+              { name: deleteTargetStudent?.user?.name ?? '' },
             )}
           </Typography>
           {deleteTargetStudent && (
             <Box
               sx={{
-                background: "#F9FAFB",
-                borderRadius: "8px",
-                padding: "12px",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                background: '#F9FAFB',
+                borderRadius: '8px',
+                padding: '12px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr 1fr',
                 gap: 1,
                 fontSize: 14,
-                border: "1px solid #E5E7EB",
+                border: '1px solid #E5E7EB',
               }}
             >
               <Typography>
-                {deleteTargetStudent.user.student_id ?? "N/A"}
+                {deleteTargetStudent.user.student_id ?? 'N/A'}
               </Typography>
               <Typography>{deleteTargetStudent.user.name}</Typography>
               <Typography>{deleteTargetStudent.user.gender}</Typography>
               <Typography>
                 {deleteTargetStudent.parent?.phone ||
                   deleteTargetStudent.parent?.email ||
-                  "N/A"}
+                  'N/A'}
               </Typography>
             </Box>
           )}
@@ -1651,15 +1654,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           <Box
             sx={{
               mt: 2,
-              background: "#FEE2E2",
-              color: "#B91C1C",
-              borderRadius: "6px",
-              padding: "10px",
-              fontSize: "13px",
-              border: "1px solid #FECACA",
+              background: '#FEE2E2',
+              color: '#B91C1C',
+              borderRadius: '6px',
+              padding: '10px',
+              fontSize: '13px',
+              border: '1px solid #FECACA',
             }}
           >
-            {t("This cannot be reversed. Please be certain.")}
+            {t('This cannot be reversed. Please be certain.')}
           </Box>
         </DialogContent>
 
@@ -1668,13 +1671,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             variant="outlined"
             onClick={() => setIsDeleteModalOpen(false)}
             sx={{
-              textTransform: "none",
-              borderRadius: "6px",
-              color: "black",
-              borderColor: "#807c7b5b",
+              textTransform: 'none',
+              borderRadius: '6px',
+              color: 'black',
+              borderColor: '#807c7b5b',
             }}
           >
-            {t("Cancel")}
+            {t('Cancel')}
           </Button>
 
           <Button
@@ -1683,12 +1686,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             onClick={handleConfirmDelete}
             disabled={isDeleting}
             sx={{
-              textTransform: "none",
-              borderRadius: "6px",
+              textTransform: 'none',
+              borderRadius: '6px',
               fontWeight: 500,
             }}
           >
-            {isDeleting ? t("Deleting...") : t("Delete Student")}
+            {isDeleting ? t('Deleting...') : t('Delete Student')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1710,7 +1713,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           </Typography>
           {issTotal && (
             <Typography variant="body2" className="schoolStudents-totalText">
-              {t("Total")}: {totalCount} {t("students")}
+              {t('Total')}: {totalCount} {t('students')}
             </Typography>
           )}
         </Box>
@@ -1723,7 +1726,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             className="schoolStudents-newStudentButton-outlined"
           >
             <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-            {!isSmallScreen && t("New Student")}
+            {!isSmallScreen && t('New Student')}
           </MuiButton>
           <SearchAndFilter
             searchTerm={searchTerm}
@@ -1738,27 +1741,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
       {/* Keep as-is, but hide when no students overall */}
       {!issTotal && !isNoStudentsState && (
-        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
 
-            let className = "performance-filter-pill";
+            let className = 'performance-filter-pill';
             if (isActive) {
               switch (filter.key) {
                 case PerformanceLevel.ALL:
-                  className = "performance-filter-pill-active-all";
+                  className = 'performance-filter-pill-active-all';
                   break;
                 case PerformanceLevel.DOING_GOOD:
-                  className = "performance-filter-pill-active-doing-good";
+                  className = 'performance-filter-pill-active-doing-good';
                   break;
                 case PerformanceLevel.NEED_HELP:
-                  className = "performance-filter-pill-active-need-help";
+                  className = 'performance-filter-pill-active-need-help';
                   break;
                 case PerformanceLevel.STILL_LEARNING:
-                  className = "performance-filter-pill-active-still-learning";
+                  className = 'performance-filter-pill-active-still-learning';
                   break;
                 case PerformanceLevel.NOT_TRACKED:
-                  className = "performance-filter-pill-active-not-tracked";
+                  className = 'performance-filter-pill-active-not-tracked';
                   break;
               }
             }
@@ -1771,8 +1774,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                 className={className}
                 sx={{
                   fontWeight: isActive ? 600 : 400,
-                  height: "26px",
-                  cursor: "pointer",
+                  height: '26px',
+                  cursor: 'pointer',
                 }}
               />
             );
@@ -1842,14 +1845,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           </Typography>
           <Typography className="schoolStudents-emptyStateMessage">
             {performanceFilter !== PerformanceLevel.ALL
-              ? t("No student data found for the selected filter")
+              ? t('No student data found for the selected filter')
               : isFilteringOrSearching
-                ? t("No students found matching your criteria.")
+                ? t('No students found matching your criteria.')
                 : !issTotal &&
                     optionalGrade != null &&
-                    String(optionalSection ?? "").trim() !== ""
-                  ? t("No students found for your class.")
-                  : t("No students data found for the selected school")}
+                    String(optionalSection ?? '').trim() !== ''
+                  ? t('No students found for your class.')
+                  : t('No students data found for the selected school')}
           </Typography>
           {!isFilteringOrSearching &&
             performanceFilter === PerformanceLevel.ALL && (
@@ -1861,7 +1864,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
                 }
               >
-                {t("Add Student")}
+                {t('Add Student')}
               </MuiButton>
             )}
         </Box>

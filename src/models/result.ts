@@ -1,5 +1,5 @@
-import BaseObject from "./baseObject";
-import { DocumentReference, Timestamp } from "firebase/firestore";
+import BaseObject from './baseObject';
+import { DocumentReference, Timestamp } from 'firebase/firestore';
 
 export default class Result extends BaseObject {
   private _comment: string | undefined;
@@ -30,7 +30,7 @@ export default class Result extends BaseObject {
     timeSpent: number,
     student: DocumentReference,
     docId: string,
-    isLoved: boolean
+    isLoved: boolean,
   ) {
     super(updatedAt, createdAt, docId);
     this._comment = comment;
@@ -121,7 +121,22 @@ export default class Result extends BaseObject {
   }
 
   public toJson() {
-    const res = {
+    const res: {
+      comment: string | null;
+      class: DocumentReference | null;
+      course: DocumentReference | null;
+      lesson: DocumentReference;
+      school: DocumentReference | null;
+      score: number;
+      student: DocumentReference;
+      assignment: DocumentReference | null;
+      correctMoves: number;
+      wrongMoves: number;
+      timeSpent: number;
+      updatedAt: Timestamp;
+      createdAt: Timestamp;
+      isLoved?: boolean;
+    } = {
       comment: this.comment ?? null,
       class: this.class ?? null,
       course: this.course ?? null,
@@ -137,7 +152,7 @@ export default class Result extends BaseObject {
       createdAt: this.createdAt,
     };
     if (this.isLoved != null) {
-      res["isLoved"] = this.isLoved;
+      res.isLoved = this.isLoved;
     }
     return res;
   }

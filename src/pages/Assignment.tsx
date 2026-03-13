@@ -1,35 +1,31 @@
-import { IonButton, IonPage } from "@ionic/react";
-import JoinClass from "../components/assignment/JoinClass";
-import "./Assignment.css";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { IonButton } from '@ionic/react';
+import JoinClass from '../components/assignment/JoinClass';
+import './Assignment.css';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  CURRENT_CLASS,
-  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
   TABLES,
-  TYPE,
   TableTypes,
-} from "../common/constants";
-import { useHistory } from "react-router";
-import LessonSlider from "../components/LessonSlider";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { t } from "i18next";
-import { Util } from "../utility/util";
-import { Keyboard } from "@capacitor/keyboard";
-import { Capacitor } from "@capacitor/core";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { TfiDownload } from "react-icons/tfi";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import LearningPathway from "../components/LearningPathway";
-import HomeworkPathway from "../components/assignment/HomeworkPathway";
-import { useFeatureIsOn, useGrowthBook } from "@growthbook/growthbook-react";
-import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";
-import { useGbContext } from "../growthbook/Growthbook";
+} from '../common/constants';
+import { useHistory } from 'react-router';
+import LessonSlider from '../components/LessonSlider';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { t } from 'i18next';
+import { Util } from '../utility/util';
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { TfiDownload } from 'react-icons/tfi';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import HomeworkPathway from '../components/assignment/HomeworkPathway';
+import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
+import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
+import { useGbContext } from '../growthbook/Growthbook';
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
@@ -44,23 +40,23 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   const growthbook = useGrowthBook();
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>([]);
   const [lessonChapterMap, setLessonChapterMap] = useState<{
-    [lessonId: string]: TableTypes<"chapter">;
+    [lessonId: string]: TableTypes<'chapter'>;
   }>({});
-  const [schoolName, setSchoolName] = useState<string>("");
+  const [schoolName, setSchoolName] = useState<string>('');
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>({});
   const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-  const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
+  const [assignments, setAssignments] = useState<TableTypes<'assignment'>[]>(
     [],
   );
   const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
@@ -72,7 +68,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   const isMounted = useRef(true);
   const { gbUpdated, setGbUpdated } = useGbContext();
 
-  const isHomeworkPathwayOnHook = useFeatureIsOn("homework-learning-pathway");
+  const isHomeworkPathwayOnHook = useFeatureIsOn('homework-learning-pathway');
   const [isHomeworkPathwayOnLocal, setIsHomeworkPathwayOnLocal] =
     useState<boolean>(false);
 
@@ -81,7 +77,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   const [assignmentSyncDone, setAssignmentSyncDone] = useState(false);
 
   const updateLessonChapterAndCourseMaps = useCallback(
-    async (assignments: TableTypes<"assignment">[]) => {
+    async (assignments: TableTypes<'assignment'>[]) => {
       // Update lessonChapterMap
       const chapterIds = Array.from(
         new Set(
@@ -98,11 +94,11 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
           acc[chapter.id] = chapter;
           return acc;
         },
-        {} as { [id: string]: TableTypes<"chapter"> },
+        {} as { [id: string]: TableTypes<'chapter'> },
       );
 
       // Build the final lessonChapterMap by iterating through assignments
-      const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
+      const chapterMap: { [lessonId: string]: TableTypes<'chapter'> } = {};
       assignments.forEach((assignment) => {
         if (assignment.lesson_id && assignment.chapter_id) {
           const chapter = chapterIdMap[assignment.chapter_id];
@@ -146,12 +142,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       setCurrentClass(classDoc);
       Util.setCurrentClass(classDoc);
       setSchoolName(
-        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || "",
+        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || '',
       );
       const classId = classDoc.id;
       const studentId = student.id;
       // Fetch assignments
-      let allAssignments: TableTypes<"assignment">[] = [];
+      let allAssignments: TableTypes<'assignment'>[] = [];
       try {
         const all = await api.getPendingAssignments(classId, studentId);
         const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
@@ -174,14 +170,14 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         });
         const lessonList = await Promise.all(lessonPromises);
         const filteredLessons = lessonList.filter(
-          (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined,
+          (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
         );
         const mergedLessons = fullRefresh
           ? filteredLessons
           : [...lessons, ...filteredLessons];
         setLessons(mergedLessons);
       } catch (error) {
-        console.error("Failed to load pending assignments:", error);
+        console.error('Failed to load pending assignments:', error);
         if (fullRefresh) {
           setAssignments([]);
           assignmentCount(0);
@@ -264,7 +260,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         init(false, false);
       })
       .catch((error) => {
-        console.error("Error syncing assignments:", error);
+        console.error('Error syncing assignments:', error);
       });
   }, []);
 
@@ -278,7 +274,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       return;
     }
     const downloadedLessonIds = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]",
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
     const allLessonIdPresent = lessons.every((lesson) =>
       downloadedLessonIds.includes(lesson.cocos_lesson_id),
@@ -286,7 +282,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     setShowDownloadHomeworkButton(!allLessonIdPresent);
     setDownloadButtonLoading(
       JSON.parse(
-        localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false",
+        localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || 'false',
       ),
     );
     window.removeEventListener(
@@ -294,7 +290,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       checkAllHomeworkDownloaded,
     );
   };
-  async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
+  async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
     const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
@@ -313,7 +309,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
     } catch (error) {
-      console.error("Error downloading homework:", error);
+      console.error('Error downloading homework:', error);
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
         JSON.stringify(false),
@@ -329,10 +325,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", () => {
+      Keyboard.addListener('keyboardWillShow', () => {
         setIsInputFocus(true);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -349,7 +345,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         lastEvaluatedStudentId.current = null;
         setIsHomeworkPathwayOnLocal(false);
         // If gbUpdated was used as a trigger, clear it now (optional)
-        if (gbUpdated && typeof setGbUpdated === "function")
+        if (gbUpdated && typeof setGbUpdated === 'function')
           setGbUpdated(false);
         return;
       }
@@ -371,7 +367,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
       // Synchronously evaluate feature
       const val = (growthbook.getFeatureValue?.(
-        "homework-learning-pathway",
+        'homework-learning-pathway',
         false,
       ) ?? false) as boolean;
 
@@ -379,27 +375,27 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       lastEvaluatedStudentId.current = studentId;
 
       // reset the gbUpdated flag after handling it
-      if (gbUpdated && typeof setGbUpdated === "function") setGbUpdated(false);
+      if (gbUpdated && typeof setGbUpdated === 'function') setGbUpdated(false);
     } catch (e) {
-      console.warn("GrowthBook evaluation error:", e);
+      console.warn('GrowthBook evaluation error:', e);
     }
     // Run on mount and whenever gbUpdated changes
   }, [growthbook, gbUpdated]);
 
   // ⬆ inside AssignmentPage component, before JSX:
   const bodyClass = !isLinked
-    ? "lesson-body"
+    ? 'lesson-body'
     : !isHomeworkPathwayOnLocal
       ? // 🔹 Flag ON → Slider flow (keep old behaviour)
         lessons.length < 1
-        ? "lesson-body"
-        : "assignment-body"
+        ? 'lesson-body'
+        : 'assignment-body'
       : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
-        "assignment-body";
+        'assignment-body';
 
   return !loading ? (
     <div>
-      <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
+      <div className={`assignment-main${isLinked ? '' : '-join-class'}`}>
         <div className={bodyClass}>
           {!isHomeworkPathwayOnLocal &&
             !showHomeworkCompleteModal &&
@@ -411,7 +407,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                   <div className="school-class-header">
                     <div className="classname-header">{schoolName}</div>
                     <div className="classname-header">
-                      {currentClass?.name ? currentClass?.name : ""}
+                      {currentClass?.name ? currentClass?.name : ''}
                     </div>
                   </div>
                 </div>
@@ -430,10 +426,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                       if (!online) {
                         presentToast({
                           message: t(`Device is offline.`),
-                          color: "danger",
+                          color: 'danger',
                           duration: 3000,
-                          position: "bottom",
-                          buttons: [{ text: "Dismiss", role: "cancel" }],
+                          position: 'bottom',
+                          buttons: [{ text: 'Dismiss', role: 'cancel' }],
                         });
                         setLoading(false);
                         return;
@@ -443,8 +439,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                   >
                     <div className="download-homework-label">
                       {downloadButtonLoading
-                        ? t("Downloading...")
-                        : t("Download all")}
+                        ? t('Downloading...')
+                        : t('Download all')}
                     </div>
 
                     {!downloadButtonLoading && (
@@ -493,7 +489,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         {showHomeworkCompleteModal && (
                           <HomeworkCompleteModal
                             text={t(
-                              "Yay!! You have completed all the Homework!!",
+                              'Yay!! You have completed all the Homework!!',
                             )}
                             borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
                             onClose={() => setShowHomeworkCompleteModal(false)}
@@ -517,7 +513,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                       {showHomeworkCompleteModal && (
                         <HomeworkCompleteModal
                           text={t(
-                            "Yay!! You have completed all the Homework!!",
+                            'Yay!! You have completed all the Homework!!',
                           )}
                           borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
                           onClose={() => setShowHomeworkCompleteModal(false)}

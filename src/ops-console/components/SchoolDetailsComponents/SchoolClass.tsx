@@ -1,27 +1,26 @@
-import React, { useMemo, useRef, useEffect, useState } from "react";
-import DataTableBody from "../DataTableBody";
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import DataTableBody from '../DataTableBody';
 import {
   Button as MuiButton,
   Typography,
   Box,
   useMediaQuery,
-} from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
-import EditOutlined from "@mui/icons-material/EditOutlined";
-import PersonAddAlt1Outlined from "@mui/icons-material/PersonAddAlt1Outlined";
-import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import "./SchoolClass.css";
-import ActionMenu from "./ActionMenu";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import ClassDetailsPage from "./ClassDetailsPage";
-import { t } from "i18next";
-import ClassForm from "../ClassForm";
-import { ClassWithDetails, SchoolStats } from "../../pages/SchoolDetailsPage";
-import { TableTypes, AGE_OPTIONS, GENDER } from "../../../common/constants";
-import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
-import { normalizePhone10 } from "../../pages/NewUserPageOps";
+} from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
+import EditOutlined from '@mui/icons-material/EditOutlined';
+import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
+import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import './SchoolClass.css';
+import ActionMenu from './ActionMenu';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import ClassDetailsPage from './ClassDetailsPage';
+import { t } from 'i18next';
+import ClassForm from '../ClassForm';
+import { ClassWithDetails, SchoolStats } from '../../pages/SchoolDetailsPage';
+import { TableTypes, AGE_OPTIONS, GENDER } from '../../../common/constants';
+import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;
@@ -40,7 +39,7 @@ export type SchoolDetailsData = {
   totalClassCount?: number;
 };
 
-export type SchoolData = TableTypes<"school"> & {
+export type SchoolData = TableTypes<'school'> & {
   whatsapp_bot_number?: string | null;
 };
 
@@ -66,7 +65,7 @@ type TableRowData = {
 type ColumnDef = {
   key: keyof TableRowData;
   label: string;
-  align?: "left" | "right" | "center" | "justify" | "inherit";
+  align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
   sortable?: boolean;
   width?: string | number;
 };
@@ -79,22 +78,22 @@ interface Props {
   refreshClasses?: () => void;
 }
 const StatusChip: React.FC<{
-   status: "connected" | "disconnected" | "not_connected" | "loading";
+  status: 'connected' | 'disconnected' | 'not_connected' | 'loading';
 }> = ({ status }) => {
-  const isConnected = status === "connected";
+  const isConnected = status === 'connected';
 
   return (
     <span
       role="status"
       className={`schoolclass-wa-chip ${
-  status === "connected"
-    ? "schoolclass-wa-chip--ok"
-    : status === "disconnected"
-    ? "schoolclass-wa-chip--warn"
-    : status === "loading"
-    ? "schoolclass-wa-chip--loading"
-    : "schoolclass-wa-chip--na"
-}`}
+        status === 'connected'
+          ? 'schoolclass-wa-chip--ok'
+          : status === 'disconnected'
+            ? 'schoolclass-wa-chip--warn'
+            : status === 'loading'
+              ? 'schoolclass-wa-chip--loading'
+              : 'schoolclass-wa-chip--na'
+      }`}
     >
       {isConnected && (
         <ChatBubbleOutlineOutlined
@@ -103,13 +102,13 @@ const StatusChip: React.FC<{
         />
       )}
 
-     {status === "connected"
-  ? t("Connected")
-  : status === "disconnected"
-  ? t("Disconnected")
-  : status === "loading"
-  ? t("Loading...")
-  : t("Not Connected")}
+      {status === 'connected'
+        ? t('Connected')
+        : status === 'disconnected'
+          ? t('Disconnected')
+          : status === 'loading'
+            ? t('Loading...')
+            : t('Not Connected')}
     </span>
   );
 };
@@ -121,15 +120,14 @@ const SchoolClasses: React.FC<Props> = ({
   onGenerateCode,
   refreshClasses,
 }) => {
-  const isSmall = useMediaQuery("(max-width: 768px)");
+  const isSmall = useMediaQuery('(max-width: 768px)');
   const api = ServiceConfig.getI().apiHandler;
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
-  const [mode, setMode] = useState<"create" | "edit">("edit");
+  const [mode, setMode] = useState<'create' | 'edit'>('edit');
   const [showForm, setShowForm] = useState<boolean>(false);
   const [exitStatuses, setExitStatuses] = useState<Record<string, boolean>>({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [waMetaLoading, setWaMetaLoading] = useState(true);
-
 
   // Add Student Modal State
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
@@ -150,64 +148,73 @@ const SchoolClasses: React.FC<Props> = ({
     : [];
 
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
-  const hasWhatsAppBot = typeof bot === "string" && /^\d{12}$/.test(bot.trim());
-  const hasValue = (v: string) => v != null && String(v).trim() !== "";
+  const hasWhatsAppBot = typeof bot === 'string' && /^\d{12}$/.test(bot.trim());
+  const hasValue = (v: string) => v != null && String(v).trim() !== '';
   const [phoneDetails, setPhoneDetails] = useState<any>(null);
   const [codes, setCodes] = useState<Record<string, string | null>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
 
-useEffect(() => {
-  if (!bot) return; // 🚨 wait until bot exists
+  useEffect(() => {
+    if (!bot) return; // 🚨 wait until bot exists
 
-  let cancelled = false;
-  
-   (async () => {
-    const promises = safeClasses
-      .filter((c) => c.group_id)
-      .map(async (c) => {
-        try {
-          const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
-          return { classId: c.id, isExited: res.is_exited };
-        } catch (err) {
-          console.error(`Failed to fetch WhatsApp group details for group ${c.group_id}:`, err);
-          return null;
-        }
-      });
+    let cancelled = false;
 
-    const results = await Promise.all(promises);
+    (async () => {
+      const promises = safeClasses
+        .filter((c) => c.group_id)
+        .map(async (c) => {
+          try {
+            const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
+            const parsed =
+              typeof res === 'object' && res !== null && !Array.isArray(res)
+                ? (res as { is_exited?: boolean })
+                : null;
+            return { classId: c.id, isExited: parsed?.is_exited ?? false };
+          } catch (err) {
+            console.error(
+              `Failed to fetch WhatsApp group details for group ${c.group_id}:`,
+              err,
+            );
+            return null;
+          }
+        });
 
-    if (cancelled) {
-      return;
-    }
+      const results = await Promise.all(promises);
 
-    const newStatuses = results
-      .filter((r): r is { classId: string; isExited: boolean } => r !== null)
-      .reduce((acc, { classId, isExited }) => {
-        acc[classId] = isExited;
-        return acc;
-      }, {} as Record<string, boolean>);
-    
-    setExitStatuses((prev) => ({ ...prev, ...newStatuses }));
-  })();
+      if (cancelled) {
+        return;
+      }
 
-  (async () => {
-    try {
-      const details = await api.getPhoneDetailsByBotNum(String(bot));
-      if (!cancelled) setPhoneDetails(details);
-    } catch (e) {
-      console.error("getPhoneDetailsByBotNum failed", e);
-    }
+      const newStatuses = results
+        .filter((r): r is { classId: string; isExited: boolean } => r !== null)
+        .reduce(
+          (acc, { classId, isExited }) => {
+            acc[classId] = isExited;
+            return acc;
+          },
+          {} as Record<string, boolean>,
+        );
 
-    if (!cancelled) setWaMetaLoading(false); // ✅ critical
-  })();
+      setExitStatuses((prev) => ({ ...prev, ...newStatuses }));
+    })();
 
-  return () => {
-    cancelled = true;
-  };
-}, [bot]); // ✅ MUST depend on bot
+    (async () => {
+      try {
+        const details = await api.getPhoneDetailsByBotNum(String(bot));
+        if (!cancelled) setPhoneDetails(details);
+      } catch (e) {
+        console.error('getPhoneDetailsByBotNum failed', e);
+      }
 
-console.log("WhatsApp Phone Details value:", phoneDetails);
+      if (!cancelled) setWaMetaLoading(false); // ✅ critical
+    })();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [bot]); // ✅ MUST depend on bot
+
+  console.log('WhatsApp Phone Details value:', phoneDetails);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,7 +232,7 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
           setCodes((prev) => ({
             ...missingIds.reduce(
               (m, id) => ({ ...m, [id]: prev[id] ?? null }),
-              {}
+              {},
             ),
             ...seeded,
             ...prev,
@@ -241,7 +248,7 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
             } catch {
               return [id, null] as const;
             }
-          })
+          }),
         );
         if (!cancelled) {
           const fetched: Record<string, string | null> = {};
@@ -264,78 +271,78 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
       const newCode = await api.createClassCode(classId);
       setCodes((prev) => ({ ...prev, [classId]: String(newCode) }));
     } catch (err) {
-      console.error("Failed to create class code:", err);
+      console.error('Failed to create class code:', err);
     } finally {
       setLoadingIds((s) => ({ ...s, [classId]: false }));
     }
   };
 
   const isAtSchool = useMemo(() => {
-    const raw = (data?.schoolData?.model ?? "").toString();
+    const raw = (data?.schoolData?.model ?? '').toString();
     const norm = raw
       .trim()
       .toLowerCase()
-      .replace(/[\s-]+/g, "_");
-    return norm === "at_school";
+      .replace(/[\s-]+/g, '_');
+    return norm === 'at_school';
   }, [data?.schoolData?.model]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     const fields: FieldConfig[] = [
       {
-        name: "studentName",
-        label: "Student Name",
-        kind: "text" as const,
+        name: 'studentName',
+        label: 'Student Name',
+        kind: 'text' as const,
         required: true,
-        placeholder: "Enter Student Name",
+        placeholder: 'Enter Student Name',
         column: 0 as const,
       },
       {
-        name: "studentID",
-        label: "Student ID",
-        kind: "text" as const,
-        placeholder: "Enter Student ID",
+        name: 'studentID',
+        label: 'Student ID',
+        kind: 'text' as const,
+        placeholder: 'Enter Student ID',
         column: 1 as const,
       },
       {
-        name: "gender",
-        label: "Gender",
-        kind: "select" as const,
+        name: 'gender',
+        label: 'Gender',
+        kind: 'select' as const,
         required: true,
         column: 0 as const,
         options: [
-          { label: t("GIRL"), value: GENDER.GIRL },
-          { label: t("BOY"), value: GENDER.BOY },
-          { label: t("UNSPECIFIED"), value: GENDER.OTHER },
+          { label: t('GIRL'), value: GENDER.GIRL },
+          { label: t('BOY'), value: GENDER.BOY },
+          { label: t('UNSPECIFIED'), value: GENDER.OTHER },
         ],
       },
       {
-        name: "ageGroup",
-        label: "Age",
-        kind: "select" as const,
+        name: 'ageGroup',
+        label: 'Age',
+        kind: 'select' as const,
         required: true,
-        placeholder: "Select Age Group",
+        placeholder: 'Select Age Group',
         column: 1 as const,
         options: [
-          { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t("4 years")}` },
-          { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-          { value: AGE_OPTIONS.SIX, label: t("6 years") },
-          { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-          { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-          { value: AGE_OPTIONS.NINE, label: t("9 years") },
+          { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t('4 years')}` },
+          { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+          { value: AGE_OPTIONS.SIX, label: t('6 years') },
+          { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+          { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+          { value: AGE_OPTIONS.NINE, label: t('9 years') },
           {
             value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-            label: `≥${t("10 years")}`,
+            label: `≥${t('10 years')}`,
           },
         ],
       },
     ];
     if (!isAtSchool) {
       fields.push({
-        name: "phone",
-        label: "Phone Number",
-        kind: "phone" as const,
+        name: 'phone',
+        label: 'Phone Number',
+        kind: 'phone' as const,
         required: true,
-        placeholder: "Enter phone number",
+        placeholder: 'Enter phone number',
         column: 2 as const,
       });
     }
@@ -350,26 +357,26 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
   };
 
   const handleSubmitAddStudentModal = async (
-    formValues: Record<string, string>
+    formValues: Record<string, string>,
   ) => {
     if (!classForStudent) return;
     setIsStudentSubmitting(true);
     setStudentErrorMessage(undefined);
 
-    const rawPhone = (formValues.phone ?? "").toString();
-    let digits = rawPhone.replace(/\D/g, "");
-    if (digits === "" || digits === "91") {
-      digits = "";
+    const rawPhone = (formValues.phone ?? '').toString();
+    let digits = rawPhone.replace(/\D/g, '');
+    if (digits === '' || digits === '91') {
+      digits = '';
     }
-    if (digits.length === 12 && digits.startsWith("91"))
+    if (digits.length === 12 && digits.startsWith('91'))
       digits = digits.slice(2);
-    if (digits.length === 11 && digits.startsWith("0"))
+    if (digits.length === 11 && digits.startsWith('0'))
       digits = digits.slice(1);
     if (!isAtSchool) {
       if (digits.length !== 10) {
         setStudentErrorMessage({
-          text: "Phone number must be 10 digits.",
-          type: "error",
+          text: 'Phone number must be 10 digits.',
+          type: 'error',
         });
         setIsStudentSubmitting(false);
         return;
@@ -377,8 +384,8 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
     } else {
       if (digits.length !== 0 && digits.length !== 10) {
         setStudentErrorMessage({
-          text: "Phone number must be 10 digits when provided.",
-          type: "error",
+          text: 'Phone number must be 10 digits when provided.',
+          type: 'error',
         });
         setIsStudentSubmitting(false);
         return;
@@ -389,19 +396,19 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
     try {
       const payload: any = {
         phone: normalizedPhone,
-        name: formValues.studentName || "",
-        gender: formValues.gender || "",
-        age: formValues.ageGroup || "",
+        name: formValues.studentName || '',
+        gender: formValues.gender || '',
+        age: formValues.ageGroup || '',
         classId: classForStudent.id,
         schoolId: schoolId,
-        studentID: formValues.studentID || "",
+        studentID: formValues.studentID || '',
         atSchool: isAtSchool,
       };
       const result = await api.addStudentWithParentValidation(payload);
       if (result.success) {
         setStudentErrorMessage({
-          text: "Student added successfully.",
-          type: "success",
+          text: 'Student added successfully.',
+          type: 'success',
         });
         setTimeout(() => {
           setIsAddStudentModalOpen(false);
@@ -409,13 +416,13 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
         }, 2000);
         refreshClasses?.();
       } else {
-        setStudentErrorMessage({ text: result.message, type: "error" });
+        setStudentErrorMessage({ text: result.message, type: 'error' });
       }
     } catch (error) {
-      console.error("Error adding student:", error);
+      console.error('Error adding student:', error);
       setStudentErrorMessage({
-        text: "An unexpected error occurred. Please try again.",
-        type: "error",
+        text: 'An unexpected error occurred. Please try again.',
+        type: 'error',
       });
     } finally {
       setIsStudentSubmitting(false);
@@ -424,27 +431,27 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
 
   const rows = useMemo<TableRowData[]>(() => {
     return safeClasses.map((c) => {
-      const classLabel = typeof c.name === "string" ? c.name.trim() : "";
+      const classLabel = typeof c.name === 'string' ? c.name.trim() : '';
 
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
-      const isGroupConnected = hasValue(c.group_id ?? "");
-      const isBotConnected = phoneDetails?.phone.wa_state === "CONNECTED" && !(exitStatuses[c.id]);
-      let waStatus: "connected" | "disconnected" | "not_connected" | "loading";
+      const isGroupConnected = hasValue(c.group_id ?? '');
+      const isBotConnected =
+        phoneDetails?.phone.wa_state === 'CONNECTED' && !exitStatuses[c.id];
+      let waStatus: 'connected' | 'disconnected' | 'not_connected' | 'loading';
 
       if (waMetaLoading) {
-        waStatus = "loading";                 // ✅ don't guess yet
+        waStatus = 'loading'; // ✅ don't guess yet
       } else if (!isGroupConnected) {
-        waStatus = "not_connected";
+        waStatus = 'not_connected';
       } else if (isBotConnected) {
-        waStatus = "connected";
+        waStatus = 'connected';
       } else {
-        waStatus = "disconnected";
+        waStatus = 'disconnected';
       }
 
-
       const codeVal = codes[c.id] ?? null;
-      const hasCode = typeof codeVal === "string" && codeVal.trim().length > 0;
+      const hasCode = typeof codeVal === 'string' && codeVal.trim().length > 0;
       const isLoading = !!loadingIds[c.id];
       const codeCell = hasCode
         ? codeVal
@@ -455,21 +462,21 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
                 size="small"
                 disabled={isLoading}
                 sx={{
-                  borderRadius: "9999px",
-                  textTransform: "none",
+                  borderRadius: '9999px',
+                  textTransform: 'none',
                   px: 1.5,
                   py: 0.25,
                   height: 28,
                   fontWeight: 700,
                   boxShadow:
-                    "0 1px 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06)",
+                    '0 1px 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06)',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleGenerateCode(c.id);
                 }}
               >
-                {isLoading ? t("Generating...") : t("Generate")}
+                {isLoading ? t('Generating...') : t('Generate')}
               </MuiButton>
             ),
           };
@@ -479,28 +486,28 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
         _raw: c,
         code: codeCell,
         class: { render: <strong>{classLabel}</strong> },
-        subjects: subjectsDisplay ?? "",
-        curriculum: curriculumDisplay ?? "",
+        subjects: subjectsDisplay ?? '',
+        curriculum: curriculumDisplay ?? '',
         studentCount: Number.isFinite(c.studentCount) ? c.studentCount : 0,
         actions: {
           render: (
             <div
               onClick={(e) => e.stopPropagation()}
-              style={{ display: "flex", justifyContent: "center" }}
+              style={{ display: 'flex', justifyContent: 'center' }}
             >
               <ActionMenu
                 items={[
                   {
-                    name: t("Edit Class"),
+                    name: t('Edit Class'),
                     icon: <EditOutlined fontSize="small" />,
                     onClick: () => {
-                      setMode("edit");
+                      setMode('edit');
                       setEditingClass(c);
                       setShowForm(true);
                     },
                   },
                   {
-                    name: t("Add Student"),
+                    name: t('Add Student'),
                     icon: <PersonAddAlt1Outlined fontSize="small" />,
                     onClick: () => {
                       setClassForStudent(c);
@@ -508,7 +515,7 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
                     },
                   },
                   {
-                    name: t("Setup WhatsApp Group"),
+                    name: t('Setup WhatsApp Group'),
                     icon: <ChatBubbleOutlineOutlined fontSize="small" />,
                   },
                 ]}
@@ -523,19 +530,19 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
                       isOpen ? (
                         <KeyboardArrowUpIcon
                           fontSize="medium"
-                          sx={{ color: "black" }}
+                          sx={{ color: 'black' }}
                         />
                       ) : (
                         <KeyboardArrowDownIcon
                           fontSize="medium"
-                          sx={{ color: "black" }}
+                          sx={{ color: 'black' }}
                         />
                       )
                     }
                     sx={{
                       minWidth: 0,
-                      borderRadius: "8px",
-                      textTransform: "none",
+                      borderRadius: '8px',
+                      textTransform: 'none',
                     }}
                   />
                 )}
@@ -556,14 +563,21 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
 
       return baseRow;
     });
-  }, [ safeClasses,codes,loadingIds,hasWhatsAppBot,phoneDetails,waMetaLoading ]);
+  }, [
+    safeClasses,
+    codes,
+    loadingIds,
+    hasWhatsAppBot,
+    phoneDetails,
+    waMetaLoading,
+  ]);
 
   const selectedRow = useMemo(
     () =>
       selectedClassId
-        ? safeClasses.find((c) => c.id === selectedClassId) ?? null
+        ? (safeClasses.find((c) => c.id === selectedClassId) ?? null)
         : null,
-    [selectedClassId, safeClasses]
+    [selectedClassId, safeClasses],
   );
 
   const selectedClassCode = useMemo(() => {
@@ -582,36 +596,36 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
 
   const columns = useMemo<ColumnDef[]>(() => {
     const cols: ColumnDef[] = [
-      { key: "code", label: t("Class Code"), sortable: false },
-      { key: "class", label: t("Class"), sortable: false },
-      { key: "subjects", label: t("Subjects"), sortable: false },
-      { key: "curriculum", label: t("Curriculum"), sortable: false },
+      { key: 'code', label: t('Class Code'), sortable: false },
+      { key: 'class', label: t('Class'), sortable: false },
+      { key: 'subjects', label: t('Subjects'), sortable: false },
+      { key: 'curriculum', label: t('Curriculum'), sortable: false },
       {
-        key: "studentCount",
-        label: t("Student Count"),
+        key: 'studentCount',
+        label: t('Student Count'),
         sortable: false,
-        align: "right",
+        align: 'right',
       },
     ];
     if (hasWhatsAppBot) {
       cols.push({
-        key: "whatsapp",
-        label: t("WhatsApp Group"),
-        align: "center",
+        key: 'whatsapp',
+        label: t('WhatsApp Group'),
+        align: 'center',
         sortable: false,
       });
     }
     cols.push({
-      key: "actions",
-      label: t("Actions"),
-      align: "right",
+      key: 'actions',
+      label: t('Actions'),
+      align: 'right',
       sortable: false,
     });
     return cols;
   }, [hasWhatsAppBot]);
 
   const totalCount =
-    typeof getAll()?.totalClassCount === "number"
+    typeof getAll()?.totalClassCount === 'number'
       ? getAll().totalClassCount
       : safeClasses.length;
 
@@ -630,12 +644,12 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
       <Box className="schoolclass-headerActionsRow">
         <Box className="schoolclass-titleArea">
           <Typography variant="h5" className="schoolclass-titleHeading">
-            {t("Classes")}
+            {t('Classes')}
           </Typography>
           <Typography variant="body2" className="schoolclass-totalText">
-            {t("Total: ")}
+            {t('Total: ')}
             {totalCount}
-            {t(" classes")}
+            {t(' classes')}
           </Typography>
         </Box>
 
@@ -643,13 +657,13 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
           <MuiButton
             variant="outlined"
             onClick={() => {
-              setMode("create");
+              setMode('create');
               setShowForm(true);
             }}
             className="schoolclass-newStudentButton-outlined"
           >
             <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
-            {!isSmall && t("New Class")}
+            {!isSmall && t('New Class')}
           </MuiButton>
         </Box>
       </Box>
@@ -659,7 +673,7 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
           mode={mode}
           classData={editingClass}
           schoolId={schoolId}
-          whatspAppBotNumber={data.schoolData?.whatsapp_bot_number || ""}
+          whatspAppBotNumber={data.schoolData?.whatsapp_bot_number || ''}
           onSaved={refreshClasses}
           onClose={() => setShowForm(false)}
         />
@@ -669,10 +683,10 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
         open={isAddStudentModalOpen}
         title={
           classForStudent
-            ? `${t("Add New Student")} - ${classForStudent.name}`
-            : t("Add New Student")
+            ? `${t('Add New Student')} - ${classForStudent.name}`
+            : t('Add New Student')
         }
-        submitLabel={isStudentSubmitting ? t("Adding...") : t("Add Student")}
+        submitLabel={isStudentSubmitting ? t('Adding...') : t('Add Student')}
         fields={addStudentFields}
         onClose={handleCloseAddStudentModal}
         onSubmit={handleSubmitAddStudentModal}
@@ -683,8 +697,8 @@ console.log("WhatsApp Phone Details value:", phoneDetails);
         <DataTableBody
           columns={columns}
           rows={rows}
-          orderBy={"curriculum" as const}
-          order={"asc" as const}
+          orderBy={'curriculum' as const}
+          order={'asc' as const}
           onSort={() => {}}
           onRowClick={(id) => setSelectedClassId(String(id))}
         />

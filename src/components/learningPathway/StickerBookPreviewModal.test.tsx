@@ -1,20 +1,28 @@
-import React from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import React from 'react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import StickerBookPreviewModal, {
   StickerBookPreviewData,
-} from "./StickerBookPreviewModal";
+} from './StickerBookPreviewModal';
 
 const originalFetch = global.fetch;
 
-const buildData = (override: Partial<StickerBookPreviewData> = {}): StickerBookPreviewData => ({
-  source: "learning_pathway",
-  stickerBookId: "book-1",
-  stickerBookTitle: "Book 1",
-  stickerBookSvgUrl: "https://example.com/sticker-book.svg",
-  collectedStickerIds: ["slot-collected"],
-  nextStickerId: "slot-next",
-  nextStickerName: "Rocket",
-  nextStickerImage: "https://example.com/rocket.png",
+const buildData = (
+  override: Partial<StickerBookPreviewData> = {},
+): StickerBookPreviewData => ({
+  source: 'learning_pathway',
+  stickerBookId: 'book-1',
+  stickerBookTitle: 'Book 1',
+  stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
+  collectedStickerIds: ['slot-collected'],
+  nextStickerId: 'slot-next',
+  nextStickerName: 'Rocket',
+  nextStickerImage: 'https://example.com/rocket.png',
   ...override,
 });
 
@@ -46,7 +54,7 @@ const svgWithoutSlots = `
 </svg>
 `;
 
-describe("StickerBookPreviewModal", () => {
+describe('StickerBookPreviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -55,7 +63,7 @@ describe("StickerBookPreviewModal", () => {
     global.fetch = originalFetch;
   });
 
-  test("renders loading state and then sticker book SVG", async () => {
+  test('renders loading state and then sticker book SVG', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -63,14 +71,16 @@ describe("StickerBookPreviewModal", () => {
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
-    expect(screen.getByTestId("StickerBookPreviewModal-loading")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    expect(screen.queryByTestId("StickerBookPreviewModal-loading")).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-loading'),
+    ).toBeInTheDocument();
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    expect(
+      screen.queryByTestId('StickerBookPreviewModal-loading'),
+    ).not.toBeInTheDocument();
   });
 
-  test("applies collected/next/locked styles to sticker slots", async () => {
+  test('applies collected/next/locked styles to sticker slots', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -80,27 +90,27 @@ describe("StickerBookPreviewModal", () => {
       <StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
 
     const collected = container.querySelector(
       '[data-slot-id="slot-collected"] rect',
     ) as SVGRectElement;
-    const next = container.querySelector('[data-slot-id="slot-next"] circle') as SVGCircleElement;
+    const next = container.querySelector(
+      '[data-slot-id="slot-next"] circle',
+    ) as SVGCircleElement;
     const locked = container.querySelector(
       '[data-slot-id="slot-locked"] rect',
     ) as SVGRectElement;
 
-    expect(collected.getAttribute("fill-opacity")).toBe("0.3");
-    expect(collected.getAttribute("stroke-opacity")).toBe("0.3");
-    expect(next.getAttribute("fill")).toBe("#D1D2D4");
-    expect(next.getAttribute("stroke")).toBe("#D1D2D4");
-    expect(locked.getAttribute("fill")).toBe("#FFFFFF");
-    expect(locked.getAttribute("stroke")).toBe("#FFFFFF");
+    expect(collected.getAttribute('fill-opacity')).toBe('0.3');
+    expect(collected.getAttribute('stroke-opacity')).toBe('0.3');
+    expect(next.getAttribute('fill')).toBe('#D1D2D4');
+    expect(next.getAttribute('stroke')).toBe('#D1D2D4');
+    expect(locked.getAttribute('fill')).toBe('#FFFFFF');
+    expect(locked.getAttribute('stroke')).toBe('#FFFFFF');
   });
 
-  test("closes with close_button when close icon is clicked", async () => {
+  test('closes with close_button when close icon is clicked', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -108,15 +118,13 @@ describe("StickerBookPreviewModal", () => {
     const onClose = jest.fn();
 
     render(<StickerBookPreviewModal data={buildData()} onClose={onClose} />);
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    fireEvent.click(screen.getByTestId("StickerBookPreviewModal-close"));
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-close'));
 
-    expect(onClose).toHaveBeenCalledWith("close_button");
+    expect(onClose).toHaveBeenCalledWith('close_button');
   });
 
-  test("closes with backdrop when overlay is clicked", async () => {
+  test('closes with backdrop when overlay is clicked', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -124,35 +132,34 @@ describe("StickerBookPreviewModal", () => {
     const onClose = jest.fn();
 
     render(<StickerBookPreviewModal data={buildData()} onClose={onClose} />);
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    fireEvent.click(screen.getByTestId("StickerBookPreviewModal-overlay"));
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-overlay'));
 
-    expect(onClose).toHaveBeenCalledWith("backdrop");
+    expect(onClose).toHaveBeenCalledWith('backdrop');
   });
 
-  test("falls back to local layout when sticker book fetch fails", async () => {
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+  test('falls back to local layout when sticker book fetch fails', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     global.fetch = jest
       .fn()
-      .mockRejectedValueOnce(new Error("network failed"))
+      .mockRejectedValueOnce(new Error('network failed'))
       .mockResolvedValueOnce({
         ok: true,
-        text: async () => "<svg><g data-slot-id='fallback-slot'><rect /></g></svg>",
+        text: async () =>
+          "<svg><g data-slot-id='fallback-slot'><rect /></g></svg>",
       } as Response);
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(2);
     warnSpy.mockRestore();
   });
 
-  test("calls fetch with provided stickerBookSvgUrl", async () => {
-    const data = buildData({ stickerBookSvgUrl: "https://example.com/custom-book.svg" });
+  test('calls fetch with provided stickerBookSvgUrl', async () => {
+    const data = buildData({
+      stickerBookSvgUrl: 'https://example.com/custom-book.svg',
+    });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -160,36 +167,35 @@ describe("StickerBookPreviewModal", () => {
 
     render(<StickerBookPreviewModal data={data} onClose={jest.fn()} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://example.com/custom-book.svg',
     );
-    expect(global.fetch).toHaveBeenCalledWith("https://example.com/custom-book.svg");
   });
 
-  test("falls back when primary fetch returns ok=false", async () => {
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+  test('falls back when primary fetch returns ok=false', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce({
         ok: false,
         status: 500,
-        text: async () => "",
+        text: async () => '',
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        text: async () => "<svg><g data-slot-id='fallback-a'><rect /></g></svg>",
+        text: async () =>
+          "<svg><g data-slot-id='fallback-a'><rect /></g></svg>",
       } as Response);
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(2);
     warnSpy.mockRestore();
   });
 
-  test("renders provided nextStickerImage with alt text", async () => {
+  test('renders provided nextStickerImage with alt text', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -197,20 +203,23 @@ describe("StickerBookPreviewModal", () => {
 
     render(
       <StickerBookPreviewModal
-        data={buildData({ nextStickerName: "Super Rocket", nextStickerImage: "https://cdn.test/super.png" })}
+        data={buildData({
+          nextStickerName: 'Super Rocket',
+          nextStickerImage: 'https://cdn.test/super.png',
+        })}
         onClose={jest.fn()}
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    const image = screen.getByTestId("StickerBookPreviewModal-next-image") as HTMLImageElement;
-    expect(image.alt).toBe("Super Rocket");
-    expect(image.src).toContain("https://cdn.test/super.png");
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    const image = screen.getByTestId(
+      'StickerBookPreviewModal-next-image',
+    ) as HTMLImageElement;
+    expect(image.alt).toBe('Super Rocket');
+    expect(image.src).toContain('https://cdn.test/super.png');
   });
 
-  test("uses default icon when nextStickerImage is missing", async () => {
+  test('uses default icon when nextStickerImage is missing', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -223,14 +232,14 @@ describe("StickerBookPreviewModal", () => {
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    const image = screen.getByTestId("StickerBookPreviewModal-next-image") as HTMLImageElement;
-    expect(image.src).toContain("assets/icons/DefaultIcon.png");
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    const image = screen.getByTestId(
+      'StickerBookPreviewModal-next-image',
+    ) as HTMLImageElement;
+    expect(image.src).toContain('assets/icons/DefaultIcon.png');
   });
 
-  test("exposes expected base test IDs for key modal sections", async () => {
+  test('exposes expected base test IDs for key modal sections', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -238,16 +247,30 @@ describe("StickerBookPreviewModal", () => {
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
-    expect(screen.getByTestId("StickerBookPreviewModal-overlay")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-modal")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-close")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-book-frame")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-bottom-strip")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-helper-text")).toBeInTheDocument();
-    expect(screen.getByTestId("StickerBookPreviewModal-next-name")).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-overlay'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-modal'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-close'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-book-frame'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-bottom-strip'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-helper-text'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-next-name'),
+    ).toBeInTheDocument();
   });
 
-  test("clicking inside modal body does not trigger backdrop close", async () => {
+  test('clicking inside modal body does not trigger backdrop close', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -255,36 +278,35 @@ describe("StickerBookPreviewModal", () => {
     const onClose = jest.fn();
 
     render(<StickerBookPreviewModal data={buildData()} onClose={onClose} />);
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
 
-    fireEvent.click(screen.getByTestId("StickerBookPreviewModal-modal"));
+    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-modal'));
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  test("renders accessibility attributes for dialog and close button", async () => {
+  test('renders accessibility attributes for dialog and close button', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
     } as Response);
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
+    await screen.findByTestId('StickerBookPreviewModal-book');
+
+    const overlay = screen.getByTestId('StickerBookPreviewModal-overlay');
+    const modal = screen.getByTestId('StickerBookPreviewModal-modal');
+    const closeButton = screen.getByTestId('StickerBookPreviewModal-close');
+
+    expect(overlay).toHaveAttribute('role', 'presentation');
+    expect(modal).toHaveAttribute('role', 'dialog');
+    expect(modal).toHaveAttribute('aria-modal', 'true');
+    expect(closeButton).toHaveAttribute(
+      'aria-label',
+      'close-sticker-book-preview',
     );
-
-    const overlay = screen.getByTestId("StickerBookPreviewModal-overlay");
-    const modal = screen.getByTestId("StickerBookPreviewModal-modal");
-    const closeButton = screen.getByTestId("StickerBookPreviewModal-close");
-
-    expect(overlay).toHaveAttribute("role", "presentation");
-    expect(modal).toHaveAttribute("role", "dialog");
-    expect(modal).toHaveAttribute("aria-modal", "true");
-    expect(closeButton).toHaveAttribute("aria-label", "close-sticker-book-preview");
   });
 
-  test("renders parsed inline svg element with original attributes", async () => {
+  test('renders parsed inline svg element with original attributes', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -293,17 +315,17 @@ describe("StickerBookPreviewModal", () => {
       <StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
 
-    const svg = container.querySelector(".StickerBookPreviewModal-book svg") as SVGElement;
+    const svg = container.querySelector(
+      '.StickerBookPreviewModal-book svg',
+    ) as SVGElement;
     expect(svg).toBeTruthy();
-    expect(svg.getAttribute("viewBox")).toBe("0 0 100 100");
-    expect(svg.getAttribute("xmlns")).toBe("http://www.w3.org/2000/svg");
+    expect(svg.getAttribute('viewBox')).toBe('0 0 100 100');
+    expect(svg.getAttribute('xmlns')).toBe('http://www.w3.org/2000/svg');
   });
 
-  test("sets slot container opacity to 1 for all slot states", async () => {
+  test('sets slot container opacity to 1 for all slot states', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -312,43 +334,50 @@ describe("StickerBookPreviewModal", () => {
       <StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
 
-    const collectedSlot = container.querySelector('[data-slot-id="slot-collected"]') as HTMLElement;
-    const nextSlot = container.querySelector('[data-slot-id="slot-next"]') as HTMLElement;
-    const lockedSlot = container.querySelector('[data-slot-id="slot-locked"]') as HTMLElement;
+    const collectedSlot = container.querySelector(
+      '[data-slot-id="slot-collected"]',
+    ) as HTMLElement;
+    const nextSlot = container.querySelector(
+      '[data-slot-id="slot-next"]',
+    ) as HTMLElement;
+    const lockedSlot = container.querySelector(
+      '[data-slot-id="slot-locked"]',
+    ) as HTMLElement;
 
-    expect(collectedSlot.style.opacity).toBe("1");
-    expect(nextSlot.style.opacity).toBe("1");
-    expect(lockedSlot.style.opacity).toBe("1");
+    expect(collectedSlot.style.opacity).toBe('1');
+    expect(nextSlot.style.opacity).toBe('1');
+    expect(lockedSlot.style.opacity).toBe('1');
   });
 
-  test("does not overwrite fill/stroke when original shape uses none", async () => {
+  test('does not overwrite fill/stroke when original shape uses none', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithNoneFillStroke,
     } as Response);
     const { container } = render(
       <StickerBookPreviewModal
-        data={buildData({ nextStickerId: "slot-next", collectedStickerIds: [] })}
+        data={buildData({
+          nextStickerId: 'slot-next',
+          collectedStickerIds: [],
+        })}
         onClose={jest.fn()}
       />,
     );
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
+    await screen.findByTestId('StickerBookPreviewModal-book');
 
-    const shape = container.querySelector('[data-slot-id="slot-next"] rect') as SVGRectElement;
-    expect(shape.getAttribute("fill")).toBe("none");
-    expect(shape.getAttribute("stroke")).toBe("none");
-    expect(shape.getAttribute("fill-opacity")).toBeNull();
-    expect(shape.getAttribute("stroke-opacity")).toBeNull();
+    const shape = container.querySelector(
+      '[data-slot-id="slot-next"] rect',
+    ) as SVGRectElement;
+    expect(shape.getAttribute('fill')).toBe('none');
+    expect(shape.getAttribute('stroke')).toBe('none');
+    expect(shape.getAttribute('fill-opacity')).toBeNull();
+    expect(shape.getAttribute('stroke-opacity')).toBeNull();
   });
 
-  test("renders normally when SVG has no data-slot-id elements", async () => {
+  test('renders normally when SVG has no data-slot-id elements', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithoutSlots,
@@ -356,13 +385,13 @@ describe("StickerBookPreviewModal", () => {
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
-    await waitFor(() =>
-      expect(screen.getByTestId("StickerBookPreviewModal-book")).toBeInTheDocument(),
-    );
-    expect(screen.queryByTestId("StickerBookPreviewModal-loading")).not.toBeInTheDocument();
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    expect(
+      screen.queryByTestId('StickerBookPreviewModal-loading'),
+    ).not.toBeInTheDocument();
   });
 
-  test("re-fetches and re-renders when stickerBookSvgUrl changes", async () => {
+  test('re-fetches and re-renders when stickerBookSvgUrl changes', async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce({
@@ -378,53 +407,72 @@ describe("StickerBookPreviewModal", () => {
 
     const { rerender, container } = render(
       <StickerBookPreviewModal
-        data={buildData({ stickerBookSvgUrl: "https://example.com/book-a.svg" })}
+        data={buildData({
+          stickerBookSvgUrl: 'https://example.com/book-a.svg',
+        })}
         onClose={jest.fn()}
       />,
     );
 
     await waitFor(() =>
-      expect(container.querySelector('[data-slot-id="slot-a"]')).toBeInTheDocument(),
+      expect(
+        container.querySelector('[data-slot-id="slot-a"]'),
+      ).toBeInTheDocument(),
     );
 
     rerender(
       <StickerBookPreviewModal
-        data={buildData({ stickerBookSvgUrl: "https://example.com/book-b.svg" })}
+        data={buildData({
+          stickerBookSvgUrl: 'https://example.com/book-b.svg',
+        })}
         onClose={jest.fn()}
       />,
     );
 
     await waitFor(() =>
-      expect(container.querySelector('[data-slot-id="slot-b"]')).toBeInTheDocument(),
+      expect(
+        container.querySelector('[data-slot-id="slot-b"]'),
+      ).toBeInTheDocument(),
     );
-    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe("https://example.com/book-a.svg");
-    expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe("https://example.com/book-b.svg");
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+      'https://example.com/book-a.svg',
+    );
+    expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe(
+      'https://example.com/book-b.svg',
+    );
   });
 
-  test("updates slot styling when collectedStickerIds changes on rerender", async () => {
+  test('updates slot styling when collectedStickerIds changes on rerender', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
     } as Response);
     const { rerender, container } = render(
       <StickerBookPreviewModal
-        data={buildData({ collectedStickerIds: [], nextStickerId: "slot-next" })}
+        data={buildData({
+          collectedStickerIds: [],
+          nextStickerId: 'slot-next',
+        })}
         onClose={jest.fn()}
       />,
     );
 
     await waitFor(() =>
-      expect(container.querySelector('[data-slot-id="slot-collected"] rect')).toBeInTheDocument(),
+      expect(
+        container.querySelector('[data-slot-id="slot-collected"] rect'),
+      ).toBeInTheDocument(),
     );
 
-    let target = container.querySelector('[data-slot-id="slot-collected"] rect') as SVGRectElement;
-    expect(target.getAttribute("fill")).toBe("#FFFFFF");
+    let target = container.querySelector(
+      '[data-slot-id="slot-collected"] rect',
+    ) as SVGRectElement;
+    expect(target.getAttribute('fill')).toBe('#FFFFFF');
 
     rerender(
       <StickerBookPreviewModal
         data={buildData({
-          collectedStickerIds: ["slot-collected"],
-          nextStickerId: "slot-next",
+          collectedStickerIds: ['slot-collected'],
+          nextStickerId: 'slot-next',
         })}
         onClose={jest.fn()}
       />,
@@ -434,12 +482,12 @@ describe("StickerBookPreviewModal", () => {
       const updated = container.querySelector(
         '[data-slot-id="slot-collected"] rect',
       ) as SVGRectElement;
-      expect(updated.getAttribute("fill-opacity")).toBe("0.3");
-      expect(updated.getAttribute("stroke-opacity")).toBe("0.3");
+      expect(updated.getAttribute('fill-opacity')).toBe('0.3');
+      expect(updated.getAttribute('stroke-opacity')).toBe('0.3');
     });
   });
 
-  test("treats all uncollected slots as locked when nextStickerId is not present in SVG", async () => {
+  test('treats all uncollected slots as locked when nextStickerId is not present in SVG', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       text: async () => svgWithSlots,
@@ -448,25 +496,31 @@ describe("StickerBookPreviewModal", () => {
       <StickerBookPreviewModal
         data={buildData({
           collectedStickerIds: [],
-          nextStickerId: "slot-not-present",
+          nextStickerId: 'slot-not-present',
         })}
         onClose={jest.fn()}
       />,
     );
 
     await waitFor(() =>
-      expect(container.querySelector('[data-slot-id="slot-next"] circle')).toBeInTheDocument(),
+      expect(
+        container.querySelector('[data-slot-id="slot-next"] circle'),
+      ).toBeInTheDocument(),
     );
 
-    const nextSlotShape = container.querySelector('[data-slot-id="slot-next"] circle') as SVGCircleElement;
-    const lockedSlotShape = container.querySelector('[data-slot-id="slot-locked"] rect') as SVGRectElement;
-    expect(nextSlotShape.getAttribute("fill")).toBe("#FFFFFF");
-    expect(nextSlotShape.getAttribute("stroke")).toBe("#FFFFFF");
-    expect(lockedSlotShape.getAttribute("fill")).toBe("#FFFFFF");
-    expect(lockedSlotShape.getAttribute("stroke")).toBe("#FFFFFF");
+    const nextSlotShape = container.querySelector(
+      '[data-slot-id="slot-next"] circle',
+    ) as SVGCircleElement;
+    const lockedSlotShape = container.querySelector(
+      '[data-slot-id="slot-locked"] rect',
+    ) as SVGRectElement;
+    expect(nextSlotShape.getAttribute('fill')).toBe('#FFFFFF');
+    expect(nextSlotShape.getAttribute('stroke')).toBe('#FFFFFF');
+    expect(lockedSlotShape.getAttribute('fill')).toBe('#FFFFFF');
+    expect(lockedSlotShape.getAttribute('stroke')).toBe('#FFFFFF');
   });
 
-  test("does not crash if component unmounts before fetch resolves", async () => {
+  test('does not crash if component unmounts before fetch resolves', async () => {
     let resolveFetch: ((value: Response) => void) | null = null;
     global.fetch = jest.fn().mockImplementation(
       () =>

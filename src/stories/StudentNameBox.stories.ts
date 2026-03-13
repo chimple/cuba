@@ -1,24 +1,24 @@
 //@ts-nocheck
-import { fn } from "@storybook/test";
-import type { Meta, StoryObj } from "@storybook/react";
-import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/react';
+import StudentNameBox from '../components/editStudent/StudentNameBox';
 
 const meta = {
-  title: "Component/EditStudent/StudentNameBox",
+  title: 'Component/EditStudent/StudentNameBox',
   component: StudentNameBox,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     studentName: {
-      type: "string",
+      type: 'string',
     },
   },
   args: {
     onEnterDown: fn(),
     onValueChange: fn(),
-    studentName: "Test Student name",
+    studentName: 'Test Student name',
   },
 } satisfies Meta<typeof StudentNameBox>;
 export default meta;
@@ -26,6 +26,6 @@ type Story = StoryObj<typeof meta>;
 
 export const StudentNameBoxNormal: Story = {
   args: {
-    studentName: "Ram",
+    studentName: 'Ram',
   },
 };

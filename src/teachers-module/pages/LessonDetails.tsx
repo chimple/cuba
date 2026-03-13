@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Header from "../components/homePage/Header";
-import { t } from "i18next";
-import "./LessonDetails.css";
-import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
-import SelectIcon from "../components/SelectIcon";
-import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import Header from '../components/homePage/Header';
+import { t } from 'i18next';
+import './LessonDetails.css';
+import SelectIcon from '../components/SelectIcon';
+import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
 import {
   AssignmentSource,
   COCOS,
@@ -16,47 +15,52 @@ import {
   LIVE_QUIZ,
   PAGES,
   TableTypes,
-} from "../../common/constants";
-import { Util } from "../../utility/util";
-import AssigmentCount from "../components/library/AssignmentCount";
-import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+} from '../../common/constants';
+import { Util } from '../../utility/util';
+import AssigmentCount from '../components/library/AssignmentCount';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 interface LessonDetailsProps {}
+type LessonDetailsState = {
+  course?: TableTypes<'course'>;
+  lesson?: TableTypes<'lesson'>;
+  fromCocos?: boolean;
+  chapterId?: string;
+  selectedLesson?: Map<string, string> | Array<[string, string]>;
+  chapterName?: string;
+  gradeName?: string;
+  from?: string;
+};
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-  const state = history.location.state as any;
-  const course: TableTypes<"course"> = history.location.state?.[
-    "course"
-  ] as TableTypes<"course">;
-  const lesson: TableTypes<"lesson"> = history.location.state?.[
-    "lesson"
-  ] as TableTypes<"lesson">;
-  const fromCocos: boolean = state?.["fromCocos"] as boolean;
-  const [chapterId, setChapterId] = useState(state?.["chapterId"] as string);
+  const state = (history.location.state ?? {}) as LessonDetailsState;
+  const course: TableTypes<'course'> | undefined = state.course;
+  const lesson: TableTypes<'lesson'> = state.lesson as TableTypes<'lesson'>;
+  const fromCocos: boolean = Boolean(state.fromCocos);
+  const [chapterId, setChapterId] = useState(state.chapterId ?? '');
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
-  const selectedLesson = state?.["selectedLesson"];
-  const chapterName = state?.["chapterName"];
-  const gradeName = state?.["gradeName"];
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
+  const selectedLesson = state.selectedLesson;
+  const chapterName = state.chapterName;
+  const gradeName = state.gradeName;
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
-  const [subjectName, setSubjectName] = useState<string>(course?.name ?? "");
+  const [subjectName, setSubjectName] = useState<string>(course?.name ?? '');
   const [selectedLessonMap, setSelectedLessonMap] = useState<
     Map<string, string>
-  >(new Map(selectedLesson));
+  >(new Map(selectedLesson ?? []));
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
 
-  const syncSelectedLesson = async (lesson) => {
+  const syncSelectedLesson = async (lesson: string): Promise<void> => {
     var current_user = await auth.getCurrentUser();
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
@@ -105,7 +109,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         Util.launchCocosGame();
       }, 1000);
       history.push(PAGES.GAME + parmas, {
-        url: "chimple-lib/index.html" + parmas,
+        url: 'chimple-lib/index.html' + parmas,
         lessonId: lesson.cocos_lesson_id,
         courseDocId: course?.id,
         course: JSON.stringify(course),
@@ -121,13 +125,13 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
       if (!online) {
         presentToast({
           message: t(`Device is offline`),
-          color: "danger",
+          color: 'danger',
           duration: 3000,
-          position: "bottom",
+          position: 'bottom',
           buttons: [
             {
-              text: "Dismiss",
-              role: "cancel",
+              text: 'Dismiss',
+              role: 'cancel',
             },
           ],
         });
@@ -155,7 +159,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     }
   };
   useEffect(() => {
-    const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? "");
+    const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? '');
     const parsed = sync_lesson_data ? JSON.parse(sync_lesson_data) : {};
     const class_sync_lesson: Map<
       string,
@@ -167,17 +171,18 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         class_sync_lesson.set(chapterId, {
           [AssignmentSource.MANUAL]: [...value],
         });
-      } else if (typeof value === "object" && value !== null) {
-        // New format
-        Object.keys(value).forEach((key) => {
-          if (
-            key !== AssignmentSource.MANUAL &&
-            key !== AssignmentSource.QR_CODE
-          ) {
-            delete value[key];
-          }
-        });
-        class_sync_lesson.set(chapterId, value);
+      } else if (typeof value === 'object' && value !== null) {
+        const sourceValue = value as Record<string, string[]>;
+        const normalizedValue: Partial<Record<AssignmentSource, string[]>> = {};
+        const manual = sourceValue[AssignmentSource.MANUAL];
+        const qr = sourceValue[AssignmentSource.QR_CODE];
+        if (Array.isArray(manual)) {
+          normalizedValue[AssignmentSource.MANUAL] = manual;
+        }
+        if (Array.isArray(qr)) {
+          normalizedValue[AssignmentSource.QR_CODE] = qr;
+        }
+        class_sync_lesson.set(chapterId, normalizedValue);
       }
     });
     setClassSelectedLesson(class_sync_lesson);
@@ -196,7 +201,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const init = async () => {
     if (fromCocos) {
       if (Capacitor.isNativePlatform()) {
-        await ScreenOrientation.lock({ orientation: "portrait" });
+        await ScreenOrientation.lock({ orientation: 'portrait' });
       }
       setTimeout(() => {
         Util.killCocosGame();
@@ -207,7 +212,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     setCurrentClass(current_class ?? null);
     if (!chapterId && current_class) {
       const fetched = await api.getChapterByLesson(lesson.id, current_class.id);
-      if (typeof fetched === "string") {
+      if (typeof fetched === 'string') {
         setChapterId(fetched);
       }
     }
@@ -221,7 +226,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           }
         }
       } catch (err) {
-        console.error("Failed to fetch subject", err);
+        console.error('Failed to fetch subject', err);
       }
     } else {
       setSubjectName(course.name);
@@ -229,10 +234,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   };
 
   const handleButtonClick = () => {
-    const classId = current_class?.id ?? "";
+    const classId = current_class?.id ?? '';
     const tmpselectedLesson = new Map(selectedLessonMap);
 
-    const prevDataStr = tmpselectedLesson.get(classId) ?? "{}";
+    const prevDataStr = tmpselectedLesson.get(classId) ?? '{}';
     const parsed = JSON.parse(prevDataStr);
 
     let updatedChapterData: Record<string, any> = parsed[chapterId] ?? {};
@@ -291,7 +296,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
         showSideMenu={false}
-        customText={t("Learning Outcome") ?? "Learning Outcome"}
+        customText={t('Learning Outcome') ?? 'Learning Outcome'}
       />
 
       <div id="lesson-details-body" className="lesson-details-body">
@@ -308,14 +313,14 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                     id="lesson-details-play-text"
                     className="lesson-details-play-text"
                   >
-                    {t("Click to play")}
+                    {t('Click to play')}
                   </div>
                   <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
                 </div>
 
                 <SelectIconImage
-                  localSrc={""}
-                  defaultSrc={"assets/icons/DefaultIcon.png"}
+                  localSrc={''}
+                  defaultSrc={'assets/icons/DefaultIcon.png'}
                   webSrc={`${lesson.image}`}
                 />
               </div>
@@ -337,7 +342,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
 
             <div id="lesson-details-right" className="lesson-details-right">
               <div id="lesson-details-grade" className="lesson-details-meta">
-                <strong>{gradeName ?? ""}</strong>
+                <strong>{gradeName ?? ''}</strong>
               </div>
 
               <div
@@ -345,7 +350,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                 id="lesson-details-name-id"
               >
                 <span className="lesson-details-label">
-                  <strong>{t("Lesson")}</strong>
+                  <strong>{t('Lesson')}</strong>
                 </span>
                 <span className="lesson-details-separator">:</span>
                 <span className="lesson-details-value">{lesson?.name}</span>
@@ -355,11 +360,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                 id="lesson-details-chapter"
               >
                 <span className="lesson-details-label">
-                  <strong>{t("Chapter")}</strong>
+                  <strong>{t('Chapter')}</strong>
                 </span>
                 <span className="lesson-details-separator">:</span>
                 <span className="lesson-details-value">
-                  {chapterName ?? ""}
+                  {chapterName ?? ''}
                 </span>
               </div>
               <div
@@ -367,7 +372,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                 id="lesson-details-subject"
               >
                 <span className="lesson-details-label">
-                  <strong>{t("Subject")}</strong>
+                  <strong>{t('Subject')}</strong>
                 </span>
                 <span className="lesson-details-separator">:</span>
                 <span className="lesson-details-value">{subjectName}</span>
@@ -379,8 +384,8 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               >
                 <strong>
                   {lesson.plugin_type === LIVE_QUIZ
-                    ? t("Quiz")
-                    : t("Assignment")}
+                    ? t('Quiz')
+                    : t('Assignment')}
                 </strong>
                 <img
                   src="assets/icons/bulb.svg"
@@ -396,7 +401,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               id="lesson-details-outcome-title"
               className="lesson-details-outcome-title"
             >
-              {t("Learning Outcome")} :
+              {t('Learning Outcome')} :
             </div>
 
             <div

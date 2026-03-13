@@ -1,8 +1,6 @@
-import { FC, useEffect, useMemo, useState, useRef } from "react";
-import { useHistory, useLocation } from "react-router";
+import { FC, useEffect, useMemo, useState, useRef } from 'react';
+import { useHistory, useLocation } from 'react-router';
 import {
-  CLASS,
-  CURRENT_SCHOOL,
   PAGES,
   TableTypes,
   MODES,
@@ -11,29 +9,27 @@ import {
   LANGUAGE,
   OPS_ROLES,
   STATUS,
-} from "../../common/constants";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
-import { Util } from "../../utility/util";
-import { AppBar } from "@mui/material";
-import { t } from "i18next";
-import "./DisplaySchools.css";
-import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
-import { PiUserSwitchFill } from "react-icons/pi";
-import CommonToggle from "../../common/CommonToggle";
-import { schoolUtil } from "../../utility/schoolUtil";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { Capacitor } from "@capacitor/core";
-import AddButton from "../../common/AddButton";
-import { addOutline } from "ionicons/icons";
-import { RoleType } from "../../interface/modelInterfaces";
-import Loading from "../../components/Loading";
-import { useAppSelector } from "../../redux/hooks";
-import { RootState } from "../../redux/store";
-import { AuthState } from "../../redux/slices/auth/authSlice";
+} from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Util } from '../../utility/util';
+import { t } from 'i18next';
+import './DisplaySchools.css';
+import Header from '../components/homePage/Header';
+import { IonFabButton, IonIcon, IonPage } from '@ionic/react';
+import { PiUserSwitchFill } from 'react-icons/pi';
+import CommonToggle from '../../common/CommonToggle';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Capacitor } from '@capacitor/core';
+import { addOutline } from 'ionicons/icons';
+import { RoleType } from '../../interface/modelInterfaces';
+import Loading from '../../components/Loading';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface SchoolWithRole {
-  school: TableTypes<"school">;
+  school: TableTypes<'school'>;
   role: RoleType;
 }
 const PAGE_SIZE = 20;
@@ -44,7 +40,7 @@ const DisplaySchools: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
-  const [user, setUser] = useState<TableTypes<"user">>();
+  const [user, setUser] = useState<TableTypes<'user'>>();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -55,7 +51,9 @@ const DisplaySchools: FC = () => {
   );
   const isAuthorizedForOpsMode = useMemo(() => {
     const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
-    return isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === "true";
+    return (
+      isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === 'true'
+    );
   }, [isOpsUser, roles]);
 
   const checkSchoolRequest = async () => {
@@ -63,7 +61,7 @@ const DisplaySchools: FC = () => {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     const existingRequest = await api.getExistingSchoolRequest(
-      _currentUser?.id as string
+      _currentUser?.id as string,
     );
     if (existingRequest) {
       history.replace(PAGES.POST_SUCCESS);
@@ -74,7 +72,7 @@ const DisplaySchools: FC = () => {
     (async () => {
       const mode = await schoolUtil.getCurrMode();
       const done = JSON.parse(
-        localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
+        localStorage.getItem(USER_SELECTION_STAGE) ?? 'false',
       );
       if (
         mode === MODES.TEACHER &&
@@ -94,7 +92,7 @@ const DisplaySchools: FC = () => {
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "portrait" });
+      ScreenOrientation.lock({ orientation: 'portrait' });
       setTimeout(() => {
         Util.killCocosGame();
       }, 1000);
@@ -123,15 +121,15 @@ const DisplaySchools: FC = () => {
     setLoading(true);
     const currentUser = await auth.getCurrentUser();
     const languageCode = localStorage.getItem(LANGUAGE);
-    if (!currentUser?.name || currentUser.name.trim() === "") {
+    if (!currentUser?.name || currentUser.name.trim() === '') {
       history.replace(PAGES.ADD_TEACHER_NAME);
     }
     if (!currentUser) return;
     setUser(currentUser);
     try {
-      await Util.updateUserLanguage(languageCode ?? "en");
+      await Util.updateUserLanguage(languageCode ?? 'en');
     } catch (error) {
-      console.error("Failed to update user language on init:", error);
+      console.error('Failed to update user language on init:', error);
     }
     setPage(1);
     setHasMore(true);
@@ -139,7 +137,7 @@ const DisplaySchools: FC = () => {
     // If user already has both school & class chosen and app is in Teacher mode, go Home
     const mode = await schoolUtil.getCurrMode();
     const done = JSON.parse(
-      localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
+      localStorage.getItem(USER_SELECTION_STAGE) ?? 'false',
     );
     const preSelectedSchool = Util.getCurrentSchool();
     if (
@@ -157,7 +155,7 @@ const DisplaySchools: FC = () => {
     if (preSelectedSchool) {
       const role = await api.getUserRoleForSchool(
         currentUser.id,
-        preSelectedSchool.id
+        preSelectedSchool.id,
       );
       if (role) {
         await selectSchool({ school: preSelectedSchool, role });
@@ -172,10 +170,13 @@ const DisplaySchools: FC = () => {
       const _currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
       const existingRequest = await api.getExistingSchoolRequest(
-        _currentUser?.id as string
+        _currentUser?.id as string,
       );
 
-      if (existingRequest?.request_status === STATUS.REQUESTED || existingRequest?.request_status === STATUS.FLAGGED) {
+      if (
+        existingRequest?.request_status === STATUS.REQUESTED ||
+        existingRequest?.request_status === STATUS.FLAGGED
+      ) {
         history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {
         history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
@@ -213,9 +214,9 @@ const DisplaySchools: FC = () => {
         }
       }, 150);
     };
-    el.addEventListener("scroll", handleScroll);
+    el.addEventListener('scroll', handleScroll);
     return () => {
-      el.removeEventListener("scroll", handleScroll);
+      el.removeEventListener('scroll', handleScroll);
       if (debounceTimeout) clearTimeout(debounceTimeout);
     };
   }, [loading, hasMore]);
@@ -261,7 +262,7 @@ const DisplaySchools: FC = () => {
       school.school.id,
       currentUser?.id,
       history,
-      PAGES.DISPLAY_SCHOOLS
+      PAGES.DISPLAY_SCHOOLS,
     );
     localStorage.setItem(USER_SELECTION_STAGE, JSON.stringify(true));
     const tempClass = Util.getCurrentClass();
@@ -299,7 +300,7 @@ const DisplaySchools: FC = () => {
                 <PiUserSwitchFill className="display-user-user-switch-icon" />
                 <CommonToggle
                   onChange={() => Util.switchToOpsUser(history)}
-                  label={t("Switch to Ops Mode").toString()}
+                  label={t('Switch to Ops Mode').toString()}
                 />
               </div>
             )}
@@ -318,7 +319,7 @@ const DisplaySchools: FC = () => {
                   <IonIcon icon={addOutline} />
                 </IonFabButton>
                 <div className="create-new-school-text">
-                  {t("Create New School")}
+                  {t('Create New School')}
                 </div>
               </div>
             </div>
@@ -326,7 +327,7 @@ const DisplaySchools: FC = () => {
             <div
               className="all-school-display-container display-all-schools-scroll"
               ref={scrollRef}
-              style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+              style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}
             >
               <div className="all-school-display">
                 {schoolList.map((school) => (
@@ -338,7 +339,7 @@ const DisplaySchools: FC = () => {
                       <div className="display-school-image">
                         <img
                           className="school-image-p"
-                          src={school.school.image ?? "assets/icons/school.png"}
+                          src={school.school.image ?? 'assets/icons/school.png'}
                           alt=""
                         />
                       </div>
@@ -349,11 +350,11 @@ const DisplaySchools: FC = () => {
                   </div>
                 ))}
                 {loading && (
-                  <div className="display-loading-text">{t("Loading...")}</div>
+                  <div className="display-loading-text">{t('Loading...')}</div>
                 )}
                 {!hasMore && schoolList.length > 0 && (
                   <div className="display-no-more-schools">
-                    {t("No more schools")}
+                    {t('No more schools')}
                   </div>
                 )}
               </div>

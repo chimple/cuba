@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import "./Parent.css";
+import { useEffect, useState } from 'react';
+import './Parent.css';
 import {
   CLASS,
   EDIT_STUDENTS_MAP,
@@ -10,47 +10,43 @@ import {
   PARENTHEADERLIST,
   SCHOOL,
   TableTypes,
-} from "../common/constants";
-import ProfileCard from "../components/parent/ProfileCard";
-import ToggleButton from "../components/parent/ToggleButton";
+} from '../common/constants';
+import ProfileCard from '../components/parent/ProfileCard';
+import ToggleButton from '../components/parent/ToggleButton';
 
-// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
   EmailShareButton,
   FacebookIcon,
   TwitterIcon,
   WhatsappIcon,
-} from "react-share";
-import { FaInstagramSquare } from "react-icons/fa";
-import { t } from "i18next";
-import { TfiWorld } from "react-icons/tfi";
-import i18n from "../i18n";
-import { ServiceConfig } from "../services/ServiceConfig";
-import ParentLogout from "../components/parent/ParentLogout";
-import { Box } from "@mui/material";
-import { useHistory } from "react-router-dom";
-import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import { RoleType } from "../interface/modelInterfaces";
-import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import { setUser } from "../redux/slices/auth/authSlice";
-import { useAppDispatch } from "../redux/hooks";
+} from 'react-share';
+import { FaInstagramSquare } from 'react-icons/fa';
+import { t } from 'i18next';
+import { TfiWorld } from 'react-icons/tfi';
+import i18n from '../i18n';
+import { ServiceConfig } from '../services/ServiceConfig';
+import ParentLogout from '../components/parent/ParentLogout';
+import { Box } from '@mui/material';
+import { useHistory } from 'react-router-dom';
+import CustomAppBar from '../components/studentProgress/CustomAppBar';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import DropDown from '../components/DropDown';
+import { RoleType } from '../interface/modelInterfaces';
+import DeleteParentAccount from '../components/parent/DeleteParentAccount';
+import { setUser } from '../redux/slices/auth/authSlice';
+import { useAppDispatch } from '../redux/hooks';
 
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
+  const [userProfile, setUserProfile] = useState<TableTypes<'user'>[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
   const dispatch = useAppDispatch();
-  // Commented out because Debug Mode has been moved to the Leaderboard page
-  // const clickCount = useRef(0);
-  // const [showDialogBox, setShowDialogBox] = useState(false);
-  // const [showDebug, setShowDebug] = useState(false);
+
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -59,15 +55,15 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-  //  const [localLangDocId, setLocalLangDocId] = useState<any>();
+
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [currentUser, setCurrentUser] = useState<
-    TableTypes<"user"> | undefined
+    TableTypes<'user'> | undefined
   >();
   const [schools, setSchools] = useState<
     {
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
@@ -75,15 +71,15 @@ const Parent: React.FC = () => {
     id: string;
     displayName: string;
   }[] = [];
-  // let langDocIds: Map<string, string> = new Map();
+
   const localAppLang = localStorage.getItem(LANGUAGE);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const parentHeaderIconList = [
-    { header: "profile", displayName: "Profile" },
-    { header: "setting", displayName: "Setting" },
-    { header: "help", displayName: "Help" },
-    { header: "faq", displayName: "FAQ" },
+    { header: 'profile', displayName: 'Profile' },
+    { header: 'setting', displayName: 'Setting' },
+    { header: 'help', displayName: 'Help' },
+    { header: 'faq', displayName: 'FAQ' },
   ];
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
@@ -96,7 +92,7 @@ const Parent: React.FC = () => {
   }, [reloadProfiles]);
 
   async function getStudentProfile() {
-    const userProfilePromise: TableTypes<"user">[] =
+    const userProfilePromise: TableTypes<'user'>[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
@@ -169,13 +165,7 @@ const Parent: React.FC = () => {
     }
   }
 
-  // function onHeaderIconClick(selectedHeader: any) {
-  //   setCurrentHeader(selectedHeader);
-  // }
-
   function profileUI() {
-    // setIsLoading(false);
-
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
@@ -185,8 +175,8 @@ const Parent: React.FC = () => {
           }
           return (
             <ProfileCard
-              width={"27vw"}
-              height={"50vh"}
+              width={'27vw'}
+              height={'50vh'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -205,7 +195,7 @@ const Parent: React.FC = () => {
       <div>
         <div id="parent-page-setting">
           <div id="parent-page-setting-div">
-            <p id="parent-page-setting-lang-text">{t("Language")}</p>
+            <p id="parent-page-setting-lang-text">{t('Language')}</p>
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
@@ -225,18 +215,18 @@ const Parent: React.FC = () => {
                 );
 
                 if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code ?? "");
-                await i18n.changeLanguage(langDoc.code ?? "");
+                localStorage.setItem(LANGUAGE, langDoc.code ?? '');
+                await i18n.changeLanguage(langDoc.code ?? '');
                 const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
-                const langId = langDocIds.get(langDoc.code ?? "");
+                const langId = langDocIds.get(langDoc.code ?? '');
                 if (!currentUser || !currentUser.id) return;
                 if (currentUser && selectedLangDocId) {
                   api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
                 setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<"user"> = {
+                const updatedUserData: TableTypes<'user'> = {
                   ...currentUser,
                   language_id: selectedLangDocId,
                 };
@@ -244,14 +234,13 @@ const Parent: React.FC = () => {
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }
-                // window.location.reload();
               }}
             />
           </div>
           <div id="parent-page-setting-div">
             <ToggleButton
               flag={soundFlag!}
-              title={t("Sound")}
+              title={t('Sound')}
               onIonChangeClick={async (v) => {
                 setSoundFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
@@ -263,50 +252,12 @@ const Parent: React.FC = () => {
                     v.detail?.checked,
                   );
                 }
-                // Commented out because Debug Mode has been moved to the Leaderboard page
-                // clickCount.current += 1;
-                // // If clicked 7 times, show popup for debug mode
-                // if (clickCount.current === 7) {
-                //   setShowDialogBox(true);
-                //   clickCount.current = 0;
-                // }
               }}
             ></ToggleButton>
-            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
-            {/* {showDialogBox && (
-              <DialogBoxButtons
-                width={"40vw"}
-                height={"30vh"}
-                message={t("Do you want to Open Debug Mode?")}
-                showDialogBox={true}
-                yesText={t("Cancel")}
-                noText={t("debugMode")}
-                handleClose={() => {
-                  setShowDialogBox(true);
-                }}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                }}
-                onNoButtonClicked={() => {
-                  setShowDebug(true);
-                  parentHeaderIconList.push({
-                    header: "debugMode",
-                    displayName: t("debugMode"),
-                  });
-
-                  setTabs((prevTabs: any) => ({
-                    ...prevTabs,
-                    [t("debugMode")]: t("debugMode"),
-                  }));
-                  setTabIndex(t("debugMode"));
-                  setShowDialogBox(false);
-                }}
-              />
-            )} */}
 
             <ToggleButton
               flag={musicFlag!}
-              title={t("Music")}
+              title={t('Music')}
               onIonChangeClick={async (v) => {
                 setMusicFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
@@ -334,7 +285,7 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
-                if (!currentUser?.name || currentUser.name.trim() === "") {
+                if (!currentUser?.name || currentUser.name.trim() === '') {
                   history.replace(PAGES.ADD_TEACHER_NAME);
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
@@ -351,68 +302,56 @@ const Parent: React.FC = () => {
   function helpUI() {
     return (
       <div id="parent-page-help">
-        <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
+        <h1 id="parent-page-help-title">{t('Chimple Help Desk')}</h1>
         <div id="parent-page-help-title-container">
           <div id="parent-page-help-title-link">
             <div id="parent-page-help-title-e1">
               <div id="parent-page-help-share-button">
                 <EmailShareButton
-                  url={"help@sutara.org"}
-                  subject={"Chimple Kids app- Help Desk"}
+                  url={'help@sutara.org'}
+                  subject={'Chimple Kids app- Help Desk'}
                   body=""
                   className="Demo__some-network__share-button"
                 >
                   {/* Email Us */}
-                  {t("Email Us")}
+                  {t('Email Us')}
                 </EmailShareButton>
-                <EmailIcon size={"2vw"} round />
+                <EmailIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  window.open("https://www.chimple.org/", "_system");
+                  window.open('https://www.chimple.org/', '_system');
                 }}
               >
                 {/* Visit Website */}
-                {t("Visit Website")}
-                <TfiWorld size={"2vw"} />
+                {t('Visit Website')}
+                <TfiWorld size={'2vw'} />
                 {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  let message = "Hiii !!!!";
+                  let message = 'Hiii !!!!';
                   window.open(
                     `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
-                    "_system",
+                    '_system',
                   );
                 }}
               >
-                {/* <WhatsappShareButton
-              // https://api.whatsapp.com/send?phone=917981611434&text=${message}
-              url={"send?phone=917981611434&"}
-              title={"hi"}
-              className="Demo__some-network__share-button"
-            >
-              WhatsApp Us
-            </WhatsappShareButton> */}
-                {/* WhatsApp Us */}
-                {t("WhatsApp Us")}
-                <WhatsappIcon size={"2vw"} round />
+                {t('WhatsApp Us')}
+                <WhatsappIcon size={'2vw'} round />
               </div>
             </div>
             <div id="parent-page-help-title-e2">
-              <div id="help">{t("Help Video")}</div>
+              <div id="help">{t('Help Video')}</div>
               <div id="parent-page-help-title-e2-video">
                 <iframe
                   id="parent-page-help-title-e2-video-youtude"
                   className="embed-responsive-item"
                   allowFullScreen={true}
-                  // width="50%"
-                  // height="50%"
                   src="https://www.youtube.com/embed/Ez9oouE2pOE"
                   title="YouTube video player"
-                  // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   // allowfullscreen
                 ></iframe>
@@ -425,7 +364,7 @@ const Parent: React.FC = () => {
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
-                    "_system",
+                    '_system',
                   );
                   // https://api.instagram.com/chimple_learning/
 
@@ -433,44 +372,26 @@ const Parent: React.FC = () => {
                 }}
               >
                 {/* Instagram */}
-                {t("Instagram")}
-                <FaInstagramSquare size={"2vw"} />
+                {t('Instagram')}
+                <FaInstagramSquare size={'2vw'} />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
-                  window.open(`https://www.facebook.com/chimple`, "_system");
+                  window.open(`https://www.facebook.com/chimple`, '_system');
                 }}
               >
-                {/* <FacebookShareButton
-              url={"https://www.facebook.com/chimple"}
-              quote={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Fackbook
-            </FacebookShareButton> */}
-                {/* Facebook */}
-                {t("Facebook")}
-                <FacebookIcon size={"2vw"} round />
+                {t('Facebook')}
+                <FacebookIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
-                  window.open(`https://twitter.com/chimple_org`, "_system");
+                  window.open(`https://twitter.com/chimple_org`, '_system');
                 }}
               >
-                {/* <TwitterShareButton
-              url={"https://twitter.com/chimple_org"}
-              title={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Twitter
-            </TwitterShareButton> */}
-                {/* Twitter */}
-                {t("Twitter")}
-                <TwitterIcon size={"2vw"} round />
+                {t('Twitter')}
+                <TwitterIcon size={'2vw'} round />
               </div>
             </div>
           </div>
@@ -484,20 +405,17 @@ const Parent: React.FC = () => {
         id="faq-page"
         onClick={() => {
           window.open(
-            "https://www.chimple.org/in-school-guide-for-teachers",
-            "_system",
+            'https://www.chimple.org/in-school-guide-for-teachers',
+            '_system',
           );
         }}
       >
-        <p>{t("Please Visit Our Website")}</p>
-        <TfiWorld size={"3vw"} />
+        <p>{t('Please Visit Our Website')}</p>
+        <TfiWorld size={'3vw'} />
       </div>
     );
   }
 
-  // function debugModeUI() {
-  //   return <DebugMode />;
-  // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue,
@@ -518,7 +436,7 @@ const Parent: React.FC = () => {
     }
   }, []);
   useEffect(() => {
-    const updatedTabs = {};
+    const updatedTabs: Record<string, string> = {};
     parentHeaderIconList.forEach((item) => {
       updatedTabs[t(item.header)] = t(item.header);
     });
@@ -535,12 +453,10 @@ const Parent: React.FC = () => {
           handleBackButton={handleBackButton}
           customStyle={true}
         />
-        {tabIndex === t("profile") && <div>{profileUI()}</div>}
-        {tabIndex === t("setting") && <div>{settingUI()}</div>}
-        {tabIndex === t("help") && <div>{helpUI()}</div>}
-        {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
-        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
+        {tabIndex === t('profile') && <div>{profileUI()}</div>}
+        {tabIndex === t('setting') && <div>{settingUI()}</div>}
+        {tabIndex === t('help') && <div>{helpUI()}</div>}
+        {tabIndex === t('faq') && <div>{faqUI()}</div>}
       </div>
     </Box>
   );

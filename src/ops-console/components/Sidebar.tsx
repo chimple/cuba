@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import { NavLink, useHistory, useLocation } from "react-router-dom";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import SchoolIcon from "@mui/icons-material/School";
-import CampaignIcon from "@mui/icons-material/Campaign";
-import GroupsIcon from "@mui/icons-material/Groups";
-import DevicesIcon from "@mui/icons-material/Devices";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import BookIcon from "@mui/icons-material/Book";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import "./Sidebar.css";
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useHistory, useLocation } from 'react-router-dom';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SchoolIcon from '@mui/icons-material/School';
+import CampaignIcon from '@mui/icons-material/Campaign';
+import GroupsIcon from '@mui/icons-material/Groups';
+import DevicesIcon from '@mui/icons-material/Devices';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import BookIcon from '@mui/icons-material/Book';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import './Sidebar.css';
 import {
   NavItems,
   PAGES,
@@ -17,24 +17,20 @@ import {
   SCHOOL,
   MODES,
   CLASS,
-} from "../../common/constants";
-import { RoleType } from "../../interface/modelInterfaces";
-import ToggleButton from "../../components/parent/ToggleButton";
-import { schoolUtil } from "../../utility/schoolUtil";
-import { Util } from "../../utility/util";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
-import { IonItem } from "@ionic/react";
-import CommonToggle from "../../common/CommonToggle";
-import { Capacitor } from "@capacitor/core";
-import {
-  IoGitPullRequestOutline,
-  IoGitPullRequestSharp,
-} from "react-icons/io5";
-import { t } from "i18next";
-import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
-import { useAppSelector } from "../../redux/hooks";
-import { RootState } from "../../redux/store";
-import { AuthState } from "../../redux/slices/auth/authSlice";
+} from '../../common/constants';
+import { RoleType } from '../../interface/modelInterfaces';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import { APIMode, ServiceConfig } from '../../services/ServiceConfig';
+import { IonItem } from '@ionic/react';
+import CommonToggle from '../../common/CommonToggle';
+import { Capacitor } from '@capacitor/core';
+import { IoGitPullRequestSharp } from 'react-icons/io5';
+import { t } from 'i18next';
+import DialogBoxButtons from '../../components/parent/DialogBoxButtons​';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface SidebarProps {
   name: string;
@@ -93,15 +89,17 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [currentUser, setCurrentUser] = useState<
-    TableTypes<"user"> | undefined
+    TableTypes<'user'> | undefined
   >();
   const [schools, setSchools] = useState<
     {
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
-  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   const userRoles = roles || [];
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
@@ -114,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         Util.setCurrentSchool(schools[0].school, schools[0].role);
         const tempClasses = await api.getClassesForSchool(
           schools[0].school.id,
-          currentUser?.id!
+          currentUser?.id!,
         );
         if (tempClasses.length > 0) {
           Util.setCurrentClass(tempClasses[0]);
@@ -143,9 +141,9 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -176,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         </button>
       )}
 
-      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? "open" : ""}`}>
+      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? 'open' : ''}`}>
         <button
           className="sidebar-hamburger-inside"
           onClick={() => setIsOpen(!isOpen)}
@@ -194,14 +192,13 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
         <ul className="sidebar-nav-list">
           {navItems.map((item) => {
- 
             const rolesWithAccess = [
               RoleType.SUPER_ADMIN,
               RoleType.OPERATIONAL_DIRECTOR,
               RoleType.PROGRAM_MANAGER,
             ];
             const canAccessUsersPage = userRoles.some((role) =>
-              rolesWithAccess.includes(role as RoleType)
+              rolesWithAccess.includes(role as RoleType),
             );
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
@@ -238,17 +235,17 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             className="sidebar-logout-btn"
             onClick={() => setShowDialogBox(true)}
           >
-            {t("Logout")}
+            {t('Logout')}
           </div>
         )}
 
         <DialogBoxButtons
           width="100%"
           height="20%"
-          message={t("Are you sure you want to logout?")}
+          message={t('Are you sure you want to logout?')}
           showDialogBox={showDialogBox}
-          yesText={t("Cancel")}
-          noText={t("Logout")}
+          yesText={t('Cancel')}
+          noText={t('Logout')}
           handleClose={() => setShowDialogBox(false)}
           onYesButtonClicked={() => setShowDialogBox(false)}
           onNoButtonClicked={onSignOut}

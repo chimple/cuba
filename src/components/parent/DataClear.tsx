@@ -5,9 +5,8 @@ import {
   SCHOOL_LOGIN,
   CURRENT_STUDENT,
   CACHE_TABLES_TO_CLEAR,
-} from "../../common/constants";
-import { Capacitor } from "@capacitor/core";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
 
 const KEYS_TO_CLEAR = [
   SCHOOL,
@@ -18,7 +17,7 @@ const KEYS_TO_CLEAR = [
 ] as const;
 
 export async function clearCacheStorageJS() {
-  if (!("caches" in globalThis)) return;
+  if (!('caches' in globalThis)) return;
   try {
     const keys = await caches.keys();
     await Promise.all(keys.map((k) => caches.delete(k)));

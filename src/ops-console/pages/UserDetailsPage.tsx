@@ -1,22 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./UserDetailsPage.css";
-import IconButton from "@mui/material/IconButton";
-import Breadcrumb from "../components/Breadcrumb";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import React, { useEffect, useRef, useState } from 'react';
+import './UserDetailsPage.css';
+import IconButton from '@mui/material/IconButton';
+import Breadcrumb from '../components/Breadcrumb';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
-import Box from "@mui/material/Box";
-import { Typography, useMediaQuery, useTheme } from "@mui/material";
-import { t } from "i18next";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory, useLocation } from "react-router";
-import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
-import { IonAlert, IonIcon } from "@ionic/react";
-import { PROFILETYPE } from "../../common/constants";
-import EditIcon from "@mui/icons-material/Edit";
+import Box from '@mui/material/Box';
+import { Typography, useMediaQuery, useTheme } from '@mui/material';
+import { t } from 'i18next';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory, useLocation } from 'react-router';
+import { RoleLabels, RoleType } from '../../interface/modelInterfaces';
+import { IonAlert } from '@ionic/react';
+import { PROFILETYPE } from '../../common/constants';
+import EditIcon from '@mui/icons-material/Edit';
 
 const UserDetailsPage: React.FC = () => {
   const [user, setUser] = useState<any>();
-  const [userRole, setUserRole] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>('');
   const selectRef = useRef<HTMLSelectElement>(null);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -33,7 +33,7 @@ const UserDetailsPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const userData = (location.state as any)?.userData;
   const api = ServiceConfig.getI().apiHandler;
 
@@ -46,7 +46,7 @@ const UserDetailsPage: React.FC = () => {
       const auth = ServiceConfig.getI().authHandler;
       const currentUser = await auth.getCurrentUser();
       const currentUserRoles = await api.getUserSpecialRoles(
-        currentUser?.id ?? ""
+        currentUser?.id ?? '',
       );
 
       const loggedInUserIsSpecial =
@@ -67,7 +67,7 @@ const UserDetailsPage: React.FC = () => {
     ];
     if (userData.userRole === RoleType.FIELD_COORDINATOR) {
       deleteTasks.push(
-        api.deleteUserFromSchoolsWithRole(user.id, RoleType.FIELD_COORDINATOR)
+        api.deleteUserFromSchoolsWithRole(user.id, RoleType.FIELD_COORDINATOR),
       );
     }
 
@@ -76,7 +76,7 @@ const UserDetailsPage: React.FC = () => {
       setShowConfirm(false);
       history.goBack();
     } catch (error) {
-      console.error("Failed to delete user completely:", error);
+      console.error('Failed to delete user completely:', error);
     }
   };
 
@@ -89,10 +89,10 @@ const UserDetailsPage: React.FC = () => {
       imageUrl = await api.addProfileImages(
         user.id,
         selectedFile,
-        PROFILETYPE.USER
+        PROFILETYPE.USER,
       );
       if (imageUrl) {
-        setUser((prev) => ({ ...prev, image: imageUrl }));
+        setUser({ ...user, image: imageUrl });
       }
     }
 
@@ -107,8 +107,8 @@ const UserDetailsPage: React.FC = () => {
           user.email,
           user.phone,
           user.languageDocId,
-          imageUrl ?? user.image
-        )
+          imageUrl ?? user.image,
+        ),
       );
     }
     if (userData?.userRole !== selectedRole) {
@@ -129,12 +129,12 @@ const UserDetailsPage: React.FC = () => {
       setPreviewUrl(null);
       setSelectedFile(null);
     } catch (error) {
-      console.error("Failed to update user info:", error);
+      console.error('Failed to update user info:', error);
     }
   };
 
   const handleProfileImageChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -167,7 +167,7 @@ const UserDetailsPage: React.FC = () => {
             <>
               <Box sx={{ width: 40 }} />
               <Typography className="user-details-title-mobile">
-                {t("Users")}
+                {t('Users')}
               </Typography>
               <IconButton className="user-icon-button">
                 <NotificationsIcon />
@@ -176,7 +176,7 @@ const UserDetailsPage: React.FC = () => {
           ) : (
             <>
               <Typography className="user-details-title">
-                {t("Users")}
+                {t('Users')}
               </Typography>
               <IconButton className="user-icon-button">
                 <NotificationsIcon />
@@ -188,9 +188,9 @@ const UserDetailsPage: React.FC = () => {
       <div className="user-details-page-Breadcrumb">
         <Breadcrumb
           crumbs={[
-            { label: t("Users"), onClick: () => history.goBack() },
+            { label: t('Users'), onClick: () => history.goBack() },
             {
-              label: user?.name || "user name",
+              label: user?.name || 'user name',
             },
           ]}
         />
@@ -200,15 +200,15 @@ const UserDetailsPage: React.FC = () => {
         <div
           className="user-details-image-container"
           onClick={() => isEdit && fileInputRef.current?.click()}
-          style={{ cursor: isEdit ? "pointer" : "default" }}
+          style={{ cursor: isEdit ? 'pointer' : 'default' }}
         >
           <img
             className="user-details-profile-img"
             src={
               previewUrl ||
-              (user?.image && user.image.trim() !== ""
+              (user?.image && user.image.trim() !== ''
                 ? user.image
-                : "/assets/profile.svg")
+                : '/assets/profile.svg')
             }
             alt="Profile"
           />
@@ -217,43 +217,43 @@ const UserDetailsPage: React.FC = () => {
             type="file"
             accept="image/*"
             ref={fileInputRef}
-            style={{ display: "none" }}
+            style={{ display: 'none' }}
             onChange={handleProfileImageChange}
           />
         </div>
 
         <div className="user-details-form-section">
-          <label>{t("Name")}</label>
+          <label>{t('Name')}</label>
           <input
             type="text"
-            value={user?.name ?? ""}
+            value={user?.name ?? ''}
             readOnly={!isEdit}
             onChange={(e) => {
               if (isEdit) setUser({ ...user, name: e.target.value });
             }}
           />
 
-          <label>{t("Phone Number")}</label>
+          <label>{t('Phone Number')}</label>
           <input
             type="text"
-            value={user?.phone ?? ""}
+            value={user?.phone ?? ''}
             readOnly
             onChange={(e) => {
               if (isEdit) setUser({ ...user, phone: e.target.value });
             }}
           />
 
-          <label>{t("Email")}</label>
+          <label>{t('Email')}</label>
           <input
             type="email"
-            value={user?.email ?? ""}
+            value={user?.email ?? ''}
             readOnly
             onChange={(e) => {
               if (isEdit) setUser({ ...user, email: e.target.value });
             }}
           />
 
-          <label>{t("Assigned Role")}</label>
+          <label>{t('Assigned Role')}</label>
           <select
             ref={selectRef}
             value={userRole}
@@ -280,22 +280,22 @@ const UserDetailsPage: React.FC = () => {
               <button
                 className="user-details-cancel-btn"
                 onClick={() => {
-                setUser(userData.user);
-                setUserRole(userData.userRole);
-                setPreviewUrl(null);
-                setSelectedFile(null);
-                setIsEdit(false);
-              }}
+                  setUser(userData.user);
+                  setUserRole(userData.userRole);
+                  setPreviewUrl(null);
+                  setSelectedFile(null);
+                  setIsEdit(false);
+                }}
                 // onClick={() => setIsEdit(false)}
               >
-                {t("Cancel")}
+                {t('Cancel')}
               </button>
               <button
                 className="user-details-save-btn"
                 onClick={onSave}
                 disabled={isSaveDisabled}
               >
-                {t("Save")}
+                {t('Save')}
               </button>
             </>
           ) : (
@@ -305,30 +305,30 @@ const UserDetailsPage: React.FC = () => {
                 disabled={isEditDisabled || roleDisabled}
                 onClick={() => setShowConfirm(true)}
               >
-                {t("Delete")}
+                {t('Delete')}
               </button>
               <button
                 className="user-details-edit-btn"
                 disabled={isEditDisabled}
                 onClick={() => setIsEdit(true)}
               >
-                {t("Edit")}
+                {t('Edit')}
               </button>
               <IonAlert
                 isOpen={showConfirm}
                 onDidDismiss={() => setShowConfirm(false)}
                 cssClass="user-details-custom-alert"
-                header={t("Delete User") ?? ""}
-                message={t("Are you sure you want to delete this user?") || ""}
+                header={t('Delete User') ?? ''}
+                message={t('Are you sure you want to delete this user?') || ''}
                 buttons={[
                   {
-                    text: t("Cancel") || "",
-                    cssClass: "user-details-alert-cancel-button",
+                    text: t('Cancel') || '',
+                    cssClass: 'user-details-alert-cancel-button',
                     handler: () => setShowConfirm(false),
                   },
                   {
-                    text: t("Delete"),
-                    cssClass: "user-details-alert-delete-button",
+                    text: t('Delete'),
+                    cssClass: 'user-details-alert-delete-button',
                     handler: confirmDelete,
                   },
                 ]}

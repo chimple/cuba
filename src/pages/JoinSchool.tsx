@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import "./JoinSchool.css";
-import Header from "../teachers-module/components/homePage/Header";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { useHistory, useLocation } from "react-router-dom";
-import { PAGES, RequestTypes } from "../common/constants";
-import { t } from "i18next";
+import React, { useEffect, useState } from 'react';
+import './JoinSchool.css';
+import Header from '../teachers-module/components/homePage/Header';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory, useLocation } from 'react-router-dom';
+import { PAGES, RequestTypes } from '../common/constants';
+import { t } from 'i18next';
 
 const JoinSchool: React.FC = () => {
   const [requestType, setRequestType] = useState<RequestTypes>();
@@ -30,9 +30,9 @@ const JoinSchool: React.FC = () => {
         setSelectedClass(allClasses[0]);
       }
     } catch (error) {
-      console.error("Error fetching request data:", error);
+      console.error('Error fetching request data:', error);
     }
-  }
+  };
   useEffect(() => {
     fetchRequest();
   }, []);
@@ -45,13 +45,13 @@ const JoinSchool: React.FC = () => {
 
       const classId =
         requestType === RequestTypes.TEACHER
-          ? selectedClass.id ?? undefined
+          ? (selectedClass.id ?? undefined)
           : undefined;
 
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
-      console.error("Error sending join school request:", error);
+      console.error('Error sending join school request:', error);
     } finally {
       setSending(false);
     }
@@ -67,7 +67,7 @@ const JoinSchool: React.FC = () => {
       </div>
       <div className="join-school-container">
         <div className="join-school-box">
-          <h2 className="join-school-page-title">{t("Join School")}</h2>
+          <h2 className="join-school-page-title">{t('Join School')}</h2>
 
           <div className="join-school-icon">
             <img src="/assets/icons/School_image.svg" />
@@ -76,45 +76,47 @@ const JoinSchool: React.FC = () => {
           <div className="join-school-card">
             <div className="join-school-row">
               <span className="join-school-label">UDISE ID</span>
-              <span className="join-school-value">{school?.udise || "-"}</span>
+              <span className="join-school-value">{school?.udise || '-'}</span>
             </div>
 
             <div className="join-school-row">
-              <span className="join-school-label">{t("School Name")}</span>
+              <span className="join-school-label">{t('School Name')}</span>
               <span className="join-school-value">{school?.name}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("Block")}</span>
-              <span className="join-school-value">{school?.group3 || "-"}</span>
+              <span className="join-school-label">{t('Block')}</span>
+              <span className="join-school-value">{school?.group3 || '-'}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("District")}</span>
+              <span className="join-school-label">{t('District')}</span>
               <span className="join-school-value">{school?.group2}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("State")}</span>
+              <span className="join-school-label">{t('State')}</span>
               <span className="join-school-value">{school?.group1}</span>
             </div>
-            <div className="join-school-row" style={{ borderBottom: "none" }}>
-              <span className="join-school-label">{t("Country")}</span>
+            <div className="join-school-row" style={{ borderBottom: 'none' }}>
+              <span className="join-school-label">{t('Country')}</span>
               <span className="join-school-value">{school?.country}</span>
             </div>
           </div>
 
           <div className="join-school-role-container">
             <div
-              className={`join-school-role-card ${requestType === RequestTypes.TEACHER ? "selected-teacher" : ""
-                }`}
+              className={`join-school-role-card ${
+                requestType === RequestTypes.TEACHER ? 'selected-teacher' : ''
+              }`}
               onClick={() => setRequestType(RequestTypes.TEACHER)}
             >
               <img src="/assets/icons/teacher.png" alt="Teacher" />
             </div>
 
             <div
-              className={`join-school-role-card ${requestType === RequestTypes.PRINCIPAL
-                ? "selected-principal"
-                : ""
-                }`}
+              className={`join-school-role-card ${
+                requestType === RequestTypes.PRINCIPAL
+                  ? 'selected-principal'
+                  : ''
+              }`}
               onClick={() => setRequestType(RequestTypes.PRINCIPAL)}
             >
               <img src="/assets/icons/principal.png" alt="Principal" />
@@ -122,15 +124,17 @@ const JoinSchool: React.FC = () => {
           </div>
 
           <div
-            className={`join-school-class-container ${requestType === RequestTypes.TEACHER ? "" : "hidden"
-              }`}
+            className={`join-school-class-container ${
+              requestType === RequestTypes.TEACHER ? '' : 'hidden'
+            }`}
           >
             {requestType === RequestTypes.TEACHER &&
-              classList.map((cls) => (
+              classList.map((cls: { id: string; name: string }) => (
                 <button
-                  key={cls}
-                  className={`join-school-class-btn ${selectedClass === cls ? "join-school-selected-class" : ""
-                    }`}
+                  key={cls.id}
+                  className={`join-school-class-btn ${
+                    selectedClass === cls ? 'join-school-selected-class' : ''
+                  }`}
                   onClick={() => setSelectedClass(cls)}
                 >
                   {cls.name}
@@ -139,7 +143,9 @@ const JoinSchool: React.FC = () => {
           </div>
 
           {sending ? (
-            <button className="join-school-send-btn" disabled>{t("Sending...")}</button>
+            <button className="join-school-send-btn" disabled>
+              {t('Sending...')}
+            </button>
           ) : (
             <button
               className="join-school-send-btn"
@@ -149,7 +155,7 @@ const JoinSchool: React.FC = () => {
               }
               onClick={() => handleSendRequest()}
             >
-              {t("Send Request")}
+              {t('Send Request')}
             </button>
           )}
         </div>

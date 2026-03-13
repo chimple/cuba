@@ -1,4 +1,4 @@
-import "./coloring.css";
+import './coloring.css';
 
 type Props = {
   selected: string;
@@ -6,14 +6,14 @@ type Props = {
 };
 
 const COLORS = [
-  "#FF2E88",
-  "#0DB14B",
-  "#FF4A1C",
-  "#1AB7B5",
-  "#FFD600",
-  "#B066D1",
-  "#66D9E8",
-  "#79D70F",
+  '#FF2E88',
+  '#0DB14B',
+  '#FF4A1C',
+  '#1AB7B5',
+  '#FFD600',
+  '#B066D1',
+  '#66D9E8',
+  '#79D70F',
 ];
 
 export default function ColorTray({ selected, onSelect }: Props) {
@@ -26,7 +26,7 @@ export default function ColorTray({ selected, onSelect }: Props) {
           <button
             key={c}
             type="button"
-            className={`color-box ${isSelected ? "selected" : ""}`}
+            className={`color-box ${isSelected ? 'selected' : ''}`}
             style={{ background: c }}
             onClick={() => onSelect(c)}
           />

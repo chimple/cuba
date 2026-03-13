@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
-import Grid from "@mui/material/Grid";
-import { Box, Button, useTheme } from "@mui/material";
-import { useHistory, useLocation, useParams } from "react-router";
-import SchoolDetailsCard from "../components/SchoolRequestComponents/SchoolDetailsCard";
-import RequestFromCard from "../components/SchoolRequestComponents/RequestFromCard";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
-import Breadcrumb from "../components/Breadcrumb";
-import ApprovedDetails from "../components/SchoolRequestComponents/ApprovedDetails";
+import React, { useEffect, useState } from 'react';
+import Grid from '@mui/material/Grid';
+import { Box, useTheme } from '@mui/material';
+import { useHistory, useLocation, useParams } from 'react-router';
+import SchoolDetailsCard from '../components/SchoolRequestComponents/SchoolDetailsCard';
+import RequestFromCard from '../components/SchoolRequestComponents/RequestFromCard';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import Breadcrumb from '../components/Breadcrumb';
+import ApprovedDetails from '../components/SchoolRequestComponents/ApprovedDetails';
 
 const SchoolApprovedRequest: React.FC = () => {
   const history = useHistory();
@@ -30,7 +30,7 @@ const SchoolApprovedRequest: React.FC = () => {
           setRequestedBy(state.request.requestedBy);
         }
       } catch (error) {
-        console.error("Error fetching request data:", error);
+        console.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }
@@ -43,18 +43,18 @@ const SchoolApprovedRequest: React.FC = () => {
       {!loading && (
         <div className="school-request-container">
           <div className="school-common-header">
-            <SchoolNameHeaderComponent schoolName={"Request ID - " + id} />
+            <SchoolNameHeaderComponent schoolName={'Request ID - ' + id} />
           </div>
 
           <div className="school-common-secondary-header">
             <Breadcrumb
               crumbs={[
                 {
-                  label: "Approved",
+                  label: 'Approved',
                   onClick: () => history.goBack(),
                 },
                 {
-                  label: "Request ID - " + id,
+                  label: 'Request ID - ' + id,
                 },
               ]}
             />

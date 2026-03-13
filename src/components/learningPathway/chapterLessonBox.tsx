@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import "./chpaterLessonBox.css";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { COURSE_CHANGED } from "../../common/constants";
-import { useTranslation } from "react-i18next";
-import { LessonNode } from "../../hooks/useLearningPath";
+import React, { useEffect, useState } from 'react';
+import './chpaterLessonBox.css';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { COURSE_CHANGED } from '../../common/constants';
+import { useTranslation } from 'react-i18next';
+import { LessonNode } from '../../hooks/useLearningPath';
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -18,7 +18,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   lessonName,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
-  const [currentChapterName, setCurrentChapterName] = useState<string>("");
+  const [currentChapterName, setCurrentChapterName] = useState<string>('');
   const { t } = useTranslation();
   useEffect(() => {
     // SCENARIO 1: Props are provided (Homework Page)
@@ -35,7 +35,9 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
 
-      const pathItem = course.path.find((p :LessonNode) => p.isPlayed === false);
+      const pathItem = course.path.find(
+        (p: LessonNode) => p.isPlayed === false,
+      );
 
       // 1️⃣ Fetch lesson (always required)
       const lesson = pathItem.lesson_id
@@ -49,9 +51,8 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
 
       // 3️⃣ Build chapter name safely
       const chapterName = chapter?.name
-        ? `${t(chapter.name)} : ${t(lesson?.name ?? "")}`
-        : t(lesson?.name ?? "default.chapter");
-
+        ? `${t(chapter.name)} : ${t(lesson?.name ?? '')}`
+        : t(lesson?.name ?? 'default.chapter');
 
       setCurrentChapterName(chapterName);
     };
@@ -64,7 +65,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     // Listen for course changes
     const syncHandleCourseChange = (event: Event) => {
       updateChapter().catch((err) =>
-        console.error("Error handling course change:", err)
+        console.error('Error handling course change:', err),
       );
     };
 

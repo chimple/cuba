@@ -1,14 +1,14 @@
-import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import DisplayStudents from "./DisplayStudents";
-import { MODES, PAGES } from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import React from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import DisplayStudents from './DisplayStudents';
+import { MODES, PAGES } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
 const mockHistoryReplace = jest.fn();
 const mockSetGbUpdated = jest.fn();
@@ -20,32 +20,32 @@ const mockApi = {
   getClassById: jest.fn(),
 };
 
-jest.mock("@ionic/react", () => ({
+jest.mock('@ionic/react', () => ({
   IonPage: (props: any) => <div data-testid="ion-page">{props.children}</div>,
   IonContent: (props: any) => <div>{props.children}</div>,
   useIonToast: () => [jest.fn()],
 }));
 
-jest.mock("react-router", () => ({
+jest.mock('react-router', () => ({
   useHistory: () => ({
     replace: mockHistoryReplace,
-    location: { pathname: "/display-students" },
+    location: { pathname: '/display-students' },
   }),
 }));
 
-jest.mock("i18next", () => ({
+jest.mock('i18next', () => ({
   t: (k: string) => k,
 }));
 
-jest.mock("../i18n", () => ({
+jest.mock('../i18n', () => ({
   __esModule: true,
   default: {
     changeLanguage: jest.fn().mockResolvedValue(undefined),
-    language: "en",
+    language: 'en',
   },
 }));
 
-jest.mock("../components/ChimpleLogo", () => (props: any) => (
+jest.mock('../components/ChimpleLogo', () => (props: any) => (
   <div data-testid="chimple-logo">
     <div>{props.header}</div>
     {props.msg?.map((m: string) => (
@@ -54,13 +54,13 @@ jest.mock("../components/ChimpleLogo", () => (props: any) => (
   </div>
 ));
 
-jest.mock("../components/Loading", () => () => <div data-testid="loading" />);
+jest.mock('../components/Loading', () => () => <div data-testid="loading" />);
 
-jest.mock("../components/SkeltonLoading", () => (props: any) => (
+jest.mock('../components/SkeltonLoading', () => (props: any) => (
   <div data-testid="skeleton-loading">{String(props.header)}</div>
 ));
 
-jest.mock("../components/parent/ParentalLock", () => (props: any) => (
+jest.mock('../components/parent/ParentalLock', () => (props: any) => (
   <div data-testid="parental-lock">
     <button type="button" onClick={props.handleClose}>
       keep-open
@@ -71,8 +71,8 @@ jest.mock("../components/parent/ParentalLock", () => (props: any) => (
   </div>
 ));
 
-jest.mock("../utility/util");
-jest.mock("../utility/schoolUtil", () => ({
+jest.mock('../utility/util');
+jest.mock('../utility/schoolUtil', () => ({
   schoolUtil: {
     getCurrMode: jest.fn(),
     setCurrMode: jest.fn(),
@@ -80,50 +80,50 @@ jest.mock("../utility/schoolUtil", () => ({
   },
 }));
 
-jest.mock("../growthbook/Growthbook", () => ({
+jest.mock('../growthbook/Growthbook', () => ({
   useGbContext: jest.fn(),
   updateLocalAttributes: jest.fn(),
 }));
 
-jest.mock("../common/onlineOfflineErrorMessageHandler", () => ({
+jest.mock('../common/onlineOfflineErrorMessageHandler', () => ({
   useOnlineOfflineErrorMessageHandler: jest.fn(),
 }));
 
-jest.mock("../services/ServiceConfig", () => ({
+jest.mock('../services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: jest.fn(),
   },
 }));
 
-jest.mock("@capacitor/core", () => ({
+jest.mock('@capacitor/core', () => ({
   Capacitor: {
     isNativePlatform: jest.fn(),
   },
 }));
 
-jest.mock("@capacitor/screen-orientation", () => ({
+jest.mock('@capacitor/screen-orientation', () => ({
   ScreenOrientation: {
     lock: jest.fn(),
   },
 }));
 
-describe("DisplayStudents", () => {
+describe('DisplayStudents', () => {
   const students = [
     {
-      id: "stu-1",
-      name: "Student One",
-      avatar: "fox",
-      image: "https://cdn/stu-1.png",
-      language_id: "lang-1",
-      grade_id: "grade-1",
+      id: 'stu-1',
+      name: 'Student One',
+      avatar: 'fox',
+      image: 'https://cdn/stu-1.png',
+      language_id: 'lang-1',
+      grade_id: 'grade-1',
       age: 7,
     },
     {
-      id: "stu-2",
-      name: "",
-      avatar: "lion",
-      language_id: "lang-2",
-      grade_id: "grade-2",
+      id: 'stu-2',
+      name: '',
+      avatar: 'lion',
+      language_id: 'lang-2',
+      grade_id: 'grade-2',
       age: 8,
     },
   ] as any[];
@@ -155,13 +155,13 @@ describe("DisplayStudents", () => {
 
     mockApi.getParentStudentProfiles.mockResolvedValue(students);
     mockApi.getStudentClassesAndSchools.mockResolvedValue({
-      classes: [{ id: "class-1" }],
-      schools: [{ id: "school-1" }],
+      classes: [{ id: 'class-1' }],
+      schools: [{ id: 'school-1' }],
     });
-    mockApi.getClassById.mockResolvedValue({ id: "class-1", name: "Class 1" });
+    mockApi.getClassById.mockResolvedValue({ id: 'class-1', name: 'Class 1' });
   });
 
-  test("loads background image and fetches student profiles on mount", async () => {
+  test('loads background image and fetches student profiles on mount', async () => {
     render(<DisplayStudents />);
 
     await waitFor(() => {
@@ -170,58 +170,58 @@ describe("DisplayStudents", () => {
     });
   });
 
-  test("calls mergeStudentsByUpdatedAt with session map string", async () => {
+  test('calls mergeStudentsByUpdatedAt with session map string', async () => {
     sessionStorage.setItem(
-      "editStudentsMap",
-      JSON.stringify({ "stu-1": { name: "Edited" } }),
+      'editStudentsMap',
+      JSON.stringify({ 'stu-1': { name: 'Edited' } }),
     );
     render(<DisplayStudents />);
 
     await waitFor(() => {
       expect(Util.mergeStudentsByUpdatedAt).toHaveBeenCalledWith(
         expect.any(Array),
-        JSON.stringify({ "stu-1": { name: "Edited" } }),
+        JSON.stringify({ 'stu-1': { name: 'Edited' } }),
       );
     });
   });
 
-  test("renders welcome copy and student cards after loading", async () => {
+  test('renders welcome copy and student cards after loading', async () => {
     render(<DisplayStudents />);
 
-    expect(await screen.findByTestId("chimple-logo")).toBeInTheDocument();
-    expect(screen.getByText("Welcome to Chimple!")).toBeInTheDocument();
-    expect(await screen.findByText("Student One")).toBeInTheDocument();
+    expect(await screen.findByTestId('chimple-logo')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(await screen.findByText('Student One')).toBeInTheDocument();
   });
 
-  test("shows Profile label when student has name", async () => {
+  test('shows Profile label when student has name', async () => {
     render(<DisplayStudents />);
 
-    expect(await screen.findByText("Profile:")).toBeInTheDocument();
+    expect(await screen.findByText('Profile:')).toBeInTheDocument();
   });
 
-  test("renders avatar fallback path in parent mode", async () => {
+  test('renders avatar fallback path in parent mode', async () => {
     render(<DisplayStudents />);
 
-    await screen.findByText("Student One");
-    const img = document.querySelector("img.avatar-img") as HTMLImageElement;
-    expect(img.src).toContain("assets/avatars/");
+    await screen.findByText('Student One');
+    const img = document.querySelector('img.avatar-img') as HTMLImageElement;
+    expect(img.src).toContain('assets/avatars/');
   });
 
-  test("renders school image when mode is SCHOOL and image exists", async () => {
+  test('renders school image when mode is SCHOOL and image exists', async () => {
     (schoolUtil.getCurrMode as jest.Mock).mockResolvedValue(MODES.SCHOOL);
     render(<DisplayStudents />);
 
     await waitFor(() => {
       const imgs = Array.from(
-        document.querySelectorAll("img.avatar-img"),
+        document.querySelectorAll('img.avatar-img'),
       ) as HTMLImageElement[];
-      expect(imgs.some((n) => n.src.includes("https://cdn/stu-1.png"))).toBe(
+      expect(imgs.some((n) => n.src.includes('https://cdn/stu-1.png'))).toBe(
         true,
       );
     });
   });
 
-  test("updates growthbook child-count attributes when students are loaded", async () => {
+  test('updates growthbook child-count attributes when students are loaded', async () => {
     render(<DisplayStudents />);
 
     await waitFor(() => {
@@ -232,25 +232,25 @@ describe("DisplayStudents", () => {
     });
   });
 
-  test("shows skeleton loader with DISPLAY_STUDENT header", async () => {
+  test('shows skeleton loader with DISPLAY_STUDENT header', async () => {
     render(<DisplayStudents />);
-    expect(await screen.findByTestId("skeleton-loading")).toHaveTextContent(
+    expect(await screen.findByTestId('skeleton-loading')).toHaveTextContent(
       PAGES.DISPLAY_STUDENT,
     );
   });
 
-  test("locks orientation when running on native platform", async () => {
+  test('locks orientation when running on native platform', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     render(<DisplayStudents />);
 
     await waitFor(() => {
       expect(ScreenOrientation.lock).toHaveBeenCalledWith({
-        orientation: "landscape",
+        orientation: 'landscape',
       });
     });
   });
 
-  test("does not lock orientation on web platform", async () => {
+  test('does not lock orientation on web platform', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
     render(<DisplayStudents />);
 
@@ -259,119 +259,119 @@ describe("DisplayStudents", () => {
     });
   });
 
-  test("opens parental lock popup when Parent button is clicked", async () => {
+  test('opens parental lock popup when Parent button is clicked', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Parent" }));
-    expect(screen.getByTestId("parental-lock")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Parent' }));
+    expect(screen.getByTestId('parental-lock')).toBeInTheDocument();
   });
 
-  test("closes parental lock when onHandleClose is called", async () => {
+  test('closes parental lock when onHandleClose is called', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Parent" }));
-    fireEvent.click(screen.getByRole("button", { name: "close-lock" }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Parent' }));
+    fireEvent.click(screen.getByRole('button', { name: 'close-lock' }));
 
     await waitFor(() => {
-      expect(screen.queryByTestId("parental-lock")).not.toBeInTheDocument();
+      expect(screen.queryByTestId('parental-lock')).not.toBeInTheDocument();
     });
   });
 
-  test("keeps parental lock open when handleClose is called", async () => {
+  test('keeps parental lock open when handleClose is called', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Parent" }));
-    fireEvent.click(screen.getByRole("button", { name: "keep-open" }));
-    expect(screen.getByTestId("parental-lock")).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Parent' }));
+    fireEvent.click(screen.getByRole('button', { name: 'keep-open' }));
+    expect(screen.getByTestId('parental-lock')).toBeInTheDocument();
   });
 
-  test("clicking student switches mode, sets student and updates GB attributes", async () => {
+  test('clicking student switches mode, sets student and updates GB attributes', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
 
     await waitFor(() => {
       expect(schoolUtil.setCurrMode).toHaveBeenCalledWith(MODES.PARENT);
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "stu-1" }),
+        expect.objectContaining({ id: 'stu-1' }),
         undefined,
         true,
       );
       expect(updateLocalAttributes).toHaveBeenCalledWith(
         expect.objectContaining({
-          student_id: "stu-1",
+          student_id: 'stu-1',
           age: 7,
-          grade_id: "grade-1",
+          grade_id: 'grade-1',
         }),
       );
       expect(mockSetGbUpdated).toHaveBeenCalledWith(true);
     });
   });
 
-  test("fetches linked classes and sets current class when class exists", async () => {
+  test('fetches linked classes and sets current class when class exists', async () => {
     render(<DisplayStudents />);
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
 
     await waitFor(() => {
-      expect(mockApi.getStudentClassesAndSchools).toHaveBeenCalledWith("stu-1");
-      expect(mockApi.getClassById).toHaveBeenCalledWith("class-1");
+      expect(mockApi.getStudentClassesAndSchools).toHaveBeenCalledWith('stu-1');
+      expect(mockApi.getClassById).toHaveBeenCalledWith('class-1');
       expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "class-1" }),
+        expect.objectContaining({ id: 'class-1' }),
       );
     });
   });
 
-  test("sets current class undefined when linked class list is empty", async () => {
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+  test('sets current class undefined when linked class list is empty', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockApi.getStudentClassesAndSchools.mockResolvedValueOnce({
       classes: [],
       schools: [],
     });
 
     render(<DisplayStudents />);
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
 
     await waitFor(() => {
       expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
-      expect(warnSpy).toHaveBeenCalledWith("No classes found for the student.");
+      expect(warnSpy).toHaveBeenCalledWith('No classes found for the student.');
     });
     warnSpy.mockRestore();
   });
 
-  test("ensures lido common audio when student profile is selected", async () => {
+  test('ensures lido common audio when student profile is selected', async () => {
     render(<DisplayStudents />);
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
 
     await waitFor(() => {
       expect(Util.ensureLidoCommonAudioForStudent).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "stu-1" }),
+        expect.objectContaining({ id: 'stu-1' }),
       );
     });
   });
 
-  test("navigates to edit student when selected student language is missing", async () => {
+  test('navigates to edit student when selected student language is missing', async () => {
     mockApi.getParentStudentProfiles.mockResolvedValueOnce([
-      { ...students[0], id: "stu-3", language_id: null },
+      { ...students[0], id: 'stu-3', language_id: null },
     ]);
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
     await waitFor(() => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.EDIT_STUDENT, {
-        from: "/display-students",
+        from: '/display-students',
       });
     });
   });
 
-  test("navigates to home with current query params when profile is complete", async () => {
+  test('navigates to home with current query params when profile is complete', async () => {
     window.history.replaceState(
       {},
-      "",
-      "/display-students?tab=ASSIGNMENT&page=/join-class",
+      '',
+      '/display-students?tab=ASSIGNMENT&page=/join-class',
     );
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText("Student One"));
+    fireEvent.click(await screen.findByText('Student One'));
     await waitFor(() => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(
         `${PAGES.HOME}?tab=ASSIGNMENT&page=/join-class`,
@@ -379,18 +379,18 @@ describe("DisplayStudents", () => {
     });
   });
 
-  test("renders blank placeholder span for student name when name is empty", async () => {
+  test('renders blank placeholder span for student name when name is empty', async () => {
     render(<DisplayStudents />);
 
     await waitFor(() => {
       const names = Array.from(
-        document.querySelectorAll(".display-student-name"),
+        document.querySelectorAll('.display-student-name'),
       ).map((el) => el.textContent);
-      expect(names.some((v) => v === "\u00A0")).toBe(true);
+      expect(names.some((v) => v === '\u00A0')).toBe(true);
     });
   });
 
-  test("sets student mode from schoolUtil.getCurrMode", async () => {
+  test('sets student mode from schoolUtil.getCurrMode', async () => {
     (schoolUtil.getCurrMode as jest.Mock).mockResolvedValueOnce(MODES.SCHOOL);
     render(<DisplayStudents />);
 

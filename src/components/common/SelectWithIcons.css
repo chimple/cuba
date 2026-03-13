@@ -17,7 +17,7 @@
 }
 
 .select-with-icon-input-box::before {
-  content: "";
+  content: '';
   position: absolute;
   top: -1px;
   left: 10px;
@@ -27,7 +27,6 @@
   z-index: 1;
   border-radius: 2px;
 }
-
 
 .select-with-icon-input-label {
   font-size: 14px;
@@ -116,14 +115,14 @@
 }
 
 .select-with-icon-option::after {
-  content: "";
+  content: '';
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   height: 1px;
   width: 130px;
-  background-color: #182A4F;
+  background-color: #182a4f;
 }
 
 .select-with-icon-option:hover {

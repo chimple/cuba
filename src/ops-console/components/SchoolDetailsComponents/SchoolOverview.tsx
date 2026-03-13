@@ -1,22 +1,19 @@
-import React from "react";
-import Grid from "@mui/material/Grid";
-import "./SchoolOverview.css";
-import { Box, Button, Divider, Typography } from "@mui/material";
-import "./SchoolInfoCard.css";
-import { t } from "i18next";
-import InfoCard from "../InfoCard";
-import DetailItem from "../DetailItem";
-import ContactCard from "../ContactCard";
-import {
-  PAGES,
-  PROGRAM_TAB_LABELS,
-} from "../../../common/constants";
-import { useHistory } from "react-router";
-import { RoleType } from "../../../interface/modelInterfaces";
-import SubjectCurriculumCard from "../SubjectCurriculumCard";
-import { useAppSelector } from "../../../redux/hooks";
-import { RootState } from "../../../redux/store";
-import { AuthState } from "../../../redux/slices/auth/authSlice";
+import React from 'react';
+import Grid from '@mui/material/Grid';
+import './SchoolOverview.css';
+import { Box, Button, Divider, Typography } from '@mui/material';
+import './SchoolInfoCard.css';
+import { t } from 'i18next';
+import InfoCard from '../InfoCard';
+import DetailItem from '../DetailItem';
+import ContactCard from '../ContactCard';
+import { PAGES, PROGRAM_TAB_LABELS } from '../../../common/constants';
+import { useHistory } from 'react-router';
+import { RoleType } from '../../../interface/modelInterfaces';
+import SubjectCurriculumCard from '../SubjectCurriculumCard';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 interface SchoolOverviewProps {
   data: any;
@@ -24,11 +21,14 @@ interface SchoolOverviewProps {
 }
 
 const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
-  const { roles } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   const userRoles = roles || [];
+  const programTabLabels = PROGRAM_TAB_LABELS as Record<string, string>;
   // school details
   const formatingSchoolModel = (raw: any) => {
-    if (!raw) return "";
+    if (!raw) return '';
     let arr: string[] = [];
     try {
       arr = Array.isArray(raw) ? raw : JSON.parse(raw);
@@ -38,62 +38,62 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     return arr
       .map(
         (v: string) =>
-          PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
+          programTabLabels[v.toLowerCase().replace(/ /g, '_')] ||
           v
             .toLowerCase()
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase())
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
       )
-      .join(", ");
+      .join(', ');
   };
-  const schoolModelValue = formatingSchoolModel(data.schoolData?.model || "");
+  const schoolModelValue = formatingSchoolModel(data.schoolData?.model || '');
 
   const schoolDetailsItems = [
-    { label: "School Name", value: data.schoolData?.name },
-    { label: "School ID (UDISE)", value: data.schoolData?.udise },
-    { label: "School Model", value: schoolModelValue },
-    { label: "State", value: data.schoolData?.group1 },
-    { label: "District", value: data.schoolData?.group2 },
-    { label: "Block", value: data.schoolData?.group3 },
-    { label: "Cluster", value: data.schoolData?.group4 },
+    { label: 'School Name', value: data.schoolData?.name },
+    { label: 'School ID (UDISE)', value: data.schoolData?.udise },
+    { label: 'School Model', value: schoolModelValue },
+    { label: 'State', value: data.schoolData?.group1 },
+    { label: 'District', value: data.schoolData?.group2 },
+    { label: 'Block', value: data.schoolData?.group3 },
+    { label: 'Cluster', value: data.schoolData?.group4 },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   // school address details
   const schooladdressDetailsItems = [
-    { label: "Full Address", value: data.schoolData?.address },
+    { label: 'Full Address', value: data.schoolData?.address },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   // program details
   const programDetailsItems = [
-    { label: "Program Name", value: data.programData?.name },
+    { label: 'Program Name', value: data.programData?.name },
     {
-      label: "Program Type",
+      label: 'Program Type',
       value: data.programData?.program_type
         ? data.programData.program_type.trim().charAt(0).toUpperCase() +
           data.programData.program_type.trim().slice(1).toLowerCase()
-        : "",
+        : '',
     },
     {
-      label: "Model",
+      label: 'Model',
       value: (() => {
         const raw = data.programData?.model;
-        if (!raw) return "";
+        if (!raw) return '';
         let arr: string[] = [];
         try {
           arr = Array.isArray(raw) ? raw : JSON.parse(raw);
         } catch {
-          return "";
+          return '';
         }
         return arr
           .map(
             (v: string) =>
-              PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
+              programTabLabels[v.toLowerCase().replace(/ /g, '_')] ||
               v
                 .toLowerCase()
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (c) => c.toUpperCase())
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase()),
           )
-          .join(", ");
+          .join(', ');
       })(),
     },
   ].filter((item) => item.value !== undefined && item.value !== null);
@@ -101,39 +101,39 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
 
   //school performance
   const activeStudents =
-    data.schoolStats?.active_student_percentage?.toFixed(2) ?? "0.00";
+    data.schoolStats?.active_student_percentage?.toFixed(2) ?? '0.00';
   const avgWeekTime =
-    data.schoolStats?.avg_weekly_time_minutes?.toFixed(2) ?? "0.00";
+    data.schoolStats?.avg_weekly_time_minutes?.toFixed(2) ?? '0.00';
   const activeTeachers =
-    data.schoolStats?.active_teacher_percentage?.toFixed(2) ?? "0.00";
+    data.schoolStats?.active_teacher_percentage?.toFixed(2) ?? '0.00';
 
   const interactionItems = [
-    { label: "Number of Visits", value: data.interactionStats?.visits ?? 0 },
+    { label: 'Number of Visits', value: data.interactionStats?.visits ?? 0 },
     {
-      label: "Number of Calls Made",
+      label: 'Number of Calls Made',
       value: data.interactionStats?.calls_made ?? 0,
     },
     {
-      label: "Tech Issues Reported",
-      value: data.interactionStats?.tech_issues ?? 0 ,
+      label: 'Tech Issues Reported',
+      value: data.interactionStats?.tech_issues ?? 0,
     },
     {
-      label: "Parents Interacted",
+      label: 'Parents Interacted',
       value: data.interactionStats?.parents_interacted ?? 0,
     },
     {
-      label: "Students Interacted",
+      label: 'Students Interacted',
       value: data.interactionStats?.students_interacted ?? 0,
     },
     {
-      label: "Teachers Interacted",
+      label: 'Teachers Interacted',
       value: data.interactionStats?.teachers_interacted ?? 0,
     },
   ];
 
   const InteractionMetricsSection = () => (
     <InfoCard
-      title={t("Interaction Metrics")}
+      title={t('Interaction Metrics')}
       className="interaction-card"
       hideDivider={true}
       headerAction={
@@ -142,15 +142,15 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             size="small"
             variant="outlined"
             className="schooloverview-view-all-interactions-btn"
-            sx={{ textTransform: "none" }}
+            sx={{ textTransform: 'none' }}
             onClick={() =>
               history.replace(
                 `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-                data.schoolData
+                data.schoolData,
               )
             }
           >
-            {t("View All Interactions")}
+            {t('View All Interactions')}
           </Button>
         ) : undefined
       }
@@ -179,24 +179,24 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           size="small"
           className="full-width-button"
           variant="outlined"
-          sx={{ mt: 2, textTransform: "none" }}
+          sx={{ mt: 2, textTransform: 'none' }}
           onClick={() =>
             history.replace(
               `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-              data.schoolData
+              data.schoolData,
             )
           }
         >
-          {t("View All Interactions")}
+          {t('View All Interactions')}
         </Button>
       )}
     </InfoCard>
   );
 
   const schoolPerformanceItems = [
-    { label: "Active Students", value: `${activeStudents}%` },
-    { label: "Avg week time in mins", value: `${avgWeekTime} mins` },
-    { label: "Active Teachers", value: `${activeTeachers}%` },
+    { label: 'Active Students', value: `${activeStudents}%` },
+    { label: 'Avg week time in mins', value: `${avgWeekTime} mins` },
+    { label: 'Active Teachers', value: `${activeTeachers}%` },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   const history = useHistory();
@@ -205,7 +205,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   if (rawKeyContacts) {
     try {
       keyContacts =
-        typeof rawKeyContacts === "string"
+        typeof rawKeyContacts === 'string'
           ? JSON.parse(rawKeyContacts)
           : rawKeyContacts;
       if (!Array.isArray(keyContacts)) keyContacts = [];
@@ -220,7 +220,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     RoleType.PROGRAM_MANAGER,
   ];
   const haveAccess = userRoles.some((role) =>
-    rolesWithAccess.includes(role as RoleType)
+    rolesWithAccess.includes(role as RoleType),
   );
 
   return (
@@ -229,7 +229,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
         <Box className="column-container">
           <InteractionMetricsSection />
           <InfoCard
-            title={t("School Performance")}
+            title={t('School Performance')}
             className="performance-card"
           >
             <Box className="info-card-items">
@@ -251,13 +251,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               size="small"
               className="full-width-button"
               variant="outlined"
-              sx={{ mt: 2, textTransform: "none" }}
+              sx={{ mt: 2, textTransform: 'none' }}
             >
-              {t("View Detailed Analytics")}
+              {t('View Detailed Analytics')}
             </Button>
           </InfoCard>
           <InfoCard
-            title={t("Key Contacts")}
+            title={t('Key Contacts')}
             children={
               <Box className="principal-list">
                 {(() => {
@@ -266,18 +266,18 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                       ? keyContacts.map((c: any) => ({
                           name: c.name,
                           phone: c.phone || c.email,
-                          role: c.role || t("Key Contact"),
+                          role: c.role || t('Key Contact'),
                         }))
                       : [
                           ...(data.principals?.map((p: any) => ({
                             name: p.name,
                             phone: p.phone || p.email,
-                            role: t("Principal"),
+                            role: t('Principal'),
                           })) || []),
                           ...(data.coordinators?.map((c: any) => ({
                             name: c.name,
                             phone: c.phone || c.email,
-                            role: t("Coordinator"),
+                            role: t('Coordinator'),
                           })) || []),
                         ];
 
@@ -294,19 +294,19 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             }
           />
           <InfoCard
-            title={t("School Details")}
+            title={t('School Details')}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
             showEditIcon={haveAccess}
             onEditClick={() =>
               history.replace(
                 `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                data
+                data,
               )
             }
           />
           <SubjectCurriculumCard schoolId={data.schoolData?.id} />
-          <InfoCard title={t("Program Details")} className="program-card">
+          <InfoCard title={t('Program Details')} className="program-card">
             <Box className="info-card-items">
               {programDetailsItems.map((item, idx) => (
                 <DetailItem key={idx} {...item} />
@@ -321,17 +321,27 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 align="left"
                 fontWeight={500}
               >
-                {t("Program Manager")}
+                {t('Program Manager')}
               </Typography>
               <Box>
-                {data.programManagers?.map((manager, idx) => (
-                  <ContactCard
-                    key={idx}
-                    name={manager.name}
-                    role={manager.role || t("Program Manager")}
-                    phone={manager.phone || manager.email}
-                  />
-                ))}
+                {data.programManagers?.map(
+                  (
+                    manager: {
+                      name?: string;
+                      role?: string;
+                      phone?: string;
+                      email?: string;
+                    },
+                    idx: number,
+                  ) => (
+                    <ContactCard
+                      key={idx}
+                      name={manager.name || ''}
+                      role={manager.role || t('Program Manager')}
+                      phone={manager.phone || manager.email || ''}
+                    />
+                  ),
+                )}
               </Box>
             </Box>
           </InfoCard>
@@ -345,7 +355,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <InfoCard
-              title={t("School Performance")}
+              title={t('School Performance')}
               className="performance-card"
             >
               <Box className="info-card-items">
@@ -367,29 +377,29 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 size="small"
                 className="full-width-button"
                 variant="outlined"
-                sx={{ mt: 2, textTransform: "none" }}
+                sx={{ mt: 2, textTransform: 'none' }}
               >
-                {t("View Detailed Analytics")}
+                {t('View Detailed Analytics')}
               </Button>
             </InfoCard>
           </Grid>
 
           <Grid size={{ xs: 12, md: 12 }}>
-            <Box sx={{ height: 5, width: "100%" }} />
+            <Box sx={{ height: 5, width: '100%' }} />
           </Grid>
 
           {/* Second row - School Details, Key Contacts, Program Details */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Box className="column-container">
               <InfoCard
-                title={t("School Details")}
+                title={t('School Details')}
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
                 showEditIcon={haveAccess}
                 onEditClick={() =>
                   history.replace(
                     `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                    data
+                    data,
                   )
                 }
               />
@@ -401,7 +411,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           <Grid size={{ xs: 12, md: 4 }}>
             <Box className="column-container">
               <InfoCard
-                title={t("Key Contacts")}
+                title={t('Key Contacts')}
                 children={
                   <Box className="principal-list">
                     {(() => {
@@ -410,18 +420,18 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                           ? keyContacts.map((c: any) => ({
                               name: c.name,
                               phone: c.phone || c.email,
-                              role: c.role || t("Key Contact"),
+                              role: c.role || t('Key Contact'),
                             }))
                           : [
                               ...(data.principals?.map((p: any) => ({
                                 name: p.name,
                                 phone: p.phone || p.email,
-                                role: t("Principal"),
+                                role: t('Principal'),
                               })) || []),
                               ...(data.coordinators?.map((c: any) => ({
                                 name: c.name,
                                 phone: c.phone || c.email,
-                                role: t("Coordinator"),
+                                role: t('Coordinator'),
                               })) || []),
                             ];
 
@@ -440,7 +450,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             </Box>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <InfoCard title={t("Program Details")} className="program-card">
+            <InfoCard title={t('Program Details')} className="program-card">
               <Box height={4} />
               <Box
                 display="flex"
@@ -467,7 +477,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                     variant="body1"
                     gutterBottom
                     textAlign="left"
-                    sx={{ wordBreak: "break-word", width: "100%" }}
+                    sx={{ wordBreak: 'break-word', width: '100%' }}
                   >
                     {programName?.value}
                   </Typography>
@@ -481,7 +491,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   <Typography
                     variant="body1"
                     textAlign="left"
-                    sx={{ wordBreak: "break-word", width: "100%" }}
+                    sx={{ wordBreak: 'break-word', width: '100%' }}
                   >
                     {programType?.value}
                   </Typography>
@@ -503,7 +513,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   <Typography
                     variant="body1"
                     textAlign="left"
-                    sx={{ wordBreak: "break-word", width: "100%" }}
+                    sx={{ wordBreak: 'break-word', width: '100%' }}
                   >
                     {model?.value}
                   </Typography>
@@ -518,17 +528,27 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   align="left"
                   fontWeight={600}
                 >
-                  {t("Program Manager")}
+                  {t('Program Manager')}
                 </Typography>
                 <Box>
-                  {data.programManagers?.map((manager, idx) => (
-                    <ContactCard
-                      key={idx}
-                      name={manager.name}
-                      role={manager.role || t("Program Manager")}
-                      phone={manager.phone || manager.email}
-                    />
-                  ))}
+                  {data.programManagers?.map(
+                    (
+                      manager: {
+                        name?: string;
+                        role?: string;
+                        phone?: string;
+                        email?: string;
+                      },
+                      idx: number,
+                    ) => (
+                      <ContactCard
+                        key={idx}
+                        name={manager.name || ''}
+                        role={manager.role || t('Program Manager')}
+                        phone={manager.phone || manager.email || ''}
+                      />
+                    ),
+                  )}
                 </Box>
               </Box>
             </InfoCard>

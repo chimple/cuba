@@ -1,24 +1,22 @@
-import React, { useEffect, useState } from "react";
-import FormSection from "../components/SchoolRequestComponents/FormSection";
-import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
-import { useHistory, useLocation, useParams } from "react-router-dom";
-import Breadcrumb from "../components/Breadcrumb";
+import React, { useEffect, useState } from 'react';
+import FormSection from '../components/SchoolRequestComponents/FormSection';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import { useHistory, useLocation, useParams } from 'react-router-dom';
+import Breadcrumb from '../components/Breadcrumb';
 import {
-  useMediaQuery,
-  useTheme,
   Box,
   Grid,
   Typography,
   FormControl,
   Select,
   MenuItem,
-} from "@mui/material";
-import ContactFormSection from "../components/SchoolRequestComponents/ContactFormSection";
-import "./SchoolFormPage.css";
-import { t } from "i18next";
-import { PAGES, REQUEST_TABS, STATUS } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { RoleType } from "../../interface/modelInterfaces";
+} from '@mui/material';
+import ContactFormSection from '../components/SchoolRequestComponents/ContactFormSection';
+import './SchoolFormPage.css';
+import { t } from 'i18next';
+import { PAGES, STATUS } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { RoleType } from '../../interface/modelInterfaces';
 
 const SchoolFormPage: React.FC = () => {
   const history = useHistory();
@@ -39,38 +37,38 @@ const SchoolFormPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   const [address, setAddress] = useState({
-    state: "",
-    district: "",
-    block: "",
-    address: "",
+    state: '',
+    district: '',
+    block: '',
+    address: '',
   });
 
   const [contacts, setContacts] = useState([
     {
-      subheader: "Contact 1",
+      subheader: 'Contact 1',
       required: true,
       fields: [
         {
-          label: "Name",
-          name: "name",
-          value: "",
+          label: 'Name',
+          name: 'name',
+          value: '',
           required: true,
           disabled: true,
         },
         {
-          label: "Phone Number",
-          name: "phone",
-          value: "",
+          label: 'Phone Number',
+          name: 'phone',
+          value: '',
           required: true,
           disabled: true,
         },
       ],
     },
     {
-      subheader: "Contact 2",
+      subheader: 'Contact 2',
       fields: [
-        { label: "Name", name: "name", value: "" },
-        { label: "Phone Number", name: "phone", value: "" },
+        { label: 'Name', name: 'name', value: '' },
+        { label: 'Phone Number', name: 'phone', value: '' },
       ],
     },
   ]);
@@ -106,7 +104,7 @@ const SchoolFormPage: React.FC = () => {
           setFieldCoordinator(null);
         }
       } catch (error) {
-        console.error("Error initializing form:", error);
+        console.error('Error initializing form:', error);
       } finally {
         setLoading(false);
       }
@@ -121,11 +119,11 @@ const SchoolFormPage: React.FC = () => {
       setContacts((prev) => {
         const updated = [...prev];
         updated[0].fields = updated[0].fields.map((f) =>
-          f.name === "name"
-            ? { ...f, value: user.name || "" }
-            : f.name === "phone"
-            ? { ...f, value: user.phone || "" }
-            : f
+          f.name === 'name'
+            ? { ...f, value: user.name || '' }
+            : f.name === 'phone'
+              ? { ...f, value: user.phone || '' }
+              : f,
         );
         return updated;
       });
@@ -134,10 +132,10 @@ const SchoolFormPage: React.FC = () => {
     // --- update address from school ---
     if (school) {
       setAddress({
-        state: school.group1 || "",
-        district: school.group2 || "",
-        block: school.group3 || "",
-        address: school.address || "",
+        state: school.group1 || '',
+        district: school.group2 || '',
+        block: school.group3 || '',
+        address: school.address || '',
       });
     }
   }, [user, school]);
@@ -145,12 +143,12 @@ const SchoolFormPage: React.FC = () => {
   function handleContactChange(
     contactIndex: number,
     fieldName: string,
-    value: string
+    value: string,
   ) {
     setContacts((prev) => {
       const updated = [...prev];
       updated[contactIndex].fields = updated[contactIndex].fields.map((f) =>
-        f.name === fieldName ? { ...f, value } : f
+        f.name === fieldName ? { ...f, value } : f,
       );
       return updated;
     });
@@ -182,7 +180,7 @@ const SchoolFormPage: React.FC = () => {
 
       // 🔹 remove empty contacts (e.g. Contact 2 with no values)
       keyContacts = keyContacts.filter((c) =>
-        Object.values(c).some((v) => v !== null && v !== "")
+        Object.values(c).some((v) => v !== null && v !== ''),
       );
 
       // 🔹 Update school with program_id
@@ -198,24 +196,24 @@ const SchoolFormPage: React.FC = () => {
             block: address.block,
             address: address.address,
           },
-          keyContacts
+          keyContacts,
         ),
         api.addUserToSchool(
           school.id,
           fieldCoordinator,
-          RoleType.FIELD_COORDINATOR
+          RoleType.FIELD_COORDINATOR,
         ),
         api.addUserToSchool(school.id, user, RoleType.PRINCIPAL),
         api.respondToSchoolRequest(
           requestData.id,
           requestData.respondedBy.id,
-          STATUS.APPROVED
+          STATUS.APPROVED,
         ),
       ]);
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (error) {
-      console.error("Error saving school:", error);
+      console.error('Error saving school:', error);
     }
   }
 
@@ -227,12 +225,12 @@ const SchoolFormPage: React.FC = () => {
       },
     },
     anchorOrigin: {
-      vertical: "top",
-      horizontal: "center",
+      vertical: 'top',
+      horizontal: 'center',
     },
     transformOrigin: {
-      vertical: "bottom",
-      horizontal: "center",
+      vertical: 'bottom',
+      horizontal: 'center',
     },
     getContentAnchorEl: null,
   };
@@ -247,16 +245,16 @@ const SchoolFormPage: React.FC = () => {
         <Breadcrumb
           crumbs={[
             {
-              label: "Pending",
+              label: 'Pending',
               onClick: () =>
                 history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}`),
             },
             {
-              label: "Request ID - " + id,
+              label: 'Request ID - ' + id,
               onClick: () => history.goBack(),
             },
             {
-              label: "Add School",
+              label: 'Add School',
             },
           ]}
         />
@@ -264,18 +262,18 @@ const SchoolFormPage: React.FC = () => {
       {school && (
         <div className="school-form-container">
           <FormSection
-            title={t("School Details")}
+            title={t('School Details')}
             fields={[
               {
-                label: t("School Name"),
-                name: "schoolName",
+                label: t('School Name'),
+                name: 'schoolName',
                 value: school.name,
                 required: true,
                 editable: false,
               },
               {
-                label: t("School ID") + " (UDISE)",
-                name: "udise",
+                label: t('School ID') + ' (UDISE)',
+                name: 'udise',
                 value: school.udise,
                 required: true,
                 editable: false,
@@ -284,35 +282,35 @@ const SchoolFormPage: React.FC = () => {
           />
 
           <FormSection
-            title={t("Address & Location")}
+            title={t('Address & Location')}
             fields={[
               {
-                label: t("State"),
-                name: "state",
+                label: t('State'),
+                name: 'state',
                 value: address.state,
                 required: true,
                 editable: false,
                 onChange: handleAddressChange,
               },
               {
-                label: t("District"),
-                name: "district",
+                label: t('District'),
+                name: 'district',
                 value: address.district,
                 required: true,
                 editable: false,
                 onChange: handleAddressChange,
               },
               {
-                label: t("Block"),
-                name: "block",
+                label: t('Block'),
+                name: 'block',
                 value: address.block,
                 required: true,
                 editable: false,
                 onChange: handleAddressChange,
               },
               {
-                label: t("Address"),
-                name: "address",
+                label: t('Address'),
+                name: 'address',
                 value: address.address,
                 editable: false,
                 onChange: handleAddressChange,
@@ -321,7 +319,7 @@ const SchoolFormPage: React.FC = () => {
           />
 
           <ContactFormSection
-            title={t("Key Contacts")}
+            title={t('Key Contacts')}
             fields={contacts}
             onChange={handleContactChange}
           />
@@ -329,7 +327,7 @@ const SchoolFormPage: React.FC = () => {
           {/* Program + fieldCoordinator Dropdowns inline */}
           <Box className="school-form-dropdown-container">
             <Typography variant="h6" className="school-form-dropdown-title">
-              {t("Program Details")}
+              {t('Program Details')}
             </Typography>
             <Grid container spacing={3}>
               {/* Program Dropdown */}
@@ -340,14 +338,14 @@ const SchoolFormPage: React.FC = () => {
                   className="school-form-dropdown-form-control"
                 >
                   <Typography className="school-form-dropdown-label">
-                    {t("Program Name")}{" "}
+                    {t('Program Name')}{' '}
                     <span className="school-form-dropdown-required">*</span>
                   </Typography>
                   <Select
-                    value={program?.id || ""}
+                    value={program?.id || ''}
                     onChange={(e) => {
                       const selectedProgram = programs.find(
-                        (p) => p.id === e.target.value
+                        (p) => p.id === e.target.value,
                       );
                       setProgram(selectedProgram || null);
                     }}
@@ -357,7 +355,7 @@ const SchoolFormPage: React.FC = () => {
                         program.name
                       ) : (
                         <span className="school-form-dropdown-placeholder">
-                          {t("Select Program")}
+                          {t('Select Program')}
                         </span>
                       )
                     }
@@ -380,14 +378,14 @@ const SchoolFormPage: React.FC = () => {
                   className="school-form-dropdown-form-control"
                 >
                   <Typography className="school-form-dropdown-label">
-                    {t("Field Coordinator")}{" "}
+                    {t('Field Coordinator')}{' '}
                     <span className="school-form-dropdown-required">*</span>
                   </Typography>
                   <Select
-                    value={fieldCoordinator || ""}
+                    value={fieldCoordinator || ''}
                     onChange={(e) => {
                       const selectedFc = fieldCoordinators.find(
-                        (fc) => fc.id === e.target.value
+                        (fc) => fc.id === e.target.value,
                       );
                       setFieldCoordinator(selectedFc || null);
                     }}
@@ -397,7 +395,7 @@ const SchoolFormPage: React.FC = () => {
                         fieldCoordinator.name
                       ) : (
                         <span className="school-form-dropdown-placeholder">
-                          {t("Select Field Coordinator")}
+                          {t('Select Field Coordinator')}
                         </span>
                       )
                     }
@@ -420,14 +418,14 @@ const SchoolFormPage: React.FC = () => {
                 className="user-details-cancel-btn"
                 onClick={() => history.goBack()}
               >
-                {t("Cancel")}
+                {t('Cancel')}
               </button>
               <button
                 className="user-details-save-btn"
                 onClick={handleApprove}
                 disabled={isSaveDisabled()}
               >
-                {t("Save")}
+                {t('Save')}
               </button>
             </>
           </div>

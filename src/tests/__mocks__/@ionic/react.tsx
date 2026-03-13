@@ -1,6 +1,10 @@
-import React from "react";
+import React from 'react';
 
-export const IonPage = ({ children, ...props }: any) => <div data-testid="ion-page" {...props}>{children}</div>;
+export const IonPage = ({ children, ...props }: any) => (
+  <div data-testid="ion-page" {...props}>
+    {children}
+  </div>
+);
 export const IonIcon = (props: any) => <span data-testid="ion-icon" />;
 export const IonApp = ({ children }: any) => <div>{children}</div>;
 export const IonRouterOutlet = ({ children }: any) => <div>{children}</div>;

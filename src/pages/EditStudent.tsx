@@ -1,37 +1,32 @@
-import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
-import ChimpleLogo from "../components/ChimpleLogo";
-import "./EditStudent.css";
-import StudentNameBox from "../components/editStudent/StudentNameBox";
-import { useEffect, useState } from "react";
-import GenderAndAge from "../components/editStudent/GenderAndAge";
-import SelectAvatar from "../components/editStudent/SelectAvatar";
-import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
+import { IonContent, IonPage } from '@ionic/react';
+import ChimpleLogo from '../components/ChimpleLogo';
+import './EditStudent.css';
+import StudentNameBox from '../components/editStudent/StudentNameBox';
+import { useEffect, useState } from 'react';
+import GenderAndAge from '../components/editStudent/GenderAndAge';
+import SelectAvatar from '../components/editStudent/SelectAvatar';
+import GradeBoardAndLangDropdown from '../components/editStudent/GradeBoardAndLangDropdown';
 import {
   ACTION,
   LANGUAGE,
-  CURRENT_STUDENT,
   EVENTS,
   GENDER,
   PAGES,
   EDIT_STUDENT_STORE,
   TableTypes,
   EDIT_STUDENTS_MAP,
-} from "../common/constants";
-import { chevronForward } from "ionicons/icons";
-import Curriculum from "../models/curriculum";
-import Grade from "../models/grade";
-import Language from "../models/language";
-import Loading from "../components/Loading";
-import { useHistory, useLocation } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { t } from "i18next";
-import { Util } from "../utility/util";
-import NextButton from "../components/common/NextButton";
-import { Capacitor } from "@capacitor/core";
-import { Keyboard } from "@capacitor/keyboard";
-import BackButton from "../components/common/BackButton";
-import i18n from "../i18n";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+} from '../common/constants';
+import Loading from '../components/Loading';
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { t } from 'i18next';
+import { Util } from '../utility/util';
+import NextButton from '../components/common/NextButton';
+import { Capacitor } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
+import BackButton from '../components/common/BackButton';
+import i18n from '../i18n';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
 let localStoreData: any = {};
 
@@ -51,12 +46,12 @@ const EditStudent = () => {
   }
   const [stage, setStage] = useState(STAGES.NAME);
   const [studentName, setStudentName] = useState(
-    isEdit ? currentStudent?.name : ""
+    isEdit ? currentStudent?.name : '',
   );
   const [gender, setGender] = useState<GENDER | undefined>(
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as GENDER)
-      : undefined
+      : undefined,
   );
   const [age, setAge] = useState<number | undefined>(
     isEdit
@@ -65,23 +60,23 @@ const EditStudent = () => {
           ? 4
           : currentStudent.age
         : undefined
-      : undefined
+      : undefined,
   );
   const [avatar, setAvatar] = useState<string | undefined>(
-    isEdit ? currentStudent?.avatar ?? undefined : undefined
+    isEdit ? (currentStudent?.avatar ?? undefined) : undefined,
   );
   const [board, setBoard] = useState<string | undefined>(
-    isEdit ? currentStudent?.curriculum_id ?? undefined : undefined
+    isEdit ? (currentStudent?.curriculum_id ?? undefined) : undefined,
   );
   const [grade, setGrade] = useState<string | undefined>(
-    isEdit ? currentStudent?.grade_id ?? undefined : undefined
+    isEdit ? (currentStudent?.grade_id ?? undefined) : undefined,
   );
   const [language, setLanguage] = useState<string | undefined>(
-    isEdit ? currentStudent?.language_id ?? undefined : undefined
+    isEdit ? (currentStudent?.language_id ?? undefined) : undefined,
   );
-  const [boards, setBoards] = useState<TableTypes<"curriculum">[]>();
-  const [grades, setGrades] = useState<TableTypes<"grade">[]>();
-  const [languages, setLanguages] = useState<TableTypes<"language">[]>();
+  const [boards, setBoards] = useState<TableTypes<'curriculum'>[]>();
+  const [grades, setGrades] = useState<TableTypes<'grade'>[]>();
+  const [languages, setLanguages] = useState<TableTypes<'language'>[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
@@ -112,7 +107,7 @@ const EditStudent = () => {
           undefined,
           board ?? currentStudent.curriculum_id!,
           grade ?? currentStudent.grade_id!,
-          language ?? currentStudent.language_id!
+          language ?? currentStudent.language_id!,
         );
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
@@ -138,17 +133,17 @@ const EditStudent = () => {
           undefined,
           board,
           grade,
-          language
+          language,
         );
         const eventParams = {
           user_id: student.id,
-          user_type: student.role,
+          user_type: undefined,
           user_name: student.name!,
           user_gender: student.gender,
           user_age: student.age,
-          phone_number: student.username,
-          parent_username: student.username,
-          parent_id: student.uid,
+          phone_number: undefined,
+          parent_username: undefined,
+          parent_id: undefined,
           action_type: ACTION.CREATE,
         };
 
@@ -158,9 +153,9 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code
-            ? languages[langIndex]?.code ?? undefined
+            ? (languages[langIndex]?.code ?? undefined)
             : undefined,
-          tmpPath === PAGES.HOME ? true : false
+          tmpPath === PAGES.HOME ? true : false,
         );
       }
 
@@ -232,7 +227,7 @@ const EditStudent = () => {
           const languageCode = localStorage.getItem(LANGUAGE);
           const allLanguages = await api.getAllLanguages();
           const selectedLanguage = allLanguages.find(
-            (lang) => lang.code === languageCode
+            (lang) => lang.code === languageCode,
           );
           // Create auto profile with default/null values
           const student = await api.createAutoProfile(selectedLanguage?.id);
@@ -240,21 +235,21 @@ const EditStudent = () => {
           await Util.setCurrentStudent(
             student,
             selectedLanguage?.code ?? undefined,
-            true
+            true,
           );
           history.replace(PAGES.HOME);
         } catch (err) {
-          console.error("Auto profile creation failed", err);
+          console.error('Auto profile creation failed', err);
         } finally {
           setIsCreatingProfile(false);
         }
       }
     })();
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", (info) => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
         setIsInputFocus(true);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -264,7 +259,7 @@ const EditStudent = () => {
 
   async function init() {
     const urlParams = new URLSearchParams(location.search);
-    if (!!urlParams.get("isReload")) {
+    if (!!urlParams.get('isReload')) {
       let locData: any = localStorage.getItem(EDIT_STUDENT_STORE);
       if (!!locData) {
         localStoreData = JSON.parse(locData);
@@ -310,10 +305,10 @@ const EditStudent = () => {
         </IonContent>
       ) : (
         <IonPage id="Edit-student-page">
-          <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+          <div id="Edit-student-back-button" aria-label={String(t('Back'))}>
             {!isEdit && !state?.showBackButton ? null : (
               <BackButton
-                aria-label={t("Back")}
+                aria-label={t('Back')}
                 onClicked={() => {
                   localStorage.removeItem(EDIT_STUDENT_STORE);
                   history.replace(PAGES.DISPLAY_STUDENT);
@@ -329,13 +324,13 @@ const EditStudent = () => {
                 if (stage === STAGES.GRADE && !online) {
                   presentToast({
                     message: t(`Device is offline. Cannot complete a profile`),
-                    color: "danger",
+                    color: 'danger',
                     duration: 3000,
-                    position: "bottom",
+                    position: 'bottom',
                     buttons: [
                       {
-                        text: "Dismiss",
-                        role: "cancel",
+                        text: 'Dismiss',
+                        role: 'cancel',
                       },
                     ],
                   });
@@ -347,15 +342,15 @@ const EditStudent = () => {
           </div>
           <div
             className={
-              "header " + isInputFocus && stage === STAGES.NAME
-                ? "scroll-header"
-                : ""
+              'header ' + isInputFocus && stage === STAGES.NAME
+                ? 'scroll-header'
+                : ''
             }
           >
             {stage == STAGES.NAME && (
               <ChimpleLogo
-                header={t("Welcome to Chimple!")}
-                msg={t("").toString()}
+                header={t('Welcome to Chimple!')}
+                msg={t('').toString()}
               />
             )}
 
@@ -363,7 +358,7 @@ const EditStudent = () => {
               <StudentNameBox
                 studentName={studentName!}
                 onValueChange={(val) =>
-                  handleValueChange("studentName", val, setStudentName)
+                  handleValueChange('studentName', val, setStudentName)
                 }
                 onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
               />
@@ -374,10 +369,10 @@ const EditStudent = () => {
               <>
                 <div
                   id="Edit-student-back-button"
-                  aria-label={String(t("Back"))}
+                  aria-label={String(t('Back'))}
                 >
                   <BackButton
-                    aria-label={t("Back")}
+                    aria-label={t('Back')}
                     onClicked={() => {
                       localStoreData.stage = STAGES.GENDER_AND_AGE;
                       addDataToLocalStorage();
@@ -387,10 +382,10 @@ const EditStudent = () => {
                 </div>
 
                 <div id="common-div">
-                  <ChimpleLogo header={t("")} msg={t("").toString()} />
+                  <ChimpleLogo header={t('')} msg={t('').toString()} />
                 </div>
                 <div className="avatar-title">
-                  {t("Choose an avatar for your child")}
+                  {t('Choose an avatar for your child')}
                 </div>
               </>
             </>
@@ -400,11 +395,11 @@ const EditStudent = () => {
               <>
                 <div
                   id="Edit-student-back-button"
-                  aria-label={String(t("Back"))}
+                  aria-label={String(t('Back'))}
                 >
                   <span className="back-button-ignore">Back</span>
                   <BackButton
-                    aria-label={t("Back")}
+                    aria-label={t('Back')}
                     onClicked={() => {
                       localStoreData.stage = STAGES.NAME;
                       addDataToLocalStorage();
@@ -415,15 +410,15 @@ const EditStudent = () => {
                 <>
                   <>
                     <div id="common-div">
-                      <ChimpleLogo header={t("")} msg={t("").toString()} />
+                      <ChimpleLogo header={t('')} msg={t('').toString()} />
                     </div>
                   </>
                   <GenderAndAge
                     age={age}
                     gender={gender}
-                    onAgeChange={(val) => handleValueChange("age", val, setAge)}
+                    onAgeChange={(val) => handleValueChange('age', val, setAge)}
                     onGenderChange={(val) =>
-                      handleValueChange("gender", val, setGender)
+                      handleValueChange('gender', val, setGender)
                     }
                   />
                 </>
@@ -433,7 +428,7 @@ const EditStudent = () => {
               <SelectAvatar
                 avatar={avatar}
                 onAvatarChange={(val) =>
-                  handleValueChange("avatar", val, setAvatar)
+                  handleValueChange('avatar', val, setAvatar)
                 }
               />
             )}
@@ -442,10 +437,10 @@ const EditStudent = () => {
                 <>
                   <div
                     id="Edit-student-back-button"
-                    aria-label={String(t("Back"))}
+                    aria-label={String(t('Back'))}
                   >
                     <BackButton
-                      aria-label={t("Back")}
+                      aria-label={t('Back')}
                       onClicked={() => {
                         localStoreData.stage = STAGES.AVATAR;
                         addDataToLocalStorage();
@@ -459,9 +454,9 @@ const EditStudent = () => {
                     <>
                       <div id="common-div">
                         <ChimpleLogo
-                          header={t("")}
+                          header={t('')}
                           msg={t(
-                            "Choose your child’s class details"
+                            'Choose your child’s class details',
                           ).toString()}
                         />
                       </div>
@@ -471,13 +466,13 @@ const EditStudent = () => {
                       grades={grades}
                       languages={languages}
                       onBoardChange={(val) =>
-                        handleValueChange("board", val, setBoard)
+                        handleValueChange('board', val, setBoard)
                       }
                       onGradeChange={(val) =>
-                        handleValueChange("grade", val, setGrade)
+                        handleValueChange('grade', val, setGrade)
                       }
                       onLangChange={(val) =>
-                        handleValueChange("language", val, setLanguage)
+                        handleValueChange('language', val, setLanguage)
                       }
                       currentlySelectedBoard={board}
                       currentlySelectedGrade={grade}

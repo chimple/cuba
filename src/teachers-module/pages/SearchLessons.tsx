@@ -1,25 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import "./SearchLessons.css";
-import Header from "../components/homePage/Header";
-import { IonSearchbar } from "@ionic/react";
-import { useHistory } from "react-router";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import './SearchLessons.css';
+import Header from '../components/homePage/Header';
+import { IonSearchbar } from '@ionic/react';
+import { useHistory } from 'react-router';
 import {
   PAGES,
   TableTypes,
   AssignmentSource,
   SEARCH_LESSON_HISTORY,
   SEARCH_LESSON_CACHE_KEY,
-  IS_OPS_USER,
-} from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import AssigmentCount from "../components/library/AssignmentCount";
-import { Util } from "../../utility/util";
-import { t } from "i18next";
-import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
-import ChapterWiseLessons from "../components/ChapterWiseLessons";
-import {
-  readAssignmentCartFromStorage,
-} from "./AssignmentCartStorage";
+} from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import AssigmentCount from '../components/library/AssignmentCount';
+import { Util } from '../../utility/util';
+import { t } from 'i18next';
+import ChapterWiseLessons from '../components/ChapterWiseLessons';
+import { readAssignmentCartFromStorage } from './AssignmentCartStorage';
 
 type LessonMeta = {
   chapterId: string | null;
@@ -27,13 +23,13 @@ type LessonMeta = {
   courseId: string;
   courseName: string;
   gradeName: string;
-  course?: TableTypes<"course">;
+  course?: TableTypes<'course'>;
 };
 
 type ChapterGroup = {
   chapterId: string;
   chapterName: string;
-  lessons: TableTypes<"lesson">[];
+  lessons: TableTypes<'lesson'>[];
 };
 
 type CourseGroup = {
@@ -41,7 +37,7 @@ type CourseGroup = {
   courseName: string;
   gradeName: string;
   courseTitle: string;
-  course?: TableTypes<"course">;
+  course?: TableTypes<'course'>;
   chapters: ChapterGroup[];
 };
 
@@ -51,13 +47,13 @@ const SearchLesson: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
 
   const currentSchool = Util.getCurrentSchool();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
 
   const inputEl = useRef<HTMLIonSearchbarElement>(null);
 
-  const [inputValue, setInputValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>([]);
   const [lessonMetaMap, setLessonMetaMap] = useState<
     Record<string, LessonMeta>
   >({});
@@ -79,7 +75,7 @@ const SearchLesson: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
 
   const hasRestoredRef = useRef(false);
-  const OTHER_KEY = "other";
+  const OTHER_KEY = 'other';
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const requestIdRef = useRef(0);
   const selectedLessonRef = useRef(selectedLesson);
@@ -92,7 +88,7 @@ const SearchLesson: React.FC = () => {
       setCurrentClass(resolvedClass);
 
       const stored = JSON.parse(
-        localStorage.getItem(SEARCH_LESSON_HISTORY) || "[]",
+        localStorage.getItem(SEARCH_LESSON_HISTORY) || '[]',
       );
       setSearchHistory(stored);
 
@@ -108,7 +104,7 @@ const SearchLesson: React.FC = () => {
           } else {
             setShowHistory(true);
           }
-        } catch { }
+        } catch {}
       } else {
         setShowHistory(true);
       }
@@ -142,7 +138,7 @@ const SearchLesson: React.FC = () => {
   };
   const isChapterFullySelected = (
     chapterId: string,
-    lessons: TableTypes<"lesson">[],
+    lessons: TableTypes<'lesson'>[],
   ) => {
     if (!lessons.length) return false;
 
@@ -166,7 +162,7 @@ const SearchLesson: React.FC = () => {
       string,
       Partial<Record<AssignmentSource, string[]>>
     >();
-    if (!rawClassMap || typeof rawClassMap !== "object") {
+    if (!rawClassMap || typeof rawClassMap !== 'object') {
       return normalized;
     }
 
@@ -180,7 +176,7 @@ const SearchLesson: React.FC = () => {
           return;
         }
 
-        if (value && typeof value === "object") {
+        if (value && typeof value === 'object') {
           const sourceMap = value as Partial<
             Record<AssignmentSource, string[]>
           >;
@@ -261,7 +257,7 @@ const SearchLesson: React.FC = () => {
 
   const toggleChapterSelection = async (
     chapterId: string,
-    lessons: TableTypes<"lesson">[],
+    lessons: TableTypes<'lesson'>[],
   ) => {
     if (!currentClass?.id) return;
     if (!hasRestoredRef.current) return;
@@ -332,12 +328,12 @@ const SearchLesson: React.FC = () => {
       return;
     }
 
-    const parsed = JSON.parse(cart.lessons || "{}") as Record<string, unknown>;
+    const parsed = JSON.parse(cart.lessons || '{}') as Record<string, unknown>;
 
     const fullMap = new Map<string, string>(
       Object.entries(parsed || {}).map(([classId, value]) => [
         classId,
-        typeof value === "string" ? value : JSON.stringify(value),
+        typeof value === 'string' ? value : JSON.stringify(value),
       ]),
     );
 
@@ -345,8 +341,8 @@ const SearchLesson: React.FC = () => {
     setSelectedLesson(fullMap);
     const classMapRaw = parsed[classId];
     const classMap =
-      typeof classMapRaw === "string"
-        ? JSON.parse(classMapRaw || "{}")
+      typeof classMapRaw === 'string'
+        ? JSON.parse(classMapRaw || '{}')
         : classMapRaw || {};
     const map = normalizeClassSelection(classMap);
 
@@ -449,7 +445,7 @@ const SearchLesson: React.FC = () => {
         });
         setAssignedLessonIds(nextAssignedLessonIds);
       } catch (error) {
-        console.error("Failed to load assigned lessons in search:", error);
+        console.error('Failed to load assigned lessons in search:', error);
         setAssignedLessonIds(new Set());
       }
     };
@@ -458,7 +454,7 @@ const SearchLesson: React.FC = () => {
   }, [api, currentClass?.id, lessons, lessonMetaMap]);
 
   const buildMeta = async (
-    lessonList: TableTypes<"lesson">[],
+    lessonList: TableTypes<'lesson'>[],
   ): Promise<Record<string, LessonMeta>> => {
     const nextMeta: Record<string, LessonMeta> = {};
     const chapterCache = new Map();
@@ -489,21 +485,21 @@ const SearchLesson: React.FC = () => {
           courseCache.set(chapter.course_id, course);
         }
 
-        let gradeName = "";
+        let gradeName = '';
         if (course?.grade_id) {
           let grade = gradeCache.get(course.grade_id);
           if (!grade) {
             grade = await api.getGradeById(course.grade_id);
             gradeCache.set(course.grade_id, grade);
           }
-          gradeName = grade?.name ?? "";
+          gradeName = grade?.name ?? '';
         }
 
         nextMeta[lesson.id] = {
           chapterId,
-          chapterName: chapter?.name ?? "",
+          chapterName: chapter?.name ?? '',
           courseId: chapter.course_id,
-          courseName: course?.name ?? "",
+          courseName: course?.name ?? '',
           gradeName,
           course,
         };
@@ -518,7 +514,7 @@ const SearchLesson: React.FC = () => {
 
     if (!trimmed) {
       setLessons([]);
-      setSearchTerm("");
+      setSearchTerm('');
       setShowHistory(true);
       return;
     }
@@ -554,10 +550,10 @@ const SearchLesson: React.FC = () => {
     const lowerTerm = searchTerm.trim().toLowerCase();
     const filtered = lowerTerm
       ? lessons.filter(
-        (lesson) =>
-          lesson.name?.toLowerCase().includes(lowerTerm) ||
-          lesson.outcome?.toLowerCase().includes(lowerTerm),
-      )
+          (lesson) =>
+            lesson.name?.toLowerCase().includes(lowerTerm) ||
+            lesson.outcome?.toLowerCase().includes(lowerTerm),
+        )
       : lessons;
 
     const courseMap = new Map<
@@ -566,12 +562,12 @@ const SearchLesson: React.FC = () => {
         courseId: string;
         courseName: string;
         gradeName: string;
-        course?: TableTypes<"course">;
+        course?: TableTypes<'course'>;
         chapters: Map<string, ChapterGroup>;
       }
     >();
 
-    const otherLessons: TableTypes<"lesson">[] = [];
+    const otherLessons: TableTypes<'lesson'>[] = [];
 
     filtered.forEach((lesson) => {
       const meta = lessonMetaMap[lesson.id];
@@ -624,7 +620,7 @@ const SearchLesson: React.FC = () => {
       <Header
         isBackButton
         onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
-        customText={t("Search") ?? "Search"}
+        customText={t('Search') ?? 'Search'}
         schoolName={currentSchool?.name}
         className={currentClass?.name}
       />
@@ -638,7 +634,7 @@ const SearchLesson: React.FC = () => {
             ref={inputEl}
             id="search-lesson-bar"
             className="search-lesson-bar"
-            placeholder={String(t("Search for a Lesson..."))}
+            placeholder={String(t('Search for a Lesson...'))}
             value={inputValue}
             onIonFocus={() => {
               setIsFocused(true);
@@ -647,12 +643,12 @@ const SearchLesson: React.FC = () => {
               }
             }}
             onIonInput={(e) => {
-              const value = e.detail.value ?? "";
+              const value = e.detail.value ?? '';
               setInputValue(value);
 
               if (!value.trim()) {
                 setLessons([]);
-                setSearchTerm("");
+                setSearchTerm('');
                 setShowHistory(true);
                 return;
               }
@@ -661,8 +657,8 @@ const SearchLesson: React.FC = () => {
               triggerDebouncedSearch(value);
             }}
             onIonClear={() => {
-              setInputValue("");
-              setSearchTerm("");
+              setInputValue('');
+              setSearchTerm('');
               setLessons([]);
               setShowHistory(true);
             }}
@@ -698,7 +694,7 @@ const SearchLesson: React.FC = () => {
             id="search-lesson-result-text"
             className="search-lesson-result-text"
           >
-            {t("Showing Results for")} "{searchTerm.trim()}"
+            {t('Showing Results for')} "{searchTerm.trim()}"
           </div>
         )}
 
@@ -711,7 +707,7 @@ const SearchLesson: React.FC = () => {
                   id="search-lessons-no-results"
                   className="search-lessons-no-results"
                 >
-                  {t("No results found")}
+                  {t('No results found')}
                 </div>
               )}
 
@@ -729,7 +725,12 @@ const SearchLesson: React.FC = () => {
           </div>
         )}
 
-        <AssigmentCount assignments={assignmentCount} onClick={() => { history.push(PAGES.TEACHER_ASSIGNMENT); }} />
+        <AssigmentCount
+          assignments={assignmentCount}
+          onClick={() => {
+            history.push(PAGES.TEACHER_ASSIGNMENT);
+          }}
+        />
       </main>
     </div>
   );

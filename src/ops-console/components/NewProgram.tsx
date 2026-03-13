@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Autocomplete,
   Box,
@@ -18,39 +18,38 @@ import {
   IconButton,
   Button,
   FormHelperText,
-  ListItemText,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import dayjs, { Dayjs } from "dayjs";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory } from "react-router-dom";
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import dayjs, { Dayjs } from 'dayjs';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory } from 'react-router-dom';
 import {
   PAGES,
   PROGRAM_TAB,
   ProgramType,
   PROGRAM_TAB_LABELS,
-} from "../../common/constants";
-import { t } from "i18next";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Link as RouterLink } from "react-router-dom";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import "./NewProgram.css";
+} from '../../common/constants';
+import { t } from 'i18next';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Link as RouterLink } from 'react-router-dom';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import './NewProgram.css';
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({
-    implementation: "",
-    funding: "",
-    institute: "",
+    implementation: '',
+    funding: '',
+    institute: '',
   });
-  const [programName, setProgramName] = useState("");
+  const [programName, setProgramName] = useState('');
   const [locations, setLocations] = useState({
-    Country: "",
-    State: "",
-    District: "",
+    Country: '',
+    State: '',
+    District: '',
   });
-  const [programType, setProgramType] = useState<ProgramType | "">("");
+  const [programType, setProgramType] = useState<ProgramType | ''>('');
   const [models, setModels] = useState<string[]>([]);
   const [programManagers, setProgramManagers] = useState<
     { name: string; id: string }[]
@@ -61,14 +60,14 @@ const NewProgram: React.FC = () => {
     State: string[];
     District: string[];
   }>({ Country: [], State: [], District: [] });
-  
+
   const [isCountriesLoading, setCountriesLoading] = useState(false);
   const [isStatesLoading, setStatesLoading] = useState(false);
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [stats, setStats] = useState({
-    schools: "",
-    students: "",
-    devices: "",
+    schools: '',
+    students: '',
+    devices: '',
   });
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
@@ -83,20 +82,20 @@ const NewProgram: React.FC = () => {
   const [isEditingProgramName, setIsEditingProgramName] = useState(false);
   const programNameInputRef = React.useRef<HTMLInputElement>(null);
   const [isFormValid, setIsFormValid] = useState(false);
-  
+
   // Validate form for enabling/disabling Save button (without setting errors)
   const checkFormValidity = () => {
-    const isImplementationValid = partners.implementation.trim() !== "";
-    const isFundingValid = partners.funding.trim() !== "";
-    const isInstituteValid = partners.institute.trim() !== "";
-    const isProgramNameValid = programName.trim() !== "";
+    const isImplementationValid = partners.implementation.trim() !== '';
+    const isFundingValid = partners.funding.trim() !== '';
+    const isInstituteValid = partners.institute.trim() !== '';
+    const isProgramNameValid = programName.trim() !== '';
     const isModelsValid = models.length > 0;
-    const isProgramTypeValid = programType.trim() !== "";
-    const isSchoolsValid = stats.schools !== "";
+    const isProgramTypeValid = programType.trim() !== '';
+    const isSchoolsValid = stats.schools !== '';
     const isManagersValid = selectedManagers.length > 0;
-    const isCountryValid = locations.Country !== "";
-    const isStateValid = locations.State !== "";
-    const isDistrictValid = locations.District !== "";
+    const isCountryValid = locations.Country !== '';
+    const isStateValid = locations.State !== '';
+    const isDistrictValid = locations.District !== '';
     const isDateValid = !startDate || !endDate || !startDate.isAfter(endDate);
 
     return (
@@ -137,7 +136,7 @@ const NewProgram: React.FC = () => {
         partners.institute,
       ]
         .filter(Boolean)
-        .join(" ");
+        .join(' ');
       setProgramName(generated);
     }
   }, [partners, isEditingProgramName]);
@@ -150,8 +149,12 @@ const NewProgram: React.FC = () => {
 
   useEffect(() => {
     // Validate dates when either date changes and both are set
-    if (startDate && endDate && (touchedFields["startDate"] || touchedFields["endDate"])) {
-      validateField("date");
+    if (
+      startDate &&
+      endDate &&
+      (touchedFields['startDate'] || touchedFields['endDate'])
+    ) {
+      validateField('date');
     }
   }, [startDate, endDate]);
 
@@ -180,15 +183,15 @@ const NewProgram: React.FC = () => {
   useEffect(() => {
     setLocations((prev) => ({
       ...prev,
-      State: "",
-      District: "",
+      State: '',
+      District: '',
     }));
     setGeoData((prev) => ({
       ...prev,
       State: [],
       District: [],
     }));
-    
+
     if (locations.Country) {
       const loadStates = async () => {
         setStatesLoading(true);
@@ -204,13 +207,13 @@ const NewProgram: React.FC = () => {
   useEffect(() => {
     setLocations((prev) => ({
       ...prev,
-      District: "",
+      District: '',
     }));
     setGeoData((prev) => ({
       ...prev,
       District: [],
     }));
-    
+
     if (locations.Country && locations.State) {
       const loadDistricts = async () => {
         setDistrictsLoading(true);
@@ -228,7 +231,7 @@ const NewProgram: React.FC = () => {
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
   };
-  
+
   const handleBlur = (fieldName: string) => {
     setTouchedFields((prev) => ({ ...prev, [fieldName]: true }));
     validateField(fieldName);
@@ -239,40 +242,39 @@ const NewProgram: React.FC = () => {
 
     // Validate partner fields
     if (!partners.implementation.trim())
-      newErrors["implementation"] = t("Implementation Partner is required");
+      newErrors['implementation'] = t('Implementation Partner is required');
     if (!partners.funding.trim())
-      newErrors["funding"] = t("Funding Partner is required");
+      newErrors['funding'] = t('Funding Partner is required');
     if (!partners.institute.trim())
-      newErrors["institute"] = t("Institute Partner is required");
-    
+      newErrors['institute'] = t('Institute Partner is required');
+
     // Validate program name
     if (!programName.trim())
-      newErrors["programName"] = t("Program Name is required");
-    
+      newErrors['programName'] = t('Program Name is required');
+
     // Validate models
     if (models.length === 0)
-      newErrors["model"] = t("At least one model must be selected");
-    
+      newErrors['model'] = t('At least one model must be selected');
+
     // Validate program type
     if (!programType.trim())
-      newErrors["programType"] = t("Program Type is required");
-    
+      newErrors['programType'] = t('Program Type is required');
+
     // Validate schools
-    if (!stats.schools) 
-      newErrors["schools"] = t("No. of Schools is required");
-    
+    if (!stats.schools) newErrors['schools'] = t('No. of Schools is required');
+
     // Validate program managers
     if (selectedManagers.length === 0)
-      newErrors["programManager"] = t("Program Manager is required");
-    
+      newErrors['programManager'] = t('Program Manager is required');
+
     // Validate date
     if (startDate && endDate && startDate.isAfter(endDate))
-      newErrors["date"] = t("Start date must be before End date");
+      newErrors['date'] = t('Start date must be before End date');
 
     // Validate locations
     Object.entries(locations).forEach(([key, value]) => {
-      if (["Country", "State", "District"].includes(key) && !value) {
-        newErrors[`location-${key}`] = t("{{key}} is required", { key });
+      if (['Country', 'State', 'District'].includes(key) && !value) {
+        newErrors[`location-${key}`] = t('{{key}} is required', { key });
       }
     });
 
@@ -285,19 +287,19 @@ const NewProgram: React.FC = () => {
 
     // Map of field names to their error keys
     const fieldErrorKeys: { [key: string]: string } = {
-      implementation: "implementation",
-      funding: "funding",
-      institute: "institute",
-      programName: "programName",
-      programType: "programType",
-      schools: "schools",
-      programManager: "programManager",
-      Country: "location-Country",
-      State: "location-State",
-      District: "location-District",
-      startDate: "date",
-      endDate: "date",
-      date: "date",
+      implementation: 'implementation',
+      funding: 'funding',
+      institute: 'institute',
+      programName: 'programName',
+      programType: 'programType',
+      schools: 'schools',
+      programManager: 'programManager',
+      Country: 'location-Country',
+      State: 'location-State',
+      District: 'location-District',
+      startDate: 'date',
+      endDate: 'date',
+      date: 'date',
     };
 
     const errorKey = fieldErrorKeys[fieldName];
@@ -320,7 +322,7 @@ const NewProgram: React.FC = () => {
   };
   const handleModelToggle = (model: string) => {
     setModels((prev) =>
-      prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model]
+      prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model],
     );
   };
   const handleStatsChange = (field: string, value: string) => {
@@ -348,7 +350,7 @@ const NewProgram: React.FC = () => {
       endDate: true,
       date: true,
     };
-    
+
     setTouchedFields(allFields);
 
     // Get all validation errors and set them
@@ -367,8 +369,8 @@ const NewProgram: React.FC = () => {
       models,
       selectedManagers,
       stats,
-      startDate: startDate?.format("YYYY-MM-DD"),
-      endDate: endDate?.format("YYYY-MM-DD"),
+      startDate: startDate?.format('YYYY-MM-DD'),
+      endDate: endDate?.format('YYYY-MM-DD'),
     };
     try {
       const res = await api.insertProgram(dataToSave);
@@ -376,10 +378,10 @@ const NewProgram: React.FC = () => {
         clearForm();
         history.replace(PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE);
       } else {
-        console.error("Error in saving ops program");
+        console.error('Error in saving ops program');
       }
     } catch (error) {
-      console.error("Error saving program:", error);
+      console.error('Error saving program:', error);
     }
   };
 
@@ -389,17 +391,17 @@ const NewProgram: React.FC = () => {
   };
 
   const clearForm = () => {
-    setPartners({ implementation: "", funding: "", institute: "" });
-    setProgramName("");
+    setPartners({ implementation: '', funding: '', institute: '' });
+    setProgramName('');
     setLocations({
-      Country: "",
-      State: "",
-      District: "",
+      Country: '',
+      State: '',
+      District: '',
     });
     setProgramType(ProgramType.LearningCenter);
     setModels([]);
     setSelectedManagers([]);
-    setStats({ schools: "", students: "", devices: "" });
+    setStats({ schools: '', students: '', devices: '' });
     setStartDate(dayjs());
     setEndDate(dayjs());
     setErrors({});
@@ -407,7 +409,7 @@ const NewProgram: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: "100vh", overflowY: "auto", m: 0, p: 0 }}>
+    <Box sx={{ height: '100vh', overflowY: 'auto', m: 0, p: 0 }}>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
         <Box mb={3}>
           <Box
@@ -416,10 +418,10 @@ const NewProgram: React.FC = () => {
             alignItems="center"
           >
             <Typography color="text.primary" variant="h4" fontWeight="bold">
-              {t("New Program")}
+              {t('New Program')}
             </Typography>
             <NotificationsIcon
-              sx={{ color: "text.secondary", cursor: "pointer" }}
+              sx={{ color: 'text.secondary', cursor: 'pointer' }}
             />
           </Box>
 
@@ -432,19 +434,19 @@ const NewProgram: React.FC = () => {
               underline="none"
             >
               <Typography variant="body2" color="text.secondary">
-                {t("Programs")}
+                {t('Programs')}
               </Typography>
             </Link>
             <PlayArrowIcon
               fontSize="small"
-              sx={{ mx: 0.5, color: "text.secondary" }}
+              sx={{ mx: 0.5, color: 'text.secondary' }}
             />
             <Typography
               variant="body2"
               color="text.secondary"
               fontWeight="bold"
             >
-              {t("New Program")}
+              {t('New Program')}
             </Typography>
           </Box>
         </Box>
@@ -453,19 +455,19 @@ const NewProgram: React.FC = () => {
           <Grid container spacing={3}>
             {[
               {
-                title: "Implementation Partner",
-                placeholder: "Enter Implementation Partner",
-                key: "implementation",
+                title: 'Implementation Partner',
+                placeholder: 'Enter Implementation Partner',
+                key: 'implementation',
               },
               {
-                title: "Funding Partner",
-                placeholder: "Enter Funding Partner",
-                key: "funding",
+                title: 'Funding Partner',
+                placeholder: 'Enter Funding Partner',
+                key: 'funding',
               },
               {
-                title: "Institute Partner",
-                placeholder: "Enter Institute Partner",
-                key: "institute",
+                title: 'Institute Partner',
+                placeholder: 'Enter Institute Partner',
+                key: 'institute',
               },
             ].map(({ title, placeholder, key }) => (
               <Grid size={{ xs: 12, sm: 4 }} key={key} mb={3}>
@@ -473,7 +475,7 @@ const NewProgram: React.FC = () => {
                   fontWeight="bold"
                   color="text.primary"
                   mb={1}
-                  sx={{ textAlign: "left" }}
+                  sx={{ textAlign: 'left' }}
                 >
                   {t(title).toString()}
                   <span className="new-program-mandatory">*</span>
@@ -485,10 +487,10 @@ const NewProgram: React.FC = () => {
                   onChange={(e) => handlePartnerChange(key, e.target.value)}
                   onBlur={() => handleBlur(key)}
                   error={!!errors[key] && touchedFields[key]}
-                  helperText={touchedFields[key] ? errors[key] : ""}
+                  helperText={touchedFields[key] ? errors[key] : ''}
                   InputProps={{
                     sx: {
-                      borderRadius: "12px",
+                      borderRadius: '12px',
                     },
                   }}
                 />
@@ -500,9 +502,9 @@ const NewProgram: React.FC = () => {
                 fontWeight="bold"
                 color="text.primary"
                 mb={1}
-                sx={{ textAlign: "left" }}
+                sx={{ textAlign: 'left' }}
               >
-                {t("Program Name")}
+                {t('Program Name')}
                 <span className="new-program-mandatory">*</span>
               </Typography>
               <TextField
@@ -511,10 +513,12 @@ const NewProgram: React.FC = () => {
                 variant="outlined"
                 value={programName}
                 onChange={(e) => setProgramName(e.target.value)}
-                onBlur={() => handleBlur("programName")}
+                onBlur={() => handleBlur('programName')}
                 disabled={!isEditingProgramName}
-                error={!!errors["programName"] && touchedFields["programName"]}
-                helperText={touchedFields["programName"] ? errors["programName"] : ""}
+                error={!!errors['programName'] && touchedFields['programName']}
+                helperText={
+                  touchedFields['programName'] ? errors['programName'] : ''
+                }
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
@@ -528,10 +532,10 @@ const NewProgram: React.FC = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                  sx: { borderRadius: "12px" },
+                  sx: { borderRadius: '12px' },
                 }}
                 sx={{
-                  "& .MuiOutlinedInput-root": {
+                  '& .MuiOutlinedInput-root': {
                     paddingRight: 0.5,
                   },
                 }}
@@ -545,17 +549,17 @@ const NewProgram: React.FC = () => {
                 fontWeight="bold"
                 mb={1}
               >
-                {t("Location")}
+                {t('Location')}
               </Typography>
               <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
                   <FormControl fullWidth error={!!errors[`location-Country`]}>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Typography
                         variant="subtitle2"
                         sx={{
                           fontWeight: 600,
-                          color: "text.primary",
+                          color: 'text.primary',
                           mr: 0.5,
                           marginBottom: 1,
                         }}
@@ -566,22 +570,29 @@ const NewProgram: React.FC = () => {
                     </Box>
                     <Autocomplete
                       options={geoData.Country}
-                      value={locations.Country || ""}
+                      value={locations.Country || ''}
                       loading={isCountriesLoading}
                       onChange={(_, newValue) => {
-                        handleLocationChange("Country", newValue || "");
+                        handleLocationChange('Country', newValue || '');
                       }}
-                      onBlur={() => handleBlur("Country")}
+                      onBlur={() => handleBlur('Country')}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           label="Select Country"
-                          error={!!errors[`location-Country`] && touchedFields["Country"]}
-                          helperText={touchedFields["Country"] ? errors[`location-Country`] : ""}
+                          error={
+                            !!errors[`location-Country`] &&
+                            touchedFields['Country']
+                          }
+                          helperText={
+                            touchedFields['Country']
+                              ? errors[`location-Country`]
+                              : ''
+                          }
                           InputProps={{
                             ...params.InputProps,
                             sx: {
-                              borderRadius: "12px",
+                              borderRadius: '12px',
                             },
                           }}
                         />
@@ -592,12 +603,12 @@ const NewProgram: React.FC = () => {
 
                 <Grid size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
                   <FormControl fullWidth error={!!errors[`location-State`]}>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Typography
                         variant="subtitle2"
                         sx={{
                           fontWeight: 600,
-                          color: "text.primary",
+                          color: 'text.primary',
                           mr: 0.5,
                           marginBottom: 1,
                         }}
@@ -608,23 +619,29 @@ const NewProgram: React.FC = () => {
                     </Box>
                     <Autocomplete
                       options={geoData.State}
-                      value={locations.State || ""}
+                      value={locations.State || ''}
                       loading={isStatesLoading}
                       disabled={!locations.Country}
                       onChange={(_, newValue) => {
-                        handleLocationChange("State", newValue || "");
+                        handleLocationChange('State', newValue || '');
                       }}
-                      onBlur={() => handleBlur("State")}
+                      onBlur={() => handleBlur('State')}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           label="Select State"
-                          error={!!errors[`location-State`] && touchedFields["State"]}
-                          helperText={touchedFields["State"] ? errors[`location-State`] : ""}
+                          error={
+                            !!errors[`location-State`] && touchedFields['State']
+                          }
+                          helperText={
+                            touchedFields['State']
+                              ? errors[`location-State`]
+                              : ''
+                          }
                           InputProps={{
                             ...params.InputProps,
                             sx: {
-                              borderRadius: "12px",
+                              borderRadius: '12px',
                             },
                           }}
                         />
@@ -635,12 +652,12 @@ const NewProgram: React.FC = () => {
 
                 <Grid size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
                   <FormControl fullWidth error={!!errors[`location-District`]}>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Typography
                         variant="subtitle2"
                         sx={{
                           fontWeight: 600,
-                          color: "text.primary",
+                          color: 'text.primary',
                           mr: 0.5,
                           marginBottom: 1,
                         }}
@@ -651,23 +668,30 @@ const NewProgram: React.FC = () => {
                     </Box>
                     <Autocomplete
                       options={geoData.District}
-                      value={locations.District || ""}
+                      value={locations.District || ''}
                       loading={isDistrictsLoading}
                       disabled={!locations.State}
                       onChange={(_, newValue) => {
-                        handleLocationChange("District", newValue || "");
+                        handleLocationChange('District', newValue || '');
                       }}
-                      onBlur={() => handleBlur("District")}
+                      onBlur={() => handleBlur('District')}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           label="Select District"
-                          error={!!errors[`location-District`] && touchedFields["District"]}
-                          helperText={touchedFields["District"] ? errors[`location-District`] : ""}
+                          error={
+                            !!errors[`location-District`] &&
+                            touchedFields['District']
+                          }
+                          helperText={
+                            touchedFields['District']
+                              ? errors[`location-District`]
+                              : ''
+                          }
                           InputProps={{
                             ...params.InputProps,
                             sx: {
-                              borderRadius: "12px",
+                              borderRadius: '12px',
                             },
                           }}
                         />
@@ -685,26 +709,29 @@ const NewProgram: React.FC = () => {
                 fontWeight="bold"
                 mb={1}
               >
-                {t("Program Type")}
+                {t('Program Type')}
                 <span className="new-program-mandatory">*</span>
               </Typography>
-              <FormControl fullWidth error={!!errors["programType"] && touchedFields["programType"]}>
-                <InputLabel>{`Select ${t("Program Type")}`}</InputLabel>
+              <FormControl
+                fullWidth
+                error={!!errors['programType'] && touchedFields['programType']}
+              >
+                <InputLabel>{`Select ${t('Program Type')}`}</InputLabel>
                 <Select
-                  label={`Select ${t("Program Type")}`}
+                  label={`Select ${t('Program Type')}`}
                   value={programType}
                   onChange={(e: any) => setProgramType(e.target.value)}
-                  onBlur={() => handleBlur("programType")}
-                  sx={{ borderRadius: "12px" }}
+                  onBlur={() => handleBlur('programType')}
+                  sx={{ borderRadius: '12px' }}
                 >
                   {Object.entries(ProgramType).map(([label, value]) => (
                     <MenuItem key={value} value={value}>
-                      {t(label.replace(/([A-Z])/g, " $1").trim())}
+                      {t(label.replace(/([A-Z])/g, ' $1').trim())}
                     </MenuItem>
                   ))}
                 </Select>
-                {touchedFields["programType"] && errors["programType"] && (
-                  <FormHelperText>{errors["programType"]}</FormHelperText>
+                {touchedFields['programType'] && errors['programType'] && (
+                  <FormHelperText>{errors['programType']}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -716,10 +743,10 @@ const NewProgram: React.FC = () => {
                 fontWeight="bold"
                 mb={1}
               >
-                {t("Model")}
+                {t('Model')}
                 <span className="new-program-mandatory">*</span>
               </Typography>
-              <FormControl error={!!errors["model"]}>
+              <FormControl error={!!errors['model']}>
                 <Box display="flex" flexDirection="row" gap={3}>
                   {Object.entries(PROGRAM_TAB)
                     .slice(1)
@@ -736,8 +763,8 @@ const NewProgram: React.FC = () => {
                       />
                     ))}
                 </Box>
-                {errors["model"] && (
-                  <FormHelperText>{errors["model"]}</FormHelperText>
+                {errors['model'] && (
+                  <FormHelperText>{errors['model']}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -749,7 +776,7 @@ const NewProgram: React.FC = () => {
                 fontWeight="bold"
                 mb={1}
               >
-                {t("Program Manager")}
+                {t('Program Manager')}
                 <span className="new-program-mandatory">*</span>
               </Typography>
               <Autocomplete
@@ -758,12 +785,12 @@ const NewProgram: React.FC = () => {
                 options={programManagers}
                 getOptionLabel={(option) => option.name}
                 value={programManagers.filter((pm) =>
-                  selectedManagers.includes(pm.id)
+                  selectedManagers.includes(pm.id),
                 )}
                 onChange={(_, newValue) => {
                   setSelectedManagers(newValue.map((pm) => pm.id));
                 }}
-                onBlur={() => handleBlur("programManager")}
+                onBlur={() => handleBlur('programManager')}
                 renderOption={(props, option, { selected }) => (
                   <li {...props}>
                     <Checkbox checked={selected} sx={{ mr: 1 }} />
@@ -773,13 +800,20 @@ const NewProgram: React.FC = () => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label={`Select ${t("Program Managers")}`}
-                    error={!!errors["programManager"] && touchedFields["programManager"]}
-                    helperText={touchedFields["programManager"] ? errors["programManager"] : ""}
+                    label={`Select ${t('Program Managers')}`}
+                    error={
+                      !!errors['programManager'] &&
+                      touchedFields['programManager']
+                    }
+                    helperText={
+                      touchedFields['programManager']
+                        ? errors['programManager']
+                        : ''
+                    }
                     InputProps={{
                       ...params.InputProps,
                       sx: {
-                        borderRadius: "12px",
+                        borderRadius: '12px',
                       },
                     }}
                   />
@@ -789,19 +823,19 @@ const NewProgram: React.FC = () => {
 
             {[
               {
-                label: "Targeted No. of Schools",
-                key: "schools",
-                placeholder: "Enter No. of Schools",
+                label: 'Targeted No. of Schools',
+                key: 'schools',
+                placeholder: 'Enter No. of Schools',
               },
               {
-                label: "Targeted No. of Students",
-                key: "students",
-                placeholder: "Enter No. of Students",
+                label: 'Targeted No. of Students',
+                key: 'students',
+                placeholder: 'Enter No. of Students',
               },
               {
-                label: "Targeted No. of Devices",
-                key: "devices",
-                placeholder: "Enter No. of Devices",
+                label: 'Targeted No. of Devices',
+                key: 'devices',
+                placeholder: 'Enter No. of Devices',
               },
             ].map(({ label, key, placeholder }) => (
               <Grid size={{ xs: 12, sm: 4 }} key={key} mb={3}>
@@ -812,7 +846,7 @@ const NewProgram: React.FC = () => {
                   mb={1}
                 >
                   {t(`${label}`)}
-                  {key === "schools" && (
+                  {key === 'schools' && (
                     <span className="new-program-mandatory">*</span>
                   )}
                 </Typography>
@@ -824,8 +858,8 @@ const NewProgram: React.FC = () => {
                   onChange={(e) => handleStatsChange(key, e.target.value)}
                   onBlur={() => handleBlur(key)}
                   error={!!errors[key] && touchedFields[key]}
-                  helperText={touchedFields[key] ? errors[key] : ""}
-                  InputProps={{ sx: { borderRadius: "12px" } }}
+                  helperText={touchedFields[key] ? errors[key] : ''}
+                  InputProps={{ sx: { borderRadius: '12px' } }}
                 />
               </Grid>
             ))}
@@ -838,16 +872,19 @@ const NewProgram: React.FC = () => {
                   fontWeight="bold"
                   mb={1}
                 >
-                  {t("Program Date")}
+                  {t('Program Date')}
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <DatePicker
-                      label={t("Start Date")}
+                      label={t('Start Date')}
                       value={startDate}
                       onChange={(date: Dayjs | null) => {
                         setStartDate(date);
-                        setTouchedFields((prev) => ({ ...prev, startDate: true }));
+                        setTouchedFields((prev) => ({
+                          ...prev,
+                          startDate: true,
+                        }));
                       }}
                       format="DD/MM/YYYY"
                       enableAccessibleFieldDOMStructure={false}
@@ -855,12 +892,19 @@ const NewProgram: React.FC = () => {
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          onBlur: () => handleBlur("startDate"),
-                          error: !!errors["date"] && (touchedFields["startDate"] || touchedFields["endDate"]),
-                          helperText: (touchedFields["startDate"] || touchedFields["endDate"]) ? errors["date"] : "",
-                          variant: "outlined",
+                          onBlur: () => handleBlur('startDate'),
+                          error:
+                            !!errors['date'] &&
+                            (touchedFields['startDate'] ||
+                              touchedFields['endDate']),
+                          helperText:
+                            touchedFields['startDate'] ||
+                            touchedFields['endDate']
+                              ? errors['date']
+                              : '',
+                          variant: 'outlined',
                           InputProps: {
-                            sx: { borderRadius: "12px" },
+                            sx: { borderRadius: '12px' },
                           },
                         },
                       }}
@@ -868,11 +912,14 @@ const NewProgram: React.FC = () => {
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <DatePicker
-                      label={t("End Date")}
+                      label={t('End Date')}
                       value={endDate}
                       onChange={(date: Dayjs | null) => {
                         setEndDate(date);
-                        setTouchedFields((prev) => ({ ...prev, endDate: true }));
+                        setTouchedFields((prev) => ({
+                          ...prev,
+                          endDate: true,
+                        }));
                       }}
                       format="DD/MM/YYYY"
                       enableAccessibleFieldDOMStructure={false}
@@ -880,12 +927,19 @@ const NewProgram: React.FC = () => {
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          onBlur: () => handleBlur("endDate"),
-                          error: !!errors["date"] && (touchedFields["startDate"] || touchedFields["endDate"]),
-                          helperText: (touchedFields["startDate"] || touchedFields["endDate"]) ? errors["date"] : "",
-                          variant: "outlined",
+                          onBlur: () => handleBlur('endDate'),
+                          error:
+                            !!errors['date'] &&
+                            (touchedFields['startDate'] ||
+                              touchedFields['endDate']),
+                          helperText:
+                            touchedFields['startDate'] ||
+                            touchedFields['endDate']
+                              ? errors['date']
+                              : '',
+                          variant: 'outlined',
                           InputProps: {
-                            sx: { borderRadius: "12px" }, // Styling preserved
+                            sx: { borderRadius: '12px' }, // Styling preserved
                           },
                         },
                       }}
@@ -901,16 +955,16 @@ const NewProgram: React.FC = () => {
                 color="primary"
                 onClick={navigateToProgramPage}
               >
-                {t("Cancel")}
+                {t('Cancel')}
               </Button>
               <Button
                 variant="contained"
                 color="primary"
-                sx={{ borderRadius: "8px" }}
+                sx={{ borderRadius: '8px' }}
                 disabled={!isFormValid}
                 onClick={handleSave}
               >
-                {t("Save")}
+                {t('Save')}
               </Button>
             </Grid>
           </Grid>

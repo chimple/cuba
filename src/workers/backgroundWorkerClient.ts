@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 import {
   BackgroundWorkerTask,
   SqlStatement,
@@ -11,7 +11,7 @@ import {
   WorkerStreamRequest,
   WorkerTaskPayloadMap,
   WorkerTaskResultMap,
-} from "./background.worker.types";
+} from './background.worker.types';
 
 type PendingTask = {
   resolve: (value: any) => void;
@@ -34,7 +34,7 @@ const resetStreamTimeout = (id: string, streamTask: PendingStreamTask) => {
   window.clearTimeout(streamTask.timeoutId);
   streamTask.timeoutId = window.setTimeout(() => {
     pendingStreamTasks.delete(id);
-    streamTask.reject(new Error("Background worker stream task timed out"));
+    streamTask.reject(new Error('Background worker stream task timed out'));
   }, streamTask.timeoutMs);
 };
 
@@ -42,11 +42,13 @@ const getWorker = (): Worker => {
   if (workerInstance) {
     return workerInstance;
   }
-  workerInstance = new Worker(new URL("./background.worker.ts", import.meta.url));
+  workerInstance = new Worker(
+    new URL('./background.worker.ts', import.meta.url),
+  );
 
   workerInstance.onmessage = (event: MessageEvent<WorkerIncomingMessage>) => {
     const response = event.data;
-    if ("ok" in response) {
+    if ('ok' in response) {
       const pending = pendingTasks.get(response.id);
       if (!pending) {
         return;
@@ -65,13 +67,15 @@ const getWorker = (): Worker => {
     if (!pendingStream) {
       return;
     }
-    if (response.type === "BATCH_READY") {
+    if (response.type === 'BATCH_READY') {
       resetStreamTimeout(response.id, pendingStream);
-      Promise.resolve(pendingStream.onBatch((response as WorkerBatchReadyMessage).batch))
+      Promise.resolve(
+        pendingStream.onBatch((response as WorkerBatchReadyMessage).batch),
+      )
         .then(() => {
           const ack: WorkerAckMessage = {
             id: response.id,
-            type: "ACK",
+            type: 'ACK',
           };
           workerInstance?.postMessage(ack);
         })
@@ -82,21 +86,23 @@ const getWorker = (): Worker => {
         });
       return;
     }
-    if (response.type === "DONE") {
+    if (response.type === 'DONE') {
       window.clearTimeout(pendingStream.timeoutId);
       pendingStreamTasks.delete(response.id);
       pendingStream.resolve();
       return;
     }
-    if (response.type === "ERROR") {
+    if (response.type === 'ERROR') {
       window.clearTimeout(pendingStream.timeoutId);
       pendingStreamTasks.delete(response.id);
-      pendingStream.reject(new Error((response as WorkerStreamErrorMessage).error));
+      pendingStream.reject(
+        new Error((response as WorkerStreamErrorMessage).error),
+      );
       return;
     }
   };
   workerInstance.onerror = (event: ErrorEvent) => {
-    const error = new Error(event.message || "Background worker error");
+    const error = new Error(event.message || 'Background worker error');
     for (const [, pending] of pendingTasks) {
       window.clearTimeout(pending.timeoutId);
       pending.reject(error);
@@ -111,9 +117,7 @@ const getWorker = (): Worker => {
   return workerInstance;
 };
 
-export const runBackgroundWorkerTask = <
-  T extends BackgroundWorkerTask,
->(
+export const runBackgroundWorkerTask = <T extends BackgroundWorkerTask>(
   type: T,
   payload: WorkerTaskPayloadMap[T],
   timeoutMs: number = 120000,
@@ -140,13 +144,13 @@ export const runBackgroundWorkerStreamingSync = (
   const id = uuidv4();
   const request: WorkerStreamRequest = {
     id,
-    type: "STREAM_SYNC_BATCHES",
+    type: 'STREAM_SYNC_BATCHES',
     payload,
   };
   return new Promise<void>((resolve, reject) => {
     const timeoutId = window.setTimeout(() => {
       pendingStreamTasks.delete(id);
-      reject(new Error("Background worker stream task timed out"));
+      reject(new Error('Background worker stream task timed out'));
     }, timeoutMs);
     pendingStreamTasks.set(id, {
       resolve,

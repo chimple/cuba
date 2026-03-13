@@ -1,8 +1,8 @@
-import { DocumentReference, Timestamp } from "firebase/firestore";
-import { RoleType } from "../interface/modelInterfaces";
-import BaseObject from "./baseObject";
-import { Util } from "../utility/util";
-import { LeaderboardRewards } from "../common/constants";
+import { DocumentReference, Timestamp } from 'firebase/firestore';
+import { RoleType } from '../interface/modelInterfaces';
+import BaseObject from './baseObject';
+import { Util } from '../utility/util';
+import { LeaderboardRewards } from '../common/constants';
 
 export default class User extends BaseObject {
   private _username: string;
@@ -46,7 +46,7 @@ export default class User extends BaseObject {
     sfxOff: number = 0,
     musicOff: number = 0,
     tcAccept: boolean = false,
-    rewards?: LeaderboardRewards
+    rewards?: LeaderboardRewards,
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;

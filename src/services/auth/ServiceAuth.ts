@@ -1,5 +1,5 @@
-import { Session, User, UserAttributes } from "@supabase/supabase-js";
-import { TableTypes } from "../../common/constants";
+import { Session, User, UserAttributes } from '@supabase/supabase-js';
+import { TableTypes } from '../../common/constants';
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
@@ -10,13 +10,16 @@ export interface ServiceAuth {
 
   googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
 
-  getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
+  getCurrentUser(): Promise<TableTypes<'user'> | undefined>;
 
-  set currentUser(user: TableTypes<"user">);
+  set currentUser(user: TableTypes<'user'>);
 
   isUserLoggedIn(): Promise<boolean>;
 
-  phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
+  phoneNumberSignIn(
+    phoneNumber: string,
+    recaptchaVerifier: object,
+  ): Promise<any>;
 
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
@@ -26,8 +29,8 @@ export interface ServiceAuth {
   ): Promise<{ success: boolean; error?: any }>;
 
   proceedWithVerificationCode(
-    verificationId,
-    verificationCode,
+    verificationId: string,
+    verificationCode: string,
   ): Promise<
     | { user: any; isUserExist: boolean; isSpl: boolean; userData?: any }
     | undefined

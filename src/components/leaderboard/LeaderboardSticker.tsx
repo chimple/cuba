@@ -1,16 +1,16 @@
-import { FC, useEffect, useState } from "react";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { LeaderboardRewardsType, TableTypes } from "../../common/constants";
-import CachedImage from "../common/CachedImage";
-import "./LeaderboardSticker.css";
-import { t } from "i18next";
-import { FaHeart } from "react-icons/fa";
-import { RxCross2 } from "react-icons/rx";
-import { TiTick } from "react-icons/ti";
+import { FC, useEffect, useState } from 'react';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { LeaderboardRewardsType, TableTypes } from '../../common/constants';
+import CachedImage from '../common/CachedImage';
+import './LeaderboardSticker.css';
+import { t } from 'i18next';
+import { FaHeart } from 'react-icons/fa';
+import { RxCross2 } from 'react-icons/rx';
+import { TiTick } from 'react-icons/ti';
 
 interface stickerInfo {
-  sticker: TableTypes<"sticker"> | undefined;
+  sticker: TableTypes<'sticker'> | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
   isUpcomingSticker?: boolean;
@@ -22,7 +22,7 @@ const LeaderboardStickers: FC = () => {
   const [stickers, setstickers] = useState<stickerInfo[]>();
   const [lostStickers, setLostStickers] = useState<stickerInfo[]>();
   const [allSticker, setAllStickers] =
-    useState<(TableTypes<"sticker"> | undefined)[]>();
+    useState<(TableTypes<'sticker'> | undefined)[]>();
 
   useEffect(() => {
     init();
@@ -48,7 +48,7 @@ const LeaderboardStickers: FC = () => {
 
     unlockedStickers.forEach((sticker) => {
       const isInNextUnlock = stickerInfoArray?.some(
-        (nextSticker) => nextSticker?.sticker?.id === sticker?.id
+        (nextSticker) => nextSticker?.sticker?.id === sticker?.id,
       );
       if (!isInNextUnlock) {
         stickerInfoArray.push({
@@ -77,17 +77,20 @@ const LeaderboardStickers: FC = () => {
     stickerInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
     // Filter lost badges
     const lostStickersArray = stickerInfoArray.filter(
-      (sticker) => !sticker.isUnlocked && !sticker.isNextUnlock && !sticker.isUpcomingSticker
+      (sticker) =>
+        !sticker.isUnlocked &&
+        !sticker.isNextUnlock &&
+        !sticker.isUpcomingSticker,
     );
     // Filter current, upcoming, and won badges
     const filteredStickers = stickerInfoArray.filter(
       (sticker) =>
-        sticker.isUnlocked || sticker.isNextUnlock || sticker.isUpcomingSticker
+        sticker.isUnlocked || sticker.isNextUnlock || sticker.isUpcomingSticker,
     );
     setstickers(filteredStickers);
     setLostStickers(lostStickersArray);
   }
-  const getUnlockedstickers = async (): Promise<TableTypes<"sticker">[]> => {
+  const getUnlockedstickers = async (): Promise<TableTypes<'sticker'>[]> => {
     if (!currentStudent) return [];
 
     try {
@@ -109,18 +112,18 @@ const LeaderboardStickers: FC = () => {
       }
       return stickers.reverse();
     } catch (error) {
-      console.error("Error fetching unlocked stickers:", error);
+      console.error('Error fetching unlocked stickers:', error);
       return [];
     }
   };
 
   const getStickers = async (): Promise<
-    (TableTypes<"sticker"> | undefined)[]
+    (TableTypes<'sticker'> | undefined)[]
   > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker"
+      'weeklySticker',
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
@@ -129,7 +132,7 @@ const LeaderboardStickers: FC = () => {
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
@@ -141,12 +144,12 @@ const LeaderboardStickers: FC = () => {
   };
 
   const getPrevstickers = async (): Promise<
-    (TableTypes<"sticker"> | undefined)[]
+    (TableTypes<'sticker'> | undefined)[]
   > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker"
+      'weeklySticker',
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
@@ -155,7 +158,7 @@ const LeaderboardStickers: FC = () => {
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: { id: string; type: string }) => {
           if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
@@ -167,12 +170,12 @@ const LeaderboardStickers: FC = () => {
   };
 
   const getUpcomingStickers = async (): Promise<
-    (TableTypes<"sticker"> | undefined)[]
+    (TableTypes<'sticker'> | undefined)[]
   > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker"
+      'weeklySticker',
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
@@ -180,11 +183,13 @@ const LeaderboardStickers: FC = () => {
     const stickerIds: string[] = [];
     const weeklyData: any = rewardsDoc.weeklySticker;
     if (weeklyData[nextWeek.toString()]) {
-      weeklyData[nextWeek.toString()].forEach((value) => {
-        if (value.type === LeaderboardRewardsType.STICKER) {
-          stickerIds.push(value.id);
-        }
-      });
+      weeklyData[nextWeek.toString()].forEach(
+        (value: { id: string; type: string }) => {
+          if (value.type === LeaderboardRewardsType.STICKER) {
+            stickerIds.push(value.id);
+          }
+        },
+      );
     } else {
       console.error(`No data found for week ${nextWeek}`);
       return [];
@@ -202,14 +207,15 @@ const LeaderboardStickers: FC = () => {
             stickers.map((value, index) => (
               <div
                 key={index}
-                className={`leaderboard-badge-item ${value.isUnlocked
-                  ? ""
-                  : value.isNextUnlock
-                    ? "next-reward"
-                    : value.isUpcomingSticker
-                      ? "upcoming-reward"
-                      : "lost-reward"
-                  }`}
+                className={`leaderboard-badge-item ${
+                  value.isUnlocked
+                    ? ''
+                    : value.isNextUnlock
+                      ? 'next-reward'
+                      : value.isUpcomingSticker
+                        ? 'upcoming-reward'
+                        : 'lost-reward'
+                }`}
               >
                 {value.isNextUnlock && !value.isUnlocked && (
                   <div className="green-circle">
@@ -235,16 +241,16 @@ const LeaderboardStickers: FC = () => {
                 <CachedImage src={value.sticker?.image ?? undefined} />
                 <p>{value.sticker?.name}</p>
                 {value.isUpcomingSticker &&
-                  !value.isNextUnlock &&
-                  !value.isUnlocked ? (
-                  <p>{t("Upcoming")}</p>
+                !value.isNextUnlock &&
+                !value.isUnlocked ? (
+                  <p>{t('Upcoming')}</p>
                 ) : null}
                 {!value.isUnlocked &&
                   !value.isNextUnlock &&
-                  !value.isUpcomingSticker && <p>{t("Lost Reward")}</p>}
+                  !value.isUpcomingSticker && <p>{t('Lost Reward')}</p>}
                 {value.isUnlocked && (
                   <p>
-                    <b>{t("Won Reward")}</b>
+                    <b>{t('Won Reward')}</b>
                   </p>
                 )}
                 {value.isNextUnlock && !value.isUnlocked ? (
@@ -260,34 +266,32 @@ const LeaderboardStickers: FC = () => {
       {/* Section for Lost Badges */}
       <div className="leaderboard-sticker-section">
         <div className="leaderboard-sticker-container">
-        {lostStickers && lostStickers.filter(value => !value.isUnlocked && !value.isNextUnlock && !value.isUpcomingSticker).map((value, index) => (
-          <div key={index} className="leaderboard-badge-item lost-reward">
-            <div className="lost-reward-overlay">
-              <div className="red-circle">
-                <RxCross2 color="white" />
-              </div>
-              <CachedImage src={value.sticker?.image ?? undefined} />
-            </div>
-            <div>
-              <div className="leaderboard-badge-item lost-reward">
-                <p>{value.sticker?.name}</p>
-                <p>{t("Lost Reward")}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+          {lostStickers &&
+            lostStickers
+              .filter(
+                (value) =>
+                  !value.isUnlocked &&
+                  !value.isNextUnlock &&
+                  !value.isUpcomingSticker,
+              )
+              .map((value, index) => (
+                <div key={index} className="leaderboard-badge-item lost-reward">
+                  <div className="lost-reward-overlay">
+                    <div className="red-circle">
+                      <RxCross2 color="white" />
+                    </div>
+                    <CachedImage src={value.sticker?.image ?? undefined} />
+                  </div>
+                  <div>
+                    <div className="leaderboard-badge-item lost-reward">
+                      <p>{value.sticker?.name}</p>
+                      <p>{t('Lost Reward')}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
-
-      {/* Disabled Stickers
-      {allSticker &&
-        allSticker.length > 0 &&
-        allSticker.map((value, index) => (
-          <div key={index} className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image} />
-            {!!value?.name && <p>{value?.name}</p>}
-          </div>
-        ))} */}
     </div>
   ) : (
     <div></div>

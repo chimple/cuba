@@ -1,12 +1,11 @@
-import { useEffect, useState, useRef } from "react";
-import { IonPage } from "@ionic/react";
-import { t } from "i18next";
-import "./ProfileDetails.css";
-import InputWithIcons from "../common/InputWithIcons";
-import SelectWithIcons from "../common/SelectWithIcons";
-import { Util } from "../../utility/util";
-import { useFeatureValue } from "@growthbook/growthbook-react";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { useEffect, useState, useRef } from 'react';
+import { t } from 'i18next';
+import './ProfileDetails.css';
+import InputWithIcons from '../common/InputWithIcons';
+import SelectWithIcons from '../common/SelectWithIcons';
+import { Util } from '../../utility/util';
+import { useFeatureValue } from '@growthbook/growthbook-react';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   ACTION_TYPES,
   AGE_OPTIONS,
@@ -21,18 +20,17 @@ import {
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
-} from "../../common/constants";
-import { useHistory, useLocation } from "react-router";
-import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { initializeFireBase } from "../../services/Firebase";
-import Loading from "../Loading";
-import { logProfileClick } from "../../analytics/profileClickUtil";
-import i18n from "../../i18n";
+} from '../../common/constants';
+import { useHistory, useLocation } from 'react-router';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { initializeFireBase } from '../../services/Firebase';
+import Loading from '../Loading';
+import { logProfileClick } from '../../analytics/profileClickUtil';
 import {
   registerBackButtonHandler,
   reinitializeHardwareBackButton,
-} from "../../common/backButtonRegistry";
+} from '../../common/backButtonRegistry';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -56,8 +54,8 @@ const ProfileDetails = () => {
 
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
+  const [className, setClassName] = useState<string>('');
+  const [schoolName, setSchoolName] = useState<string>('');
 
   const isCreatingProfileRef = useRef(false);
   const parentHasStudentRef = useRef(false);
@@ -83,7 +81,7 @@ const ProfileDetails = () => {
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
 
-  const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : "");
+  const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : '');
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit
       ? (currentStudent?.avatar ?? AVATARS[randomIndex])
@@ -105,26 +103,26 @@ const ProfileDetails = () => {
       : undefined,
   );
   const [languageId, setLanguageId] = useState(
-    isEdit ? (currentStudent?.language_id ?? "") : "",
+    isEdit ? (currentStudent?.language_id ?? '') : '',
   );
-  const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
+  const [languages, setLanguages] = useState<TableTypes<'language'>[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const labelRef = useRef<HTMLDivElement>(null);
 
   const initialValues = useRef({
-    fullName: isEdit ? (currentStudent?.name ?? "") : "",
+    fullName: isEdit ? (currentStudent?.name ?? '') : '',
     age: isEdit ? (currentStudent?.age ?? undefined) : undefined,
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
-    languageId: isEdit ? (currentStudent?.language_id ?? "") : "",
+    languageId: isEdit ? (currentStudent?.language_id ?? '') : '',
   });
 
   useEffect(() => {
     if (isEdit && currentStudent) {
       initialValues.current = {
-        fullName: currentStudent?.name ?? "",
+        fullName: currentStudent?.name ?? '',
         age: currentStudent?.age ?? undefined,
         gender: currentStudent?.gender as GENDER,
-        languageId: currentStudent?.language_id ?? "",
+        languageId: currentStudent?.language_id ?? '',
       };
     }
   }, [isEdit, currentStudent]);
@@ -171,14 +169,14 @@ const ProfileDetails = () => {
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
+      ScreenOrientation.lock({ orientation: 'landscape' });
     }
   };
 
   const withContinueIfNeeded = (base: string) => {
     const url = new URLSearchParams(window.location.search);
     if (!url.has(CONTINUE)) return base;
-    return base.includes("?")
+    return base.includes('?')
       ? `${base}&${CONTINUE}=true`
       : `${base}?${CONTINUE}=true`;
   };
@@ -220,14 +218,14 @@ const ProfileDetails = () => {
       if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
         // Reinitialize hardware back handling only for create -> display students path.
         reinitializeHardwareBackButton();
-        const separator = targetPath.includes("?") ? "&" : "?";
+        const separator = targetPath.includes('?') ? '&' : '?';
         history.replace(`${targetPath}${separator}forceReload=1`);
       } else {
         history.replace(targetPath);
       }
       return;
     } catch (e) {
-      console.error("Back Logic Error", e);
+      console.error('Back Logic Error', e);
       history.replace(PAGES.DISPLAY_STUDENT);
     } finally {
       setTimeout(() => {
@@ -290,7 +288,7 @@ const ProfileDetails = () => {
       if (isEdit && !!currentStudent && !!currentStudent.id) {
         student = await api.updateStudent(
           currentStudent,
-          _studentName ?? "",
+          _studentName ?? '',
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           currentStudent.avatar!,
@@ -318,7 +316,7 @@ const ProfileDetails = () => {
         });
       } else {
         student = await api.createProfile(
-          _studentName ?? "",
+          _studentName ?? '',
           age,
           gender,
           avatar,
@@ -358,7 +356,7 @@ const ProfileDetails = () => {
       if (tmpPath) history.replace(tmpPath);
       else history.replace(PAGES.HOME);
     } catch (err) {
-      console.error("Error saving profile:", err);
+      console.error('Error saving profile:', err);
       setIsCreatingProfile(false);
     }
   };
@@ -400,7 +398,7 @@ const ProfileDetails = () => {
 
       history.replace(PAGES.HOME);
     } catch (err) {
-      console.error("Error skipping profile:", err);
+      console.error('Error skipping profile:', err);
       setIsCreatingProfile(false);
     }
   };
@@ -411,7 +409,7 @@ const ProfileDetails = () => {
       className="profiledetails-container"
       onClick={(e) => {
         logProfileClick(e).catch((err) =>
-          console.error("Error in logProfileClick", err),
+          console.error('Error in logProfileClick', err),
         );
       }}
     >
@@ -436,7 +434,7 @@ const ProfileDetails = () => {
       <div className="profiledetails-avatar-form">
         <div className="profiledetails-avatar-section">
           <img
-            src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
+            src={'assets/avatars/' + (avatar ?? AVATARS[0]) + '.png'}
             className="profiledetails-avatar-image"
           />
         </div>
@@ -450,7 +448,7 @@ const ProfileDetails = () => {
                   <img
                     src="/assets/icons/classIcon.svg"
                     alt="class"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                   <span>{className}</span>
                 </div>
@@ -462,7 +460,7 @@ const ProfileDetails = () => {
                     src="/assets/icons/scholarIcon.svg"
                     alt="school"
                     className="profiledetails-info-icon"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                   <span>{schoolName}</span>
                 </div>
@@ -479,9 +477,9 @@ const ProfileDetails = () => {
           <div className="profiledetails-full-name">
             <InputWithIcons
               id="click_on_profile_details_full_name"
-              label={t("Full Name")}
-              placeholder={t("Name Surname")}
-              value={fullName ?? ""}
+              label={t('Full Name')}
+              placeholder={t('Name Surname')}
+              value={fullName ?? ''}
               setValue={setFullName}
               icon="/assets/icons/BusinessCard.svg"
               // required={
@@ -495,24 +493,24 @@ const ProfileDetails = () => {
             <div className="profiledetails-flex-item">
               <SelectWithIcons
                 id="click_on_profile_details_age"
-                label={t("Age")}
-                value={age?.toString() ?? ""}
+                label={t('Age')}
+                value={age?.toString() ?? ''}
                 setValue={(age) => setAge(parseInt(age))}
                 icon="/assets/icons/age.svg"
                 optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
                   {
                     value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-                    label: `≤${t("4 years")}`,
+                    label: `≤${t('4 years')}`,
                   },
-                  { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-                  { value: AGE_OPTIONS.SIX, label: t("6 years") },
-                  { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-                  { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-                  { value: AGE_OPTIONS.NINE, label: t("9 years") },
+                  { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+                  { value: AGE_OPTIONS.SIX, label: t('6 years') },
+                  { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+                  { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+                  { value: AGE_OPTIONS.NINE, label: t('9 years') },
                   {
                     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: `≥${t("10 years")}`,
+                    label: `≥${t('10 years')}`,
                   },
                 ]}
                 // required={mode === FORM_MODES.ALL_REQUIRED}
@@ -522,13 +520,13 @@ const ProfileDetails = () => {
             <div className="profiledetails-flex-item">
               <SelectWithIcons
                 id="click_on_profile_details_language"
-                label={t("Language")}
+                label={t('Language')}
                 value={languageId}
                 setValue={setLanguageId}
                 icon="/assets/icons/language.svg"
                 optionId={
                   `click_on_profile_details_language_option_` +
-                  (languageId || "")
+                  (languageId || '')
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
@@ -542,7 +540,7 @@ const ProfileDetails = () => {
           <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
             <legend className="profiledetails-gender-label">
               <div className="profiledetails-gender-label-text" ref={labelRef}>
-                {t("Gender")}
+                {t('Gender')}
                 {/* {mode === FORM_MODES.ALL_REQUIRED && (
                   <span className="profiledetails-required">*</span>
                 )} */}
@@ -550,12 +548,12 @@ const ProfileDetails = () => {
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
-                { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
+                { label: t('GIRL'), value: GENDER.GIRL, name: 'GIRL' },
+                { label: t('BOY'), value: GENDER.BOY, name: 'BOY' },
                 {
-                  label: t("UNSPECIFIED"),
+                  label: t('UNSPECIFIED'),
                   value: GENDER.OTHER,
-                  name: "UNSPECIFIED",
+                  name: 'UNSPECIFIED',
                 },
               ].map(({ label, value, name }) => {
                 const isSelected = gender === value;
@@ -569,7 +567,7 @@ const ProfileDetails = () => {
                     id={`click_on_profile_details_gender_${label.toLowerCase()}`}
                     type="button"
                     className={`profiledetails-gender-btn ${
-                      isSelected ? "selected" : ""
+                      isSelected ? 'selected' : ''
                     }`}
                     onClick={() => setGender(value)}
                   >
@@ -591,7 +589,7 @@ const ProfileDetails = () => {
                 className="profiledetails-skip-button"
                 onClick={handleSkip}
               >
-                {t("SKIP FOR NOW")}
+                {t('SKIP FOR NOW')}
               </button>
             )}
             <button
@@ -600,7 +598,7 @@ const ProfileDetails = () => {
               disabled={!isSaveEnabled || isCreatingProfile}
               onClick={handleSave}
             >
-              {t("SAVE")}
+              {t('SAVE')}
             </button>
           </div>
         </div>

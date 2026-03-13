@@ -1,15 +1,15 @@
-import { Button, Grid, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useParams, useHistory, useLocation } from "react-router-dom";
-import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
-import Breadcrumb from "../components/Breadcrumb";
-import "./SchoolPendingRequest.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import SchoolDetailsCard from "../components/SchoolRequestComponents/SchoolDetailsCard";
-import RequestFromCard from "../components/SchoolRequestComponents/RequestFromCard";
-import { PAGES } from "../../common/constants";
-import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
-import { t } from "i18next";
+import { Button, Grid, useTheme } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useParams, useHistory, useLocation } from 'react-router-dom';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import Breadcrumb from '../components/Breadcrumb';
+import './SchoolPendingRequest.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import SchoolDetailsCard from '../components/SchoolRequestComponents/SchoolDetailsCard';
+import RequestFromCard from '../components/SchoolRequestComponents/RequestFromCard';
+import { PAGES } from '../../common/constants';
+import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
+import { t } from 'i18next';
 
 const SchoolPendingRequest: React.FC = () => {
   const history = useHistory();
@@ -35,7 +35,7 @@ const SchoolPendingRequest: React.FC = () => {
           setUser(state.request.requestedBy);
         }
       } catch (error) {
-        console.error("Error fetching request data:", error);
+        console.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }
@@ -48,18 +48,18 @@ const SchoolPendingRequest: React.FC = () => {
         <div className="school-request-container">
           {/* <div className="school-detail-gap" /> */}
           <div className="school-common-header">
-            <SchoolNameHeaderComponent schoolName={"Request ID - " + id} />
+            <SchoolNameHeaderComponent schoolName={'Request ID - ' + id} />
           </div>
 
           <div className="school-common-secondary-header">
             <Breadcrumb
               crumbs={[
                 {
-                  label: "Pending",
+                  label: 'Pending',
                   onClick: () => history.goBack(),
                 },
                 {
-                  label: "Request ID - " + id,
+                  label: 'Request ID - ' + id,
                 },
               ]}
             />
@@ -79,16 +79,16 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 130,
-                      padding: "8px 50px",
+                      padding: '8px 50px',
                       fontWeight: 600,
-                      fontSize: "16px",
-                      textTransform: "none",
+                      fontSize: '16px',
+                      textTransform: 'none',
                     }}
                     onClick={() => {
                       setRejectPopupOpen(true);
                     }}
                   >
-                    {t("Reject")}
+                    {t('Reject')}
                   </Button>
                   <Button
                     variant="contained"
@@ -96,11 +96,11 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 140,
-                      padding: "8px 30px",
+                      padding: '8px 30px',
                       fontWeight: 600,
-                      fontSize: "16px",
-                      textTransform: "none",
-                      backgroundColor: "#1A71F6",
+                      fontSize: '16px',
+                      textTransform: 'none',
+                      backgroundColor: '#1A71F6',
                     }}
                     onClick={() => {
                       history.push({
@@ -109,7 +109,7 @@ const SchoolPendingRequest: React.FC = () => {
                       });
                     }}
                   >
-                    {t("Review & Add School")}
+                    {t('Review & Add School')}
                   </Button>
                 </div>
               </Grid>

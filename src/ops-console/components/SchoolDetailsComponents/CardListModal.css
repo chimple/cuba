@@ -1,4 +1,3 @@
-
 .cardlist-modal-backdrop {
   position: fixed;
   top: 0;
@@ -59,8 +58,8 @@
   border: 1px solid black;
 }
 .cardlist-search .MuiInputBase-root {
-  background: transparent;          /* remove background */
-  border: 1.5px solid #d1d5db;        /* use old bg color as border */
+  background: transparent; /* remove background */
+  border: 1.5px solid #d1d5db; /* use old bg color as border */
   border-radius: 8px;
   padding: 0px 10px;
 }
@@ -81,7 +80,7 @@
   background: #eef4ff;
   border: 1px solid #dbe6ff;
   border-radius: 10px;
-  font-size: 13px;  
+  font-size: 13px;
   color: #2f5cff;
 }
 
@@ -127,7 +126,7 @@
 }
 
 /* RADIO */
-.cardlist-card input[type="radio"] {
+.cardlist-card input[type='radio'] {
   accent-color: #2563eb;
   cursor: pointer;
 }
@@ -181,14 +180,6 @@
   color: white;
 }
 
-/* .cardlist-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 22px;
-  border-top: 1px solid #e5e7eb;
-} */
-
 .cardlist-btn {
   padding: 8px 18px;
   border-radius: 8px;
@@ -200,7 +191,7 @@
 /* Cancel */
 .cardlist-merge-cancel-btn {
   padding: 8px 18px;
-  border: 1px solid #d1d5db;      /* gray border */
+  border: 1px solid #d1d5db; /* gray border */
   background: #ffffff;
   color: #374151;
   font-weight: 600;
@@ -278,7 +269,7 @@
   background: #93c5fd;
   cursor: not-allowed;
 }
-.search-input{
+.search-input {
   background: none;
 }
 /* Container full width */

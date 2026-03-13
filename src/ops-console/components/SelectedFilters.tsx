@@ -1,6 +1,6 @@
-import React from "react";
-import { Box, Chip } from "@mui/material";
-import "./SelectedFilters.css";
+import React from 'react';
+import { Box, Chip } from '@mui/material';
+import './SelectedFilters.css';
 
 interface SelectedFiltersProps {
   filters: Record<string, string[]>;
@@ -23,7 +23,7 @@ const SelectedFilters: React.FC<SelectedFiltersProps> = ({
                 className="filter-chip-SelectedFilters"
               />
             ))
-          : null
+          : null,
       )}
     </Box>
   );

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import WinterCampaignPopup from "./WinterCampaignPopup";
-import { useGrowthBook } from "@growthbook/growthbook-react";
-import { schoolUtil } from "../../utility/schoolUtil";
-import { Util } from "../../utility/util";
-import { CAMPAIGN_SEQUENCE_FINISHED } from "../../common/constants";
+import React, { useEffect, useState } from 'react';
+import WinterCampaignPopup from './WinterCampaignPopup';
+import { useGrowthBook } from '@growthbook/growthbook-react';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import { CAMPAIGN_SEQUENCE_FINISHED } from '../../common/constants';
 
 type WinterCampaignPopupConfig = {
   enabled: boolean;
@@ -53,8 +53,8 @@ const WinterCampaignPopupGating: React.FC = () => {
     });
 
     const config = growthbook.getFeatureValue<WinterCampaignPopupConfig>(
-      "winter-campaign-popup",
-      { enabled: false, allowedDays: null, content: "" }
+      'winter-campaign-popup',
+      { enabled: false, allowedDays: null, content: '' },
     );
 
     if (!config.enabled) {
@@ -73,7 +73,7 @@ const WinterCampaignPopupGating: React.FC = () => {
       return;
     }
 
-    const dateKey = today.toLocaleDateString("en-CA");
+    const dateKey = today.toLocaleDateString('en-CA');
     const storageKey = `winterCampaignLastShown_${student.id}_${dateKey}`;
     if (localStorage.getItem(storageKey)) {
       finishCampaignSequence(); // EXIT 5
@@ -82,16 +82,16 @@ const WinterCampaignPopupGating: React.FC = () => {
 
     // If we reached here, WE SHOW THE POPUP
     const [
-      title = "",
-      subtitle = "",
-      rowText = "",
-      dateText = "",
-      ctaText = "",
-    ] = config.content.split("||");
+      title = '',
+      subtitle = '',
+      rowText = '',
+      dateText = '',
+      ctaText = '',
+    ] = config.content.split('||');
 
     setPopupContent({ title, subtitle, rowText, dateText, ctaText });
     setShowPopup(true);
-    localStorage.setItem(storageKey, "true");
+    localStorage.setItem(storageKey, 'true');
   }, [growthbook]);
 
   const handleClose = () => {
