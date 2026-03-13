@@ -1,16 +1,17 @@
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import { palUtil } from "../utility/palUtil";
-import { v4 as uuidv4 } from "uuid";
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import { palUtil } from '../utility/palUtil';
+import { v4 as uuidv4 } from 'uuid';
 import {
   EVENTS,
   RECOMMENDATION_TYPE,
   LEARNING_PATHWAY_MODE,
   TableTypes,
   LANGUAGE,
-} from "../common/constants";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+} from '../common/constants';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import logger from '../utility/logger';
 
 export type LearningPath = {
   courses: {
@@ -177,7 +178,7 @@ export async function recommendNextLesson({
    * ----------------------------------- */
   const chapters = await api.getChaptersForCourse(course.id);
   if (!chapters?.length) return null;
-  const lastPlayedLesson = getLastPlayedLesson(coursePath, "normal");
+  const lastPlayedLesson = getLastPlayedLesson(coursePath, 'normal');
   let idx = 0;
 
   // 🔥 Find chapter index of last played lesson
@@ -304,7 +305,7 @@ export const sortCoursesByStudentLanguage = async (
       }
     }
   } catch (e) {
-    console.error("Error sorting courses by language", e);
+    logger.error('Error sorting courses by language', e);
   }
 
   return courses;
@@ -312,11 +313,11 @@ export const sortCoursesByStudentLanguage = async (
 
 export function getLastPlayedLesson(
   coursePath: any,
-  type: "assessment" | "normal",
+  type: 'assessment' | 'normal',
 ): LessonNode | undefined {
   if (!coursePath?.path?.length) return undefined;
 
-  const wantAssessment = type === "assessment";
+  const wantAssessment = type === 'assessment';
 
   for (let i = coursePath.path.length - 1; i >= 0; i--) {
     const lesson = coursePath.path[i];
@@ -345,11 +346,9 @@ export const useLearningPath = (opts?: {
     classId?: string;
   }) {
     let currentStudent = Util.getCurrentStudent();
-    if (!currentStudent ) return;
+    if (!currentStudent) return;
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-    let learningPath = pathToParse
-      ? JSON.parse(pathToParse)
-      : null;
+    let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
 
     // check if learning path is empty, if empty build it
     if (!learningPath) {
@@ -483,7 +482,7 @@ export const useLearningPath = (opts?: {
   const updateLearningPathIfNeeded = async (
     learningPath: any,
     userCourses: any[],
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     mode: string,
     classId?: string,
   ) => {
@@ -592,7 +591,10 @@ export const useLearningPath = (opts?: {
     const windowLessons = lessons.slice(0, Math.min(lessons.length, 5));
 
     const newPath: LessonNode[] = windowLessons
-      .filter((_lesson: LessonNode, idx: number) => startIndex + idx <= activeAbsIndex)
+      .filter(
+        (_lesson: LessonNode, idx: number) =>
+          startIndex + idx <= activeAbsIndex,
+      )
       .map((l: LessonNode, idx: number) => {
         const absIndex = startIndex + idx;
         return {

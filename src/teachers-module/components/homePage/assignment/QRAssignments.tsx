@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useHistory, useLocation } from "react-router";
-import { t } from "i18next";
-import "./QRAssignments.css";
-import { ServiceConfig } from "../../../../services/ServiceConfig";
-import { Util } from "../../../../utility/util";
-import { AssignmentSource, PAGES } from "../../../../common/constants";
-import Header from "../../homePage/Header";
-import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import Loading from "../../../../components/Loading";
-import { TeacherAssignmentPageType } from "./TeacherAssignment";
-import AssigmentCount from "../../library/AssignmentCount";
+import React, { useEffect, useMemo, useState } from 'react';
+import { useHistory, useLocation } from 'react-router';
+import { t } from 'i18next';
+import './QRAssignments.css';
+import { ServiceConfig } from '../../../../services/ServiceConfig';
+import { Util } from '../../../../utility/util';
+import { AssignmentSource, PAGES } from '../../../../common/constants';
+import Header from '../../homePage/Header';
+import SelectIconImage from '../../../../components/displaySubjects/SelectIconImage';
+import Loading from '../../../../components/Loading';
+import { TeacherAssignmentPageType } from './TeacherAssignment';
+import AssigmentCount from '../../library/AssignmentCount';
+import logger from '../../../../utility/logger';
 
 type LessonUI = {
   id: string;
@@ -33,9 +34,9 @@ const QRAssignments: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonUI[]>([]);
   const [showAssigned, setShowAssigned] = useState(true);
-  const [toggleCourseName, setToggleCourseName] = useState("");
+  const [toggleCourseName, setToggleCourseName] = useState('');
   const chapterId = location.state?.chapterId;
-  const ID_PREFIX = "qrAssignments";
+  const ID_PREFIX = 'qrAssignments';
 
   useEffect(() => {
     if (!chapterId) {
@@ -56,7 +57,7 @@ const QRAssignments: React.FC = () => {
         api.getLessonsForChapter(chapterId),
         api.getChapterById(chapterId),
       ]);
-      const chapterName = chapter?.name ?? "";
+      const chapterName = chapter?.name ?? '';
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
       const lessonIds = lessonList.map((l: any) => l.lesson_id ?? l.id);
@@ -94,9 +95,9 @@ const QRAssignments: React.FC = () => {
       setLessons(uiLessons);
       // 5️⃣ Subject name
       const course = await api.getCourse(location.state.courseId);
-      setToggleCourseName(course?.name ?? "");
+      setToggleCourseName(course?.name ?? '');
     } catch (e) {
-      console.error("QR Assignments init failed", e);
+      logger.error('QR Assignments init failed', e);
     } finally {
       setLoading(false);
     }
@@ -146,8 +147,8 @@ const QRAssignments: React.FC = () => {
               id={`${ID_PREFIX}-toggle-icon`}
               src={
                 showAssigned
-                  ? "/assets/hideassigned.png"
-                  : "/assets/showassigned.png"
+                  ? '/assets/hideassigned.png'
+                  : '/assets/showassigned.png'
               }
               className="qrAssignments-toggle-icon"
               alt=""
@@ -156,7 +157,7 @@ const QRAssignments: React.FC = () => {
               id={`${ID_PREFIX}-toggle-text`}
               className="qrAssignments-toggle-text"
             >
-              {showAssigned ? t("Hide Assigned") : t("Show Assigned")}
+              {showAssigned ? t('Hide Assigned') : t('Show Assigned')}
             </span>
           </div>
 
@@ -229,23 +230,23 @@ const QRAssignments: React.FC = () => {
                       id={`${ID_PREFIX}-lesson-subtitle-${lesson.id}`}
                       className="qrAssignments-lesson-subtitle"
                     >
-                      {t(lesson.chapterName ?? "")}
+                      {t(lesson.chapterName ?? '')}
                     </div>
                   </div>
-                  
+
                   <button
                     type="button"
                     id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
                     className={`qrAssignments-toggle-circle ${
-                      lesson.isSelected ? "is-selected" : "is-unselected"
+                      lesson.isSelected ? 'is-selected' : 'is-unselected'
                     }`}
                     onClick={() => toggleLesson(lesson.id)}
                     aria-pressed={lesson.isSelected}
                     aria-label={
                       t(
-                        lesson.isSelected ? "Deselect lesson" : "Select lesson",
+                        lesson.isSelected ? 'Deselect lesson' : 'Select lesson',
                       ) +
-                      " " +
+                      ' ' +
                       t(lesson.name)
                     }
                   >

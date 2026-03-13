@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -7,34 +7,35 @@ import {
   Tabs,
   Typography,
   useMediaQuery,
-} from "@mui/material";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
-import "./SchoolList.css";
-import DataTablePagination from "../components/DataTablePagination";
-import DataTableBody, { Column } from "../components/DataTableBody";
-import { t } from "i18next";
-import SearchAndFilter from "../components/SearchAndFilter";
-import FilterSlider from "../components/FilterSlider";
-import SelectedFilters from "../components/SelectedFilters";
-import FileUpload from "../components/FileUpload";
-import { FileUploadOutlined, Add } from "@mui/icons-material";
-import { BsFillBellFill } from "react-icons/bs";
-import { useLocation, useHistory } from "react-router"
-import { RoleType } from "../../interface/modelInterfaces";
-import { useAppSelector } from "../../redux/hooks";
-import { RootState } from "../../redux/store";
-import { AuthState } from "../../redux/slices/auth/authSlice";
+} from '@mui/material';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
+import './SchoolList.css';
+import DataTablePagination from '../components/DataTablePagination';
+import DataTableBody, { Column } from '../components/DataTableBody';
+import { t } from 'i18next';
+import SearchAndFilter from '../components/SearchAndFilter';
+import FilterSlider from '../components/FilterSlider';
+import SelectedFilters from '../components/SelectedFilters';
+import FileUpload from '../components/FileUpload';
+import { FileUploadOutlined, Add } from '@mui/icons-material';
+import { BsFillBellFill } from 'react-icons/bs';
+import { useLocation, useHistory } from 'react-router';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 const filterConfigsForSchool = [
-  { key: "partner", label: t("Select Partner") },
-  { key: "programManager", label: t("Select Program Manager") },
-  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
-  { key: "programType", label: t("Select Program Type") },
-  { key: "state", label: t("Select State") },
-  { key: "district", label: t("Select District") },
-  { key: "block", label: t("Select Block") },
-  { key: "cluster", label: t("Select Cluster") },
+  { key: 'partner', label: t('Select Partner') },
+  { key: 'programManager', label: t('Select Program Manager') },
+  { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
+  { key: 'programType', label: t('Select Program Type') },
+  { key: 'state', label: t('Select State') },
+  { key: 'district', label: t('Select District') },
+  { key: 'block', label: t('Select Block') },
+  { key: 'cluster', label: t('Select Cluster') },
 ];
 
 type Filters = Record<string, string[]>;
@@ -72,17 +73,17 @@ const SchoolList: React.FC = () => {
     }
   }
   const [selectedTab, setSelectedTab] = useState(() => {
-    const v = qs.get("tab") || PROGRAM_TAB.ALL;
+    const v = qs.get('tab') || PROGRAM_TAB.ALL;
     return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB)
       ? (v as PROGRAM_TAB)
       : PROGRAM_TAB.ALL;
   });
-  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const [filters, setFilters] = useState<Filters>(() =>
-    parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
+    parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
   );
   const [page, setPage] = useState(() => {
-    const p = parseInt(qs.get("page") || "", 10);
+    const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
@@ -97,11 +98,11 @@ const SchoolList: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-  const [orderBy, setOrderBy] = useState("");
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState('');
+  const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const isSmallScreen = useMediaQuery("(max-width: 900px)");
+  const isSmallScreen = useMediaQuery('(max-width: 900px)');
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
   const { roles } = useAppSelector(
@@ -115,16 +116,16 @@ const SchoolList: React.FC = () => {
     RoleType.PROGRAM_MANAGER,
   ];
   const haveAccess = userRoles.some((role) =>
-    rolesWithAccess.includes(role as RoleType)
+    rolesWithAccess.includes(role as RoleType),
   );
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
-    if (searchTerm) params.set("search", searchTerm);
+    if (selectedTab !== PROGRAM_TAB.ALL) params.set('tab', String(selectedTab));
+    if (searchTerm) params.set('search', searchTerm);
     if (Object.values(filters).some((arr) => arr.length))
-      params.set("filters", JSON.stringify(filters));
-    if (page !== 1) params.set("page", String(page));
+      params.set('filters', JSON.stringify(filters));
+    if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });
   }, [selectedTab, searchTerm, filters, page, history]);
 
@@ -146,7 +147,7 @@ const SchoolList: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error("Failed to fetch filter options", error);
+        logger.error('Failed to fetch filter options', error);
       } finally {
         setIsFilterLoading(false);
       }
@@ -165,14 +166,14 @@ const SchoolList: React.FC = () => {
       const tabModelFilter = { model: [selectedTab] };
       const cleanedFilters = Object.fromEntries(
         Object.entries({ ...filters, ...tabModelFilter }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0
-        )
+          ([_, v]) => Array.isArray(v) && v.length > 0,
+        ),
       );
 
       let backendOrderBy = orderBy;
-      if (backendOrderBy === "name") backendOrderBy = "school_name";
-      if (backendOrderBy === "students") backendOrderBy = "num_students";
-      if (backendOrderBy === "teachers") backendOrderBy = "num_teachers";
+      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
+      if (backendOrderBy === 'students') backendOrderBy = 'num_students';
+      if (backendOrderBy === 'teachers') backendOrderBy = 'num_teachers';
 
       const response = await api.getFilteredSchoolsForSchoolListing({
         filters: cleanedFilters,
@@ -191,9 +192,9 @@ const SchoolList: React.FC = () => {
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
         programManagers:
-          school.program_managers?.join(", ") || t("not assigned yet"),
+          school.program_managers?.join(', ') || t('not assigned yet'),
         fieldCoordinators:
-          school.field_coordinators?.join(", ") || t("not assigned yet"),
+          school.field_coordinators?.join(', ') || t('not assigned yet'),
         name: {
           value: school.school_name,
           render: (
@@ -202,12 +203,13 @@ const SchoolList: React.FC = () => {
               <Typography
                 variant="subtitle2"
                 color="text.secondary"
-                fontSize={"12px"}
+                fontSize={'12px'}
               >
                 {school.udise_code || school.district
-                  ? `${school.udise_code ?? ""} - ${school.district ?? ""
+                  ? `${school.udise_code ?? ''} - ${
+                      school.district ?? ''
                     }`.trim()
-                  : ""}
+                  : ''}
               </Typography>
             </Box>
           ),
@@ -216,7 +218,7 @@ const SchoolList: React.FC = () => {
 
       setSchools(enrichedSchools);
     } catch (error) {
-      console.error("Failed to fetch filtered schools:", error);
+      logger.error('Failed to fetch filtered schools:', error);
       setSchools([]);
       setTotal(0);
     } finally {
@@ -235,46 +237,46 @@ const SchoolList: React.FC = () => {
 
   const columns: Column<Record<string, any>>[] = [
     {
-      key: "name",
-      label: t("Schools"),
-      width: "30%",
+      key: 'name',
+      label: t('Schools'),
+      width: '30%',
       sortable: true,
-      orderBy: "name",
+      orderBy: 'name',
     },
     {
-      key: "students",
-      label: t("No. of Students"),
-      width: "fit-content",
+      key: 'students',
+      label: t('No. of Students'),
+      width: 'fit-content',
       sortable: true,
-      orderBy: "students",
+      orderBy: 'students',
     },
     {
-      key: "teachers",
-      label: t("No. of Teachers"),
-      width: "fit-content",
+      key: 'teachers',
+      label: t('No. of Teachers'),
+      width: 'fit-content',
       sortable: true,
-      orderBy: "teachers",
+      orderBy: 'teachers',
     },
     {
-      key: "programManagers",
-      label: t("Program Manager"),
+      key: 'programManagers',
+      label: t('Program Manager'),
       sortable: false,
     },
     {
-      key: "fieldCoordinators",
-      label: t("Field Coordinator"),
+      key: 'fieldCoordinators',
+      label: t('Field Coordinator'),
       sortable: false,
     },
   ];
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ["name", "students", "teachers", "district"];
+    const sortableKeys = ['name', 'students', 'teachers', 'district'];
     if (!sortableKeys.includes(colKey)) return;
     if (orderBy === colKey) {
-      setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setOrderBy(colKey);
-      setOrderDir("desc");
+      setOrderDir('desc');
     }
     setPage(1);
   };
@@ -305,7 +307,7 @@ const SchoolList: React.FC = () => {
   if (showUploadPage) {
     return (
       <div>
-        <div className="school-list-upload-text">{t("Upload File")}</div>
+        <div className="school-list-upload-text">{t('Upload File')}</div>
         <div>
           <FileUpload onCancleClick={onCancleClick} />
         </div>
@@ -317,7 +319,7 @@ const SchoolList: React.FC = () => {
     <div className="school-list-ion-page">
       <div className="school-list-main-container">
         <div className="school-list-page-header">
-          <span className="school-list-page-header-title">{t("Schools")}</span>
+          <span className="school-list-page-header-title">{t('Schools')}</span>
           <IconButton className="school-list-bell-icon">
             <BsFillBellFill />
           </IconButton>
@@ -355,7 +357,7 @@ const SchoolList: React.FC = () => {
                   className="school-list-migrate-button"
                   onClick={() =>
                     history.push(
-                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`
+                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`,
                     )
                   }
                   startIcon={
@@ -367,54 +369,54 @@ const SchoolList: React.FC = () => {
                     />
                   }
                 >
-                  {t("Migrate")}
+                  {t('Migrate')}
                 </Button>
               )}
-              {haveAccess &&
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  history.push({
-                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                  });
-                }}
-                sx={{
-                  borderColor: "#e0e0e0",
-                  border: "1px solid",
-                  borderRadius: 20,
-                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-                  height: "36px",
-                  minWidth: isSmallScreen ? "48px" : "auto",
-                  padding: isSmallScreen ? 0 : "6px 16px",
-                  textTransform: "none",
-                }}
-              >
-                <Add className="school-list-upload-icon" />
+              {haveAccess && (
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    history.push({
+                      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                    });
+                  }}
+                  sx={{
+                    borderColor: '#e0e0e0',
+                    border: '1px solid',
+                    borderRadius: 20,
+                    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+                    height: '36px',
+                    minWidth: isSmallScreen ? '48px' : 'auto',
+                    padding: isSmallScreen ? 0 : '6px 16px',
+                    textTransform: 'none',
+                  }}
+                >
+                  <Add className="school-list-upload-icon" />
                   {!isSmallScreen && (
                     <span className="school-list-upload-text1">
-                      {t("Add School")}
+                      {t('Add School')}
                     </span>
                   )}
                 </Button>
-              }
+              )}
               <Button
                 variant="outlined"
                 onClick={() => setShowUploadPage(true)}
                 sx={{
-                  borderColor: "#e0e0e0",
-                  border: "1px solid",
+                  borderColor: '#e0e0e0',
+                  border: '1px solid',
                   borderRadius: 20,
-                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-                  height: "36px",
-                  minWidth: isSmallScreen ? "48px" : "auto",
-                  padding: isSmallScreen ? 0 : "6px 16px",
-                  textTransform: "none",
+                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
+                  height: '36px',
+                  minWidth: isSmallScreen ? '48px' : 'auto',
+                  padding: isSmallScreen ? 0 : '6px 16px',
+                  textTransform: 'none',
                 }}
               >
                 <FileUploadOutlined className="school-list-upload-icon" />
                 {!isSmallScreen && (
                   <span className="school-list-upload-text1">
-                    {t("Upload")}
+                    {t('Upload')}
                   </span>
                 )}
               </Button>
@@ -483,8 +485,9 @@ const SchoolList: React.FC = () => {
           />
         </div>
         <div
-          className={`school-list-table-container ${!isLoading && schools.length === 0 ? "school-list-no-schools" : ""
-            }`}
+          className={`school-list-table-container ${
+            !isLoading && schools.length === 0 ? 'school-list-no-schools' : ''
+          }`}
         >
           {!isLoading && schools.length > 0 && (
             <DataTableBody
@@ -497,7 +500,7 @@ const SchoolList: React.FC = () => {
             />
           )}
 
-          {!isLoading && schools.length === 0 && t("No schools found.")}
+          {!isLoading && schools.length === 0 && t('No schools found.')}
         </div>
 
         {!isLoading && schools.length > 0 && (

@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef } from 'react';
 import {
   Table,
   TableBody,
@@ -9,15 +9,16 @@ import {
   TableRow,
   TableSortLabel,
   Skeleton,
-} from "@mui/material";
-import "./DataTableBody.css";
-import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+} from '@mui/material';
+import './DataTableBody.css';
+import { useHistory } from 'react-router';
+import { PAGES } from '../../common/constants';
+import logger from '../../utility/logger';
 
 export interface Column<T> {
   key: keyof T;
   label: string;
-  align?: "left" | "right" | "center" | "justify" | "inherit";
+  align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
   render?: (row: T) => React.ReactNode;
   width?: string | number;
   [key: string]: any;
@@ -27,7 +28,7 @@ interface Props {
   columns: Record<string, any>[];
   rows: Record<string, any>[];
   orderBy: string | null;
-  order: "asc" | "desc";
+  order: 'asc' | 'desc';
   onSort: (key: string) => void;
   detailPageRouteBase?: string;
   onRowClick?: (id: string | number, row: any) => void;
@@ -74,15 +75,15 @@ function TableSkeleton({
                 py: 0.25,
                 px: 1,
                 height: 32,
-                transform: "none",
+                transform: 'none',
               }}
             >
-              <div style={{ width: "90%" }}>
+              <div style={{ width: '90%' }}>
                 <Skeleton
                   variant="rectangular"
                   height={24}
                   width="100%"
-                  sx={{ mx: 0, ml: 0, transform: "none" }}
+                  sx={{ mx: 0, ml: 0, transform: 'none' }}
                 />
               </div>
             </TableCell>
@@ -112,7 +113,7 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
       isRowSelectable,
       disableRowNavigation = false,
     },
-    ref
+    ref,
   ) => {
     const history = useHistory();
     const resolveRowId = (row: any): string | number =>
@@ -132,23 +133,22 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
 
       const id = row.id;
       if (!id) {
-        console.warn("Row missing 'id' property");
+        logger.warn("Row missing 'id' property");
         return;
       }
 
-      if (detailPageRouteBase === "programs") {
+      if (detailPageRouteBase === 'programs') {
         history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
+          `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row['id']}`,
         );
-      } else if (detailPageRouteBase === "users") {
-
+      } else if (detailPageRouteBase === 'users') {
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },
         });
       } else {
         history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`
+          `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row['sch_id']}`,
         );
       }
     };
@@ -194,28 +194,28 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                     onChange={(event) =>
                       onToggleSelectAll?.(event.target.checked, rows)
                     }
-                    inputProps={{ "aria-label": "Select all rows" }}
+                    inputProps={{ 'aria-label': 'Select all rows' }}
                   />
                 </TableCell>
               )}
               {columns.map((col) => (
                 <TableCell
                   key={String(col.key)}
-                  align={col.align || "left"}
+                  align={col.align || 'left'}
                   className="data-tablebody-head-cell"
                   sx={{
-                    width: col.width ?? "auto",
-                    transform: "none",
-                    height: "auto",
+                    width: col.width ?? 'auto',
+                    transform: 'none',
+                    height: 'auto',
                     paddingTop: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
+                      xs: '4px !important',
+                      sm: '6px !important',
+                      md: '8px !important',
                     },
                     paddingBottom: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
+                      xs: '4px !important',
+                      sm: '6px !important',
+                      md: '8px !important',
                     },
                   }}
                 >
@@ -224,10 +224,10 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                   ) : (
                     <TableSortLabel
                       active={orderBy === String(col.key)}
-                      direction={orderBy === String(col.key) ? order : "asc"}
+                      direction={orderBy === String(col.key) ? order : 'asc'}
                       onClick={() => onSort(String(col.key))}
                       sx={{
-                        "& .MuiTableSortLabel-icon": {
+                        '& .MuiTableSortLabel-icon': {
                           opacity: 1,
                         },
                       }}
@@ -265,8 +265,8 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                     }}
                     className={`data-tablebody-row ${
                       selectableRows && !canSelect
-                        ? "data-tablebody-row-disabled"
-                        : "data-tablebody-row-clickable"
+                        ? 'data-tablebody-row-disabled'
+                        : 'data-tablebody-row-clickable'
                     }`}
                     selected={selected}
                   >
@@ -280,10 +280,8 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                           size="small"
                           checked={selected}
                           disabled={!canSelect}
-                          onChange={() =>
-                            onToggleRowSelection?.(rowId, row)
-                          }
-                          inputProps={{ "aria-label": "Select row" }}
+                          onChange={() => onToggleRowSelection?.(rowId, row)}
+                          inputProps={{ 'aria-label': 'Select row' }}
                         />
                       </TableCell>
                     )}
@@ -292,19 +290,19 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                       <TableCell
                         id="data-tablebody-content-cell"
                         key={String(col.key)}
-                        align={col.align || "left"}
+                        align={col.align || 'left'}
                         className="data-tablebody-cell"
                         sx={{
-                          width: col.width ?? "auto",
+                          width: col.width ?? 'auto',
                           maxWidth: col.width,
                         }}
                       >
                         {col.render
                           ? col.render(row)
-                          : typeof row[col.key] === "object" &&
-                            row[col.key]?.render !== undefined
-                          ? row[col.key].render
-                          : row[col.key]}
+                          : typeof row[col.key] === 'object' &&
+                              row[col.key]?.render !== undefined
+                            ? row[col.key].render
+                            : row[col.key]}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -315,7 +313,7 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
         </Table>
       </TableContainer>
     );
-  }
+  },
 );
 
 export default DataTableBody;

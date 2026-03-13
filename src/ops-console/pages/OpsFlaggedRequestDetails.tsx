@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useHistory, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useParams, useHistory, useLocation } from 'react-router-dom';
 import {
   PAGES,
   DEFAULT_PAGE_SIZE,
   REQUEST_TABS,
   RequestTypes,
   TableTypes,
-} from "../../common/constants";
-import { useTranslation } from "react-i18next";
+} from '../../common/constants';
+import { useTranslation } from 'react-i18next';
 import {
   Typography,
   Divider,
@@ -22,10 +22,11 @@ import {
   Autocomplete,
   InputAdornment,
   IconButton,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import "./OpsFlaggedRequestDetails.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import './OpsFlaggedRequestDetails.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 
 const OpsFlaggedRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,21 +36,21 @@ const OpsFlaggedRequestDetails = () => {
   const { t } = useTranslation();
 
   const [requestDetails, setRequestDetails] =
-    useState<TableTypes<"ops_requests"> | null>(null);
+    useState<TableTypes<'ops_requests'> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Editable field states
-  const [selectedRequestType, setSelectedRequestType] = useState("");
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedClassId, setSelectedClassId] = useState("");
-  const [selectedSchoolUdise, setSelectedSchoolUdise] = useState("");
-  const [selectedSchoolId, setSelectedSchoolId] = useState("");
-  const [selectedSchoolName, setSelectedSchoolName] = useState("");
-  const [schoolInputValue, setSchoolInputValue] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedRequestType, setSelectedRequestType] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedSchoolUdise, setSelectedSchoolUdise] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [selectedSchoolName, setSelectedSchoolName] = useState('');
+  const [schoolInputValue, setSchoolInputValue] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedState, setSelectedState] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
 
   // Dropdown options states
   const [requestTypeOptions, setRequestTypeOptions] = useState<string[]>([]);
@@ -90,15 +91,15 @@ const OpsFlaggedRequestDetails = () => {
       if (selectedSchoolUdise && selectedSchoolUdise.length >= 3) {
         fetchSchoolByUdise(selectedSchoolUdise);
       } else if (!selectedSchoolUdise || selectedSchoolUdise.length === 0) {
-        setSelectedSchoolId("");
-        setSelectedSchoolName("");
-        setSchoolInputValue("");
-        setSelectedDistrict("");
-        setSelectedState("");
-        setSelectedCountry("");
+        setSelectedSchoolId('');
+        setSelectedSchoolName('');
+        setSchoolInputValue('');
+        setSelectedDistrict('');
+        setSelectedState('');
+        setSelectedCountry('');
         setClassOptions([]);
-        setSelectedClassId("");
-        setSelectedClass("");
+        setSelectedClassId('');
+        setSelectedClass('');
       }
     }, 800);
 
@@ -109,8 +110,8 @@ const OpsFlaggedRequestDetails = () => {
 
   useEffect(() => {
     if (selectedRequestType === RequestTypes.PRINCIPAL) {
-      setSelectedClassId("");
-      setSelectedClass("");
+      setSelectedClassId('');
+      setSelectedClass('');
     }
   }, [selectedRequestType]);
 
@@ -125,44 +126,44 @@ const OpsFlaggedRequestDetails = () => {
         initializeFormFields(req);
       } else {
         const flaggedRequests = await api.getOpsRequests(
-          "flagged",
+          'flagged',
           1,
-          DEFAULT_PAGE_SIZE
+          DEFAULT_PAGE_SIZE,
         );
         const req = flaggedRequests?.data?.find(
           (
-            r: TableTypes<"ops_requests"> | Record<string, unknown>,
-          ): r is TableTypes<"ops_requests"> =>
-            "request_id" in r &&
-            typeof r.request_id === "string" &&
+            r: TableTypes<'ops_requests'> | Record<string, unknown>,
+          ): r is TableTypes<'ops_requests'> =>
+            'request_id' in r &&
+            typeof r.request_id === 'string' &&
             r.request_id === id,
         );
         if (req) {
           setRequestDetails(req);
           initializeFormFields(req);
         } else {
-          setError(t("Request not found"));
+          setError(t('Request not found'));
         }
       }
     } catch (e) {
-      console.error("Error fetching flagged request:", e);
-      setError(t("Failed to load request details. Please try again."));
+      logger.error('Error fetching flagged request:', e);
+      setError(t('Failed to load request details. Please try again.'));
     } finally {
       setIsLoading(false);
     }
   };
 
   const initializeFormFields = (req: any) => {
-    setSelectedRequestType(req.request_type || "");
-    setSelectedSchoolId(req.school_id || "");
-    setSelectedSchoolUdise(req.school?.udise || "");
-    setSelectedSchoolName(req.school?.name || "");
-    setSchoolInputValue(req.school?.name || "");
-    setSelectedDistrict(req.school?.group2 || "");
-    setSelectedState(req.school?.group1 || "");
-    setSelectedCountry(req.school?.country || "");
+    setSelectedRequestType(req.request_type || '');
+    setSelectedSchoolId(req.school_id || '');
+    setSelectedSchoolUdise(req.school?.udise || '');
+    setSelectedSchoolName(req.school?.name || '');
+    setSchoolInputValue(req.school?.name || '');
+    setSelectedDistrict(req.school?.group2 || '');
+    setSelectedState(req.school?.group1 || '');
+    setSelectedCountry(req.school?.country || '');
 
-    const initialClassId = req.class_id || "";
+    const initialClassId = req.class_id || '';
     setSelectedClassId(initialClassId);
 
     if (req.school_id) {
@@ -175,11 +176,11 @@ const OpsFlaggedRequestDetails = () => {
     try {
       const types = Object.values(RequestTypes).filter(
         (type) =>
-          type === RequestTypes.TEACHER || type === RequestTypes.PRINCIPAL
+          type === RequestTypes.TEACHER || type === RequestTypes.PRINCIPAL,
       );
       setRequestTypeOptions(types);
     } catch (e) {
-      console.error("Error fetching dropdown options:", e);
+      logger.error('Error fetching dropdown options:', e);
     } finally {
       setIsLoadingDropdowns(false);
     }
@@ -191,9 +192,9 @@ const OpsFlaggedRequestDetails = () => {
       const mappedClasses = classes.map((c) => ({ id: c.id, name: c.name }));
       setClassOptions(mappedClasses);
 
-      if (preserveClassId && preserveClassId.trim() !== "") {
+      if (preserveClassId && preserveClassId.trim() !== '') {
         const selectedClassItem = mappedClasses.find(
-          (c) => c.id === preserveClassId
+          (c) => c.id === preserveClassId,
         );
 
         if (selectedClassItem) {
@@ -202,7 +203,7 @@ const OpsFlaggedRequestDetails = () => {
         }
       }
     } catch (e) {
-      console.error("Error fetching classes:", e);
+      logger.error('Error fetching classes:', e);
     }
   };
 
@@ -223,37 +224,37 @@ const OpsFlaggedRequestDetails = () => {
           id: s.id,
           name: s.name,
           udise: s.udise || undefined,
-        }))
+        })),
       );
     } catch (e) {
-      console.error("Error searching schools:", e);
+      logger.error('Error searching schools:', e);
     }
   };
 
   const handleSchoolSelect = (
-    school: { id: string; name: string; udise?: string } | null
+    school: { id: string; name: string; udise?: string } | null,
   ) => {
     if (school) {
       setIsInitialLoad(false);
       setSelectedSchoolId(school.id);
       setSelectedSchoolName(school.name);
       setSchoolInputValue(school.name);
-      setSelectedSchoolUdise(school.udise || "");
-      setSelectedClassId("");
-      setSelectedClass("");
+      setSelectedSchoolUdise(school.udise || '');
+      setSelectedClassId('');
+      setSelectedClass('');
       fetchClasses(school.id);
       fetchFullSchoolDetails(school.id);
     } else {
-      setSelectedSchoolId("");
-      setSelectedSchoolName("");
-      setSchoolInputValue("");
-      setSelectedSchoolUdise("");
-      setSelectedDistrict("");
-      setSelectedState("");
-      setSelectedCountry("");
+      setSelectedSchoolId('');
+      setSelectedSchoolName('');
+      setSchoolInputValue('');
+      setSelectedSchoolUdise('');
+      setSelectedDistrict('');
+      setSelectedState('');
+      setSelectedCountry('');
       setClassOptions([]);
-      setSelectedClassId("");
-      setSelectedClass("");
+      setSelectedClassId('');
+      setSelectedClass('');
     }
   };
 
@@ -262,7 +263,7 @@ const OpsFlaggedRequestDetails = () => {
     try {
       const validation = await api.validateSchoolUdiseCode(udiseCode);
 
-      if (validation.status === "success") {
+      if (validation.status === 'success') {
         const result = await api.searchSchools({
           p_search_text: udiseCode,
           p_page_limit: 1,
@@ -274,30 +275,30 @@ const OpsFlaggedRequestDetails = () => {
           setSelectedSchoolId(school.id);
           setSelectedSchoolName(school.name);
           setSchoolInputValue(school.name);
-          setSelectedDistrict(school.group2 || "");
-          setSelectedState(school.group1 || "");
-          setSelectedCountry(school.country || "");
-          setSelectedClassId("");
-          setSelectedClass("");
+          setSelectedDistrict(school.group2 || '');
+          setSelectedState(school.group1 || '');
+          setSelectedCountry(school.country || '');
+          setSelectedClassId('');
+          setSelectedClass('');
           fetchClasses(school.id);
-          setValidationErrors({ ...validationErrors, udise: "" });
+          setValidationErrors({ ...validationErrors, udise: '' });
         } else {
           setValidationErrors({
             ...validationErrors,
-            udise: t("School not found for this UDISE code"),
+            udise: t('School not found for this UDISE code'),
           });
         }
       } else {
         setValidationErrors({
           ...validationErrors,
-          udise: t("Invalid UDISE code"),
+          udise: t('Invalid UDISE code'),
         });
       }
     } catch (e) {
-      console.error("Error fetching school by UDISE:", e);
+      logger.error('Error fetching school by UDISE:', e);
       setValidationErrors({
         ...validationErrors,
-        udise: t("Failed to fetch school details"),
+        udise: t('Failed to fetch school details'),
       });
     } finally {
       setIsFetchingSchool(false);
@@ -308,12 +309,12 @@ const OpsFlaggedRequestDetails = () => {
     try {
       const school = await api.getSchoolById(schoolId);
       if (school) {
-        setSelectedDistrict(school.group2 || "");
-        setSelectedState(school.group1 || "");
-        setSelectedCountry(school.country || "India");
+        setSelectedDistrict(school.group2 || '');
+        setSelectedState(school.group1 || '');
+        setSelectedCountry(school.country || 'India');
       }
     } catch (e) {
-      console.error("Error fetching full school details:", e);
+      logger.error('Error fetching full school details:', e);
     }
   };
 
@@ -321,18 +322,18 @@ const OpsFlaggedRequestDetails = () => {
     const errors: { [key: string]: string } = {};
 
     if (!selectedRequestType) {
-      errors.requestType = t("Request Type is required");
+      errors.requestType = t('Request Type is required');
     }
     if (selectedRequestType === RequestTypes.TEACHER) {
       if (selectedSchoolId && classOptions.length > 0 && !selectedClassId) {
-        errors.class = t("Class is required");
+        errors.class = t('Class is required');
       }
     }
     if (!selectedSchoolUdise) {
-      errors.udise = t("UDISE Code is required");
+      errors.udise = t('UDISE Code is required');
     }
     if (!selectedSchoolName) {
-      errors.schoolName = t("School Name is required");
+      errors.schoolName = t('School Name is required');
     }
 
     setValidationErrors(errors);
@@ -349,12 +350,12 @@ const OpsFlaggedRequestDetails = () => {
       const currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!currentUser) {
-        setError(t("User not authenticated"));
+        setError(t('User not authenticated'));
         return;
       }
 
       if (!requestDetails?.id) {
-        setError(t("Request ID not found"));
+        setError(t('Request ID not found'));
         return;
       }
 
@@ -362,7 +363,7 @@ const OpsFlaggedRequestDetails = () => {
       const requestedByUser = (requestDetails as any)?.requestedBy;
 
       if (!requestedByUser || !requestedByUser.id) {
-        setError(t("User information not found. Cannot approve request."));
+        setError(t('User information not found. Cannot approve request.'));
         return;
       }
 
@@ -373,7 +374,7 @@ const OpsFlaggedRequestDetails = () => {
           await api.addTeacherToClass(
             selectedSchoolId,
             selectedClassId,
-            requestedByUser
+            requestedByUser,
           );
         }
       }
@@ -383,7 +384,7 @@ const OpsFlaggedRequestDetails = () => {
         currentUser.id,
         role,
         selectedSchoolId,
-        selectedClassId || undefined
+        selectedClassId || undefined,
       );
 
       history.push({
@@ -391,8 +392,8 @@ const OpsFlaggedRequestDetails = () => {
         search: `?tab=${REQUEST_TABS.APPROVED}`,
       });
     } catch (e) {
-      console.error("Error approving request:", e);
-      setError(t("Failed to approve request. Please try again."));
+      logger.error('Error approving request:', e);
+      setError(t('Failed to approve request. Please try again.'));
     } finally {
       setIsApproving(false);
     }
@@ -407,21 +408,21 @@ const OpsFlaggedRequestDetails = () => {
 
   const formatDT = (d: string | undefined) =>
     d
-      ? new Date(d).toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
+      ? new Date(d).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
           hour12: true,
         })
-      : t("-");
+      : t('-');
 
   if (isLoading)
     return (
       <div className="ops-flagged-request-details-centered">
         <CircularProgress />
-        <Typography>{t("Loading request details...")}</Typography>
+        <Typography>{t('Loading request details...')}</Typography>
       </div>
     );
 
@@ -429,7 +430,7 @@ const OpsFlaggedRequestDetails = () => {
     return (
       <div className="ops-flagged-request-details-centered">
         <Typography color="error">{error}</Typography>
-        <Button onClick={() => history.goBack()}>{t("Go Back")}</Button>
+        <Button onClick={() => history.goBack()}>{t('Go Back')}</Button>
       </div>
     );
 
@@ -444,15 +445,15 @@ const OpsFlaggedRequestDetails = () => {
         variant="h4"
         className="ops-flagged-request-details-page-title"
       >
-        {t("Request ID - {{id}}", { id })}
+        {t('Request ID - {{id}}', { id })}
       </Typography>
       <div className="ops-flagged-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
           className="ops-flagged-request-details-link icon-button"
         >
-          {t("Requests")}
-        <span> &gt; </span>
+          {t('Requests')}
+          <span> &gt; </span>
         </span>
         <span
           onClick={() =>
@@ -463,11 +464,11 @@ const OpsFlaggedRequestDetails = () => {
           }
           className="ops-flagged-request-details-link icon-button"
         >
-          {t("Flagged")}
-        <span> &gt; </span>
+          {t('Flagged')}
+          <span> &gt; </span>
         </span>
         <span className="ops-flagged-request-details-active">
-          {t("Request ID - {{id}}", { id })}
+          {t('Request ID - {{id}}', { id })}
         </span>
       </div>
       <Grid
@@ -483,38 +484,38 @@ const OpsFlaggedRequestDetails = () => {
               variant="h6"
               className="ops-flagged-request-details-card-title"
             >
-              {t("Request From")}
+              {t('Request From')}
             </Typography>
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Name")}
+                {t('Name')}
               </div>
-              <div>{requestedBy.name || t("-")}</div>
+              <div>{requestedBy.name || t('-')}</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Phone Number")}
+                {t('Phone Number')}
               </div>
-              <div>{requestedBy.phone || t("-")}</div>
+              <div>{requestedBy.phone || t('-')}</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Email ID")}
+                {t('Email ID')}
               </div>
-              <div>{requestedBy.email || t("-")}</div>
+              <div>{requestedBy.email || t('-')}</div>
             </div>
             <Divider className="ops-flagged-request-details-divider" />
             <Typography
               variant="h6"
               className="ops-flagged-request-details-card-title"
             >
-              {t("Request Details")}
+              {t('Request Details')}
             </Typography>
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">
-                {t("Request Type")}
+                {t('Request Type')}
               </div>
               <FormControl
                 className="ops-flagged-request-details-dropdown"
@@ -526,14 +527,14 @@ const OpsFlaggedRequestDetails = () => {
                     setSelectedRequestType(e.target.value);
                     setValidationErrors({
                       ...validationErrors,
-                      requestType: "",
+                      requestType: '',
                     });
                   }}
                   displayEmpty
                   disabled={isLoadingDropdowns}
                 >
                   <MenuItem value="" disabled>
-                    {t("Select Request Type")}
+                    {t('Select Request Type')}
                   </MenuItem>
                   {requestTypeOptions.map((opt) => (
                     <MenuItem key={opt} value={opt}>
@@ -550,21 +551,21 @@ const OpsFlaggedRequestDetails = () => {
             </div>
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">
-                {t("Select Class")}
+                {t('Select Class')}
               </div>
               <FormControl
                 className="ops-flagged-request-details-dropdown"
                 error={!!validationErrors.class}
               >
                 <Select
-                  value={selectedClassId || ""}
+                  value={selectedClassId || ''}
                   onChange={(e) => {
                     setSelectedClassId(e.target.value);
                     const selectedClassItem = classOptions.find(
-                      (c) => c.id === e.target.value
+                      (c) => c.id === e.target.value,
                     );
-                    setSelectedClass(selectedClassItem?.name || "");
-                    setValidationErrors({ ...validationErrors, class: "" });
+                    setSelectedClass(selectedClassItem?.name || '');
+                    setValidationErrors({ ...validationErrors, class: '' });
                   }}
                   displayEmpty
                   disabled={
@@ -575,8 +576,8 @@ const OpsFlaggedRequestDetails = () => {
                 >
                   <MenuItem value="" disabled>
                     {classOptions.length === 0 && selectedSchoolId
-                      ? t("No classes available for this school")
-                      : t("Select Class")}
+                      ? t('No classes available for this school')
+                      : t('Select Class')}
                   </MenuItem>
                   {classOptions.map((opt) => {
                     return (
@@ -595,7 +596,7 @@ const OpsFlaggedRequestDetails = () => {
                   classOptions.length === 0 &&
                   !validationErrors.class && (
                     <Typography variant="caption" color="textSecondary">
-                      {t("This school has no class sections configured")}
+                      {t('This school has no class sections configured')}
                     </Typography>
                   )}
               </FormControl>
@@ -606,24 +607,24 @@ const OpsFlaggedRequestDetails = () => {
               variant="h6"
               className="ops-flagged-request-details-card-title"
             >
-              {t("Flagged Details")}
+              {t('Flagged Details')}
             </Typography>
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Flagged By")}
+                {t('Flagged By')}
               </div>
-              <div>{flaggedBy.name || t("-")}</div>
+              <div>{flaggedBy.name || t('-')}</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Phone Number")}
+                {t('Phone Number')}
               </div>
-              <div>{flaggedBy.phone || t("-")}</div>
+              <div>{flaggedBy.phone || t('-')}</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">
-                {t("Flagged On")}
+                {t('Flagged On')}
               </div>
               <div>{formatDT(requestDetails.updated_at)}</div>
             </div>
@@ -636,12 +637,12 @@ const OpsFlaggedRequestDetails = () => {
               variant="h6"
               className="ops-flagged-request-details-card-title"
             >
-              {t("School Details")}
+              {t('School Details')}
             </Typography>
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">
-                {t("School ID (UDISE)")}
+                {t('School ID (UDISE)')}
               </div>
               <TextField
                 value={selectedSchoolUdise}
@@ -650,52 +651,52 @@ const OpsFlaggedRequestDetails = () => {
                   setInitialUdiseSet(true);
                   const val = e.target.value;
                   setSelectedSchoolUdise(val);
-                  setValidationErrors({ ...validationErrors, udise: "" });
+                  setValidationErrors({ ...validationErrors, udise: '' });
                   if (!val) {
-                    setSelectedSchoolId("");
-                    setSelectedSchoolName("");
-                    setSchoolInputValue("");
-                    setSelectedDistrict("");
-                    setSelectedState("");
-                    setSelectedCountry("");
+                    setSelectedSchoolId('');
+                    setSelectedSchoolName('');
+                    setSchoolInputValue('');
+                    setSelectedDistrict('');
+                    setSelectedState('');
+                    setSelectedCountry('');
                     setClassOptions([]);
-                    setSelectedClassId("");
-                    setSelectedClass("");
+                    setSelectedClassId('');
+                    setSelectedClass('');
                   }
                 }}
                 variant="outlined"
                 size="small"
                 className="ops-flagged-request-details-textfield"
-                placeholder={t("Enter UDISE") || ""}
+                placeholder={t('Enter UDISE') || ''}
                 error={!!validationErrors.udise}
                 helperText={
                   validationErrors.udise ||
-                  (isFetchingSchool ? t("Fetching school details...") : "")
+                  (isFetchingSchool ? t('Fetching school details...') : '')
                 }
                 disabled={isFetchingSchool}
                 InputProps={{
                   endAdornment: selectedSchoolUdise ? (
                     <InputAdornment
                       position="end"
-                      sx={{ position: "absolute", right: 6 }}
+                      sx={{ position: 'absolute', right: 6 }}
                     >
                       <IconButton
                         aria-label="clear"
                         title="Clear"
                         onClick={() => {
-                          setSelectedSchoolUdise("");
-                          setSelectedSchoolId("");
-                          setSelectedSchoolName("");
-                          setSchoolInputValue("");
-                          setSelectedDistrict("");
-                          setSelectedState("");
-                          setSelectedCountry("");
+                          setSelectedSchoolUdise('');
+                          setSelectedSchoolId('');
+                          setSelectedSchoolName('');
+                          setSchoolInputValue('');
+                          setSelectedDistrict('');
+                          setSelectedState('');
+                          setSelectedCountry('');
                           setClassOptions([]);
-                          setSelectedClassId("");
-                          setSelectedClass("");
+                          setSelectedClassId('');
+                          setSelectedClass('');
                           setValidationErrors({
                             ...validationErrors,
-                            udise: "",
+                            udise: '',
                           });
                           setIsInitialLoad(false);
                           setInitialUdiseSet(true);
@@ -710,14 +711,14 @@ const OpsFlaggedRequestDetails = () => {
                 }}
                 inputProps={{
                   style: {
-                    paddingRight: selectedSchoolUdise ? "30px" : undefined,
+                    paddingRight: selectedSchoolUdise ? '30px' : undefined,
                   },
                 }}
               />
             </div>
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">
-                {t("School Name")}
+                {t('School Name')}
               </div>
               <Autocomplete
                 freeSolo
@@ -725,50 +726,50 @@ const OpsFlaggedRequestDetails = () => {
                   if (isInitialLoad) {
                     return;
                   }
-                  if (typeof newValue === "object" && newValue !== null) {
+                  if (typeof newValue === 'object' && newValue !== null) {
                     handleSchoolSelect(newValue);
-                  } else if (typeof newValue === "string") {
+                  } else if (typeof newValue === 'string') {
                     setSelectedSchoolName(newValue);
-                    setSelectedSchoolId("");
-                    setSelectedSchoolUdise("");
-                    setSelectedDistrict("");
-                    setSelectedState("");
-                    setSelectedCountry("");
+                    setSelectedSchoolId('');
+                    setSelectedSchoolUdise('');
+                    setSelectedDistrict('');
+                    setSelectedState('');
+                    setSelectedCountry('');
                     setClassOptions([]);
-                    setSelectedClassId("");
-                    setSelectedClass("");
+                    setSelectedClassId('');
+                    setSelectedClass('');
                   } else {
                     handleSchoolSelect(null);
                   }
                 }}
                 onInputChange={(_, newInputValue, reason) => {
-                  if (reason === "input") {
+                  if (reason === 'input') {
                     setIsInitialLoad(false);
                   }
-                  if (isInitialLoad && reason === "reset") {
+                  if (isInitialLoad && reason === 'reset') {
                     return;
                   }
                   setSchoolInputValue(newInputValue);
                   if (
-                    reason === "clear" ||
-                    (reason === "input" && newInputValue === "")
+                    reason === 'clear' ||
+                    (reason === 'input' && newInputValue === '')
                   ) {
                     handleSchoolSelect(null);
-                  } else if (reason === "input" && newInputValue.length >= 3) {
+                  } else if (reason === 'input' && newInputValue.length >= 3) {
                     handleSchoolSearch(newInputValue);
                   }
                 }}
                 inputValue={schoolInputValue}
                 options={schoolOptions}
                 getOptionLabel={(option) =>
-                  typeof option === "string" ? option : option.name
+                  typeof option === 'string' ? option : option.name
                 }
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     variant="outlined"
                     size="small"
-                    placeholder={t("Search School") || ""}
+                    placeholder={t('Search School') || ''}
                     error={!!validationErrors.schoolName}
                     helperText={validationErrors.schoolName}
                   />
@@ -781,27 +782,27 @@ const OpsFlaggedRequestDetails = () => {
             <div className="ops-flagged-request-details-flex-row">
               <div className="ops-flagged-request-details-field-column">
                 <div className="ops-flagged-request-details-label">
-                  {t("District")}
+                  {t('District')}
                 </div>
                 <div className="ops-flagged-request-details-value">
-                  {selectedDistrict || "-"}
+                  {selectedDistrict || '-'}
                 </div>
               </div>
               <div className="ops-flagged-request-details-field-column">
                 <div className="ops-flagged-request-details-label">
-                  {t("State")}
+                  {t('State')}
                 </div>
                 <div className="ops-flagged-request-details-value">
-                  {selectedState || "-"}
+                  {selectedState || '-'}
                 </div>
               </div>
             </div>
             <div className="ops-flagged-request-details-field-column">
               <div className="ops-flagged-request-details-label">
-                {t("Country")}
+                {t('Country')}
               </div>
               <div className="ops-flagged-request-details-value">
-                {selectedCountry || "-"}
+                {selectedCountry || '-'}
               </div>
             </div>
           </Paper>
@@ -813,7 +814,7 @@ const OpsFlaggedRequestDetails = () => {
               onClick={handleCancel}
               disabled={isApproving}
             >
-              {t("Cancel")}
+              {t('Cancel')}
             </Button>
             <Button
               variant="contained"
@@ -822,7 +823,7 @@ const OpsFlaggedRequestDetails = () => {
               onClick={handleApprove}
               disabled={isApproving || isLoading}
             >
-              {isApproving ? t("Approving...") : t("Approve")}
+              {isApproving ? t('Approving...') : t('Approve')}
             </Button>
           </div>
         </Grid>

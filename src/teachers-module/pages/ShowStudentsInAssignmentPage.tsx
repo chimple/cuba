@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { PAGES, TableTypes } from "../../common/constants";
-import { useHistory } from "react-router-dom";
-import Header from "../components/homePage/Header";
-import "./ShowStudentsInAssignmentPage.css";
-import CreateSelectedAssignment from "../components/homePage/assignment/CreateSelectedAssignment";
-import { Util } from "../../utility/util";
+import React, { useState, useEffect } from 'react';
+import { PAGES, TableTypes } from '../../common/constants';
+import { useHistory } from 'react-router-dom';
+import Header from '../components/homePage/Header';
+import './ShowStudentsInAssignmentPage.css';
+import CreateSelectedAssignment from '../components/homePage/assignment/CreateSelectedAssignment';
+import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 const ShowStudentsInAssignmentPage: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
     null,
   );
   const [currentSchool, setCurrentSchool] = useState<
-    TableTypes<"school"> | undefined
+    TableTypes<'school'> | undefined
   >();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
 
   useEffect(() => {
     init();
@@ -26,7 +27,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
       const currentSchool = Util.getCurrentSchool();
       setCurrentSchool(currentSchool);
     } catch (error) {
-      console.error("Failed to load ", error);
+      logger.error('Failed to load ', error);
     }
   };
 

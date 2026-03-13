@@ -1,14 +1,30 @@
-import { initializeApp } from "firebase/app";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-import { Device } from "@capacitor/device";
+import {
+  initializeApp,
+  setLogLevel as setFirebaseLogLevel,
+} from 'firebase/app';
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+import { Device } from '@capacitor/device';
 import {
   CACHE_SIZE_UNLIMITED,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
-} from "firebase/firestore";
+} from 'firebase/firestore';
 
 export const initializeFireBase = async () => {
+  const normalizedLogLevel = (
+    process.env.REACT_APP_LOG_LEVEL || ''
+  ).toLowerCase();
+  if (
+    normalizedLogLevel === 'debug' ||
+    normalizedLogLevel === 'info' ||
+    normalizedLogLevel === 'warn' ||
+    normalizedLogLevel === 'error' ||
+    normalizedLogLevel === 'silent'
+  ) {
+    setFirebaseLogLevel(normalizedLogLevel);
+  }
+
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: process.env.REACT_APP_API_KEY!,
@@ -35,8 +51,7 @@ export const initializeFireBase = async () => {
 
   var deviceInfo = await Device.getInfo();
 
-  if (deviceInfo.platform === "web") {
+  if (deviceInfo.platform === 'web') {
     FirebaseAnalytics.initializeFirebase(firebaseConfig);
   }
-
 };

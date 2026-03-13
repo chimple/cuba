@@ -1,4 +1,5 @@
-import { AssignmentSource, TableTypes } from "../../common/constants";
+import { AssignmentSource, TableTypes } from '../../common/constants';
+import logger from '../../utility/logger';
 
 type ChapterSelectionValue =
   | Partial<Record<AssignmentSource, string[]>>
@@ -9,7 +10,7 @@ const hasSelectedLessons = (value: unknown): boolean => {
     return value.length > 0;
   }
 
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== 'object') {
     return false;
   }
 
@@ -27,7 +28,7 @@ const hasSelectedLessons = (value: unknown): boolean => {
 export const getCartChapterIdsForCourse = (
   lessonsJson: string | null | undefined,
   classId: string | null | undefined,
-  validChapterIds: Set<string>
+  validChapterIds: Set<string>,
 ): Set<string> => {
   if (!lessonsJson || !classId || validChapterIds.size === 0) {
     return new Set();
@@ -39,7 +40,7 @@ export const getCartChapterIdsForCourse = (
     if (!classData) return new Set();
 
     const chapterMap =
-      typeof classData === "string"
+      typeof classData === 'string'
         ? (JSON.parse(classData) as Record<string, ChapterSelectionValue>)
         : (classData as Record<string, ChapterSelectionValue>);
 
@@ -54,14 +55,17 @@ export const getCartChapterIdsForCourse = (
 
     return selectedChapterIds;
   } catch (error) {
-    console.error("Failed to parse assignment cart for chapter targeting:", error);
+    logger.error(
+      'Failed to parse assignment cart for chapter targeting:',
+      error,
+    );
     return new Set();
   }
 };
 
 export const resolveNextChapterId = (
   currentChapterId: string,
-  chapterOrder: string[]
+  chapterOrder: string[],
 ): string | undefined => {
   const chapterIndex = chapterOrder.findIndex((id) => id === currentChapterId);
   if (chapterIndex < 0) return;
@@ -70,8 +74,8 @@ export const resolveNextChapterId = (
 };
 
 export const isEndOfChapter = (
-  lastAssignment: TableTypes<"assignment">,
-  lessonsInChapter: TableTypes<"lesson">[]
+  lastAssignment: TableTypes<'assignment'>,
+  lessonsInChapter: TableTypes<'lesson'>[],
 ): boolean => {
   if (!lessonsInChapter.length || !lastAssignment.lesson_id) return false;
   const lastLessonId = lessonsInChapter[lessonsInChapter.length - 1]?.id;
@@ -88,8 +92,8 @@ export const resolveInitialChapterId = ({
 }: {
   routeChapterId?: string;
   chapterOrder: string[];
-  lessonsByChapter: Map<string, TableTypes<"lesson">[]>;
-  lastAssignmentForCourse?: TableTypes<"assignment">;
+  lessonsByChapter: Map<string, TableTypes<'lesson'>[]>;
+  lastAssignmentForCourse?: TableTypes<'assignment'>;
   cartChapterIds: Set<string>;
 }): string | undefined => {
   if (!chapterOrder.length) return;
@@ -98,17 +102,23 @@ export const resolveInitialChapterId = ({
     return routeChapterId;
   }
 
-  const lastChapterId = lastAssignmentForCourse?.chapter_id ?? "";
-  if (lastChapterId && chapterOrder.includes(lastChapterId) && lastAssignmentForCourse) {
+  const lastChapterId = lastAssignmentForCourse?.chapter_id ?? '';
+  if (
+    lastChapterId &&
+    chapterOrder.includes(lastChapterId) &&
+    lastAssignmentForCourse
+  ) {
     const lessonsInLastChapter = lessonsByChapter.get(lastChapterId) ?? [];
     const assignmentLessonId = lastAssignmentForCourse.lesson_id;
     const lessonExists = lessonsInLastChapter.some(
-      (lesson) => lesson.id === assignmentLessonId
+      (lesson) => lesson.id === assignmentLessonId,
     );
 
     if (lessonExists) {
       if (isEndOfChapter(lastAssignmentForCourse, lessonsInLastChapter)) {
-        return resolveNextChapterId(lastChapterId, chapterOrder) ?? lastChapterId;
+        return (
+          resolveNextChapterId(lastChapterId, chapterOrder) ?? lastChapterId
+        );
       }
       return lastChapterId;
     }
@@ -116,7 +126,7 @@ export const resolveInitialChapterId = ({
 
   if (cartChapterIds.size > 0) {
     const firstCartChapter = chapterOrder.find((chapterId) =>
-      cartChapterIds.has(chapterId)
+      cartChapterIds.has(chapterId),
     );
     if (firstCartChapter) return firstCartChapter;
   }

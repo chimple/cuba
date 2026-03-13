@@ -15,64 +15,64 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { createRoot } from "react-dom/client";
-import App from "./App";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import "./index.css";
-import "leaflet/dist/leaflet.css";
-import "./i18n";
-import { APIMode, ServiceConfig } from "./services/ServiceConfig";
-import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
-import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-import { SqliteApi } from "./services/api/SqliteApi";
-import { SocialLogin } from "@capgo/capacitor-social-login";
-import { SplashScreen } from "@capacitor/splash-screen";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { Capacitor } from "@capacitor/core";
-import { LiveUpdate } from "@capawesome/capacitor-live-update";
-import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import './index.css';
+import 'leaflet/dist/leaflet.css';
+import './i18n';
+import { APIMode, ServiceConfig } from './services/ServiceConfig';
+import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
+import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
+import { SqliteApi } from './services/api/SqliteApi';
+import { SocialLogin } from '@capgo/capacitor-social-login';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Capacitor } from '@capacitor/core';
+import { LiveUpdate } from '@capawesome/capacitor-live-update';
+import { defineCustomElements, JSX as LocalJSX } from 'lido-standalone/loader';
 import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
-} from "./utility/WindowsSpeech";
-import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
-import { Util } from "./utility/util";
+} from './utility/WindowsSpeech';
+import { GrowthBook, GrowthBookProvider } from '@growthbook/growthbook-react';
+import { Util } from './utility/util';
 import {
   CAN_HOT_UPDATE,
   EVENTS,
   IS_OPS_USER,
   TableTypes,
   VERSION_KEY,
-} from "./common/constants";
-import { GbProvider } from "./growthbook/Growthbook";
-import { initializeFireBase } from "./services/Firebase";
-import * as Sentry from "@sentry/capacitor";
-import * as SentryReact from "@sentry/react";
-import { Preferences } from "@capacitor/preferences";
-import { Provider } from "react-redux";
-import { persistor, store } from "./redux/store";
-import { PersistGate } from "redux-persist/integration/react";
-import { BrowserRouter } from "react-router-dom";
+} from './common/constants';
+import { GbProvider } from './growthbook/Growthbook';
+import { initializeFireBase } from './services/Firebase';
+import * as Sentry from '@sentry/capacitor';
+import * as SentryReact from '@sentry/react';
+import { Preferences } from '@capacitor/preferences';
+import { Provider } from 'react-redux';
+import { persistor, store } from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { BrowserRouter } from 'react-router-dom';
+import logger from './utility/logger';
 
 Sentry.init(
   {
     dsn: process.env.REACT_APP_SENTRY_DSN,
 
     sendDefaultPii: true,
-    
 
     integrations: [
       Sentry.browserTracingIntegration(),
 
-      
+      // send browser logs as logs to Sentry
     ],
   },
   // Forward the init method from @sentry/react
   SentryReact.init,
 );
 // set user initially (might be "anonymous" until rehydration completes)
-let userId: string = "anonymous";
-let userData: TableTypes<"user"> | undefined;
+let userId: string = 'anonymous';
+let userData: TableTypes<'user'> | undefined;
 
 persistor.subscribe(() => {
   const { bootstrapped } = persistor.getState();
@@ -98,7 +98,7 @@ if (isNativePlatform) {
         key: VERSION_KEY,
       });
       if (versionName !== storedVersion) {
-        console.log("⚠️ APK version changed → clearing old hot update bundle");
+        logger.info('⚠️ APK version changed → clearing old hot update bundle');
         // reset the hot update bundle
         await LiveUpdate.reset();
         // store new version
@@ -108,8 +108,8 @@ if (isNativePlatform) {
     await checkNativeVersionAndReset();
     await LiveUpdate.ready();
   } catch (error) {
-    console.error(
-      "Error in checkNativeVersionAndReset() or LiveUpdate.ready()",
+    logger.error(
+      'Error in checkNativeVersionAndReset() or LiveUpdate.ready()',
       error,
     );
   }
@@ -126,7 +126,7 @@ defineCustomElements(window);
 initializeFireBase();
 
 // Conditionally attach only if the native APIs are missing (optional)
-if (typeof window !== "undefined") {
+if (typeof window !== 'undefined') {
   if (!(window as any).speechSynthesis) {
     (window as any).speechSynthesis = new SpeechSynthesis();
   }
@@ -136,12 +136,12 @@ if (typeof window !== "undefined") {
 }
 SplashScreen.hide();
 if (Capacitor.isNativePlatform()) {
-  await ScreenOrientation.lock({ orientation: "landscape" });
+  await ScreenOrientation.lock({ orientation: 'landscape' });
 }
 jeepSqlite(window);
 
 const recordExecption = (message: string, error: string) => {
-  if (Capacitor.getPlatform() != "web") {
+  if (Capacitor.getPlatform() != 'web') {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
   }
 };
@@ -149,15 +149,12 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(
-    message.toString(),
-    error?.toString() ?? "Unknown error",
-  );
+  recordExecption(message.toString(), error?.toString() ?? 'Unknown error');
 };
-const container = document.getElementById("root");
+const container = document.getElementById('root');
 const root = createRoot(container!, {
   onUncaughtError: SentryReact.reactErrorHandler((error, errorInfo) => {
-    console.warn("Uncaught error", error, errorInfo.componentStack);
+    logger.warn('Uncaught error', error, errorInfo.componentStack);
   }),
   onCaughtError: SentryReact.reactErrorHandler(),
   // Callback called when React automatically recovers from errors.
@@ -170,20 +167,20 @@ await SocialLogin.initialize({
 });
 
 const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
+  apiHost: 'https://cdn.growthbook.io',
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
     try {
       // grab the user id out of redux; fall back to the auth handler if
       // for some reason the slice hasn't been populated yet (e.g. first launch)
-      if (userId === "anonymous") {
+      if (userId === 'anonymous') {
         try {
           const auth = ServiceConfig.getI().authHandler;
           const currentUser = await auth.getCurrentUser();
-          userId = currentUser?.id ?? "anonymous";
+          userId = currentUser?.id ?? 'anonymous';
         } catch (e) {
-          console.log("Error reading user from auth handler:", e);
+          logger.info('Error reading user from auth handler:', e);
         }
       }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
@@ -192,33 +189,33 @@ const gb = new GrowthBook({
         variation_id: result.key,
       });
     } catch (error) {
-      console.error("Error in GrowthBook tracking callback:", error);
+      logger.error('Error in GrowthBook tracking callback:', error);
     }
   },
 });
 gb.init({
   streaming: true,
 });
-const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 async function checkForUpdate() {
-  let majorVersion = "0";
+  let majorVersion = '0';
   const maxRetries = 5;
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
-  console.log("🚀 Started for updates...");
+  logger.info('🚀 Started for updates...');
   try {
     if (isNativePlatform && canHotUpdate) {
-      console.log("🚀 Checking for updates...");
+      logger.info('🚀 Checking for updates...');
       const { versionName } = await LiveUpdate.getVersionName();
-      majorVersion = versionName.split(".")[0];
+      majorVersion = versionName.split('.')[0];
       Util.setHotUpdateState({
-        status: "Checking (Auto)",
+        status: 'Checking (Auto)',
         progress: 10,
         channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
         lastChecked: new Date().toLocaleString(),
         isAuto: true,
-        error: "",
+        error: '',
       });
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
       const result = await LiveUpdate.fetchLatestBundle({
@@ -236,7 +233,7 @@ async function checkForUpdate() {
         currentBundleId !== result.bundleId &&
         isUpdateAllowed
       ) {
-        console.log("🚀 LiveUpdate fetch latest bundle result", result);
+        logger.info('🚀 LiveUpdate fetch latest bundle result', result);
         Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
           user_id: userId,
           current_bundle_id: currentBundleId,
@@ -254,11 +251,11 @@ async function checkForUpdate() {
 
           try {
             // Check online/offline
-            if (!navigator.onLine) throw new Error("Device is offline");
-            console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
+            if (!navigator.onLine) throw new Error('Device is offline');
+            logger.info(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
             const start = performance.now();
             Util.setHotUpdateState({
-              status: "Downloading (Auto)",
+              status: 'Downloading (Auto)',
               progress: 60,
             });
 
@@ -266,7 +263,7 @@ async function checkForUpdate() {
               channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
             });
             Util.setHotUpdateState({
-              status: "Updated successfully (Auto)",
+              status: 'Updated successfully (Auto)',
               progress: 100,
               lastUpdated: new Date().toLocaleString(),
             });
@@ -282,10 +279,10 @@ async function checkForUpdate() {
               app_version: versionName,
               update_type: result.artifactType,
             });
-            console.log(
+            logger.info(
               `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`,
             );
-            console.log(
+            logger.info(
               `⏱️ Total time taken to download and set nextBundle ID: ${(
                 totalEnd - start
               ).toFixed(2)} ms`,
@@ -293,21 +290,21 @@ async function checkForUpdate() {
             success = true;
           } catch (err: any) {
             const msg = err instanceof Error ? err.message : String(err);
-            console.error(`❌ Sync attempt ${attempt} failed`, err);
+            logger.error(`❌ Sync attempt ${attempt} failed`, err);
             Util.setHotUpdateState({
-              status: "Auto update failed",
+              status: 'Auto update failed',
               progress: 0,
               error: msg,
             });
 
             if (attempt === maxRetries) {
-              console.error("❌ All retry attempts failed");
+              logger.error('❌ All retry attempts failed');
               Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
                 error:
-                  msg || "All attempts to apply update failed, Device offline",
+                  msg || 'All attempts to apply update failed, Device offline',
                 retries: attempt,
               });
             } else {
@@ -317,17 +314,17 @@ async function checkForUpdate() {
           }
         }
       } else {
-        console.log(
-          "🚀 LiveUpdate: No new update available, Current applied bundleID: ",
+        logger.info(
+          '🚀 LiveUpdate: No new update available, Current applied bundleID: ',
           currentBundleId,
         );
       }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("LiveUpdate failed❌", err);
+    logger.error('LiveUpdate failed❌', err);
     Util.setHotUpdateState({
-      status: "Auto update failed",
+      status: 'Auto update failed',
       progress: 0,
       error: msg,
     });
@@ -336,7 +333,7 @@ async function checkForUpdate() {
       user_id: userId,
       timestamp: new Date().toISOString(),
       channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-      error: msg || "LiveUpdate failed unknown error",
+      error: msg || 'LiveUpdate failed unknown error',
     });
   }
 }
@@ -394,6 +391,6 @@ if (isOpsUser) {
 serviceWorkerRegistration.unregister();
 
 // If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
+// to log results, pass a reporting callback if needed
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 // reportWebVitals();

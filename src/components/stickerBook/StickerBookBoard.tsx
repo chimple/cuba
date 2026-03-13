@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { t } from "i18next";
-import { EVENTS } from "../../common/constants";
-import { Util } from "../../utility/util";
-import { SVGScene } from "../coloring/SVGScene";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { t } from 'i18next';
+import { EVENTS } from '../../common/constants';
+import { Util } from '../../utility/util';
+import { SVGScene } from '../coloring/SVGScene';
 import {
   ParsedSvg,
   parseSvg,
   ensureNavImage,
   sanitizeSvg,
-} from "../common/SvgHelpers";
-import NewBackButton from "../common/NewBackButton";
-import "./StickerBookBoard.css";
+} from '../common/SvgHelpers';
+import NewBackButton from '../common/NewBackButton';
+import './StickerBookBoard.css';
+import logger from '../../utility/logger';
 
 type Props = {
   title: string;
@@ -38,7 +39,7 @@ const InlineSvg = React.forwardRef<
   useEffect(() => {
     const el = localRef.current;
     if (!el) return;
-    if (className) el.setAttribute("class", className);
+    if (className) el.setAttribute('class', className);
     Object.entries(svg.attrs).forEach(([name, value]) => {
       el.setAttribute(name, value);
     });
@@ -53,7 +54,7 @@ const InlineSvg = React.forwardRef<
   );
 });
 
-InlineSvg.displayName = "InlineSvg";
+InlineSvg.displayName = 'InlineSvg';
 
 const StickerBookBoard: React.FC<Props> = ({
   title,
@@ -105,12 +106,12 @@ const StickerBookBoard: React.FC<Props> = ({
   // Load board frame SVG once.
   useEffect(() => {
     let isMounted = true;
-    fetch("/assets/icons/StickerBookBoard.svg")
+    fetch('/assets/icons/StickerBookBoard.svg')
       .then((res) => res.text())
       .then((text) => {
         if (isMounted) setBoardSvgRaw(text);
       })
-      .catch((e) => console.error("Failed to load board svg:", e));
+      .catch((e) => logger.error('Failed to load board svg:', e));
     return () => {
       isMounted = false;
     };
@@ -123,10 +124,10 @@ const StickerBookBoard: React.FC<Props> = ({
 
     ensureNavImage(
       svg,
-      "sticker-book-nav-left",
+      'sticker-book-nav-left',
       canGoPrev
-        ? "/assets/icons/StickerBookBackward.svg"
-        : "/assets/icons/InactiveStickerBookBackward.svg",
+        ? '/assets/icons/StickerBookBackward.svg'
+        : '/assets/icons/InactiveStickerBookBackward.svg',
       26,
       180,
       48,
@@ -137,10 +138,10 @@ const StickerBookBoard: React.FC<Props> = ({
 
     ensureNavImage(
       svg,
-      "sticker-book-nav-right",
+      'sticker-book-nav-right',
       canGoNext
-        ? "/assets/icons/StickerBookForward.svg"
-        : "/assets/icons/InactiveStickerBookForward.svg",
+        ? '/assets/icons/StickerBookForward.svg'
+        : '/assets/icons/InactiveStickerBookForward.svg',
       606,
       180,
       48,
@@ -166,12 +167,12 @@ const StickerBookBoard: React.FC<Props> = ({
             />
           )}
           <div id="sb-board-title" className="sticker-book-board-title">
-            {t("STICKER BOOK")}: {title}
+            {t('STICKER BOOK')}: {title}
           </div>
           <div
             id="sb-board-content"
             className={`sticker-book-board-content ${
-              isLocked ? "sticker-book-board-content-disabled" : ""
+              isLocked ? 'sticker-book-board-content-disabled' : ''
             }`}
           >
             {isLocked && (
@@ -182,20 +183,20 @@ const StickerBookBoard: React.FC<Props> = ({
             )}
             {parsedSvg && (
               <SVGScene
-                mode={isLocked ? "color" : "drag"}
+                mode={isLocked ? 'color' : 'drag'}
                 svgRefExternal={svgRef}
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}
                 isDragEnabled={false}
-                stickerVisibilityMode={isLocked ? "legacy" : "strict"}
+                stickerVisibilityMode={isLocked ? 'legacy' : 'strict'}
                 colorModeUncolouredColor="#FFFFFF"
                 colorModeUncolouredStyle="outline"
                 lockedStickerOutline={isLocked}
-                lockedBackgroundColor={isLocked ? "#C0C0C0" : undefined}
+                lockedBackgroundColor={isLocked ? '#C0C0C0' : undefined}
                 showUncollectedStickers={true}
               >
                 <InlineSvg
-                  key={`${collectedStickers.join(",")}:${nextStickerId ?? ""}`}
+                  key={`${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
                   svg={parsedSvg}
                 />
               </SVGScene>
@@ -210,7 +211,7 @@ const StickerBookBoard: React.FC<Props> = ({
                   alt="LockIconStickerBook"
                 />
                 <div id="sb-lock-text" className="sticker-book-lock-text">
-                  {t("Complete the previous page to unlock this one.")}
+                  {t('Complete the previous page to unlock this one.')}
                 </div>
               </div>
             </div>

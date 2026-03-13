@@ -1,21 +1,22 @@
-import { FC, useEffect, useState } from "react";
-import { Encoding } from "@capacitor/filesystem";
-import { Filesystem, Directory } from "@capacitor/filesystem";
+import { FC, useEffect, useState } from 'react';
+import { Encoding } from '@capacitor/filesystem';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from "../../models/liveQuiz";
-import "./LiveQuizQuestion.css";
-import { Capacitor } from "@capacitor/core";
-import { Util } from "../../utility/util";
-import { PAGES, REWARD_LESSON, TableTypes } from "../../common/constants";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { HiSpeakerWave } from "react-icons/hi2";
-import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
-import { schoolUtil } from "../../utility/schoolUtil";
+} from '../../models/liveQuiz';
+import './LiveQuizQuestion.css';
+import { Capacitor } from '@capacitor/core';
+import { Util } from '../../utility/util';
+import { PAGES, REWARD_LESSON, TableTypes } from '../../common/constants';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { HiSpeakerWave } from 'react-icons/hi2';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import LiveQuizNavigationDots from './LiveQuizNavigationDots';
+import { schoolUtil } from '../../utility/schoolUtil';
+import logger from '../../utility/logger';
 
 let questionInterval: ReturnType<typeof setInterval> | undefined;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -23,7 +24,7 @@ let totalLessonScore = 0;
 let totalLessonTimeSpent = 0;
 let lessonCorrectMoves = 0;
 const LiveQuizQuestion: FC<{
-  roomDoc?: TableTypes<"live_quiz_room">;
+  roomDoc?: TableTypes<'live_quiz_room'>;
   showQuiz: boolean;
   isTimeOut: boolean;
   cocosLessonId?: string | null;
@@ -53,13 +54,14 @@ const LiveQuizQuestion: FC<{
   isLearningPathway,
   isReward = false,
 }) => {
- const quizPathBase =
-  localStorage.getItem("gameUrl") ??
-  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
+  const quizPathBase =
+    localStorage.getItem('gameUrl') ??
+    'http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/';
 
-const quizPath = lessonId || cocosLessonId
-  ? quizPathBase + (lessonId || cocosLessonId)
-  : quizPathBase;
+  const quizPath =
+    lessonId || cocosLessonId
+      ? quizPathBase + (lessonId || cocosLessonId)
+      : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -112,7 +114,7 @@ const quizPath = lessonId || cocosLessonId
   useEffect(() => {
     if (liveQuizConfig) {
       const correctAnswersList = liveQuizConfig.data.map((question) =>
-        question.options.findIndex((option) => option.isCorrect)
+        question.options.findIndex((option) => option.isCorrect),
       );
       setCorrectAnswers(correctAnswersList);
     }
@@ -130,7 +132,7 @@ const quizPath = lessonId || cocosLessonId
         totalLessonScore += calculateScoreForQuestion(
           true,
           liveQuizConfig?.data.length || 0,
-          LIVE_QUIZ_QUESTION_TIME - remainingTime
+          LIVE_QUIZ_QUESTION_TIME - remainingTime,
         );
         lessonCorrectMoves++;
       }
@@ -143,27 +145,27 @@ const quizPath = lessonId || cocosLessonId
     const dow = await Util.downloadZipBundle([lessonId]);
   };
 
-const readLocalConfig = async (
-  path: string
-): Promise<LiveQuiz | undefined> => {
-  try {
-    const file = await Filesystem.readFile({
-      path,
-      directory: Directory.External,
-      encoding: Encoding.UTF8, // 🔑 Hindi safe
-    });
+  const readLocalConfig = async (
+    path: string,
+  ): Promise<LiveQuiz | undefined> => {
+    try {
+      const file = await Filesystem.readFile({
+        path,
+        directory: Directory.External,
+        encoding: Encoding.UTF8, // 🔑 Hindi safe
+      });
 
-    return JSON.parse(file.data as string) as LiveQuiz;
-  } catch (err) {
-    return undefined;
-  }
-};
- const getConfigJson = async () => {
+      return JSON.parse(file.data as string) as LiveQuiz;
+    } catch (err) {
+      return undefined;
+    }
+  };
+  const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     const lessonKey = lessonId || cocosLessonId;
     if (lessonKey) {
       const cachedConfig = localStorage.getItem(
-        `live_quiz_config_${lessonKey}`
+        `live_quiz_config_${lessonKey}`,
       );
       if (cachedConfig) {
         const config = JSON.parse(cachedConfig) as LiveQuiz;
@@ -180,212 +182,211 @@ const readLocalConfig = async (
           {
             options: [
               {
-                text: "Lion",
+                text: 'Lion',
                 isCorrect: true,
               },
               {
-                text: "Tiger",
+                text: 'Tiger',
               },
               {
-                text: "Elephant",
+                text: 'Elephant',
               },
               {
-                text: "Giraffe",
+                text: 'Giraffe',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_1",
-              text: "Which animal is known as the king of the jungle?",
+              id: 'question_1',
+              text: 'Which animal is known as the king of the jungle?',
               // audio:
               //   "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             },
-            questionType: "audio",
+            questionType: 'audio',
           },
           {
             options: [
               {
-                text: "Blue",
+                text: 'Blue',
               },
               {
-                text: "Orange",
+                text: 'Orange',
               },
               {
-                text: "red",
+                text: 'red',
                 isCorrect: true,
               },
               {
-                text: "Pink",
+                text: 'Pink',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_2",
-              text: " What is the colour of an apple?",
+              id: 'question_2',
+              text: ' What is the colour of an apple?',
               // image:
               // "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "7",
+                text: '7',
                 isCorrect: true,
               },
               {
-                text: "8",
+                text: '8',
               },
               {
-                text: "5",
+                text: '5',
               },
               {
-                text: "6",
+                text: '6',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_3",
-              text: "How many days are there in a week?",
+              id: 'question_3',
+              text: 'How many days are there in a week?',
               // image: "https://picsum.photos/200/300",
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "X",
+                text: 'X',
               },
               {
-                text: "T",
+                text: 'T',
               },
               {
-                text: "K",
+                text: 'K',
                 isCorrect: true,
               },
               {
-                text: "P",
+                text: 'P',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_4",
-              text: "Fill in the blanks? H, I, J, _,L, M, N",
+              id: 'question_4',
+              text: 'Fill in the blanks? H, I, J, _,L, M, N',
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "E,K,S,T,P",
+                text: 'E,K,S,T,P',
               },
               {
-                text: "A,E,I,O,U",
+                text: 'A,E,I,O,U',
                 isCorrect: true,
               },
               {
-                text: "A,O,T,S,Y",
+                text: 'A,O,T,S,Y',
               },
               {
-                text: "O,I,V,Z,E",
+                text: 'O,I,V,Z,E',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_5",
-              text: "Which are vowels?",
+              id: 'question_5',
+              text: 'Which are vowels?',
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "Kitten",
+                text: 'Kitten',
                 isCorrect: true,
               },
               {
-                text: "Puppy",
+                text: 'Puppy',
               },
               {
-                text: "Cub",
+                text: 'Cub',
               },
               {
-                text: "Joey",
+                text: 'Joey',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_6",
-              text: "A baby cat is called _",
+              id: 'question_6',
+              text: 'A baby cat is called _',
             },
-            questionType: "text",
+            questionType: 'text',
           },
         ],
 
-        type: "multiOptions",
+        type: 'multiOptions',
       } as LiveQuiz;
- preLoadAudiosWithLiveQuizConfig(config);
-    setLiveQuizConfig(config);
-    if (onConfigLoaded) onConfigLoaded(config);
-    if (currentQuestionIndex == undefined && showQuiz)
-      changeQuestion(config, true);
+      preLoadAudiosWithLiveQuizConfig(config);
+      setLiveQuizConfig(config);
+      if (onConfigLoaded) onConfigLoaded(config);
+      if (currentQuestionIndex == undefined && showQuiz)
+        changeQuestion(config, true);
 
-    return config;
-  }
+      return config;
+    }
 
-  let configFile: LiveQuiz | undefined;
+    let configFile: LiveQuiz | undefined;
 
-  /* =====================
+    /* =====================
      REMOTE FETCH (UNCHANGED)
      ===================== */
-  const remoteUrls = [
-    "https://cuba-stage-zip-bundle.web.app/",
-    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
-  ];
+    const remoteUrls = [
+      'https://cuba-stage-zip-bundle.web.app/',
+      'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
+    ];
 
-  for (const baseUrl of remoteUrls) {
-    try {
-      const response = await fetch(
-        baseUrl + (lessonId || cocosLessonId) + "/config.json"
-      );
-      if (response.ok) {
-        configFile = (await response.json()) as LiveQuiz;
-        break;
+    for (const baseUrl of remoteUrls) {
+      try {
+        const response = await fetch(
+          baseUrl + (lessonId || cocosLessonId) + '/config.json',
+        );
+        if (response.ok) {
+          configFile = (await response.json()) as LiveQuiz;
+          break;
+        }
+      } catch {
+        logger.warn('Failed to fetch from remote:', baseUrl);
       }
-    } catch {
-      console.warn("Failed to fetch from remote:", baseUrl);
     }
-  }
 
-  /* =====================
+    /* =====================
      🔥 EXACT HELPER BLOCK 
      ===================== */
-  if (!configFile) {
-    const configPath = (lessonId || cocosLessonId) + "/config.json";
+    if (!configFile) {
+      const configPath = (lessonId || cocosLessonId) + '/config.json';
 
-    configFile = await readLocalConfig(configPath);
-
-    if (!configFile && lessonId) {
-      console.warn("[LiveQuiz] Config not found locally, downloading...");
-      await downloadQuiz(lessonId);
-
-      // Retry reading after download
       configFile = await readLocalConfig(configPath);
-    }
-  }
 
-  /* =====================
+      if (!configFile && lessonId) {
+        logger.warn('[LiveQuiz] Config not found locally, downloading...');
+        await downloadQuiz(lessonId);
+
+        // Retry reading after download
+        configFile = await readLocalConfig(configPath);
+      }
+    }
+
+    /* =====================
      SAFETY (NO ! CRASH)
      ===================== */
-  if (!configFile) {
-    throw new Error("Failed to load live quiz config.");
-  }
+    if (!configFile) {
+      throw new Error('Failed to load live quiz config.');
+    }
 
-  setLiveQuizConfig(configFile);
-  if (onConfigLoaded) onConfigLoaded(configFile);
+    setLiveQuizConfig(configFile);
+    if (onConfigLoaded) onConfigLoaded(configFile);
 
-  return configFile;
-
+    return configFile;
   };
 
   const handleRoomChange = () => {
@@ -404,7 +405,7 @@ const readLocalConfig = async (
         }
         return accumulator;
       },
-      0
+      0,
     );
     if (roomDoc.participants) {
       if (participantsPlayedCount === roomDoc.participants.length) {
@@ -422,7 +423,7 @@ const readLocalConfig = async (
 
   const changeQuestion = async (
     _liveQuizConfig?: LiveQuiz,
-    isStart: boolean = false
+    isStart: boolean = false,
   ) => {
     const tempLiveQuizConfig = _liveQuizConfig || liveQuizConfig;
     if (!tempLiveQuizConfig) return;
@@ -477,7 +478,7 @@ const readLocalConfig = async (
   function calculateScoreForQuestion(
     correct: boolean,
     totalQuestions: number,
-    timeSpent: number
+    timeSpent: number,
   ): number {
     if (!correct) return 0;
     const maxTotalScore = 100;
@@ -486,7 +487,7 @@ const readLocalConfig = async (
     const timeScore = Math.max(
       0,
       maxScoreForQuestion / 2 -
-        (maxScoreForQuestion / 2) * (timeSpent / LIVE_QUIZ_QUESTION_TIME)
+        (maxScoreForQuestion / 2) * (timeSpent / LIVE_QUIZ_QUESTION_TIME),
     );
     const totalScoreForQuestion = baseScoreForQuestion + timeScore;
     return totalScoreForQuestion;
@@ -505,7 +506,7 @@ const readLocalConfig = async (
       }
       const classData = schoolUtil.getCurrentClass();
       if (isReward === true) {
-        sessionStorage.setItem(REWARD_LESSON, "true");
+        sessionStorage.setItem(REWARD_LESSON, 'true');
       }
       await api.updateResult(
         student!,
@@ -532,14 +533,14 @@ const readLocalConfig = async (
         undefined, // subject_id
         undefined, // subject_ability
         undefined, // activities_scores
-        _currentUser?.id  // ✅ now correctly maps to user_id
+        _currentUser?.id, // ✅ now correctly maps to user_id
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
       lessonCorrectMoves = 0;
       // Update the learning path
       if (isLearningPathway) {
-        const currentStudent = Util.getCurrentStudent() as TableTypes<"user">;
+        const currentStudent = Util.getCurrentStudent() as TableTypes<'user'>;
         await Util.updateLearningPath(currentStudent, isReward);
       }
     } else {
@@ -564,7 +565,7 @@ const readLocalConfig = async (
         totalQuestions - correctMoves,
         totalTimeSpent,
         roomDoc.assignment_id,
-        _assignment?.chapter_id ?? "",
+        _assignment?.chapter_id ?? '',
         roomDoc.class_id,
         roomDoc.school_id,
         undefined, // isImediateSync
@@ -580,13 +581,13 @@ const readLocalConfig = async (
         undefined, // subject_id
         undefined, // subject_ability
         undefined, // activities_scores
-        _currentUser?.id  // ✅ now correctly maps to user_id
+        _currentUser?.id, // ✅ now correctly maps to user_id
       );
     }
   }
 
   const playLiveQuizAudio = async (
-    data: LiveQuizOption | LiveQuizQuestionType
+    data: LiveQuizOption | LiveQuizQuestionType,
   ) => {
     try {
       setAudio(true);
@@ -608,7 +609,7 @@ const readLocalConfig = async (
         setAudio(false);
       }
     } catch (error) {
-      console.error("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
+      logger.error('🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:', error);
     }
   };
 
@@ -630,10 +631,10 @@ const readLocalConfig = async (
   const preLoadAudio = (url: string): HTMLAudioElement => {
     let newUrl = url;
     if (Capacitor.isNativePlatform()) {
-      newUrl = quizPath + "/" + url;
+      newUrl = quizPath + '/' + url;
     }
     const audio = new Audio(newUrl);
-    audio.preload = "auto";
+    audio.preload = 'auto';
     audio.load();
     audiosMap[url] = audio;
     return audio;
@@ -643,9 +644,9 @@ const readLocalConfig = async (
     try {
       await TextToSpeech.stop();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
-        error
+      logger.error(
+        '🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:',
+        error,
       );
     }
     if (!audiosMap) return;
@@ -655,9 +656,9 @@ const readLocalConfig = async (
         audio.currentTime = 0;
       });
     } catch (error) {
-      console.error(
-        "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
-        error
+      logger.error(
+        '🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:',
+        error,
       );
     }
   };
@@ -666,7 +667,7 @@ const readLocalConfig = async (
     <div>
       <div
         className="live-quiz-navigation-dots"
-        style={lessonId ? { paddingTop: "5vh", paddingBottom: "5vh" } : {}}
+        style={lessonId ? { paddingTop: '5vh', paddingBottom: '5vh' } : {}}
       >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
@@ -688,10 +689,10 @@ const readLocalConfig = async (
                     onClick={(e) => {
                       e.stopPropagation();
                       playLiveQuizAudio(
-                        liveQuizConfig.data[currentQuestionIndex].question
+                        liveQuizConfig.data[currentQuestionIndex].question,
                       );
                     }}
-                    className={audio ? "audio-playing" : ""}
+                    className={audio ? 'audio-playing' : ''}
                   />
                 </div>
               )}
@@ -706,7 +707,7 @@ const readLocalConfig = async (
                   src={
                     Capacitor.isNativePlatform()
                       ? quizPath +
-                        "/" +
+                        '/' +
                         liveQuizConfig.data[currentQuestionIndex]?.question
                           .image
                       : liveQuizConfig.data[currentQuestionIndex]?.question
@@ -732,37 +733,37 @@ const readLocalConfig = async (
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
                       );
                       await api.updateLiveQuiz(
-                        lessonId ?? roomDoc?.id ?? "",
+                        lessonId ?? roomDoc?.id ?? '',
                         student?.id!,
                         liveQuizConfig.data[currentQuestionIndex].question.id,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                        score
+                        score,
                       );
                     }}
                     className={
-                      "live-quiz-option-box " +
+                      'live-quiz-option-box ' +
                       (selectedAnswerIndex === index && !showAnswer
-                        ? "selected-option "
-                        : "") +
+                        ? 'selected-option '
+                        : '') +
                       (showAnswer
                         ? option.isCorrect
-                          ? "live-quiz-option-box-correct"
+                          ? 'live-quiz-option-box-correct'
                           : selectedAnswerIndex === index
-                          ? "live-quiz-option-box-incorrect"
-                          : ""
-                        : "")
+                            ? 'live-quiz-option-box-incorrect'
+                            : ''
+                        : '')
                     }
                   >
                     {(option.audio || option.text) && (
                       <div
                         className={
-                          "live-quiz-audio-button-option " +
+                          'live-quiz-audio-button-option ' +
                           (selectedAnswerIndex === index && !showAnswer
-                            ? "selected--option-audio-button"
-                            : "")
+                            ? 'selected--option-audio-button'
+                            : '')
                         }
                       >
                         <HiSpeakerWave
@@ -770,7 +771,7 @@ const readLocalConfig = async (
                             e.stopPropagation();
                             playLiveQuizAudio(option);
                           }}
-                          className={audio ? "audio-playing" : ""}
+                          className={audio ? 'audio-playing' : ''}
                         />
                       </div>
                     )}
@@ -781,7 +782,7 @@ const readLocalConfig = async (
                         className="live-quiz-option-image"
                         src={
                           Capacitor.isNativePlatform()
-                            ? quizPath + "/" + option.image
+                            ? quizPath + '/' + option.image
                             : option.image
                         }
                         alt=""
@@ -789,7 +790,7 @@ const readLocalConfig = async (
                     )}
                   </div>
                 );
-              }
+              },
             )}
           </div>
         </div>

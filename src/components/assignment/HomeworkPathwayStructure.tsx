@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
-import "./HomeworkPathwayStructure.css";
-import { useHistory } from "react-router";
-import { t } from "i18next";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Capacitor } from "@capacitor/core";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+import './HomeworkPathwayStructure.css';
+import { useHistory } from 'react-router';
+import { t } from 'i18next';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   COCOS,
@@ -19,14 +19,15 @@ import {
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   TableTypes,
-} from "../../common/constants";
-import { useReward } from "../../hooks/useReward";
-import { Util } from "../../utility/util";
-import RewardRive from "../learningPathway/RewardRive";
-import PathwayModal from "../learningPathway/PathwayModal";
-import ChimpleRiveMascot from "../learningPathway/ChimpleRiveMascot";
-import RewardBox from "../learningPathway/RewardBox";
-import DailyRewardModal from "../learningPathway/DailyRewardModal";
+} from '../../common/constants';
+import { useReward } from '../../hooks/useReward';
+import { Util } from '../../utility/util';
+import RewardRive from '../learningPathway/RewardRive';
+import PathwayModal from '../learningPathway/PathwayModal';
+import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
+import RewardBox from '../learningPathway/RewardBox';
+import DailyRewardModal from '../learningPathway/DailyRewardModal';
+import logger from '../../utility/logger';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -34,11 +35,11 @@ interface HomeworkPathwayStructureProps {
 }
 
 interface HomeworkPathLessonItem {
-  lesson: TableTypes<"lesson">;
+  lesson: TableTypes<'lesson'>;
   course_id: string;
   chapter_id: string;
   assignment_id?: string;
-  raw_assignment?: TableTypes<"assignment">;
+  raw_assignment?: TableTypes<'assignment'>;
 }
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
@@ -51,9 +52,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const history = useHistory();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
+  const [modalText, setModalText] = useState('');
   const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
-    null
+    null,
   );
   const [rewardRiveContainer, setRewardRiveContainer] =
     useState<HTMLDivElement | null>(null);
@@ -63,13 +64,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   >(RewardBoxState.IDLE);
 
   const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
-    useState<string>("State Machine 3");
+    useState<string>('State Machine 3');
   const [chimpleRiveInputName, setChimpleRiveInputName] =
-    useState<string>("Number 2");
+    useState<string>('Number 2');
   const [chimpleRiveStateValue, setChimpleRiveStateValue] = useState<number>(1);
   const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
     string | undefined
-  >("id");
+  >('id');
   const [mascotKey, setMascotKey] = useState(0);
 
   const {
@@ -79,8 +80,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     shouldShowDailyRewardModal,
   } = useReward();
 
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
 
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [isRewardPathLoaded, setIsRewardPathLoaded] = useState(false);
@@ -89,36 +90,36 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const [homeworkLessons, setHomeworkLessons] = useState<any[]>([]);
 
   const inactiveText = t(
-    "This lesson is locked. Play the current active lesson."
+    'This lesson is locked. Play the current active lesson.',
   );
-  const rewardText = t("Complete these lessons to earn rewards.");
+  const rewardText = t('Complete these lessons to earn rewards.');
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
-    HOMEWORK_REMOTE_ASSETS_ENABLED
+    HOMEWORK_REMOTE_ASSETS_ENABLED,
   );
 
   const isRewardFeatureOn: boolean =
-    localStorage.getItem(HOMEWORK_PATHWAY) === "true";
+    localStorage.getItem(HOMEWORK_PATHWAY) === 'true';
 
   const shouldAnimate = modalText === rewardText;
 
   const fetchLocalSVGGroup = async (
     path: string,
-    className?: string
+    className?: string,
   ): Promise<SVGGElement> => {
     const file = await Filesystem.readFile({
       path,
       directory: Directory.External,
     });
     const svgText = atob(file.data as string);
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     group.innerHTML = svgText;
-    if (className) group.setAttribute("class", className);
+    if (className) group.setAttribute('class', className);
     return group;
   };
 
   const loadHaloAnimation = async (
     localPath: string,
-    webPath: string
+    webPath: string,
   ): Promise<string> => {
     if (Capacitor.isNativePlatform() && shouldShowHomeworkRemoteAssets) {
       try {
@@ -128,7 +129,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         });
         return `data:image/svg+xml;base64,${file.data}`;
       } catch (err) {
-        console.warn("Fallback to web asset for:", webPath, err);
+        logger.warn('Fallback to web asset for:', webPath, err);
         return webPath;
       }
     }
@@ -138,7 +139,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const tryFetchSVG = async (
     localPath: string,
     webPath: string,
-    name: string
+    name: string,
   ) => {
     if (Capacitor.isNativePlatform() && shouldShowHomeworkRemoteAssets) {
       try {
@@ -153,13 +154,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
   const fetchSVGGroup = async (
     url: string,
-    className?: string
+    className?: string,
   ): Promise<SVGGElement> => {
     const res = await fetch(url);
     const svgContent = await res.text();
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     group.innerHTML = svgContent;
-    if (className) group.setAttribute("class", className);
+    if (className) group.setAttribute('class', className);
     return group;
   };
 
@@ -169,29 +170,29 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     height?: number,
     x?: number,
     y?: number,
-    opacity?: number
+    opacity?: number,
   ) => {
     const image = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "image"
+      'http://www.w3.org/2000/svg',
+      'image',
     );
-    image.setAttribute("href", href);
-    if (width) image.setAttribute("width", `${width}`);
-    if (height) image.setAttribute("height", `${height}`);
-    if (x) image.setAttribute("x", `${x}`);
-    if (y) image.setAttribute("y", `${y}`);
+    image.setAttribute('href', href);
+    if (width) image.setAttribute('width', `${width}`);
+    if (height) image.setAttribute('height', `${height}`);
+    if (x) image.setAttribute('x', `${x}`);
+    if (y) image.setAttribute('y', `${y}`);
     if (opacity !== undefined) {
-      image.setAttribute("opacity", opacity.toString());
+      image.setAttribute('opacity', opacity.toString());
     }
     image.onerror = () => {
-      image.setAttribute("href", "assets/icons/DefaultIcon.png");
+      image.setAttribute('href', 'assets/icons/DefaultIcon.png');
     };
     return image;
   };
 
   const loadPathwayContent = async (
     path: string,
-    webPath: string
+    webPath: string,
   ): Promise<string> => {
     if (shouldShowHomeworkRemoteAssets && Capacitor.isNativePlatform()) {
       try {
@@ -226,7 +227,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       sessionStorage.setItem(key, JSON.stringify(lesson));
       return lesson;
     } catch (e) {
-      console.warn("Could not fetch lesson details (offline)", e);
+      logger.warn('Could not fetch lesson details (offline)', e);
       return {};
     }
   };
@@ -243,11 +244,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     await Promise.all(
       lessons.map((lesson) => {
         const isValidUrl =
-          typeof lesson.image === "string" &&
+          typeof lesson.image === 'string' &&
           /^(https?:\/\/|\/)/.test(lesson.image);
-        const src = isValidUrl ? lesson.image : "assets/icons/DefaultIcon.png";
+        const src = isValidUrl ? lesson.image : 'assets/icons/DefaultIcon.png';
         return preloadImage(src);
-      })
+      }),
     );
   };
 
@@ -265,7 +266,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           const hasLessons = lessons.length > 0;
           const notFinished =
-            typeof existingPath.currentIndex === "number" &&
+            typeof existingPath.currentIndex === 'number' &&
             existingPath.currentIndex < lessons.length;
 
           if (hasLessons && notFinished) {
@@ -281,9 +282,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 lesson: {
                   id: item.lesson_id,
                   cocoslessonid: item.lesson_id,
-                  image: "assets/icons/DefaultIcon.png", // 👈 CRITICAL for SVG
+                  image: 'assets/icons/DefaultIcon.png', // 👈 CRITICAL for SVG
                   subjectid: item.subject_id || lessons[0]?.lesson?.subjectid,
-                  plugin: { type: "COCOS" },
+                  plugin: { type: 'COCOS' },
                 },
                 assignment_id: item.assignment_id ?? item.id,
                 chapter_id: item.chapter_id,
@@ -300,7 +301,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           // ❌ Path empty or finished → remove it
           localStorage.removeItem(HOMEWORK_PATHWAY);
         } catch (err) {
-          console.warn("Invalid cached path, rebuilding...", err);
+          logger.warn('Invalid cached path, rebuilding...', err);
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       }
@@ -312,7 +313,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const all = await api.getPendingAssignments(
         currClass?.id,
-        currentStudent.id
+        currentStudent.id,
       );
       const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
 
@@ -349,30 +350,30 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const completedCounts =
             await api.getCompletedAssignmentsCountForSubjects(
               currentStudent.id,
-              subjectsWithMaxPending
+              subjectsWithMaxPending,
             );
           completedCountBySubject = completedCounts.reduce(
             (acc, { subject_id, completed_count }) => {
               acc[subject_id] = completed_count;
               return acc;
             },
-            {} as { [key: string]: number }
+            {} as { [key: string]: number },
           );
         } catch (e) {
-          console.warn("Could not fetch completed counts (offline)", e);
+          logger.warn('Could not fetch completed counts (offline)', e);
         }
       }
 
       const selected = Util.pickFiveHomeworkLessons(
         pendingAssignments,
-        completedCountBySubject
+        completedCountBySubject,
       );
 
       const lessonsWithDetails = await Promise.all(
         selected.map(async (assignment) => {
           const lesson = await getCachedLesson(assignment.lesson_id);
           return { ...assignment, lesson };
-        })
+        }),
       );
 
       const newHomeworkPath = {
@@ -383,7 +384,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
       setHomeworkLessons(lessonsWithDetails);
     } catch (error) {
-      console.error("Failed to fetch homework lessons:", error);
+      logger.error('Failed to fetch homework lessons:', error);
       setHomeworkLessons([]);
     }
   };
@@ -413,8 +414,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const firstHomeworkItem = lessonsToRender[0];
 
-      let fetchedCourse: TableTypes<"course"> | undefined;
-      let fetchedChapter: TableTypes<"chapter"> | undefined;
+      let fetchedCourse: TableTypes<'course'> | undefined;
+      let fetchedChapter: TableTypes<'chapter'> | undefined;
 
       try {
         const [cData, chData] = await Promise.all([
@@ -424,23 +425,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         fetchedCourse = cData;
         fetchedChapter = chData;
       } catch (err) {
-        console.warn(
-          "Offline: Could not fetch Course/Chapter metadata. Using fallbacks."
+        logger.warn(
+          'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
         );
         // Create minimal fallbacks so the UI doesn't crash
         fetchedCourse = {
           id: firstHomeworkItem.course_id,
-          name: "Course",
-          subject_id: "unknown",
+          name: 'Course',
+          subject_id: 'unknown',
         } as any;
         fetchedChapter = {
           id: firstHomeworkItem.chapter_id,
-          name: "Chapter",
+          name: 'Chapter',
         } as any;
       }
 
       if (!fetchedCourse || !fetchedChapter) {
-        console.error("Could not determine course/chapter data.");
+        logger.error('Could not determine course/chapter data.');
         fetchedCourse = { id: firstHomeworkItem.course_id } as any;
         fetchedChapter = { id: firstHomeworkItem.chapter_id } as any;
       }
@@ -461,38 +462,38 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         haloPath,
       ] = await Promise.all([
         loadPathwayContent(
-          "homeworkRemoteAsset/Pathway2.svg",
-          "/pathwayAssets/English/Pathway2.svg"
+          'homeworkRemoteAsset/Pathway2.svg',
+          '/pathwayAssets/English/Pathway2.svg',
         ),
         tryFetchSVG(
-          "homeworkRemoteAsset/ActiveFruit.svg",
-          "/pathwayAssets/English/ActiveFruit.svg",
-          "fruitActive isSelected"
+          'homeworkRemoteAsset/ActiveFruit.svg',
+          '/pathwayAssets/English/ActiveFruit.svg',
+          'fruitActive isSelected',
         ),
-        fetchSVGGroup("/pathwayAssets/InactiveFruit.svg", "fruitInactive"),
+        fetchSVGGroup('/pathwayAssets/InactiveFruit.svg', 'fruitInactive'),
         tryFetchSVG(
-          "homeworkRemoteAsset/PlayedLessonFruit.svg",
-          "/pathwayAssets/English/PlayedLessonFruit.svg",
-          "playedLessonSVG"
-        ),
-        tryFetchSVG(
-          "homeworkRemoteAsset/mysteryBox1.svg",
-          "/pathwayAssets/English/mysteryBox1.svg",
-          "giftSVG"
+          'homeworkRemoteAsset/PlayedLessonFruit.svg',
+          '/pathwayAssets/English/PlayedLessonFruit.svg',
+          'playedLessonSVG',
         ),
         tryFetchSVG(
-          "homeworkRemoteAsset/mysteryBox2.svg",
-          "/pathwayAssets/English/mysteryBox2.svg",
-          "giftSVG2"
+          'homeworkRemoteAsset/mysteryBox1.svg',
+          '/pathwayAssets/English/mysteryBox1.svg',
+          'giftSVG',
         ),
         tryFetchSVG(
-          "homeworkRemoteAsset/mysteryBox3.svg",
-          "/pathwayAssets/English/mysteryBox3.svg",
-          "giftSVG3"
+          'homeworkRemoteAsset/mysteryBox2.svg',
+          '/pathwayAssets/English/mysteryBox2.svg',
+          'giftSVG2',
+        ),
+        tryFetchSVG(
+          'homeworkRemoteAsset/mysteryBox3.svg',
+          '/pathwayAssets/English/mysteryBox3.svg',
+          'giftSVG3',
         ),
         loadHaloAnimation(
-          "homeworkRemoteAsset/halo.svg",
-          "/pathwayAssets/English/halo.svg"
+          'homeworkRemoteAsset/halo.svg',
+          '/pathwayAssets/English/halo.svg',
         ),
       ]);
 
@@ -500,20 +501,20 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       let chimple: SVGForeignObjectElement | null = null;
       chimple = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "foreignObject"
+        'http://www.w3.org/2000/svg',
+        'foreignObject',
       );
-      chimple.setAttribute("width", "40%");
-      chimple.setAttribute("height", "260%");
+      chimple.setAttribute('width', '40%');
+      chimple.setAttribute('height', '260%');
 
       requestAnimationFrame(async () => {
         if (!containerRef.current) return;
         containerRef.current.innerHTML = svgContent;
-        const svg = containerRef.current.querySelector("svg") as SVGSVGElement;
+        const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
         if (!svg) return;
-        svg.style.overflow = "visible";
+        svg.style.overflow = 'visible';
 
-        const pathGroups = svg.querySelectorAll("g > path");
+        const pathGroups = svg.querySelectorAll('g > path');
         const rawPaths = Array.from(pathGroups) as SVGPathElement[];
 
         const paths = rawPaths
@@ -559,17 +560,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           if (pathIndex < startIndexOffset) {
             const lockedFruit = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
+              'http://www.w3.org/2000/svg',
+              'g',
             );
             lockedFruit.appendChild(
-              playedLessonSVG.cloneNode(true) as SVGGElement
+              playedLessonSVG.cloneNode(true) as SVGGElement,
             );
             // lockedFruit.addEventListener("click", () => {
             //   setModalOpen(true);
             //   setModalText(inactiveText);
             // });
-            lockedFruit.setAttribute("style", "cursor: default;");
+            lockedFruit.setAttribute('style', 'cursor: default;');
             let yOffset = -10;
             if (pathIndex === 4) yOffset = 5;
             if (pathIndex === 2) yOffset += 15;
@@ -594,24 +595,24 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const isActive = lessonIdx === currentIndex;
 
           const isValidUrl =
-            typeof lesson.image === "string" &&
+            typeof lesson.image === 'string' &&
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lesson_image: string =
             isPlayed || isActive
               ? isValidUrl
-                ? lesson.image ?? "assets/icons/DefaultIcon.png"
-                : "assets/icons/DefaultIcon.png"
-              : "assets/icons/NextNodeIcon.svg";
+                ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
+                : 'assets/icons/DefaultIcon.png'
+              : 'assets/icons/NextNodeIcon.svg';
 
           if (lessonIdx < currentIndex) {
             const playedLesson = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
+              'http://www.w3.org/2000/svg',
+              'g',
             );
             const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
             playedLesson.appendChild(
-              playedLessonSVG.cloneNode(true) as SVGGElement
+              playedLessonSVG.cloneNode(true) as SVGGElement,
             );
             playedLesson.appendChild(lessonImage);
 
@@ -632,8 +633,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             fragment.appendChild(playedLesson);
           } else if (lessonIdx === currentIndex) {
             const activeGroup = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
+              'http://www.w3.org/2000/svg',
+              'g',
             );
 
             let activeYOffset = -10;
@@ -657,23 +658,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             }
 
             activeGroup.setAttribute(
-              "transform",
+              'transform',
               `translate(${
                 positionMappings.activeGroup.baseX + activeXOffset
-              }, ${positionMappings.activeGroup.baseY + activeYOffset})`
+              }, ${positionMappings.activeGroup.baseY + activeYOffset})`,
             );
 
             const halo = createSVGImage(haloPath, 140, 140, -15, -12);
             const pointer = createSVGImage(
-              "/pathwayAssets/touchpointer.svg",
+              '/pathwayAssets/touchpointer.svg',
               30,
               30,
               70,
-              90
+              90,
             );
             pointer.setAttribute(
-              "class",
-              "homeworkpathway-structure-animated-pointer"
+              'class',
+              'homeworkpathway-structure-animated-pointer',
             );
             const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
 
@@ -681,13 +682,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.appendChild(fruitActive.cloneNode(true) as SVGGElement);
             activeGroup.appendChild(lessonImage);
             activeGroup.appendChild(pointer);
-            activeGroup.setAttribute("style", "cursor: pointer;");
+            activeGroup.setAttribute('style', 'cursor: pointer;');
 
-            activeGroup.addEventListener("click", () => {
+            activeGroup.addEventListener('click', () => {
               if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                 history.push(PAGES.GAME + params, {
-                  url: "chimple-lib/index.html" + params,
+                  url: 'chimple-lib/index.html' + params,
                   lessonId: lesson.cocos_lesson_id,
                   courseDocId: fetchedCourse?.id,
                   lesson: JSON.stringify(lesson),
@@ -706,7 +707,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     isHomework: true,
                     homeworkIndex: lessonIdx,
-                  }
+                  },
                 );
               } else if (lesson.plugin_type === LIDO) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -725,24 +726,24 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             fragment.appendChild(activeGroup);
           } else {
             const flower_Inactive = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
+              'http://www.w3.org/2000/svg',
+              'g',
             );
 
             const lessonImage = createSVGImage(lesson_image, 30, 30, 27, 29);
             flower_Inactive.appendChild(
-              fruitInactive.cloneNode(true) as SVGGElement
+              fruitInactive.cloneNode(true) as SVGGElement,
             );
             flower_Inactive.appendChild(lessonImage);
 
-            flower_Inactive.addEventListener("click", () => {
+            flower_Inactive.addEventListener('click', () => {
               setModalOpen(true);
               setModalText(inactiveText);
             });
 
             flower_Inactive.setAttribute(
-              "style",
-              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
+              'style',
+              'cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);',
             );
 
             let yOffset = -10;
@@ -765,10 +766,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             placeElement(flower_Inactive as SVGGElement, xPos, yPos);
             if (pathIndex === 0) {
               const prevTransform =
-                flower_Inactive.getAttribute("transform") || "";
+                flower_Inactive.getAttribute('transform') || '';
               flower_Inactive.setAttribute(
-                "transform",
-                `${prevTransform} translate(${extraX}, ${extraY})`.trim()
+                'transform',
+                `${prevTransform} translate(${extraX}, ${extraY})`.trim(),
               );
             }
             fragment.appendChild(flower_Inactive);
@@ -779,15 +780,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         if (endPath) {
           const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
           const Gift_Svg = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "g"
+            'http://www.w3.org/2000/svg',
+            'g',
           );
-          Gift_Svg.setAttribute("style", "cursor: pointer;");
+          Gift_Svg.setAttribute('style', 'cursor: pointer;');
           Gift_Svg.appendChild(giftSVG.cloneNode(true));
           placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40 + 15);
 
           if (currentIndex < pathEndIndex + 1) {
-            Gift_Svg.addEventListener("click", () => {
+            Gift_Svg.addEventListener('click', () => {
               const replaceGiftContent = (newContent: SVGElement) => {
                 while (Gift_Svg.firstChild) {
                   Gift_Svg.removeChild(Gift_Svg.firstChild);
@@ -827,7 +828,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             return;
           }
           const currentLessonIndex = lessons.findIndex(
-            (_, idx) => startIndex + idx === currentIndex
+            (_, idx) => startIndex + idx === currentIndex,
           );
           if (currentLessonIndex < 0) return;
           const previousLessonIndex = currentLessonIndex - 1;
@@ -838,26 +839,26 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           const fromX = xValues[fromPathIndex] ?? 0;
           const toX = xValues[toPathIndex] ?? 0;
-          chimple.setAttribute("x", `${toX - 72}`);
+          chimple.setAttribute('x', `${toX - 72}`);
           let chimpleAnimY = startPoint.y + 18;
           if (window.innerWidth <= 1024) {
             chimpleAnimY -= 12;
           }
-          chimple.setAttribute("y", `${chimpleAnimY}`);
+          chimple.setAttribute('y', `${chimpleAnimY}`);
 
-          chimple.style.display = "block";
-          (chimple.style as any).transformBox = "fill-box";
-          chimple.style.transformOrigin = "0 0";
-          chimple.style.willChange = "transform";
+          chimple.style.display = 'block';
+          (chimple.style as any).transformBox = 'fill-box';
+          chimple.style.transformOrigin = '0 0';
+          chimple.style.willChange = 'transform';
           const fromTranslateX = fromX - 97 - (toX - 87);
-          chimple.style.transition = "none";
+          chimple.style.transition = 'none';
           chimple.style.transform = `translate(${fromTranslateX}px, 0px)`;
           void chimple.getBoundingClientRect();
           requestAnimationFrame(() => {
             if (chimple) {
               chimple.style.transition =
-                "transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)";
-              chimple.style.transform = "translate(0px, 0px)";
+                'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
+              chimple.style.transform = 'translate(0px, 0px)';
             }
           });
         };
@@ -869,7 +870,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             if (!rewardRecord) return;
             setHasTodayReward(false);
             const completedLessonIndex = lessons.findIndex(
-              (_, idx) => startIndex + idx === currentIndex - 1
+              (_, idx) => startIndex + idx === currentIndex - 1,
             );
 
             const completedLessonPathIndex =
@@ -882,19 +883,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               ] ?? 0;
 
             const rewardForeignObject = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "foreignObject"
+              'http://www.w3.org/2000/svg',
+              'foreignObject',
             );
-            rewardForeignObject.setAttribute("width", "140");
-            rewardForeignObject.setAttribute("height", "140");
-            rewardForeignObject.setAttribute("x", "0");
-            rewardForeignObject.setAttribute("y", "0");
-            rewardForeignObject.style.display = "block";
-            (rewardForeignObject.style as any).transformBox = "fill-box";
-            rewardForeignObject.style.transformOrigin = "0 0";
-            rewardForeignObject.style.willChange = "transform";
-            rewardForeignObject.style.backfaceVisibility = "hidden";
-            (rewardForeignObject.style as any).contain = "layout paint style";
+            rewardForeignObject.setAttribute('width', '140');
+            rewardForeignObject.setAttribute('height', '140');
+            rewardForeignObject.setAttribute('x', '0');
+            rewardForeignObject.setAttribute('y', '0');
+            rewardForeignObject.style.display = 'block';
+            (rewardForeignObject.style as any).transformBox = 'fill-box';
+            rewardForeignObject.style.transformOrigin = '0 0';
+            rewardForeignObject.style.willChange = 'transform';
+            rewardForeignObject.style.backfaceVisibility = 'hidden';
+            (rewardForeignObject.style as any).contain = 'layout paint style';
             const fromX = 570,
               fromY = 110;
             const toX = destinationX - 27,
@@ -914,7 +915,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 tVal: number,
                 p0: number,
                 p1: number,
-                p2: number
+                p2: number,
               ) =>
                 (1 - tVal) ** 2 * p0 +
                 2 * (1 - tVal) * tVal * p1 +
@@ -932,28 +933,28 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             const onBoxArrival = async () => {
               setRewardRiveState(RewardBoxState.BLAST);
               await delay(2000);
-              setChimpleRiveStateMachineName("State Machine 2");
-              setChimpleRiveInputName("Number 1");
+              setChimpleRiveStateMachineName('State Machine 2');
+              setChimpleRiveInputName('Number 1');
               setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
               setChimpleRiveAnimationName(undefined);
               setMascotKey((prev) => prev + 1);
               await delay(500);
-              rewardForeignObject.style.display = "none";
+              rewardForeignObject.style.display = 'none';
               await delay(1000);
               await updateMascotToNormalState(newRewardId);
               await delay(500);
               animateChimpleMovement();
             };
-            const rewardDiv = document.createElement("div");
-            rewardDiv.style.width = "100%";
-            rewardDiv.style.height = "100%";
+            const rewardDiv = document.createElement('div');
+            rewardDiv.style.width = '100%';
+            rewardDiv.style.height = '100%';
             rewardForeignObject.appendChild(rewardDiv);
             svg.appendChild(rewardForeignObject);
             setRewardRiveContainer(rewardDiv);
             requestAnimationFrame(animateBezier);
             await Util.updateUserReward();
           } catch (e) {
-            console.warn("Reward animation failed offline", e);
+            logger.warn('Reward animation failed offline', e);
           }
         };
 
@@ -961,12 +962,12 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         try {
           newRewardId = await checkAndUpdateReward();
         } catch (e) {
-          console.warn("Check Reward failed offline", e);
+          logger.warn('Check Reward failed offline', e);
         }
 
         if (
           newRewardId !== null &&
-          typeof newRewardId === "string" &&
+          typeof newRewardId === 'string' &&
           isRewardFeatureOn
         ) {
           runRewardAnimation(newRewardId);
@@ -976,7 +977,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
         if (chimple) {
           const currentLessonIdx = lessons.findIndex(
-            (_, idx) => startIndex + idx === currentIndex
+            (_, idx) => startIndex + idx === currentIndex,
           );
           const lastCompletedLessonIdx = currentLessonIdx - 1;
           const chimpleXValues = [-60, 66, 360, 295, 412];
@@ -989,35 +990,35 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             const currentPathIndex = startIndexOffset + currentLessonIdx;
             const safePathIndex = Math.min(
               Math.max(currentPathIndex, 0),
-              xValues.length - 1
+              xValues.length - 1,
             );
-            chimple.setAttribute("x", `${xValues[safePathIndex] - 175}`);
+            chimple.setAttribute('x', `${xValues[safePathIndex] - 175}`);
           } else {
             const lastCompletedPathIndex =
               startIndexOffset + lastCompletedLessonIdx;
             const safePathIndex = Math.min(
               Math.max(lastCompletedPathIndex, 0),
-              chimpleXValues.length - 1
+              chimpleXValues.length - 1,
             );
-            chimple.setAttribute("x", `${chimpleXValues[safePathIndex]}`);
+            chimple.setAttribute('x', `${chimpleXValues[safePathIndex]}`);
           }
 
           let chimpleBaseY = startPoint.y - 12;
           if (window.innerWidth <= 1024) {
             chimpleBaseY -= 12;
           }
-          chimple.setAttribute("y", `${chimpleBaseY}`);
-          chimple.style.pointerEvents = "none";
-          const riveWrapper = document.createElement("div");
-          riveWrapper.className = "homeworkpathway-mascot-wrapper";
-          riveWrapper.style.width = "100%";
-          riveWrapper.style.height = "100%";
+          chimple.setAttribute('y', `${chimpleBaseY}`);
+          chimple.style.pointerEvents = 'none';
+          const riveWrapper = document.createElement('div');
+          riveWrapper.className = 'homeworkpathway-mascot-wrapper';
+          riveWrapper.style.width = '100%';
+          riveWrapper.style.height = '100%';
 
-          riveWrapper.style.transform = "scale(1.01)";
-          riveWrapper.style.transformOrigin = "bottom center";
-          const riveDiv = document.createElement("div");
-          riveDiv.style.width = "100%";
-          riveDiv.style.height = "100%";
+          riveWrapper.style.transform = 'scale(1.01)';
+          riveWrapper.style.transformOrigin = 'bottom center';
+          const riveDiv = document.createElement('div');
+          riveDiv.style.width = '100%';
+          riveDiv.style.height = '100%';
 
           riveWrapper.appendChild(riveDiv);
           chimple.appendChild(riveWrapper);
@@ -1029,12 +1030,12 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const endTime = performance.now();
       });
     } catch (error) {
-      console.error("Failed to load SVG:", error);
+      logger.error('Failed to load SVG:', error);
     }
   };
 
   const placeElement = (element: SVGGElement, x: number, y: number) => {
-    element.setAttribute("transform", `translate(${x}, ${y})`);
+    element.setAttribute('transform', `translate(${x}, ${y})`);
   };
 
   useEffect(() => {
@@ -1046,7 +1047,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       loadSVG();
     } else {
       if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+        containerRef.current.innerHTML = '';
       }
     }
   }, [homeworkLessons]);
@@ -1057,7 +1058,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const showModal = await shouldShowDailyRewardModal();
         setRewardModalOpen(showModal);
       } catch (e) {
-        console.warn("Reward Modal Check failed offline");
+        logger.warn('Reward Modal Check failed offline');
       }
     };
     if (isRewardFeatureOn) {
@@ -1068,20 +1069,20 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const updateMascotToNormalState = async (rewardId: string) => {
     try {
       const rewardRecord = await api.getRewardById(rewardId);
-      if (rewardRecord && rewardRecord.type === "normal") {
+      if (rewardRecord && rewardRecord.type === 'normal') {
         setChimpleRiveStateMachineName(
-          rewardRecord.state_machine || "State Machine 3"
+          rewardRecord.state_machine || 'State Machine 3',
         );
-        setChimpleRiveInputName(rewardRecord.state_input_name || "Number 2");
+        setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
         setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
         setChimpleRiveAnimationName(undefined);
         setMascotKey((prev) => prev + 1);
       } else {
-        setChimpleRiveAnimationName("id");
+        setChimpleRiveAnimationName('id');
         setMascotKey((prev) => prev + 1);
       }
     } catch (e) {
-      console.warn("Update mascot failed offline", e);
+      logger.warn('Update mascot failed offline', e);
     }
   };
 
@@ -1116,7 +1117,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
         history.push(PAGES.GAME + params, {
-          url: "chimple-lib/index.html" + params,
+          url: 'chimple-lib/index.html' + params,
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
           course: JSON.stringify(currentCourse),
@@ -1135,7 +1136,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             from: history.location.pathname + `?${CONTINUE}=true`,
             isHomework: true,
             reward: true,
-          }
+          },
         );
       } else if (lesson.plugin_type === LIDO) {
         const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -1151,7 +1152,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         });
       }
     } catch (error) {
-      console.error("Error in playLesson:", error);
+      logger.error('Error in playLesson:', error);
     }
   };
 
@@ -1177,13 +1178,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               animationName={chimpleRiveAnimationName}
             />
           </div>,
-          riveContainer
+          riveContainer,
         )}
 
       {rewardRiveContainer &&
         ReactDOM.createPortal(
           <RewardRive rewardRiveState={rewardRiveState} />,
-          rewardRiveContainer
+          rewardRiveContainer,
         )}
 
       {hasTodayReward && isRewardFeatureOn && (
@@ -1192,7 +1193,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       {rewardModalOpen && isRewardFeatureOn && (
         <DailyRewardModal
-          text={t("Play one lesson and collect your daily reward!")}
+          text={t('Play one lesson and collect your daily reward!')}
           onClose={handleClose}
           onPlay={handleOnPlay}
         />

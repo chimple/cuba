@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Typography,
@@ -6,15 +6,15 @@ import {
   Paper,
   Chip,
   Drawer,
-} from "@mui/material";
+} from '@mui/material';
 
-import CloseIcon from "@mui/icons-material/Close";
-import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
-import { OpsUtil } from "../OpsUtility/OpsUtil";
-import { t } from "i18next";
-import { FcActivity } from "../../interface/modelInterfaces";
-import MediaDisplay , { MediaItem } from "../components/MediaDisplay";
-
+import CloseIcon from '@mui/icons-material/Close';
+import { PERFORMANCE_UI, PerformanceLevel } from '../../common/constants';
+import { OpsUtil } from '../OpsUtility/OpsUtil';
+import { t } from 'i18next';
+import { FcActivity } from '../../interface/modelInterfaces';
+import MediaDisplay, { MediaItem } from '../components/MediaDisplay';
+import logger from '../../utility/logger';
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak  (with ID)
@@ -32,21 +32,21 @@ const InfoRow = ({
     id={id}
     data-testid={id}
     sx={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
       gap: 1,
       mb: 1,
     }}
   >
     <Typography
       sx={{
-        fontSize: "14px",
+        fontSize: '14px',
         fontWeight: 500,
-        color: "text.secondary",
-        width: "90px",
-        textAlign: "left",
-        whiteSpace: "nowrap",
+        color: 'text.secondary',
+        width: '90px',
+        textAlign: 'left',
+        whiteSpace: 'nowrap',
       }}
     >
       {label}:
@@ -54,11 +54,11 @@ const InfoRow = ({
 
     <Typography
       sx={{
-        fontSize: "14px",
+        fontSize: '14px',
         fontWeight: 600,
-        color: "text.primary",
-        textAlign: "left",
-        whiteSpace: "nowrap",
+        color: 'text.primary',
+        textAlign: 'left',
+        whiteSpace: 'nowrap',
       }}
     >
       {value}
@@ -83,9 +83,9 @@ const DetailSection = ({
       <Typography
         sx={{
           fontWeight: 600,
-          fontSize: "15px",
+          fontSize: '15px',
           mb: 1,
-          textAlign: "left",
+          textAlign: 'left',
         }}
       >
         {label}
@@ -96,18 +96,17 @@ const DetailSection = ({
         sx={{
           p: 2,
           borderRadius: 2,
-          border: "1px solid #e0e0e0",
-          bgcolor: "#fafafa",
-          fontSize: "14px",
-          whiteSpace: "pre-line",
+          border: '1px solid #e0e0e0',
+          bgcolor: '#fafafa',
+          fontSize: '14px',
+          whiteSpace: 'pre-line',
         }}
       >
-        {text || "--"}
+        {text || '--'}
       </Paper>
     </Box>
   );
 };
-
 
 /* -------------------------------------------------------
    MAIN PANEL
@@ -118,19 +117,18 @@ interface Props {
 }
 
 const CALL_STATUS_LABEL: Record<string, string> = {
-  call_picked: t("Call Attended"),
-  call_later: t("Call Later"),
-  call_not_reachable: t("No Response"),
+  call_picked: t('Call Attended'),
+  call_later: t('Call Later'),
+  call_not_reachable: t('No Response'),
 };
 
 const isValidText = (value?: string) => {
   if (!value) return false;
   const trimmed = value.trim();
-  return trimmed !== "" && trimmed !== "--";
+  return trimmed !== '' && trimmed !== '--';
 };
 
-
-const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose}) => {
+const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
   if (!activity) return null;
 
   const { raw, user, classInfo } = activity;
@@ -138,43 +136,43 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose}) => {
   const perf = PERFORMANCE_UI[raw.support_level as PerformanceLevel];
 
   const contactType =
-    raw.contact_target.charAt(0).toUpperCase() +
-    raw.contact_target.slice(1);
+    raw.contact_target.charAt(0).toUpperCase() + raw.contact_target.slice(1);
 
   const callOutcome =
-    CALL_STATUS_LABEL[raw.call_status] || raw.call_status || "--";
+    CALL_STATUS_LABEL[raw.call_status] || raw.call_status || '--';
 
   let questionAnswerPairs: Record<string, string> = {};
 
   try {
     questionAnswerPairs =
-      typeof raw.question_response === "string"
+      typeof raw.question_response === 'string'
         ? JSON.parse(raw.question_response)
         : raw.question_response || {};
   } catch (error) {
     questionAnswerPairs = {};
   }
 
-  const otherComments = raw.comment || "--";
+  const otherComments = raw.comment || '--';
   let mediaItems: MediaItem[] = [];
 
-if (raw.media_links) {
-  try {
-    const links: string[] =
-      typeof raw.media_links === "string"
-        ? JSON.parse(raw.media_links)
-        : [];
+  if (raw.media_links) {
+    try {
+      const links: string[] =
+        typeof raw.media_links === 'string' ? JSON.parse(raw.media_links) : [];
 
-    mediaItems = links.map((url) => ({
-      url,
-      type: url.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|mpg|mpeg|3gp|m4v)$/i) ? "video" : "image",
-    }));
-  } catch (err) {
-    console.error("Invalid media_links JSON", err);
-    mediaItems = [];
+      mediaItems = links.map((url) => ({
+        url,
+        type: url
+          .toLowerCase()
+          .match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|mpg|mpeg|3gp|m4v)$/i)
+          ? 'video'
+          : 'image',
+      }));
+    } catch (err) {
+      logger.error('Invalid media_links JSON', err);
+      mediaItems = [];
+    }
   }
-}
-
 
   return (
     <Drawer
@@ -185,7 +183,7 @@ if (raw.media_links) {
         sx: {
           width: 520,
           p: 3,
-          bgcolor: "#ffffff",
+          bgcolor: '#ffffff',
         },
       }}
     >
@@ -198,10 +196,14 @@ if (raw.media_links) {
         alignItems="center"
       >
         <Typography variant="h6" fontWeight={600}>
-          {t("Details")}
+          {t('Details')}
         </Typography>
 
-        <IconButton id="fc-close-btn" data-testid="fc-close-btn" onClick={onClose}>
+        <IconButton
+          id="fc-close-btn"
+          data-testid="fc-close-btn"
+          onClick={onClose}
+        >
           <CloseIcon />
         </IconButton>
       </Box>
@@ -212,23 +214,31 @@ if (raw.media_links) {
         data-testid="fc-top-info-card"
         elevation={0}
         sx={{
-          border: "1px solid #e0e0e0",
+          border: '1px solid #e0e0e0',
           borderRadius: 2,
           pt: 1.5,
           pb: 0.3,
           px: 1.5,
           mb: 4,
-          bgcolor: "#ffffff",
+          bgcolor: '#ffffff',
         }}
       >
         <Box display="flex" justifyContent="space-between">
           {/* LEFT */}
           <Box>
-            <InfoRow id="fc-name" label={t("Name")} value={user?.name ?? "--"} />
-            <InfoRow id="fc-grade" label={t("Grade")} value={classInfo?.name ?? "--"} />
+            <InfoRow
+              id="fc-name"
+              label={t('Name')}
+              value={user?.name ?? '--'}
+            />
+            <InfoRow
+              id="fc-grade"
+              label={t('Grade')}
+              value={classInfo?.name ?? '--'}
+            />
             <InfoRow
               id="fc-contact-type"
-              label={t("Contact Type")}
+              label={t('Contact Type')}
               value={contactType}
             />
           </Box>
@@ -237,10 +247,10 @@ if (raw.media_links) {
           <Box textAlign="right">
             <InfoRow
               id="fc-profile-status"
-              label={t("Profile Status")}
+              label={t('Profile Status')}
               value={
                 <Chip
-                  label={perf?.label ?? t("NA")}
+                  label={perf?.label ?? t('NA')}
                   size="small"
                   sx={{
                     bgcolor: perf?.bgColor,
@@ -253,26 +263,26 @@ if (raw.media_links) {
 
             <InfoRow
               id="fc-time"
-              label={t("Time")}
+              label={t('Time')}
               value={OpsUtil.formatTimeToIST(raw.created_at)}
             />
 
             <InfoRow
               id="fc-tech-issues"
-              label={t("Tech Issues")}
+              label={t('Tech Issues')}
               value={
                 raw.tech_issues_reported ? (
                   <Chip
-                    label={t("Yes")}
+                    label={t('Yes')}
                     size="small"
                     sx={{
-                      bgcolor: "#fff3cd",
-                      color: "#b26a00",
+                      bgcolor: '#fff3cd',
+                      color: '#b26a00',
                       fontWeight: 600,
                     }}
                   />
                 ) : (
-                  "--"
+                  '--'
                 )
               }
             />
@@ -283,24 +293,22 @@ if (raw.media_links) {
       {/* SECTIONS */}
       <DetailSection
         id="fc-call-outcome"
-        label={t("Call Outcome")}
+        label={t('Call Outcome')}
         text={callOutcome}
       />
 
-      {Object.entries(questionAnswerPairs).map(
-        ([question, answer], index) => (
-          <DetailSection
-            key={index}
-            id={`fc-question-${index}`}
-            label={question}
-            text={answer}
-          />
-        )
-      )}
+      {Object.entries(questionAnswerPairs).map(([question, answer], index) => (
+        <DetailSection
+          key={index}
+          id={`fc-question-${index}`}
+          label={question}
+          text={answer}
+        />
+      ))}
 
       <DetailSection
         id="fc-other-comments"
-        label={t("Any other questions or comments?")}
+        label={t('Any other questions or comments?')}
         text={otherComments}
       />
 
@@ -308,20 +316,16 @@ if (raw.media_links) {
         isValidText(raw.tech_issue_comment) && (
           <DetailSection
             id="fc-tech-issue-reported"
-            label={t("Tech Issue Reported")}
-            text={raw.tech_issue_comment ?? ""}
+            label={t('Tech Issue Reported')}
+            text={raw.tech_issue_comment ?? ''}
           />
-        )
-      }
+        )}
 
       <MediaDisplay
         id="fc-media"
-        label={t("Attached Media")}
+        label={t('Attached Media')}
         media={mediaItems}
       />
-
-
-
     </Drawer>
   );
 };

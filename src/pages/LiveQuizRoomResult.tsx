@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
-import "./LiveQuizRoomResult.css";
-import { ServiceConfig } from "../services/ServiceConfig";
-import StudentAvatar from "../components/common/StudentAvatar";
-import Confetti from "react-confetti";
-import NextButton from "../components/common/NextButton";
-import { useHistory } from "react-router";
-import { PAGES, TableTypes } from "../common/constants";
-import { GiCrown } from "react-icons/gi";
-import { t } from "i18next";
-import { IonPage } from "@ionic/react";
+import React, { useEffect, useState } from 'react';
+import './LiveQuizRoomResult.css';
+import { ServiceConfig } from '../services/ServiceConfig';
+import StudentAvatar from '../components/common/StudentAvatar';
+import Confetti from 'react-confetti';
+import NextButton from '../components/common/NextButton';
+import { useHistory } from 'react-router';
+import { PAGES, TableTypes } from '../common/constants';
+import { GiCrown } from 'react-icons/gi';
+import { t } from 'i18next';
+import { IonPage } from '@ionic/react';
+import logger from '../utility/logger';
 
 const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<
-    TableTypes<"user">[]
+    TableTypes<'user'>[]
   >([]);
-  const [students, setStudents] = useState<Map<String, TableTypes<"user">>>(
-    new Map()
+  const [students, setStudents] = useState<Map<String, TableTypes<'user'>>>(
+    new Map(),
   );
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
@@ -24,10 +25,12 @@ const LiveQuizRoomResult: React.FC = () => {
     totalScore: number;
     totalTimeSpent: number;
   };
-  const [sortedStudentScores, setSortedStudentScores] = useState<Participant[]>([]);
+  const [sortedStudentScores, setSortedStudentScores] = useState<Participant[]>(
+    [],
+  );
   const [isCongratsVisible, setCongratsVisible] = useState(true);
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
+  const paramLiveRoomId = urlSearchParams.get('liveRoomId') ?? '';
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
@@ -36,12 +39,12 @@ const LiveQuizRoomResult: React.FC = () => {
 
   async function init() {
     try {
-      const tempStudentMap = new Map<String, TableTypes<"user">>();
+      const tempStudentMap = new Map<String, TableTypes<'user'>>();
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classId = liveQuizRoomDoc?.class_id;
       if (!!classId) {
         const results = await api.getStudentResultsByAssignmentId(
-          liveQuizRoomDoc.assignment_id
+          liveQuizRoomDoc.assignment_id,
         );
         const studentsData = results[0];
         studentsData.user_data.map((student) => {
@@ -53,7 +56,7 @@ const LiveQuizRoomResult: React.FC = () => {
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
       const parsedResults =
         liveQuizRoomResults &&
-        typeof liveQuizRoomResults === "object" &&
+        typeof liveQuizRoomResults === 'object' &&
         !Array.isArray(liveQuizRoomResults)
           ? (liveQuizRoomResults as Record<
               string,
@@ -66,12 +69,12 @@ const LiveQuizRoomResult: React.FC = () => {
           const studentResult = parsedResults[studentDocId];
           const totalScore = studentResult.reduce(
             (acc: number, question) => acc + question.score,
-            0
+            0,
           );
 
           const totalTimeSpent = studentResult.reduce(
             (acc: number, question) => acc + question.timeSpent,
-            0
+            0,
           );
           studentResults.push({
             studentDocId,
@@ -94,11 +97,11 @@ const LiveQuizRoomResult: React.FC = () => {
         const topThreePerformers = sortedScores.slice(0, 3);
         const topThreeStudents = topThreePerformers
           .map((perf) => tempStudentMap.get(perf.studentDocId))
-          .filter((student) => !!student) as TableTypes<"user">[];
+          .filter((student) => !!student) as TableTypes<'user'>[];
         setTopThreeStudents(topThreeStudents);
       }
     } catch (error) {
-      console.error("Error fetching LiveQuizRoom data:", error);
+      logger.error('Error fetching LiveQuizRoom data:', error);
     }
     setTimeout(() => {
       setCongratsVisible(false);
@@ -108,11 +111,11 @@ const LiveQuizRoomResult: React.FC = () => {
 
   const handleNextClick = () => {
     history.replace(
-      PAGES.LIVE_QUIZ_LEADERBOARD + "?liveRoomId=" + paramLiveRoomId
+      PAGES.LIVE_QUIZ_LEADERBOARD + '?liveRoomId=' + paramLiveRoomId,
     );
   };
   function getOrdinal(number: number): string {
-    const suffixes = ["th", "st", "nd", "rd"];
+    const suffixes = ['th', 'st', 'nd', 'rd'];
     const v = number % 100;
     return v + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   }
@@ -150,7 +153,7 @@ const LiveQuizRoomResult: React.FC = () => {
         </div>
         {showConfetti && isCongratsVisible && (
           <p id="congrats-text">
-            <i>{t("Congratulations!")}</i>
+            <i>{t('Congratulations!')}</i>
           </p>
         )}
         <div className="top-performers-horizontal">

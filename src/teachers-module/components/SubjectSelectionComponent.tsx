@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { IonButton, IonIcon } from "@ionic/react";
-import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
-import "./SubjectSelectionComponent.css";
-import { t } from "i18next";
+import React, { useState } from 'react';
+import { IonButton, IonIcon } from '@ionic/react';
+import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+import './SubjectSelectionComponent.css';
+import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 interface SubjectSelectionProps {
   curriculumsWithCourses: {
@@ -38,7 +39,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
     try {
       await onConfirm(); // Call the onConfirm function, assuming it returns a Promise
     } catch (error) {
-      console.error("Error during confirmation:", error);
+      logger.error('Error during confirmation:', error);
     } finally {
       setLoading(false); // Re-enable the button after the operation
     }
@@ -47,11 +48,11 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
   return (
     <div className="subject-selection-container">
       <div className="subject-selection-header">
-        <h3 className="main-title">{t("Subjects")}</h3>
+        <h3 className="main-title">{t('Subjects')}</h3>
         <p className="sub-title">
           {schoolId
-            ? t("Choose Subjects to add to your school")
-            : t("Choose Subjects to add to your class")}
+            ? t('Choose Subjects to add to your school')
+            : t('Choose Subjects to add to your class')}
         </p>
       </div>
       {curriculumsWithCourses.map(({ curriculum, courses }) => (
@@ -68,8 +69,8 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
               <div key={course.id} className="subject-item">
                 <div className="subject-selection-div">
                   <img
-                    src={course?.image || "assets/icons/DefaultIcon.png"}
-                    alt={course.name || "Default Subject Icon"}
+                    src={course?.image || 'assets/icons/DefaultIcon.png'}
+                    alt={course.name || 'Default Subject Icon'}
                     className="subject-icon"
                   />
                   {t(course.name)}
@@ -78,7 +79,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
                   id="checkbox-sub"
                   className={`subject-page-checkbox ${
-                    isSelected ? "selected" : ""
+                    isSelected ? 'selected' : ''
                   }`}
                   onClick={() => onSubjectSelection(course.id)}
                 />
@@ -91,13 +92,13 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
         <IonButton
           className={`confirm-button-in-subject-page ${
             loading || selectedSubjects.length === 0
-              ? "disabled-confirm-button"
-              : ""
+              ? 'disabled-confirm-button'
+              : ''
           }`}
           onClick={handleConfirmClick}
           disabled={loading || selectedSubjects.length === 0}
         >
-          {loading ? t("processing") : t("Confirm")}
+          {loading ? t('processing') : t('Confirm')}
         </IonButton>
       </div>
     </div>

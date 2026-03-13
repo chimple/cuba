@@ -1,23 +1,29 @@
 // SchoolDetailsPage.tsx
-import React, { useEffect, useState } from "react";
-import "./SchoolDetailsPage.css";
+import React, { useEffect, useState } from 'react';
+import './SchoolDetailsPage.css';
 import { Toast } from '@capacitor/toast';
-import { Box } from "@mui/material";
-import { t } from "i18next";
-import { CircularProgress } from "@mui/material";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
-import Breadcrumb from "../components/Breadcrumb";
-import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
-import { TableTypes } from "../../common/constants";
-import SchoolCheckInModal from "../components/SchoolDetailsComponents/SchoolCheckInModal";
-import { SchoolVisitAction, SchoolVisitStatus, SchoolVisitType, SchoolVisitTypeLabels } from "../../common/constants";
-import { Button, Menu, MenuItem, Divider } from "@mui/material";
+import { Box } from '@mui/material';
+import { t } from 'i18next';
+import { CircularProgress } from '@mui/material';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import Breadcrumb from '../components/Breadcrumb';
+import SchoolDetailsTabsComponent from '../components/SchoolDetailsComponents/SchoolDetailsTabsComponent';
+import { TableTypes } from '../../common/constants';
+import SchoolCheckInModal from '../components/SchoolDetailsComponents/SchoolCheckInModal';
+import {
+  SchoolVisitAction,
+  SchoolVisitStatus,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from '../../common/constants';
+import { Button, Menu, MenuItem, Divider } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
-import { SchoolTabs } from "../../interface/modelInterfaces";
-import { NOTES_UPDATED_EVENT } from "../../common/constants";
+import AddNoteModal from '../components/SchoolDetailsComponents/AddNoteModal';
+import { SchoolTabs } from '../../interface/modelInterfaces';
+import { NOTES_UPDATED_EVENT } from '../../common/constants';
+import logger from '../../utility/logger';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -27,8 +33,8 @@ function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 600);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
   return isMobile;
 }
@@ -48,13 +54,13 @@ export type FCSchoolStats = {
   teachers_interacted: number;
 };
 
-export type ClassWithDetails = TableTypes<"class"> & {
-  subjects?: TableTypes<"course">[];
+export type ClassWithDetails = TableTypes<'class'> & {
+  subjects?: TableTypes<'course'>[];
   subjectsNames?: string;
   curriculumNames?: string;
-  course_links?: TableTypes<"class_course">[];
-  courses?: TableTypes<"course">[];
-  curriculum?: TableTypes<"curriculum">[];
+  course_links?: TableTypes<'class_course'>[];
+  courses?: TableTypes<'course'>[];
+  curriculum?: TableTypes<'curriculum'>[];
   studentCount?: number;
 };
 
@@ -115,68 +121,77 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       setShowAddModal(false);
 
       // dispatch event so Notes tab component can update if it listens to this
-      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
+      window.dispatchEvent(
+        new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }),
+      );
 
       // switch to Notes tab
       setActiveTab(SchoolTabs.Notes);
     } catch (err) {
-      console.error("Failed to create note:", err);
+      logger.error('Failed to create note:', err);
       // optional: show UI error (not added to keep changes minimal)
     }
   };
 
-  const [schoolLocation, setSchoolLocation] = useState<{ lat: number; lng: number } | undefined>(undefined);
+  const [schoolLocation, setSchoolLocation] = useState<
+    { lat: number; lng: number } | undefined
+  >(undefined);
 
   useEffect(() => {
     if (data.schoolData?.location_link) {
-        const url = data.schoolData.location_link;
-        let lat: number | null = null;
-        let lng: number | null = null;
+      const url = data.schoolData.location_link;
+      let lat: number | null = null;
+      let lng: number | null = null;
 
-        // 1. Try "data=!3d...!4d..." format (Place specific coordinates)
-        // Example: ...!3d12.8917379!4d77.5486649...
-        const dataRegex = /!3d([+-]?\d+(\.\d+)?)!4d([+-]?\d+(\.\d+)?)/;
-        const dataMatch = url.match(dataRegex);
-        if (dataMatch) {
-            lat = parseFloat(dataMatch[1]);
-            lng = parseFloat(dataMatch[3]);
-        }
+      // 1. Try "data=!3d...!4d..." format (Place specific coordinates)
+      // Example: ...!3d12.8917379!4d77.5486649...
+      const dataRegex = /!3d([+-]?\d+(\.\d+)?)!4d([+-]?\d+(\.\d+)?)/;
+      const dataMatch = url.match(dataRegex);
+      if (dataMatch) {
+        lat = parseFloat(dataMatch[1]);
+        lng = parseFloat(dataMatch[3]);
+      }
 
-        // 2. Try standard query params (q=lat,lng or ll=lat,lng)
-        if (lat === null || lng === null) {
-            const queryRegex = /(?:q|query|ll)=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
-            const queryMatch = url.match(queryRegex);
-            if (queryMatch) {
-                lat = parseFloat(queryMatch[1]);
-                lng = parseFloat(queryMatch[3]);
-            }
+      // 2. Try standard query params (q=lat,lng or ll=lat,lng)
+      if (lat === null || lng === null) {
+        const queryRegex =
+          /(?:q|query|ll)=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+        const queryMatch = url.match(queryRegex);
+        if (queryMatch) {
+          lat = parseFloat(queryMatch[1]);
+          lng = parseFloat(queryMatch[3]);
         }
+      }
 
-        // 3. Try "@lat,lng" format (Viewport center - Fallback)
-        // Example: .../@12.8917371,77.5311559...
-        if (lat === null || lng === null) {
-             const atRegex = /@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
-             const atMatch = url.match(atRegex);
-             if (atMatch) {
-                 lat = parseFloat(atMatch[1]);
-                 lng = parseFloat(atMatch[3]);
-             }
+      // 3. Try "@lat,lng" format (Viewport center - Fallback)
+      // Example: .../@12.8917371,77.5311559...
+      if (lat === null || lng === null) {
+        const atRegex = /@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+        const atMatch = url.match(atRegex);
+        if (atMatch) {
+          lat = parseFloat(atMatch[1]);
+          lng = parseFloat(atMatch[3]);
         }
+      }
 
-        if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
-            setSchoolLocation({ lat, lng });
-        }
+      if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+        setSchoolLocation({ lat, lng });
+      }
     }
   }, [data.schoolData]);
 
   // Check-In Logic
-  const [checkInStatus, setCheckInStatus] = useState<SchoolVisitStatus>(SchoolVisitStatus.CheckedOut);
+  const [checkInStatus, setCheckInStatus] = useState<SchoolVisitStatus>(
+    SchoolVisitStatus.CheckedOut,
+  );
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
-  
+
   // Dropdown state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(SchoolVisitType.Regular);
+  const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(
+    SchoolVisitType.Regular,
+  );
   const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
@@ -192,22 +207,26 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     fetchVisitStatus();
   }, [id]);
 
-  const handleOpenCheckInMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-      setAnchorEl(event.currentTarget);
+  const handleOpenCheckInMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setAnchorEl(event.currentTarget);
   };
 
   const handleCloseMenu = () => {
-      setAnchorEl(null);
+    setAnchorEl(null);
   };
 
   const handleSelectVisitType = (type: SchoolVisitType) => {
-      setSelectedVisitType(type);
-      handleCloseMenu();
-      handleOpenCheckInModal();
+    setSelectedVisitType(type);
+    handleCloseMenu();
+    handleOpenCheckInModal();
   };
 
   const handleOpenCheckInModal = () => {
-    const hasCheckedInBefore = localStorage.getItem(`has_checked_in_before_${id}`);
+    const hasCheckedInBefore = localStorage.getItem(
+      `has_checked_in_before_${id}`,
+    );
     setIsFirstTimeCheckIn(!hasCheckedInBefore);
     setIsCheckInModalOpen(true);
   };
@@ -215,7 +234,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const handleConfirmCheckInAction = async (
     lat?: number,
     lng?: number,
-    distance?: number
+    distance?: number,
   ) => {
     setIsCheckInModalOpen(false);
     const api = ServiceConfig.getI().apiHandler;
@@ -229,11 +248,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             lng,
             SchoolVisitAction.CheckIn,
             selectedVisitType,
-            distance
+            distance,
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedIn);
-            await Toast.show({ text: t("Checked in successfully!") });
+            await Toast.show({ text: t('Checked in successfully!') });
           }
         }
       } else {
@@ -245,19 +264,19 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             lng,
             SchoolVisitAction.CheckOut,
             undefined,
-            distance
+            distance,
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedOut);
-            await Toast.show({ text: t("Checked out successfully!") });
+            await Toast.show({ text: t('Checked out successfully!') });
           }
         }
       }
     } catch (e) {
-      console.error("Failed to record visit", e);
+      logger.error('Failed to record visit', e);
       await Toast.show({
-        text: t("Failed to record visit. Please try again."),
-        duration: "long",
+        text: t('Failed to record visit. Please try again.'),
+        duration: 'long',
       });
     }
   };
@@ -265,7 +284,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   useEffect(() => {
     fetchAll();
   }, [id]);
-
 
   async function fetchAll() {
     setLoading(true);
@@ -337,7 +355,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           }
           const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
           const detailArrays = await Promise.all(
-            links.map((ln: any) => api.getCourse(ln.course_id))
+            links.map((ln: any) => api.getCourse(ln.course_id)),
           );
           const courses = detailArrays
             .flatMap((arr: any) => (Array.isArray(arr) ? arr : [arr]))
@@ -346,7 +364,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             ...new Set(
               courses
                 .map((cd: any) => cd?.curriculum_id)
-                .filter((id: any) => typeof id === "string" && id)
+                .filter((id: any) => typeof id === 'string' && id),
             ),
           ];
           let curriculum: any[] = [];
@@ -355,7 +373,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             const seen = new Set<string>();
             for (const row of Array.isArray(fetched) ? fetched : []) {
               const id = row?.id;
-              if (typeof id === "string" && !seen.has(id)) {
+              if (typeof id === 'string' && !seen.has(id)) {
                 seen.add(id);
                 curriculum.push(row);
               }
@@ -366,20 +384,20 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             ...new Set(
               courses
                 .map((cd: any) =>
-                  typeof cd?.name === "string" ? cd.name.trim() : ""
+                  typeof cd?.name === 'string' ? cd.name.trim() : '',
                 )
-                .filter((s: string) => s.length > 0)
+                .filter((s: string) => s.length > 0),
             ),
-          ].join(", ");
+          ].join(', ');
           const curriculumNames = [
             ...new Set(
               curriculum
                 .map((x: any) =>
-                  typeof x?.name === "string" ? x.name.trim() : ""
+                  typeof x?.name === 'string' ? x.name.trim() : '',
                 )
-                .filter((n: string) => n.length > 0)
+                .filter((n: string) => n.length > 0),
             ),
-          ].join(", ");
+          ].join(', ');
           return {
             ...clasS,
             subjects,
@@ -393,7 +411,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         } catch {
           return { ...clasS };
         }
-      })
+      }),
     );
 
     setData({
@@ -437,12 +455,16 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
-      <SchoolCheckInModal 
+      <SchoolCheckInModal
         open={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
         onConfirm={handleConfirmCheckInAction}
-        status={checkInStatus === SchoolVisitStatus.CheckedIn ? SchoolVisitAction.CheckOut : SchoolVisitAction.CheckIn}
-        schoolName={schoolName || t("Unknown School")}
+        status={
+          checkInStatus === SchoolVisitStatus.CheckedIn
+            ? SchoolVisitAction.CheckOut
+            : SchoolVisitAction.CheckIn
+        }
+        schoolName={schoolName || t('Unknown School')}
         isFirstTime={isFirstTimeCheckIn}
         schoolLocation={schoolLocation}
         schoolAddress={data.schoolData?.address}
@@ -450,18 +472,16 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         onLocationUpdated={fetchAll}
       />
       {!isMobile && schoolName && (
-        <div
-          className="school-detail-secondary-header"
-        >
+        <div className="school-detail-secondary-header">
           {/* Left Side: Breadcrumb */}
           <Breadcrumb
             crumbs={[
               {
-                label: t("Schools"),
+                label: t('Schools'),
                 onClick: () => history.goBack(),
               },
               {
-                label: schoolName ?? "",
+                label: schoolName ?? '',
               },
             ]}
             endActions={
@@ -472,7 +492,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                     onClick={() => setShowAddModal(true)}
                     className="btn-add-notes"
                   >
-                    + {t("Add Notes")}
+                    + {t('Add Notes')}
                   </Button>
                 )}
                 {checkInStatus === SchoolVisitStatus.CheckedOut ? (
@@ -482,23 +502,27 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                       onClick={handleOpenCheckInMenu}
                       endIcon={
                         <ArrowDropDownIcon
-                          className={`check-in-icon ${openMenu ? "check-in-icon-rotated" : ""}`}
+                          className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
                         />
                       }
                       className="btn-check-in"
                     >
-                      {t("Check In")}
+                      {t('Check In')}
                     </Button>
                     <Menu
                       anchorEl={anchorEl}
                       open={openMenu}
                       onClose={handleCloseMenu}
-                      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                      transformOrigin={{ vertical: "top", horizontal: "right" }}
-                      classes={{ paper: "schooldetailspage check-in-menu-paper" }}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                      classes={{
+                        paper: 'schooldetailspage check-in-menu-paper',
+                      }}
                     >
                       <MenuItem
-                        onClick={() => handleSelectVisitType(SchoolVisitType.Regular)}
+                        onClick={() =>
+                          handleSelectVisitType(SchoolVisitType.Regular)
+                        }
                         className="check-in-menu-item"
                       >
                         {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
@@ -506,11 +530,17 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                       <Divider className="check-in-menu-divider" />
                       <MenuItem
                         onClick={() =>
-                          handleSelectVisitType(SchoolVisitType.ParentsTeacherMeeting)
+                          handleSelectVisitType(
+                            SchoolVisitType.ParentsTeacherMeeting,
+                          )
                         }
                         className="check-in-menu-item"
                       >
-                         {t(SchoolVisitTypeLabels[SchoolVisitType.ParentsTeacherMeeting])}
+                        {t(
+                          SchoolVisitTypeLabels[
+                            SchoolVisitType.ParentsTeacherMeeting
+                          ],
+                        )}
                       </MenuItem>
                       <Divider className="check-in-menu-divider" />
                       <MenuItem
@@ -519,7 +549,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                         }
                         className="check-in-menu-item"
                       >
-                         {t(SchoolVisitTypeLabels[SchoolVisitType.TeacherTraining])}
+                        {t(
+                          SchoolVisitTypeLabels[
+                            SchoolVisitType.TeacherTraining
+                          ],
+                        )}
                       </MenuItem>
                     </Menu>
                   </>
@@ -529,7 +563,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                     onClick={handleOpenCheckInModal}
                     className="btn-check-out"
                   >
-                     {t("Check Out")}
+                    {t('Check Out')}
                   </Button>
                 )}
               </>

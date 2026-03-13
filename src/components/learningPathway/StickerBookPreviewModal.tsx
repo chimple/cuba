@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { t } from "i18next";
-import fallbackStickerBookLayout from "../../assets/images/newWhole_layout.svg";
-import { SVGScene } from "../coloring/SVGScene";
-import { ParsedSvg, parseSvg } from "../common/SvgHelpers";
-import "./StickerBookPreviewModal.css";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { t } from 'i18next';
+import fallbackStickerBookLayout from '../../assets/images/newWhole_layout.svg';
+import { SVGScene } from '../coloring/SVGScene';
+import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
+import './StickerBookPreviewModal.css';
+import logger from '../../utility/logger';
 
 export interface StickerBookPreviewData {
-  source: "learning_pathway" | "homework_pathway";
+  source: 'learning_pathway' | 'homework_pathway';
   stickerBookId: string;
   stickerBookTitle: string;
   stickerBookSvgUrl: string;
@@ -18,7 +19,7 @@ export interface StickerBookPreviewData {
 
 interface StickerBookPreviewModalProps {
   data: StickerBookPreviewData;
-  onClose: (reason: "close_button" | "backdrop" | "acknowledge_button") => void;
+  onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
 }
 
 const InlineSvg = React.forwardRef<
@@ -32,26 +33,26 @@ const InlineSvg = React.forwardRef<
   useEffect(() => {
     const el = localRef.current;
     if (!el) return;
-    if (className) el.setAttribute("class", className);
+    if (className) el.setAttribute('class', className);
     Object.entries(svg.attrs).forEach(([name, value]) => {
       el.setAttribute(name, value);
     });
     // Keep popup rendering stable across sources: always fit frame.
-    el.setAttribute("width", "100%");
-    el.setAttribute("height", "100%");
-    el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    el.setAttribute('width', '100%');
+    el.setAttribute('height', '100%');
+    el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   }, [svg, className]);
 
   return <svg ref={localRef} dangerouslySetInnerHTML={{ __html: svg.inner }} />;
 });
 
-InlineSvg.displayName = "InlineSvg";
+InlineSvg.displayName = 'InlineSvg';
 
 const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   data,
   onClose,
 }) => {
-  const [svgMarkup, setSvgMarkup] = useState<string>("");
+  const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const bookSvgRef = useRef<SVGSVGElement | null>(null);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
@@ -75,7 +76,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         }
       } catch (error) {
         // Keep the preview usable even if the configured book SVG fails to load.
-        console.warn("Failed to load sticker book SVG. Falling back.", error);
+        logger.warn('Failed to load sticker book SVG. Falling back.', error);
         const fallbackResponse = await fetch(fallbackStickerBookLayout);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {
@@ -97,7 +98,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
-      onClose("backdrop");
+      onClose('backdrop');
     }
   };
 
@@ -116,7 +117,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       >
         <button
           className="StickerBookPreviewModal-close"
-          onClick={() => onClose("close_button")}
+          onClick={() => onClose('close_button')}
           aria-label="close-sticker-book-preview"
           data-testid="StickerBookPreviewModal-close"
         >
@@ -136,7 +137,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
               className="StickerBookPreviewModal-loading"
               data-testid="StickerBookPreviewModal-loading"
             >
-              {t("Loading...")}
+              {t('Loading...')}
             </div>
           ) : (
             <div
@@ -169,10 +170,10 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
             className="StickerBookPreviewModal-helper-text"
             data-testid="StickerBookPreviewModal-helper-text"
           >
-            {t("Finish the pathway & collect this")}
+            {t('Finish the pathway & collect this')}
           </p>
           <img
-            src={data.nextStickerImage || "assets/icons/DefaultIcon.png"}
+            src={data.nextStickerImage || 'assets/icons/DefaultIcon.png'}
             alt={data.nextStickerName}
             className="StickerBookPreviewModal-next-image"
             data-testid="StickerBookPreviewModal-next-image"
@@ -181,7 +182,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
             className="StickerBookPreviewModal-next-name"
             data-testid="StickerBookPreviewModal-next-name"
           >
-            {t("sticker")}.
+            {t('sticker')}.
           </p>
         </div>
       </div>

@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import DataTableBody, { Column } from "../DataTableBody";
-import DataTablePagination from "../DataTablePagination";
-import { Typography, Box, CircularProgress } from "@mui/material";
-import { t } from "i18next";
-import "./SchoolCoordinators.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { CoordinatorInfo } from "../../../common/constants";
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import DataTableBody, { Column } from '../DataTableBody';
+import DataTablePagination from '../DataTablePagination';
+import { Typography, Box, CircularProgress } from '@mui/material';
+import { t } from 'i18next';
+import './SchoolCoordinators.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { CoordinatorInfo } from '../../../common/constants';
+import logger from '../../../utility/logger';
 
 interface DisplayCoordinator {
   id: string;
@@ -31,15 +32,15 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
   schoolId,
 }) => {
   const [coordinators, setCoordinators] = useState<CoordinatorInfo[]>(
-    data.coordinators || []
+    data.coordinators || [],
   );
   const [totalCount, setTotalCount] = useState<number>(
-    data.totalCoordinatorCount || 0
+    data.totalCoordinatorCount || 0,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState<string | null>("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<string | null>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const fetchCoordinators = useCallback(
     async (currentPage: number) => {
@@ -49,17 +50,17 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
         const response = await api.getCoordinatorsForSchoolPaginated(
           schoolId,
           currentPage,
-          ROWS_PER_PAGE
+          ROWS_PER_PAGE,
         );
         setCoordinators(response.data);
         setTotalCount(response.total);
       } catch (error) {
-        console.error("Failed to fetch coordinators:", error);
+        logger.error('Failed to fetch coordinators:', error);
       } finally {
         setIsLoading(false);
       }
     },
-    [schoolId]
+    [schoolId],
   );
 
   useEffect(() => {
@@ -74,11 +75,11 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = useCallback(
     (key: string) => {
-      const isAsc = orderBy === key && order === "asc";
-      setOrder(isAsc ? "desc" : "asc");
+      const isAsc = orderBy === key && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(key);
     },
-    [order, orderBy]
+    [order, orderBy],
   );
 
   // Data mapping for display
@@ -86,28 +87,28 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
     let sorted = [...coordinators].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
-        case "name":
-          aValue = a.name || "";
-          bValue = b.name || "";
-          return order === "asc"
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "gender":
-          aValue = a.gender || "";
-          bValue = b.gender || "";
-          return order === "asc"
+        case 'gender':
+          aValue = a.gender || '';
+          bValue = b.gender || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "phoneNumber":
-          aValue = a.phone || "";
-          bValue = b.phone || "";
-          return order === "asc"
+        case 'phoneNumber':
+          aValue = a.phone || '';
+          bValue = b.phone || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "emailDisplay":
-          aValue = a.email || "";
-          bValue = b.email || "";
-          return order === "asc"
+        case 'emailDisplay':
+          aValue = a.email || '';
+          bValue = b.email || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         default:
@@ -116,10 +117,10 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
     });
     return sorted.map((c) => ({
       id: c.id,
-      name: c.name || "N/A",
-      gender: c.gender || "N/A",
-      phoneNumber: c.phone || "N/A",
-      emailDisplay: c.email || "N/A",
+      name: c.name || 'N/A',
+      gender: c.gender || 'N/A',
+      phoneNumber: c.phone || 'N/A',
+      emailDisplay: c.email || 'N/A',
     }));
   }, [coordinators, order, orderBy]);
 
@@ -128,19 +129,19 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
 
   const columns: Column<DisplayCoordinator>[] = [
     {
-      key: "name",
-      label: t("Coordinator Name"),
+      key: 'name',
+      label: t('Coordinator Name'),
       renderCell: (c: DisplayCoordinator) => (
         <Typography variant="body2" className="coordinator-name-data">
           {c.name}
         </Typography>
       ),
     },
-    { key: "gender", label: t("Gender") },
-    { key: "phoneNumber", label: t("Phone Number") },
+    { key: 'gender', label: t('Gender') },
+    { key: 'phoneNumber', label: t('Phone Number') },
     {
-      key: "emailDisplay",
-      label: t("Email"),
+      key: 'emailDisplay',
+      label: t('Email'),
       renderCell: (c: DisplayCoordinator) => (
         <Typography variant="body2" className="truncate-text">
           {c.emailDisplay}
@@ -163,7 +164,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
       ) : isDataPresent ? (
         <>
           <div className="school-coordinators-data-cable-container">
-            {" "}
+            {' '}
             <DataTableBody
               columns={columns}
               rows={displayCoordinators}
@@ -175,7 +176,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
           </div>
           {pageCount > 1 && (
             <div className="school-coordinators-footer">
-              {" "}
+              {' '}
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -190,10 +191,10 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
             variant="h6"
             className="school-coordinators-empty-state-title"
           >
-            {t("Coordinators")}
+            {t('Coordinators')}
           </Typography>
           <Typography className="school-coordinators-empty-state-message">
-            {t("No coordinators data found for the selected school")}
+            {t('No coordinators data found for the selected school')}
           </Typography>
         </Box>
       )}

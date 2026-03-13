@@ -1,6 +1,6 @@
-import { FC, useEffect, useRef, useState, useCallback } from "react";
-import { useHistory, useLocation } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { FC, useEffect, useRef, useState, useCallback } from 'react';
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
   CURRENT_SELECTED_CHAPTER,
@@ -11,19 +11,20 @@ import {
   MODES,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import { IonItem, IonPage } from "@ionic/react";
-import "./DisplayChapters.css";
-import { t } from "i18next";
-import SelectChapter from "../components/displaySubjects/SelectChapter";
-import LessonSlider from "../components/LessonSlider";
-import BackButton from "../components/common/BackButton";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { registerBackButtonHandler } from "../common/backButtonRegistry";
+} from '../common/constants';
+import { IonItem, IonPage } from '@ionic/react';
+import './DisplayChapters.css';
+import { t } from 'i18next';
+import SelectChapter from '../components/displaySubjects/SelectChapter';
+import LessonSlider from '../components/LessonSlider';
+import BackButton from '../components/common/BackButton';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import DropDown from '../components/DropDown';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { registerBackButtonHandler } from '../common/backButtonRegistry';
+import logger from '../utility/logger';
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -35,21 +36,20 @@ const DisplayChapters: FC<{}> = () => {
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<TableTypes<"course">[]>();
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
-  const [chapters, setChapters] = useState<TableTypes<"chapter">[]>([]);
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>();
+  const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>([]);
 
-  
   const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: TableTypes<"grade">[];
-    courses: TableTypes<"course">[];
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
   }>();
-  const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<'grade'>>();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>({});
   const history = useHistory();
   const location = useLocation();
@@ -61,14 +61,14 @@ const DisplayChapters: FC<{}> = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   const searchParams = new URLSearchParams(location.search);
-  const courseDocId = searchParams.get("courseDocId");
+  const courseDocId = searchParams.get('courseDocId');
   const getCourseByUrl = localGradeMap?.courses.find(
     (course) => courseDocId == course.id,
   );
   useEffect(() => {
     Util.loadBackgroundImage();
     init();
-    ScreenOrientation.lock({ orientation: "landscape" });
+    ScreenOrientation.lock({ orientation: 'landscape' });
   }, []);
   useEffect(() => {
     if (getCourseByUrl && !currentCourse) {
@@ -83,7 +83,7 @@ const DisplayChapters: FC<{}> = () => {
           const { grades } =
             await api.getDifferentGradesForCourse(currentCourse);
           localData.gradesMap = { grades, courses: [currentCourse] };
-          
+
           setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         };
@@ -125,10 +125,10 @@ const DisplayChapters: FC<{}> = () => {
 
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       setStage(STAGES.LESSONS);
-      
+
       addStateTolocalStorage(STAGES.LESSONS);
       setIsLoading(false);
-    } else if (!!urlParams.get("isReload")) {
+    } else if (!!urlParams.get('isReload')) {
       await getCourses();
       setIsLoading(true);
       const currentSelectedCourse = localStorage.getItem(
@@ -162,7 +162,7 @@ const DisplayChapters: FC<{}> = () => {
         setCourses(undefined);
       }
     } else {
-      console.warn("Course not found in local data.");
+      logger.warn('Course not found in local data.');
     }
     setIsLoading(false);
     getLocalGradeMap();
@@ -170,15 +170,15 @@ const DisplayChapters: FC<{}> = () => {
 
   function getLocalGradeMap():
     | {
-        grades: TableTypes<"grade">[];
-        courses: TableTypes<"course">[];
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
       }
     | undefined {
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       let _localMap: {
-        grades: TableTypes<"grade">[];
-        courses: TableTypes<"course">[];
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
       } = JSON.parse(map);
       let convertedCourses = _localMap.courses;
       _localMap.courses = convertedCourses;
@@ -187,17 +187,14 @@ const DisplayChapters: FC<{}> = () => {
     }
   }
 
-
-  const getCourses = async (): Promise<TableTypes<"course">[]> => {
+  const getCourses = async (): Promise<TableTypes<'course'>[]> => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
-      
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
 
-    
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
 
@@ -214,14 +211,14 @@ const DisplayChapters: FC<{}> = () => {
     localData.courses = courses;
 
     setCourses(courses);
-    
+
     setIsLoading(false);
     return courses;
   };
 
   const getLessonsForChapter = async (
-    chapter: TableTypes<"chapter">,
-  ): Promise<TableTypes<"lesson">[]> => {
+    chapter: TableTypes<'chapter'>,
+  ): Promise<TableTypes<'lesson'>[]> => {
     setIsLoading(true);
 
     if (!chapter) {
@@ -238,7 +235,7 @@ const DisplayChapters: FC<{}> = () => {
       return lessons;
     } catch (error) {
       // Handle errors
-      console.error("Error fetching lessons:", error);
+      logger.error('Error fetching lessons:', error);
       setIsLoading(false);
       return [];
     }
@@ -249,12 +246,11 @@ const DisplayChapters: FC<{}> = () => {
     if (now - lastBackPressAtRef.current < 150) return true;
     lastBackPressAtRef.current = now;
     switch (stage) {
-      
       case STAGES.CHAPTERS:
         delete localData.currentChapter;
-        
+
         setCurrentChapter(undefined);
-        
+
         localStorage.removeItem(CURRENT_SELECTED_COURSE);
         localStorage.removeItem(CURRENT_SELECTED_GRADE);
         addStateTolocalStorage(STAGES.SUBJECTS);
@@ -289,8 +285,8 @@ const DisplayChapters: FC<{}> = () => {
       });
     };
 
-    document.addEventListener("ionBackButton", handler as any);
-    return () => document.removeEventListener("ionBackButton", handler as any);
+    document.addEventListener('ionBackButton', handler as any);
+    return () => document.removeEventListener('ionBackButton', handler as any);
   }, [location.pathname, onBackButton]);
 
   useEffect(() => {
@@ -306,7 +302,7 @@ const DisplayChapters: FC<{}> = () => {
 
   useEffect(() => {
     const unblock = history.block((_nextLocation, action) => {
-      if (action !== "POP") return;
+      if (action !== 'POP') return;
       if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
       const handled = onBackButton();
       if (handled) return false;
@@ -317,10 +313,10 @@ const DisplayChapters: FC<{}> = () => {
     };
   }, [history, location.pathname, onBackButton]);
 
-  const onCourseChanges = async (course: TableTypes<"course">) => {
+  const onCourseChanges = async (course: TableTypes<'course'>) => {
     const gradesMap: {
-      grades: TableTypes<"grade">[];
-      courses: TableTypes<"course">[];
+      grades: TableTypes<'grade'>[];
+      courses: TableTypes<'course'>[];
     } = await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
       (grade) => grade.id === course.grade_id,
@@ -343,7 +339,7 @@ const DisplayChapters: FC<{}> = () => {
     setStage(STAGES.CHAPTERS);
   };
 
-  const onGradeChanges = async (grade: TableTypes<"grade">) => {
+  const onGradeChanges = async (grade: TableTypes<'grade'>) => {
     let _localMap = getLocalGradeMap();
     const currentCourse = _localMap?.courses.find(
       (course) => course.grade_id === grade.id,
@@ -351,7 +347,7 @@ const DisplayChapters: FC<{}> = () => {
     localData.currentGrade = grade;
     setCurrentGrade(grade);
     addGradeToLocalStorage(grade);
-    const chapters = await api.getChaptersForCourse(currentCourse?.id ?? "");
+    const chapters = await api.getChaptersForCourse(currentCourse?.id ?? '');
     setChapters(chapters);
     setCurrentCourse(currentCourse);
     localStorage.setItem(
@@ -361,7 +357,7 @@ const DisplayChapters: FC<{}> = () => {
     localData.currentCourse = currentCourse;
   };
 
-  const onChapterChange = async (chapter: TableTypes<"chapter">) => {
+  const onChapterChange = async (chapter: TableTypes<'chapter'>) => {
     await getLessonsForChapter(chapter);
     localData.currentChapter = chapter;
 
@@ -376,21 +372,21 @@ const DisplayChapters: FC<{}> = () => {
     let lastPlayedLessonDate: Date;
     let startIndex = 0;
     if (!!lessonResultMap)
-      lessons?.forEach((less: TableTypes<"lesson">, i: number) => {
+      lessons?.forEach((less: TableTypes<'lesson'>, i: number) => {
         const studentResultOfLess = lessonResultMap[less.id];
         if (!!studentResultOfLess) {
           if (!lastPlayedLessonDate) {
             lastPlayedLessonDate = lessonResultMap[less.id].updated_at
-              ? new Date(lessonResultMap[less.id].updated_at ?? "")
+              ? new Date(lessonResultMap[less.id].updated_at ?? '')
               : new Date();
             startIndex = i;
           } else {
             if (
-              new Date(lessonResultMap[less.id].updated_at ?? "") >
+              new Date(lessonResultMap[less.id].updated_at ?? '') >
               lastPlayedLessonDate
             ) {
               lastPlayedLessonDate = new Date(
-                studentResultOfLess.updated_at ?? "",
+                studentResultOfLess.updated_at ?? '',
               );
               startIndex = i;
             }
@@ -403,7 +399,7 @@ const DisplayChapters: FC<{}> = () => {
   function addStateTolocalStorage(stage: STAGES) {
     localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
   }
-  function addGradeToLocalStorage(grade: TableTypes<"grade">) {
+  function addGradeToLocalStorage(grade: TableTypes<'grade'>) {
     localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade));
   }
 
@@ -411,7 +407,7 @@ const DisplayChapters: FC<{}> = () => {
     <IonPage id="display-chapters-page">
       <div className="chapters-header">
         <div id="back-button-container">
-          <BackButton aria-label={t("Back")} onClicked={onBackButton} />
+          <BackButton aria-label={t('Back')} onClicked={onBackButton} />
         </div>
         <div className="chapter-header">
           <IonItem lines="none">
@@ -419,10 +415,10 @@ const DisplayChapters: FC<{}> = () => {
               {stage === STAGES.CHAPTERS
                 ? currentCourse
                   ? t(currentCourse?.name)
-                  : ""
+                  : ''
                 : currentChapter
-                  ? t(currentChapter.name ?? "")
-                  : ""}
+                  ? t(currentChapter.name ?? '')
+                  : ''}
             </div>
           </IonItem>
         </div>
@@ -449,8 +445,6 @@ const DisplayChapters: FC<{}> = () => {
         {stage !== STAGES.CHAPTERS && <div className="button-right" />}
       </div>
       <div className="chapters-content">
-        
-
         {stage === STAGES.CHAPTERS &&
           currentCourse &&
           localGradeMap &&

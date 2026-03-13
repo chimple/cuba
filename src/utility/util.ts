@@ -1,9 +1,9 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
-import { Device } from "@capacitor/device";
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { Toast } from "@capacitor/toast";
-import createFilesystem from "capacitor-fs";
-import { unzip } from "zip2";
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Device } from '@capacitor/device';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Toast } from '@capacitor/toast';
+import createFilesystem from 'capacitor-fs';
+import { unzip } from 'zip2';
 import {
   CURRENT_STUDENT,
   COURSES,
@@ -66,41 +66,46 @@ import {
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
-} from "../common/constants";
+} from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
   Lesson as curriculamInterfaceLesson,
-} from "../interface/curriculumInterfaces";
-import { GUIDRef, RoleType } from "../interface/modelInterfaces";
-import { OneRosterApi } from "../services/api/OneRosterApi";
-import { APIMode, ServiceConfig } from "../services/ServiceConfig";
-import i18n from "../i18n";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-import { Keyboard } from "@capacitor/keyboard";
+} from '../interface/curriculumInterfaces';
+import { GUIDRef, RoleType } from '../interface/modelInterfaces';
+import { OneRosterApi } from '../services/api/OneRosterApi';
+import { APIMode, ServiceConfig } from '../services/ServiceConfig';
+import i18n from '../i18n';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+import { Keyboard } from '@capacitor/keyboard';
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
-} from "@capawesome/capacitor-app-update";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
-import { schoolUtil } from "./schoolUtil";
-import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import { URLOpenListenerEvent } from "@capacitor/app";
-import { t } from "i18next";
-import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-import CryptoJS from "crypto-js";
-import { InAppReview } from "@capacitor-community/in-app-review";
-import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
-import { v4 as uuidv4 } from "uuid";
-import { updateLocalAttributes } from "../growthbook/Growthbook";
-import { recommendNextLesson } from "../hooks/useLearningPath";
-import { runBackgroundWorkerTask } from "../workers/backgroundWorkerClient";
-import { store } from "../redux/store";
-import { addRole, setRefreshToken, setUser } from "../redux/slices/auth/authSlice";
+} from '@capawesome/capacitor-app-update';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from '../services/RemoteConfig';
+import { schoolUtil } from './schoolUtil';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { URLOpenListenerEvent } from '@capacitor/app';
+import { t } from 'i18next';
+import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
+import CryptoJS from 'crypto-js';
+import { InAppReview } from '@capacitor-community/in-app-review';
+import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
+import { v4 as uuidv4 } from 'uuid';
+import { updateLocalAttributes } from '../growthbook/Growthbook';
+import { recommendNextLesson } from '../hooks/useLearningPath';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
+import { store } from '../redux/store';
+import {
+  addRole,
+  setRefreshToken,
+  setUser,
+} from '../redux/slices/auth/authSlice';
+import logger from './logger';
 
 declare global {
   interface Window {
@@ -122,22 +127,21 @@ export interface HotUpdateState {
 export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
-  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
+  static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
     currentChapterId: string,
     currentLessonId: string,
     ChapterDetail: curriculamInterfaceChapter | undefined,
-  ): Promise<TableTypes<"lesson"> | undefined> {
+  ): Promise<TableTypes<'lesson'> | undefined> {
     const api = ServiceConfig.getI().apiHandler;
     const currentChapter = ChapterDetail;
-    const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
+    const currentStudentDocId: string = Util.getCurrentStudent()?.id || '';
 
     if (!currentChapter) return undefined;
     let currentLessonIndex = -1;
 
-    
     const cChapter = await api.getLessonsForChapter(currentChapter.id);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
@@ -155,7 +159,7 @@ export class Util {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
       let studentResult:
-        | { [lessonDocId: string]: TableTypes<"result"> }
+        | { [lessonDocId: string]: TableTypes<'result'> }
         | undefined = {};
       const studentProfile =
         await api.getStudentResultInMap(currentStudentDocId);
@@ -171,7 +175,7 @@ export class Util {
       if (nextLesson) {
         const lessonObj = (await api.getLesson(
           nextLesson.id,
-        )) as TableTypes<"lesson">;
+        )) as TableTypes<'lesson'>;
         if (lessonObj) {
           return lessonObj;
         }
@@ -190,47 +194,44 @@ export class Util {
   public static handleAppStateChange = (state: any) => {
     if (state.isActive && Capacitor.isNativePlatform()) {
       const currentTime = Date.now();
-      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const startTime = Number(localStorage.getItem('startTime') || '0');
       const timeElapsed = (currentTime - startTime) / 1000; // in seconds
       if (timeElapsed >= Util.TIME_LIMIT) {
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toISOString().split('T')[0];
 
-        if ("2024-11-05" !== today) {
-          
-          const showModalEvent = new CustomEvent("shouldShowModal", {
+        if ('2024-11-05' !== today) {
+          const showModalEvent = new CustomEvent('shouldShowModal', {
             detail: true,
           });
           document.dispatchEvent(showModalEvent);
-          
+
           window.dispatchEvent(showModalEvent);
           localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
-          
+
           return;
         }
       }
     }
-    const showModalEvent = new CustomEvent("shouldShowModal", {
+    const showModalEvent = new CustomEvent('shouldShowModal', {
       detail: false,
     });
     window.dispatchEvent(showModalEvent);
   };
 
-
   public static checkLessonPresentInCourse(
-    course: TableTypes<"course">,
+    course: TableTypes<'course'>,
     lessonDoc: String,
   ): boolean {
- 
     return false;
   }
 
-  public static getCurrentStudent(): TableTypes<"user"> | undefined {
+  public static getCurrentStudent(): TableTypes<'user'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
-    const currentStudent = JSON.parse(temp) as TableTypes<"user">;
+    const currentStudent = JSON.parse(temp) as TableTypes<'user'>;
     api.currentStudent = currentStudent;
     return currentStudent;
   }
@@ -243,10 +244,10 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
-        currSound === "0" ? false : true,
+        currSound === '0' ? false : true,
       );
     }
-    return currSound === "0" ? 0 : 1;
+    return currSound === '0' ? 0 : 1;
   }
   public static setCurrentSound = async (currSound: number) => {
     const auth = ServiceConfig.getI().authHandler;
@@ -269,10 +270,10 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
-        currMusic === "0" ? false : true,
+        currMusic === '0' ? false : true,
       );
     }
-    return currMusic === "0" ? 0 : 1;
+    return currMusic === '0' ? 0 : 1;
   }
   public static setCurrentMusic = async (currMusic: number) => {
     const auth = ServiceConfig.getI().authHandler;
@@ -294,7 +295,7 @@ export class Util {
     lessonIdStorageKey: string,
   ) => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]",
+      localStorage.getItem(lessonIdStorageKey) || '[]',
     );
 
     const updatedItems = [
@@ -319,7 +320,7 @@ export class Util {
     lessonIdStorageKey: string,
   ): void => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]",
+      localStorage.getItem(lessonIdStorageKey) || '[]',
     );
 
     let idsToRemove: string[];
@@ -341,7 +342,7 @@ export class Util {
   }: {
     lessonId: string;
   }): Promise<string | null> {
-    const gameUrl = localStorage.getItem("gameUrl");
+    const gameUrl = localStorage.getItem('gameUrl');
 
     const exists = async (path: string) => {
       try {
@@ -365,7 +366,7 @@ export class Util {
       return `${androidBase}${lessonId}/`;
     }
 
-    console.error("Lesson bundle not found :", lessonId);
+    logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
 
@@ -388,17 +389,17 @@ export class Util {
             try {
               let lessonDownloadSuccess = true;
               const fs = createFilesystem(Filesystem, {
-                rootDir: "/",
+                rootDir: '/',
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
               try {
                 const file = await Filesystem.readFile({
-                  path: lessonId + "/config.json",
+                  path: lessonId + '/config.json',
                   directory: Directory.External,
                 });
                 const decoded =
-                  typeof file.data === "string"
+                  typeof file.data === 'string'
                     ? atob(file.data)
                     : await this.blobToString(file.data as Blob);
                 this.setGameUrl(androidPath);
@@ -408,7 +409,7 @@ export class Util {
                 );
                 return true;
               } catch {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
                 );
               }
@@ -421,7 +422,7 @@ export class Util {
                   return true;
                 }
               } catch {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
                 );
               }
@@ -429,7 +430,7 @@ export class Util {
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
               );
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
-                console.error("[LessonDownloader] No remote ZIP URLs found");
+                logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
               }
 
@@ -442,38 +443,38 @@ export class Util {
                 !downloadSuccessful
               ) {
                 for (const bundleUrl of bundleZipUrls) {
-                  const zipUrl = bundleUrl + lessonId + ".zip";
+                  const zipUrl = bundleUrl + lessonId + '.zip';
                   try {
-                    console.log(
+                    logger.info(
                       `[LessonDownloader] Attempting download from: ${zipUrl}`,
                     );
                     const downloadPromise = await CapacitorHttp.get({
                       url: zipUrl,
-                      responseType: "blob",
+                      responseType: 'blob',
                       headers: {},
                       readTimeout: 10000,
                       connectTimeout: 10000,
                     });
                     const timeoutPromise = new Promise((_, reject) =>
                       setTimeout(
-                        () => reject(new Error("Download timeout after 20s")),
+                        () => reject(new Error('Download timeout after 20s')),
                         10000,
                       ),
                     );
                     zip = await Promise.race([downloadPromise, timeoutPromise]);
                     if (zip && zip.data && zip.status === 200) {
-                      console.log(
+                      logger.info(
                         `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`,
                       );
                       downloadSuccessful = true;
                       break;
                     } else {
-                      console.warn(
+                      logger.warn(
                         `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`,
                       );
                     }
                   } catch (err) {
-                    console.error(
+                    logger.error(
                       `[LessonDownloader] Error downloading ${zipUrl}:`,
                       err,
                     );
@@ -481,30 +482,30 @@ export class Util {
                 }
                 if (!downloadSuccessful) {
                   downloadAttempts++;
-                  console.warn(
+                  logger.warn(
                     `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`,
                   );
                 }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Failed to download lesson ${lessonId}`,
                 );
                 return false;
               }
               const zipDataStr =
-                typeof zip.data === "string"
+                typeof zip.data === 'string'
                   ? zip.data
                   : await this.blobToString(zip.data as Blob);
 
               const preparedZip = await runBackgroundWorkerTask(
-                "PREPARE_BINARY_FROM_BASE64",
+                'PREPARE_BINARY_FROM_BASE64',
                 {
                   base64: zipDataStr,
                 },
               ).catch((error) => {
-                console.warn(
+                logger.warn(
                   `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
                   error,
                 );
@@ -513,13 +514,13 @@ export class Util {
                 );
                 return {
                   byteLength: fallbackBuffer.byteLength,
-                  sha256Hex: "",
+                  sha256Hex: '',
                   arrayBuffer: fallbackBuffer.buffer,
                 };
               });
               const buffer = new Uint8Array(preparedZip.arrayBuffer);
               if (preparedZip.sha256Hex) {
-                console.log(
+                logger.info(
                   `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
                 );
               }
@@ -527,11 +528,11 @@ export class Util {
               await unzip({
                 fs,
                 extractTo: lessonId,
-                filepaths: ["."],
-                filter: (filepath) => !filepath.startsWith("dist/"),
+                filepaths: ['.'],
+                filter: (filepath) => !filepath.startsWith('dist/'),
                 onProgress: (event) =>
-                  console.log(
-                    "[LessonDownloader] Unzipping progress:",
+                  logger.info(
+                    '[LessonDownloader] Unzipping progress:',
                     event.filename,
                     event.loaded,
                     event.total,
@@ -540,14 +541,14 @@ export class Util {
               });
 
               const lessonData = JSON.parse(
-                localStorage.getItem("downloaded_lessons_size") || "{}",
+                localStorage.getItem('downloaded_lessons_size') || '{}',
               );
               lessonData[lessonId] = {
                 size: preparedZip.byteLength,
                 sha256: preparedZip.sha256Hex || undefined,
               };
               localStorage.setItem(
-                "downloaded_lessons_size",
+                'downloaded_lessons_size',
                 JSON.stringify(lessonData),
               );
               this.setGameUrl(androidPath);
@@ -559,7 +560,7 @@ export class Util {
               );
               return lessonDownloadSuccess;
             } catch (err) {
-              console.error(
+              logger.error(
                 `[LessonDownloader] Error processing lesson ${lessonId}:`,
                 err,
               );
@@ -569,8 +570,8 @@ export class Util {
         );
 
         if (!results.every((r) => r === true)) {
-          console.error(
-            "[LessonDownloader] Some lessons in chunk failed to download:",
+          logger.error(
+            '[LessonDownloader] Some lessons in chunk failed to download:',
             lessonIdsChunk,
           );
           return false;
@@ -587,8 +588,8 @@ export class Util {
 
       return true;
     } catch (err) {
-      console.error(
-        "[LessonDownloader] Unexpected error in downloadZipBundle:",
+      logger.error(
+        '[LessonDownloader] Unexpected error in downloadZipBundle:',
         err,
       );
       return false;
@@ -596,7 +597,7 @@ export class Util {
   }
 
   public static async blobToString(data: string | Blob): Promise<string> {
-    if (typeof data === "string") {
+    if (typeof data === 'string') {
       return data;
     }
 
@@ -604,8 +605,8 @@ export class Util {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const result = reader.result?.toString() ?? "";
-          const base64 = result.split(",")[1] || "";
+          const result = reader.result?.toString() ?? '';
+          const base64 = result.split(',')[1] || '';
           resolve(base64);
         };
         reader.onerror = reject;
@@ -613,7 +614,7 @@ export class Util {
       });
     }
 
-    throw new Error("Invalid data type — expected string or Blob");
+    throw new Error('Invalid data type — expected string or Blob');
   }
 
   // In your Util.ts file
@@ -629,7 +630,7 @@ export class Util {
       if (!Capacitor.isNativePlatform()) return true;
 
       const fs = createFilesystem(Filesystem, {
-        rootDir: "",
+        rootDir: '',
         directory: Directory.External,
       });
       const androidPath = await this.getAndroidBundlePath();
@@ -652,13 +653,13 @@ export class Util {
           const config = JSON.parse(decoded);
 
           if (config.uniqueId === uniqueId) {
-            console.log(`✅ ${assetType} assets are already up to date.`);
+            logger.info(`✅ ${assetType} assets are already up to date.`);
             this.setGameUrl(androidPath);
             return true;
           }
         }
       } catch (err) {
-        console.warn(
+        logger.warn(
           `Could not read existing config for ${assetType}, proceeding with download.`,
         );
       }
@@ -666,37 +667,35 @@ export class Util {
       // Download and unzip
       const response = await CapacitorHttp.get({
         url: zipUrl,
-        responseType: "blob",
+        responseType: 'blob',
       });
 
       if (!response?.data || response.status !== 200) return false;
       let buffer: Uint8Array;
       try {
         const prepared = await runBackgroundWorkerTask(
-          "PREPARE_BINARY_FROM_BASE64",
+          'PREPARE_BINARY_FROM_BASE64',
           {
             base64: response.data,
-            algorithm: "SHA-256",
+            algorithm: 'SHA-256',
           },
         );
         buffer = new Uint8Array(prepared.arrayBuffer);
       } catch (workerError) {
-        console.warn(
+        logger.warn(
           `[${assetType}] Worker decode failed, falling back to main thread decode.`,
           workerError,
         );
-        buffer = Uint8Array.from(atob(response.data), (c) =>
-          c.charCodeAt(0),
-        );
+        buffer = Uint8Array.from(atob(response.data), (c) => c.charCodeAt(0));
       }
       await unzip({
         fs,
-        extractTo: "", // The zip file itself should contain the destination folder
-        filepaths: ["."],
-        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        extractTo: '', // The zip file itself should contain the destination folder
+        filepaths: ['.'],
+        filter: (filepath: string) => !filepath.startsWith('dist/'),
         onProgress: (event) => {
           // ✅ Use the dynamic assetType parameter for clearer logging
-          console.log(`Unzipping ${assetType} assets:`, event.filename);
+          logger.info(`Unzipping ${assetType} assets:`, event.filename);
         },
         data: buffer,
       });
@@ -710,7 +709,7 @@ export class Util {
       const config = JSON.parse(decoded);
 
       // Important Note: Decide if this logic applies to BOTH asset types
-      if (typeof config.riveMax === "number") {
+      if (typeof config.riveMax === 'number') {
         localStorage.setItem(
           CHIMPLE_RIVE_STATE_MACHINE_MAX,
           config.riveMax.toString(),
@@ -719,7 +718,7 @@ export class Util {
       this.setGameUrl(androidPath);
       return true;
     } catch (err) {
-      console.error(
+      logger.error(
         `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
         err,
       );
@@ -732,7 +731,7 @@ export class Util {
   ): Promise<boolean> {
     try {
       const lessonData = JSON.parse(
-        localStorage.getItem("downloaded_lessons_size") || "{}",
+        localStorage.getItem('downloaded_lessons_size') || '{}',
       );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
@@ -745,14 +744,14 @@ export class Util {
         // Remove the lesson and size from the single object in localStorage
         delete lessonData[lessonId];
         localStorage.setItem(
-          "downloaded_lessons_size",
+          'downloaded_lessons_size',
           JSON.stringify(lessonData),
         );
 
         this.removeLessonIdFromLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
       }
     } catch (error) {
-      console.error("Error deleting lesson:", error);
+      logger.error('Error deleting lesson:', error);
     }
     return false;
   }
@@ -761,21 +760,21 @@ export class Util {
     try {
       // Retrieve all lesson data stored in localStorage
       const lessonData = JSON.parse(
-        localStorage.getItem("downloaded_lessons_size") || "{}",
+        localStorage.getItem('downloaded_lessons_size') || '{}',
       );
 
       await Filesystem.rmdir({
-        path: "/",
+        path: '/',
         directory: Directory.External,
         recursive: true,
       });
 
       // Clear the lessons data from localStorage
-      localStorage.removeItem("downloaded_lessons_size");
+      localStorage.removeItem('downloaded_lessons_size');
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
       return true;
     } catch (error) {
-      console.error("Error deleting all lessons:", error);
+      logger.error('Error deleting all lessons:', error);
       return false;
     }
   }
@@ -795,7 +794,7 @@ export class Util {
         if (!Capacitor.isNativePlatform()) return null;
 
         const contents = await Filesystem.readdir({
-          path: "",
+          path: '',
           directory: Directory.External,
         });
 
@@ -812,7 +811,7 @@ export class Util {
         lastRendered = new Date().getTime();
         localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
       } catch (error) {
-        console.error("Error listing folders:", error);
+        logger.error('Error listing folders:', error);
         return null;
       }
 
@@ -821,10 +820,10 @@ export class Util {
 
   public static async isChapterDownloaded(chapterId: string): Promise<boolean> {
     const chapterLessonIdMap = JSON.parse(
-      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}",
+      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || '{}',
     );
     const downloadedLessonIds = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]",
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
     let lessonIdsForChapter = chapterLessonIdMap[chapterId];
     if (!lessonIdsForChapter) {
@@ -868,39 +867,43 @@ export class Util {
       });
 
       await new Promise<object>((resolve, reject) => {
-        bundle.loadScene(launchScene, null, null, function (
-          err: Error | null | undefined,
-          scene: object,
-        ) {
-          if (!err) {
-            window.cc.director.runSceneImmediate(scene);
-            if (window.cc.sys.isBrowser) {
-              Util.checkingIfGameCanvasAvailable();
-              // show canvas
-              var canvas = document.getElementById("GameCanvas");
-              if (canvas) {
-                canvas.style.visibility = "";
-                canvas.style.display = "";
+        bundle.loadScene(
+          launchScene,
+          null,
+          null,
+          function (err: Error | null | undefined, scene: object) {
+            if (!err) {
+              window.cc.director.runSceneImmediate(scene);
+              if (window.cc.sys.isBrowser) {
+                Util.checkingIfGameCanvasAvailable();
+                // show canvas
+                var canvas = document.getElementById('GameCanvas');
+                if (canvas) {
+                  canvas.style.visibility = '';
+                  canvas.style.display = '';
+                }
+                const container = document.getElementById(
+                  'Cocos2dGameContainer',
+                );
+                if (container) {
+                  container.style.display = '';
+                  container.style.width = '100%';
+                  container.style.height = '100%';
+                }
+                var div = document.getElementById('GameDiv');
+                if (div) {
+                  div.style.backgroundImage = '';
+                }
               }
-              const container = document.getElementById("Cocos2dGameContainer");
-              if (container) {
-                container.style.display = "";
-                container.style.width = "100%";
-                container.style.height = "100%";
-              }
-              var div = document.getElementById("GameDiv");
-              if (div) {
-                div.style.backgroundImage = "";
-              }
+              resolve(scene);
+            } else {
+              reject(err);
             }
-            resolve(scene);
-          } else {
-            reject(err);
-          }
-        });
+          },
+        );
       });
     } catch (error) {
-      console.error("launchCocosGame(): error ", error);
+      logger.error('launchCocosGame(): error ', error);
     }
   }
 
@@ -910,17 +913,17 @@ export class Util {
     }
     window.cc.game.pause();
     window.cc.audioEngine.stopAll();
-    const canvas = document.getElementById("GameCanvas");
+    const canvas = document.getElementById('GameCanvas');
     if (canvas) {
-      canvas.style.visibility = "none";
-      canvas.style.display = "none";
+      canvas.style.visibility = 'none';
+      canvas.style.display = 'none';
     }
-    const container = document.getElementById("Cocos2dGameContainer");
+    const container = document.getElementById('Cocos2dGameContainer');
     if (container) {
-      container.style.display = "none";
-      container.style.width = "0px";
-      container.style.height = "0px";
-      container.style.overflow = "hidden";
+      container.style.display = 'none';
+      container.style.width = '0px';
+      container.style.height = '0px';
+      container.style.overflow = 'hidden';
     }
   }
 
@@ -928,7 +931,7 @@ export class Util {
     subjectCode: string,
     lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {},
+    lessonResultMap: { [key: string]: TableTypes<'result'> } = {},
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
@@ -944,24 +947,23 @@ export class Util {
     }
 
     if (subjectCode === COURSES.PUZZLE) {
-     
       if (Object.keys(lessonResultMap).length <= 0) return 0;
       const currentIndex = Util.getLastPlayedLessonIndexForLessons(
         lessons,
         lessonResultMap,
       );
-      
+
       return currentIndex <= 0 ? -1 : currentIndex;
     }
     const apiInstance = OneRosterApi.getInstance();
-    const preQuiz = lessonResultMap[subjectCode + "_" + PRE_QUIZ];
+    const preQuiz = lessonResultMap[subjectCode + '_' + PRE_QUIZ];
     if (!preQuiz) return -1;
     const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
       subjectCode,
       preQuiz.score ?? 0,
       chapters,
     );
-    
+
     const tempCurrentIndex = Util.getLastPlayedLessonIndexForLessons(
       tempLevelChapter.lessons,
       lessonResultMap,
@@ -970,13 +972,13 @@ export class Util {
       (lesson: any) =>
         lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id,
     );
-    
+
     return currentIndex < 0 ? 0 : currentIndex;
   }
 
   public static getLastPlayedLessonIndexForLessons(
     lessons: curriculamInterfaceLesson[],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {},
+    lessonResultMap: { [key: string]: TableTypes<'result'> } = {},
   ): number {
     let tempCurrentIndex = 0;
     for (let i = 0; i < lessons.length; i++) {
@@ -997,17 +999,16 @@ export class Util {
     }
 
     return courseId;
-
   }
 
   public static async showLog(msg: string | object): Promise<void> {
-    if (Capacitor.getPlatform() !== "android") return;
-    if (typeof msg !== "string") {
+    if (Capacitor.getPlatform() !== 'android') return;
+    if (typeof msg !== 'string') {
       msg = JSON.stringify(msg);
     }
     await Toast.show({
       text: msg,
-      duration: "long",
+      duration: 'long',
     });
   }
 
@@ -1021,7 +1022,7 @@ export class Util {
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
         Object.entries(params).map(([key, value]) => [
           key,
-          typeof value === "number" ? value.toString() : String(value),
+          typeof value === 'number' ? value.toString() : String(value),
         ]),
       );
       //Setting User Id in User Properites
@@ -1029,12 +1030,12 @@ export class Util {
         userId: params.user_id,
       });
       try {
-        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
         await Promise.resolve(
           Util.port.shareUserId({ userId: params.user_id }),
         );
       } catch (e) {
-        console.warn("Port.shareUserId skipped:", e);
+        logger.warn('Port.shareUserId skipped:', e);
       }
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
@@ -1050,39 +1051,38 @@ export class Util {
         params: params,
       });
     } catch (error) {
-      console.error(
-        "Error logging event to firebase analytics ",
+      logger.error(
+        'Error logging event to firebase analytics ',
         eventName,
-        ":",
+        ':',
         error,
       );
     }
   }
-  public static async setUserProperties(currentUser: TableTypes<"user">) {
+  public static async setUserProperties(currentUser: TableTypes<'user'>) {
     try {
       await FirebaseAnalytics.setUserProperty({
-        name: "parent user_id",
+        name: 'parent user_id',
         value: currentUser.id,
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "name",
-        value: currentUser.name ?? "",
+        name: 'name',
+        value: currentUser.name ?? '',
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "age",
-        value: currentUser.age?.toLocaleString() || "",
+        name: 'age',
+        value: currentUser.age?.toLocaleString() || '',
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "gender",
-        value: currentUser.gender?.toLocaleString() || "",
+        name: 'gender',
+        value: currentUser.gender?.toLocaleString() || '',
       });
-      
     } catch (error) {
-      console.error("Set User Properties Error ", error);
+      logger.error('Set User Properties Error ', error);
     }
   }
 
-  public static async logCurrentPageEvents(user: TableTypes<"user">) {
+  public static async logCurrentPageEvents(user: TableTypes<'user'>) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
       userId: user.id,
@@ -1117,7 +1117,7 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get(CONTINUE) === "true" &&
+        url.searchParams.get(CONTINUE) === 'true' &&
         url.pathname !== PAGES.GAME &&
         url.pathname !== PAGES.LOGIN &&
         url.pathname !== PAGES.EDIT_STUDENT
@@ -1126,30 +1126,29 @@ export class Util {
           url.pathname === PAGES.DISPLAY_SUBJECTS ||
           url.pathname === PAGES.DISPLAY_CHAPTERS
         ) {
-          url.searchParams.set("isReload", "true");
+          url.searchParams.set('isReload', 'true');
         }
         url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, '', url.toString());
         window.location.reload();
       } else {
-        url.searchParams.set("isReload", "true");
+        url.searchParams.set('isReload', 'true');
         url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, '', url.toString());
         Util.checkingIfGameCanvasAvailable();
       }
     }
-    
   };
 
   public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
     try {
-      const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+      const canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
 
       if (canvas) {
-        const gl = canvas.getContext("webgl") as WebGLRenderingContext | null;
+        const gl = canvas.getContext('webgl') as WebGLRenderingContext | null;
 
         if (!gl) {
-          console.error("WebGL is not supported on this device or browser.");
+          logger.error('WebGL is not supported on this device or browser.');
           return false;
         }
 
@@ -1160,7 +1159,7 @@ export class Util {
         ): WebGLShader | null => {
           const shader = gl.createShader(type);
           if (!shader) {
-            console.error("Failed to create shader.");
+            logger.error('Failed to create shader.');
             return null;
           }
           gl.shaderSource(shader, source);
@@ -1168,7 +1167,7 @@ export class Util {
 
           // Check for shader compilation errors
           if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.error(
+            logger.error(
               `Error compiling shader: ${gl.getShaderInfoLog(shader)}`,
             );
             gl.deleteShader(shader);
@@ -1204,34 +1203,34 @@ export class Util {
         );
 
         if (!vertexShader || !fragmentShader) {
-          console.error("Shader creation or validation failed.");
+          logger.error('Shader creation or validation failed.');
           return false;
         }
 
         // Handle WebGL context lost
         canvas.addEventListener(
-          "webglcontextlost",
+          'webglcontextlost',
           (event) => {
             try {
-              console.error("WebGL context lost detected.");
+              logger.error('WebGL context lost detected.');
               event.preventDefault(); // Prevent the browser from handling context loss
               const webglContext = canvas.getContext(
-                "webgl",
+                'webgl',
               ) as WebGLRenderingContext | null;
 
               if (webglContext) {
-                const rest = webglContext.getExtension("WEBGL_lose_context");
+                const rest = webglContext.getExtension('WEBGL_lose_context');
 
                 // If the context cannot be restored, reload the page
                 if (!rest) {
-                  console.error(
-                    "Unable to restore WebGL context. Reloading page...",
+                  logger.error(
+                    'Unable to restore WebGL context. Reloading page...',
                   );
                   window.location.reload();
                 }
               }
             } catch (error) {
-              console.error("Error handling webglcontextlost:", error);
+              logger.error('Error handling webglcontextlost:', error);
             }
           },
           false,
@@ -1239,18 +1238,18 @@ export class Util {
 
         // Handle WebGL context restored
         canvas.addEventListener(
-          "webglcontextrestored",
+          'webglcontextrestored',
           (event) => {
             try {
               event.preventDefault(); // Prevent the browser from restoring automatically
               const webglContext = canvas.getContext(
-                "webgl",
+                'webgl',
               ) as WebGLRenderingContext | null;
 
               if (webglContext) {
               }
             } catch (error) {
-              console.error("Error handling webglcontextrestored:", error);
+              logger.error('Error handling webglcontextrestored:', error);
             }
           },
           false,
@@ -1258,11 +1257,11 @@ export class Util {
 
         return true; // Return true if canvas exists and WebGL is initialized
       } else {
-        console.warn("GameCanvas element not found.");
+        logger.warn('GameCanvas element not found.');
         return false;
       }
     } catch (error) {
-      console.error("Error in checkingIfGameCanvasAvailable:", error);
+      logger.error('Error in checkingIfGameCanvasAvailable:', error);
       return false;
     }
   };
@@ -1277,14 +1276,14 @@ export class Util {
   }
 
   public static switchToOpsUser(history: any): void {
-    localStorage.setItem(IS_OPS_USER, "true");
+    localStorage.setItem(IS_OPS_USER, 'true');
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
   }
 
   public static setCurrentStudent = async (
-    student: TableTypes<"user"> | null,
+    student: TableTypes<'user'> | null,
     languageCode?: string,
     langFlag: boolean = true,
     isStudent: boolean = true,
@@ -1292,11 +1291,7 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
 
-    localStorage.setItem(
-      CURRENT_STUDENT,
-      JSON.stringify(student),
-      
-    );
+    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);
@@ -1307,8 +1302,6 @@ export class Util {
     const tempLangCode = languageCode ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
-
-    
   };
 
   public static randomBetween(min: number, max: number): number {
@@ -1357,10 +1350,8 @@ export class Util {
   }
 
   public static async subscribeToClassTopicForAllStudents(
-    currentUser: TableTypes<"user">,
-  ): Promise<void> {
-    
-  }
+    currentUser: TableTypes<'user'>,
+  ): Promise<void> {}
 
   public static isClassTokenSubscribed(classId: string): boolean {
     const subscribedTokens = localStorage.getItem(FCM_TOKENS);
@@ -1398,18 +1389,18 @@ export class Util {
     setIsInputFocus: (isFocused: boolean) => void,
   ) {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", (info) => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
         setIsInputFocus(true);
 
         setTimeout(() => {
           scollToRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-            inline: "nearest",
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
           });
         }, 50);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -1436,8 +1427,8 @@ export class Util {
         }
       }
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
+      logger.error(
+        '🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:',
         JSON.stringify(error),
       );
     }
@@ -1451,15 +1442,15 @@ export class Util {
     if (!Capacitor.isNativePlatform()) return;
     try {
       FirebaseMessaging.addListener(
-        "notificationReceived",
+        'notificationReceived',
         async ({ notification }) => {
           try {
             const res = await LocalNotifications.schedule({
               notifications: [
                 {
                   id: Util.notificationsCount++,
-                  body: notification.body ?? "",
-                  title: notification.title ?? "Chimple",
+                  body: notification.body ?? '',
+                  title: notification.title ?? 'Chimple',
                   attachments: !!notification.image
                     ? [{ id: notification.image, url: notification.image }]
                     : undefined,
@@ -1468,15 +1459,15 @@ export class Util {
               ],
             });
             LocalNotifications.addListener(
-              "localNotificationActionPerformed",
+              'localNotificationActionPerformed',
               (notification) => {
                 const extraData = notification.notification.extra;
                 onNotification(extraData);
               },
             );
           } catch (error) {
-            console.error(
-              "🚀 ~ file: util.ts:630 ~ error:",
+            logger.error(
+              '🚀 ~ file: util.ts:630 ~ error:',
               JSON.stringify(error),
             );
           }
@@ -1485,11 +1476,11 @@ export class Util {
       const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
       if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
-      if (result.receive === "granted") return;
+      if (result.receive === 'granted') return;
       await FirebaseMessaging.requestPermissions();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
+      logger.error(
+        '🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:',
         JSON.stringify(error),
       );
     }
@@ -1502,7 +1493,7 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1510,13 +1501,13 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
           } else {
             return;
           }
         }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.ASSIGNMENT) {
-      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, 'false');
       if (data.classId) {
         const classId = data.classId;
         if (!classId) return;
@@ -1529,7 +1520,7 @@ export class Util {
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
             window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT,
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
             foundMatch = true;
             break;
@@ -1544,18 +1535,18 @@ export class Util {
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
             window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT,
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
           window.location.replace(
-            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT,
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
         }
       }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
-      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, 'false');
       if (data.classId) {
         const classId = data.classId;
         const studentsData = await api.getStudentsForClass(classId);
@@ -1569,7 +1560,7 @@ export class Util {
             window.location.replace(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
-                : PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ,
+                : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
             foundMatch = true;
             break;
@@ -1584,12 +1575,12 @@ export class Util {
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
             window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ,
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
         return;
       }
     }
@@ -1619,22 +1610,20 @@ export class Util {
     return _canCheckUpdate;
   }
 
-  public static listenToNetwork() {
-    
-  }
+  public static listenToNetwork() {}
 
   public static async showInAppReview() {
     try {
       await InAppReview.requestReview();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
+      logger.error(
+        '🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:',
         JSON.stringify(error),
       );
     }
   }
   public static async fetchNotificationData() {
-    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
     return Util.port.fetchNotificationData();
   }
   public static async migrate() {
@@ -1645,28 +1634,27 @@ export class Util {
       return { migrated: false };
     const path = await Filesystem.getUri({
       directory: Directory.Data,
-      path: "",
+      path: '',
     });
-    const filePath = path.uri.replace("/files", "/databases/") + "jsb.sqlite";
+    const filePath = path.uri.replace('/files', '/databases/') + 'jsb.sqlite';
     const url = Capacitor.convertFileSrc(filePath);
     const res = await fetch(url);
     const isExists = res.ok;
     if (!isExists) return { migrated: false };
 
     if (!Util.port) {
-      Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port = registerPlugin<PortPlugin>('Port');
     }
     try {
       const port = await Util.port.getMigrateUsers();
       const functions = getFunctions();
-      const migrateUsers = httpsCallable(functions, "MigrateUsers");
+      const migrateUsers = httpsCallable(functions, 'MigrateUsers');
       const result = await migrateUsers({
         users: port.users,
       });
       const res: any = result.data;
-      
     } catch (error) {
-      console.error("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+      logger.error('🚀 ~ file: util.ts:707 ~ migrate ~ error:', error);
       return { migrated: false };
     }
   }
@@ -1682,14 +1670,12 @@ export class Util {
       const student = await Util.getCurrentStudent();
 
       if (!student) {
-        console.error("Student is undefined or null");
+        logger.error('Student is undefined or null');
         return false;
       }
 
       const api = ServiceConfig.getI().apiHandler;
       const studentResult = await api.getStudentClassesAndSchools(student.id);
-
-     
 
       if (
         studentResult &&
@@ -1699,15 +1685,12 @@ export class Util {
         return true;
       }
 
-      
-
       // If Remote Config allows showing avatar, return true
       const canShowAvatarValue = false;
-      
 
       return canShowAvatarValue;
     } catch (error) {
-      console.error("Error in getCanShowAvatar:", error);
+      logger.error('Error in getCanShowAvatar:', error);
       return false;
     }
   }
@@ -1718,8 +1701,6 @@ export class Util {
     localStorageNameForFilePath: string,
   ) {
     try {
-      
-
       if (!newFileURL) {
         return;
       }
@@ -1743,35 +1724,31 @@ export class Util {
         encoding: Encoding.UTF8,
         recursive: true,
       });
-      localStorage.setItem(
-        localStorageNameForFilePath,
-        res.uri,
-        
-      );
+      localStorage.setItem(localStorageNameForFilePath, res.uri);
     } catch (error) {
-      console.error("Json File Migration failed ", error);
+      logger.error('Json File Migration failed ', error);
 
       throw error;
     }
   }
 
   public static async getNextUnlockStickers(): Promise<
-    TableTypes<"sticker">[]
+    TableTypes<'sticker'>[]
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker",
+      'weeklySticker',
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
     const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
-      typeof weeklyData === "string"
+      typeof weeklyData === 'string'
         ? JSON.parse(weeklyData)
-        : typeof weeklyData === "object" && weeklyData !== null
+        : typeof weeklyData === 'object' && weeklyData !== null
           ? (weeklyData as Record<string, { type: string; id: string }[]>)
           : {};
     const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
@@ -1828,7 +1805,7 @@ export class Util {
       const date = new Date();
       const rewardsDoc = await api.getRewardsById(
         date.getFullYear(),
-        "weeklySticker",
+        'weeklySticker',
       );
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();
@@ -1836,23 +1813,23 @@ export class Util {
       let currentReward;
 
       const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
-        typeof weeklyData === "string"
+        typeof weeklyData === 'string'
           ? JSON.parse(weeklyData)
-          : typeof weeklyData === "object" && weeklyData !== null
+          : typeof weeklyData === 'object' && weeklyData !== null
             ? (weeklyData as Record<string, { type: string; id: string }[]>)
             : {};
       const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
       weeklyRewards.forEach(async (value: { type: string; id: string }) => {
         currentReward = value;
       });
-      
+
       if (!currentReward) {
         return false;
       }
-      
+
       return true;
     } catch (error) {
-      console.error("unlockWeeklySticker() error ", error);
+      logger.error('unlockWeeklySticker() error ', error);
       return false;
     }
   }
@@ -1860,27 +1837,26 @@ export class Util {
   public static async getAllUnlockedRewards(): Promise<
     unlockedRewardsInfo[] | undefined
   > {
-   
     return;
   }
 
   public static async onAppUrlOpen(event: URLOpenListenerEvent) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const url = new URL(event.url);
-    const slug = event.url.split(".cc").pop();
+    const slug = event.url.split('.cc').pop();
     // Determine target page for logging
-    let destinationPage = "";
+    let destinationPage = '';
     const newSearchParams = new URLSearchParams(url.search);
     const currentParams = new URLSearchParams(window.location.search);
-    currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
-    currentParams.set("page", PAGES.JOIN_CLASS);
+    currentParams.set('classCode', newSearchParams.get('classCode') ?? '');
+    currentParams.set('page', PAGES.JOIN_CLASS);
     const currentStudent = Util.getCurrentStudent();
     if (slug?.includes(PAGES.ASSIGNMENT)) {
-      destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
+      destinationPage = PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT;
     } else if (slug?.includes(PAGES.JOIN_CLASS)) {
       destinationPage = currentStudent
-        ? PAGES.HOME + "?" + currentParams.toString()
-        : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
+        ? PAGES.HOME + '?' + currentParams.toString()
+        : PAGES.DISPLAY_STUDENT + '?' + currentParams.toString();
     } else {
       // Fallback for other deeplinks
       destinationPage = PAGES.HOME;
@@ -1888,14 +1864,14 @@ export class Util {
 
     await Util.handleDeeplinkClick(
       url,
-      currentUser as TableTypes<"user">,
+      currentUser as TableTypes<'user'>,
       destinationPage,
     );
     if (destinationPage && currentStudent) {
       window.location.replace(destinationPage);
     } else {
       window.location.replace(
-        PAGES.DISPLAY_STUDENT + "?" + currentParams.toString(),
+        PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
     }
   }
@@ -1908,25 +1884,28 @@ export class Util {
       // store refreshToken in Redux store as JSON string
       store.dispatch(setRefreshToken(JSON.stringify(data)));
     } catch (e) {
-      console.error("Unable to store refresh token to Redux store", e);
+      logger.error('Unable to store refresh token to Redux store', e);
     }
   }
 
   // get refresh token from Redux store, if not available or error occurs return null
-  public static getRefreshTokenFromStore(): { token?: string; savedAt?: string } | null {
+  public static getRefreshTokenFromStore(): {
+    token?: string;
+    savedAt?: string;
+  } | null {
     try {
       const reduxVal = store.getState()?.auth?.refreshToken;
       if (!reduxVal) return null;
       const parsed = JSON.parse(reduxVal);
       return { token: parsed.token, savedAt: parsed.savedAt };
     } catch (e) {
-      console.error("Unable to read refresh token from Redux store", e);
+      logger.error('Unable to read refresh token from Redux store', e);
       return null;
     }
   }
 
   public static setCurrentSchool = async (
-    school: TableTypes<"school">,
+    school: TableTypes<'school'>,
     role: RoleType,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
@@ -1934,21 +1913,21 @@ export class Util {
     localStorage.setItem(SCHOOL, JSON.stringify(school));
     store.dispatch(addRole(role));
   };
-  public static getCurrentSchool(): TableTypes<"school"> | undefined {
+  public static getCurrentSchool(): TableTypes<'school'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
 
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
       const roles = store.getState()?.auth?.roles ?? [];
-        if (
-          [
-            RoleType.SUPER_ADMIN,
-            RoleType.FIELD_COORDINATOR,
-            RoleType.PROGRAM_MANAGER,
-            RoleType.OPERATIONAL_DIRECTOR,
-          ].some((role) => roles.includes(role))
-        ) {
-          return true;
-        }
+      if (
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ].some((role) => roles.includes(role))
+      ) {
+        return true;
+      }
       try {
         const authHandler = ServiceConfig.getI().authHandler;
         const currentUser = await authHandler.getCurrentUser();
@@ -1959,7 +1938,7 @@ export class Util {
 
         return schools.some((item) => item.school.id === schoolId);
       } catch (error) {
-        console.error("Error checking school via user:", error);
+        logger.error('Error checking school via user:', error);
         return false;
       }
     };
@@ -1982,7 +1961,7 @@ export class Util {
           classCount: classes.length,
         };
       } catch (error) {
-        console.error("Error checking class via user:", error);
+        logger.error('Error checking class via user:', error);
         return;
       }
     };
@@ -1997,8 +1976,8 @@ export class Util {
       isSchoolConnected(api.currentSchool.id).then((res) => {
         if (!res) {
           api.currentSchool = undefined;
-          
-          console.log("School no longer connected → removing from storage");
+
+          logger.info('School no longer connected → removing from storage');
           localStorage.removeItem(SCHOOL);
           localStorage.removeItem(CLASS);
           return;
@@ -2013,12 +1992,12 @@ export class Util {
             const { classExists, classCount } = cls;
 
             if (!classExists) {
-              console.log("Class no longer connected → removing class");
+              logger.warn('Class no longer connected → removing class');
               localStorage.removeItem(CLASS);
 
               // If only one class existed and that gets removed → remove school too
               if (classCount === 1) {
-                console.log("Last class removed → removing school as well");
+                logger.warn('Last class removed → removing school as well');
                 api.currentSchool = undefined;
                 localStorage.removeItem(SCHOOL);
               }
@@ -2034,7 +2013,7 @@ export class Util {
     const temp = localStorage.getItem(SCHOOL);
     if (!temp) return;
 
-    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+    const currentSchool = JSON.parse(temp) as TableTypes<'school'>;
     api.currentSchool = currentSchool;
 
     const classId = localStorage.getItem(CLASS) ?? undefined;
@@ -2043,7 +2022,7 @@ export class Util {
     isSchoolConnected(currentSchool.id).then((res) => {
       if (!res) {
         api.currentSchool = undefined;
-        
+
         localStorage.removeItem(SCHOOL);
         localStorage.removeItem(CLASS);
         return;
@@ -2057,11 +2036,11 @@ export class Util {
           const { classExists, classCount } = cls;
 
           if (!classExists) {
-            console.log("Class no longer connected → removing class");
+            logger.warn('Class no longer connected → removing class');
             localStorage.removeItem(CLASS);
 
             if (classCount === 1) {
-              console.log("Last class removed → removing school as well");
+              logger.warn('Last class removed → removing school as well');
               api.currentSchool = undefined;
               localStorage.removeItem(SCHOOL);
             }
@@ -2074,29 +2053,29 @@ export class Util {
   }
 
   public static setCurrentClass = async (
-    classDoc: TableTypes<"class"> | null,
+    classDoc: TableTypes<'class'> | null,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = classDoc !== null ? classDoc : undefined;
     localStorage.setItem(CLASS, JSON.stringify(classDoc));
   };
 
-  public static getCurrentClass(): TableTypes<"class"> | undefined {
+  public static getCurrentClass(): TableTypes<'class'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     // 🔹 Try CLASS first, then CURRENT_CLASS as fallback
     let temp = localStorage.getItem(CLASS);
-    if ((!temp || temp === "undefined") && CURRENT_CLASS) {
+    if ((!temp || temp === 'undefined') && CURRENT_CLASS) {
       temp = localStorage.getItem(CURRENT_CLASS) || null;
     }
-    if (!temp || temp === "undefined") return;
+    if (!temp || temp === 'undefined') return;
 
     try {
-      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      const currentClass = JSON.parse(temp) as TableTypes<'class'>;
       api.currentClass = currentClass;
       return currentClass;
     } catch (err) {
-      console.error("Failed to parse currentClass from localStorage", err);
+      logger.error('Failed to parse currentClass from localStorage', err);
       return;
     }
   }
@@ -2119,12 +2098,12 @@ export class Util {
           imageFile: imageFile, // Pass the File object for Android
         })
         .then(() => {})
-        .catch((error) => console.error("Error sharing content:", error));
+        .catch((error) => logger.error('Error sharing content:', error));
     } else {
       // Web sharing
       const shareData: ShareData = {
-        text: t(text) || "",
-        title: t(title) || "",
+        text: t(text) || '',
+        title: t(title) || '',
         url: url,
         files: imageFile,
       };
@@ -2132,17 +2111,17 @@ export class Util {
       await navigator
         .share(shareData)
         .then(() => {})
-        .catch((error) => console.error("Error sharing content:", error));
+        .catch((error) => logger.error('Error sharing content:', error));
     }
   }
 
   public static setCurrentCourse = async (
     classId: string | undefined,
-    courseDoc: TableTypes<"course"> | null,
+    courseDoc: TableTypes<'course'> | null,
   ) => {
     if (!classId) return;
     const api = ServiceConfig.getI().apiHandler;
-    const courseMap: Map<string, TableTypes<"course"> | undefined> = new Map();
+    const courseMap: Map<string, TableTypes<'course'> | undefined> = new Map();
     courseMap.set(classId, courseDoc ?? undefined);
     api.currentCourse = courseMap;
     const mapObject = Object.fromEntries(courseMap);
@@ -2151,7 +2130,7 @@ export class Util {
 
   public static getCurrentCourse(
     classId: string | undefined,
-  ): TableTypes<"course"> | undefined {
+  ): TableTypes<'course'> | undefined {
     if (!classId) return;
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentCourse) return api.currentCourse.get(classId);
@@ -2160,7 +2139,7 @@ export class Util {
     const tempObject = JSON.parse(temp);
     const currentCourse = new Map(Object.entries(tempObject)) as Map<
       string,
-      TableTypes<"course">
+      TableTypes<'course'>
     >;
     return currentCourse.get(classId);
   }
@@ -2171,7 +2150,7 @@ export class Util {
   public static getNavigationState(): {
     stage: string;
   } | null {
-    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || "null");
+    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || 'null');
   }
 
   public static setNavigationState(stage: string) {
@@ -2188,19 +2167,19 @@ export class Util {
       try {
         const path = await Filesystem.getUri({
           directory: Directory.External,
-          path: "",
+          path: '',
         });
 
         if (path && path.uri) {
           const uri = Capacitor.convertFileSrc(path.uri);
-          return uri + "/"; // file:///data/user/0/org.chimple.bahama/cache
+          return uri + '/'; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
-        console.error("path error", error);
+        logger.error('path error', error);
       }
-      throw new Error("Failed to retrieve Android bundle path.");
+      throw new Error('Failed to retrieve Android bundle path.');
     }
-    throw new Error("Not running on a native platform.");
+    throw new Error('Not running on a native platform.');
   }
 
   public static setGameUrl(path: string) {
@@ -2212,14 +2191,14 @@ export class Util {
   }) {
     try {
       if (!Util.port) {
-        Util.port = registerPlugin<PortPlugin>("Port");
+        Util.port = registerPlugin<PortPlugin>('Port');
       }
       await Util.port.saveProceesedXlsxFile({
         fileData: data.fileData,
         fileName: data.fileName,
       });
     } catch (error) {
-      console.error("Download failed:", error);
+      logger.error('Download failed:', error);
     }
   }
   public static handleMissingEntities(
@@ -2291,11 +2270,11 @@ export class Util {
       const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
 
       if (!ENCRYPTION_KEY) {
-        throw new Error("ENCRYPTION_KEY is not set.");
+        throw new Error('ENCRYPTION_KEY is not set.');
       }
       return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
     } catch (error) {
-      console.error("Encryption failed:", error);
+      logger.error('Encryption failed:', error);
       return null;
     }
   }
@@ -2306,7 +2285,7 @@ export class Util {
     try {
       const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
       if (!ENCRYPTION_KEY) {
-        throw new Error("ENCRYPTION_KEY is not set.");
+        throw new Error('ENCRYPTION_KEY is not set.');
       }
 
       const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
@@ -2314,7 +2293,7 @@ export class Util {
 
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error("Decryption failed:", error);
+      logger.error('Decryption failed:', error);
       return null;
     }
   }
@@ -2333,7 +2312,7 @@ export class Util {
         localStorage.setItem(SCHOOL_LOGIN, encryptedData);
       }
     } catch (error) {
-      console.error("Failed to encrypt and store login details:", error);
+      logger.error('Failed to encrypt and store login details:', error);
     }
   }
 
@@ -2342,24 +2321,24 @@ export class Util {
       const response = await fetch(fileUrl);
 
       // ✅ Validate content type to avoid corrupted files
-      const contentType = response.headers.get("content-type") || "";
+      const contentType = response.headers.get('content-type') || '';
       if (
-        contentType.includes("text/html") ||
-        contentType.includes("application/json")
+        contentType.includes('text/html') ||
+        contentType.includes('application/json')
       ) {
         const text = await response.text();
-        console.error(
-          "Unexpected content instead of a file:",
+        logger.error(
+          'Unexpected content instead of a file:',
           text.slice(0, 100),
         );
         throw new Error(
-          "Invalid file download. Check if the link is direct and the file is public.",
+          'Invalid file download. Check if the link is direct and the file is public.',
         );
       }
       const blob = await response.blob();
-      this.handleBlobDownloadAndSave(blob, "BulkUploadTemplate.xlsx");
+      this.handleBlobDownloadAndSave(blob, 'BulkUploadTemplate.xlsx');
     } catch (error) {
-      console.error("Download failed:", error);
+      logger.error('Download failed:', error);
     }
   }
 
@@ -2369,7 +2348,7 @@ export class Util {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         const base64Data = reader.result as string;
-        resolve(base64Data.split(",")[1]);
+        resolve(base64Data.split(',')[1]);
       };
       reader.onerror = reject;
     });
@@ -2385,23 +2364,23 @@ export class Util {
         });
       } else {
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = fileName || "ProcessedFile.xlsx";
+        a.download = fileName || 'ProcessedFile.xlsx';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error("Failed to save or download file:", error);
+      logger.error('Failed to save or download file:', error);
     }
   }
   public static mergeStudentsByUpdatedAt(
-    apiStudents: TableTypes<"user">[],
+    apiStudents: TableTypes<'user'>[],
     storedMapStr: string | null,
-  ): TableTypes<"user">[] {
-    const studentsMap: Record<string, TableTypes<"user">> = storedMapStr
+  ): TableTypes<'user'>[] {
+    const studentsMap: Record<string, TableTypes<'user'>> = storedMapStr
       ? JSON.parse(storedMapStr)
       : {};
 
@@ -2419,18 +2398,17 @@ export class Util {
     return mergedStudents;
   }
   public static async loadBackgroundImage() {
-    const body = document.querySelector("body");
+    const body = document.querySelector('body');
     if (
       Capacitor.isNativePlatform() &&
-      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true"
+      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
     ) {
       try {
         const result = await Filesystem.readFile({
-          path: "remoteAsset/remoteBackground.svg",
+          path: 'remoteAsset/remoteBackground.svg',
           directory: Directory.External,
         });
         const res = await this.blobToString(result.data);
-        console.log("llllllllllllllllllllllll", res);
 
         const svgData = atob(res); // decode base64
 
@@ -2438,33 +2416,33 @@ export class Util {
           body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(
             svgData,
           )}')`;
-          body.style.backgroundRepeat = "no-repeat";
-          body.style.backgroundSize = "cover";
-          body.style.backgroundPosition = "center center";
+          body.style.backgroundRepeat = 'no-repeat';
+          body.style.backgroundSize = 'cover';
+          body.style.backgroundPosition = 'center center';
         }
       } catch (e) {
         body?.style.setProperty(
-          "background-image",
-          "url(/pathwayAssets/pathwayBackground.svg)",
+          'background-image',
+          'url(/pathwayAssets/pathwayBackground.svg)',
         );
-        body?.style.setProperty("background-repeat", "no-repeat");
-        body?.style.setProperty("background-size", "cover");
-        body?.style.setProperty("background-position", "center center");
-        console.error("Failed to load remote background image:", e);
+        body?.style.setProperty('background-repeat', 'no-repeat');
+        body?.style.setProperty('background-size', 'cover');
+        body?.style.setProperty('background-position', 'center center');
+        logger.error('Failed to load remote background image:', e);
       }
     } else {
       body?.style.setProperty(
-        "background-image",
-        "url(/pathwayAssets/pathwayBackground.svg)",
+        'background-image',
+        'url(/pathwayAssets/pathwayBackground.svg)',
       );
-      body?.style.setProperty("background-repeat", "no-repeat");
-      body?.style.setProperty("background-size", "cover");
-      body?.style.setProperty("background-position", "center center");
+      body?.style.setProperty('background-repeat', 'no-repeat');
+      body?.style.setProperty('background-size', 'cover');
+      body?.style.setProperty('background-position', 'center center');
     }
   }
   public static async handleDeeplinkClick(
     url: URL,
-    currentUser: TableTypes<"user"> | null,
+    currentUser: TableTypes<'user'> | null,
     destinationPage: string,
   ) {
     const timestamp = new Date().toISOString();
@@ -2476,8 +2454,8 @@ export class Util {
     }
 
     const eventData = {
-      user_id: currentUser?.id ?? "anonymous",
-      user_name: currentUser?.name ?? "",
+      user_id: currentUser?.id ?? 'anonymous',
+      user_name: currentUser?.name ?? '',
       phone: currentUser?.phone || null,
       email: currentUser?.email || null,
       timestamp,
@@ -2519,9 +2497,9 @@ export class Util {
 
       await api.updateLanguage(currentUser.id, selectedLanguage.id);
       localStorage.setItem(LANGUAGE, languageCode);
-      await i18n.changeLanguage(languageCode ?? "");
+      await i18n.changeLanguage(languageCode ?? '');
 
-      const updatedUserData: TableTypes<"user"> = {
+      const updatedUserData: TableTypes<'user'> = {
         ...currentUser,
         language_id: selectedLanguage.id,
       };
@@ -2529,7 +2507,7 @@ export class Util {
       store.dispatch(setUser(updatedUserData));
       auth.currentUser = updatedUserData;
     } catch (error) {
-      console.error("Failed to update user language:", error);
+      logger.error('Failed to update user language:', error);
     }
   }
   public static async fetchTodaysReward() {
@@ -2539,7 +2517,7 @@ export class Util {
       const today = new Date();
       const day = today.getDate();
       let chimpleRiveMaxState = allRewards[0].max_state_value ?? 8;
-      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true") {
+      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true') {
         chimpleRiveMaxState =
           parseInt(
             localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string,
@@ -2549,18 +2527,18 @@ export class Util {
       const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
       const todaysReward = allRewards.find(
         (reward) =>
-          reward.state_number_input === mappedState && reward.type === "normal",
+          reward.state_number_input === mappedState && reward.type === 'normal',
       );
       return todaysReward;
     } catch (error) {
-      console.error("Error fetching Chimple Rive config:", error);
+      logger.error('Error fetching Chimple Rive config:', error);
     }
   }
   public static async updateUserReward() {
     try {
       // Get daily user reward from localStorage
       const dailyUserReward = JSON.parse(
-        localStorage.getItem(DAILY_USER_REWARD) ?? "{}",
+        localStorage.getItem(DAILY_USER_REWARD) ?? '{}',
       );
 
       const currentStudent = Util.getCurrentStudent();
@@ -2580,7 +2558,7 @@ export class Util {
         !dailyUserReward[currentStudent.id].timestamp ||
         new Date(dailyUserReward[currentStudent.id].timestamp)
           .toISOString()
-          .split("T")[0] !== new Date().toISOString().split("T")[0] ||
+          .split('T')[0] !== new Date().toISOString().split('T')[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
           currentReward?.reward_id
       ) {
@@ -2593,7 +2571,7 @@ export class Util {
         );
       }
     } catch (error) {
-      console.error("Error updating student reward:", error);
+      logger.error('Error updating student reward:', error);
     }
   }
   public static retrieveUserReward() {
@@ -2602,7 +2580,7 @@ export class Util {
     const studentId = currentStudent.id;
     try {
       const allRewards = JSON.parse(
-        localStorage.getItem(DAILY_USER_REWARD) || "{}",
+        localStorage.getItem(DAILY_USER_REWARD) || '{}',
       );
 
       if (!allRewards[studentId]) {
@@ -2612,7 +2590,7 @@ export class Util {
 
       return currentReward;
     } catch (error) {
-      console.error("Error managing daily user reward in localStorage:", error);
+      logger.error('Error managing daily user reward in localStorage:', error);
       return {};
     }
   }
@@ -2620,9 +2598,7 @@ export class Util {
     try {
       const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
-        console.error(
-          "Could not find homework path in localStorage to update.",
-        );
+        logger.error('Could not find homework path in localStorage to update.');
         return;
       }
 
@@ -2637,7 +2613,7 @@ export class Util {
       const studentId = student?.id ?? null;
 
       // If caller provided which index completed, use that
-      if (typeof completedIndex === "number") {
+      if (typeof completedIndex === 'number') {
         const lessons = homeworkPath.lessons ?? [];
         const completedLesson = lessons[completedIndex] ?? null;
 
@@ -2672,8 +2648,8 @@ export class Util {
                   assignmentPayload,
                 );
               } catch (e) {
-                console.warn(
-                  "[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED",
+                logger.warn(
+                  '[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED',
                   e,
                 );
               }
@@ -2685,7 +2661,7 @@ export class Util {
             }
           }
         } catch (e) {
-          console.warn("[Analytics] assignment-completed block failed", e);
+          logger.warn('[Analytics] assignment-completed block failed', e);
         }
 
         // --- 2) Decide if this was the last lesson in the path ---
@@ -2718,19 +2694,19 @@ export class Util {
               lesson_ids: lessonIds,
               assignment_ids: assignmentIds,
               completed_at: new Date().toISOString(),
-              source: "updateHomeworkPath",
+              source: 'updateHomeworkPath',
             };
 
             try {
               Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
             } catch (e) {
-              console.warn(
-                "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED",
+              logger.warn(
+                '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED',
                 e,
               );
             }
           } catch (e) {
-            console.warn("[Analytics] pathway-completed block failed", e);
+            logger.warn('[Analytics] pathway-completed block failed', e);
           }
 
           // finally remove the path from storage
@@ -2773,19 +2749,19 @@ export class Util {
             lesson_ids: lessonIds,
             assignment_ids: assignmentIds,
             completed_at: new Date().toISOString(),
-            source: "updateHomeworkPath",
+            source: 'updateHomeworkPath',
           };
 
           try {
             Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
           } catch (e) {
-            console.warn(
-              "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)",
+            logger.warn(
+              '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)',
               e,
             );
           }
         } catch (e) {
-          console.warn("[Analytics] pathway completed (fallback) failed", e);
+          logger.warn('[Analytics] pathway completed (fallback) failed', e);
         }
 
         localStorage.removeItem(HOMEWORK_PATHWAY);
@@ -2794,11 +2770,11 @@ export class Util {
         localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
-      console.error("Failed to update homework path:", error);
+      logger.error('Failed to update homework path:', error);
     }
   }
   public static async updateLearningPath(
-    currentStudent: TableTypes<"user">,
+    currentStudent: TableTypes<'user'>,
     isRewardLesson: boolean,
     isFullPathwayTerminated: boolean = false,
     abortCourseId?: string,
@@ -2807,9 +2783,7 @@ export class Util {
     if (!currentStudent) return;
     const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-    const learningPath = pathToParse
-      ? JSON.parse(pathToParse)
-      : null;
+    const learningPath = pathToParse ? JSON.parse(pathToParse) : null;
 
     if (!learningPath) return;
     learningPath.updated_at = new Date().toISOString();
@@ -2831,7 +2805,7 @@ export class Util {
           id: course.course_id,
           subject_id: course.subject_id,
           framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
         },
         mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         coursePath: course,
@@ -2900,7 +2874,7 @@ export class Util {
           id: course.course_id,
           subject_id: course.subject_id,
           framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? "framework" : null,
+            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
         },
         mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
         coursePath: course,
@@ -2932,7 +2906,7 @@ export class Util {
         const newpathId = uuidv4();
         course.path_id = newpathId;
         prevData.pathId = newpathId;
-        course.completedPath +=1;
+        course.completedPath += 1;
         courseIndex += 1;
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
@@ -2941,7 +2915,7 @@ export class Util {
         );
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
-        if (typeof navigator !== "undefined" && navigator.onLine) {
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
           sessionStorage.setItem(
             AUTO_OPEN_STICKER_PREVIEW_KEY,
             JSON.stringify({
@@ -2996,7 +2970,7 @@ export class Util {
         Util.setCurrentStudent(updatedStudent);
       }
     } catch (error) {
-      console.error("Error updating learning path:", error);
+      logger.error('Error updating learning path:', error);
     }
   }
 
@@ -3004,7 +2978,7 @@ export class Util {
     studentId: string,
   ): Promise<void> {
     try {
-      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) return;
@@ -3017,45 +2991,46 @@ export class Util {
 
       await api.updateStickerWon(current.book.id, nextStickerId);
     } catch (error) {
-      console.warn("[StickerBook] Failed to award pathway sticker:", error);
+      logger.warn('[StickerBook] Failed to award pathway sticker:', error);
     }
   }
-  
+
   // this function is created because local sqlite database was updating after UI rendering,
-  // so it was showing old learning path until we refresh the page, 
-  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one 
+  // so it was showing old learning path until we refresh the page,
+  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one
   public static getLatestLearningPathByUpdatedAt(
-    student: TableTypes<"user">
+    student: TableTypes<'user'>,
   ): string | null {
     try {
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
-  
+
       // If nothing in session storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }
-      const studentLearningPath = student.learning_path ? JSON.parse(student.learning_path) : null;
+      const studentLearningPath = student.learning_path
+        ? JSON.parse(student.learning_path)
+        : null;
       const parsed = JSON.parse(sessionData);
-  
+
       // If session data belongs to different student, ignore it
       if (parsed.studentId !== student.id) {
         return student?.learning_path ?? null;
       }
-  
+
       const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
       const dbUpdatedAt = studentLearningPath?.updated_at
         ? new Date(studentLearningPath.updated_at).getTime()
         : 0;
-  
-      
+
       // Compare timestamps
       if (sessionUpdatedAt > dbUpdatedAt) {
         return parsed.learningPath;
       }
-  
+
       return student?.learning_path ?? null;
     } catch (error) {
-      console.error("Error resolving latest learning path:", error);
+      logger.error('Error resolving latest learning path:', error);
       return student?.learning_path ?? null;
     }
   }
@@ -3075,8 +3050,8 @@ export class Util {
       const localStars = Number.isFinite(+localStarsRaw)
         ? parseInt(localStarsRaw, 10)
         : 0;
-      const latestStars = Number.isFinite(+(latestStarsRaw ?? "0"))
-        ? parseInt(latestStarsRaw ?? "0", 10)
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? '0'))
+        ? parseInt(latestStarsRaw ?? '0', 10)
         : 0;
 
       // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
@@ -3089,7 +3064,7 @@ export class Util {
       }
       return bestLocal;
     } catch (e) {
-      console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
+      logger.warn('[Util.getLocalStarsForStudent] failed, using fallback', e);
       return fallback;
     }
   }
@@ -3099,8 +3074,8 @@ export class Util {
     schoolName: string;
   }> {
     const currentStudent = Util.getCurrentStudent();
-    let className = "";
-    let schoolName = "";
+    let className = '';
+    let schoolName = '';
     if (currentStudent?.id) {
       try {
         const api = ServiceConfig.getI().apiHandler;
@@ -3109,15 +3084,15 @@ export class Util {
         );
         if (linkedData && linkedData.classes.length > 0) {
           const classDoc = linkedData.classes[0];
-          className = classDoc.name || "";
+          className = classDoc.name || '';
 
           const schoolDoc = linkedData.schools.find(
             (s: any) => s.id === classDoc.school_id,
           );
-          schoolName = schoolDoc?.name || "";
+          schoolName = schoolDoc?.name || '';
         }
       } catch (error) {
-        console.error("Error fetching class/school details:", error);
+        logger.error('Error fetching class/school details:', error);
       }
     }
     return { className, schoolName };
@@ -3136,7 +3111,7 @@ export class Util {
 
       localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
-      console.warn("[Util.setLocalStarsForStudent] failed", e);
+      logger.warn('[Util.setLocalStarsForStudent] failed', e);
     }
   }
 
@@ -3152,20 +3127,20 @@ export class Util {
 
     try {
       window.dispatchEvent(
-        new CustomEvent("starsUpdated", {
+        new CustomEvent('starsUpdated', {
           detail: { studentId, newStars: next },
         }),
       );
     } catch (e) {
-      console.warn("[Util.bumpLocalStarsForStudent] event dispatch failed", e);
+      logger.warn('[Util.bumpLocalStarsForStudent] event dispatch failed', e);
     }
 
     return next;
   }
 
   public static isVersionAllowed(upto: string, current: string): boolean {
-    const u = upto.split(".").map((n) => parseInt(n, 10));
-    const c = current.split(".").map((n) => parseInt(n, 10));
+    const u = upto.split('.').map((n) => parseInt(n, 10));
+    const c = current.split('.').map((n) => parseInt(n, 10));
 
     for (let i = 0; i < Math.max(u.length, c.length); i++) {
       const nu = u[i] || 0;
@@ -3207,7 +3182,7 @@ export class Util {
       const eligibleFromDB = all.filter((a: any) => {
         const isSameSubject =
           String(a.course_id || a.subject_id) === String(currentSubjectId);
-        return a.type !== "LIVEQUIZ" && isSameSubject;
+        return a.type !== 'LIVEQUIZ' && isSameSubject;
       });
 
       // 5. Preserve Played History: Node 2 (A) stays exactly where it is
@@ -3248,7 +3223,7 @@ export class Util {
             course_id: assignment.course_id,
             lesson: fullLesson || {
               id: assignment.lesson_id,
-              image: "assets/icons/DefaultIcon.png",
+              image: 'assets/icons/DefaultIcon.png',
             },
             raw_assignment: assignment,
           };
@@ -3267,7 +3242,7 @@ export class Util {
         }),
       );
     } catch (error) {
-      console.error("Failed to refresh homework path with latest:", error);
+      logger.error('Failed to refresh homework path with latest:', error);
     }
   }
   public static pickFiveHomeworkLessons(
@@ -3304,7 +3279,7 @@ export class Util {
       if (!sid) continue;
       if (!bySubject[sid])
         bySubject[sid] = { manual: [], other: [], total: 0, manualCount: 0 };
-      if (a.source === "manual") {
+      if (a.source === 'manual') {
         bySubject[sid].manual.push(a);
         bySubject[sid].manualCount++;
       } else {
@@ -3400,41 +3375,41 @@ export class Util {
         // Directory does not exist, proceed to download.
       }
       const fs = createFilesystem(Filesystem, {
-        rootDir: "/",
+        rootDir: '/',
         directory: Directory.Data,
       });
 
       // 🔽 Download ZIP
       const download = await CapacitorHttp.get({
         url: audioZipUrl,
-        responseType: "blob",
+        responseType: 'blob',
         readTimeout: 15000,
         connectTimeout: 15000,
       });
 
       if (!download || download.status !== 200 || !download.data) {
-        console.error("[LidoCommonAudio] ZIP download failed");
+        logger.error('[LidoCommonAudio] ZIP download failed');
         return false;
       }
 
       const zipDataStr =
-        typeof download.data === "string"
+        typeof download.data === 'string'
           ? download.data
           : await this.blobToString(download.data as Blob);
 
       let buffer: Uint8Array;
       try {
         const prepared = await runBackgroundWorkerTask(
-          "PREPARE_BINARY_FROM_BASE64",
+          'PREPARE_BINARY_FROM_BASE64',
           {
             base64: zipDataStr,
-            algorithm: "SHA-256",
+            algorithm: 'SHA-256',
           },
         );
         buffer = new Uint8Array(prepared.arrayBuffer);
       } catch (workerError) {
-        console.warn(
-          "[LidoCommonAudio] Worker decode failed, falling back to main thread decode.",
+        logger.warn(
+          '[LidoCommonAudio] Worker decode failed, falling back to main thread decode.',
           workerError,
         );
         buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
@@ -3444,23 +3419,23 @@ export class Util {
       await unzip({
         fs,
         extractTo: langSpecificDir,
-        filepaths: ["."],
+        filepaths: ['.'],
         data: buffer,
       });
 
       return true;
     } catch (err) {
-      console.error(
-        "[LidoCommonAudio] Unexpected error while downloading audio:",
+      logger.error(
+        '[LidoCommonAudio] Unexpected error while downloading audio:',
         err,
       );
       return false;
     }
   }
-  static async ensureLidoCommonAudioForStudent(student: TableTypes<"user">) {
+  static async ensureLidoCommonAudioForStudent(student: TableTypes<'user'>) {
     try {
       if (!student?.language_id) {
-        console.warn("[LidoCommonAudio] Student has no language");
+        logger.warn('[LidoCommonAudio] Student has no language');
         return;
       }
 
@@ -3472,7 +3447,7 @@ export class Util {
       );
 
       if (!audioConfig?.lido_common_audio_url) {
-        console.warn("[LidoCommonAudio] No audio config found");
+        logger.warn('[LidoCommonAudio] No audio config found');
         return;
       }
       await Util.downloadLidoCommonAudio(
@@ -3480,7 +3455,7 @@ export class Util {
         student.language_id,
       );
     } catch (err) {
-      console.error("[LidoCommonAudio] ensure failed:", err);
+      logger.error('[LidoCommonAudio] ensure failed:', err);
     }
   }
 
@@ -3489,12 +3464,12 @@ export class Util {
     return raw
       ? JSON.parse(raw)
       : {
-          status: "Idle",
+          status: 'Idle',
           progress: 0,
-          channel: "N/A",
-          lastChecked: "N/A",
-          lastUpdated: "N/A",
-          error: "",
+          channel: 'N/A',
+          lastChecked: 'N/A',
+          lastUpdated: 'N/A',
+          error: '',
           isAuto: false,
         };
   }
@@ -3504,7 +3479,7 @@ export class Util {
     const updated = { ...current, ...partial };
     localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
 
-    window.dispatchEvent(new Event("hot-update-progress"));
+    window.dispatchEvent(new Event('hot-update-progress'));
   }
   static async removeCourseScopedKey(
     baseKey: string,
@@ -3517,12 +3492,12 @@ export class Util {
 
     let map: Record<string, any> = {};
     try {
-      map = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      map = JSON.parse(localStorage.getItem(storageKey) || '{}');
     } catch {
       map = {};
     }
 
-    if (!map || typeof map !== "object") return;
+    if (!map || typeof map !== 'object') return;
 
     delete map[courseId];
 
@@ -3533,7 +3508,7 @@ export class Util {
   static upsertResultWithAggregation(
     resultsBucket: any[],
     result: any,
-    lesson?: TableTypes<"lesson">,
+    lesson?: TableTypes<'lesson'>,
   ) {
     // LIDO → aggregate per lesson
     if (lesson?.plugin_type === LIDO_ASSESSMENT) {
@@ -3581,7 +3556,7 @@ export class Util {
       updateLocalAttributes(attributeParams);
       return [];
     } catch (error) {
-      console.error("[Util.updateSchStdAttb] failed:", error);
+      logger.error('[Util.updateSchStdAttb] failed:', error);
       return [];
     }
   }

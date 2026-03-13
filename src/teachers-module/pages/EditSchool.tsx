@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
-import { useHistory, useLocation } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { PAGES, SchoolWithRole, TableTypes } from "../../common/constants";
-import Header from "../components/homePage/Header";
-import "./EditSchool.css";
-import EditSchoolSection from "../components/schoolComponent/EditSchoolSection";
-import { IonButton, IonPage } from "@ionic/react";
-import { RoleType } from "../../interface/modelInterfaces";
-import { Util } from "../../utility/util";
-import ProfileDetails from "../components/library/ProfileDetails";
+import React, { useEffect, useState } from 'react';
+import { Box } from '@mui/material';
+import { useHistory, useLocation } from 'react-router-dom';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import { PAGES, SchoolWithRole, TableTypes } from '../../common/constants';
+import Header from '../components/homePage/Header';
+import './EditSchool.css';
+import EditSchoolSection from '../components/schoolComponent/EditSchoolSection';
+import { IonButton, IonPage } from '@ionic/react';
+import { RoleType } from '../../interface/modelInterfaces';
+import { Util } from '../../utility/util';
+import ProfileDetails from '../components/library/ProfileDetails';
+import logger from '../../utility/logger';
 interface LocationState {
-  school?: SchoolWithRole["school"];
+  school?: SchoolWithRole['school'];
   role?: RoleType;
   origin?: string;
 }
@@ -24,13 +25,13 @@ const EditSchool: React.FC = () => {
   const prevOrigin = origin ?? null;
   const isEditMode: boolean = location.pathname === PAGES.EDIT_SCHOOL;
   const [currentSchool, setCurrentSchool] =
-    useState<TableTypes<"school"> | null>(null);
+    useState<TableTypes<'school'> | null>(null);
   const [schoolData, setSchoolData] = useState({
-    name: "",
-    state: "",
-    district: "",
-    city: "",
-    image: "",
+    name: '',
+    state: '',
+    district: '',
+    city: '',
+    image: '',
   });
   const [initialSchoolData, setInitialSchoolData] = useState(schoolData);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
@@ -54,10 +55,10 @@ const EditSchool: React.FC = () => {
     if (school) {
       const fetchedData = {
         name: school.name,
-        state: school.group1 ?? "",
-        district: school.group2 ?? "",
-        city: school.group3 ?? "",
-        image: school.image ?? "",
+        state: school.group1 ?? '',
+        district: school.group2 ?? '',
+        city: school.group3 ?? '',
+        image: school.image ?? '',
       };
       setSchoolData(fetchedData);
       setInitialSchoolData(fetchedData);
@@ -76,10 +77,9 @@ const EditSchool: React.FC = () => {
           schoolData.state,
           schoolData.district,
           schoolData.city,
-          profilePic
+          profilePic,
         );
 
-        
         //     Util.setNavigationState(Class_Creation_Stages.SCHOOL_COURSE);
         //     history.replace(PAGES.SUBJECTS_PAGE, {
         //       schoolId: updatedSchool.id,
@@ -111,7 +111,7 @@ const EditSchool: React.FC = () => {
         // });
       }
     } catch (error) {
-      console.error("Failed to save school:", error);
+      logger.error('Failed to save school:', error);
     } finally {
       setIsSaving(false);
     }
@@ -143,18 +143,18 @@ const EditSchool: React.FC = () => {
       {
         school: school,
         role: role,
-      }
+      },
     );
   };
 
   const [profilePic, setProfilePic] = useState<File | null>(null);
 
   const handleProfilePicChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    event.target.value = "";
+    event.target.value = '';
     // Create an image object
     const img = new Image();
     img.src = URL.createObjectURL(file);
@@ -181,13 +181,13 @@ const EditSchool: React.FC = () => {
         disableBackButton={isSaving ? true : false}
       />
       <div className="edit-school-text-div">
-        {isEditMode ? t("Edit School") : t("Add School")}
+        {isEditMode ? t('Edit School') : t('Add School')}
       </div>
       <div className="single-container">
         <div className="profile-image">
           <ProfileDetails
             imgSrc={
-              profilePic ? URL.createObjectURL(profilePic) : school?.image || ""
+              profilePic ? URL.createObjectURL(profilePic) : school?.image || ''
             }
             imgAlt="Profile Pic"
             onImageChange={handleProfilePicChange}
@@ -215,10 +215,10 @@ const EditSchool: React.FC = () => {
                 disabled={isButtonDisabled || isSaving}
               >
                 {isSaving
-                  ? t("Saving") + "..."
+                  ? t('Saving') + '...'
                   : isEditMode
-                    ? t("Update")
-                    : t("Save")}
+                    ? t('Update')
+                    : t('Save')}
               </IonButton>
             </div>
           </Box>

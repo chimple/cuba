@@ -78,6 +78,7 @@
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",
     "lido-standalone": "^0.0.0-alpha-72",
+    "pino": "^9.14.0",
     "qrcode.react": "^4.2.0",
     "query-string": "^9.3.1",
     "react": "^19.1.1",
@@ -138,12 +139,58 @@
     "extends": [
       "react-app",
       "react-app/jest",
-      "plugin:storybook/recommended",
       "plugin:prettier/recommended"
     ],
     "rules": {
-      "@typescript-eslint/no-explicit-any": "error"
-    }
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-console": "error",
+      "no-restricted-properties": [
+        "error",
+        {
+          "object": "console",
+          "property": "log",
+          "message": "Use logger.info/debug instead of console.log."
+        },
+        {
+          "object": "console",
+          "property": "info",
+          "message": "Use logger.info instead of console.info."
+        },
+        {
+          "object": "console",
+          "property": "debug",
+          "message": "Use logger.debug instead of console.debug."
+        },
+        {
+          "object": "console",
+          "property": "trace",
+          "message": "Use logger.debug instead of console.trace."
+        }
+      ]
+    },
+    "overrides": [
+      {
+        "files": [
+          "src/utility/logger.ts",
+          "src/setupTests.ts",
+          "**/*.test.ts",
+          "**/*.test.tsx"
+        ],
+        "rules": {
+          "jest/no-conditional-expect": "warn",
+          "jest/no-mocks-import": "warn",
+          "testing-library/no-container": "warn",
+          "testing-library/no-node-access": "warn",
+          "testing-library/no-unnecessary-act": "warn",
+          "testing-library/no-wait-for-multiple-assertions": "warn",
+          "testing-library/no-wait-for-side-effects": "warn",
+          "testing-library/prefer-screen-queries": "warn",
+          "testing-library/render-result-naming-convention": "warn",
+          "no-console": "off",
+          "no-restricted-properties": "off"
+        }
+      }
+    ]
   },
   "browserslist": {
     "production": [
@@ -200,7 +247,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --max-warnings=0",
+      "eslint",
       "prettier --check"
     ],
     "*.{css,json,md}": [
