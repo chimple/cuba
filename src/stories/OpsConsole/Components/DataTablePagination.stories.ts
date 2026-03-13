@@ -1,14 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import DataTablePagination from '../../../ops-console/components/DataTablePagination';
+import type { Meta, StoryObj } from "@storybook/react";
+import DataTablePagination from "../../../ops-console/components/DataTablePagination";
+
 
 const meta = {
-  title: 'OpsConsole/Component/DataTablePagination',
+  title: "OpsConsole/Component/DataTablePagination",
   component: DataTablePagination,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   args: {
     page: 1,
     pageCount: 5,

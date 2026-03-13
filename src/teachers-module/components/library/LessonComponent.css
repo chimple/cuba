@@ -12,14 +12,14 @@
   height: 10px;
   background-size: contain;
   margin-left: 4px;
-  background-image: url('../../assets/icons/assignment_icon.png');
+  background-image: url("../../assets/icons/assignment_icon.png");
 }
 .lessoncomponent-quiz-logo {
   width: 10px;
   height: 10px;
   background-size: contain;
   margin-left: 4px;
-  background-image: url('../../assets/icons/livequiz_icon.png');
+  background-image: url("../../assets/icons/livequiz_icon.png");
 }
 .lessoncomponent-lesson-type-logo {
   display: flex;
@@ -44,6 +44,7 @@
   border-radius: 8px;
   position: relative;
   overflow: visible;
+  
 }
 @media (orientation: landscape) {
   .lessoncomponent-image-container {
@@ -62,6 +63,7 @@
 .lessoncomponent-lesson-image img {
   height: 75px;
   width: 100px; /* Adjust the size as needed */
+  
 }
 
 .lessoncomponent-lesson-assigned-badge {

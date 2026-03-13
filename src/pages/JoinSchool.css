@@ -16,9 +16,10 @@
   overflow-y: auto;
   display: flex;
   background-color: #fff;
-  align-items: center;
+    align-items: center;
   flex-direction: column;
 }
+
 
 .join-school-box {
   width: 354px;
@@ -44,9 +45,9 @@
 
 .join-school-row {
   display: flex;
-  margin-bottom: clamp(1vh, 2.5vh, 3vh);
+  margin-bottom: clamp(1vh, 2.5vh, 3vh); 
   font-size: 16px;
-  border-bottom: 1px solid #eff2f4;
+  border-bottom: 1px solid #EFF2F4;
 }
 .join-school-label {
   width: 140px;
@@ -82,11 +83,11 @@
 }
 
 .join-school-role-card.selected-teacher img {
-  border-color: #8cc540;
+  border-color: #8CC540;
 }
 
 .join-school-role-card.selected-principal img {
-  border-color: #fb5523;
+  border-color: #FB5523;
 }
 .join-school-send-btn {
   /* margin-top: 1vh; */
@@ -123,13 +124,13 @@
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
-  min-height: 50px;
+  min-height: 50px; 
   transition: all 0.3s ease;
   margin: 2vh 0;
 }
 
 .join-school-class-container.hidden {
-  visibility: hidden;
+  visibility: hidden; 
 }
 
 .join-school-class-btn {
@@ -141,13 +142,13 @@
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
-  color: #4a4949;
+  color: #4A4949;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .join-school-class-btn:hover {
-  background: #7c5db0;
+  background: #7C5DB0;
   color: #fff;
 }
 
@@ -155,4 +156,5 @@
   background: #6c4cd2;
   color: #fff;
   border: 1px solid #6c4cd2;
+  
 }

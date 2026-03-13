@@ -1,15 +1,15 @@
-import { FC } from 'react';
-import './LiveQuizStudentAvatar.css';
-import { AVATARS, TableTypes } from '../../common/constants';
+import { FC } from "react";
+import "./LiveQuizStudentAvatar.css";
+import { AVATARS, TableTypes } from "../../common/constants";
 import {
   CircularProgressbarWithChildren,
   buildStyles,
-} from 'react-circular-progressbar';
-import { Util } from '../../utility/util';
-import { t } from 'i18next';
+} from "react-circular-progressbar";
+import { Util } from "../../utility/util";
+import { t } from "i18next";
 
 const LiveQuizStudentAvatar: FC<{
-  student: TableTypes<'user'>;
+  student: TableTypes<"user">;
   score?: number;
   percentage?: number;
   isCorrect?: boolean;
@@ -19,30 +19,30 @@ const LiveQuizStudentAvatar: FC<{
       <div>
         {percentage || isCorrect != null ? (
           <CircularProgressbarWithChildren
-            value={isCorrect == null ? (percentage ?? 0) : 100}
+            value={isCorrect == null ? percentage ?? 0 : 100}
             strokeWidth={5}
             styles={buildStyles({
               pathColor:
-                isCorrect == null ? undefined : isCorrect ? 'green' : 'red',
+                isCorrect == null ? undefined : isCorrect ? "green" : "red",
             })}
           >
             <img
               className="live-quiz-student-image"
-              src={'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'}
+              src={"assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"}
               alt=""
             />
           </CircularProgressbarWithChildren>
         ) : (
           <img
             className="live-quiz-student-image"
-            src={'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'}
+            src={"assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"}
             alt=""
-            style={{ width: '89%', height: '100%' }}
+            style={{ width: "89%", height: "100%" }}
           />
         )}
       </div>
       {student && student.id === Util.getCurrentStudent()?.id ? (
-        <p className="live-quiz-student-Name">{t('Me')}</p>
+        <p className="live-quiz-student-Name">{t("Me")}</p>
       ) : (
         <p className="live-quiz-student-Name">{student.name}</p>
       )}

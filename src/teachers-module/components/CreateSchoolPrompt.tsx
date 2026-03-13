@@ -1,9 +1,9 @@
-import React, { FC } from 'react';
-import { IonButton } from '@ionic/react';
-import { useHistory } from 'react-router';
-import { PAGES } from '../../common/constants';
-import './CreateSchoolPrompt.css';
-import { t } from 'i18next';
+import React, { FC } from "react";
+import { IonButton } from "@ionic/react";
+import { useHistory } from "react-router";
+import { PAGES } from "../../common/constants";
+import "./CreateSchoolPrompt.css";
+import { t } from "i18next";
 
 interface CreateSchoolPromptProps {
   country?: string;
@@ -33,11 +33,11 @@ const CreateSchoolPrompt: FC<CreateSchoolPromptProps> = ({
   return (
     <div className="create-school-prompt-box">
       <p>
-        <strong>{t('School not found ')}?</strong>
+        <strong>{t("School not found ")}?</strong>
       </p>
-      <p>{t('Click below to create a school')}</p>
+      <p>{t("Click below to create a school")}</p>
       <IonButton className="create-school-button" onClick={handleCreateSchool}>
-        {t('Create School')}
+        {t("Create School")}
       </IonButton>
     </div>
   );

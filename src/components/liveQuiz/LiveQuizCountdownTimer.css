@@ -20,13 +20,12 @@
 .live-quiz-countdown-text {
   color: var(--text-color);
   font-size: 220%;
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
 }
 
 @font-face {
-  font-family: 'Orbitron';
-  src:
-    local('Orbitron'),
-    url('/public/assets/fonts/Orbitron-Bold.ttf') format('truetype');
+  font-family: "Orbitron";
+  src: local("Orbitron"),
+    url("/public/assets/fonts/Orbitron-Bold.ttf") format("truetype");
   font-weight: bolder;
 }

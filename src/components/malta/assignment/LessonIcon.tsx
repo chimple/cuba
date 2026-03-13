@@ -1,8 +1,8 @@
-import { FC } from 'react';
-import SelectIconImage from '../../displaySubjects/SelectIconImage';
-import './DisplayLesson.css';
-import { BsFillCheckCircleFill } from 'react-icons/bs';
-import { t } from 'i18next';
+import { FC } from "react";
+import SelectIconImage from "../../displaySubjects/SelectIconImage";
+import "./DisplayLesson.css";
+import { BsFillCheckCircleFill } from "react-icons/bs";
+import { t } from "i18next";
 interface LessonIconProps {
   id: string;
   cocosSubjectCode: string;
@@ -22,15 +22,15 @@ const LessonIcon: FC<LessonIconProps> = ({
       <div className="lesson-icon">
         {selected ? (
           <div className="lesson-select-icon">
-            <BsFillCheckCircleFill color={'grey'} size="2vh" />
+            <BsFillCheckCircleFill color={"grey"} size="2vh" />
           </div>
         ) : null}
         <SelectIconImage
-          localSrc={'courses/' + cocosSubjectCode + '/icons/' + id + '.webp'}
-          defaultSrc={'assets/icons/DefaultIcon.png'}
-          webSrc={thumbnail || 'assets/icons/DefaultIcon.png'}
-          imageWidth={'80%'}
-          imageHeight={'auto'}
+          localSrc={"courses/" + cocosSubjectCode + "/icons/" + id + ".webp"}
+          defaultSrc={"assets/icons/DefaultIcon.png"}
+          webSrc={thumbnail || "assets/icons/DefaultIcon.png"}
+          imageWidth={"80%"}
+          imageHeight={"auto"}
         />
       </div>
       <div className="lesson-title">{t(title)}</div>

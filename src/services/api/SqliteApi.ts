@@ -54,18 +54,18 @@ import {
   RESULT_STATUS,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
-} from '../../common/constants';
-import { StudentLessonResult } from '../../common/courseConstants';
-import { AvatarObj } from '../../components/animation/Avatar';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+} from "../../common/constants";
+import { StudentLessonResult } from "../../common/courseConstants";
+import { AvatarObj } from "../../components/animation/Avatar";
+import Course from "../../models/course";
+import Lesson from "../../models/lesson";
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
   SchoolProgramAccessResponse,
   ServiceApi,
-} from './ServiceApi';
+} from "./ServiceApi";
 import {
   SQLiteDBConnection,
   SQLiteConnection,
@@ -73,44 +73,44 @@ import {
   capSQLiteResult,
   DBSQLiteValues,
   capSQLiteVersionUpgrade,
-} from '@capacitor-community/sqlite';
-import { Capacitor } from '@capacitor/core';
-import { SupabaseApi } from './SupabaseApi';
-import { APIMode, ServiceConfig } from '../ServiceConfig';
-import { v4 as uuidv4 } from 'uuid';
-import { RoleType } from '../../interface/modelInterfaces';
-import { Util } from '../../utility/util';
+} from "@capacitor-community/sqlite";
+import { Capacitor } from "@capacitor/core";
+import { SupabaseApi } from "./SupabaseApi";
+import { APIMode, ServiceConfig } from "../ServiceConfig";
+import { v4 as uuidv4 } from "uuid";
+import { RoleType } from "../../interface/modelInterfaces";
+import { Util } from "../../utility/util";
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
-} from '../../ops-console/pages/NewUserPageOps';
-import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
+} from "../../ops-console/pages/NewUserPageOps";
+import { FCSchoolStats } from "../../ops-console/pages/SchoolDetailsPage";
 import {
   PaginatedResponse,
   SchoolNote,
   StickerBook,
   UserStickerProgress,
-} from '../../interface/modelInterfaces';
+} from "../../interface/modelInterfaces";
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
-} from '../../teachers-module/pages/AssignmentCartStorage';
-import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
-import { store } from '../../redux/store';
-import { Json } from '../database';
+} from "../../teachers-module/pages/AssignmentCartStorage";
+import { runBackgroundWorkerStreamingSync } from "../../workers/backgroundWorkerClient";
+import { store } from "../../redux/store";
+import { Json } from "../database";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
-  private DB_NAME = 'db_issue10';
+  private DB_NAME = "db_issue10";
   private DB_VERSION = 12;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
-  private _currentStudent: TableTypes<'user'> | undefined;
-  private _currentClass: TableTypes<'class'> | undefined;
-  private _currentSchool: TableTypes<'school'> | undefined;
+  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentClass: TableTypes<"class"> | undefined;
+  private _currentSchool: TableTypes<"school"> | undefined;
   private _currentCourse:
-    | Map<string, TableTypes<'course'> | undefined>
+    | Map<string, TableTypes<"course"> | undefined>
     | undefined;
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
@@ -140,11 +140,11 @@ export class SqliteApi implements ServiceApi {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
-    if (platform === 'web') {
-      const jeepEl = document.createElement('jeep-sqlite');
+    if (platform === "web") {
+      const jeepEl = document.createElement("jeep-sqlite");
       document.body.appendChild(jeepEl);
 
-      await customElements.whenDefined('jeep-sqlite');
+      await customElements.whenDefined("jeep-sqlite");
 
       await this._sqlite.initWebStore();
     }
@@ -155,7 +155,7 @@ export class SqliteApi implements ServiceApi {
       ret = await this._sqlite.checkConnectionsConsistency();
       isConn = (await this._sqlite.isConnection(this.DB_NAME, false)).result;
     } catch (error) {
-      console.error('🚀 ~ Api ~ init ~ error:', error);
+      console.error("🚀 ~ Api ~ init ~ error:", error);
     }
     try {
       const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
@@ -168,13 +168,14 @@ export class SqliteApi implements ServiceApi {
         const upgradeStatements: capSQLiteVersionUpgrade[] = [];
         const localVersionNumber = Number(localVersion);
 
-        const data = await fetch('databases/upgradeStatements.json');
+        const data = await fetch("databases/upgradeStatements.json");
 
         if (!data || !data.ok) return;
         const upgradeStatementsMap: Record<
           string,
           { statements?: string[]; tableChanges?: Record<string, string> }
-        > = await data.json();
+        > =
+          await data.json();
 
         for (
           let version = localVersionNumber + 1;
@@ -183,11 +184,11 @@ export class SqliteApi implements ServiceApi {
         ) {
           const versionData = upgradeStatementsMap[version];
 
-          if (versionData && versionData['statements']) {
-            const currentStatements = [...versionData['statements']];
+          if (versionData && versionData["statements"]) {
+            const currentStatements = [...versionData["statements"]];
 
             // Track tables with schema changes for forced full sync
-            for (const statement of versionData['statements']) {
+            for (const statement of versionData["statements"]) {
               const match = statement.match(
                 /(?:ALTER|CREATE|DROP)\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["']?(\w+)["']?/i,
               );
@@ -207,9 +208,9 @@ export class SqliteApi implements ServiceApi {
             });
           }
 
-          if (versionData['tableChanges']) {
-            for (const tableName in versionData['tableChanges']) {
-              const changeDate = versionData['tableChanges'][tableName];
+          if (versionData["tableChanges"]) {
+            for (const tableName in versionData["tableChanges"]) {
+              const changeDate = versionData["tableChanges"][tableName];
               if (!this._syncTableData[tableName]) {
                 this._syncTableData[tableName] = changeDate;
               } else {
@@ -225,7 +226,7 @@ export class SqliteApi implements ServiceApi {
         }
 
         console.log(
-          '🚀 ~ SqliteApi ~ init ~ upgradeStatements:',
+          "🚀 ~ SqliteApi ~ init ~ upgradeStatements:",
           upgradeStatements,
         );
 
@@ -237,7 +238,7 @@ export class SqliteApi implements ServiceApi {
         );
       }
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ init ~ error:', JSON.stringify(error));
+      console.error("🚀 ~ SqliteApi ~ init ~ error:", JSON.stringify(error));
     }
 
     if (ret && ret.result && isConn) {
@@ -246,7 +247,7 @@ export class SqliteApi implements ServiceApi {
       this._db = await this._sqlite.createConnection(
         this.DB_NAME,
         false,
-        'no-encryption',
+        "no-encryption",
         this.DB_VERSION,
         false,
       );
@@ -254,15 +255,16 @@ export class SqliteApi implements ServiceApi {
     try {
       await this._db?.open();
     } catch (err) {
-      console.error('🚀 ~ SqliteApi ~ init ~ err:', err);
+      console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }
     await this.setUpDatabase();
     return this._db;
   }
 
   private async setUpDatabase() {
+    
     if (!this._db || !this._sqlite) return;
-
+   
     let res1: DBSQLiteValues | undefined = undefined;
     try {
       const stmt =
@@ -271,7 +273,7 @@ export class SqliteApi implements ServiceApi {
       // console.log("📊 sqlite_master count result:", res1);
     } catch (error) {
       console.error(
-        '🚀 ~ SqliteApi ~ setUpDatabase ~ error:',
+        "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
         JSON.stringify(error),
       );
     }
@@ -282,9 +284,11 @@ export class SqliteApi implements ServiceApi {
       res1.values[0].count < 10
     ) {
       try {
+        
+
         try {
           //  console.log("⬇️ About to import SQLite schema from JSON");
-          const importData = await fetch('databases/import.json');
+          const importData = await fetch("databases/import.json");
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
@@ -293,15 +297,15 @@ export class SqliteApi implements ServiceApi {
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
-          console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
-
-          window.location.replace(BASE_NAME || '/');
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
+          
+          window.location.replace(BASE_NAME || "/");
           return;
         } catch (error) {
-          console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
         }
       } catch (error) {
-        console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
+        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
       }
     }
     if (this._syncTableData) {
@@ -314,7 +318,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -322,7 +326,7 @@ export class SqliteApi implements ServiceApi {
         for (const _tableName of Object.keys(this._syncTableData)) {
           const updatePullSyncQuery = `UPDATE pull_sync_info SET last_pulled = '${this._syncTableData[_tableName]}' WHERE table_name = '${_tableName}'`;
           console.log(
-            '🚀 ~ SqliteApi ~ setUpDatabase ~ updatePullSyncQuery:',
+            "🚀 ~ SqliteApi ~ setUpDatabase ~ updatePullSyncQuery:",
             updatePullSyncQuery,
           );
           await this.executeQuery(updatePullSyncQuery);
@@ -330,6 +334,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
+   
     await this.checkAndSyncData();
   }
 
@@ -339,7 +344,7 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        console.log('syncing');
+        console.log("syncing");
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
@@ -349,7 +354,7 @@ export class SqliteApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.log('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      console.log("🚀 ~ SqliteApi ~ checkAndSyncData ~ error:", error);
     }
   }
 
@@ -368,7 +373,7 @@ export class SqliteApi implements ServiceApi {
 
   private async showToastWithRetry(
     message: string,
-    actionLabel = 'Retry',
+    actionLabel = "Retry",
     duration = 15000,
   ): Promise<boolean> {
     return new Promise((resolve) => {
@@ -382,19 +387,19 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch {}
+        } catch { }
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
 
       try {
         // Ionic style presenter
-        if (typeof (window as any).presentToast === 'function') {
+        if (typeof (window as any).presentToast === "function") {
           (window as any).presentToast({
             message,
             duration,
-            position: 'bottom',
-            color: 'warning',
+            position: "bottom",
+            color: "warning",
             buttons: [
               {
                 text: actionLabel,
@@ -407,50 +412,50 @@ export class SqliteApi implements ServiceApi {
         }
 
         // Fallback DOM toast
-        overlay = document.createElement('div');
+        overlay = document.createElement("div");
         overlay.setAttribute(
-          'style',
+          "style",
           [
-            'position:fixed',
-            'left:12px',
-            'right:12px',
-            'bottom:20px',
-            'z-index:2147483647',
-            'display:flex',
-            'align-items:center',
-            'justify-content:space-between',
-            'gap:12px',
-            'padding:10px 14px',
-            'background:rgba(0,0,0,0.85)',
-            'color:#fff',
-            'border-radius:8px',
+            "position:fixed",
+            "left:12px",
+            "right:12px",
+            "bottom:20px",
+            "z-index:2147483647",
+            "display:flex",
+            "align-items:center",
+            "justify-content:space-between",
+            "gap:12px",
+            "padding:10px 14px",
+            "background:rgba(0,0,0,0.85)",
+            "color:#fff",
+            "border-radius:8px",
             "font-family:system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
-            'box-shadow:0 6px 18px rgba(0,0,0,0.3)',
-          ].join(';'),
+            "box-shadow:0 6px 18px rgba(0,0,0,0.3)",
+          ].join(";"),
         );
 
-        const msgSpan = document.createElement('div');
+        const msgSpan = document.createElement("div");
         msgSpan.textContent = message;
-        msgSpan.style.flex = '1';
-        msgSpan.style.fontSize = '13px';
-        msgSpan.style.overflow = 'hidden';
-        msgSpan.style.textOverflow = 'ellipsis';
-        msgSpan.style.whiteSpace = 'nowrap';
+        msgSpan.style.flex = "1";
+        msgSpan.style.fontSize = "13px";
+        msgSpan.style.overflow = "hidden";
+        msgSpan.style.textOverflow = "ellipsis";
+        msgSpan.style.whiteSpace = "nowrap";
 
-        const btn = document.createElement('button');
+        const btn = document.createElement("button");
         btn.textContent = actionLabel;
         btn.setAttribute(
-          'style',
+          "style",
           [
-            'margin-left:12px',
-            'padding:6px 10px',
-            'border-radius:6px',
-            'border:none',
-            'background:#fff',
-            'color:#000',
-            'cursor:pointer',
-            'font-weight:600',
-          ].join(';'),
+            "margin-left:12px",
+            "padding:6px 10px",
+            "border-radius:6px",
+            "border:none",
+            "background:#fff",
+            "color:#000",
+            "cursor:pointer",
+            "font-weight:600",
+          ].join(";"),
         );
         btn.onclick = () => finish(true);
 
@@ -460,7 +465,7 @@ export class SqliteApi implements ServiceApi {
 
         timeoutId = window.setTimeout(() => finish(false), duration + 200);
       } catch (err) {
-        console.warn('Fallback toast failed:', err);
+        console.warn("Fallback toast failed:", err);
         timeoutId = window.setTimeout(() => finish(false), duration);
       }
     });
@@ -470,10 +475,10 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
-    console.log('🚀 ~ pullChanges ~ isInitialFetch:', isInitialFetch);
+    console.log("🚀 ~ pullChanges ~ isInitialFetch:", isInitialFetch);
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
-    const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    const FORCE_FULL_SYNC_DATE = "2024-01-01T00:00:00.000Z";
     if (this._tablesNeedingFullSync.size > 0) {
       for (const tableName of this._tablesNeedingFullSync) {
         if (tableNames.includes(tableName as TABLES)) {
@@ -492,14 +497,14 @@ export class SqliteApi implements ServiceApi {
       ? [TABLES.User, ...tableNames.filter((t) => t !== TABLES.User)]
       : [...tableNames];
 
-    const tables = orderedTableNames.map((t) => `'${t}'`).join(', ');
+    const tables = orderedTableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
     try {
       const res = (await this._db.query(tablePullSync)).values ?? [];
       res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
     } catch (error) {
-      console.error('🚀 ~ Api ~ syncDB ~ error:', error);
+      console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
     let data = new Map<string, any[]>();
@@ -522,7 +527,7 @@ export class SqliteApi implements ServiceApi {
             attempt += 1;
             continue;
           }
-          console.warn('❌ All retries failed. Truncating local tables...');
+          console.warn("❌ All retries failed. Truncating local tables...");
           if (!this._db) return;
           const query = `PRAGMA foreign_keys=OFF;`;
           const result = await this._db?.query(query);
@@ -539,14 +544,14 @@ export class SqliteApi implements ServiceApi {
           const results = await this._db?.query(querys);
           console.log(results);
           const userWantsRetry = await this.showToastWithRetry(
-            'Sync failed. Retry now?',
+            "Sync failed. Retry now?",
           );
           if (userWantsRetry) {
-            console.warn('🔁 Final retry triggered by user.');
+            console.warn("🔁 Final retry triggered by user.");
             attempt = 1;
             continue;
           }
-          console.warn('⛔ User canceled final retry.');
+          console.warn("⛔ User canceled final retry.");
           return;
         }
       }
@@ -586,7 +591,7 @@ export class SqliteApi implements ServiceApi {
         },
         async (batch) => {
           if (!batch.length) return;
-          if (Capacitor.getPlatform() === 'web') {
+          if (Capacitor.getPlatform() === "web") {
             for (const q of batch) {
               await this._db!.run(q.statement, q.values);
             }
@@ -598,7 +603,7 @@ export class SqliteApi implements ServiceApi {
       );
     } catch (workerError) {
       console.warn(
-        'Falling back to main-thread sync batch generation after worker failure:',
+        "Falling back to main-thread sync batch generation after worker failure:",
         workerError,
       );
       for (const tableName of Object.keys(tablesForWorker)) {
@@ -606,9 +611,7 @@ export class SqliteApi implements ServiceApi {
         const tableData = tablesForWorker[tableName] ?? [];
         if (!existingColumns.length || !tableData.length) continue;
         const isUserTable = tableName === TABLES.User;
-        const batchSize = isUserTable
-          ? SAFE_USER_BATCH_SIZE
-          : DEFAULT_DB_BATCH_SIZE;
+        const batchSize = isUserTable ? SAFE_USER_BATCH_SIZE : DEFAULT_DB_BATCH_SIZE;
         let batchQueries: { statement: string; values: any[] }[] = [];
         for (const row of tableData) {
           const fieldNames = Object.keys(row).filter((f) =>
@@ -616,13 +619,13 @@ export class SqliteApi implements ServiceApi {
           );
           if (fieldNames.length === 0) continue;
           const fieldValues = fieldNames.map((f) => row[f]);
-          const placeholders = fieldNames.map(() => '?').join(', ');
+          const placeholders = fieldNames.map(() => "?").join(", ");
           const updateSetClause = fieldNames
-            .filter((f) => f !== 'id')
+            .filter((f) => f !== "id")
             .map((f) => `${f} = excluded.${f}`)
-            .join(', ');
+            .join(", ");
           const stmt = `
-            INSERT INTO ${tableName} (${fieldNames.join(', ')})
+            INSERT INTO ${tableName} (${fieldNames.join(", ")})
             VALUES (${placeholders})
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
@@ -630,7 +633,7 @@ export class SqliteApi implements ServiceApi {
             `;
           batchQueries.push({ statement: stmt, values: fieldValues });
           if (batchQueries.length >= batchSize) {
-            if (Capacitor.getPlatform() === 'web') {
+            if (Capacitor.getPlatform() === "web") {
               for (const q of batchQueries) {
                 await this._db!.run(q.statement, q.values);
               }
@@ -642,7 +645,7 @@ export class SqliteApi implements ServiceApi {
           }
         }
         if (batchQueries.length > 0) {
-          if (Capacitor.getPlatform() === 'web') {
+          if (Capacitor.getPlatform() === "web") {
             for (const q of batchQueries) {
               await this._db!.run(q.statement, q.values);
             }
@@ -670,7 +673,7 @@ export class SqliteApi implements ServiceApi {
     }
     const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
-
+    
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
       if (new_school && new_school?.length > 0) {
@@ -678,13 +681,13 @@ export class SqliteApi implements ServiceApi {
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
-          let localSchool: TableTypes<'school'>;
+          let localSchool: TableTypes<"school">;
 
           try {
             localSchool = JSON.parse(localSchoolRaw);
           } catch (e) {
             localStorage.removeItem(SCHOOL);
-            console.warn('invalid local school data removed');
+            console.warn("invalid local school data removed");
             return;
           }
 
@@ -693,14 +696,14 @@ export class SqliteApi implements ServiceApi {
           if (!localSchoolId || !Array.isArray(school_user_data)) return;
 
           const deletedSchoolUser = school_user_data.find(
-            (entry: TableTypes<'school_user'>) =>
+            (entry: TableTypes<"school_user">) =>
               entry.school_id === localSchoolId && entry.is_deleted === true,
           );
 
           if (deletedSchoolUser) {
             localStorage.removeItem(SCHOOL);
             localStorage.removeItem(CLASS);
-            console.log('local school removed because school_user is_deleted');
+            console.log("local school removed because school_user is_deleted");
           }
         }
         await this.syncDbNow(Object.values(TABLES), [
@@ -733,11 +736,11 @@ export class SqliteApi implements ServiceApi {
     let res: any[] = [];
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
-      console.log('🚀 ~ syncDB ~ tablePushSync:', res);
+      console.log("🚀 ~ syncDB ~ tablePushSync:", res);
 
       this.updateDebugInfo(res.length, 0, 0); //update debug info
     } catch (error) {
-      console.error('🚀 ~ Api ~ syncDB ~ error:', error);
+      console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
     if (res && res.length) {
@@ -756,10 +759,10 @@ export class SqliteApi implements ServiceApi {
             user_id: _currentUser?.id,
             ...mutate?.error,
           });
-          if (mutate?.error?.code === '23505' || mutate?.status === 409) {
-            console.log('🟢 Duplicate key ignored (already exists on server)');
+          if (mutate?.error?.code === "23505" || mutate?.status === 409) {
+            console.log("🟢 Duplicate key ignored (already exists on server)");
           } else {
-            console.log('🔴 Real push error:', mutate?.error);
+            console.log("🔴 Real push error:", mutate?.error);
             return false;
           }
         }
@@ -785,7 +788,7 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return;
     // 🔒 LOCK
     if (this._syncInProgress) {
-      console.log('🟡 Sync already running → scheduling another run');
+      console.log("🟡 Sync already running → scheduling another run");
       this._syncRequestedAgain = true;
       return true;
     }
@@ -793,7 +796,7 @@ export class SqliteApi implements ServiceApi {
     try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
       console.log(
-        'logs to check synced tables',
+        "logs to check synced tables",
         JSON.stringify(refresh_tables),
       );
       await this.executeQuery(
@@ -803,7 +806,7 @@ export class SqliteApi implements ServiceApi {
         `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`,
       );
       const lastUserUpdatedStr =
-        tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
+        tablePullSync?.values?.[0]?.last_pulled ?? "2024-01-01 00:00:00";
 
       const lastUserUpdated = new Date(lastUserUpdatedStr);
       const now = new Date();
@@ -827,7 +830,7 @@ export class SqliteApi implements ServiceApi {
       this._syncInProgress = false;
       if (this._syncRequestedAgain) {
         console.log(
-          '🔁 Running sync again because changes happened during sync',
+          "🔁 Running sync again because changes happened during sync",
         );
         this._syncRequestedAgain = false;
 
@@ -863,7 +866,7 @@ export class SqliteApi implements ServiceApi {
     is_sync_immediate?: boolean,
   ) {
     if (!this._db) return;
-    data['updated_at'] = new Date().toISOString();
+    data["updated_at"] = new Date().toISOString();
     const stmt = `INSERT OR REPLACE INTO push_sync_info (id, table_name, change_type, data) VALUES (?, ?, ?, ?)`;
     const variables = [
       uuidv4(),
@@ -889,16 +892,16 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
     const countryCode = await this.getClientCountryCode();
     const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
 
     const studentId = uuidv4();
     const now = new Date().toISOString();
-    const newStudent: TableTypes<'user'> = {
+    const newStudent: TableTypes<"user"> = {
       id: studentId,
       name,
       age: age ?? null,
@@ -1016,18 +1019,18 @@ export class SqliteApi implements ServiceApi {
     country: string | null,
     onlySchool?: boolean,
     onlySchoolUser?: boolean,
-  ): Promise<TableTypes<'school'>> {
+  ): Promise<TableTypes<"school">> {
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     const schoolId = uuidv4();
     const result = image
       ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
       : null;
-    const newSchool: TableTypes<'school'> = {
+    const newSchool: TableTypes<"school"> = {
       id: schoolId,
       name,
       group1: group1 ?? null,
@@ -1085,7 +1088,7 @@ export class SqliteApi implements ServiceApi {
 
     // Insert into school_user table
     const schoolUserId = uuidv4();
-    const newSchoolUser: TableTypes<'school_user'> = {
+    const newSchoolUser: TableTypes<"school_user"> = {
       id: schoolUserId,
       school_id: schoolId,
       user_id: _currentUser.id,
@@ -1124,7 +1127,7 @@ export class SqliteApi implements ServiceApi {
     return newSchool;
   }
   async updateSchoolProfile(
-    school: TableTypes<'school'>,
+    school: TableTypes<"school">,
     name: string,
     group1: string,
     group2: string,
@@ -1134,16 +1137,16 @@ export class SqliteApi implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-  ): Promise<TableTypes<'school'>> {
+  ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     const result = image
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
       : school.image;
 
-    const updatedSchool: TableTypes<'school'> = {
+    const updatedSchool: TableTypes<"school"> = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
@@ -1199,7 +1202,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<void> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     const locationString = `https://www.google.com/maps?q=${lat},${lng}`;
     const query = `UPDATE school SET location_link = ?, updated_at = ? WHERE id = ?`;
@@ -1221,10 +1224,10 @@ export class SqliteApi implements ServiceApi {
     city: string,
     image: File | null,
     udise_id?: string,
-  ): Promise<TableTypes<'req_new_school'> | null> {
+  ): Promise<TableTypes<"req_new_school"> | null> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     // Check if request already exists for the user
     const res = await this.executeQuery(
@@ -1242,7 +1245,7 @@ export class SqliteApi implements ServiceApi {
       ? await this.addProfileImages(requestId, image, PROFILETYPE.SCHOOL)
       : null;
 
-    const newRequest: TableTypes<'req_new_school'> = {
+    const newRequest: TableTypes<"req_new_school"> = {
       id: requestId,
       user_id: _currentUser.id,
       name,
@@ -1286,7 +1289,7 @@ export class SqliteApi implements ServiceApi {
   // Add this new function to check if a create school request already exists
   async getExistingSchoolRequest(
     requested_by: string,
-  ): Promise<TableTypes<'ops_requests'> | null> {
+  ): Promise<TableTypes<"ops_requests"> | null> {
     const query = `
       SELECT *
       FROM ${TABLES.OpsRequests}
@@ -1364,20 +1367,20 @@ export class SqliteApi implements ServiceApi {
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: 'student',
+    role: "student",
     studentId: string,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
     const countryCode = await this.getClientCountryCode();
-    let locale: TableTypes<'locale'> | null = await this.getLocaleByIdOrCode(
+    let locale: TableTypes<"locale"> | null = await this.getLocaleByIdOrCode(
       undefined,
       countryCode,
     );
 
     const userId = uuidv4();
-    const newStudent: TableTypes<'user'> = {
+    const newStudent: TableTypes<"user"> = {
       id: userId,
       name,
       age: age ?? null,
@@ -1436,7 +1439,7 @@ export class SqliteApi implements ServiceApi {
     );
     // Insert into class_user table
     const classUserId = uuidv4();
-    const newClassUser: TableTypes<'class_user'> = {
+    const newClassUser: TableTypes<"class_user"> = {
       id: classUserId,
       class_id: classId,
       user_id: userId,
@@ -1647,6 +1650,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {
@@ -1712,22 +1716,22 @@ export class SqliteApi implements ServiceApi {
         [timestamp, studentId, localParentId],
       );
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
+      console.error("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
     }
   }
   async getCourseByUserGradeId(
     gradeDocId: string | null,
     boardDocId: string | null,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     if (!gradeDocId) {
-      throw new Error('Grade document ID is required.');
+      throw new Error("Grade document ID is required.");
     }
 
     if (!boardDocId) {
-      throw new Error('Board document ID is required.');
+      throw new Error("Board document ID is required.");
     }
 
-    let courseIds: TableTypes<'course'>[] = [];
+    let courseIds: TableTypes<"course">[] = [];
     let isGrade1: boolean = false;
     let isGrade2: boolean = false;
 
@@ -1746,17 +1750,17 @@ export class SqliteApi implements ServiceApi {
     const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
     const curriculumCourses = gradeCourses.filter(
-      (course: TableTypes<'course'>) => {
+      (course: TableTypes<"course">) => {
         return course.curriculum_id === boardDocId;
       },
     );
 
-    curriculumCourses.forEach((course: TableTypes<'course'>) => {
+    curriculumCourses.forEach((course: TableTypes<"course">) => {
       courseIds.push(course);
     });
 
     let subjectIds: string[] = [];
-    curriculumCourses.forEach((course: TableTypes<'course'>) => {
+    curriculumCourses.forEach((course: TableTypes<"course">) => {
       if (course.subject_id) {
         subjectIds.push(course.subject_id);
       }
@@ -1784,31 +1788,31 @@ export class SqliteApi implements ServiceApi {
     return courseIds;
   }
 
-  async getAllCurriculums(): Promise<TableTypes<'curriculum'>[]> {
+  async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`,
     );
-    console.log('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
+    console.log("🚀 ~ SqliteApi ~ getAllCurriculums ~ res:", res);
     return res?.values ?? [];
   }
-  async getAllGrades(): Promise<TableTypes<'grade'>[]> {
-    const res = await this._db?.query('select * from ' + TABLES.Grade);
+  async getAllGrades(): Promise<TableTypes<"grade">[]> {
+    const res = await this._db?.query("select * from " + TABLES.Grade);
     return res?.values ?? [];
   }
 
-  async getGradeById(id: string): Promise<TableTypes<'grade'> | undefined> {
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getGradesByIds(gradeIds: string[]): Promise<TableTypes<'grade'>[]> {
+  async getGradesByIds(gradeIds: string[]): Promise<TableTypes<"grade">[]> {
     if (!gradeIds || gradeIds.length === 0) {
       return [];
     }
     // Format the IDs for the SQL query
-    const formattedIds = gradeIds.map((id) => `"${id}"`).join(', ');
+    const formattedIds = gradeIds.map((id) => `"${id}"`).join(", ");
     // Construct and execute the query
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Grade} WHERE id IN (${formattedIds})`,
@@ -1823,7 +1827,7 @@ export class SqliteApi implements ServiceApi {
 
   async getCurriculumById(
     id: string,
-  ): Promise<TableTypes<'curriculum'> | undefined> {
+  ): Promise<TableTypes<"curriculum"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Curriculum} where id = "${id}"`,
     );
@@ -1832,13 +1836,13 @@ export class SqliteApi implements ServiceApi {
   }
   async getCurriculumsByIds(
     ids: string[],
-  ): Promise<TableTypes<'curriculum'>[]> {
+  ): Promise<TableTypes<"curriculum">[]> {
     if (!ids || ids.length === 0) {
       return [];
     }
 
     // Format the IDs for the SQL query
-    const formattedIds = ids.map((id) => `"${id}"`).join(', ');
+    const formattedIds = ids.map((id) => `"${id}"`).join(", ");
 
     // Construct and execute the query
     const res = await this._db?.query(
@@ -1853,14 +1857,14 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  async getAllLanguages(): Promise<TableTypes<'language'>[]> {
-    const res = await this._db?.query('select * from ' + TABLES.Language);
-    console.log('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
+  async getAllLanguages(): Promise<TableTypes<"language">[]> {
+    const res = await this._db?.query("select * from " + TABLES.Language);
+    console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
     return res?.values ?? [];
   }
 
   async subscribeToClassTopic(): Promise<void> {
-    var students: TableTypes<'user'>[] = await this.getParentStudentProfiles();
+    var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
       if (
@@ -1876,11 +1880,11 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  async getParentStudentProfiles(): Promise<TableTypes<'user'>[]> {
-    if (!this._db) throw 'Db is not initialized';
+  async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+    if (!this._db) throw "Db is not initialized";
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
-    if (!currentUser) throw 'User is not Logged in';
+    if (!currentUser) throw "User is not Logged in";
     const query = `
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
@@ -1891,38 +1895,38 @@ export class SqliteApi implements ServiceApi {
     return res.values ?? [];
   }
 
-  get currentStudent(): TableTypes<'user'> | undefined {
+  get currentStudent(): TableTypes<"user"> | undefined {
     return this._currentStudent;
   }
 
-  set currentStudent(value: TableTypes<'user'> | undefined) {
+  set currentStudent(value: TableTypes<"user"> | undefined) {
     this._currentStudent = value;
   }
 
-  get currentClass(): TableTypes<'class'> | undefined {
+  get currentClass(): TableTypes<"class"> | undefined {
     return this._currentClass;
   }
 
-  set currentClass(value: TableTypes<'class'> | undefined) {
+  set currentClass(value: TableTypes<"class"> | undefined) {
     this._currentClass = value;
   }
 
-  get currentSchool(): TableTypes<'school'> | undefined {
+  get currentSchool(): TableTypes<"school"> | undefined {
     return this._currentSchool;
   }
 
-  set currentSchool(value: TableTypes<'school'> | undefined) {
+  set currentSchool(value: TableTypes<"school"> | undefined) {
     this._currentSchool = value;
   }
 
   get currentCourse():
-    | Map<string, TableTypes<'course'> | undefined>
+    | Map<string, TableTypes<"course"> | undefined>
     | undefined {
     return this._currentCourse;
   }
 
   set currentCourse(
-    value: Map<string, TableTypes<'course'> | undefined> | undefined,
+    value: Map<string, TableTypes<"course"> | undefined> | undefined,
   ) {
     this._currentCourse = value;
   }
@@ -1946,7 +1950,7 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log('🚀 ~ SqliteApi ~ updateMusicFlag ~ res:', res);
+    console.log("🚀 ~ SqliteApi ~ updateMusicFlag ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       music_off: value ? 1 : 0,
       id: userId,
@@ -1963,7 +1967,7 @@ export class SqliteApi implements ServiceApi {
       WHERE id = ?;
     `;
     const res = await this.executeQuery(query, [value, localeId, userId]);
-    console.log('🚀 ~ SqliteApi ~ updateLanguage ~ res:', res);
+    console.log("🚀 ~ SqliteApi ~ updateLanguage ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
       locale_id: localeId,
@@ -1978,7 +1982,7 @@ export class SqliteApi implements ServiceApi {
   `;
     const res = await this.executeQuery(query);
     console.log(
-      '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
+      "🚀 ~ SqliteApi ~ updateTcAccept ~ res:",
       res,
       ServiceConfig.getI().authHandler.currentUser,
     );
@@ -1995,7 +1999,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getLanguageWithId(
     id: string,
-  ): Promise<TableTypes<'language'> | undefined> {
+  ): Promise<TableTypes<"language"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Language} where id = "${id}"`,
     );
@@ -2005,7 +2009,7 @@ export class SqliteApi implements ServiceApi {
 
   async getLessonWithCocosLessonId(
     lessonId: string,
-  ): Promise<TableTypes<'lesson'> | null> {
+  ): Promise<TableTypes<"lesson"> | null> {
     const res = await this._db?.query(
       `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}" and is_deleted = 0`,
     );
@@ -2015,7 +2019,7 @@ export class SqliteApi implements ServiceApi {
 
   async getCoursesForParentsStudent(
     studentId: string,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     const query = `
     SELECT *
     FROM ${TABLES.UserCourse} AS uc
@@ -2028,7 +2032,7 @@ export class SqliteApi implements ServiceApi {
 
   async getAdditionalCourses(
     studentId: string,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     const res = await this._db?.query(`
     SELECT c.*
     FROM ${TABLES.Course} c
@@ -2040,7 +2044,7 @@ export class SqliteApi implements ServiceApi {
 
   async getCoursesForClassStudent(
     classId: string,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     const query = `
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
@@ -2052,14 +2056,14 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async getLesson(id: string): Promise<TableTypes<'lesson'> | undefined> {
+  async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Lesson} where id = "${id}" and is_deleted = 0`,
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getChapterById(id: string): Promise<TableTypes<'chapter'> | undefined> {
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`,
     );
@@ -2069,7 +2073,7 @@ export class SqliteApi implements ServiceApi {
 
   async getLessonsForChapter(
     chapterId: string,
-  ): Promise<TableTypes<'lesson'>[]> {
+  ): Promise<TableTypes<"lesson">[]> {
     const student = this.currentStudent;
     const langId = student?.language_id;
     const localeId = student?.locale_id;
@@ -2082,20 +2086,17 @@ export class SqliteApi implements ServiceApi {
     AND cl.is_deleted = 0
     AND (
       (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ''
+      ${langId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
+        : ""
       }
-      ${
-        localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ''
+      ${localeId
+        ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
+        : ""
       }
-      ${
-        langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ''
+      ${langId && localeId
+        ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
+        : ""
       }
     )
     ORDER BY cl.sort_index ASC;
@@ -2104,9 +2105,9 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async getDifferentGradesForCourse(course: TableTypes<'course'>): Promise<{
-    grades: TableTypes<'grade'>[];
-    courses: TableTypes<'course'>[];
+  async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+    grades: TableTypes<"grade">[];
+    courses: TableTypes<"course">[];
   }> {
     const query = `
     SELECT c.*,
@@ -2128,8 +2129,8 @@ export class SqliteApi implements ServiceApi {
   `;
     const res = await this._db?.query(query);
     const gradeMap: {
-      grades: TableTypes<'grade'>[];
-      courses: TableTypes<'course'>[];
+      grades: TableTypes<"grade">[];
+      courses: TableTypes<"course">[];
     } = { grades: [], courses: [] };
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
@@ -2154,19 +2155,19 @@ export class SqliteApi implements ServiceApi {
   }
 
   getAvatarInfo(): Promise<AvatarObj | undefined> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   getLessonResultsForStudent(
     studentId: string,
   ): Promise<Map<string, StudentLessonResult> | undefined> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   async getLiveQuizLessons(
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<TableTypes<"assignment">[]> {
     const now = new Date().toISOString();
     const query = `
     SELECT a.*
@@ -2185,7 +2186,7 @@ export class SqliteApi implements ServiceApi {
 
   async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string,
-  ): Promise<TableTypes<'live_quiz_room'>> {
+  ): Promise<TableTypes<"live_quiz_room">> {
     const roomData =
       await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
     return roomData;
@@ -2194,9 +2195,9 @@ export class SqliteApi implements ServiceApi {
   async updateFavoriteLesson(
     studentId: string,
     lessonId: string,
-  ): Promise<TableTypes<'favorite_lesson'>> {
+  ): Promise<TableTypes<"favorite_lesson">> {
     const favoriteId = uuidv4();
-    var favoriteLesson: TableTypes<'favorite_lesson'>;
+    var favoriteLesson: TableTypes<"favorite_lesson">;
     const isExist = await this._db?.query(
       `SELECT * FROM ${TABLES.FavoriteLesson}
        WHERE user_id= '${studentId}' and lesson_id = '${lessonId}';`,
@@ -2258,7 +2259,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateResult(
-    student: TableTypes<'user'>,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -2284,7 +2285,7 @@ export class SqliteApi implements ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
-  ): Promise<TableTypes<'result'>> {
+  ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2298,7 +2299,7 @@ export class SqliteApi implements ServiceApi {
         resultId = uuidv4(); // now this won't throw error
       }
     }
-    const newResult: TableTypes<'result'> = {
+    const newResult: TableTypes<"result"> = {
       id: resultId,
       assignment_id: assignmentId ?? null,
       correct_moves: correctMoves,
@@ -2373,7 +2374,7 @@ export class SqliteApi implements ServiceApi {
     let currentUserReward: { reward_id: string; timestamp: string } | null =
       null;
 
-    if (rewardLesson == 'true' && currentUser) {
+    if (rewardLesson == "true" && currentUser) {
       sessionStorage.removeItem(REWARD_LESSON);
 
       const todaysReward = await Util.fetchTodaysReward();
@@ -2387,8 +2388,8 @@ export class SqliteApi implements ServiceApi {
         const alreadyGiven =
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
-          new Date(currentUserReward.timestamp).toISOString().split('T')[0] ===
-            todaysTimestamp.split('T')[0];
+          new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -2400,15 +2401,15 @@ export class SqliteApi implements ServiceApi {
     }
     const lesson = await this.getLesson(lessonId);
 
-    const isAssessment = lesson?.plugin_type === 'lido_assessment';
+    const isAssessment = lesson?.plugin_type === "lido_assessment";
 
     let starsEarned = 0;
     if (isAssessment) {
       const assessmentKey = `assessment_star_state_${student.id}_${lessonId}`;
-      const awarded = sessionStorage.getItem(assessmentKey) === 'true';
+      const awarded = sessionStorage.getItem(assessmentKey) === "true";
       if (!awarded) {
         starsEarned = 3;
-        sessionStorage.setItem(assessmentKey, 'true');
+        sessionStorage.setItem(assessmentKey, "true");
       }
     } else {
       if (score > 25) starsEarned++;
@@ -2419,7 +2420,7 @@ export class SqliteApi implements ServiceApi {
     if (starsEarned > 0) {
       const latestStarsKey = LATEST_STARS(student.id);
       const currentLocalStars = parseInt(
-        localStorage.getItem(latestStarsKey) || '0',
+        localStorage.getItem(latestStarsKey) || "0",
       );
       localStorage.setItem(
         latestStarsKey,
@@ -2437,7 +2438,7 @@ export class SqliteApi implements ServiceApi {
     const latestUserForStars = await this.getUserByDocId(student.id);
     const totalStars = (latestUserForStars?.stars || 0) + starsEarned;
     const latestLocalStarsForStudent = parseInt(
-      localStorage.getItem(LATEST_STARS(student.id)) || '0',
+      localStorage.getItem(LATEST_STARS(student.id)) || "0",
     );
     const finalStarsToSet = Math.max(totalStars, latestLocalStarsForStudent);
     query += `stars =  ? WHERE id = ?;`;
@@ -2465,14 +2466,13 @@ export class SqliteApi implements ServiceApi {
       stars: updatedStudent?.stars,
     };
     if (newReward !== null && currentUser) {
-      let userId: string = 'anonymous';
+      let userId: string = "anonymous";
       try {
         const data = store.getState()?.auth?.user;
-        if (!data || !data.id)
-          throw new Error('User data or ID is missing in the store');
-        userId = data?.id ?? 'anonymous';
+        if (!data || !data.id) throw new Error("User data or ID is missing in the store");
+        userId = data?.id ?? "anonymous";
       } catch (error) {
-        console.error('Failed to get user from redux store:', error);
+        console.error("Failed to get user from redux store:", error);
       }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
@@ -2501,7 +2501,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateUserProfile(
-    user: TableTypes<'user'>,
+    user: TableTypes<"user">,
     fullName: string,
     email: string,
     phoneNum: string,
@@ -2511,7 +2511,7 @@ export class SqliteApi implements ServiceApi {
       age?: string;
       gender?: string;
     },
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const updateUserProfileQuery = `
       UPDATE "user"
       SET
@@ -2557,7 +2557,7 @@ export class SqliteApi implements ServiceApi {
     languageDocId?: string,
   ) {
     const now = new Date().toISOString();
-    let coursesToAdd: TableTypes<'course'>[] = [];
+    let coursesToAdd: TableTypes<"course">[] = [];
 
     // Grade + Board based courses
     if (gradeDocId && boardDocId) {
@@ -2569,7 +2569,7 @@ export class SqliteApi implements ServiceApi {
       const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
       const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
 
-      let langCourse: TableTypes<'course'> | undefined;
+      let langCourse: TableTypes<"course"> | undefined;
 
       if (languageDocId) {
         const language = await this.getLanguageWithId(languageDocId);
@@ -2581,7 +2581,7 @@ export class SqliteApi implements ServiceApi {
             mr: GRADE1_MARATHI,
           };
 
-          const courseId = thirdLanguageCourseMap[language.code ?? ''];
+          const courseId = thirdLanguageCourseMap[language.code ?? ""];
           if (courseId) {
             langCourse = await this.getCourse(courseId);
           }
@@ -2593,7 +2593,7 @@ export class SqliteApi implements ServiceApi {
         mathsCourse,
         langCourse,
         digitalSkillsCourse,
-      ].filter(Boolean) as TableTypes<'course'>[];
+      ].filter(Boolean) as TableTypes<"course">[];
     }
 
     // Insert only if not exists
@@ -2616,7 +2616,7 @@ export class SqliteApi implements ServiceApi {
       const count = result?.values?.[0]?.count ?? 0;
       if (count > 0) continue;
 
-      const newUserCourse: TableTypes<'user_course'> = {
+      const newUserCourse: TableTypes<"user_course"> = {
         id: uuidv4(),
         user_id: studentId,
         course_id: course.id,
@@ -2643,7 +2643,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async updateStudent(
-    student: TableTypes<'user'>,
+    student: TableTypes<"user">,
     name: string,
     age: number,
     gender: string,
@@ -2652,7 +2652,7 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
     if (languageChanged) {
@@ -2742,7 +2742,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateStudentFromSchoolMode(
-    student: TableTypes<'user'>,
+    student: TableTypes<"user">,
     name: string,
     age: number,
     gender: string,
@@ -2753,7 +2753,7 @@ export class SqliteApi implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
 
@@ -2779,7 +2779,7 @@ export class SqliteApi implements ServiceApi {
         locale_id = ?,
         student_id = ?,
         updated_at = ?
-        ${languageChanged ? ', learning_path = ?' : ''}
+        ${languageChanged ? ", learning_path = ?" : ""}
       WHERE id = ?;
     `;
 
@@ -2881,11 +2881,11 @@ export class SqliteApi implements ServiceApi {
         });
         // Create new class_user entry
         const newClassUserId = uuidv4();
-        const newClassUser: TableTypes<'class_user'> = {
+        const newClassUser: TableTypes<"class_user"> = {
           id: newClassUserId,
           class_id: newClassId,
           user_id: student.id,
-          role: 'student',
+          role: "student",
           created_at: now,
           updated_at: now,
           is_deleted: false,
@@ -2917,12 +2917,12 @@ export class SqliteApi implements ServiceApi {
       }
       return student;
     } catch (error) {
-      console.error('Error updating student:', error);
+      console.error("Error updating student:", error);
       throw error; // Rethrow error after logging
     }
   }
 
-  async getSubject(id: string): Promise<TableTypes<'subject'> | undefined> {
+  async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Subject} where id = "${id}"`,
     );
@@ -2930,20 +2930,20 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  async getCourse(id: string): Promise<TableTypes<'course'> | undefined> {
+  async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Course} where id = "${id}" and is_deleted = 0`,
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]> {
+  async getCourses(courseIds: string[]): Promise<TableTypes<"course">[]> {
     if (!courseIds || courseIds.length === 0) {
       return [];
     }
 
     // create placeholders (?, ?, ?) based on number of courseIds
-    const placeholders = courseIds.map(() => '?').join(',');
+    const placeholders = courseIds.map(() => "?").join(",");
 
     const query = `
       SELECT *
@@ -2959,7 +2959,7 @@ export class SqliteApi implements ServiceApi {
   async getDomainsBySubjectAndFramework(
     subjectId: string,
     frameworkId: string,
-  ): Promise<TableTypes<'domain'>[]> {
+  ): Promise<TableTypes<"domain">[]> {
     const res = await this._db?.query(
       `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0)`,
       [subjectId, frameworkId],
@@ -2969,9 +2969,9 @@ export class SqliteApi implements ServiceApi {
 
   async getCompetenciesByDomainIds(
     domainIds: string[],
-  ): Promise<TableTypes<'competency'>[]> {
+  ): Promise<TableTypes<"competency">[]> {
     if (!domainIds || domainIds.length === 0) return [];
-    const placeholders = domainIds.map(() => '?').join(',');
+    const placeholders = domainIds.map(() => "?").join(",");
     const res = await this._db?.query(
       `select * from ${TABLES.Competency} where domain_id in (${placeholders}) and (is_deleted = 0)`,
       domainIds,
@@ -2981,9 +2981,9 @@ export class SqliteApi implements ServiceApi {
 
   async getOutcomesByCompetencyIds(
     competencyIds: string[],
-  ): Promise<TableTypes<'outcome'>[]> {
+  ): Promise<TableTypes<"outcome">[]> {
     if (!competencyIds || competencyIds.length === 0) return [];
-    const placeholders = competencyIds.map(() => '?').join(',');
+    const placeholders = competencyIds.map(() => "?").join(",");
     const res = await this._db?.query(
       `select * from ${TABLES.Outcome} where competency_id in (${placeholders}) and (is_deleted = 0)`,
       competencyIds,
@@ -2993,9 +2993,9 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillsByOutcomeIds(
     outcomeIds: string[],
-  ): Promise<TableTypes<'skill'>[]> {
+  ): Promise<TableTypes<"skill">[]> {
     if (!outcomeIds || outcomeIds.length === 0) return [];
-    const placeholders = outcomeIds.map(() => '?').join(',');
+    const placeholders = outcomeIds.map(() => "?").join(",");
     const res = await this._db?.query(
       `select * from ${TABLES.Skill} where outcome_id in (${placeholders}) and (is_deleted = 0)`,
       outcomeIds,
@@ -3006,9 +3006,9 @@ export class SqliteApi implements ServiceApi {
   async getResultsBySkillIds(
     studentId: string,
     skillIds: string[],
-  ): Promise<TableTypes<'result'>[]> {
+  ): Promise<TableTypes<"result">[]> {
     if (!skillIds || skillIds.length === 0) return [];
-    const placeholders = skillIds.map(() => '?').join(',');
+    const placeholders = skillIds.map(() => "?").join(",");
     const res = await this._db?.query(
       `select * from ${TABLES.Result} where student_id = ? and skill_id in (${placeholders}) and (is_deleted = 0)`,
       [studentId, ...skillIds],
@@ -3018,14 +3018,14 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
-  ): Promise<TableTypes<'skill_lesson'>[]> {
+  ): Promise<TableTypes<"skill_lesson">[]> {
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
     const langId = student?.language_id;
     const localeId = student?.locale_id;
 
-    const placeholders = skillIds.map(() => '?').join(',');
+    const placeholders = skillIds.map(() => "?").join(",");
 
     const res = await this._db?.query(
       `
@@ -3035,19 +3035,16 @@ export class SqliteApi implements ServiceApi {
         AND is_deleted = 0
         AND (
           (language_id IS NULL AND locale_id IS NULL)
-          ${
-            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ''
-          }
-          ${
-            localeId
-              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
-              : ''
-          }
-          ${
-            langId && localeId
-              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
-              : ''
-          }
+          ${langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ""
+      }
+          ${localeId
+        ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
+        : ""
+      }
+          ${langId && localeId
+        ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
+        : ""
+      }
         )
       ORDER BY sort_index ASC
       `,
@@ -3058,9 +3055,9 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillRelationsByTargetIds(
     targetSkillIds: string[],
-  ): Promise<TableTypes<'skill_relation'>[]> {
+  ): Promise<TableTypes<"skill_relation">[]> {
     if (!targetSkillIds || targetSkillIds.length === 0) return [];
-    const placeholders = targetSkillIds.map(() => '?').join(',');
+    const placeholders = targetSkillIds.map(() => "?").join(",");
     const res = await this._db?.query(
       `select * from ${TABLES.SkillRelation} where target_skill_id in (${placeholders}) and (is_deleted = 0)`,
       targetSkillIds,
@@ -3071,7 +3068,7 @@ export class SqliteApi implements ServiceApi {
   async getStudentResult(
     studentId: string,
     fromCache?: boolean,
-  ): Promise<TableTypes<'result'>[]> {
+  ): Promise<TableTypes<"result">[]> {
     const query = `
     SELECT * FROM ${TABLES.Result}
     where student_id = '${studentId}'
@@ -3082,7 +3079,7 @@ export class SqliteApi implements ServiceApi {
 
   async getStudentResultInMap(
     studentId: string,
-  ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -3095,16 +3092,16 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    console.log('🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
+    console.log("🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:", res?.values);
     if (!res || !res.values || res.values.length < 1) return {};
-    const resultMap: { [lessonDocId: string]: TableTypes<'result'> } = {};
+    const resultMap: { [lessonDocId: string]: TableTypes<"result"> } = {};
     for (const data of res.values) {
       resultMap[data.lesson_id] = data;
     }
     return resultMap;
   }
 
-  async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
+  async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Class} where id = "${id}"`,
     );
@@ -3112,7 +3109,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  async getSchoolById(id: string): Promise<TableTypes<'school'> | undefined> {
+  async getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.School} where id = "${id}"`,
     );
@@ -3135,14 +3132,14 @@ export class SqliteApi implements ServiceApi {
       where user_id = "${studentId}"
       and role = "${RoleType.STUDENT}" and is_deleted = 0`,
     );
-    console.log('🚀 ~ SqliteApi ~ isStudentLinked ~ res:', res);
+    console.log("🚀 ~ SqliteApi ~ isStudentLinked ~ res:", res);
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
   async getPendingAssignments(
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
 
     const query = `
@@ -3174,8 +3171,8 @@ export class SqliteApi implements ServiceApi {
 
   async getSchoolsForUser(
     userId: string,
-  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
-    const finalData: { school: TableTypes<'school'>; role: RoleType }[] = [];
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
     let query = `
     SELECT cu.class_id, c.school_id
@@ -3285,7 +3282,7 @@ export class SqliteApi implements ServiceApi {
   async getClassesForSchool(
     schoolId: string,
     userId: string,
-  ): Promise<TableTypes<'class'>[]> {
+  ): Promise<TableTypes<"class">[]> {
     let query = `
     SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
@@ -3330,7 +3327,7 @@ export class SqliteApi implements ServiceApi {
 
   async getCoursesByClassId(
     classId: string,
-  ): Promise<TableTypes<'class_course'>[]> {
+  ): Promise<TableTypes<"class_course">[]> {
     const query = `
     SELECT *
     FROM ${TABLES.ClassCourse}
@@ -3341,7 +3338,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getCoursesBySchoolId(
     schoolId: string,
-  ): Promise<TableTypes<'school_course'>[]> {
+  ): Promise<TableTypes<"school_course">[]> {
     const query = `
       SELECT *
       FROM ${TABLES.SchoolCourse}
@@ -3360,7 +3357,7 @@ export class SqliteApi implements ServiceApi {
         return false; // No classes to check
       }
 
-      const placeholders = classIds.map(() => '?').join(', ');
+      const placeholders = classIds.map(() => "?").join(", ");
       const result = await this.executeQuery(
         `SELECT 1 FROM class_course
          WHERE class_id IN (${placeholders}) AND course_id = ? AND is_deleted = 0
@@ -3371,7 +3368,7 @@ export class SqliteApi implements ServiceApi {
       if (!result?.values) return false;
       return result.values.length > 0; // Return true if at least one match is found
     } catch (error) {
-      console.error('Error checking course in classes:', error);
+      console.error("Error checking course in classes:", error);
       throw error;
     }
   }
@@ -3379,11 +3376,11 @@ export class SqliteApi implements ServiceApi {
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        console.warn("No course IDs provided for removal.");
         return;
       }
 
-      const placeholders = ids.map(() => '?').join(', ');
+      const placeholders = ids.map(() => "?").join(", ");
       await this.executeQuery(
         `UPDATE class_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
         ids,
@@ -3396,17 +3393,17 @@ export class SqliteApi implements ServiceApi {
         });
       });
     } catch (error) {
-      console.error('Error removing courses from class_course', error);
+      console.error("Error removing courses from class_course", error);
     }
   }
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        console.warn("No course IDs provided for removal.");
         return;
       }
 
-      const placeholders = ids.map(() => '?').join(', ');
+      const placeholders = ids.map(() => "?").join(", ");
       await this.executeQuery(
         `UPDATE school_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
         ids,
@@ -3419,7 +3416,7 @@ export class SqliteApi implements ServiceApi {
         });
       });
     } catch (error) {
-      console.error('Error removing courses from school_course', error);
+      console.error("Error removing courses from school_course", error);
     }
   }
   async deleteUserFromClass(
@@ -3427,20 +3424,20 @@ export class SqliteApi implements ServiceApi {
     class_id: string,
   ): Promise<boolean | void> {
     if (!userId || !class_id) {
-      throw new Error('User ID and Class ID are required');
+      throw new Error("User ID and Class ID are required");
     }
 
     // 1️⃣ Call server (RPC)
     const res = await this._serverApi.deleteUserFromClass(userId, class_id);
     if (res === false) {
-      throw new Error('Failed to delete user from class');
+      throw new Error("Failed to delete user from class");
     }
 
     // 2️⃣ Sync local DB (pull latest)
     this.syncDB();
   }
 
-  async getStudentsForClass(classId: string): Promise<TableTypes<'user'>[]> {
+  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     const query = `
       SELECT user.*
       FROM ${TABLES.ClassUser} AS cu
@@ -3463,13 +3460,13 @@ export class SqliteApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
-  ): Promise<TableTypes<'class'>> {
+  ): Promise<TableTypes<"class">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     const classId = uuidv4();
-    const newClass: TableTypes<'class'> = {
+    const newClass: TableTypes<"class"> = {
       id: classId,
       name: className,
       image: null,
@@ -3583,7 +3580,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: true,
       });
     } catch (error) {
-      console.error('Failed to delete class:', error);
+      console.error("Failed to delete class:", error);
       throw error;
     }
   }
@@ -3595,7 +3592,7 @@ export class SqliteApi implements ServiceApi {
   ) {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
 
     let updatedClassQuery = `UPDATE class SET name = "${className}"`;
     if (groupId !== undefined) {
@@ -3608,7 +3605,7 @@ export class SqliteApi implements ServiceApi {
     updatedClassQuery += ` WHERE id = "${classId}";`;
 
     const res = await this.executeQuery(updatedClassQuery);
-    console.log('🚀 ~ SqliteApi ~ updateClass ~ res:', res);
+    console.log("🚀 ~ SqliteApi ~ updateClass ~ res:", res);
 
     // Include group_id in push only if provided
     const updatedData: any = { id: classId, name: className };
@@ -3654,7 +3651,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<LeaderboardInfo | undefined> {
     try {
       // Ensure the database instance is initialized
-      if (!this._db) throw new Error('Database is not initialized');
+      if (!this._db) throw new Error("Database is not initialized");
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
@@ -3708,7 +3705,7 @@ export class SqliteApi implements ServiceApi {
         if (!result) return;
 
         const leaderboardEntry = {
-          name: result.name || '',
+          name: result.name || "",
           score: result.total_score || 0,
           timeSpent: result.total_time_spent || 0,
           lessonsPlayed: result.lessons_played || 0,
@@ -3716,24 +3713,24 @@ export class SqliteApi implements ServiceApi {
         };
 
         switch (result.type) {
-          case 'allTime':
+          case "allTime":
             leaderBoardList.allTime.push(leaderboardEntry);
             break;
-          case 'monthly':
+          case "monthly":
             leaderBoardList.monthly.push(leaderboardEntry);
             break;
-          case 'weekly':
+          case "weekly":
             leaderBoardList.weekly.push(leaderboardEntry);
             break;
           default:
-            console.warn('Unknown leaderboard type: ', result.type);
+            console.warn("Unknown leaderboard type: ", result.type);
         }
       });
 
       return leaderBoardList;
     } catch (error) {
       console.error(
-        'Error in getLeaderboardStudentResultFromB2CCollection: ',
+        "Error in getLeaderboardStudentResultFromB2CCollection: ",
         error,
       );
     }
@@ -3741,7 +3738,7 @@ export class SqliteApi implements ServiceApi {
 
   async getAllLessonsForCourse(
     courseId: string,
-  ): Promise<TableTypes<'lesson'>[]> {
+  ): Promise<TableTypes<"lesson">[]> {
     const query = `
     SELECT l.* FROM ${TABLES.Chapter} as c
     JOIN ${TABLES.ChapterLesson} cl ON cl.chapter_id = c.id
@@ -3756,19 +3753,19 @@ export class SqliteApi implements ServiceApi {
     course: Course,
     lessonId: string,
   ): Promise<Lesson | undefined> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   async getLessonFromChapter(
     chapterId: string,
     lessonId: string,
   ): Promise<{
-    lesson: TableTypes<'lesson'>[];
-    course: TableTypes<'course'>[];
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
   }> {
     const data: {
-      lesson: TableTypes<'lesson'>[];
-      course: TableTypes<'course'>[];
+      lesson: TableTypes<"lesson">[];
+      course: TableTypes<"course">[];
     } = {
       lesson: [],
       course: [],
@@ -3801,7 +3798,7 @@ export class SqliteApi implements ServiceApi {
     return data;
   }
 
-  async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<'course'>[]> {
+  async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
       const gradeCoursesRes = await this._db?.query(
         `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}" AND is_deleted = 0`,
@@ -3817,24 +3814,24 @@ export class SqliteApi implements ServiceApi {
       ];
       return courses;
     } catch (error) {
-      console.error('Error fetching courses by grade:', error);
+      console.error("Error fetching courses by grade:", error);
       return [];
     }
   }
 
-  async getAllCourses(): Promise<TableTypes<'course'>[]> {
+  async getAllCourses(): Promise<TableTypes<"course">[]> {
     const res = await this._db?.query(
       `select * from ${TABLES.Course} ORDER BY sort_index ASC`,
     );
     return res?.values ?? [];
   }
   deleteAllUserData(): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   async getCoursesFromLesson(
     lessonId: string,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     const query = `
     SELECT co.* FROM ${TABLES.Lesson} as l
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
@@ -3847,10 +3844,10 @@ export class SqliteApi implements ServiceApi {
   }
   async assignmentListner(
     studentId: string,
-    onDataChange: (assignment: TableTypes<'assignment'> | undefined) => void,
+    onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void,
   ) {
     const handleDataChange = async (
-      assignmet: TableTypes<'assignment'> | undefined,
+      assignmet: TableTypes<"assignment"> | undefined,
     ) => {
       if (assignmet) {
         await this.executeQuery(
@@ -3888,11 +3885,11 @@ export class SqliteApi implements ServiceApi {
   async assignmentUserListner(
     studentId: string,
     onDataChange: (
-      assignment_user: TableTypes<'assignment_user'> | undefined,
+      assignment_user: TableTypes<"assignment_user"> | undefined,
     ) => void,
   ) {
     const handleDataChange = async (
-      assignment_user: TableTypes<'assignment_user'> | undefined,
+      assignment_user: TableTypes<"assignment_user"> | undefined,
     ) => {
       if (assignment_user) {
         await this.executeQuery(
@@ -3921,7 +3918,7 @@ export class SqliteApi implements ServiceApi {
 
   async liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: TableTypes<'live_quiz_room'> | undefined) => void,
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void,
   ) {
     return await this._serverApi.liveQuizListener(
       liveQuizRoomDocId,
@@ -3956,8 +3953,8 @@ export class SqliteApi implements ServiceApi {
   }
   async getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
-      result_data: TableTypes<'result'>[];
-      user_data: TableTypes<'user'>[];
+      result_data: TableTypes<"result">[];
+      user_data: TableTypes<"user">[];
     }[]
   > {
     const res =
@@ -3966,7 +3963,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getAssignmentById(
     id: string,
-  ): Promise<TableTypes<'assignment'> | undefined> {
+  ): Promise<TableTypes<"assignment"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.Assignment} where id = "${id}"`,
     );
@@ -3975,10 +3972,10 @@ export class SqliteApi implements ServiceApi {
   }
   async getAssignmentsByIds(
     ids: string[],
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<TableTypes<"assignment">[]> {
     if (!ids.length) return [];
 
-    const idslst = ids.map(() => '?').join(', ');
+    const idslst = ids.map(() => "?").join(", ");
     const query = `
       SELECT *
       FROM ${TABLES.Assignment}
@@ -3989,13 +3986,13 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query, ids);
     if (!res?.values?.length) return [];
 
-    return res.values as TableTypes<'assignment'>[];
+    return res.values as TableTypes<"assignment">[];
   }
 
-  async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
+  async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     if (ids.length === 0) return [];
 
-    const quotedIds = ids.map((id) => `"${id}"`).join(', ');
+    const quotedIds = ids.map((id) => `"${id}"`).join(", ");
     try {
       const res = await this._db?.query(
         `SELECT * FROM ${TABLES.Badge} WHERE id IN (${quotedIds})`,
@@ -4004,12 +4001,12 @@ export class SqliteApi implements ServiceApi {
 
       return res.values;
     } catch (error) {
-      console.error('Error fetching badges by IDs:', error);
+      console.error("Error fetching badges by IDs:", error);
       return [];
     }
   }
 
-  async getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]> {
+  async getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4020,11 +4017,11 @@ export class SqliteApi implements ServiceApi {
       if (!res || !res.values || res.values.length < 1) return [];
       return res.values;
     } catch (error) {
-      console.error('Error fetching stickers by IDs:', error);
+      console.error("Error fetching stickers by IDs:", error);
       return [];
     }
   }
-  async getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]> {
+  async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4035,83 +4032,83 @@ export class SqliteApi implements ServiceApi {
       if (!res || !res.values || res.values.length < 1) return [];
       return res.values;
     } catch (error) {
-      console.error('Error fetching stickers by IDs:', error);
+      console.error("Error fetching stickers by IDs:", error);
       return [];
     }
   }
   async getRewardsById(
     id: number,
     periodType: string,
-  ): Promise<TableTypes<'reward'> | undefined> {
+  ): Promise<TableTypes<"reward"> | undefined> {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No reward found for the given year.');
+        console.error("No reward found for the given year.");
         return;
       }
       const periodData = JSON.parse(data.values[0][periodType]);
       try {
         if (periodData) return periodData;
       } catch (parseError) {
-        console.error('Error parsing JSON string:', parseError);
+        console.error("Error parsing JSON string:", parseError);
         return undefined;
       }
     } catch (error) {
-      console.error('Error fetching reward by ID:', error);
+      console.error("Error fetching reward by ID:", error);
       return undefined;
     }
   }
 
-  async getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
+  async getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
     try {
       const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No sticker found for the given user id.');
+        console.error("No sticker found for the given user id.");
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching sticker by user ID:', error);
+      console.error("Error fetching sticker by user ID:", error);
       return [];
     }
   }
-  async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
+  async getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
     try {
       const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No badge found for the given user id.');
+        console.error("No badge found for the given user id.");
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching user bade by user iD:', error);
+      console.error("Error fetching user bade by user iD:", error);
       return [];
     }
   }
 
-  async getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]> {
+  async getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
     try {
       const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No bonus found for the given user id.');
+        console.error("No bonus found for the given user id.");
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching bonus by user ID:', error);
+      console.error("Error fetching bonus by user ID:", error);
       return [];
     }
   }
@@ -4121,14 +4118,14 @@ export class SqliteApi implements ServiceApi {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
       await this._db?.query(query);
     } catch (error) {
-      console.error('Error updating rewards as seen:', error);
-      throw new Error('Error updating rewards as seen.');
+      console.error("Error updating rewards as seen:", error);
+      throw new Error("Error updating rewards as seen.");
     }
   }
 
   async getUserByDocId(
     studentId: string,
-  ): Promise<TableTypes<'user'> | undefined> {
+  ): Promise<TableTypes<"user"> | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.User} where id = "${studentId}"`,
     );
@@ -4137,12 +4134,12 @@ export class SqliteApi implements ServiceApi {
   }
 
   async addCourseForParentsStudent(
-    courses: TableTypes<'course'>[],
-    student: TableTypes<'user'>,
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">,
   ) {
     const courseIds = courses?.map((course) => course.id);
     for (const courseId of courseIds) {
-      const newUserCourse: TableTypes<'user_course'> = {
+      const newUserCourse: TableTypes<"user_course"> = {
         course_id: courseId,
         created_at: new Date().toISOString(),
         id: uuidv4(),
@@ -4167,12 +4164,12 @@ export class SqliteApi implements ServiceApi {
   }
 
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   async getChaptersForCourse(
     courseId: string,
-  ): Promise<TableTypes<'chapter'>[]> {
+  ): Promise<TableTypes<"chapter">[]> {
     const query = `
     SELECT * FROM ${TABLES.Chapter}
     WHERE course_id = "${courseId}" AND is_deleted = 0
@@ -4185,7 +4182,7 @@ export class SqliteApi implements ServiceApi {
     lessonId: string,
     classId: string,
     studentId: string,
-  ): Promise<TableTypes<'assignment'> | undefined> {
+  ): Promise<TableTypes<"assignment"> | undefined> {
     const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
@@ -4199,7 +4196,7 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  async getFavouriteLessons(userId: string): Promise<TableTypes<'lesson'>[]> {
+  async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
@@ -4214,12 +4211,12 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getStudentClassesAndSchools(userId: string): Promise<{
-    classes: TableTypes<'class'>[];
-    schools: TableTypes<'school'>[];
+    classes: TableTypes<"class">[];
+    schools: TableTypes<"school">[];
   }> {
     const data: {
-      classes: TableTypes<'class'>[];
-      schools: TableTypes<'school'>[];
+      classes: TableTypes<"class">[];
+      schools: TableTypes<"school">[];
     } = {
       classes: [],
       schools: [],
@@ -4257,7 +4254,7 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log('🚀 ~ SqliteApi ~ updateFCM Token:', res);
+    console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
@@ -4325,7 +4322,7 @@ export class SqliteApi implements ServiceApi {
       );
 
       // Prepare assignment data for push changes
-      const assignment_data: TableTypes<'assignment'> = {
+      const assignment_data: TableTypes<"assignment"> = {
         id: assignmentUUid,
         created_by: userId,
         starts_at: starts_at,
@@ -4358,7 +4355,7 @@ export class SqliteApi implements ServiceApi {
       if (!is_class_wise && student_list.length > 0) {
         for (const student of student_list) {
           const assignment_user_UUid = uuidv4();
-          const newAssignmentUser: TableTypes<'assignment_user'> = {
+          const newAssignmentUser: TableTypes<"assignment_user"> = {
             assignment_id: assignmentUUid,
             created_at: new Date().toISOString(),
             id: assignment_user_UUid,
@@ -4389,15 +4386,15 @@ export class SqliteApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.error('Error in createAssignment:', error);
+      console.error("Error in createAssignment:", error);
     }
   }
 
   async createUserDoc(
-    user: TableTypes<'user'>,
-  ): Promise<TableTypes<'user'> | undefined> {
+    user: TableTypes<"user">,
+  ): Promise<TableTypes<"user"> | undefined> {
     const countryCode = await this.getClientCountryCode();
-    let locale: TableTypes<'locale'> | null = await this.getLocaleByIdOrCode(
+    let locale: TableTypes<"locale"> | null = await this.getLocaleByIdOrCode(
       undefined,
       countryCode,
     );
@@ -4434,7 +4431,7 @@ export class SqliteApi implements ServiceApi {
       await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
+      console.error("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
       return false;
     }
   }
@@ -4444,10 +4441,12 @@ export class SqliteApi implements ServiceApi {
     const cart = readAssignmentCartFromStorage(userId);
     return cart;
   }
-  async getStudentProgress(studentId: string): Promise<
+  async getStudentProgress(
+    studentId: string,
+  ): Promise<
     Record<
       string,
-      (TableTypes<'result'> & {
+      (TableTypes<"result"> & {
         lesson_name?: string;
         chapter_name?: string;
       })[]
@@ -4464,7 +4463,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query);
     const resultMap: Record<
       string,
-      (TableTypes<'result'> & { lesson_name?: string; chapter_name?: string })[]
+      (TableTypes<"result"> & { lesson_name?: string; chapter_name?: string })[]
     > = {};
     if (res && res.values) {
       res.values.forEach((result) => {
@@ -4473,7 +4472,7 @@ export class SqliteApi implements ServiceApi {
           resultMap[courseId] = [];
         }
         resultMap[courseId].push(
-          result as TableTypes<'result'> & {
+          result as TableTypes<"result"> & {
             lesson_name?: string;
             chapter_name?: string;
           },
@@ -4485,7 +4484,7 @@ export class SqliteApi implements ServiceApi {
   async getRecommendedLessons(
     studentId: string,
     classId?: string,
-  ): Promise<TableTypes<'lesson'>[]> {
+  ): Promise<TableTypes<"lesson">[]> {
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
   WITH
@@ -4724,19 +4723,19 @@ order by
     if (!res) {
       return [];
     }
-    let listOfLessons = res.values as TableTypes<'lesson'>[];
+    let listOfLessons = res.values as TableTypes<"lesson">[];
     return listOfLessons;
   }
 
-  async searchLessons(searchString: string): Promise<TableTypes<'lesson'>[]> {
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     if (!this._db) return [];
-    const res: TableTypes<'lesson'>[] = [];
+    const res: TableTypes<"lesson">[] = [];
 
     try {
       const serverResults = await this._serverApi.searchLessons(searchString);
       res.push(...serverResults);
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ searchLessons ~ error:', error);
+      console.error("🚀 ~ SqliteApi ~ searchLessons ~ error:", error);
     }
 
     if (res.length > 0) return res;
@@ -4752,7 +4751,7 @@ order by
       limit,
     ]);
     if (nameResults.values) res.push(...nameResults.values);
-    console.log('🚀 ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat:", nameResults);
     const outcomeSearchQuery = `
     SELECT *
     FROM lesson
@@ -4765,7 +4764,7 @@ order by
       outcomeLength,
     ]);
     if (outcomeResults.values) res.push(...outcomeResults.values);
-    console.log('🚀 ~ SqliteApi ~ searchLessons ~ dat1:', outcomeResults);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat1:", outcomeResults);
     return res;
   }
 
@@ -4777,7 +4776,7 @@ order by
     try {
       const class_course = classId
         ? await this.getCoursesForClassStudent(classId)
-        : await this.getCoursesForParentsStudent(userId ?? '');
+        : await this.getCoursesForParentsStudent(userId ?? "");
       const res = await this._db?.query(
         `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
          FROM ${TABLES.ChapterLesson} cl
@@ -4794,17 +4793,17 @@ order by
         ? matchedLesson.chapter_id
         : res.values[0].chapter_id;
     } catch (error) {
-      console.error('Error fetching chapter by IDs:', error);
+      console.error("Error fetching chapter by IDs:", error);
       return;
     }
   }
 
   async getResultByAssignmentIds(
     assignmentIds: string[], // Expect an array of strings
-  ): Promise<TableTypes<'result'>[] | undefined> {
+  ): Promise<TableTypes<"result">[] | undefined> {
     if (!assignmentIds || assignmentIds.length === 0) return;
 
-    const placeholders = assignmentIds.map(() => '?').join(', ');
+    const placeholders = assignmentIds.map(() => "?").join(", ");
     const query = `SELECT *
       FROM ${TABLES.Result}
       WHERE assignment_id IN (${placeholders});`;
@@ -4818,10 +4817,10 @@ order by
   async getResultByAssignmentIdsForCurrentClassMembers(
     assignmentIds: string[],
     classId: string,
-  ): Promise<TableTypes<'result'>[] | undefined> {
+  ): Promise<TableTypes<"result">[] | undefined> {
     if (!assignmentIds || assignmentIds.length === 0) return;
 
-    const placeholders = assignmentIds.map(() => '?').join(', ');
+    const placeholders = assignmentIds.map(() => "?").join(", ");
     const query = `
       SELECT r.*
       FROM ${TABLES.Result} r
@@ -4840,14 +4839,14 @@ order by
   }
   async getAssignmentUserByAssignmentIds(
     assignmentIds: string[],
-  ): Promise<TableTypes<'assignment_user'>[]> {
+  ): Promise<TableTypes<"assignment_user">[]> {
     // If there are no assignment IDs, return an empty array immediately.
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
     }
 
     // Create a comma-separated list of placeholders for the query.
-    const placeholders = assignmentIds.map(() => '?').join(', ');
+    const placeholders = assignmentIds.map(() => "?").join(", ");
 
     // Construct the SQL query using the placeholders.
     const query = `
@@ -4869,10 +4868,10 @@ order by
   }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
-  ): Promise<TableTypes<'lesson'>[] | undefined> {
+  ): Promise<TableTypes<"lesson">[] | undefined> {
     if (!lessonIds || lessonIds.length === 0) return;
 
-    const placeholders = lessonIds.map(() => '?').join(', ');
+    const placeholders = lessonIds.map(() => "?").join(", ");
     const query = `SELECT *
       FROM ${TABLES.Lesson}
       WHERE id IN (${placeholders}) AND is_deleted = 0;`;
@@ -4888,9 +4887,9 @@ order by
     courseIds: string[],
     assignmentIds: string[],
     classId: string,
-  ): Promise<TableTypes<'result'>[]> {
-    const assignmentholders = assignmentIds.map(() => '?').join(', ');
-    const courseholders = courseIds.map(() => '?').join(', ');
+  ): Promise<TableTypes<"result">[]> {
+    const assignmentholders = assignmentIds.map(() => "?").join(", ");
+    const courseholders = courseIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `
         WITH base_results AS (
@@ -4972,8 +4971,8 @@ order by
     isClassWise: boolean,
     isLiveQuiz: boolean,
     allAssignments: boolean,
-  ): Promise<TableTypes<'assignment'>[] | undefined> {
-    const courseholders = courseIds.map(() => '?').join(', ');
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    const courseholders = courseIds.map(() => "?").join(", ");
     let query = `SELECT * FROM ${TABLES.Assignment}
              WHERE class_id = ?
              AND created_at BETWEEN ? AND ?
@@ -5002,8 +5001,8 @@ order by
     startDate: string,
     endDate: string,
     classId: string,
-  ): Promise<TableTypes<'result'>[] | undefined> {
-    const courseholders = courseIds.map(() => '?').join(', ');
+  ): Promise<TableTypes<"result">[] | undefined> {
+    const courseholders = courseIds.map(() => "?").join(", ");
 
     const query = `
     SELECT *
@@ -5025,7 +5024,7 @@ order by
 
   async getLastAssignmentsForRecommendations(
     classId: string,
-  ): Promise<TableTypes<'assignment'>[] | undefined> {
+  ): Promise<TableTypes<"assignment">[] | undefined> {
     const query = `WITH RankedAssignments AS (
     SELECT *,
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
@@ -5045,7 +5044,7 @@ order by
   }
   async getTeachersForClass(
     classId: string,
-  ): Promise<TableTypes<'user'>[] | undefined> {
+  ): Promise<TableTypes<"user">[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
@@ -5055,18 +5054,18 @@ order by
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
-  async getUserByEmail(email: string): Promise<TableTypes<'user'> | undefined> {
+  async getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
     return this._serverApi.getUserByEmail(email);
   }
   async getUserByPhoneNumber(
     phone: string,
-  ): Promise<TableTypes<'user'> | undefined> {
+  ): Promise<TableTypes<"user"> | undefined> {
     return this._serverApi.getUserByPhoneNumber(phone);
   }
   async addTeacherToClass(
     schoolId: string,
     classId: string,
-    user: TableTypes<'user'>,
+    user: TableTypes<"user">,
   ): Promise<void> {
     const classUserId = uuidv4();
     const classUser = {
@@ -5180,7 +5179,7 @@ order by
     }
     const classIds = classResult.values.map((row: { id: string }) => row.id);
     // Step 3: Check if the user is a teacher in any of these classes
-    const placeholders = classIds.map(() => '?').join(', ');
+    const placeholders = classIds.map(() => "?").join(", ");
     const teacherResult = await this.executeQuery(
       `SELECT * FROM class_user
        WHERE class_id IN (${placeholders})
@@ -5230,8 +5229,8 @@ order by
     startDate: string,
     endDate: string,
   ): Promise<{
-    classWiseAssignments: TableTypes<'assignment'>[];
-    individualAssignments: TableTypes<'assignment'>[];
+    classWiseAssignments: TableTypes<"assignment">[];
+    individualAssignments: TableTypes<"assignment">[];
   }> {
     const query = `
       SELECT *
@@ -5258,7 +5257,7 @@ order by
   async getTeacherJoinedDate(
     userId: string,
     classId: string,
-  ): Promise<TableTypes<'class_user'> | undefined> {
+  ): Promise<TableTypes<"class_user"> | undefined> {
     const query = `
     SELECT *
     FROM ${TABLES.ClassUser}
@@ -5274,7 +5273,7 @@ order by
         return res.values[0];
       }
     } catch (error) {
-      console.error('Error fetching teacher joined date:', error);
+      console.error("Error fetching teacher joined date:", error);
     }
 
     return undefined;
@@ -5297,7 +5296,7 @@ order by
 
       return userIds ?? [];
     } catch (error) {
-      console.error('Error fetching user IDs:', error);
+      console.error("Error fetching user IDs:", error);
       return [];
     }
   }
@@ -5320,7 +5319,7 @@ order by
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
       } else {
-        throw new Error('Teacher not found after update.');
+        throw new Error("Teacher not found after update.");
       }
 
       await this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
@@ -5328,7 +5327,7 @@ order by
         is_deleted: true,
       });
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ deleteTeacher ~ error:', error);
+      console.error("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
@@ -5344,14 +5343,14 @@ order by
       const res = await this._db?.query(query);
       return res?.values?.[0]?.code;
     } catch (error) {
-      console.error('Error executing query:', error); // Log any errors
+      console.error("Error executing query:", error); // Log any errors
       return;
     }
   }
 
   async createClassCode(classId: string): Promise<number> {
     if (!classId) {
-      throw new Error('Class ID is required to create a class code.');
+      throw new Error("Class ID is required to create a class code.");
     }
     const existingClassCode = await this.getClassCodeById(classId);
 
@@ -5371,7 +5370,7 @@ order by
     startDate: string,
     endDate: string,
     classId: string,
-  ): Promise<TableTypes<'result'>[] | undefined> {
+  ): Promise<TableTypes<"result">[] | undefined> {
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
@@ -5397,7 +5396,7 @@ order by
 
     if (!chapterIds.length) return [];
 
-    const idslst = chapterIds.map(() => '?').join(', ');
+    const idslst = chapterIds.map(() => "?").join(", ");
     const query = `
       SELECT DISTINCT id
       FROM ${TABLES.Assignment}
@@ -5422,9 +5421,9 @@ order by
   async getSchoolsWithRoleAutouser(
     schoolIds: string[],
     userId: string,
-  ): Promise<TableTypes<'school'>[] | undefined> {
+  ): Promise<TableTypes<"school">[] | undefined> {
     // Escape schoolIds array for use in the SQL query
-    const placeholders = schoolIds.map(() => '?').join(', '); // Generates ?, ?, ? for query placeholders
+    const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
     const query = `
       SELECT DISTINCT school.*
       FROM ${TABLES.SchoolUser} AS su
@@ -5440,7 +5439,7 @@ order by
   }
   async getPrincipalsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<'user'>[] | undefined> {
+  ): Promise<TableTypes<"user">[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5457,7 +5456,7 @@ order by
     limit: number = 20,
   ): Promise<PrincipalAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      console.warn("SQLite DB not initialized.");
       return { data: [], total: 0 };
     }
 
@@ -5512,7 +5511,7 @@ order by
       total: totalCount,
     };
   }
-  async getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]> {
+  async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
     const query = `
     SELECT *
     FROM ${TABLES.Class}
@@ -5526,7 +5525,7 @@ order by
   }
   async getCoordinatorsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<'user'>[] | undefined> {
+  ): Promise<TableTypes<"user">[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5543,7 +5542,7 @@ order by
     limit: number = 20,
   ): Promise<CoordinatorAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      console.warn("SQLite DB not initialized.");
       return { data: [], total: 0 };
     }
 
@@ -5599,7 +5598,7 @@ order by
   }
   async getSponsorsForSchool(
     schoolId: string,
-  ): Promise<TableTypes<'user'>[] | undefined> {
+  ): Promise<TableTypes<"user">[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5611,7 +5610,7 @@ order by
   }
   async addUserToSchool(
     schoolId: string,
-    user: TableTypes<'user'>,
+    user: TableTypes<"user">,
     role: RoleType,
   ): Promise<void> {
     const schoolUserId = uuidv4();
@@ -5715,7 +5714,7 @@ order by
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
       } else {
-        return { success: false, message: 'School user not found.' };
+        return { success: false, message: "School user not found." };
       }
 
       await this.updatePushChanges(TABLES.SchoolUser, MUTATE_TYPES.UPDATE, {
@@ -5726,15 +5725,15 @@ order by
       // ✅ Success return added
       return {
         success: true,
-        message: 'User removed from school successfully.',
+        message: "User removed from school successfully.",
       };
     } catch (error: any) {
-      console.error('🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:', error);
+      console.error("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
 
       // ✅ Error return added
       return {
         success: false,
-        message: error?.message || 'Unexpected error occurred.',
+        message: error?.message || "Unexpected error occurred.",
       };
     }
   }
@@ -5795,42 +5794,42 @@ order by
       className,
       phoneNumber,
     );
-    if (validatedData.status === 'error') {
+    if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
-        typeof err === 'string' ? err : err.message || JSON.stringify(err),
+        typeof err === "string" ? err : err.message || JSON.stringify(err),
       );
-      return { status: 'error', errors };
+      return { status: "error", errors };
     }
 
-    return { status: 'success' };
+    return { status: "success" };
   }
   async validateSchoolUdiseCode(
     schoolId: string,
   ): Promise<{ status: string; errors?: string[] }> {
     const validatedData =
       await this._serverApi.validateSchoolUdiseCode(schoolId);
-    if (validatedData.status === 'error') {
+    if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
-        typeof err === 'string' ? err : err.message || JSON.stringify(err),
+        typeof err === "string" ? err : err.message || JSON.stringify(err),
       );
-      return { status: 'error', errors };
+      return { status: "error", errors };
     }
 
-    return { status: 'success' };
+    return { status: "success" };
   }
   async validateProgramName(
     programName: string,
   ): Promise<{ status: string; errors?: string[] }> {
     const validatedData =
       await this._serverApi.validateProgramName(programName);
-    if (validatedData.status === 'error') {
+    if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
-        typeof err === 'string' ? err : err.message || JSON.stringify(err),
+        typeof err === "string" ? err : err.message || JSON.stringify(err),
       );
-      return { status: 'error', errors };
+      return { status: "error", errors };
     }
 
-    return { status: 'success' };
+    return { status: "success" };
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
@@ -5840,14 +5839,14 @@ order by
       schoolId,
       className,
     );
-    if (validatedData.status === 'error') {
+    if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
-        typeof err === 'string' ? err : err.message || JSON.stringify(err),
+        typeof err === "string" ? err : err.message || JSON.stringify(err),
       );
-      return { status: 'error', errors };
+      return { status: "error", errors };
     }
 
-    return { status: 'success' };
+    return { status: "success" };
   }
 
   async validateStudentInClassWithoutPhone(
@@ -5861,14 +5860,14 @@ order by
         className,
         schoolId,
       );
-    if (validatedData.status === 'error') {
+    if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
-        typeof err === 'string' ? err : err.message || JSON.stringify(err),
+        typeof err === "string" ? err : err.message || JSON.stringify(err),
       );
-      return { status: 'error', errors };
+      return { status: "error", errors };
     }
 
-    return { status: 'success' };
+    return { status: "success" };
   }
 
   async validateSchoolData(
@@ -5879,10 +5878,10 @@ order by
       schoolId,
       schoolName,
     );
-    if (schoolData.status === 'error') {
-      return { status: 'error', errors: schoolData.errors };
+    if (schoolData.status === "error") {
+      return { status: "error", errors: schoolData.errors };
     }
-    return { status: 'success' };
+    return { status: "success" };
   }
 
   async validateClassCurriculumAndSubject(
@@ -5896,13 +5895,13 @@ order by
         subjectName,
         gradeName,
       );
-    if (ClassCurriculum.status === 'error') {
+    if (ClassCurriculum.status === "error") {
       return {
-        status: 'error',
-        errors: ClassCurriculum.errors || ['Invalid class curriculum'],
+        status: "error",
+        errors: ClassCurriculum.errors || ["Invalid class curriculum"],
       };
     }
-    return { status: 'success' };
+    return { status: "success" };
   }
 
   async validateUserContacts(
@@ -5913,13 +5912,13 @@ order by
       programManagerPhone,
       fieldCoordinatorPhone,
     );
-    if (response.status === 'error') {
+    if (response.status === "error") {
       return {
-        status: 'error',
-        errors: response.errors || ['Invalid user contacts'],
+        status: "error",
+        errors: response.errors || ["Invalid user contacts"],
       };
     }
-    return { status: 'success' };
+    return { status: "success" };
   }
   async setStarsForStudents(
     studentId: string,
@@ -5931,12 +5930,12 @@ order by
       const be = await this.getUserByDocId(studentId);
       const latestStarsKey = LATEST_STARS(studentId);
       const currentLocalStars = parseInt(
-        localStorage.getItem(latestStarsKey) || '0',
+        localStorage.getItem(latestStarsKey) || "0",
         10,
       );
 
       const nextLocalStars = currentLocalStars + starsCount;
-      console.log('zuzu 2', { studentId, stars: nextLocalStars });
+      console.log("zuzu 2", { studentId, stars: nextLocalStars });
 
       localStorage.setItem(latestStarsKey, nextLocalStars.toString());
 
@@ -5956,12 +5955,12 @@ order by
         is_immediate_sync,
       );
     } catch (error) {
-      console.error('Error setting stars for student:', error);
+      console.error("Error setting stars for student:", error);
     }
   }
   async getCoursesForPathway(
     studentId: string,
-  ): Promise<TableTypes<'course'>[]> {
+  ): Promise<TableTypes<"course">[]> {
     const query = `
       SELECT *
       FROM ${TABLES.UserCourse} AS uc
@@ -5973,10 +5972,10 @@ order by
     return res?.values ?? [];
   }
   async updateLearningPath(
-    student: TableTypes<'user'>,
+    student: TableTypes<"user">,
     learningPath: string,
     is_immediate_sync?: boolean,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     try {
       const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
@@ -6003,13 +6002,13 @@ order by
         JSON.stringify(latestPathToSave),
       );
     } catch (error) {
-      console.error('Error updating learning path:', error);
+      console.error("Error updating learning path:", error);
     }
     return student;
   }
   async getClassByUserId(
     userId: string,
-  ): Promise<TableTypes<'class'> | undefined> {
+  ): Promise<TableTypes<"class"> | undefined> {
     // Step 1: Get class_id from class_user
     const classUserRes = await this._db?.query(
       `SELECT class_id FROM ${TABLES.ClassUser} WHERE user_id = "${userId}" AND is_deleted = false`,
@@ -6037,7 +6036,7 @@ order by
       res = (await this._db.query(tablePushSync)).values ?? [];
       return res.length;
     } catch (error) {
-      console.error('❌ Failed to count pending changes:', error);
+      console.error("❌ Failed to count pending changes:", error);
       return 0;
     }
   }
@@ -6096,7 +6095,7 @@ order by
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
     const parentId = currentUser?.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
 
     const selectQuery = `
       SELECT * FROM debug_info
@@ -6109,23 +6108,23 @@ order by
 
     if (existingRows?.values?.length && existingRows.values.length > 0) {
       // Update existing row
-      const updateParts: string[] = ['updated_at = CURRENT_TIMESTAMP'];
+      const updateParts: string[] = ["updated_at = CURRENT_TIMESTAMP"];
       const params: any[] = [];
 
       if (noOfPushed !== undefined) {
-        updateParts.push('No_of_pushed = No_of_pushed + ?');
+        updateParts.push("No_of_pushed = No_of_pushed + ?");
         params.push(noOfPushed);
       }
       if (noOfPulled !== undefined) {
-        updateParts.push('No_of_pulled = No_of_pulled + ?');
+        updateParts.push("No_of_pulled = No_of_pulled + ?");
         params.push(noOfPulled);
       }
       if (dataTransferred !== undefined) {
-        updateParts.push('data_transferred = data_transferred + ?');
+        updateParts.push("data_transferred = data_transferred + ?");
         params.push(dataTransferred);
       }
       const updateQuery = `
-        UPDATE debug_info SET ${updateParts.join(', ')}
+        UPDATE debug_info SET ${updateParts.join(", ")}
         WHERE parent_id = ? AND DATE(updated_at) = ?
       `;
       params.push(parentId, today);
@@ -6161,7 +6160,7 @@ order by
     limit?: number;
     offset?: number;
     orderBy?: string;
-    order?: 'asc' | 'desc';
+    order?: "asc" | "desc";
   }): Promise<{ data: any[] }> {
     const {
       currentUserId,
@@ -6205,14 +6204,14 @@ order by
 
   async getProgramForSchool(
     schoolId: string,
-  ): Promise<TableTypes<'program'> | undefined> {
+  ): Promise<TableTypes<"program"> | undefined> {
     const prog = await this._serverApi.getProgramForSchool(schoolId);
     return prog;
   }
 
   async getProgramManagersForSchool(
     schoolId: string,
-  ): Promise<TableTypes<'user'>[] | undefined> {
+  ): Promise<TableTypes<"user">[] | undefined> {
     const users = await this._serverApi.getProgramManagersForSchool(schoolId);
     return users;
   }
@@ -6232,12 +6231,12 @@ order by
         stars: totalStars,
       });
     } catch (error) {
-      console.error('Error setting stars for student:', error);
+      console.error("Error setting stars for student:", error);
     }
   }
   async getChapterIdbyQrLink(
     link: string,
-  ): Promise<TableTypes<'chapter_links'> | undefined> {
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     if (!link) return;
     try {
       const res = await this._db?.query(
@@ -6248,21 +6247,21 @@ order by
       if (!res || !res.values || res.values.length < 1) return;
       return res.values[0];
     } catch (error) {
-      console.error('Error fetching chapter by QR link:', error);
+      console.error("Error fetching chapter by QR link:", error);
       return;
     }
   }
   async getSchoolsForAdmin(
     limit: number = 10,
     offset: number = 0,
-  ): Promise<TableTypes<'school'>[]> {
+  ): Promise<TableTypes<"school">[]> {
     return await this._serverApi.getSchoolsForAdmin(limit, offset);
   }
   async getSchoolsByModel(
-    model: EnumType<'program_model'>,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0,
-  ): Promise<TableTypes<'school'>[]> {
+  ): Promise<TableTypes<"school">[]> {
     return await this._serverApi.getSchoolsByModel(model, limit, offset);
   }
   async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
@@ -6308,7 +6307,7 @@ order by
     page?: number;
     page_size?: number;
     order_by?: string;
-    order_dir?: 'asc' | 'desc';
+    order_dir?: "asc" | "desc";
     search?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
@@ -6340,7 +6339,7 @@ order by
     limit: number = 20,
   ): Promise<TeacherAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      console.warn("SQLite DB not initialized.");
       return { data: [], total: 0 };
     }
 
@@ -6391,12 +6390,12 @@ order by
     const teacherInfoList: TeacherInfo[] = rows.map((row: any) => {
       const { class_id, class_name, ...teacherUser } = row;
 
-      const { grade, section } = this.parseClassName(class_name || '');
+      const { grade, section } = this.parseClassName(class_name || "");
 
       return {
-        user: teacherUser as TableTypes<'user'>,
+        user: teacherUser as TableTypes<"user">,
         grade,
-        classSection: section ?? '',
+        classSection: section ?? "",
         classWithidname: {
           id: class_id,
           name: class_name,
@@ -6412,17 +6411,17 @@ order by
   parseClassName(className: string): { grade: number; section: string } {
     const cleanedName = className.trim();
     if (!cleanedName) {
-      return { grade: 0, section: '' };
+      return { grade: 0, section: "" };
     }
 
     let grade = 0;
-    let section = '';
+    let section = "";
 
     // Pattern 1: Just a number (e.g., "1", "5", "10")
     const numericMatch = cleanedName.match(/^(\d+)$/);
     if (numericMatch) {
       grade = parseInt(numericMatch[1], 10);
-      return { grade: isNaN(grade) ? 0 : grade, section: '' };
+      return { grade: isNaN(grade) ? 0 : grade, section: "" };
     }
 
     // Pattern 2: Number followed by letters or words (e.g., "3A", "5 B")
@@ -6445,7 +6444,7 @@ order by
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
     if (!this._db) {
-      console.warn('Database not initialized, cannot fetch student info.');
+      console.warn("Database not initialized, cannot fetch student info.");
       return { data: [], total: 0 };
     }
 
@@ -6506,41 +6505,41 @@ order by
         ...studentUser
       } = row;
 
-      const { grade, section } = this.parseClassName(class_name || '');
-      const parentObject: TableTypes<'user'> | null = parent_id
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null,
-            avatar: null,
-            created_at: new Date().toISOString(),
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
-        user: studentUser as TableTypes<'user'>,
+        user: studentUser as TableTypes<"user">,
         grade,
         classSection: section,
         parent: parentObject,
@@ -6558,7 +6557,7 @@ order by
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
     if (!this._db) {
-      console.warn('Database not initialized, cannot fetch student info.');
+      console.warn("Database not initialized, cannot fetch student info.");
       return { data: [], total: 0 };
     }
 
@@ -6619,41 +6618,41 @@ order by
         ...studentUser
       } = row;
 
-      const { grade, section } = this.parseClassName(class_name || '');
-      const parentObject: TableTypes<'user'> | null = parent_id
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-            id: parent_id,
-            name: parent_name,
-            email: parent_email,
-            phone: parent_phone,
-            age: null, // Assuming these fields are nullable or have default values in your User table type
-            avatar: null,
-            created_at: new Date().toISOString(), // Example, adjust if you fetch this
-            curriculum_id: null,
-            fcm_token: null,
-            firebase_id: null,
-            gender: null,
-            grade_id: null,
-            image: null,
-            is_deleted: false,
-            is_firebase: false,
-            is_ops: false,
-            is_tc_accepted: false,
-            language_id: null,
-            learning_path: null,
-            locale_id: null,
-            music_off: false,
-            ops_created_by: null,
-            reward: null,
-            sfx_off: false,
-            stars: null,
-            student_id: null,
-            updated_at: null,
-          }
+          id: parent_id,
+          name: parent_name,
+          email: parent_email,
+          phone: parent_phone,
+          age: null, // Assuming these fields are nullable or have default values in your User table type
+          avatar: null,
+          created_at: new Date().toISOString(), // Example, adjust if you fetch this
+          curriculum_id: null,
+          fcm_token: null,
+          firebase_id: null,
+          gender: null,
+          grade_id: null,
+          image: null,
+          is_deleted: false,
+          is_firebase: false,
+          is_ops: false,
+          is_tc_accepted: false,
+          language_id: null,
+          learning_path: null,
+          locale_id: null,
+          music_off: false,
+          ops_created_by: null,
+          reward: null,
+          sfx_off: false,
+          stars: null,
+          student_id: null,
+          updated_at: null,
+        }
         : null;
 
       return {
-        user: studentUser as TableTypes<'user'>,
+        user: studentUser as TableTypes<"user">,
         grade,
         classSection: section,
         parent: parentObject,
@@ -6669,7 +6668,7 @@ order by
     studentId: string,
   ): Promise<{ user: any; parents: any[] }> {
     if (!this._db) {
-      console.warn('Database not initialized.');
+      console.warn("Database not initialized.");
       return { user: null, parents: [] };
     }
 
@@ -6703,7 +6702,7 @@ order by
       };
     } catch (error) {
       console.error(
-        'Error fetching student and parent by student ID (SQLite):',
+        "Error fetching student and parent by student ID (SQLite):",
         error,
       );
       return { user: null, parents: [] };
@@ -6711,9 +6710,9 @@ order by
   }
   async getParentsByStudentId(
     studentId: string,
-  ): Promise<TableTypes<'user'>[]> {
+  ): Promise<TableTypes<"user">[]> {
     if (!this._db) {
-      console.warn('Database not initialized.');
+      console.warn("Database not initialized.");
       return [];
     }
 
@@ -6732,7 +6731,7 @@ order by
       const parentRows = parentRes?.values ?? [];
       return parentRows;
     } catch (error) {
-      console.error('Error fetching parents by student ID', error);
+      console.error("Error fetching parents by student ID", error);
       return [];
     }
   }
@@ -6744,7 +6743,7 @@ order by
     respondedBy?: string,
   ): Promise<{ success: boolean; message: string }> {
     if (!this._db) {
-      return { success: false, message: 'SQLite DB not initialized.' };
+      return { success: false, message: "SQLite DB not initialized." };
     }
 
     const now = new Date().toISOString();
@@ -6757,7 +6756,7 @@ order by
       );
       const newStudent = newStudentRes?.values?.[0];
       if (!newStudent) {
-        return { success: false, message: 'New student not found' };
+        return { success: false, message: "New student not found" };
       }
 
       const newParentsRes = await this._db.query(
@@ -6775,7 +6774,7 @@ order by
       );
       const existingStudent = existingStudentRes?.values?.[0];
       if (!existingStudent) {
-        return { success: false, message: 'Existing student not found' };
+        return { success: false, message: "Existing student not found" };
       }
 
       const existingParentsRes = await this._db.query(
@@ -6856,32 +6855,32 @@ order by
       // ✅ SUCCESS RETURN
       return {
         success: true,
-        message: 'Students merged successfully.',
+        message: "Students merged successfully.",
       };
     } catch (error: any) {
       console.error(
-        'Error merging student in SQLite (mergeStudentRequestSqlite):',
+        "Error merging student in SQLite (mergeStudentRequestSqlite):",
         error,
       );
 
       return {
         success: false,
-        message: error?.message || 'Failed to merge students.',
+        message: error?.message || "Failed to merge students.",
       };
     }
   }
 
   async createAutoProfile(
     languageDocId: string | undefined,
-  ): Promise<TableTypes<'user'>> {
+  ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw 'User is not Logged in';
+    if (!_currentUser) throw "User is not Logged in";
     const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     const studentProfile = await this.getParentStudentProfiles();
     if (studentProfile.length > 0) return studentProfile[0];
     const studentId = uuidv4();
-    const newStudent: TableTypes<'user'> = {
+    const newStudent: TableTypes<"user"> = {
       id: studentId,
       name: null,
       age: null,
@@ -6960,7 +6959,7 @@ order by
         mr: GRADE1_MARATHI,
       };
 
-      const courseId = thirdLanguageCourseMap[language.code ?? ''];
+      const courseId = thirdLanguageCourseMap[language.code ?? ""];
       if (courseId) {
         langCourse = await this.getCourse(courseId);
       }
@@ -6984,7 +6983,7 @@ order by
 
     for (const course of coursesToAdd) {
       if (!course) continue;
-      const newUserCourse: TableTypes<'user_course'> = {
+      const newUserCourse: TableTypes<"user_course"> = {
         course_id: course.id,
         created_at: new Date().toISOString(),
         id: uuidv4(),
@@ -7027,12 +7026,12 @@ order by
 
   async getManagersAndCoordinators(
     page: number = 1,
-    search: string = '',
+    search: string = "",
     limit: number = 10,
-    sortBy: keyof TableTypes<'user'> = 'name',
-    sortOrder: 'asc' | 'desc' = 'asc',
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc",
   ): Promise<{
-    data: { user: TableTypes<'user'>; role: string }[];
+    data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
   }> {
     return await this._serverApi.getManagersAndCoordinators(
@@ -7098,13 +7097,13 @@ order by
     const { student_login_type, model } = schoolRes.values[0];
 
     return {
-      studentLoginType: student_login_type || '',
-      schoolModel: model || '',
+      studentLoginType: student_login_type || "",
+      schoolModel: model || "",
     };
   }
   async getSchoolDataByUdise(
     udiseCode: string,
-  ): Promise<TableTypes<'school_data'> | null> {
+  ): Promise<TableTypes<"school_data"> | null> {
     const schoolRes = await this.executeQuery(
       `SELECT * FROM school_data WHERE udise = ?`,
       [udiseCode],
@@ -7117,14 +7116,14 @@ order by
 
   async getChaptersByIds(
     chapterIds: string[],
-  ): Promise<TableTypes<'chapter'>[]> {
+  ): Promise<TableTypes<"chapter">[]> {
     if (!chapterIds || chapterIds.length === 0) {
-      console.warn('getChaptersByIds was called with no chapter IDs.');
+      console.warn("getChaptersByIds was called with no chapter IDs.");
       return [];
     }
 
     try {
-      const placeholders = chapterIds.map(() => '?').join(', ');
+      const placeholders = chapterIds.map(() => "?").join(", ");
 
       const query = `SELECT *
         FROM ${TABLES.Chapter}
@@ -7134,41 +7133,41 @@ order by
       const res = await this.executeQuery(query, chapterIds);
 
       if (!res || !res.values) {
-        console.warn('No chapters found for the provided ChapterIDs');
+        console.warn("No chapters found for the provided ChapterIDs");
         return [];
       }
 
-      return res.values as TableTypes<'chapter'>[];
+      return res.values as TableTypes<"chapter">[];
     } catch (error) {
-      console.error('Error fetching chapters', error);
+      console.error("Error fetching chapters", error);
       return [];
     }
   }
   async addParentToNewClass(classID: string, studentId: string) {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   async getOpsRequests(
-    requestStatus: EnumType<'ops_request_status'>,
+    requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 20,
-    orderBy: string = 'created_at',
-    orderDir: 'asc' | 'desc' = 'asc',
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string,
   ): Promise<{
-    data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
+    data: Array<TableTypes<"ops_requests"> | Record<string, Json>>;
     total: number;
     totalPages: number;
     page: number;
     limit: number;
   }> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   async getRequestFilterOptions(): Promise<{
     requestType: Array<string | null>;
     school: { id: string; name: string }[];
   } | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   async searchStudentsInSchool(
     schoolId: string,
@@ -7190,7 +7189,7 @@ order by
       params.push(classId);
     }
     // ✅ SEARCH FILTER
-    if (searchTerm && searchTerm.trim() !== '') {
+    if (searchTerm && searchTerm.trim() !== "") {
       whereClause += `
       AND (
         u.name LIKE ?
@@ -7248,7 +7247,7 @@ order by
     if (!this._db) return { data: [], total: 0 };
     let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
     let params: any[] = [schoolId];
-    if (searchTerm && searchTerm.trim() !== '') {
+    if (searchTerm && searchTerm.trim() !== "") {
       whereClause += ` AND (u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
       const likeTerm = `%${searchTerm}%`;
       params.push(likeTerm, likeTerm, likeTerm);
@@ -7283,7 +7282,7 @@ order by
     status: (typeof STATUS)[keyof typeof STATUS],
     rejectedReasonType?: string,
     rejectedReasonDescription?: string,
-  ): Promise<TableTypes<'ops_requests'> | undefined> {
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
     return await this._serverApi.respondToSchoolRequest(
       requestId,
       respondedBy,
@@ -7294,10 +7293,10 @@ order by
   }
   async getFieldCoordinatorsByProgram(
     programId: string,
-  ): Promise<{ data: TableTypes<'user'>[] }> {
+  ): Promise<{ data: TableTypes<"user">[] }> {
     return await this._serverApi.getFieldCoordinatorsByProgram(programId);
   }
-  async getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
+  async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
     return await this._serverApi.getProgramsByRole();
   }
   async updateSchoolStatus(
@@ -7338,7 +7337,7 @@ order by
     role: (typeof RequestTypes)[keyof typeof RequestTypes],
     schoolId?: string,
     classId?: string,
-  ): Promise<TableTypes<'ops_requests'> | undefined> {
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
     return await this._serverApi.approveOpsRequest(
       requestId,
       respondedBy,
@@ -7356,7 +7355,7 @@ order by
   async getLocaleByIdOrCode(
     locale_id?: string,
     locale_code?: string,
-  ): Promise<TableTypes<'locale'> | null> {
+  ): Promise<TableTypes<"locale"> | null> {
     if (!locale_id && !locale_code) {
       return null;
     }
@@ -7375,7 +7374,7 @@ order by
     const res = await this.executeQuery(query, params);
 
     if (res?.values && res.values.length > 0) {
-      return res.values[0] as TableTypes<'locale'>;
+      return res.values[0] as TableTypes<"locale">;
     }
 
     return null;
@@ -7394,7 +7393,7 @@ order by
     classId?: string,
   ): Promise<void> {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!currentUser) throw 'User is not Logged in';
+    if (!currentUser) throw "User is not Logged in";
     const ops_request_id = uuidv4();
 
     const now = new Date().toISOString();
@@ -7405,8 +7404,8 @@ order by
       request_type: requestType,
       requested_by: currentUser.id,
       request_status: STATUS.REQUESTED,
-      rejected_reason_description: '',
-      rejected_reason_type: '',
+      rejected_reason_description: "",
+      rejected_reason_type: "",
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -7439,12 +7438,12 @@ order by
   }
   async getAllClassesBySchoolId(
     schoolId: string,
-  ): Promise<TableTypes<'class'>[]> {
+  ): Promise<TableTypes<"class">[]> {
     return await this._serverApi.getAllClassesBySchoolId(schoolId);
   }
   async getRewardById(
     rewardId: string,
-  ): Promise<TableTypes<'rive_reward'> | undefined> {
+  ): Promise<TableTypes<"rive_reward"> | undefined> {
     try {
       const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
       const res = await this.executeQuery(query, [rewardId]);
@@ -7452,13 +7451,13 @@ order by
         console.warn(`No reward found for ID: ${rewardId}`);
         return undefined;
       }
-      return res.values[0] as TableTypes<'rive_reward'>;
+      return res.values[0] as TableTypes<"rive_reward">;
     } catch (error) {
-      console.error('Error fetching reward by ID', error);
+      console.error("Error fetching reward by ID", error);
       return undefined;
     }
   }
-  async getAllRewards(): Promise<TableTypes<'rive_reward'>[] | []> {
+  async getAllRewards(): Promise<TableTypes<"rive_reward">[] | []> {
     try {
       const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
       const res = await this.executeQuery(query, []);
@@ -7466,9 +7465,9 @@ order by
         console.warn(`No rewards found`);
         return [];
       }
-      return res.values as TableTypes<'rive_reward'>[];
+      return res.values as TableTypes<"rive_reward">[];
     } catch (error) {
-      console.error('Error fetching all rewards', error);
+      console.error("Error fetching all rewards", error);
       return [];
     }
   }
@@ -7478,14 +7477,14 @@ order by
     created_at?: string,
   ): Promise<void> {
     if (!rewardId) {
-      console.warn('No rewardId provided to updateUserReward');
+      console.warn("No rewardId provided to updateUserReward");
       return;
     }
 
     try {
       const currentUser = (await this.getUserByDocId(
         userId,
-      )) as TableTypes<'user'> | null;
+      )) as TableTypes<"user"> | null;
       if (!currentUser) {
         console.warn(`No user found`);
         return;
@@ -7511,7 +7510,7 @@ order by
       );
       Util.setCurrentStudent(currentUser);
     } catch (error) {
-      console.error('❌ Error updating user reward:', error);
+      console.error("❌ Error updating user reward:", error);
     }
   }
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
@@ -7525,7 +7524,7 @@ order by
       return [];
     }
     // Generate a placeholder for each subjectId (e.g., "?,?,?").
-    const placeholders = subjectIds.map(() => '?').join(',');
+    const placeholders = subjectIds.map(() => "?").join(",");
 
     const query = `
     SELECT l.subject_id, COUNT(r.lesson_id) AS completed_count
@@ -7545,7 +7544,7 @@ order by
       const res = await this.executeQuery(query, params);
       return res?.values ?? [];
     } catch (err) {
-      console.error('Error fetching completed homework counts in SQLite:', err);
+      console.error("Error fetching completed homework counts in SQLite:", err);
       return [];
     }
   }
@@ -7561,7 +7560,7 @@ order by
     role: RoleType,
     isEmailVerified: boolean,
   ): Promise<void> {
-    console.error('Method not implemented.');
+    console.error("Method not implemented.");
   }
   async insertSchoolDetails(
     schoolId: string,
@@ -7570,21 +7569,21 @@ order by
     keyContacts?: any,
   ): Promise<void> {
     try {
-      let fields = 'model = ?';
+      let fields = "model = ?";
       const values: any[] = [schoolModel];
 
       if (locationLink !== undefined && locationLink !== null) {
-        fields += ', location_link = ?';
+        fields += ", location_link = ?";
         values.push(locationLink);
       }
 
       if (keyContacts) {
-        fields += ', key_contacts = ?';
+        fields += ", key_contacts = ?";
         values.push(JSON.stringify(keyContacts));
       }
 
       const timestamp = new Date().toISOString();
-      fields += ', updated_at = ?';
+      fields += ", updated_at = ?";
       values.push(timestamp);
 
       values.push(schoolId);
@@ -7610,7 +7609,7 @@ order by
         pushObject,
       );
     } catch (error) {
-      console.error('❌ Error inserting school details:', error);
+      console.error("❌ Error inserting school details:", error);
     }
   }
 
@@ -7621,7 +7620,7 @@ order by
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
-  ): Promise<TableTypes<'fc_school_visit'> | null> {
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
     try {
       return await this._serverApi.recordSchoolVisit(
         schoolId,
@@ -7632,14 +7631,14 @@ order by
         distanceFromSchool,
       );
     } catch (error) {
-      console.error('❌ Error recording school visit:', error);
+      console.error("❌ Error recording school visit:", error);
       return null;
     }
   }
 
   async getLastSchoolVisit(
     schoolId: string,
-  ): Promise<TableTypes<'fc_school_visit'> | null> {
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
     if (this._serverApi) {
       return this._serverApi.getLastSchoolVisit(schoolId);
     }
@@ -7690,7 +7689,7 @@ order by
         });
       }
     } catch (error) {
-      console.error('❌ Error replacing class courses:', error);
+      console.error("❌ Error replacing class courses:", error);
     }
   }
   public async addStudentWithParentValidation(params: {
@@ -7708,10 +7707,10 @@ order by
     return this._serverApi.addStudentWithParentValidation(params);
   }
   public async getFilteredFcQuestions(
-    type: EnumType<'fc_support_level'> | null,
-    targetType: EnumType<'fc_engagement_target'>,
-  ): Promise<TableTypes<'fc_question'>[] | []> {
-    throw new Error('Method not implemented.');
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">,
+  ): Promise<TableTypes<"fc_question">[] | []> {
+    throw new Error("Method not implemented.");
   }
   public async saveFcUserForm(payload: {
     visitId?: string | null;
@@ -7719,42 +7718,42 @@ order by
     schoolId: string;
     classId?: string | null;
     contactUserId?: string | null;
-    contactTarget: EnumType<'fc_engagement_target'>;
-    contactMethod: EnumType<'fc_contact_method'>;
-    callStatus?: EnumType<'fc_call_result'> | null;
-    supportLevel?: EnumType<'fc_support_level'> | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
     questionResponse: Record<string, string>;
     techIssuesReported: boolean;
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
   }): Promise<{
-    data: TableTypes<'fc_user_forms'> | null;
+    data: TableTypes<"fc_user_forms"> | null;
     error: object | null;
   }> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   public async getTodayVisitId(
     userId: string,
     schoolId: string,
   ): Promise<string | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   public async getActivitiesBySchoolId(
     schoolId: string,
-  ): Promise<TableTypes<'fc_user_forms'>[]> {
+  ): Promise<TableTypes<"fc_user_forms">[]> {
     return this._serverApi.getActivitiesBySchoolId(schoolId);
   }
   public async getSchoolVisitById(
     visitIds: string[],
-  ): Promise<TableTypes<'fc_school_visit'>[]> {
+  ): Promise<TableTypes<"fc_school_visit">[]> {
     return this._serverApi.getSchoolVisitById(visitIds);
   }
   async getActivitiesFilterOptions(): Promise<{
     contactType: Array<string | null>;
     performance: Array<string | null>;
   } | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   async createNoteForSchool(params: {
@@ -7763,7 +7762,7 @@ order by
     content: string;
     mediaLinks?: string[] | null;
   }): Promise<any> {
-    console.warn('createNoteForSchool is not supported in SQLite mode');
+    console.warn("createNoteForSchool is not supported in SQLite mode");
     return this._serverApi.createNoteForSchool(params);
   }
 
@@ -7771,9 +7770,9 @@ order by
     schoolId: string,
     limit?: number,
     offset?: number,
-    sortBy?: 'createdAt' | 'createdBy',
+    sortBy?: "createdAt" | "createdBy",
   ): Promise<PaginatedResponse<SchoolNote>> {
-    console.warn('getNotesBySchoolId is not supported in SQLite mode');
+    console.warn("getNotesBySchoolId is not supported in SQLite mode");
 
     return this._serverApi.getNotesBySchoolId(schoolId, limit, offset, sortBy);
   }
@@ -7782,7 +7781,7 @@ order by
     teacherId: string,
     classId: string,
   ): Promise<number | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   public async getSchoolStatsForSchool(
     schoolId: string,
@@ -7843,15 +7842,15 @@ order by
 
       return rows[0];
     } catch (err) {
-      console.error('[SQLite] getLidoCommonAudioUrl failed:', err);
+      console.error("[SQLite] getLidoCommonAudioUrl failed:", err);
       return null;
     }
   }
   async getSubjectLessonsBySubjectId(
     subjectId: string,
-    student?: TableTypes<'user'>,
-  ): Promise<TableTypes<'subject_lesson'>> {
-    if (!student) return {} as TableTypes<'subject_lesson'>;
+    student?: TableTypes<"user">,
+  ): Promise<TableTypes<"subject_lesson">> {
+    if (!student) return {} as TableTypes<"subject_lesson">;
     const studentId = student.id;
     const langId = student.language_id ?? null;
 
@@ -7868,7 +7867,7 @@ order by
       const setRows = (setRes as any)?.values ?? [];
 
       if (!setRows.length) {
-        return {} as TableTypes<'subject_lesson'>;
+        return {} as TableTypes<"subject_lesson">;
       }
 
       // 2️⃣ Pick ANY ONE set randomly
@@ -7906,10 +7905,10 @@ order by
 
       const isAborted =
         lastTwo.length === 2 &&
-        lastTwo.every((r: any) => r.status === 'system_exit');
+        lastTwo.every((r: any) => r.status === "system_exit");
 
       if (isAborted) {
-        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
+        return {} as TableTypes<"subject_lesson">; // 🚫 Aborted group
       }
 
       /* ==========================================
@@ -7948,13 +7947,13 @@ order by
       const pendingLessons = (lessonRes as any)?.values ?? [];
       return pendingLessons.length
         ? pendingLessons[0]
-        : ({} as TableTypes<'subject_lesson'>);
+        : ({} as TableTypes<"subject_lesson">);
     } catch (error) {
       console.error(
-        '❌ Error fetching subject lessons by subject (SQL):',
+        "❌ Error fetching subject lessons by subject (SQL):",
         error,
       );
-      return {} as TableTypes<'subject_lesson'>;
+      return {} as TableTypes<"subject_lesson">;
     }
   }
 
@@ -7999,14 +7998,14 @@ order by
 
       return rows.length > 0;
     } catch (error) {
-      console.error('❌ Error checking PAL lesson history:', error);
+      console.error("❌ Error checking PAL lesson history:", error);
       return false;
     }
   }
 
   async getSkillById(
     skillId: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<"skill"> | undefined> {
     const res = await this._db?.query(
       `
       SELECT *
@@ -8028,9 +8027,9 @@ order by
   }
   async getLatestAssessmentGroup(
     classId: string,
-    student: TableTypes<'user'>,
+    student: TableTypes<"user">,
     courseId?: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<TableTypes<"assignment">[]> {
     const nowIso = new Date().toISOString();
     const studentId = student.id;
     const langId = student.language_id;
@@ -8110,7 +8109,7 @@ order by
 
     if (
       lastTwoResults.length === 2 &&
-      lastTwoResults.every((r: any) => r.status === 'system_exit')
+      lastTwoResults.every((r: any) => r.status === "system_exit")
     ) {
       // 🚫 Assessment group is aborted
       return [];
@@ -8186,7 +8185,7 @@ order by
 
     const res = await this._db?.query(assignmentsQuery);
     const pendingAssignments = (res?.values ??
-      []) as TableTypes<'assignment'>[];
+      []) as TableTypes<"assignment">[];
 
     return pendingAssignments.length ? pendingAssignments : [];
   }
@@ -8207,7 +8206,7 @@ order by
     infoAdminsOnly?: boolean,
     addMembersAdminsOnly?: boolean,
   ): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -8218,7 +8217,7 @@ order by
     group_name: string;
     members: number;
   } | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   mergeUserPathway(
@@ -8233,7 +8232,7 @@ order by
   ): Promise<string[]> {
     if (!lessonIds?.length) return [];
 
-    const placeholders = lessonIds.map(() => '?').join(', ');
+    const placeholders = lessonIds.map(() => "?").join(", ");
 
     const query = `
     SELECT DISTINCT lesson_id
@@ -8309,7 +8308,7 @@ order by
 
       return !!(res?.values && res.values.length > 0);
     } catch (error) {
-      console.error('Error checking existing assignment:', error);
+      console.error("Error checking existing assignment:", error);
       return false;
     }
   }

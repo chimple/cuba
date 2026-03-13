@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { format } from 'date-fns';
-import { TableTypes } from '../../../common/constants';
-import './TeacherProfileSection.css';
-import { t } from 'i18next';
-import { Trans } from 'react-i18next';
-import CalendarPicker from '../../../common/CalendarPicker';
+import React, { useState, useEffect } from "react";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { format } from "date-fns";
+import { TableTypes } from "../../../common/constants";
+import "./TeacherProfileSection.css";
+import { t } from "i18next";
+import { Trans } from "react-i18next";
+import CalendarPicker from "../../../common/CalendarPicker";
 
 interface AssignmentDetail {
   courseName: string;
@@ -19,8 +19,8 @@ interface AssignmentDetail {
 }
 
 interface TeacherProfileSectionProps {
-  teacher: TableTypes<'user'>;
-  classDoc: TableTypes<'class'> | undefined;
+  teacher: TableTypes<"user">;
+  classDoc: TableTypes<"class"> | undefined;
 }
 
 const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
@@ -41,8 +41,8 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
 
-    setStartDate(format(sevenDaysAgo, 'yyyy-MM-dd'));
-    setEndDate(format(today, 'yyyy-MM-dd'));
+    setStartDate(format(sevenDaysAgo, "yyyy-MM-dd"));
+    setEndDate(format(today, "yyyy-MM-dd"));
     fetchJoinedDate();
   }, [teacher, classDoc]);
 
@@ -50,14 +50,14 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
     if (teacher?.id) {
       const classUser = await api.getTeacherJoinedDate(
         teacher.id,
-        classDoc?.id!,
+        classDoc?.id!
       );
       if (classUser?.created_at) {
-        setJoinedDate(format(new Date(classUser.created_at), 'dd/MM/yyyy'));
+        setJoinedDate(format(new Date(classUser.created_at), "dd/MM/yyyy"));
       }
     }
   };
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
 
   let maxEndDate: string;
 
@@ -68,14 +68,14 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
     } else {
       // Add one month to the startDate
       const oneMonthLater = new Date(
-        new Date(startDate).setMonth(new Date(startDate).getMonth() + 1),
+        new Date(startDate).setMonth(new Date(startDate).getMonth() + 1)
       );
 
       // Ensure the end date does not exceed today
       maxEndDate =
         oneMonthLater > new Date()
           ? today
-          : format(oneMonthLater, 'yyyy-MM-dd');
+          : format(oneMonthLater, "yyyy-MM-dd");
     }
   } else {
     maxEndDate = today;
@@ -89,7 +89,7 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
           teacher.id,
           classDoc.id,
           startDate,
-          endDate,
+          endDate
         );
 
       const courseAssignmentsMap: Record<
@@ -114,13 +114,13 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
       // class-wise assignments
       for (const assignment of classWiseAssignments) {
         const course = await api.getCourse(assignment.course_id!);
-        const courseName = course?.name || '';
+        const courseName = course?.name || "";
 
         const results = await api.getStudentResultsByAssignmentId(
-          assignment.id,
+          assignment.id
         );
         const filteredResultData = results.flatMap((result) =>
-          result.result_data.filter((res) => res.id != null),
+          result.result_data.filter((res) => res.id != null)
         );
 
         if (!courseAssignmentsMap[courseName]) {
@@ -141,14 +141,14 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
       // individual assignments
       for (const assignment of individualAssignments) {
         const course = await api.getCourse(assignment.course_id!);
-        const courseName = course?.name || '';
+        const courseName = course?.name || "";
 
         const assignedStudents = await api.getAssignedStudents(assignment.id);
         const results = await api.getStudentResultsByAssignmentId(
-          assignment.id,
+          assignment.id
         );
         const filteredResultData = results.flatMap((result) =>
-          result.result_data.filter((res) => res.id != null),
+          result.result_data.filter((res) => res.id != null)
         );
 
         if (!courseAssignmentsMap[courseName]) {
@@ -192,8 +192,8 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
               ? (
                   (completedClassWise / expectedClassWiseCompletions) *
                   100
-                ).toFixed(2) + '%'
-              : '0%';
+                ).toFixed(2) + "%"
+              : "0%";
 
           // Calculate individual completion based on total assignments
           let totalIndividualStudents = 0;
@@ -211,8 +211,8 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
               ? (
                   (totalIndividualCompletions / totalIndividualStudents) *
                   100
-                ).toFixed(2) + '%'
-              : '0%';
+                ).toFixed(2) + "%"
+              : "0%";
 
           // Overall completion score combining both class-wise and individual assignments
           const overallCompletionScore =
@@ -221,8 +221,8 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
                   ((completedClassWise + totalIndividualCompletions) /
                     (expectedClassWiseCompletions + totalIndividualStudents)) *
                   100
-                ).toFixed(2) + '%'
-              : '0%';
+                ).toFixed(2) + "%"
+              : "0%";
 
           return {
             courseName,
@@ -234,7 +234,7 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
             individualCompletionScore: individualPercentage,
             overallCompletionScore,
           };
-        },
+        }
       );
 
       setAssignments(assignmentWithDetails);
@@ -248,8 +248,8 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
     }
   }, [startDate, endDate]);
 
-  const handleDateConfirm = (type: 'start' | 'end', date: string) => {
-    if (type === 'start') {
+  const handleDateConfirm = (type: "start" | "end", date: string) => {
+    if (type === "start") {
       setStartDate(date);
       setEndDate(null);
       setShowStartDatePicker(false);
@@ -262,20 +262,21 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
     <div className="teacher-profile-section">
       <div className="teacher-profile-header">
         <img
-          className={teacher.image ? 'teacher-profile-img' : ''}
-          src={teacher.image || 'assets/icons/userIcon.png'}
-          onError={(e: any) => (e.target.src = 'assets/icons/userIcon.png')}
+          className={teacher.image ? "teacher-profile-img" : ""}
+          src={teacher.image || "assets/icons/userIcon.png"}
+          onError={(e: any) => (e.target.src = "assets/icons/userIcon.png")}
         />
         <div className="teacher-info">
           <div className="teacher-name">{teacher.name}</div>
-          <p className="joined-date" style={{ fontSize: '18px' }}>
-            {joinedDate ? (
-              <>
-                <span style={{ fontSize: '14px' }}>{t('Joined Date')} :</span>{' '}
-                <span style={{ fontSize: '18px' }}>{joinedDate}</span>
-              </>
-            ) : null}
+          <p className="joined-date" style={{ fontSize: "18px" }}>
+           {joinedDate ? (
+           <>
+           <span style={{ fontSize: "14px" }}>{t("Joined Date")} :</span>{" "}
+           <span style={{ fontSize: "18px" }}>{joinedDate}</span>
+           </>
+          ) : null}
           </p>
+
         </div>
       </div>
 
@@ -288,9 +289,9 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
         </div>
         <div className="date-icons">
           <div>
-            <div>{t('Start Date')}</div>
+            <div>{t("Start Date")}</div>
             <div>
-              {startDate ? format(new Date(startDate), 'dd/MM/yyyy') : ''}
+              {startDate ? format(new Date(startDate), "dd/MM/yyyy") : ""}
             </div>
           </div>
           {/* <IonIcon
@@ -298,67 +299,59 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
             className="calendar-icon"
             onClick={() => setShowStartDatePicker(true)}
           /> */}
-          <img
-            src="/assets/icons/calender.svg"
-            alt="Calendar_Icon"
-            onClick={() => setShowStartDatePicker(true)}
-            className="calendar-icon"
-          />
+          <img src="/assets/icons/calender.svg" alt="Calendar_Icon"
+          onClick={() => setShowStartDatePicker(true)} className="calendar-icon" />
           <div className="vertical-line"></div>
           <div>
-            <div>{t('End Date')}</div>
-            <div>{endDate ? format(new Date(endDate), 'dd/MM/yyyy') : ''}</div>
+            <div>{t("End Date")}</div>
+            <div>{endDate ? format(new Date(endDate), "dd/MM/yyyy") : ""}</div>
           </div>
           {/* <IonIcon
             icon={calendarOutline}
             className="calendar-icon"
             onClick={() => setShowEndDatePicker(true)}
           /> */}
-          <img
-            src="/assets/icons/calender.svg"
-            alt="Calendar_Icon"
-            onClick={() => setShowEndDatePicker(true)}
-            className="calendar-icon"
-          />
+          <img src="/assets/icons/calender.svg" alt="Calendar_Icon"
+          onClick={() => setShowEndDatePicker(true)} className="calendar-icon" />
         </div>
       </div>
 
       {startDate && endDate && (
         <div className="text-label">
-          <span className="assignment-text"> {t('Assignments')}</span>
+          <span className="assignment-text"> {t("Assignments")}</span>
           <span className="date-text">
-            {format(new Date(startDate), 'dd/MM')}
+            {format(new Date(startDate), "dd/MM")}
           </span>
-          {' - '}
+          {" - "}
           <span className="date-text">
-            {format(new Date(endDate), 'dd/MM')}
+            {format(new Date(endDate), "dd/MM")}
           </span>
         </div>
       )}
 
       {loading ? (
-        <div className="no-data-text">{t('Loading...')}</div>
+        <div className="no-data-text">{t("Loading...")}</div>
       ) : assignments.length > 0 ? (
         <div className="assignments-scroll-container">
           <table className="assignments-table">
             <thead>
               <tr>
-                <th>{t('Course Name')}</th>
-                <th>{t('Assigned')}</th>
-                <th>{t('Completion Score')}</th>
+                <th>{t("Course Name")}</th>
+                <th>{t("Assigned")}</th>
+                <th>{t("Completion Score")}</th>
               </tr>
             </thead>
             <tbody>
               {assignments.map((assignment, index) => {
                 const classWisePercentage = parseFloat(
-                  assignment.classWiseCompletionScore,
+                  assignment.classWiseCompletionScore
                 );
                 const individualPercentage = parseFloat(
-                  assignment.individualCompletionScore,
+                  assignment.individualCompletionScore
                 );
 
                 const averagePercentage = Math.round(
-                  (classWisePercentage + individualPercentage) / 2,
+                  (classWisePercentage + individualPercentage) / 2
                 );
 
                 return (
@@ -378,27 +371,27 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
           </table>
         </div>
       ) : (
-        <div className="no-data-text">{t('No Assignments found')}</div>
+        <div className="no-data-text">{t("No Assignments found")}</div>
       )}
 
       {showStartDatePicker && (
         <CalendarPicker
           value={startDate}
-          onConfirm={(date) => handleDateConfirm('start', date)}
+          onConfirm={(date) => handleDateConfirm("start", date)}
           onCancel={() => setShowStartDatePicker(false)}
           mode="start"
-          maxDate={new Date().toISOString().split('T')[0]}
+          maxDate={new Date().toISOString().split("T")[0]}
         />
       )}
       {showEndDatePicker && (
         <CalendarPicker
           value={endDate}
-          onConfirm={(date) => handleDateConfirm('end', date)}
+          onConfirm={(date) => handleDateConfirm("end", date)}
           onCancel={() => setShowEndDatePicker(false)}
           mode="end"
           startDate={startDate}
           minDate={
-            startDate ? startDate : new Date().toISOString().split('T')[0]
+            startDate ? startDate : new Date().toISOString().split("T")[0]
           }
           maxDate={maxEndDate}
         />

@@ -8,6 +8,7 @@
 .img {
   height: 10vh;
   width: auto;
+ 
 }
 
 .child-Name {
@@ -17,6 +18,7 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
 
 .badge-notification {
   color: white;
@@ -46,7 +48,7 @@
   align-items: center;
   justify-content: center;
   margin-top: -1vh;
-  margin-left: 7vh;
+  margin-left: 7vh
 }
 #homework-notification {
   display: flex;

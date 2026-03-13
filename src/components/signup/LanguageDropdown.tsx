@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './LanguageDropdown.css';
+import React, { useState, useRef, useEffect } from "react";
+import "./LanguageDropdown.css";
 
 export interface LanguageOption {
   id: string;
@@ -29,19 +29,19 @@ const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div className="LanguageDropdown-container" ref={ref}>
       <button
-        className={`LanguageDropdown-selected${open ? ' open' : ''}`}
+        className={`LanguageDropdown-selected${open ? " open" : ""}`}
         onClick={() => setOpen((prev) => !prev)}
         type="button"
       >
         <span className="LanguageDropdown-title">
-          {selected ? selected.displayName : 'Select'}
+          {selected ? selected.displayName : "Select"}
         </span>
         <img
           src="/assets/loginAssets/DropDownArrow.svg"
@@ -49,12 +49,12 @@ const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
         />
       </button>
 
-      <div className={`LanguageDropdown-menu ${open ? 'show' : 'hide'}`}>
+      <div className={`LanguageDropdown-menu ${open ? "show" : "hide"}`}>
         {options.map((opt) => (
           <div
             key={opt.id}
             className={`LanguageDropdown-option${
-              opt.id === value ? ' selected' : ''
+              opt.id === value ? " selected" : ""
             }`}
             onClick={() => {
               onChange(opt.id);

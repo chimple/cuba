@@ -8,60 +8,68 @@ import {
   SCHOOL_LOGIN,
   TableTypes,
   IS_OPS_USER,
-} from '../common/constants';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { Util } from './util';
-import { reinitializeHardwareBackButton } from '../common/backButtonRegistry';
-import { store } from '../redux/store';
-import { setAuthUser, setUser } from '../redux/slices/auth/authSlice';
+} from "../common/constants";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "./util";
+import { reinitializeHardwareBackButton } from "../common/backButtonRegistry";
+import { store } from "../redux/store";
+import { setAuthUser, setUser } from "../redux/slices/auth/authSlice";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
 
-  public static getCurrentClass(): TableTypes<'class'> | undefined {
+  public static getCurrentClass(): TableTypes<"class"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CURRENT_CLASS);
 
     if (!temp) return;
     try {
-      const currentClass = JSON.parse(temp) as TableTypes<'class'>;
-
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      
       return currentClass;
     } catch (error) {
-      console.error('Failed to parse CURRENT_SCHOOL from localStorage:', error);
+      console.error("Failed to parse CURRENT_SCHOOL from localStorage:", error);
       return undefined;
     }
   }
 
   public static setCurrentClass = async (
-    currClass: TableTypes<'class'> | undefined,
+    currClass: TableTypes<"class"> | undefined,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = currClass;
 
-    localStorage.setItem(CURRENT_CLASS, JSON.stringify(currClass));
+    localStorage.setItem(
+      CURRENT_CLASS,
+      JSON.stringify(currClass),
+      
+    );
   };
   public static removeCurrentClass = () => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = undefined;
     localStorage.removeItem(CURRENT_CLASS);
   };
-  public static getCurrentSchool(): TableTypes<'school'> | undefined {
+  public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentSchool) return api.currentSchool;
     const temp = localStorage.getItem(CURRENT_SCHOOL);
 
     if (!temp) return;
-    const currentSchool = JSON.parse(temp) as TableTypes<'school'>;
-
+    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+    
     return currentSchool;
   }
-  public static setCurrentSchool = async (currSchool: TableTypes<'school'>) => {
+  public static setCurrentSchool = async (currSchool: TableTypes<"school">) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = currSchool;
 
-    localStorage.setItem(CURRENT_SCHOOL, JSON.stringify(currSchool));
+    localStorage.setItem(
+      CURRENT_SCHOOL,
+      JSON.stringify(currSchool),
+     
+    );
   };
 
   public static async getCurrMode(): Promise<MODES | undefined> {
@@ -71,7 +79,7 @@ export class schoolUtil {
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
     const isOpsUser = localStorage.getItem(IS_OPS_USER);
-    if (isOpsUser == 'true') {
+    if (isOpsUser == "true") {
       this.setCurrMode(MODES.OPS_CONSOLE);
       return MODES.OPS_CONSOLE;
     }
@@ -124,22 +132,22 @@ export class schoolUtil {
         store.dispatch(setUser(result?.userData));
         window.history.replaceState(
           window.history.state,
-          '',
+          "",
           PAGES.SELECT_MODE.toString(),
         );
 
         return true;
       } else {
-        console.warn('User not found. Please verify your credentials.');
+        console.warn("User not found. Please verify your credentials.");
         window.history.replaceState(
           window.history.state,
-          '',
+          "",
           PAGES.LOGIN.toString(),
         );
         return false;
       }
     } catch (error) {
-      console.error('Login unsuccessful. Please try again later.', error);
+      console.error("Login unsuccessful. Please try again later.", error);
       return false;
     }
   }

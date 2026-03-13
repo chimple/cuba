@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import './Library.css';
-import CourseComponent from './CourseComponent';
-import { useHistory } from 'react-router';
-import { PAGES, TableTypes } from '../../../common/constants';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { Util } from '../../../utility/util';
-import { t } from 'i18next';
+import React, { useEffect, useState } from "react";
+import "./Library.css";
+import CourseComponent from "./CourseComponent";
+import { useHistory } from "react-router";
+import { PAGES, TableTypes } from "../../../common/constants";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { Util } from "../../../utility/util";
+import { t } from "i18next";
 
 const Library: React.FC = () => {
-  const [courses, setCourses] = useState<TableTypes<'course'>[]>([]);
+  const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
@@ -19,11 +19,11 @@ const Library: React.FC = () => {
   const init = async () => {
     const current_class = await Util.getCurrentClass();
     const course_res = await api.getCoursesForClassStudent(
-      current_class?.id ?? '',
+      current_class?.id ?? ""
     );
 
     course_res.sort(
-      (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity),
+      (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity)
     );
     setCourses(course_res);
   };
@@ -31,9 +31,12 @@ const Library: React.FC = () => {
   return (
     <div id="library-container" className="library-container">
       <div id="library-subtitle" className="library-subtitle">
-        {t('Choose any subject to view the assignments')}
+        {t("Choose any subject to view the assignments")}
       </div>
-      <div id="library-subtitle-divider" className="library-subtitle-divider" />
+      <div
+        id="library-subtitle-divider"
+        className="library-subtitle-divider"
+      />
       <div id="library-course-grid" className="library-course-grid">
         {courses.map((course) => (
           <CourseComponent

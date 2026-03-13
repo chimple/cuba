@@ -1,10 +1,10 @@
-import React from 'react';
-import { IonButton, IonItem } from '@ionic/react';
+import React from "react";
+import { IonButton, IonItem } from "@ionic/react";
 // You can replace this with Ionic icons if you prefer.
-import { t } from 'i18next';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import './ClassCodeGenerateButton.css'; // Ensure this still styles your component appropriately.
-import { Util } from '../../utility/util';
+import { t } from "i18next";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import "./ClassCodeGenerateButton.css"; // Ensure this still styles your component appropriately.
+import { Util } from "../../utility/util";
 
 interface ClassCodeProps {
   currentClassId: string;
@@ -32,18 +32,18 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
   const shareClassCode = async () => {
     if (classCode) {
       const classCodeString = classCode.toString();
-      const message = `${t('Hi Students')},
+      const message = `${t("Hi Students")},
   
-  ${t('To join the class')} "${className}", ${t('please install the Chimple Kids app:')} https://play.google.com/store/apps/details?id=org.chimple.bahama.
+  ${t("To join the class")} "${className}", ${t("please install the Chimple Kids app:")} https://play.google.com/store/apps/details?id=org.chimple.bahama.
   
   ${t("After creating your account, open the app and click the 'Homework' icon from the top header. Then, enter this code:")} ${classCodeString}.
   
-  ${t('Or, directly click on this link to join the class:')}`;
+  ${t("Or, directly click on this link to join the class:")}`;
 
       Util.sendContentToAndroidOrWebShare(
         message,
-        t('Hi Students'),
-        `https://chimple.cc/join-class?classCode=${classCodeString}`,
+        t("Hi Students"),
+        `https://chimple.cc/join-class?classCode=${classCodeString}`
       );
     }
   };
@@ -51,18 +51,11 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
   return (
     <div className="class-code">
       <IonItem lines="none">
-        <div>
-          {t('Class Code')} {' : '}
-        </div>
+        <div>{t("Class Code")} {" : "}</div>
         {classCode ? (
           <div className="share-code">
             <div className="code">{classCode}</div>
-            <img
-              src="assets/icons/shareClassCode.svg"
-              alt="Share_Code"
-              onClick={shareClassCode}
-              style={{ width: '18px', height: '18px' }}
-            />
+            <img src="assets/icons/shareClassCode.svg" alt="Share_Code" onClick={shareClassCode} style={{ width: "18px", height: "18px" }} />
           </div>
         ) : null}
       </IonItem>
@@ -75,7 +68,7 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
           }}
           color="#3bd95a"
         >
-          {t('Generate')}
+          {t("Generate")}
         </IonButton>
       )}
     </div>

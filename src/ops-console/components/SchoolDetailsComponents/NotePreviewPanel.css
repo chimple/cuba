@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0);
+  background: rgba(0,0,0,0);
   display: flex;
   justify-content: flex-end;
   z-index: 3000;
@@ -17,17 +17,13 @@
   width: 420px;
   height: 100%;
   padding: 20px;
-  box-shadow: -4px 0px 18px rgba(0, 0, 0, 0.1);
+  box-shadow: -4px 0px 18px rgba(0,0,0,0.1);
   animation: slideIn 0.25s ease-out;
 }
 
 @keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 
 .preview-header {

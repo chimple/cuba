@@ -1,17 +1,17 @@
-import { useHistory } from 'react-router-dom';
+import { useHistory } from "react-router-dom";
 import {
   useEffect,
   useRef,
   type Dispatch,
   type RefObject,
   type SetStateAction,
-} from 'react';
-import { Capacitor } from '@capacitor/core';
-import { App as CapApp } from '@capacitor/app';
+} from "react";
+import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
 
 export type BackButtonHandler = () => boolean | void | Promise<boolean | void>;
 
-type BackButtonScope = 'path' | 'global';
+type BackButtonScope = "path" | "global";
 
 type BackButtonRecord = {
   handler: BackButtonHandler;
@@ -21,20 +21,20 @@ type BackButtonRecord = {
 
 const handlers: BackButtonRecord[] = [];
 const HARDWARE_BACK_BUTTON_REINIT_EVENT =
-  'hardwareBackButtonRegistry:reinitialize';
+  "hardwareBackButtonRegistry:reinitialize";
 
 const normalizePath = (path: string) => {
-  const trimmed = path.replace(/\/+$/, '');
-  return trimmed || '/';
+  const trimmed = path.replace(/\/+$/, "");
+  return trimmed || "/";
 };
 
 const getCurrentPath = () => {
-  if (typeof window === 'undefined') return '/';
-  return normalizePath(window.location?.pathname || '/');
+  if (typeof window === "undefined") return "/";
+  return normalizePath(window.location?.pathname || "/");
 };
 
 const isActiveForPath = (record: BackButtonRecord, path: string) => {
-  if (record.scope === 'global') return true;
+  if (record.scope === "global") return true;
   return record.path === path;
 };
 
@@ -55,7 +55,7 @@ export const registerBackButtonHandler = (
   handler: BackButtonHandler,
   options?: { path?: string; scope?: BackButtonScope },
 ) => {
-  const scope = options?.scope ?? 'path';
+  const scope = options?.scope ?? "path";
   const path = normalizePath(options?.path ?? getCurrentPath());
   const record: BackButtonRecord = { handler, path, scope };
   handlers.push(record);
@@ -85,7 +85,7 @@ export const resetBackButtonHandlers = () => {
 
 export const reinitializeHardwareBackButton = () => {
   resetBackButtonHandlers();
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     window.dispatchEvent(new Event(HARDWARE_BACK_BUTTON_REINIT_EVENT));
   }
 };
@@ -147,7 +147,7 @@ export const HardwareBackButtonHandler = ({
 
     const dismissActiveOverlay = async () => {
       const selectors =
-        'ion-modal, ion-alert, ion-popover, ion-action-sheet, ion-loading, ion-picker, ion-toast';
+        "ion-modal, ion-alert, ion-popover, ion-action-sheet, ion-loading, ion-picker, ion-toast";
       const overlays = Array.from(
         document.querySelectorAll(selectors),
       ) as Array<{
@@ -161,8 +161,8 @@ export const HardwareBackButtonHandler = ({
         .reverse()
         .find((overlay) => {
           const isHidden =
-            overlay?.classList?.contains('overlay-hidden') ||
-            overlay?.getAttribute?.('aria-hidden') === 'true';
+            overlay?.classList?.contains("overlay-hidden") ||
+            overlay?.getAttribute?.("aria-hidden") === "true";
           return !isHidden;
         });
 
@@ -200,7 +200,7 @@ export const HardwareBackButtonHandler = ({
         }
 
         const canNavigateBack =
-          typeof canGoBack === 'boolean'
+          typeof canGoBack === "boolean"
             ? canGoBack
             : historyRef.current.length > 1;
 
@@ -219,7 +219,7 @@ export const HardwareBackButtonHandler = ({
 
     const addListener = async () => {
       const currentVersion = ++listenerVersion;
-      const created = await CapApp.addListener('backButton', handler);
+      const created = await CapApp.addListener("backButton", handler);
       if (disposed || currentVersion !== listenerVersion) {
         created.remove();
         return;

@@ -173,7 +173,7 @@
 
   .migrate-schools-top-right
     .search-filter-container-SearchAndFilter
-    button[aria-label='Open Filters'] {
+    button[aria-label="Open Filters"] {
     border: 1px solid #d1d5db !important;
     border-radius: 8px !important;
     width: 36px !important;
@@ -184,7 +184,7 @@
 
   .migrate-schools-top-right
     .search-filter-container-SearchAndFilter
-    button[aria-label='Open Filters']:hover {
+    button[aria-label="Open Filters"]:hover {
     border-color: #1a71f6 !important;
   }
 

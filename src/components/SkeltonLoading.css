@@ -64,11 +64,11 @@
   justify-content: center;
   border-radius: 10vh;
   min-height: 37px;
-  padding: '0 3vw';
-  margin: '1vh 1vh';
+  padding: "0 3vw";
+  margin: "1vh 1vh";
   width: 40%;
   height: 8vh;
-  align-self: 'center';
+  align-self: "center";
 }
 .skelton-home-page-app-ba-div {
   text-align: -webkit-center;

@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import SelectedAssignment from '../../pages/Malta/SelectedAssignment';
+import type { Meta, StoryObj } from "@storybook/react";
+import SelectedAssignment from "../../pages/Malta/SelectedAssignment";
 
 const meta: Meta = {
-  title: 'Pages/Malta/SelectedAssignment',
+  title: "Pages/Malta/SelectedAssignment",
   component: SelectedAssignment,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
 } satisfies Meta<typeof SelectedAssignment>;
 

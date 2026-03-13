@@ -15,7 +15,7 @@
 }
 
 ion-select::part(icon) {
-  content: url('../../public/assets/icons/DropDownArrow.png');
+  content: url("../../public/assets/icons/DropDownArrow.png");
 }
 ion-select {
   background: white;

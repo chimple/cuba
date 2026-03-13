@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Typography, CircularProgress, Divider } from '@mui/material';
-import { t } from 'i18next';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import InfoCard from './InfoCard';
+import React, { useEffect, useState } from "react";
+import { Box, Typography, CircularProgress, Divider } from "@mui/material";
+import { t } from "i18next";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import InfoCard from "./InfoCard";
 
 interface SubjectCurriculumCardProps {
   schoolId: string;
@@ -33,7 +33,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
         /*Fetch school → courses */
         const schoolCourses = (await api.getCoursesBySchoolId(schoolId)) ?? [];
         const courseArrays = await Promise.all(
-          schoolCourses.map((ln) => api.getCourse(ln.course_id)),
+          schoolCourses.map((ln) => api.getCourse(ln.course_id))
         );
 
         const courses = courseArrays
@@ -74,7 +74,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
           const curriculumId = course?.curriculum_id;
           const gradeId = course?.grade_id;
           const subjectName =
-            typeof course?.name === 'string' ? course.name.trim() : '';
+            typeof course?.name === "string" ? course.name.trim() : "";
 
           if (!curriculumId || !gradeId || !subjectName) continue;
 
@@ -83,9 +83,9 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
           if (!rowMap.has(key)) {
             rowMap.set(key, {
               curriculumId,
-              curriculumName: curriculumMap.get(curriculumId) ?? '-',
+              curriculumName: curriculumMap.get(curriculumId) ?? "-",
               gradeId,
-              gradeName: gradeMap.get(gradeId) ?? '-',
+              gradeName: gradeMap.get(gradeId) ?? "-",
               subjects: [],
             });
           }
@@ -97,18 +97,18 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
           .map((r) => ({
             ...r,
             subjects: Array.from(new Set(r.subjects)).sort((a, b) =>
-              a.localeCompare(b),
+              a.localeCompare(b)
             ),
           }))
           .sort(
             (a, b) =>
               a.curriculumName.localeCompare(b.curriculumName) ||
-              a.gradeName.localeCompare(b.gradeName),
+              a.gradeName.localeCompare(b.gradeName)
           );
 
         setRows(finalRows);
       } catch (e) {
-        console.error('Failed to fetch curriculum/grade/subjects', e);
+        console.error("Failed to fetch curriculum/grade/subjects", e);
       } finally {
         setLoading(false);
       }
@@ -121,7 +121,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
 
   return (
     <InfoCard
-      title={t('Curriculum & Subjects')}
+      title={t("Curriculum & Subjects")}
       className="school-detail-infocard school-card"
     >
       {loading ? (
@@ -147,12 +147,12 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
                   color="text.secondary"
                   sx={{
                     lineHeight: 1.4,
-                    textAlign: 'left',
-                    justifySelf: 'start',
-                    whiteSpace: 'normal',
+                    textAlign: "left",
+                    justifySelf: "start",
+                    whiteSpace: "normal",
                   }}
                 >
-                  {row.subjects.join(', ')}
+                  {row.subjects.join(", ")}
                 </Typography>
               </Box>
 

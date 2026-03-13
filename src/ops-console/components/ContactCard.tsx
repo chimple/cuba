@@ -1,6 +1,6 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
-import './ContactCard.css';
+import React from "react";
+import { Box, Typography } from "@mui/material";
+import "./ContactCard.css"; 
 
 interface Manager {
   name: string;
@@ -15,11 +15,7 @@ const ContactCard = ({ name, role, phone }: Manager) => (
         <Typography className="contact-name" variant="body1">
           {name}
         </Typography>
-        <Typography
-          className="contact-role"
-          variant="body2"
-          color="textSecondary"
-        >
+        <Typography className="contact-role" variant="body2" color="textSecondary">
           {role}
         </Typography>
       </Box>

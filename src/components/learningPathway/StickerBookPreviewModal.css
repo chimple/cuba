@@ -28,14 +28,12 @@
 }
 
 .StickerBookPreviewModal-modal::after {
-  content: '';
+  content: "";
   position: absolute;
   right: calc(-1.8 * var(--close-outset));
   left: auto;
   top: 0;
-  width: calc(
-    var(--close-size) + (var(--close-outset) * 0.76) + (var(--close-pad) * 0.6)
-  );
+  width: calc(var(--close-size) + (var(--close-outset) * 0.76) + (var(--close-pad) * 0.6));
   height: calc(var(--close-size) + var(--close-top) * 2);
   border-radius: 0 999px 999px 0;
   background: #f3f1ea;
@@ -62,7 +60,7 @@
 
 .StickerBookPreviewModal-close::before,
 .StickerBookPreviewModal-close::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;

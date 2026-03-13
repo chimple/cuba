@@ -1,6 +1,6 @@
-import { FC } from 'react';
-import { IonAvatar, IonItem, IonLabel } from '@ionic/react';
-import './CommonAppBar.css';
+import { FC } from "react";
+import { IonAvatar, IonItem, IonLabel } from "@ionic/react";
+import "./CommonAppBar.css";
 interface ProfileAvatarProps {
   label: string;
   imgSrc: string;

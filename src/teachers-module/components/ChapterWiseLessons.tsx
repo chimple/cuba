@@ -1,16 +1,16 @@
-import React from 'react';
-import { TableTypes } from '../../common/constants';
-import { useHistory } from 'react-router';
-import { PAGES } from '../../common/constants';
-import { t } from 'i18next';
-import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
-import SelectIcon from './SelectIcon';
-import './ChapterWiseLessons.css';
+import React from "react";
+import { TableTypes } from "../../common/constants";
+import { useHistory } from "react-router";
+import { PAGES } from "../../common/constants";
+import { t } from "i18next";
+import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import SelectIcon from "./SelectIcon";
+import "./ChapterWiseLessons.css";
 
 type ChapterGroup = {
   chapterId: string;
   chapterName: string;
-  lessons: TableTypes<'lesson'>[];
+  lessons: TableTypes<"lesson">[];
 };
 
 type CourseGroup = {
@@ -18,13 +18,13 @@ type CourseGroup = {
   courseName: string;
   gradeName: string;
   courseTitle: string;
-  course?: TableTypes<'course'>;
+  course?: TableTypes<"course">;
   chapters: ChapterGroup[];
 };
 
 interface Props {
   courseGroups: CourseGroup[];
-  otherLessons: TableTypes<'lesson'>[];
+  otherLessons: TableTypes<"lesson">[];
   isLessonSelected: (chapterId: string, lessonId: string) => boolean;
   toggleLessonSelection: (chapterId: string, lessonId: string) => void;
   selectedLesson: Map<string, string>;
@@ -32,15 +32,15 @@ interface Props {
   assignedLessonIds?: Set<string>;
   isChapterFullySelected: (
     chapterId: string,
-    lessons: TableTypes<'lesson'>[],
+    lessons: TableTypes<"lesson">[],
   ) => boolean;
   toggleChapterSelection: (
     chapterId: string,
-    lessons: TableTypes<'lesson'>[],
+    lessons: TableTypes<"lesson">[],
   ) => void;
 }
 
-const OTHER_KEY = 'other';
+const OTHER_KEY = "other";
 
 const ChapterWiseLessons: React.FC<Props> = ({
   courseGroups,
@@ -57,12 +57,13 @@ const ChapterWiseLessons: React.FC<Props> = ({
   const isAssignedLesson = (lessonId?: string) =>
     !!showAssignedBadge && !!lessonId && !!assignedLessonIds?.has(lessonId);
   const openLessonDetails = (
-    lesson: TableTypes<'lesson'>,
+    lesson: TableTypes<"lesson">,
     chapterId: string,
     chapterName: string,
     gradeName: string,
-    course?: TableTypes<'course'>,
+    course?: TableTypes<"course">,
   ) => {
+
     history.replace(PAGES.LESSON_DETAILS, {
       course: course ?? null,
       lesson,
@@ -73,7 +74,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
         course?.code?.toUpperCase() ||
         course?.name ||
         lesson.cocos_subject_code ||
-        '',
+        "",
       from: PAGES.SEARCH_LESSON,
       selectedLesson,
     });
@@ -108,7 +109,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 <div id="chapter-wise-select" className="chapter-wise-select">
                   <label className="chapter-wise-select-label">
                     <span className="chapter-wise-select-text">
-                      {t('Select All')}
+                      {t("Select All")}
                     </span>
 
                     <input
@@ -166,7 +167,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                         <SelectIconImage
                           localSrc=""
                           defaultSrc="assets/icons/DefaultIcon.png"
-                          webSrc={lesson.image ?? ''}
+                          webSrc={lesson.image ?? ""}
                           imageHeight="100%"
                           webImageHeight="0px"
                         />
@@ -181,13 +182,13 @@ const ChapterWiseLessons: React.FC<Props> = ({
                             alt=""
                             onError={(event) => {
                               if (!event.currentTarget.dataset.retryAbsolute) {
-                                event.currentTarget.dataset.retryAbsolute = '1';
+                                event.currentTarget.dataset.retryAbsolute = "1";
                                 event.currentTarget.src =
-                                  '/assets/hideassigned.png';
+                                  "/assets/hideassigned.png";
                                 return;
                               }
                               event.currentTarget.src =
-                                'assets/icons/assignmentSelect.svg';
+                                "assets/icons/assignmentSelect.svg";
                             }}
                           />
                         </span>
@@ -198,9 +199,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                       {lesson.name}
                     </div>
 
-                    <div
-                      className="chapter-wise-btn"
-                      id="chapter-wise-btn"
+                    <div className="chapter-wise-btn" id="chapter-wise-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
@@ -230,7 +229,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
       {otherLessons.length > 0 && (
         <div id="chapter-wise-other" className="chapter-wise-group">
           <div id="chapter-wise-other-title" className="chapter-wise-title">
-            {t('Other Lessons')}
+            {t("Other Lessons")}
           </div>
 
           <div id="chapter-wise-other-grid" className="chapter-wise-grid">
@@ -240,7 +239,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 key={lesson.id}
                 className="chapter-wise-card"
                 onClick={() => {
-                  openLessonDetails(lesson, OTHER_KEY, '', '', undefined);
+                  openLessonDetails(lesson, OTHER_KEY, "", "", undefined);
                 }}
               >
                 <div id="chapter-wise-other-img" className="chapter-wise-img">
@@ -251,7 +250,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                     <SelectIconImage
                       localSrc=""
                       defaultSrc="assets/icons/DefaultIcon.png"
-                      webSrc={lesson.image ?? ''}
+                      webSrc={lesson.image ?? ""}
                       imageHeight="100%"
                       webImageHeight="0px"
                     />
@@ -266,13 +265,13 @@ const ChapterWiseLessons: React.FC<Props> = ({
                         alt=""
                         onError={(event) => {
                           if (!event.currentTarget.dataset.retryAbsolute) {
-                            event.currentTarget.dataset.retryAbsolute = '1';
+                            event.currentTarget.dataset.retryAbsolute = "1";
                             event.currentTarget.src =
-                              '/assets/hideassigned.png';
+                              "/assets/hideassigned.png";
                             return;
                           }
                           event.currentTarget.src =
-                            'assets/icons/assignmentSelect.svg';
+                            "assets/icons/assignmentSelect.svg";
                         }}
                       />
                     </span>
@@ -286,7 +285,7 @@ const ChapterWiseLessons: React.FC<Props> = ({
                 <div
                   id="chapter-wise-other-btn"
                   className="chapter-wise-btn"
-                  onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                     e.stopPropagation();
                   }}
                 >

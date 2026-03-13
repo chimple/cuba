@@ -24,6 +24,7 @@
   justify-self: center !important;
 }
 
+
 .join-class-message {
   font-size: 15px;
   margin-top: -10px;
@@ -70,6 +71,16 @@
 .assignment-join-class-container-scroll {
   overflow-y: auto;
   height: auto;
-  transition: transform 0.3s ease-in-out;
+  transition: transform  0.3s ease-in-out;
   position: relative;
 }
+
+
+
+
+
+
+
+
+
+

@@ -1,13 +1,13 @@
-import { IonContent, IonPage } from '@ionic/react';
-import { useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router';
-import { PAGES } from '../common/constants';
-import { StickerBook as StickerBookType } from '../interface/modelInterfaces';
-import StickerBookBoard from '../components/stickerBook/StickerBookBoard';
-import Loading from '../components/Loading';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { Util } from '../utility/util';
-import './StickerBook.css';
+import { IonContent, IonPage } from "@ionic/react";
+import { useEffect, useMemo, useState } from "react";
+import { useHistory } from "react-router";
+import { PAGES } from "../common/constants";
+import { StickerBook as StickerBookType } from "../interface/modelInterfaces";
+import StickerBookBoard from "../components/stickerBook/StickerBookBoard";
+import Loading from "../components/Loading";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "../utility/util";
+import "./StickerBook.css";
 
 type CurrentProgress = {
   bookId: string;
@@ -15,9 +15,9 @@ type CurrentProgress = {
 };
 
 function resolveSvgUrl(url: string): string {
-  if (!url) return '/assets/icons/StickerBookBoard.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return url;
+  if (!url) return "/assets/icons/StickerBookBoard.svg";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return url;
   return `/${url}`;
 }
 
@@ -75,20 +75,20 @@ const StickerBook: React.FC = () => {
         setSelectedIndex(0);
       }
     } catch (e) {
-      console.error('Failed to load sticker book data:', e);
+      console.error("Failed to load sticker book data:", e);
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchSvgForBook = async (book: StickerBookType) => {
-    const svgUrl = resolveSvgUrl(book.svg_url ?? '');
+    const svgUrl = resolveSvgUrl(book.svg_url ?? "");
     try {
       const response = await fetch(svgUrl);
       const svgText = await response.text();
       setSvgCache((prev) => ({ ...prev, [book.id]: svgText }));
     } catch (e) {
-      console.error('Failed to load sticker book svg:', e);
+      console.error("Failed to load sticker book svg:", e);
     }
   };
 
@@ -144,7 +144,7 @@ const StickerBook: React.FC = () => {
           <div id="sb-container" className="sticker-book-container">
             {!isLoading && selectedBook && (
               <StickerBookBoard
-                title={(selectedBook.title ?? '').toUpperCase()}
+                title={(selectedBook.title ?? "").toUpperCase()}
                 svgRaw={svgRaw}
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}

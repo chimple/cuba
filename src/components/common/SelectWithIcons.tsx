@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DoneIcon from '@mui/icons-material/Done';
-import './SelectWithIcons.css';
-import { t } from 'i18next';
+import "./SelectWithIcons.css";
+import { t } from "i18next";
 
 type Option = { value: string; label: string };
 type SelectWithIconsProps = {
@@ -25,7 +25,7 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
   options,
   required,
   id,
-  optionId,
+  optionId
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -40,31 +40,24 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const selectedLabel = value
-    ? options.find((opt) => opt.value === value)?.label
-    : t('Select one');
+  ? options.find((opt) => opt.value === value)?.label
+  : t("Select one");
 
   return (
-    <div
-      className="select-with-icon-input-wrapper"
-      ref={dropdownRef}
-      style={{ '--label-width': `${labelWidth}px` } as React.CSSProperties}
-    >
-      <div className="select-with-icon-floating-label" ref={labelRef}>
-        {label}
-        {required && <span className="select-with-icon-required">*</span>}
-      </div>
+     <div className="select-with-icon-input-wrapper" ref={dropdownRef} style={{ "--label-width": `${labelWidth}px` } as React.CSSProperties}>
+        <div className="select-with-icon-floating-label" ref={labelRef}>
+            {label}
+            {required && <span className="select-with-icon-required">*</span>}
+        </div>
       <div
         id={id}
         className="select-with-icon-input-box"
@@ -76,12 +69,13 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
         <div className="select-with-icon-divider" />
         <div className="select-with-icon-selected-text">{selectedLabel}</div>
         <div className="select-with-icon-status">
-          {isOpen ? (
-            <KeyboardArrowUpIcon className="select-with-icon-dropdown-icon" />
-          ) : (
-            <KeyboardArrowDownIcon className="select-with-icon-dropdown-icon" />
-          )}
+            {isOpen ? (
+                <KeyboardArrowUpIcon className="select-with-icon-dropdown-icon" />
+            ) : (
+                <KeyboardArrowDownIcon className="select-with-icon-dropdown-icon" />
+            )}
         </div>
+
       </div>
 
       {isOpen && (
@@ -90,18 +84,14 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
             <div
               id={optionId}
               key={opt.value}
-              className={`select-with-icon-option ${value === opt.value ? 'selected' : ''}`}
+              className={`select-with-icon-option ${value === opt.value ? "selected" : ""}`}
               onClick={() => {
                 setValue(opt.value);
                 setIsOpen(false);
               }}
             >
               <span>{opt.label}</span>
-              {value === opt.value && (
-                <span className="select-with-icon-checkmark">
-                  <DoneIcon />
-                </span>
-              )}
+              {value === opt.value && <span className="select-with-icon-checkmark"><DoneIcon/></span>}
             </div>
           ))}
         </div>

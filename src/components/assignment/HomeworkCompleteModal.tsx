@@ -1,8 +1,8 @@
 // HomeworkCompleteModal.tsx
-import React, { useRef } from 'react';
-import './HomeworkCompleteModal.css';
-import { t } from 'i18next';
-import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
+import React, { useRef } from "react";
+import "./HomeworkCompleteModal.css";
+import { t } from "i18next";
+import ChimpleRiveMascot from "../learningPathway/ChimpleRiveMascot";
 
 interface HomeworkCompleteModalProps {
   text: string;
@@ -40,7 +40,7 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
                 stateMachine="State Machine 1"
                 inputName="Number 1"
                 stateValue={1}
-                animationName={'win'}
+                animationName={"win"}
               />
             </div>
           </div>
@@ -57,7 +57,7 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
                 alt="play"
                 className="homework-completed-play-icon"
               />
-              {t('Play More')}
+              {t("Play More")}
             </button>
           </div>
 

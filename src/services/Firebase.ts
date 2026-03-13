@@ -1,12 +1,12 @@
-import { initializeApp } from 'firebase/app';
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
-import { Device } from '@capacitor/device';
+import { initializeApp } from "firebase/app";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { Device } from "@capacitor/device";
 import {
   CACHE_SIZE_UNLIMITED,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
-} from 'firebase/firestore';
+} from "firebase/firestore";
 
 export const initializeFireBase = async () => {
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -35,7 +35,8 @@ export const initializeFireBase = async () => {
 
   var deviceInfo = await Device.getInfo();
 
-  if (deviceInfo.platform === 'web') {
+  if (deviceInfo.platform === "web") {
     FirebaseAnalytics.initializeFirebase(firebaseConfig);
   }
+
 };

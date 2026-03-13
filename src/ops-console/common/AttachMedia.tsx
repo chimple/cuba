@@ -1,8 +1,8 @@
-import React from 'react';
-import { FileUploadOutlined, PhotoCameraOutlined } from '@mui/icons-material';
-import type { UseMediaActionsResult } from './mediaactions';
+import React from "react";
+import { FileUploadOutlined, PhotoCameraOutlined } from "@mui/icons-material";
+import type { UseMediaActionsResult } from "./mediaactions";
 
-type AttachMediaVariant = 'fc-interact' | 'add-note-modal';
+type AttachMediaVariant = "fc-interact" | "add-note-modal";
 
 type VariantConfig = {
   sectionClassName: string;
@@ -46,84 +46,84 @@ type VariantConfig = {
 };
 
 const variantConfig: Record<AttachMediaVariant, VariantConfig> = {
-  'fc-interact': {
+  "fc-interact": {
     sectionClassName:
-      'fc-interact-popup-section fc-interact-popup-attach-section',
-    sectionId: 'fc-attach-section',
+      "fc-interact-popup-section fc-interact-popup-attach-section",
+    sectionId: "fc-attach-section",
 
-    labelClassName: 'fc-interact-popup-label',
-    labelId: 'fc-attach-label',
+    labelClassName: "fc-interact-popup-label",
+    labelId: "fc-attach-label",
 
-    buttonsClassName: 'fc-interact-popup-attach-buttons',
-    buttonsId: 'fc-attach-buttons',
+    buttonsClassName: "fc-interact-popup-attach-buttons",
+    buttonsId: "fc-attach-buttons",
 
-    captureButtonClassName: 'fc-interact-popup-attach-btn',
-    captureButtonId: 'fc-attach-capture',
-    captureButtonIconId: 'fc-attach-capture-icon',
-    uploadButtonClassName: 'fc-interact-popup-attach-btn',
-    uploadButtonId: 'fc-attach-upload',
-    uploadButtonIconId: 'fc-attach-upload-icon',
+    captureButtonClassName: "fc-interact-popup-attach-btn",
+    captureButtonId: "fc-attach-capture",
+    captureButtonIconId: "fc-attach-capture-icon",
+    uploadButtonClassName: "fc-interact-popup-attach-btn",
+    uploadButtonId: "fc-attach-upload",
+    uploadButtonIconId: "fc-attach-upload-icon",
 
-    iconClassName: 'fc-interact-popup-attach-icon',
+    iconClassName: "fc-interact-popup-attach-icon",
 
-    errorId: 'fc-attach-error',
+    errorId: "fc-attach-error",
 
-    captureAnyInputId: 'fc-attach-capture-any-input',
-    captureImageInputId: 'fc-attach-capture-image-input',
-    captureVideoInputId: 'fc-attach-capture-video-input',
-    uploadInputId: 'fc-attach-upload-input',
+    captureAnyInputId: "fc-attach-capture-any-input",
+    captureImageInputId: "fc-attach-capture-image-input",
+    captureVideoInputId: "fc-attach-capture-video-input",
+    uploadInputId: "fc-attach-upload-input",
 
-    mediaListClassName: 'fc-interact-popup-media-list',
-    mediaListId: 'fc-media-list',
-    mediaItemClassName: 'fc-interact-popup-media-item',
-    mediaItemIdPrefix: 'fc-media-',
+    mediaListClassName: "fc-interact-popup-media-list",
+    mediaListId: "fc-media-list",
+    mediaItemClassName: "fc-interact-popup-media-item",
+    mediaItemIdPrefix: "fc-media-",
 
-    mediaPreviewClassName: 'fc-interact-popup-media-preview',
-    mediaThumbClassName: 'fc-interact-popup-media-thumb',
-    mediaTopRowClassName: 'fc-interact-popup-media-top-row',
-    mediaNameClassName: 'fc-interact-popup-media-name',
-    mediaRemoveClassName: 'fc-interact-popup-media-remove',
-    mediaProgressClassName: 'fc-interact-popup-media-progress',
-    mediaProgressBarClassName: 'fc-interact-popup-media-progress-bar',
+    mediaPreviewClassName: "fc-interact-popup-media-preview",
+    mediaThumbClassName: "fc-interact-popup-media-thumb",
+    mediaTopRowClassName: "fc-interact-popup-media-top-row",
+    mediaNameClassName: "fc-interact-popup-media-name",
+    mediaRemoveClassName: "fc-interact-popup-media-remove",
+    mediaProgressClassName: "fc-interact-popup-media-progress",
+    mediaProgressBarClassName: "fc-interact-popup-media-progress-bar",
   },
-  'add-note-modal': {
-    sectionClassName: 'add-note-modal-attach-section',
-    sectionId: 'add-note-modal-attach-section',
+  "add-note-modal": {
+    sectionClassName: "add-note-modal-attach-section",
+    sectionId: "add-note-modal-attach-section",
 
-    labelClassName: 'add-note-modal-attach-label',
-    labelId: 'add-note-modal-attach-label',
+    labelClassName: "add-note-modal-attach-label",
+    labelId: "add-note-modal-attach-label",
 
-    buttonsClassName: 'add-note-modal-attach-buttons',
-    buttonsId: 'add-note-modal-attach-buttons',
+    buttonsClassName: "add-note-modal-attach-buttons",
+    buttonsId: "add-note-modal-attach-buttons",
 
-    captureButtonClassName: 'add-note-modal-attach-btn',
-    captureButtonId: 'add-note-modal-attach-capture',
-    captureButtonIconId: 'add-note-modal-attach-capture-icon',
-    uploadButtonClassName: 'add-note-modal-attach-btn',
-    uploadButtonId: 'add-note-modal-attach-upload',
-    uploadButtonIconId: 'add-note-modal-attach-upload-icon',
+    captureButtonClassName: "add-note-modal-attach-btn",
+    captureButtonId: "add-note-modal-attach-capture",
+    captureButtonIconId: "add-note-modal-attach-capture-icon",
+    uploadButtonClassName: "add-note-modal-attach-btn",
+    uploadButtonId: "add-note-modal-attach-upload",
+    uploadButtonIconId: "add-note-modal-attach-upload-icon",
 
-    iconClassName: 'add-note-modal-attach-icon',
+    iconClassName: "add-note-modal-attach-icon",
 
-    errorId: 'add-note-modal-attach-error',
+    errorId: "add-note-modal-attach-error",
 
-    captureAnyInputId: 'add-note-modal-capture-any-input',
-    captureImageInputId: 'add-note-modal-capture-image-input',
-    captureVideoInputId: 'add-note-modal-capture-video-input',
-    uploadInputId: 'add-note-modal-upload-input',
+    captureAnyInputId: "add-note-modal-capture-any-input",
+    captureImageInputId: "add-note-modal-capture-image-input",
+    captureVideoInputId: "add-note-modal-capture-video-input",
+    uploadInputId: "add-note-modal-upload-input",
 
-    mediaListClassName: 'add-note-modal-media-list',
-    mediaListId: 'add-note-modal-media-list',
-    mediaItemClassName: 'add-note-modal-media-item',
-    mediaItemIdPrefix: 'add-note-modal-media-',
+    mediaListClassName: "add-note-modal-media-list",
+    mediaListId: "add-note-modal-media-list",
+    mediaItemClassName: "add-note-modal-media-item",
+    mediaItemIdPrefix: "add-note-modal-media-",
 
-    mediaPreviewClassName: 'add-note-modal-media-preview',
-    mediaThumbClassName: 'add-note-modal-media-thumb',
-    mediaTopRowClassName: 'add-note-modal-media-top-row',
-    mediaNameClassName: 'add-note-modal-media-name',
-    mediaRemoveClassName: 'add-note-modal-media-remove',
-    mediaProgressClassName: 'add-note-modal-media-progress',
-    mediaProgressBarClassName: 'add-note-modal-media-progress-bar',
+    mediaPreviewClassName: "add-note-modal-media-preview",
+    mediaThumbClassName: "add-note-modal-media-thumb",
+    mediaTopRowClassName: "add-note-modal-media-top-row",
+    mediaNameClassName: "add-note-modal-media-name",
+    mediaRemoveClassName: "add-note-modal-media-remove",
+    mediaProgressClassName: "add-note-modal-media-progress",
+    mediaProgressBarClassName: "add-note-modal-media-progress-bar",
   },
 };
 
@@ -142,14 +142,14 @@ export default function AttachMedia({
 }: AttachMediaProps) {
   const cfg = variantConfig[variant];
   const errorClassName =
-    variant === 'fc-interact'
-      ? 'fc-interact-popup-media-error'
-      : 'add-note-modal-error';
+    variant === "fc-interact"
+      ? "fc-interact-popup-media-error"
+      : "add-note-modal-error";
 
   return (
     <div className={cfg.sectionClassName} id={cfg.sectionId}>
       <div className={cfg.labelClassName} id={cfg.labelId}>
-        {t('Attach Media')}
+        {t("Attach Media")}
       </div>
 
       <div className={cfg.buttonsClassName} id={cfg.buttonsId}>
@@ -167,7 +167,7 @@ export default function AttachMedia({
             className={cfg.iconClassName}
             id={cfg.captureButtonIconId}
           />
-          {t('Capture')}
+          {t("Capture")}
         </button>
 
         <button
@@ -184,7 +184,7 @@ export default function AttachMedia({
             className={cfg.iconClassName}
             id={cfg.uploadButtonIconId}
           />
-          {t('Upload')}
+          {t("Upload")}
         </button>
       </div>
 
@@ -200,12 +200,12 @@ export default function AttachMedia({
         type="file"
         accept="image/*,video/*"
         capture="environment"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
           media.clearMediaError();
           media.addMediaFiles(e.target.files);
-          e.currentTarget.value = '';
+          e.currentTarget.value = "";
         }}
       />
 
@@ -215,12 +215,12 @@ export default function AttachMedia({
         type="file"
         accept="image/*"
         capture="environment"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
           media.clearMediaError();
           media.addMediaFiles(e.target.files);
-          e.currentTarget.value = '';
+          e.currentTarget.value = "";
           media.closeCamera();
         }}
       />
@@ -231,12 +231,12 @@ export default function AttachMedia({
         type="file"
         accept="video/*"
         capture="environment"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
           media.clearMediaError();
           media.addMediaFiles(e.target.files);
-          e.currentTarget.value = '';
+          e.currentTarget.value = "";
           media.closeCamera();
         }}
       />
@@ -247,12 +247,12 @@ export default function AttachMedia({
         type="file"
         accept="image/*,video/*"
         multiple
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         disabled={disabled}
         onChange={(e) => {
           media.clearMediaError();
           media.addMediaFiles(e.target.files);
-          e.currentTarget.value = '';
+          e.currentTarget.value = "";
         }}
       />
 
@@ -264,12 +264,12 @@ export default function AttachMedia({
               className={cfg.mediaItemClassName}
               id={`${cfg.mediaItemIdPrefix}${m.id}`}
             >
-              {m.mediaType !== 'file' && (
+              {m.mediaType !== "file" && (
                 <div
                   className={cfg.mediaPreviewClassName}
                   id={`${cfg.mediaItemIdPrefix}${m.id}-preview`}
                 >
-                  {m.mediaType === 'image' ? (
+                  {m.mediaType === "image" ? (
                     <img
                       id={`${cfg.mediaItemIdPrefix}${m.id}-thumb`}
                       className={cfg.mediaThumbClassName}
@@ -302,7 +302,7 @@ export default function AttachMedia({
                   type="button"
                   className={cfg.mediaRemoveClassName}
                   id={`${cfg.mediaItemIdPrefix}${m.id}-remove`}
-                  aria-label={t('Remove') || 'Remove'}
+                  aria-label={t("Remove") || "Remove"}
                   onClick={() => media.removeMedia(m.id)}
                   disabled={disabled}
                 >

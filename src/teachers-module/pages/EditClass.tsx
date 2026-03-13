@@ -1,35 +1,34 @@
-import { FC, useState, useEffect } from 'react';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import EditClassField from '../components/classComponents/EditClassField';
+import { FC, useState, useEffect } from "react";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import EditClassField from "../components/classComponents/EditClassField";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CLASSES,
   PAGES,
   School_Creation_Stages,
   TableTypes,
-} from '../../common/constants';
-import { useHistory, useLocation } from 'react-router-dom';
-import Header from '../components/homePage/Header';
-import { Util } from '../../utility/util';
-import './EditClass.css';
-import { t } from 'i18next';
+} from "../../common/constants";
+import { useHistory, useLocation } from "react-router-dom";
+import Header from "../components/homePage/Header";
+import { Util } from "../../utility/util";
+import "./EditClass.css";
+import { t } from "i18next";
 
 type LocationState = {
-  school?: TableTypes<'school'>;
-  classDoc?: TableTypes<'class'>;
+  school?: TableTypes<"school">;
+  classDoc?: TableTypes<"class">;
   origin?: string;
 };
 
 const EditClass: FC = () => {
   const location = useLocation<LocationState>();
   const api = ServiceConfig.getI()?.apiHandler;
-  const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
-    null,
-  );
-  const [className, setClassName] = useState<string>('');
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [className, setClassName] = useState<string>("");
   const { school: localSchool = null, classDoc: tempClass = null } =
     location.state || {};
-  const currentSchool = localSchool ?? Util.getCurrentSchool();
+  const currentSchool =
+    localSchool ?? Util.getCurrentSchool();
   const history = useHistory();
   const [isSaving, setIsSaving] = useState(false);
   const { origin: paramOrigin = null } = location.state || {};
@@ -47,14 +46,14 @@ const EditClass: FC = () => {
   }, [isEditMode]);
 
   const fetchClassDetails = async () => {
-    try {
-      let classToUse = tempClass ?? Util.getCurrentClass();
+  try {
+    let classToUse = tempClass ?? Util.getCurrentClass();
       if (classToUse) {
         setCurrentClass(classToUse);
         setClassName(classToUse.name);
       }
     } catch (error) {
-      console.error('Failed to load class details.', error);
+      console.error("Failed to load class details.",error);
     }
   };
 
@@ -72,7 +71,7 @@ const EditClass: FC = () => {
         });
       }
     } catch (error) {
-      console.error('unable to create a class', error);
+      console.error("unable to create a class", error);
     }
   };
 
@@ -81,10 +80,12 @@ const EditClass: FC = () => {
     try {
       setIsSaving(true);
       await api.updateClass(currentClass.id, className);
-      const raw = localStorage.getItem(CLASSES) || '[]';
+      const raw = localStorage.getItem(CLASSES) || "[]";
       const temp: Array<{ id: string; name: string }> = JSON.parse(raw);
-      const updatedList = temp.map((c) =>
-        c.id === currentClass.id ? { ...c, name: className } : c,
+      const updatedList = temp.map(c =>
+        c.id === currentClass.id
+          ? { ...c, name: className }
+          : c
       );
       localStorage.setItem(CLASSES, JSON.stringify(updatedList));
       const updatedClass = { ...currentClass, name: className };
@@ -92,7 +93,7 @@ const EditClass: FC = () => {
       window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
       history.replace(PAGES.MANAGE_CLASS);
     } catch (error) {
-      console.error('unable to update a class', error);
+      console.error("unable to update a class", error);
     } finally {
       setIsSaving(false);
     }
@@ -106,7 +107,7 @@ const EditClass: FC = () => {
         paramOrigin === PAGES.HOME_PAGE
           ? PAGES.HOME_PAGE
           : PAGES.DISPLAY_SCHOOLS,
-        paramOrigin === PAGES.HOME_PAGE ? { tabValue: 0 } : null,
+        paramOrigin === PAGES.HOME_PAGE ? { tabValue: 0 } : null
       );
       return;
     } else if (paramOrigin === PAGES.SUBJECTS_PAGE) {
@@ -132,7 +133,7 @@ const EditClass: FC = () => {
         className={currentClass?.name}
       />
       <div className="class-div">
-        {isEditMode ? t('Edit Class') : t('Create Class')}
+        {isEditMode ? t("Edit Class") : t("Create Class")}
       </div>
       <hr className="class-profile-horizontal-line" />
 
@@ -148,10 +149,10 @@ const EditClass: FC = () => {
           id="create-class-btn"
         >
           {isSaving
-            ? t('Creating') + '...'
+            ? t("Creating") + "..."
             : isEditMode
-              ? t('Save')
-              : t('Create')}
+              ? t("Save")
+              : t("Create")}
         </button>
       </div>
     </div>

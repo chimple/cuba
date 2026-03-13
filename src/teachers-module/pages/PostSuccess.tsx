@@ -1,11 +1,11 @@
-import { IonPage } from '@ionic/react';
-import React from 'react';
-import Header from '../components/homePage/Header';
-import { t } from 'i18next';
-import './PostSuccess.css';
-import { PAGES, MODES } from '../../common/constants';
-import { useHistory } from 'react-router';
-import { schoolUtil } from '../../utility/schoolUtil';
+import { IonPage } from "@ionic/react";
+import React from "react";
+import Header from "../components/homePage/Header";
+import { t } from "i18next";
+import "./PostSuccess.css";
+import { PAGES, MODES } from "../../common/constants";
+import { useHistory } from "react-router";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 const PostSuccess: React.FC = () => {
   const history = useHistory();
@@ -21,16 +21,15 @@ const PostSuccess: React.FC = () => {
       <div className="post-success-confirm-page">
         <div className="post-success-confirm-message">
           <p className="post-success-sent-request-header">
-            {t('Your request has been sent successfully')}
+            {t("Your request has been sent successfully")}
           </p>
-          <p>{t('After a short while kindly check to access your school')}</p>
+          <p>{t("After a short while kindly check to access your school")}</p>
         </div>
         <div className="post-success-request-box">
           <a
             href="https://wa.me/919606018552"
             target="_blank"
-            style={{ textDecoration: 'none' }}
-            rel="noreferrer"
+            style={{ textDecoration: "none" }}
           >
             <div className="post-success-create-school-whatsapp-support">
               <div className="post-success-whatsapp-support-icon">
@@ -41,9 +40,9 @@ const PostSuccess: React.FC = () => {
                 />
               </div>
               <div className="post-success-create-school-whatsapp-support-text">
-                <p>{t('Chat with us on ')}</p>
+                <p>{t("Chat with us on ")}</p>
                 <p className="post-success-span-text-whatsapp">
-                  {t('WhatsApp')}
+                  {t("WhatsApp")}
                 </p>
               </div>
             </div>
@@ -51,8 +50,8 @@ const PostSuccess: React.FC = () => {
           <div className="post-success-create-school-youtube-div">
             <iframe
               src="https://www.youtube.com/embed/G_OW3hNtZ3o?si=U5jhUwks05doZ_2R"
-              width={'70%'}
-              height={'315px'}
+              width={"70%"}
+              height={"315px"}
               title="YouTube video player"
               allowFullScreen
               className="post-success-create-school-youtube-video"
@@ -64,7 +63,7 @@ const PostSuccess: React.FC = () => {
         </div>
         <hr className="post-success-divider" />
         <div className="post-success-create-school-confirm-subtext">
-          <p>{t('Click below to explore Chimple App')}</p>
+          <p>{t("Click below to explore Chimple App")}</p>
         </div>
         <div className="post-success-create-school-app-links">
           <div
@@ -73,13 +72,13 @@ const PostSuccess: React.FC = () => {
             role="button"
             tabIndex={0}
             onKeyDown={(e) =>
-              (e.key === 'Enter' || e.key === ' ') && onBackButtonClick()
+              (e.key === "Enter" || e.key === " ") && onBackButtonClick()
             }
-            style={{ cursor: 'pointer', textDecoration: 'none' }}
+            style={{ cursor: "pointer", textDecoration: "none" }}
           >
             <div className="post-success-card-content">
               <span className="post-success-create-school-app-subtext">
-                {t('Fun filled activities for children')}
+                {t("Fun filled activities for children")}
               </span>
               <div className="post-success-create-school-card-content-div">
                 <img
@@ -88,7 +87,7 @@ const PostSuccess: React.FC = () => {
                   alt=""
                 />
                 <p className="post-success-create-school-img-footer">
-                  {t('Gamified Learning')}
+                  {t("Gamified Learning")}
                 </p>
               </div>
             </div>

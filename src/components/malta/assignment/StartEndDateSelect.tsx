@@ -1,7 +1,7 @@
-import { t } from 'i18next';
-import './StartEndDateSelect.css';
-import DateTimePicker from './DateTimePicker';
-import { FC } from 'react';
+import { t } from "i18next";
+import "./StartEndDateSelect.css";
+import DateTimePicker from "./DateTimePicker";
+import { FC } from "react";
 
 interface StartEndDateSelectProps {
   startDate: string;
@@ -16,11 +16,11 @@ const StartEndDateSelect: FC<StartEndDateSelectProps> = ({
     <>
       <div className="datePicker">
         <div className="datetextdiv">
-          {t('Start Date')}
+          {t("Start Date")}
           <DateTimePicker date={startDate} />
         </div>
         <div className="datetextdiv">
-          {t('End Date')}
+          {t("End Date")}
           <DateTimePicker date={endDate} />
         </div>
       </div>

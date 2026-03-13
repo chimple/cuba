@@ -1,6 +1,6 @@
-import React from 'react';
-import './AssigmentCount.css';
-import { t } from 'i18next';
+import React from "react";
+import "./AssigmentCount.css";
+import { t } from "i18next";
 interface AssigmentCountProps {
   assignments: number;
   onClick: () => void;
@@ -14,15 +14,11 @@ const AssigmentCount: React.FC<AssigmentCountProps> = ({
     <div className="assignment-count-container" onClick={onClick}>
       <div className="assignment-count-body">
         <div className="assignment-count-text">
-          <img
-            src="assets/icons/assignmentSelect.svg"
-            alt=""
-            className="assignment-count-img"
-          />
-          {assignments} {t('Assignments')}
+          <img src="assets/icons/assignmentSelect.svg" alt="" className="assignment-count-img" />
+          {assignments} {t("Assignments")}
         </div>
         <div className="assignment-count-next-button">
-          {t('Next')}
+          {t("Next")}
           <img src="assets/icons/arrowRightWhite.png" alt="Arrow_sign" />
         </div>
       </div>

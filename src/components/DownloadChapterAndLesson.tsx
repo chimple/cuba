@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Util } from '../utility/util';
-import { ServiceConfig } from '../services/ServiceConfig';
-import './DownloadChapterAndLesson.css';
-import { t } from 'i18next';
-import DialogBoxButtons from './parent/DialogBoxButtons​';
-import { TfiDownload, TfiTrash } from 'react-icons/tfi';
-import { Capacitor } from '@capacitor/core';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import React, { useState, useEffect } from "react";
+import { Util } from "../utility/util";
+import { ServiceConfig } from "../services/ServiceConfig";
+import "./DownloadChapterAndLesson.css";
+import { t } from "i18next";
+import DialogBoxButtons from "./parent/DialogBoxButtons​";
+import { TfiDownload, TfiTrash } from "react-icons/tfi";
+import { Capacitor } from "@capacitor/core";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADING_CHAPTER_ID,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   TableTypes,
-} from '../common/constants';
+} from "../common/constants";
 
 const DownloadLesson: React.FC<{
   lessonId?: string;
-  chapter?: TableTypes<'chapter'>;
+  chapter?: TableTypes<"chapter">;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
 }> = ({
@@ -38,7 +38,9 @@ const DownloadLesson: React.FC<{
   }, [downloadButtonLoading]);
 
   useEffect(() => {
-    const handleLessonDownloaded = (lessonDownloaded: Event) => {
+    const handleLessonDownloaded = (
+      lessonDownloaded: Event
+    ) => {
       const lessonEvent = lessonDownloaded as CustomEvent<{ lessonId: string }>;
       const downloadedLessonId = lessonEvent.detail.lessonId;
 
@@ -63,21 +65,21 @@ const DownloadLesson: React.FC<{
 
     window.addEventListener(
       LESSON_DOWNLOAD_SUCCESS_EVENT,
-      handleLessonDownloaded,
+      handleLessonDownloaded
     );
     window.addEventListener(
       ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-      chapterDownloaded,
+      chapterDownloaded
     );
 
     return () => {
       window.removeEventListener(
         LESSON_DOWNLOAD_SUCCESS_EVENT,
-        handleLessonDownloaded,
+        handleLessonDownloaded
       );
       window.removeEventListener(
         ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-        chapterDownloaded,
+        chapterDownloaded
       );
     };
   }, []);
@@ -94,7 +96,7 @@ const DownloadLesson: React.FC<{
       setShowIcon(isChapterDownloaded);
     }
     const storedItems = JSON.parse(
-      localStorage.getItem(DOWNLOADING_CHAPTER_ID) || JSON.stringify([]),
+      localStorage.getItem(DOWNLOADING_CHAPTER_ID) || JSON.stringify([])
     );
     if (storedItems && storedItems.includes(chapter?.id)) {
       setLoading(true);
@@ -110,15 +112,15 @@ const DownloadLesson: React.FC<{
     if (!online) {
       presentToast({
         message: t(
-          `Device is offline. Cannot download ${chapter ? 'Chapter' : 'Lesson'}`,
+          `Device is offline. Cannot download ${chapter ? "Chapter" : "Lesson"}`
         ),
-        color: 'danger',
+        color: "danger",
         duration: 3000,
-        position: 'bottom',
+        position: "bottom",
         buttons: [
           {
-            text: 'Dismiss',
-            role: 'cancel',
+            text: "Dismiss",
+            role: "cancel",
           },
         ],
       });
@@ -130,8 +132,8 @@ const DownloadLesson: React.FC<{
     const storeLessonID: string[] = [];
 
     if (chapter) {
-      const lessons: TableTypes<'lesson'>[] = await api.getLessonsForChapter(
-        chapter.id,
+      const lessons: TableTypes<"lesson">[] = await api.getLessonsForChapter(
+        chapter.id
       );
       Util.storeLessonIdToLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       for (const e of lessons) {
@@ -158,8 +160,8 @@ const DownloadLesson: React.FC<{
     if (loading) return;
     setLoading(true);
     if (chapter) {
-      const lessons: TableTypes<'lesson'>[] = await api.getLessonsForChapter(
-        chapter.id,
+      const lessons: TableTypes<"lesson">[] = await api.getLessonsForChapter(
+        chapter.id
       );
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
@@ -173,7 +175,7 @@ const DownloadLesson: React.FC<{
       await Util.deleteDownloadedLesson(storeLessonID);
       // Filter out deleted lesson IDs from storedLessonID
       const updatedStoredLessonIDs = storedLessonID.filter(
-        (id) => !storeLessonID.includes(id),
+        (id) => !storeLessonID.includes(id)
       );
       setStoredLessonID(updatedStoredLessonIDs);
     } else if (lessonId) {
@@ -182,7 +184,7 @@ const DownloadLesson: React.FC<{
       if (onDownloadOrDelete) onDownloadOrDelete();
       // Filter out deleted lesson ID from storedLessonID
       const updatedStoredLessonIDs = storedLessonID.filter(
-        (id) => id !== lessonId,
+        (id) => id !== lessonId
       );
       setStoredLessonID(updatedStoredLessonIDs);
     }
@@ -200,14 +202,14 @@ const DownloadLesson: React.FC<{
     >
       {showDialogBox && (
         <DialogBoxButtons
-          width={'40vw'}
-          height={'30vh'}
+          width={"40vw"}
+          height={"30vh"}
           message={t(
-            `Do you want to Delete this ${chapter ? 'Chapter' : 'Lesson'}`,
+            `Do you want to Delete this ${chapter ? "Chapter" : "Lesson"}`
           )}
           showDialogBox={showDialogBox}
-          yesText={t('Yes')}
-          noText={t('No')}
+          yesText={t("Yes")}
+          noText={t("No")}
           handleClose={() => {
             setShowDialogBox(false);
           }}

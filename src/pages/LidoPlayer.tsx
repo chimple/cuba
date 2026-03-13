@@ -1,6 +1,6 @@
-import { FC, useEffect, useState, useRef } from 'react';
-import { useHistory } from 'react-router';
-import { Util } from '../utility/util';
+import { FC, useEffect, useState, useRef } from "react";
+import { useHistory } from "react-router";
+import { Util } from "../utility/util";
 import {
   ASSESSMENT_FAIL_KEY,
   EVENTS,
@@ -17,22 +17,22 @@ import {
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
   RESULT_STATUS,
-} from '../common/constants';
-import Loading from '../components/Loading';
-import ScoreCard from '../components/parent/ScoreCard';
-import { IonPage, useIonToast } from '@ionic/react';
-import { Capacitor } from '@capacitor/core';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { Lesson } from '../interface/curriculumInterfaces';
-import { AvatarObj } from '../components/animation/Avatar';
-import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
-import { t } from 'i18next';
-import React from 'react';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { palUtil } from '../utility/palUtil';
-import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { useGrowthBook } from '@growthbook/growthbook-react';
-import { registerBackButtonHandler } from '../common/backButtonRegistry';
+} from "../common/constants";
+import Loading from "../components/Loading";
+import ScoreCard from "../components/parent/ScoreCard";
+import { IonPage, useIonToast } from "@ionic/react";
+import { Capacitor } from "@capacitor/core";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { Lesson } from "../interface/curriculumInterfaces";
+import { AvatarObj } from "../components/animation/Avatar";
+import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
+import { t } from "i18next";
+import React from "react";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { palUtil } from "../utility/palUtil";
+import PopupManager from "../components/GenericPopUp/GenericPopUpManager";
+import { useGrowthBook } from "@growthbook/growthbook-react";
+import { registerBackButtonHandler } from "../common/backButtonRegistry";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -41,9 +41,9 @@ const LidoPlayer: FC = () => {
   // State
   const state = history.location.state as any;
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
-  const assignmentType = state?.assignment?.type || 'self-played';
-  const playedFrom = localStorage.getItem('currentHeader');
+  const lessonId = urlSearchParams.get("lessonid") ?? state?.lessonId;
+  const assignmentType = state?.assignment?.type || "self-played";
+  const playedFrom = localStorage.getItem("currentHeader");
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [basePath, setBasePath] = useState<string>();
@@ -63,13 +63,13 @@ const LidoPlayer: FC = () => {
   const isAssessmentLesson = state?.is_assessment;
   const assignment = state?.assessmentId;
 
-  const courseDetail: TableTypes<'course'> = state?.course
+  const courseDetail: TableTypes<"course"> = state?.course
     ? JSON.parse(state.course)
     : undefined;
-  const chapterDetail: TableTypes<'chapter'> = state?.chapter
+  const chapterDetail: TableTypes<"chapter"> = state?.chapter
     ? JSON.parse(state.chapter)
     : undefined;
-  const lessonDetail: TableTypes<'lesson'> = state?.lesson
+  const lessonDetail: TableTypes<"lesson"> = state?.lesson
     ? JSON.parse(state.lesson)
     : undefined;
 
@@ -85,10 +85,10 @@ const LidoPlayer: FC = () => {
   });
   const isExitingRef = useRef(false);
 
-  const onNextContainer = (e: any) => console.log('Next', e);
+  const onNextContainer = (e: any) => console.log("Next", e);
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
-    const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
+    const popupConfig = growthbook?.getFeatureValue("generic-pop-up", null);
 
     if (popupConfig) {
       PopupManager.onGameComplete(popupConfig);
@@ -102,8 +102,8 @@ const LidoPlayer: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
     let targetPath = fromPath;
-    if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
-      const separator = fromPath.includes('?') ? '&' : '?';
+    if (Capacitor.isNativePlatform() || !!urlParams.get("isReload")) {
+      const separator = fromPath.includes("?") ? "&" : "?";
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
@@ -123,7 +123,7 @@ const LidoPlayer: FC = () => {
       const _currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!storedData) {
-        console.warn('⚠️ No stored data found.');
+        console.warn("⚠️ No stored data found.");
         return;
       }
       const scoresList: Array<{
@@ -144,14 +144,14 @@ const LidoPlayer: FC = () => {
       try {
         const lessonRow = await api.getLesson(lesson.id);
         dbMetaData = lessonRow?.metadata
-          ? typeof lessonRow.metadata === 'string'
+          ? typeof lessonRow.metadata === "string"
             ? JSON.parse(lessonRow.metadata)
             : lessonRow.metadata
-          : typeof lesson.metadata === 'string'
-            ? JSON.parse(lesson.metadata || '{}')
+          : typeof lesson.metadata === "string"
+            ? JSON.parse(lesson.metadata || "{}")
             : lesson.metadata || {};
       } catch (e) {
-        console.error('Meta error', e);
+        console.error("Meta error", e);
       }
       const activitiesMeta = dbMetaData?.activity || {};
       const skillAggregator = new Map<
@@ -198,7 +198,7 @@ const LidoPlayer: FC = () => {
       });
       for (const [skillId, group] of skillAggregator.entries()) {
         const averageScore = group.totalScore / group.count;
-        const activitiesScoresStr = group.resultsList.join(',');
+        const activitiesScoresStr = group.resultsList.join(",");
 
         let abilityUpdates: any = {};
         try {
@@ -209,7 +209,7 @@ const LidoPlayer: FC = () => {
 
           abilityUpdates = await palUtil.updateAndGetAbilities({
             studentId: currentStudent.id,
-            courseId: courseDetail?.id ?? courseDocId ?? '',
+            courseId: courseDetail?.id ?? courseDocId ?? "",
             skillId,
             outcomes: booleanOutcomes,
           });
@@ -218,7 +218,7 @@ const LidoPlayer: FC = () => {
           if (!abilityUpdates.outcome_id)
             abilityUpdates.outcome_id = currentOutcomeId;
         } catch (e) {
-          console.error('PAL Error', e);
+          console.error("PAL Error", e);
         }
 
         const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -237,7 +237,7 @@ const LidoPlayer: FC = () => {
 
         await api.updateResult(
           currentStudent,
-          courseDetail?.id ?? courseDocId ?? '',
+          courseDetail?.id ?? courseDocId ?? "",
           lesson.id,
           Math.round(averageScore),
           group.correctMoves,
@@ -267,7 +267,7 @@ const LidoPlayer: FC = () => {
       Util.logEvent(EVENTS.RESULTS_SAVED, {
         user_id: currentStudent.id,
         lesson_id: lesson.id,
-        course_id: courseDetail?.id ?? courseDocId ?? '',
+        course_id: courseDetail?.id ?? courseDocId ?? "",
         is_assessment: isAssessmentLesson,
         is_aborted: isAborted,
       });
@@ -275,7 +275,7 @@ const LidoPlayer: FC = () => {
         Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
           user_id: currentStudent.id,
           lesson_id: lesson.id,
-          course_id: courseDetail?.id ?? courseDocId ?? '',
+          course_id: courseDetail?.id ?? courseDocId ?? "",
           is_assessment: true,
           played_from: playedFrom,
           time_spent: totalLessonTime, // ✅ correct total
@@ -290,13 +290,13 @@ const LidoPlayer: FC = () => {
           currentStudent,
           isReward,
           isFullPathwayTerminated,
-          courseDetail?.id ?? courseDocId ?? '',
+          courseDetail?.id ?? courseDocId ?? "",
           isAssessmentLesson,
         );
       }
       localStorage.removeItem(LIDO_SCORES_KEY);
     } catch (error) {
-      console.error('❌ Failed to process lesson end', error);
+      console.error("❌ Failed to process lesson end", error);
       push();
     }
   };
@@ -332,19 +332,19 @@ const LidoPlayer: FC = () => {
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
     if (isAssessmentLesson) {
       const assessmentKey = `assessment_star_state_${currentStudent.id}_${lesson.id}`;
-      if (sessionStorage.getItem(assessmentKey) !== 'true') {
-        sessionStorage.setItem(assessmentKey, 'false'); // not yet awarded
+      if (sessionStorage.getItem(assessmentKey) !== "true") {
+        sessionStorage.setItem(assessmentKey, "false"); // not yet awarded
       }
     }
     if (!isAssessmentLesson) return;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = courseDetail?.id ?? courseDocId ?? "";
     const failKey = `${ASSESSMENT_FAIL_KEY}_${currentStudent.id}`;
     const streakKey = `${FAIL_STREAK_KEY}_${currentStudent.id}`;
     const failMap: Record<string, boolean> = JSON.parse(
-      localStorage.getItem(failKey) || '{}',
+      localStorage.getItem(failKey) || "{}",
     );
     const streakMap: Record<string, number> = JSON.parse(
-      localStorage.getItem(streakKey) || '{}',
+      localStorage.getItem(streakKey) || "{}",
     );
     let failStreak = streakMap[courseKey] || 0;
     /* ✅ Correct answer → reset streak */
@@ -358,7 +358,7 @@ const LidoPlayer: FC = () => {
     localStorage.setItem(streakKey, JSON.stringify(streakMap));
     const previousLessonSkipped = !!failMap[courseKey];
     if (previousLessonSkipped && failStreak >= 2) {
-      const courseKey = courseDetail?.id ?? courseDocId ?? '';
+      const courseKey = courseDetail?.id ?? courseDocId ?? "";
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
       Util.removeCourseScopedKey(
         ASSESSMENT_FAIL_KEY,
@@ -403,7 +403,7 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
-        const courseKey = courseDetail?.id ?? courseDocId ?? '';
+        const courseKey = courseDetail?.id ?? courseDocId ?? "";
         Util.removeCourseScopedKey(
           FAIL_STREAK_KEY,
           currentStudent.id,
@@ -427,7 +427,7 @@ const LidoPlayer: FC = () => {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
 
       let booleanOutcomes: boolean[] = [];
-      let activitiesScoresStr = '';
+      let activitiesScoresStr = "";
 
       if (storedData) {
         const values = Object.values(JSON.parse(storedData));
@@ -435,7 +435,7 @@ const LidoPlayer: FC = () => {
         booleanOutcomes = values.map((item: any) => item?.result === 1);
         activitiesScoresStr = values
           .map((item: any) => item?.result ?? 0)
-          .join(',');
+          .join(",");
       }
 
       const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -453,7 +453,7 @@ const LidoPlayer: FC = () => {
         if (!assignmentId) {
           const result = await api.getPendingAssignmentForLesson(
             lesson.id,
-            classId ?? '',
+            classId ?? "",
             currentStudent.id,
           );
           if (result) {
@@ -480,7 +480,7 @@ const LidoPlayer: FC = () => {
           const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
           if (!pathStr) {
             console.warn(
-              '[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage',
+              "[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage",
             );
           } else {
             const path = JSON.parse(pathStr) as {
@@ -490,7 +490,7 @@ const LidoPlayer: FC = () => {
             const lessonsLen = path.lessons?.length ?? 0;
             const isLastLessonInPath =
               lessonsLen > 0 &&
-              typeof homeworkIndex === 'number' &&
+              typeof homeworkIndex === "number" &&
               homeworkIndex === lessonsLen - 1;
             if (isLastLessonInPath) {
               shouldGiveHomeworkBonus = true;
@@ -498,31 +498,31 @@ const LidoPlayer: FC = () => {
           }
         } catch (err) {
           console.error(
-            '[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY',
+            "[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY",
             err,
           );
         }
       }
       let avatarObj = AvatarObj.getInstance();
       let finalProgressTimeSpent =
-        avatarObj.weeklyTimeSpent['min'] * 60 +
-        avatarObj.weeklyTimeSpent['sec'];
+        avatarObj.weeklyTimeSpent["min"] * 60 +
+        avatarObj.weeklyTimeSpent["sec"];
       finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpendForLesson;
       let computeMinutes = Math.floor(finalProgressTimeSpent / 60);
       let computeSec = finalProgressTimeSpent % 60;
-      avatarObj.weeklyTimeSpent['min'] = computeMinutes;
-      avatarObj.weeklyTimeSpent['sec'] = computeSec;
+      avatarObj.weeklyTimeSpent["min"] = computeMinutes;
+      avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
       setGameResult(data);
       const isReward: boolean = state?.reward ?? false;
       if (isReward === true) {
-        sessionStorage.setItem(REWARD_LESSON, 'true');
+        sessionStorage.setItem(REWARD_LESSON, "true");
       }
 
       const abilityUpdates = await palUtil.updateAndGetAbilities({
         studentId: currentStudent.id,
-        courseId: courseDetail?.id ?? courseDocId ?? '',
-        skillId: skillId ?? '',
+        courseId: courseDetail?.id ?? courseDocId ?? "",
+        skillId: skillId ?? "",
         outcomes: booleanOutcomes,
       });
 
@@ -535,7 +535,7 @@ const LidoPlayer: FC = () => {
         data.wrongMoves ?? 0,
         data.timeSpendForLesson ?? 0,
         assignmentId,
-        chapterDetail?.id ?? chapter_id?.toString() ?? '',
+        chapterDetail?.id ?? chapter_id?.toString() ?? "",
         classId,
         schoolId,
         false, // isImediateSync
@@ -579,7 +579,7 @@ const LidoPlayer: FC = () => {
               await api.updateStudentStars(student.id, newLocalStars);
             } catch (err) {
               console.warn(
-                '[Homework bonus] Failed to sync +10 bonus to backend, keeping local only',
+                "[Homework bonus] Failed to sync +10 bonus to backend, keeping local only",
                 err,
               );
             }
@@ -587,7 +587,7 @@ const LidoPlayer: FC = () => {
           }
         } catch (err) {
           console.error(
-            '[Homework bonus] Failed to award homework completion bonus',
+            "[Homework bonus] Failed to award homework completion bonus",
             err,
           );
         }
@@ -639,13 +639,13 @@ const LidoPlayer: FC = () => {
       );
       setShowDialogBox(true);
     } catch (error) {
-      console.error('❌ Failed to process lesson end', error);
+      console.error("❌ Failed to process lesson end", error);
       localStorage.removeItem(LIDO_SCORES_KEY);
       push();
     }
   };
   const onGameExit = (e: any) => {
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = courseDetail?.id ?? courseDocId ?? "";
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, currentStudent.id, courseKey);
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail;
@@ -655,7 +655,7 @@ const LidoPlayer: FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: chapterDetail?.name ?? '',
+      chapter_name: chapterDetail?.name ?? "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.name,
       lesson_type: data.lessonType,
@@ -664,7 +664,7 @@ const LidoPlayer: FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: courseDetail?.name ?? '',
+      course_name: courseDetail?.name ?? "",
       time_spent: data.timeSpendForLesson,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
@@ -711,14 +711,14 @@ const LidoPlayer: FC = () => {
 
   const presentToast = async () => {
     await present({
-      message: 'Something went wrong!',
-      color: 'danger',
+      message: "Something went wrong!",
+      color: "danger",
       duration: 3000,
-      position: 'bottom',
+      position: "bottom",
       buttons: [
         {
-          text: 'Dismiss',
-          role: 'cancel',
+          text: "Dismiss",
+          role: "cancel",
         },
       ],
     });
@@ -732,11 +732,11 @@ const LidoPlayer: FC = () => {
     // --- CRITICAL FIX: Clear the global variable pollution ---
     // This ensures that when the new player starts, it doesn't see the
     // path from the PREVIOUS student's language.
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
+    const lessonId = urlSearchParams.get("lessonid") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
@@ -754,7 +754,7 @@ const LidoPlayer: FC = () => {
       try {
         const student = Util.getCurrentStudent();
         if (!student?.language_id) {
-          throw new Error('[LidoPlayer] Student language_id missing');
+          throw new Error("[LidoPlayer] Student language_id missing");
         }
         const audioPath = `${LIDO_COMMON_AUDIO_DIR}/${student.language_id}`;
 
@@ -766,7 +766,7 @@ const LidoPlayer: FC = () => {
           });
         } catch (firstError) {
           console.error(
-            '[LidoPlayer] Common audio not accessible, retrying once...',
+            "[LidoPlayer] Common audio not accessible, retrying once...",
           );
           // small delay to handle async extract race (very common on Android)
           await new Promise((r) => setTimeout(r, 150));
@@ -777,7 +777,7 @@ const LidoPlayer: FC = () => {
         }
         setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
       } catch (e) {
-        console.error('[LidoPlayer] Failed to resolve common audio path', e);
+        console.error("[LidoPlayer] Failed to resolve common audio path", e);
         presentToast();
         push();
         return;
@@ -798,14 +798,14 @@ const LidoPlayer: FC = () => {
       {showDialogBox && (
         <ScoreCard
           score={
-            lessonDetail?.plugin_type === 'lido_assessment'
+            lessonDetail?.plugin_type === "lido_assessment"
               ? 100
               : Math.round(gameResult?.finalScore ?? 0)
           }
-          message={t('You Completed the Lesson:')}
+          message={t("You Completed the Lesson:")}
           showDialogBox={showDialogBox}
-          lessonName={lessonDetail?.name ?? ''}
-          noText={t('Continue Playing')}
+          lessonName={lessonDetail?.name ?? ""}
+          noText={t("Continue Playing")}
           handleClose={() => setShowDialogBox(false)}
           onContinueButtonClicked={() => {
             setShowDialogBox(false);
@@ -815,12 +815,12 @@ const LidoPlayer: FC = () => {
         />
       )}
       {isReady && (xmlPath || basePath) && !showDialogBox
-        ? React.createElement('lido-standalone', {
-            'xml-path': xmlPath,
-            'base-url': basePath,
+        ? React.createElement("lido-standalone", {
+            "xml-path": xmlPath,
+            "base-url": basePath,
             canplay: true,
-            'code-folder-path': '/Lido-player-code-versions',
-            'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
+            "code-folder-path": "/Lido-player-code-versions",
+            "common-audio-path": commonAudioPath ?? "/Lido-CommonAudios",
           })
         : null}
     </IonPage>

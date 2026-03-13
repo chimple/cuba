@@ -1,7 +1,7 @@
-import { IonContent, IonPage } from '@ionic/react';
-import { useHistory } from 'react-router';
-import { Link } from 'react-router-dom';
-import './End.css';
+import { IonContent, IonPage } from "@ionic/react";
+import { useHistory } from "react-router";
+import { Link } from "react-router-dom";
+import "./End.css";
 
 export const End: React.FC = () => {
   const history = useHistory();

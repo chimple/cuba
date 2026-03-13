@@ -1,12 +1,12 @@
-import { Timestamp } from 'firebase/firestore';
-import BaseObject from './baseObject';
+import { Timestamp } from "firebase/firestore";
+import BaseObject from "./baseObject";
 
 export const LIVE_QUIZ_QUESTION_TIME = 30;
 
 export enum OptionOrQuestionType {
-  AUDIO = 'audio',
-  IMAGE = 'image',
-  TEXT = 'text',
+  AUDIO = "audio",
+  IMAGE = "image",
+  TEXT = "text",
 }
 
 export type LiveQuizOption = {
@@ -31,7 +31,7 @@ export type LiveQuizData = {
 };
 
 export enum LiveQuizType {
-  MULTI_OPTIONS = 'multiOptions',
+  MULTI_OPTIONS = "multiOptions",
 }
 
 export default class LiveQuiz extends BaseObject {
@@ -43,7 +43,7 @@ export default class LiveQuiz extends BaseObject {
     type: LiveQuizType,
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string,
+    docId: string
   ) {
     super(updatedAt, createdAt, docId);
     this._data = data;

@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import {
   FormControl,
   Select,
   MenuItem,
   SelectChangeEvent,
   FormHelperText,
-} from '@mui/material';
-import './OpsCustomDropdown.css';
+} from "@mui/material";
+import "./OpsCustomDropdown.css";
 
 interface OpsCustomDropdownProps {
   value: string;
@@ -39,7 +39,7 @@ const OpsCustomDropdown: React.FC<OpsCustomDropdownProps> = ({
         displayEmpty
         MenuProps={{
           PaperProps: {
-            className: 'ops-dropdown-menu',
+            className: "ops-dropdown-menu",
           },
         }}
       >

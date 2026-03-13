@@ -1,15 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import SchoolList from '../../../ops-console/pages/SchoolList';
+import type { Meta, StoryObj } from "@storybook/react";
+import SchoolList from "../../../ops-console/pages/SchoolList";
 
 const meta = {
-  title: 'OpsConsole/Pages/SchoolList',
+  title: "OpsConsole/Pages/SchoolList",
   component: SchoolList,
   parameters: {
-    layout: 'fullscreen',
+    layout: "fullscreen",
   },
 
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof SchoolList>;
 
 export default meta;

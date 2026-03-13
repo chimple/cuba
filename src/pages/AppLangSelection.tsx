@@ -1,12 +1,12 @@
-import { IonPage } from '@ionic/react';
-import { useEffect, useState } from 'react';
-import './AppLangSelection.css';
-import { useHistory } from 'react-router-dom';
-import { LANGUAGE, LANG, PAGES, APP_LANGUAGES } from '../common/constants';
-import Loading from '../components/Loading';
-import i18n from '../i18n';
-import NextButton from '../components/common/NextButton';
-import DropDown from '../components/DropDown';
+import { IonPage } from "@ionic/react";
+import { useEffect, useState } from "react";
+import "./AppLangSelection.css";
+import { useHistory } from "react-router-dom";
+import { LANGUAGE, LANG, PAGES, APP_LANGUAGES } from "../common/constants";
+import Loading from "../components/Loading";
+import i18n from "../i18n";
+import NextButton from "../components/common/NextButton";
+import DropDown from "../components/DropDown";
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
@@ -64,7 +64,7 @@ const AppLangSelection: React.FC = () => {
               src="assets/icons/ChimpleBrandLogo.svg"
             />
             <div id="app-lang-element">
-              <p id="app-lang-text">{i18n.t('Choose your language')}</p>
+              <p id="app-lang-text">{i18n.t("Choose your language")}</p>
               <DropDown
                 placeholder=""
                 optionList={langList}

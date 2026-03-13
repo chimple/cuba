@@ -1,7 +1,7 @@
-import React from 'react';
-import './ApprovedDetails.css';
-import { t } from 'i18next';
-import { OpsUtil } from '../../OpsUtility/OpsUtil';
+import React from "react";
+import "./ApprovedDetails.css";
+import { t } from "i18next";
+import { OpsUtil } from "../../OpsUtility/OpsUtil";
 
 interface ApprovedDetailsProps {
   approvedBy: string;
@@ -14,17 +14,15 @@ const ApprovedDetails: React.FC<ApprovedDetailsProps> = ({
 }) => {
   return (
     <div className="approved-details-card">
-      <div className="approved-details-title">{t('Approved Details')}</div>
+      <div className="approved-details-title">{t("Approved Details")}</div>
       <div className="approved-details-divider" />
       <div className="approved-details-row">
-        <span className="approved-details-label">{t('Approved by')}:</span>
+        <span className="approved-details-label">{t("Approved by")}:</span>
         <span className="approved-details-value">{approvedBy}</span>
       </div>
       <div className="approved-details-row">
-        <span className="approved-details-label">{t('Approved on')}:</span>
-        <span className="approved-details-value">
-          {OpsUtil.formatDT(approvedOn)}
-        </span>
+        <span className="approved-details-label">{t("Approved on")}:</span>
+        <span className="approved-details-value">{OpsUtil.formatDT(approvedOn)}</span>
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { IoClose } from 'react-icons/io5';
-import './FcInteractPopUp.css';
-import { LaunchRounded } from '@mui/icons-material';
-import EmailRounded from '@mui/icons-material/EmailRounded';
+import React, { useState, useMemo, useEffect } from "react";
+import { IoClose } from "react-icons/io5";
+import "./FcInteractPopUp.css";
+import { LaunchRounded } from "@mui/icons-material";
+import EmailRounded from "@mui/icons-material/EmailRounded";
 import {
   ContactTarget,
   EnumType,
@@ -11,39 +11,39 @@ import {
   StudentInfo,
   TableTypes,
   TeacherInfo,
-} from '../../../common/constants';
-import { t } from 'i18next';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { useMediaActions } from '../../common/mediaactions';
-import AttachMedia from '../../common/AttachMedia';
+} from "../../../common/constants";
+import { t } from "i18next";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { useMediaActions } from "../../common/mediaactions";
+import AttachMedia from "../../common/AttachMedia";
 
 type Q = { id: string; question: string };
 
 const callOutcomeOptions: {
-  value: EnumType<'fc_call_result'>;
+  value: EnumType<"fc_call_result">;
   label: string;
 }[] = [
-  { value: 'call_picked', label: 'Call Attended' },
-  { value: 'call_later', label: 'Call Later' },
-  { value: 'call_not_reachable', label: 'No Response' },
-];
+    { value: "call_picked", label: "Call Attended" },
+    { value: "call_later", label: "Call Later" },
+    { value: "call_not_reachable", label: "No Response" },
+  ];
 
 const engagementTargetOptions: {
-  value: EnumType<'fc_engagement_target'>;
+  value: EnumType<"fc_engagement_target">;
   label: string;
 }[] = [
-  { value: 'student', label: 'Student' },
-  { value: 'parent', label: 'Parent' },
-];
+    { value: "student", label: "Student" },
+    { value: "parent", label: "Parent" },
+  ];
 
 type FcInteractPopUpProps = {
   schoolId: string;
   studentData?: StudentInfo;
   teacherData?: TeacherInfo;
   principalData?: PrincipalInfo;
-  status?: EnumType<'fc_support_level'>;
+  status?: EnumType<"fc_support_level">;
   onClose: () => void;
-  initialUserType: EnumType<'fc_engagement_target'>;
+  initialUserType: EnumType<"fc_engagement_target">;
 };
 
 const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
@@ -55,40 +55,40 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   onClose,
   initialUserType,
 }) => {
-  const [mode, setMode] = useState<EnumType<'fc_contact_method'>>('in_person');
+  const [mode, setMode] = useState<EnumType<"fc_contact_method">>("in_person");
   const [callOutcome, setCallOutcome] = useState<
-    EnumType<'fc_call_result'> | ''
-  >('');
-  const [spokeWith, setSpokeWith] = useState<EnumType<'fc_engagement_target'>>(
+    EnumType<"fc_call_result"> | ""
+  >("");
+  const [spokeWith, setSpokeWith] = useState<EnumType<"fc_engagement_target">>(
     initialUserType === ContactTarget.STUDENT
       ? ContactTarget.STUDENT
-      : initialUserType,
+      : initialUserType
   );
   const [responses, setResponses] = useState<Record<string, string>>({});
-  const [otherComments, setOtherComments] = useState('');
+  const [otherComments, setOtherComments] = useState("");
   const [techIssueMarked, setTechIssueMarked] = useState<boolean | null>(null);
-  const [techIssueDetails, setTechIssueDetails] = useState('');
+  const [techIssueDetails, setTechIssueDetails] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const media = useMediaActions({ t: (key) => t(key).toString(), schoolId });
   const translate = (key: string) => t(key).toString();
   const hasProcessingMedia = media.mediaUploads.some(
-    (m) => m.status !== 'done',
+    (m) => m.status !== "done"
   );
 
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
   const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
-  let userData: TableTypes<'user'> | null = null;
-  let parentData: TableTypes<'user'> | null = null;
-  let className = '';
+  let userData: TableTypes<"user"> | null = null;
+  let parentData: TableTypes<"user"> | null = null;
+  let className = "";
   let classId: string | null = null;
   if (studentData) {
     const { user, parent, classWithidname } = studentData;
     userData = user;
     parentData = parent ? parent : null;
     classId = classWithidname?.id ?? null;
-    className = classWithidname?.class_name ?? '';
+    className = classWithidname?.class_name ?? "";
   } else if (teacherData) {
     const { user, classWithidname } = teacherData;
     userData = user;
@@ -110,7 +110,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       try {
         const questions = await api.getFilteredFcQuestions(
           status ?? null,
-          spokeWith ?? initialUserType,
+          spokeWith ?? initialUserType
         );
 
         const formattedQuestions =
@@ -123,7 +123,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
           setLocalQuestions(formattedQuestions);
         }
       } catch (err) {
-        console.error('Question fetch error', err);
+        console.error("Question fetch error", err);
       } finally {
         if (mounted) setIsQuestionsLoading(false);
       }
@@ -148,21 +148,21 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   const otherQuestions: Q[] = useMemo(() => [], []);
 
   const showMandatory =
-    mode === 'in_person' || (mode === 'call' && callOutcome === 'call_picked');
+    mode === "in_person" || (mode === "call" && callOutcome === "call_picked");
 
   const isFormValid = useMemo(() => {
-    if (mode === 'call' && callOutcome === '') return false;
+    if (mode === "call" && callOutcome === "") return false;
     if (initialUserType === ContactTarget.STUDENT && !spokeWith) return false;
 
     if (showMandatory) {
       if (isQuestionsLoading) return false;
       for (const q of mandatoryQuestions) {
-        if (!responses[q.id] || responses[q.id].trim() === '') return false;
+        if (!responses[q.id] || responses[q.id].trim() === "") return false;
       }
     }
     if (techIssueMarked === null) return false;
 
-    if (techIssueMarked === true && techIssueDetails.trim() === '') {
+    if (techIssueMarked === true && techIssueDetails.trim() === "") {
       return false;
     }
 
@@ -180,6 +180,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     initialUserType,
   ]);
 
+
   const handleSave = async () => {
     if (!isFormValid || isSaving) return;
     if (media.mediaUploads.length > 0 && hasProcessingMedia) return;
@@ -188,18 +189,18 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     try {
       const mappedResponses = Object.fromEntries(
         Object.entries(responses)
-          .filter(([_, v]) => v.trim() !== '')
+          .filter(([_, v]) => v.trim() !== "")
           .map(([id, val]) => {
             const q = localQuestions.find((x) => x.id === id);
             return [q?.question ?? id, val.trim()];
-          }),
+          })
       );
 
       const currentUser = await authHandler.getCurrentUser();
       const visitId = await api.getTodayVisitId(currentUser?.id!, schoolId);
 
       const mediaLinks = await media.uploadAllMedia((file) =>
-        api.uploadSchoolVisitMediaFile({ schoolId, file }),
+        api.uploadSchoolVisitMediaFile({ schoolId, file })
       );
 
       const payload = {
@@ -210,7 +211,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         contactUserId: userData?.id,
         contactTarget: spokeWith ?? initialUserType,
         contactMethod: mode,
-        callStatus: mode === 'call' && callOutcome !== '' ? callOutcome : null,
+        callStatus: mode === "call" && callOutcome !== "" ? callOutcome : null,
         supportLevel: status ?? null,
         questionResponse: mappedResponses,
         comment: otherComments.trim() || null,
@@ -218,12 +219,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
           techIssueMarked === true ? techIssueDetails.trim() : null,
         techIssuesReported: techIssueMarked === true,
         mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
-        activityType: mode === 'call' ? 'call' : 'in_person',
+        activityType: mode === "call" ? "call" : "in_person",
       };
       await api.saveFcUserForm(payload);
       onClose();
     } catch (err) {
-      console.error('Failed to save FC interaction:', err);
+      console.error("Failed to save FC interaction:", err);
     } finally {
       setIsSaving(false);
     }
@@ -259,7 +260,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   </div>
                   {className && (
                     <div className="fc-interact-popup-class" id="fc-user-class">
-                      {t('Class')} {className}
+                      {t("Class")} {className}
                     </div>
                   )}
                 </div>
@@ -287,8 +288,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     id="fc-phone-line"
                     onClick={() =>
-                      (window.location.href = `tel:${
-                        userData?.phone ?? parentData?.phone
+                    (window.location.href = `tel:${userData?.phone ?? parentData?.phone
                       }`)
                     }
                   >
@@ -305,8 +305,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     id="fc-email-line"
                     onClick={() =>
-                      (window.location.href = `mailto:${
-                        userData?.email ?? parentData?.email
+                    (window.location.href = `mailto:${userData?.email ?? parentData?.email
                       }`)
                     }
                   >
@@ -326,7 +325,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               {/* Mode */}
               <div className="fc-interact-popup-section" id="fc-mode-section">
                 <div className="fc-interact-popup-label" id="fc-mode-label">
-                  {t('Mode of Interaction')}
+                  {t("Mode of Interaction")}
                 </div>
                 <div
                   className="fc-interact-popup-radio-group"
@@ -340,10 +339,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       type="radio"
                       name="mode"
                       id="fc-mode-inperson"
-                      checked={mode === 'in_person'}
+                      checked={mode === "in_person"}
                       onChange={() => {
-                        setMode('in_person');
-                        setCallOutcome('');
+                        setMode("in_person");
+                        setCallOutcome("");
                       }}
                     />
                     In Person
@@ -357,16 +356,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       type="radio"
                       name="mode"
                       id="fc-mode-call"
-                      checked={mode === 'call'}
-                      onChange={() => setMode('call')}
+                      checked={mode === "call"}
+                      onChange={() => setMode("call")}
                     />
-                    {t('Phone Call')}
+                    {t("Phone Call")}
                   </label>
                 </div>
               </div>
 
               {/* Call outcome */}
-              {mode === 'call' && (
+              {mode === "call" && (
                 <div
                   className="fc-interact-popup-section"
                   id="fc-call-outcome-section"
@@ -375,7 +374,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-label"
                     id="fc-call-outcome-label"
                   >
-                    {t('Select call outcome')}
+                    {t("Select call outcome")}
                   </div>
                   <select
                     className="fc-interact-popup-select"
@@ -383,12 +382,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     value={callOutcome}
                     onChange={(e) =>
                       setCallOutcome(
-                        e.target.value as EnumType<'fc_call_result'>,
+                        e.target.value as EnumType<"fc_call_result">
                       )
                     }
                   >
                     <option value="" id="fc-call-outcome-empty">
-                      {t('Select call outcome')}
+                      {t("Select call outcome")}
                     </option>
 
                     {callOutcomeOptions.map((o) => (
@@ -405,13 +404,13 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               )}
 
               {/* Spoke With */}
-              {initialUserType === 'student' && (
+              {initialUserType === "student" && (
                 <div
                   className="fc-interact-popup-section speak-with-section"
                   id="fc-spoke-section"
                 >
                   <div className="fc-interact-popup-label" id="fc-spoke-label">
-                    {t('Who did you speak with?')}
+                    {t("Who did you speak with?")}
                   </div>
 
                   <div
@@ -482,11 +481,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       className="fc-interact-popup-textarea-input"
                       rows={3}
                       id={`fc-textarea-${q.id}`}
-                      value={responses[q.id] ?? ''}
+                      value={responses[q.id] ?? ""}
                       onChange={(e) =>
                         handleResponseChange(q.id, e.target.value)
                       }
-                      placeholder={t('Type your answer...') || ''}
+                      placeholder={t("Type your answer...") || ""}
                       disabled={!showMandatory}
                     />
                   </div>
@@ -520,9 +519,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-textarea-input"
                     rows={3}
                     id={`fc-textarea-${q.id}`}
-                    value={responses[q.id] ?? ''}
+                    value={responses[q.id] ?? ""}
                     onChange={(e) => handleResponseChange(q.id, e.target.value)}
-                    placeholder={t('Type your answer...') || ''}
+                    placeholder={t("Type your answer...") || ""}
                   />
                 </div>
               ))}
@@ -542,7 +541,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     {mandatoryQuestions.length + 1}
                   </span>
                 )}
-                {t('Any other questions or comments?')}
+                {t("Any other questions or comments?")}
               </div>
               <textarea
                 className="fc-interact-popup-textarea-input"
@@ -552,8 +551,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 onChange={(e) => setOtherComments(e.target.value)}
                 placeholder={
                   t(
-                    'Add any additional points, observations, or feedback here...',
-                  ) || ''
+                    "Add any additional points, observations, or feedback here..."
+                  ) || ""
                 }
               />
             </div>
@@ -588,7 +587,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       className="fc-interact-popup-question-text"
                       id="fc-tech-label"
                     >
-                      {t('Any tech issues reported')}?
+                      {t("Any tech issues reported")}?
                       <span
                         className="fc-interact-popup-required"
                         id="fc-tech-required"
@@ -613,7 +612,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                         checked={techIssueMarked === true}
                         onChange={() => setTechIssueMarked(true)}
                       />
-                      {t('Yes')}
+                      {t("Yes")}
                     </label>
 
                     <label
@@ -627,10 +626,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                         checked={techIssueMarked === false}
                         onChange={() => {
                           setTechIssueMarked(false);
-                          setTechIssueDetails('');
+                          setTechIssueDetails("");
                         }}
                       />
-                      {t('No')}
+                      {t("No")}
                     </label>
                   </div>
                 </div>
@@ -643,7 +642,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     value={techIssueDetails}
                     onChange={(e) => setTechIssueDetails(e.target.value)}
                     placeholder={
-                      t('Add if any tech issues were reported...') || ''
+                      t("Add if any tech issues were reported...") || ""
                     }
                   />
                 )}
@@ -678,12 +677,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   className="fc-interact-popup-camera-title"
                   id="fc-camera-title"
                 >
-                  {t('Capture') || 'Capture'}
+                  {t("Capture") || "Capture"}
                 </div>
                 <button
                   type="button"
                   className="fc-interact-popup-camera-close"
-                  aria-label={t('Close') || 'Close'}
+                  aria-label={t("Close") || "Close"}
                   onClick={media.cancelCamera}
                 >
                   ×
@@ -699,7 +698,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 </div>
               )}
 
-              {media.cameraUiMode === 'desktop' && media.cameraStream && (
+              {media.cameraUiMode === "desktop" && media.cameraStream && (
                 <>
                   <div
                     className="fc-interact-popup-camera-preview"
@@ -727,12 +726,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   <canvas
                     ref={media.canvasRef}
                     id="fc-camera-canvas"
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                   />
                 </>
               )}
 
-              {media.cameraUiMode === 'mobile' && (
+              {media.cameraUiMode === "mobile" && (
                 <div
                   className="fc-interact-popup-camera-hint"
                   id="fc-camera-hint"
@@ -750,12 +749,11 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                   <button
                     type="button"
                     id="fc-camera-shutter"
-                    className={`fc-interact-popup-camera-shutter ${
-                      media.isRecording
-                        ? 'fc-interact-popup-camera-shutter-recording'
-                        : ''
-                    }`}
-                    aria-label={t('Shutter') || 'Shutter'}
+                    className={`fc-interact-popup-camera-shutter ${media.isRecording
+                      ? "fc-interact-popup-camera-shutter-recording"
+                      : ""
+                      }`}
+                    aria-label={t("Shutter") || "Shutter"}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       try {
@@ -802,17 +800,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
             onClick={handleClosePopup}
             id="fc-cancel-btn"
           >
-            {t('Cancel')}
+            {t("Cancel")}
           </button>
 
           <button
-            className={`fc-interact-popup-save-btn ${
-              !isFormValid ||
+            className={`fc-interact-popup-save-btn ${!isFormValid ||
               isSaving ||
               (media.mediaUploads.length > 0 && hasProcessingMedia)
-                ? 'fc-interact-popup-save-disabled'
-                : ''
-            }`}
+              ? "fc-interact-popup-save-disabled"
+              : ""
+              }`}
             id="fc-save-btn"
             onClick={handleSave}
             disabled={
@@ -821,7 +818,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               (media.mediaUploads.length > 0 && hasProcessingMedia)
             }
           >
-            {isSaving ? `${t('Saving...')} ` : `${t('Save')}`}
+            {isSaving ? `${t("Saving...")} ` : `${t("Save")}`}
           </button>
         </div>
       </div>

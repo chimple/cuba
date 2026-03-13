@@ -1,8 +1,8 @@
-import { MenuItem, Select } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
-import './DropDown.css';
+import { MenuItem, Select } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material/Select";
+import "./DropDown.css";
 
-const placeholderTextItem = 'select';
+const placeholderTextItem = "select";
 
 interface DropDownProps {
   optionList: {

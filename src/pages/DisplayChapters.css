@@ -1,6 +1,6 @@
 .chapters-header {
   display: flex;
-
+  
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;
@@ -14,6 +14,7 @@
   justify-content: center;
   font-size: clamp(18px, 3.1vh, 25px);
   font-weight: bold;
+  
 }
 
 .button-right {

@@ -1,15 +1,15 @@
-import { IonCol } from '@ionic/react';
-import React, { useEffect, useState } from 'react';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
-import './SkeltonLoading.css';
+import { IonCol } from "@ionic/react";
+import React, { useEffect, useState } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import "./SkeltonLoading.css";
 import {
   HOMEHEADERLIST,
   IS_CONECTED,
   LEADERBOARDHEADERLIST,
   PAGES,
-} from '../common/constants';
-import { Util } from '../utility/util';
+} from "../common/constants";
+import { Util } from "../utility/util";
 
 interface SkeltonLoadingProps {
   isLoading: boolean;
@@ -23,14 +23,14 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   isChapter,
 }) => {
   const [isLinked, setIsLinked] = useState(Boolean);
-  var width = '56.66vh';
-  var textWidth = '30vh';
-  var subjectTextWidth = '18vh';
-  var height = '40vh';
+  var width = "56.66vh";
+  var textWidth = "30vh";
+  var subjectTextWidth = "18vh";
+  var height = "40vh";
   const skeletonStyle = {
-    borderRadius: '7vh',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: "7vh",
+    justifyContent: "center",
+    alignItems: "center",
   };
   useEffect(() => {
     if (header == HOMEHEADERLIST.ASSIGNMENT) {
@@ -92,7 +92,9 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       <div className="skelton-body">
         <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         {header == HOMEHEADERLIST.SUGGESTIONS ? (
-          <div className="skelton-home-page-app-ba-div"></div>
+          <div className="skelton-home-page-app-ba-div">
+            
+          </div>
         ) : null}
       </div>
     );
@@ -105,8 +107,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
             key={`skeleton-${index}`}
             className={
               header === HOMEHEADERLIST.SUBJECTS
-                ? 'skelton-subject-card-size'
-                : 'skelton-card-size'
+                ? "skelton-subject-card-size"
+                : "skelton-card-size"
             }
           >
             <div className="skelton-card-display">
@@ -115,8 +117,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
                 style={skeletonStyle}
                 className={
                   header === HOMEHEADERLIST.SUBJECTS
-                    ? 'skelton-subject-card'
-                    : 'skelton-size-card'
+                    ? "skelton-subject-card"
+                    : "skelton-size-card"
                 }
               />
               <Skeleton
@@ -171,7 +173,11 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   }
 
   function skeltonHome() {
-    return <div className="skelton-home-screen"></div>;
+    return (
+      <div className="skelton-home-screen">
+        
+      </div>
+    );
   }
   function skeltonDisplayStudents() {
     return (

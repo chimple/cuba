@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import DetailItem from '../../../ops-console/components/DetailItem';
+import type { Meta, StoryObj } from "@storybook/react";
+import DetailItem from "../../../ops-console/components/DetailItem";
 
 const meta = {
-  title: 'OpsConsole/Component/DetailItem',
+  title: "OpsConsole/Component/DetailItem",
   component: DetailItem,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof DetailItem>;
 
 export default meta;
@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    label: 'Example Label',
-    value: 'Example Value',
+    label: "Example Label",
+    value: "Example Value",
   },
 };

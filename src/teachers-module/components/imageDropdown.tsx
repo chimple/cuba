@@ -1,7 +1,7 @@
-import React from 'react';
-import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
-import './imageDropdown.css';
-import { t } from 'i18next';
+import React from "react";
+import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import "./imageDropdown.css";
+import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
@@ -22,7 +22,7 @@ const splitText = (name: string, subjectDetail?: string) => {
   const subjectDetailParts = subjectDetail?.split(name)?.[1]?.trim();
   return {
     subject: name.trim(),
-    grade: subjectDetailParts || '',
+    grade: subjectDetailParts || "",
   };
 };
 
@@ -30,7 +30,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   options,
   selectedValue,
   onOptionSelect,
-  placeholder = 'Select an option',
+  placeholder = "Select an option",
   isDownBorder = true,
 }) => {
   const handleChange = (event: SelectChangeEvent<string | number>) => {
@@ -42,14 +42,14 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
     <div className="imageDropdown-wrapper">
       <div className="imageDropdown-container">
         <Select
-          value={selectedValue?.id || ''}
+          value={selectedValue?.id || ""}
           onChange={handleChange}
           displayEmpty
           MenuProps={{
             PaperProps: {
               sx: {
-                '& .MuiList-root': {
-                  listStyle: 'none',
+                "& .MuiList-root": {
+                  listStyle: "none",
                   margin: 0,
                   padding: 0,
                 },
@@ -71,7 +71,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
             ) : (
               <div className="placeholder">
                 <img
-                  src={options[0]?.icon || ''}
+                  src={options[0]?.icon || ""}
                   alt="placeholder-icon"
                   className="imageDropdown-icon"
                 />
@@ -81,13 +81,13 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
           }
           className="imageDropdown-select"
           sx={{
-            boxShadow: 'none',
-            '.MuiOutlinedInput-notchedOutline': { border: 'none' },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'transparent',
+            boxShadow: "none",
+            ".MuiOutlinedInput-notchedOutline": { border: "none" },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "transparent",
             },
-            '&.Mui-focused': {
-              boxShadow: 'none',
+            "&.Mui-focused": {
+              boxShadow: "none",
             },
           }}
         >

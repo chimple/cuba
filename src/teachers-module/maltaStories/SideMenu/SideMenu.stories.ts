@@ -1,22 +1,22 @@
 //@ts-nocheck
 //@ts-nocheck
-import { Meta, StoryObj } from '@storybook/react';
-import HamburgerMenu from '../../components/homePage/SideMenu';
+import { Meta, StoryObj } from "@storybook/react";
+import HamburgerMenu from "../../components/homePage/SideMenu";
 
 const meta: Meta<typeof HamburgerMenu> = {
-  title: 'components/HamburgerMenu',
+  title: "components/HamburgerMenu",
   component: HamburgerMenu,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     handleManageSchoolClick: {
-      action: 'handleManageSchoolClick',
+      action: "handleManageSchoolClick",
       description: "Callback for 'Manage School' click",
     },
     handleManageClassClick: {
-      action: 'handleManageClassClick',
+      action: "handleManageClassClick",
       description: "Callback for 'Manage Class' click",
     },
   },

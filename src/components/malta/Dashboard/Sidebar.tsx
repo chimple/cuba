@@ -1,9 +1,9 @@
-import { t } from 'i18next';
-import React from 'react';
-import { useHistory } from 'react-router';
-import { PAGES } from '../../../common/constants';
-import './Sidebar.css';
-import CloseIcon from '@mui/icons-material/Close';
+import { t } from "i18next";
+import React from "react";
+import { useHistory } from "react-router";
+import { PAGES } from "../../../common/constants";
+import "./Sidebar.css";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface SidebarProps {
   name: string;
@@ -13,8 +13,8 @@ interface SidebarProps {
 }
 
 const classOptions = [
-  { label: 'Bharatiya Vidya Mandir', value: 'option1' },
-  { label: '2nd Standard', value: 'option2' },
+  { label: "Bharatiya Vidya Mandir", value: "option1" },
+  { label: "2nd Standard", value: "option2" },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -30,14 +30,14 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+    <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <button onClick={toggleSidebar} className="close-sidebar">
         <CloseIcon />
       </button>
       <div className="profile-section">
         {/* <ProfileDetails imgSrc="" width="10vw" height="10vh"/> */}
         <div className="profile-name-in-sidebar" onClick={navigateToProfile}>
-          {name}{' '}
+          {name}{" "}
         </div>
         <div className="profile-email-in-sidebar">{email}</div>
         <select className="profile-dropdown-in-sidebar">
@@ -51,14 +51,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       <ul>
         <li>
-          <button className="sidebar-button">{t('Home')}</button>
+          <button className="sidebar-button">{t("Home")}</button>
         </li>
-        <button className="sidebar-button">{t('Class Code')}</button>
+        <button className="sidebar-button">{t("Class Code")}</button>
         <li>
-          <button className="sidebar-button">{t('Classroom')}</button>
+          <button className="sidebar-button">{t("Classroom")}</button>
         </li>
         <li>
-          <button className="sidebar-button">{t('Users')}</button>
+          <button className="sidebar-button">{t("Users")}</button>
         </li>
       </ul>
     </div>

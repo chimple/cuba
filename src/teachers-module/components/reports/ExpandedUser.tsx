@@ -1,6 +1,6 @@
-import React from 'react';
-import './ExpandedUser.css';
-import { t } from 'i18next';
+import React from "react";
+import "./ExpandedUser.css";
+import { t } from "i18next";
 interface ExpandedUserProps {
   name: string;
   onClickViewDetails: () => void;
@@ -14,8 +14,8 @@ const ExpandedUser: React.FC<ExpandedUserProps> = ({
     <div className="expanded-conatiner">
       <div className="text-container">{name}</div>
       <div onClick={onClickViewDetails} className="button-style">
-        {t('View Progress')}
-      </div>
+        {t("View Progress")}
+      </div >
     </div>
   );
 };

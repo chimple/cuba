@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router';
-import { Toast } from '@capacitor/toast';
-import { t } from 'i18next';
+import { useEffect, useMemo, useState } from "react";
+import { useHistory } from "react-router";
+import { Toast } from "@capacitor/toast";
+import { t } from "i18next";
 import {
   AssignmentSource,
   COURSES,
   PAGES,
   TableTypes,
-} from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { Util } from '../../utility/util';
-import { TeacherAssignmentPageType } from '../components/homePage/assignment/TeacherAssignment';
+} from "../../common/constants";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { Util } from "../../utility/util";
+import { TeacherAssignmentPageType } from "../components/homePage/assignment/TeacherAssignment";
 
 export interface AssignmentLessonItem {
   id: string;
@@ -19,7 +19,7 @@ export interface AssignmentLessonItem {
   chapterId: string;
   chapterName: string;
   selected: boolean;
-  lesson: TableTypes<'lesson'>;
+  lesson: TableTypes<"lesson">;
 }
 
 export interface AssignmentCourseGroup {
@@ -59,12 +59,10 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       }
 
       const allSyncLesson: Map<string, string> = new Map(
-        Object.entries(JSON.parse(previousSyncLesson.lessons)),
+        Object.entries(JSON.parse(previousSyncLesson.lessons))
       );
       const syncLessonData = allSyncLesson.get(currentClass.id);
-      const parsedChapterData = syncLessonData
-        ? JSON.parse(syncLessonData)
-        : {};
+      const parsedChapterData = syncLessonData ? JSON.parse(syncLessonData) : {};
       const chapterLessonMap: Map<
         string,
         Partial<Record<AssignmentSource, string[]>> | string[]
@@ -78,26 +76,23 @@ export const useTeacherLibraryAssignmentsLogic = () => {
 
         if (Array.isArray(sourceMapOrArray)) {
           sourceMapOrArray.forEach((id: string) => lessonIdSet.add(id));
-        } else if (typeof sourceMapOrArray === 'object' && sourceMapOrArray) {
+        } else if (typeof sourceMapOrArray === "object" && sourceMapOrArray) {
           (sourceMapOrArray[AssignmentSource.MANUAL] ?? []).forEach((id) =>
-            lessonIdSet.add(id),
+            lessonIdSet.add(id)
           );
           (sourceMapOrArray[AssignmentSource.QR_CODE] ?? []).forEach((id) =>
-            lessonIdSet.add(id),
+            lessonIdSet.add(id)
           );
         }
 
         if (!chapterNameCache.has(chapterId)) {
           const chapter = await api.getChapterById(chapterId);
-          chapterNameCache.set(chapterId, chapter?.name ?? '');
+          chapterNameCache.set(chapterId, chapter?.name ?? "");
         }
-        const chapterName = chapterNameCache.get(chapterId) ?? '';
+        const chapterName = chapterNameCache.get(chapterId) ?? "";
 
         for (const lessonId of lessonIdSet) {
-          const lessonData = await api.getLessonFromChapter(
-            chapterId,
-            lessonId,
-          );
+          const lessonData = await api.getLessonFromChapter(chapterId, lessonId);
           const lesson = lessonData.lesson?.[0];
           const course = lessonData.course?.[0];
           if (!lesson?.id || !course?.id) {
@@ -107,7 +102,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
           if (!groupedByCourse.has(course.id)) {
             groupedByCourse.set(course.id, {
               courseId: course.id,
-              courseName: course.name ?? '',
+              courseName: course.name ?? "",
               courseCode: course.code,
               sortIndex: course.sort_index,
               lessons: [],
@@ -121,7 +116,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
 
           currentGroup.lessons.push({
             id: lesson.id,
-            name: lesson.name ?? '',
+            name: lesson.name ?? "",
             image: lesson.image,
             chapterId,
             chapterName,
@@ -135,7 +130,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
         .sort(
           (a, b) =>
             (a.sortIndex ?? Number.MAX_SAFE_INTEGER) -
-            (b.sortIndex ?? Number.MAX_SAFE_INTEGER),
+            (b.sortIndex ?? Number.MAX_SAFE_INTEGER)
         )
         .map((group) => ({
           ...group,
@@ -144,7 +139,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
 
       setGroups(sortedGroups);
     } catch (error) {
-      console.error('Failed to load library assignments:', error);
+      console.error("Failed to load library assignments:", error);
       setGroups([]);
     } finally {
       setLoading(false);
@@ -156,9 +151,9 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       groups.reduce(
         (total, group) =>
           total + group.lessons.filter((lesson) => lesson.selected).length,
-        0,
+        0
       ),
-    [groups],
+    [groups]
   );
 
   const toggleLesson = (courseId: string, lessonId: string) => {
@@ -170,10 +165,10 @@ export const useTeacherLibraryAssignmentsLogic = () => {
           lessons: group.lessons.map((lesson) =>
             lesson.id === lessonId
               ? { ...lesson, selected: !lesson.selected }
-              : lesson,
+              : lesson
           ),
         };
-      }),
+      })
     );
   };
 
@@ -218,16 +213,13 @@ export const useTeacherLibraryAssignmentsLogic = () => {
   const handleNext = async () => {
     if (assignmentCount <= 0) {
       await Toast.show({
-        text: t('Please select the Assignment') || '',
-        duration: 'long',
+        text: t("Please select the Assignment") || "",
+        duration: "long",
       });
       return;
     }
 
-    history.replace(
-      PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
-      buildAssignmentPayload(),
-    );
+    history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, buildAssignmentPayload());
   };
 
   const handleBackButtonClick = () => {
@@ -244,21 +236,21 @@ export const useTeacherLibraryAssignmentsLogic = () => {
   const getSubjectTitle = (group: AssignmentCourseGroup): string =>
     group.courseCode === COURSES.ENGLISH
       ? group.courseName
-      : t(group.courseName ?? '');
+      : t(group.courseName ?? "");
 
   const getLessonTitle = (
     group: AssignmentCourseGroup,
-    lesson: AssignmentLessonItem,
+    lesson: AssignmentLessonItem
   ): string =>
-    group.courseCode === COURSES.ENGLISH ? lesson.name : t(lesson.name ?? '');
+    group.courseCode === COURSES.ENGLISH ? lesson.name : t(lesson.name ?? "");
 
   const getChapterTitle = (
     group: AssignmentCourseGroup,
-    lesson: AssignmentLessonItem,
+    lesson: AssignmentLessonItem
   ): string =>
     group.courseCode === COURSES.ENGLISH
       ? lesson.chapterName
-      : t(lesson.chapterName ?? '');
+      : t(lesson.chapterName ?? "");
 
   return {
     loading,
@@ -273,3 +265,4 @@ export const useTeacherLibraryAssignmentsLogic = () => {
     getChapterTitle,
   };
 };
+

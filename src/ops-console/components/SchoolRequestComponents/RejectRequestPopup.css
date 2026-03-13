@@ -18,7 +18,7 @@
   border: 2px solid #1a73e8;
   background: #eaf1fe;
 }
-.reject-reason-radio input[type='radio'] {
+.reject-reason-radio input[type="radio"] {
   margin-right: 12px;
   margin-top: 2px;
   accent-color: #1a73e8;
@@ -46,7 +46,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -54,8 +54,8 @@
 }
 
 .reject-popup-custom-field {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .reject-popup-container {
@@ -66,7 +66,7 @@
   display: flex;
   flex-direction: column;
   padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   overflow-y: auto;
 }
 
@@ -143,9 +143,7 @@
   font-size: 14px;
   font-family: inherit;
   margin-top: 4px;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .reject-popup-body textarea:focus {
@@ -226,21 +224,21 @@
     margin: 20px;
     padding: 20px;
   }
-
+  
   .reject-popup-footer {
     flex-direction: column;
   }
-
+  
   .reject-popup-cancel-btn,
   .reject-popup-reject-btn,
   .reject-popup-flag-btn {
     width: 100%;
   }
-
+  
   .reject-reason-radio {
     padding: 10px 12px;
   }
-
+  
   .reject-popup-header-img img {
     width: 35px;
     height: 35px;

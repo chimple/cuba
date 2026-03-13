@@ -11,10 +11,7 @@ const meta: Meta<typeof SelectedFilters> = {
       control: 'object',
       description: 'Active filters as a record of string arrays',
     },
-    onDeleteFilter: {
-      action: 'deleteFilter',
-      description: 'Delete filter handler',
-    },
+    onDeleteFilter: { action: 'deleteFilter', description: 'Delete filter handler' },
   },
 } satisfies Meta<typeof SelectedFilters>;
 
@@ -35,6 +32,8 @@ export const WithFilters: Story = {
       model: ['Model X'],
       partner: ['Partner 1', 'Partner 2'],
     },
-    onDeleteFilter: (key: string, value: string) => {},
+    onDeleteFilter: (key: string, value: string) => {
+      
+    },
   },
 };

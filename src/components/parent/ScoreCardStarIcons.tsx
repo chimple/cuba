@@ -1,4 +1,4 @@
-import './ScoreCardStarIcons.css';
+import "./ScoreCardStarIcons.css";
 
 const ScoreCardStarIcons: React.FC<{
   score: number;

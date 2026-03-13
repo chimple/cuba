@@ -1,17 +1,17 @@
 //@ts-nocheck
-import { Meta, StoryObj } from '@storybook/react';
-import EditClassField from '../../components/classComponents/EditClassField';
+import { Meta, StoryObj } from "@storybook/react";
+import EditClassField from "../../components/classComponents/EditClassField";
 
 const meta: Meta<typeof EditClassField> = {
-  title: 'components/classComponents/EditClassField',
+  title: "components/classComponents/EditClassField",
   component: EditClassField,
   argTypes: {
     className: {
-      control: 'text',
-      description: 'The name of the class being edited',
+      control: "text",
+      description: "The name of the class being edited",
     },
     setClassName: {
-      action: 'setClassName',
+      action: "setClassName",
     },
   },
 };
@@ -21,18 +21,18 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    className: 'Class 1',
+    className: "Class 1",
   },
 };
 
 export const EmptyClassName: Story = {
   args: {
-    className: '',
+    className: "",
   },
 };
 
 export const LongClassName: Story = {
   args: {
-    className: 'This is a very long class name for testing purposes',
+    className: "This is a very long class name for testing purposes",
   },
 };

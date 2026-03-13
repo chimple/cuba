@@ -1,3 +1,4 @@
+
 /* ================= OVERLAY ================= */
 .generic-popup-overlay {
   position: fixed;
@@ -37,6 +38,7 @@
   height: 4.8rem;
 
   background: transparent;
+  
 
   display: flex;
   align-items: center;
@@ -76,7 +78,7 @@
 
 /* Top row = 2-column layout */
 .generic-popup-main {
-  display: grid;
+ display: grid;
   grid-template-columns: auto auto;
   align-items: center;
   gap: 24px;
@@ -123,35 +125,35 @@
 
 /* ================= HEADING ================= */
 .generic-popup-heading {
-  color: #182a4f;
-  text-align: center;
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 600;
-  line-height: normal;
+  color: #182A4F;
+text-align: center;
+font-size: 18px;
+font-style: normal;
+font-weight: 600;
+line-height: normal;
 }
 
 /* ================= SUB HEADING ================= */
 .generic-popup-subheading {
   margin-top: -10px;
-  color: #182a4f;
-  text-align: center;
-  font-size: 18px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: normal;
+  color: #182A4F;
+text-align: center;
+font-size: 18px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
 }
 
 /* ================= DETAILS ================= */
 .generic-popup-details {
-  list-style-type: none;
-  list-style-position: inside;
-  color: #182a4f;
-  text-align: center;
-  font-size: 16px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: normal;
+list-style-type: none;
+list-style-position: inside;
+color: #182A4F;
+text-align: center;
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
 }
 
 .generic-popup-details li {
@@ -160,32 +162,30 @@
 
 /* ================= CTA (TEXT-DRIVEN SIZE) ================= */
 .generic-popup-cta {
-  width: fit-content; /* dynamic width */
-  min-width: 175px; /* remove hard clamp */
-  height: 56px; /* keep fixed height */
+  width: fit-content;     /* dynamic width */
+  min-width: 175px;           /* remove hard clamp */
+  height: 56px;           /* keep fixed height */
   margin: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   padding: 0.6em 1.8em;
-  white-space: nowrap; /* prevent line break */
+  white-space: nowrap;   /* prevent line break */
 
-  background: #f34d08;
+  background: #F34D08;
   color: #ffffff;
 
   border: none;
   border-radius: 0.6rem;
-  border-bottom: 0.28rem solid #8a2901;
+  border-bottom: 0.28rem solid #8A2901;
 
   font-size: clamp(0.95rem, 3vw, 1.6rem);
   font-weight: 550;
   line-height: 1.2;
 
   cursor: pointer;
-  transition:
-    transform 0.1s ease,
-    border-bottom 0.1s ease;
+  transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
 
 .generic-popup-cta:active {

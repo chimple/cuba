@@ -160,7 +160,7 @@
 }
 
 .color-box::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 8px;
   right: 10px;

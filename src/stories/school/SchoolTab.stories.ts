@@ -1,15 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import SchoolTab from '../../components/malta/school/SchoolTab';
-import { fn } from '@storybook/test';
+import type { Meta, StoryObj } from "@storybook/react";
+import SchoolTab from "../../components/malta/school/SchoolTab";
+import { fn } from "@storybook/test";
 
 const meta = {
-  title: 'Component/malta/school/SchoolTab',
+  title: "Component/malta/school/SchoolTab",
   component: SchoolTab,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
   args: {},
 } satisfies Meta<typeof SchoolTab>;
@@ -19,10 +19,10 @@ type Story = StoryObj<typeof meta>;
 
 export const schoolDetail: Story = {
   args: {
-    schoolName: 'School1',
-    cityName: 'Bengaluru',
-    stateName: 'Karnataka',
-    schools: ['School1', 'School2'],
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
     isSchoolAdd: false,
     isSchoolEdit: false,
     onCancel: fn(),
@@ -35,10 +35,10 @@ export const schoolDetail: Story = {
 
 export const addSchool: Story = {
   args: {
-    schoolName: 'School1',
-    cityName: 'Bengaluru',
-    stateName: 'Karnataka',
-    schools: ['School1', 'School2'],
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
     isSchoolAdd: true,
     isSchoolEdit: false,
     onCancel: fn(),
@@ -51,10 +51,10 @@ export const addSchool: Story = {
 
 export const editSchool: Story = {
   args: {
-    schoolName: 'School1',
-    cityName: 'Bengaluru',
-    stateName: 'Karnataka',
-    schools: ['School1', 'School2'],
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
     isSchoolAdd: false,
     isSchoolEdit: true,
     onCancel: fn(),
@@ -67,10 +67,10 @@ export const editSchool: Story = {
 
 export const deleteSchool: Story = {
   args: {
-    schoolName: 'School1',
-    cityName: 'Bengaluru',
-    stateName: 'Karnataka',
-    schools: ['School1', 'School2'],
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
     isSchoolAdd: false,
     isSchoolEdit: false,
     onCancel: fn(),

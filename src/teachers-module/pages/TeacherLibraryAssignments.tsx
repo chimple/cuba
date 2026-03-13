@@ -1,11 +1,11 @@
-import React from 'react';
-import Header from '../components/homePage/Header';
-import AssigmentCount from '../components/library/AssignmentCount';
-import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
-import Loading from '../../components/Loading';
-import { useTeacherLibraryAssignmentsLogic } from './TeacherLibraryAssignmentsLogic';
-import './TeacherLibraryAssignments.css';
-import { t } from 'i18next';
+import React from "react";
+import Header from "../components/homePage/Header";
+import AssigmentCount from "../components/library/AssignmentCount";
+import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import Loading from "../../components/Loading";
+import { useTeacherLibraryAssignmentsLogic } from "./TeacherLibraryAssignmentsLogic";
+import "./TeacherLibraryAssignments.css";
+import { t } from "i18next";
 
 const TeacherLibraryAssignments: React.FC = () => {
   const {
@@ -22,10 +22,7 @@ const TeacherLibraryAssignments: React.FC = () => {
   } = useTeacherLibraryAssignmentsLogic();
 
   return (
-    <div
-      id="teacher-library-assignments-page"
-      className="teacher-library-assignments-page"
-    >
+    <div id="teacher-library-assignments-page" className="teacher-library-assignments-page">
       <Header
         isBackButton={true}
         onBackButtonClick={handleBackButtonClick}
@@ -34,83 +31,43 @@ const TeacherLibraryAssignments: React.FC = () => {
         showSearchIcon={false}
       />
 
-      <main
-        id="teacher-library-assignments-body"
-        className="teacher-library-assignments-body"
-      >
+      <main id="teacher-library-assignments-body" className="teacher-library-assignments-body">
         {loading ? (
           <Loading isLoading={loading} />
         ) : (
           <>
-            <div
-              id="teacher-library-assignments-list"
-              className="teacher-library-assignments-list"
-            >
+            <div id="teacher-library-assignments-list" className="teacher-library-assignments-list">
               {groups.map((group) => {
                 const selectedCount = getSelectedCount(group);
                 const subjectTitle = getSubjectTitle(group);
                 return (
-                  <section
-                    key={group.courseId}
-                    id="teacher-assignments-group"
-                    className="teacher-assignments-group"
-                  >
-                    <div
-                      id="teacher-assignments-group-header"
-                      className="teacher-assignments-group-header"
-                    >
-                      <div
-                        id="teacher-assignments-group-name"
-                        className="teacher-assignments-group-name"
-                      >
-                        {subjectTitle}
-                      </div>
-                      <div
-                        id="teacher-assignments-group-count"
-                        className="teacher-assignments-group-count"
-                      >
+                  <section key={group.courseId} id="teacher-assignments-group" className="teacher-assignments-group">
+                    <div id="teacher-assignments-group-header" className="teacher-assignments-group-header">
+                      <div id="teacher-assignments-group-name" className="teacher-assignments-group-name">{subjectTitle}</div>
+                      <div id="teacher-assignments-group-count" className="teacher-assignments-group-count">
                         {selectedCount} / {group.lessons.length}
                       </div>
                     </div>
 
-                    <div
-                      id="teacher-assignments-group-items"
-                      className="teacher-assignments-group-items"
-                    >
+                    <div id="teacher-assignments-group-items" className="teacher-assignments-group-items">
                       {group.lessons.map((lesson) => {
                         const lessonTitle = getLessonTitle(group, lesson);
                         const chapterTitle = getChapterTitle(group, lesson);
                         return (
-                          <div
-                            key={lesson.id}
-                            id="teacher-assignments-item"
-                            className="teacher-assignments-item"
-                          >
-                            <div
-                              id="teacher-assignments-item-thumb"
-                              className="teacher-assignments-item-thumb"
-                            >
+                          <div key={lesson.id} id="teacher-assignments-item" className="teacher-assignments-item">
+                            <div id="teacher-assignments-item-thumb" className="teacher-assignments-item-thumb">
                               <SelectIconImage
-                                defaultSrc={'assets/icons/DefaultIcon.png'}
-                                webSrc={lesson.image ?? ''}
+                                defaultSrc={"assets/icons/DefaultIcon.png"}
+                                webSrc={lesson.image ?? ""}
                                 imageWidth="100%"
                                 imageHeight="100%"
                               />
                             </div>
-                            <div
-                              id="teacher-assignments-item-copy"
-                              className="teacher-assignments-item-copy"
-                            >
-                              <div
-                                id="teacher-assignments-item-title"
-                                className="teacher-assignments-item-title"
-                              >
+                            <div id="teacher-assignments-item-copy" className="teacher-assignments-item-copy">
+                              <div id="teacher-assignments-item-title" className="teacher-assignments-item-title">
                                 {lessonTitle}
                               </div>
-                              <div
-                                id="teacher-assignments-item-subtitle"
-                                className="teacher-assignments-item-subtitle"
-                              >
+                              <div id="teacher-assignments-item-subtitle" className="teacher-assignments-item-subtitle">
                                 {chapterTitle}
                               </div>
                             </div>
@@ -118,9 +75,7 @@ const TeacherLibraryAssignments: React.FC = () => {
                               <span
                                 id="teacher-assignments-item-toggle-circle is-selected"
                                 className="teacher-assignments-item-toggle-circle is-selected"
-                                onClick={() =>
-                                  toggleLesson(group.courseId, lesson.id)
-                                }
+                                onClick={() => toggleLesson(group.courseId, lesson.id)}
                               >
                                 <img
                                   src="assets/tick.png"
@@ -133,9 +88,7 @@ const TeacherLibraryAssignments: React.FC = () => {
                               <span
                                 id="teacher-assignments-item-toggle-circle is-unselected"
                                 className="teacher-assignments-item-toggle-circle is-unselected"
-                                onClick={() =>
-                                  toggleLesson(group.courseId, lesson.id)
-                                }
+                                onClick={() => toggleLesson(group.courseId, lesson.id)}
                               />
                             )}
                           </div>
@@ -147,12 +100,7 @@ const TeacherLibraryAssignments: React.FC = () => {
               })}
             </div>
             {assignmentCount <= 0 ? (
-              <div
-                id="teacher-library-no-lessons-center"
-                className="teacher-library-no-lessons-center"
-              >
-                {t('No Lessons Selected')}
-              </div>
+              <div id="teacher-library-no-lessons-center" className="teacher-library-no-lessons-center">{t("No Lessons Selected")}</div>
             ) : null}
           </>
         )}

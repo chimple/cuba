@@ -1,7 +1,7 @@
-import { FC } from 'react';
-import { IonAlert, AlertButton } from '@ionic/react';
-import { t } from 'i18next';
-import './CommonDialogBox.css';
+import { FC } from "react";
+import { IonAlert, AlertButton } from "@ionic/react";
+import { t } from "i18next";
+import "./CommonDialogBox.css";
 
 const CommonDialogBox: FC<{
   message: string;
@@ -27,7 +27,7 @@ const CommonDialogBox: FC<{
   if (leftButtonText) {
     buttons.push({
       text: t(leftButtonText),
-      cssClass: 'custom-dailog-alert-delete-button',
+      cssClass: "custom-dailog-alert-delete-button",
       handler: leftButtonHandler,
     });
   }
@@ -35,7 +35,7 @@ const CommonDialogBox: FC<{
   if (rightButtonText) {
     buttons.push({
       text: t(rightButtonText),
-      cssClass: 'custom-dailog-alert-cancel-button',
+      cssClass: "custom-dailog-alert-cancel-button",
       handler: rightButtonHandler,
     });
   }
@@ -47,7 +47,7 @@ const CommonDialogBox: FC<{
         header={header}
         onDidDismiss={onDidDismiss}
         cssClass="custom-dailog-alert"
-        message={t(message) || ''}
+        message={t(message) || ""}
         buttons={buttons}
       />
     </div>

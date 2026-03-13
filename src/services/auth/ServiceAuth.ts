@@ -1,5 +1,5 @@
-import { Session, User, UserAttributes } from '@supabase/supabase-js';
-import { TableTypes } from '../../common/constants';
+import { Session, User, UserAttributes } from "@supabase/supabase-js";
+import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
@@ -10,9 +10,9 @@ export interface ServiceAuth {
 
   googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
 
-  getCurrentUser(): Promise<TableTypes<'user'> | undefined>;
+  getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
-  set currentUser(user: TableTypes<'user'>);
+  set currentUser(user: TableTypes<"user">);
 
   isUserLoggedIn(): Promise<boolean>;
 

@@ -1,5 +1,5 @@
-import BaseObject from './baseObject';
-import { DocumentReference, Timestamp } from 'firebase/firestore';
+import BaseObject from "./baseObject";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Result extends BaseObject {
   private _comment: string | undefined;
@@ -30,7 +30,7 @@ export default class Result extends BaseObject {
     timeSpent: number,
     student: DocumentReference,
     docId: string,
-    isLoved: boolean,
+    isLoved: boolean
   ) {
     super(updatedAt, createdAt, docId);
     this._comment = comment;

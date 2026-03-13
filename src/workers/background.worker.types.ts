@@ -22,7 +22,7 @@ export type PrepareSyncBatchesResult = {
 
 export type PrepareBinaryFromBase64Payload = {
   base64: string;
-  algorithm?: 'SHA-256';
+  algorithm?: "SHA-256";
 };
 
 export type PrepareBinaryFromBase64Result = {
@@ -111,11 +111,9 @@ export type WorkerTaskResultMap = {
 
 export type BackgroundWorkerTask = keyof WorkerTaskPayloadMap;
 
-export type WorkerStreamTask = 'STREAM_SYNC_BATCHES';
+export type WorkerStreamTask = "STREAM_SYNC_BATCHES";
 
-export type WorkerRequest<
-  T extends BackgroundWorkerTask = BackgroundWorkerTask,
-> = {
+export type WorkerRequest<T extends BackgroundWorkerTask = BackgroundWorkerTask> = {
   id: string;
   type: T;
   payload: WorkerTaskPayloadMap[T];
@@ -129,23 +127,23 @@ export type WorkerStreamRequest = {
 
 export type WorkerAckMessage = {
   id: string;
-  type: 'ACK';
+  type: "ACK";
 };
 
 export type WorkerBatchReadyMessage = {
   id: string;
-  type: 'BATCH_READY';
+  type: "BATCH_READY";
   batch: SqlStatement[];
 };
 
 export type WorkerDoneMessage = {
   id: string;
-  type: 'DONE';
+  type: "DONE";
 };
 
 export type WorkerStreamErrorMessage = {
   id: string;
-  type: 'ERROR';
+  type: "ERROR";
   error: string;
 };
 

@@ -1,8 +1,8 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import SchoolDetailsTabsComponent from '../../../ops-console/components/SchoolDetailsComponents/SchoolDetailsTabsComponent';
-import SchoolNameHeaderComponent from '../../../ops-console/components/SchoolDetailsComponents/SchoolNameHeaderComponent';
-import Breadcrumb from '../../../ops-console/components/Breadcrumb';
+import type { Meta, StoryObj } from "@storybook/react";
+import SchoolDetailsTabsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
+import SchoolNameHeaderComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolNameHeaderComponent";
+import Breadcrumb from "../../../ops-console/components/Breadcrumb";
 const SchoolDetailPageLayout = ({
   schoolId,
   schoolName,
@@ -40,7 +40,7 @@ const SchoolDetailPageLayout = ({
     principals: [
       {
         name: principalName,
-        role: 'Principal',
+        role: "Principal",
         phone: principalPhone,
         email: principalEmail,
       },
@@ -48,7 +48,7 @@ const SchoolDetailPageLayout = ({
     coordinators: [
       {
         name: coordinatorName,
-        role: 'Coordinator',
+        role: "Coordinator",
         phone: coordinatorPhone,
         email: coordinatorEmail,
       },
@@ -56,7 +56,7 @@ const SchoolDetailPageLayout = ({
     programManagers: [
       {
         name: programManagerName,
-        role: 'Program Manager',
+        role: "Program Manager",
         phone: programManagerPhone,
         email: programManagerEmail,
       },
@@ -73,8 +73,8 @@ const SchoolDetailPageLayout = ({
           <Breadcrumb
             crumbs={[
               {
-                label: 'Schools',
-                onClick: () => alert('Go back to school list!'),
+                label: "Schools",
+                onClick: () => alert("Go back to school list!"),
               },
               { label: schoolName },
             ]}
@@ -95,30 +95,30 @@ const SchoolDetailPageLayout = ({
 };
 
 const meta: Meta<typeof SchoolDetailPageLayout> = {
-  title: 'SchoolDetails/SchoolDetailPage',
+  title: "SchoolDetails/SchoolDetailPage",
   component: SchoolDetailPageLayout,
   argTypes: {
-    schoolId: { control: 'text' },
-    schoolName: { control: 'text' },
-    udise: { control: 'text' },
-    group1: { control: 'text' },
-    group2: { control: 'text' },
-    group3: { control: 'text' },
-    group4: { control: 'text' },
-    address: { control: 'text' },
-    programName: { control: 'text' },
-    programType: { control: 'text' },
-    model: { control: 'text' },
-    principalName: { control: 'text' },
-    principalPhone: { control: 'text' },
-    principalEmail: { control: 'text' },
-    coordinatorName: { control: 'text' },
-    coordinatorPhone: { control: 'text' },
-    coordinatorEmail: { control: 'text' },
-    programManagerName: { control: 'text' },
-    programManagerPhone: { control: 'text' },
-    programManagerEmail: { control: 'text' },
-    isMobile: { control: 'boolean' },
+    schoolId: { control: "text" },
+    schoolName: { control: "text" },
+    udise: { control: "text" },
+    group1: { control: "text" },
+    group2: { control: "text" },
+    group3: { control: "text" },
+    group4: { control: "text" },
+    address: { control: "text" },
+    programName: { control: "text" },
+    programType: { control: "text" },
+    model: { control: "text" },
+    principalName: { control: "text" },
+    principalPhone: { control: "text" },
+    principalEmail: { control: "text" },
+    coordinatorName: { control: "text" },
+    coordinatorPhone: { control: "text" },
+    coordinatorEmail: { control: "text" },
+    programManagerName: { control: "text" },
+    programManagerPhone: { control: "text" },
+    programManagerEmail: { control: "text" },
+    isMobile: { control: "boolean" },
   },
 };
 
@@ -127,26 +127,26 @@ type Story = StoryObj<typeof SchoolDetailPageLayout>;
 
 export const FullPage: Story = {
   args: {
-    schoolId: 'school-green-valley-123',
-    schoolName: 'Green Valley High',
-    udise: '12345678901',
-    group1: 'Karnataka',
-    group2: 'Bangalore',
-    group3: 'Cluster A',
-    group4: 'Block 5',
-    address: '123 Main St, Bangalore, Karnataka',
-    programName: 'Awesome Learning',
-    programType: 'Government',
-    model: 'In School',
-    principalName: 'Ms. Rani Gupta',
-    principalPhone: '9876543210',
-    principalEmail: 'rani.gupta@school.org',
-    coordinatorName: 'Mr. Suresh Rao',
-    coordinatorPhone: '9876501234',
-    coordinatorEmail: 'suresh.rao@school.org',
-    programManagerName: 'Priya Singh',
-    programManagerPhone: '9000000001',
-    programManagerEmail: 'priya.singh@org.com',
+    schoolId: "school-green-valley-123",
+    schoolName: "Green Valley High",
+    udise: "12345678901",
+    group1: "Karnataka",
+    group2: "Bangalore",
+    group3: "Cluster A",
+    group4: "Block 5",
+    address: "123 Main St, Bangalore, Karnataka",
+    programName: "Awesome Learning",
+    programType: "Government",
+    model: "In School",
+    principalName: "Ms. Rani Gupta",
+    principalPhone: "9876543210",
+    principalEmail: "rani.gupta@school.org",
+    coordinatorName: "Mr. Suresh Rao",
+    coordinatorPhone: "9876501234",
+    coordinatorEmail: "suresh.rao@school.org",
+    programManagerName: "Priya Singh",
+    programManagerPhone: "9000000001",
+    programManagerEmail: "priya.singh@org.com",
     isMobile: false,
   },
 };

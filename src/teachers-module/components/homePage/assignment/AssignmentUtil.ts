@@ -1,5 +1,5 @@
-import { AssignmentSource, TableTypes } from '../../../../common/constants';
-import { Lesson, RecommendedAssignmentsState } from './RecommendedAssignments';
+import { AssignmentSource, TableTypes } from "../../../../common/constants";
+import { Lesson, RecommendedAssignmentsState } from "./RecommendedAssignments";
 
 export const buildRecommendedPayload = (
   recommendedAssignments: RecommendedAssignmentsState,
@@ -32,10 +32,10 @@ export const getRecommendedLessons = async (
   api: {
     getChaptersForCourse: (
       courseId: string,
-    ) => Promise<TableTypes<'chapter'>[]>;
+    ) => Promise<TableTypes<"chapter">[]>;
     getLessonsForChapter: (
       chapterId: string,
-    ) => Promise<TableTypes<'lesson'>[]>;
+    ) => Promise<TableTypes<"lesson">[]>;
     isAssignmentAlreadyAssigned: (
       schoolId: string,
       classId: string,
@@ -48,8 +48,8 @@ export const getRecommendedLessons = async (
     id: string;
     school_id: string;
   },
-  courseList: TableTypes<'course'>[],
-  lastAssignmentsCourseWise: TableTypes<'assignment'>[] | undefined,
+  courseList: TableTypes<"course">[],
+  lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined,
 ): Promise<RecommendedAssignmentsState> => {
   // Object that will store recommended lessons for each course
   const recommended: RecommendedAssignmentsState = {};
@@ -87,7 +87,7 @@ export const getRecommendedLessons = async (
           ...lessons.map((lesson) => ({
             ...lesson,
             _chapterId: chapter.id,
-            _chapterName: chapter.name ?? '',
+            _chapterName: chapter.name ?? "",
             selected: false,
             source: null,
           })),

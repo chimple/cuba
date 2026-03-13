@@ -1,50 +1,50 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import EditSchoolSection from '../../components/schoolComponent/EditSchoolSection';
-import { action } from '@storybook/addon-actions';
+import type { Meta, StoryObj } from "@storybook/react";
+import EditSchoolSection from "../../components/schoolComponent/EditSchoolSection";
+import { action } from "@storybook/addon-actions";
 
 const meta: Meta<typeof EditSchoolSection> = {
-  title: 'components/schoolComponent/EditSchoolSection',
+  title: "components/schoolComponent/EditSchoolSection",
   component: EditSchoolSection,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     name: {
-      control: 'text',
+      control: "text",
     },
     state: {
-      control: 'text',
+      control: "text",
     },
     district: {
-      control: 'text',
+      control: "text",
     },
     city: {
-      control: 'text',
+      control: "text",
     },
     onNameChange: {
-      action: 'nameChange',
+      action: "nameChange",
     },
     onStateChange: {
-      action: 'stateChange',
+      action: "stateChange",
     },
     onDistrictChange: {
-      action: 'districtChange',
+      action: "districtChange",
     },
     onCityChange: {
-      action: 'cityChange',
+      action: "cityChange",
     },
   },
   args: {
-    name: 'Greenwood High',
-    state: 'California',
-    district: 'Los Angeles',
-    city: 'Los Angeles',
-    onNameChange: action('nameChange'),
-    onStateChange: action('stateChange'),
-    onDistrictChange: action('districtChange'),
-    onCityChange: action('cityChange'),
+    name: "Greenwood High",
+    state: "California",
+    district: "Los Angeles",
+    city: "Los Angeles",
+    onNameChange: action("nameChange"),
+    onStateChange: action("stateChange"),
+    onDistrictChange: action("districtChange"),
+    onCityChange: action("cityChange"),
   },
 };
 
@@ -53,13 +53,13 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    name: 'Greenwood High',
-    state: 'California',
-    district: 'Los Angeles',
-    city: 'Los Angeles',
-    onNameChange: action('nameChange'),
-    onStateChange: action('stateChange'),
-    onDistrictChange: action('districtChange'),
-    onCityChange: action('cityChange'),
+    name: "Greenwood High",
+    state: "California",
+    district: "Los Angeles",
+    city: "Los Angeles",
+    onNameChange: action("nameChange"),
+    onStateChange: action("stateChange"),
+    onDistrictChange: action("districtChange"),
+    onCityChange: action("cityChange"),
   },
 };

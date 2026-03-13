@@ -1,7 +1,10 @@
+
 ion-select {
+  
   border-radius: 30px;
   height: min(5vh, 40px);
   min-height: 35px;
+
 }
 
 ion-select::part(text) {
@@ -11,9 +14,11 @@ ion-select::part(text) {
 }
 
 ion-popover {
+  
 }
 
 .dropdown-header {
+ 
   padding: 0;
   margin: 0;
   display: flex;
@@ -33,6 +38,7 @@ ion-popover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
 }
 
 #drop-down-grade {
@@ -53,4 +59,6 @@ ion-list {
   outline-color: black;
   border-radius: var(--border-radius);
   padding: 0;
+
+
 }

@@ -50,10 +50,7 @@
 }
 
 /* Left column */
-.note-details-drawer-paper
-  > .MuiPaper-root
-  > .MuiBox-root
-  > .MuiBox-root:first-child {
+.note-details-drawer-paper > .MuiPaper-root > .MuiBox-root > .MuiBox-root:first-child {
   display: flex;
   flex-direction: column;
 }
@@ -83,10 +80,7 @@
 }
 
 /* Right column (Date) */
-.note-details-drawer-paper
-  > .MuiPaper-root
-  > .MuiBox-root
-  > .MuiBox-root:last-child {
+.note-details-drawer-paper > .MuiPaper-root > .MuiBox-root > .MuiBox-root:last-child {
   text-align: right;
 }
 

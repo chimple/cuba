@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import {
   FormControl,
   FormLabel,
   Select,
   MenuItem,
   CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
 
 interface Option {
   label: string;
@@ -21,7 +21,7 @@ interface DropdownProps {
   required?: boolean;
   disabled?: boolean;
   loading?: boolean;
-  openDirection?: 'up' | 'down';
+  openDirection?: "up" | "down";
   menuProps?: any;
 }
 
@@ -30,31 +30,31 @@ const DropdownField: React.FC<DropdownProps> = ({
   value,
   onChange,
   options,
-  placeholder = 'Select',
+  placeholder = "Select",
   required = false,
   disabled = false,
   loading = false,
-  openDirection = 'down',
+  openDirection = "down",
   menuProps = {},
 }) => {
-  const isObjectOptions = typeof options[0] === 'object';
+  const isObjectOptions = typeof options[0] === "object";
   const defaultMenuProps = {
     disablePortal: true,
     PaperProps: { style: { maxHeight: 300 } },
     anchorOrigin:
-      openDirection === 'up'
-        ? { vertical: 'bottom', horizontal: 'center' }
-        : { vertical: 'top', horizontal: 'center' },
+      openDirection === "up"
+        ? { vertical: "bottom", horizontal: "center" }
+        : { vertical: "top", horizontal: "center" },
     transformOrigin:
-      openDirection === 'up'
-        ? { vertical: 'top', horizontal: 'center' }
-        : { vertical: 'bottom', horizontal: 'center' },
+      openDirection === "up"
+        ? { vertical: "top", horizontal: "center" }
+        : { vertical: "bottom", horizontal: "center" },
   };
 
   return (
     <FormControl fullWidth size="small">
-      <FormLabel sx={{ color: '#111827' }}>
-        {label} {required && <span style={{ color: 'red' }}>*</span>}
+      <FormLabel sx={{ color: "#111827" }}>
+        {label} {required && <span style={{ color: "red" }}>*</span>}
       </FormLabel>
 
       <Select
@@ -64,11 +64,9 @@ const DropdownField: React.FC<DropdownProps> = ({
         disabled={disabled || loading}
         renderValue={(selected) =>
           selected ? (
-            isObjectOptions ? (
-              (options as Option[]).find((o) => o.value === selected)?.label
-            ) : (
-              selected
-            )
+            isObjectOptions
+              ? (options as Option[]).find((o) => o.value === selected)?.label
+              : selected
           ) : (
             <span className="school-form-dropdown-placeholder">
               {placeholder}

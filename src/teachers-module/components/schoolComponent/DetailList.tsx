@@ -1,19 +1,19 @@
-import React from 'react';
-import { useHistory } from 'react-router-dom';
-import SchoolIcon from '@mui/icons-material/School';
+import React from "react";
+import { useHistory } from "react-router-dom";
+import SchoolIcon from "@mui/icons-material/School";
 import {
   IconType,
   PAGES,
   SchoolWithRole,
   TableTypes,
-} from '../../../common/constants';
-import { t } from 'i18next';
-import './DetailList.css';
+} from "../../../common/constants";
+import { t } from "i18next";
+import "./DetailList.css";
 
 interface DetailListProps {
   type: IconType;
-  school?: TableTypes<'school'>;
-  data: SchoolWithRole[] | TableTypes<'class'>[];
+  school?: TableTypes<"school">;
+  data: SchoolWithRole[] | TableTypes<"class">[];
 }
 
 const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
@@ -21,7 +21,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
   if (data.length === 0) {
     return (
-      <div className="no-school-available">{t('School is not Available')}</div>
+      <div className="no-school-available">{t("School is not Available")}</div>
     );
   }
 
@@ -57,16 +57,17 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
   return (
     <div className="main-list">
+
       {data.map((item) => {
         const name =
           type === IconType.SCHOOL
             ? (item as SchoolWithRole).school.name
-            : (item as TableTypes<'class'>).name;
+            : (item as TableTypes<"class">).name;
 
         const id =
           type === IconType.SCHOOL
             ? (item as SchoolWithRole).school.id
-            : (item as TableTypes<'class'>).id;
+            : (item as TableTypes<"class">).id;
 
         return (
           <div key={id}>

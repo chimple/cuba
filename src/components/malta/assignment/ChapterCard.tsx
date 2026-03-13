@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 import {
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardSubtitle,
   IonCheckbox,
-} from '@ionic/react';
-import { Box } from '@mui/material';
-import { t } from 'i18next';
-import './ChapterCard.css';
+} from "@ionic/react";
+import { Box } from "@mui/material";
+import { t } from "i18next";
+import "./ChapterCard.css";
 
 const ChapterCard: React.FC<{
   chapterTitle: string;
@@ -18,14 +18,14 @@ const ChapterCard: React.FC<{
     <>
       <Box
         sx={{
-          width: '100vw',
-          maxWidth: '93%',
+          width: "100vw",
+          maxWidth: "93%",
           borderRadius: 20,
         }}
       >
         <IonCard className="card">
           <IonCardHeader>
-            <div style={{ display: 'flex' }}>
+            <div style={{ display: "flex" }}>
               <IonCardSubtitle className="card-subtitle">
                 {t(chapterTitle)}
               </IonCardSubtitle>

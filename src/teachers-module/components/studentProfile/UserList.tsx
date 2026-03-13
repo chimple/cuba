@@ -1,27 +1,31 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import './UserList.css';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { CLASS_USERS, TableTypes, OPS_ROLES } from '../../../common/constants';
-import UserDetail from './UserDetail';
-import { IonAlert, IonIcon } from '@ionic/react';
-import { RoleType } from '../../../interface/modelInterfaces';
-import { t } from 'i18next';
-import { trashOutline } from 'ionicons/icons';
-import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
-import { AuthState } from '../../../redux/slices/auth/authSlice';
+import React, { useEffect, useMemo, useState } from "react";
+import "./UserList.css";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import {
+  CLASS_USERS,
+  TableTypes,
+  OPS_ROLES,
+} from "../../../common/constants";
+import UserDetail from "./UserDetail";
+import { IonAlert, IonIcon } from "@ionic/react";
+import { RoleType } from "../../../interface/modelInterfaces";
+import { t } from "i18next";
+import { trashOutline } from "ionicons/icons";
+import { useAppSelector } from "../../../redux/hooks";
+import { RootState } from "../../../redux/store";
+import { AuthState } from "../../../redux/slices/auth/authSlice";
 
 const UserList: React.FC<{
-  schoolDoc: TableTypes<'school'>;
-  classDoc: TableTypes<'class'>;
+  schoolDoc: TableTypes<"school">;
+  classDoc: TableTypes<"class">;
   userType: CLASS_USERS;
 }> = ({ schoolDoc, classDoc, userType }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [allStudents, setAllStudents] = useState<TableTypes<'user'>[]>();
-  const [allTeachers, setAllTeachers] = useState<TableTypes<'user'>[]>();
+  const [allStudents, setAllStudents] = useState<TableTypes<"user">[]>();
+  const [allTeachers, setAllTeachers] = useState<TableTypes<"user">[]>();
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
-    null,
+  const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
+    null
   );
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -37,7 +41,7 @@ const UserList: React.FC<{
       OPS_ROLES.some((role) => currentUserRoles.includes(role)) ||
       currentUserRoles.includes(RoleType.PRINCIPAL) ||
       currentUserRoles.includes(RoleType.COORDINATOR),
-    [currentUserRoles],
+    [currentUserRoles]
   );
   const init = async () => {
     if (userType === CLASS_USERS.STUDENTS) {
@@ -49,7 +53,7 @@ const UserList: React.FC<{
     }
   };
 
-  const handleDeleteClick = (user: TableTypes<'user'>) => {
+  const handleDeleteClick = (user: TableTypes<"user">) => {
     setSelectedUser(user);
     setShowConfirm(true);
   };
@@ -61,17 +65,17 @@ const UserList: React.FC<{
           await api?.deleteApprovedOpsRequestsForUser(
             selectedUser.id,
             schoolDoc.id,
-            classDoc.id,
+            classDoc.id
           );
           await api?.deleteUserFromClass(selectedUser.id, classDoc.id);
           setAllStudents((prev) =>
-            prev?.filter((student) => student.id !== selectedUser.id),
+            prev?.filter((student) => student.id !== selectedUser.id)
           );
         } else if (userType === CLASS_USERS.TEACHERS) {
           await api?.deleteApprovedOpsRequestsForUser(
             selectedUser.id,
             schoolDoc.id,
-            classDoc.id,
+            classDoc.id
           );
           await api?.deleteTeacher(classDoc.id, selectedUser.id);
 
@@ -80,18 +84,18 @@ const UserList: React.FC<{
           await api.updateUserLastModified(selectedUser.id);
 
           setAllTeachers((prev) =>
-            prev?.filter((teacher) => teacher.id !== selectedUser.id),
+            prev?.filter((teacher) => teacher.id !== selectedUser.id)
           );
         } else {
           await api?.deleteApprovedOpsRequestsForUser(
             selectedUser.id,
-            schoolDoc.id,
+            schoolDoc.id
           );
         }
         setShowConfirm(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error("Error deleting user:", error);
       }
     }
   };
@@ -160,16 +164,16 @@ const UserList: React.FC<{
         isOpen={showConfirm}
         onDidDismiss={() => setShowConfirm(false)}
         cssClass="custom-alert"
-        message={t('Are you sure you want to delete this user?') || ''}
+        message={t("Are you sure you want to delete this user?") || ""}
         buttons={[
           {
-            text: t('Delete'),
-            cssClass: 'alert-delete-button',
+            text: t("Delete"),
+            cssClass: "alert-delete-button",
             handler: confirmDelete,
           },
           {
-            text: t('Cancel') || '',
-            cssClass: 'alert-cancel-button',
+            text: t("Cancel") || "",
+            cssClass: "alert-cancel-button",
             handler: () => setShowConfirm(false),
           },
         ]}

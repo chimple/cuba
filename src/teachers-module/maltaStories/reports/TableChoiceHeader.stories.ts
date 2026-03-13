@@ -1,12 +1,12 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import TableChoiceHeader from '../../components/reports/TableChoiceHeader';
-import { subMonths } from 'date-fns';
+import type { Meta, StoryObj } from "@storybook/react"; 
+import TableChoiceHeader from "../../components/reports/TableChoiceHeader";
+import { subMonths } from "date-fns";
 
 const meta = {
-  title: 'teachers-module/report/TableChoiceHeader',
+  title: "teachers-module/report/TableChoiceHeader",
   component: TableChoiceHeader,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
 
   args: {},
@@ -20,41 +20,41 @@ export const Test1: Story = {
       startDate: subMonths(new Date(), 6),
       endDate: new Date(),
     },
-    onDateChange() {},
-    handleNameSort() {},
-    onIsAssignments() {},
-    sortBy: 'Name',
-    isAssignmentsOnlyProp: false,
+    onDateChange(){},
+    handleNameSort(){},
+    onIsAssignments(){},
+    sortBy:"Name",
+    isAssignmentsOnlyProp:false,
     isAssignmentReport: false,
   },
 };
 export const Test2: Story = {
-  args: {
-    isMonthly: false,
-    dateRangeValue: {
-      startDate: subMonths(new Date(), 6),
-      endDate: new Date(),
+    args: {
+      isMonthly: false,
+      dateRangeValue: {
+        startDate: subMonths(new Date(), 6),
+        endDate: new Date(),
+      },
+      onDateChange(){},
+      handleNameSort(){},
+      onIsAssignments(){},
+      sortBy:"High Score",
+      isAssignmentsOnlyProp:true,
+      isAssignmentReport: true,
     },
-    onDateChange() {},
-    handleNameSort() {},
-    onIsAssignments() {},
-    sortBy: 'High Score',
-    isAssignmentsOnlyProp: true,
-    isAssignmentReport: true,
-  },
-};
-export const Test3: Story = {
-  args: {
-    isMonthly: false,
-    dateRangeValue: {
-      startDate: subMonths(new Date(), 6),
-      endDate: new Date(),
+  };
+  export const Test3: Story = {
+    args: {
+      isMonthly: false,
+      dateRangeValue: {
+        startDate: subMonths(new Date(), 6),
+        endDate: new Date(),
+      },
+      onDateChange(){},
+      handleNameSort(){},
+      onIsAssignments(){},
+      sortBy:"Low Score",
+      isAssignmentsOnlyProp:false,
+      isAssignmentReport: false,
     },
-    onDateChange() {},
-    handleNameSort() {},
-    onIsAssignments() {},
-    sortBy: 'Low Score',
-    isAssignmentsOnlyProp: false,
-    isAssignmentReport: false,
-  },
-};
+  };

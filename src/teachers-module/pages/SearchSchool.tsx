@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect } from "react";
 import {
   IonPage,
   IonHeader,
@@ -13,25 +13,29 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSpinner,
-} from '@ionic/react';
-import { searchOutline, close, chevronDownOutline } from 'ionicons/icons';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import SchoolListItem from '../components/SchoolListItem';
+} from "@ionic/react";
+import {
+  searchOutline,
+  close,
+  chevronDownOutline,
+} from "ionicons/icons";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import SchoolListItem from "../components/SchoolListItem";
 import {
   MODES,
   PAGES,
   SearchSchoolsParams,
   STATUS,
   TableTypes,
-} from '../../common/constants';
+} from "../../common/constants";
 
-import './SearchSchool.css';
-import CreateSchoolPrompt from '../components/CreateSchoolPrompt';
-import { t } from 'i18next';
-import { useHistory } from 'react-router';
-import { schoolUtil } from '../../utility/schoolUtil';
-import Header from '../components/homePage/Header';
-import { Util } from '../../utility/util';
+import "./SearchSchool.css";
+import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
+import { t } from "i18next";
+import { useHistory } from "react-router";
+import { schoolUtil } from "../../utility/schoolUtil";
+import Header from "../components/homePage/Header";
+import { Util } from "../../utility/util";
 
 const PAGE_LIMIT = 50;
 
@@ -47,7 +51,7 @@ const SearchSchool: FC = () => {
   const [district, setDistrict] = useState<string>();
   const [block, setBlock] = useState<string>();
   const [cluster, setCluster] = useState<string>();
-  const [searchText, setSearchText] = useState<string>('');
+  const [searchText, setSearchText] = useState<string>("");
 
   // State for dropdown options lists
   const [countries, setCountries] = useState<string[]>([]);
@@ -64,7 +68,7 @@ const SearchSchool: FC = () => {
   const [isClustersLoading, setClustersLoading] = useState(false);
 
   // State for school search results
-  const [schools, setSchools] = useState<TableTypes<'school'>[]>([]);
+  const [schools, setSchools] = useState<TableTypes<"school">[]>([]);
   const [totalResults, setTotalResults] = useState(0);
   const [page, setPage] = useState(1);
   const [isSearchingSchools, setSearchingSchools] = useState(false);
@@ -73,7 +77,7 @@ const SearchSchool: FC = () => {
   const checkPendingRequests = async () => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const existingRequest = await api.getExistingSchoolRequest(
-      currentUser?.id as string,
+      currentUser?.id as string
     );
     if (existingRequest?.request_status === STATUS.REQUESTED) {
       history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
@@ -215,7 +219,7 @@ const SearchSchool: FC = () => {
     });
   };
 
-  const clearSearchText = () => setSearchText('');
+  const clearSearchText = () => setSearchText("");
 
   const handleToggleSchool = (schoolId: string) => {
     setExpandedSchoolId((prevId) => (prevId === schoolId ? null : schoolId));
@@ -224,12 +228,12 @@ const SearchSchool: FC = () => {
   const switchUser = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     setTimeout(() => {
-      Util.killCocosGame();
-    }, 1000);
+          Util.killCocosGame()
+        }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 
-  const handleJoinSchool = (selectedSchool: TableTypes<'school'>) => {
+  const handleJoinSchool = (selectedSchool: TableTypes<"school">) => {
     history.push({
       pathname: PAGES.JOIN_SCHOOL,
       state: { school: selectedSchool },
@@ -243,10 +247,10 @@ const SearchSchool: FC = () => {
     options: string[],
     isLoading: boolean,
     required = false,
-    disabled = false,
+    disabled = false
   ) => (
     <div
-      className={`search-school-field-wrapper ${required ? 'required' : ''}`}
+      className={`search-school-field-wrapper ${required ? "required" : ""}`}
     >
       <IonItem lines="none" className="search-school-item">
         {isLoading ? (
@@ -295,73 +299,69 @@ const SearchSchool: FC = () => {
       <IonContent fullscreen>
         {/* Fixed top area */}
         <div className="search-school-fixed-top-area">
-          <h1 className="search-school-title">{t('Search Your School')}</h1>
+          <h1 className="search-school-title">{t("Search Your School")}</h1>
           <p className="search-school-required-text">
             <span className="search-school-asterisk">*</span>
-            {t('Required Fields')}
+            {t("Required Fields")}
           </p>
 
           <div className="search-school-form">
             <div className="search-school-row">
               {renderDropdown(
-                'Country',
+                "Country",
                 country,
                 setCountry,
                 countries,
                 isCountriesLoading,
-                true,
+                true
               )}
               {renderDropdown(
-                'State',
+                "State",
                 state,
                 setState,
                 states,
                 isStatesLoading,
                 true,
-                !country,
+                !country
               )}
               {renderDropdown(
-                'District',
+                "District",
                 district,
                 setDistrict,
                 districts,
                 isDistrictsLoading,
                 true,
-                !state,
+                !state
               )}
             </div>
             <div className="search-school-row">
               {renderDropdown(
-                'Block',
+                "Block",
                 block,
                 setBlock,
                 blocks,
                 isBlocksLoading,
                 false,
-                !district,
+                !district
               )}
               {renderDropdown(
-                'Cluster',
+                "Cluster",
                 cluster,
                 setCluster,
                 clusters,
                 isClustersLoading,
                 false,
-                !block,
+                !block
               )}
             </div>
           </div>
 
           <div className="search-school-input-container">
-            <IonItem
-              disabled={country && state && district ? false : true}
-              lines="none"
-              className="search-school-item"
-            >
+            <IonItem disabled={(country && state && district)? false : true} lines="none" className="search-school-item">
               <IonIcon icon={searchOutline} slot="start" />
               <IonInput
                 value={searchText}
-                placeholder={t('School Name or UDISE') as string}
+                placeholder={t("School Name or UDISE") as string}
                 onIonChange={(e) => setSearchText(e.detail.value!)}
               />
               {searchText && (
@@ -378,11 +378,11 @@ const SearchSchool: FC = () => {
           {totalResults > 0 && (
             <div className="search-school-results-summary">
               <h3 className="search-school-found-results-text">
-                {t('Found {{count}} results..', { count: totalResults })}
+                {t("Found {{count}} results..", { count: totalResults })}
               </h3>
               <p className="search-school-refine-results-text">
                 {t(
-                  'Refine your results using filters or by rephrasing your school name',
+                  "Refine your results using filters or by rephrasing your school name"
                 )}
               </p>
             </div>
@@ -419,7 +419,7 @@ const SearchSchool: FC = () => {
           >
             <IonInfiniteScrollContent
               loadingSpinner="bubbles"
-              loadingText={t('Loading more schools...') as string}
+              loadingText={t("Loading more schools...") as string}
             />
           </IonInfiniteScroll>
         )}

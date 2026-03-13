@@ -1,6 +1,6 @@
-import { Chapter } from '../common/courseConstants';
-import BaseObject from './baseObject';
-import { DocumentReference, Timestamp } from 'firebase/firestore';
+import { Chapter } from "../common/courseConstants";
+import BaseObject from "./baseObject";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Course extends BaseObject {
   private _title: string;

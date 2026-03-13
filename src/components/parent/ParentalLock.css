@@ -3,7 +3,7 @@
   width: 100%;
   user-select: none;
   text-align: center; /* center the text */
-  padding-top: 50px; /* push text below cross */
+  padding-top: 50px;  /* push text below cross */
 }
 
 #parental-lock-close-icon {
@@ -15,7 +15,7 @@
 
 #parent-screen {
   width: 100%;
-  color: #182a4f;
+  color: #182A4F;
   font-size: 24px;
   font-style: normal;
   font-weight: 600;

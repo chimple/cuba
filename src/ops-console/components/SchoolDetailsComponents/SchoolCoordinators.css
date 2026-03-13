@@ -49,8 +49,7 @@
 .school-coordinators-data-cable-container tbody tr:last-child td {
   border-bottom: none;
 }
-.school-coordinators-data-cable-container
-  .principal-name-data.MuiTypography-root {
+.school-coordinators-data-cable-container .principal-name-data.MuiTypography-root {
   font-weight: 500 !important;
   color: #1d2939 !important;
 }

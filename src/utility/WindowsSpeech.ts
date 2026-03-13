@@ -1,6 +1,6 @@
 // WindowsSpeech.ts
 
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
 
 export class SpeechSynthesisUtterance {
   text: string;
@@ -42,11 +42,11 @@ export class SpeechSynthesis {
     // Call the Capacitor TTS plugin
     TextToSpeech.speak({
       text: utterance.text,
-      lang: utterance.lang ?? 'en-US',
-      rate: utterance.rate ?? 1.0, // 0.0 ~ 1.0 in most TTS engines, see docs
-      pitch: utterance.pitch ?? 1.0, // 0.0 ~ 1.0
-      volume: utterance.volume ?? 1.0, // 0.0 ~ 1.0
-      // 'category' or other options are also possible
+      lang: utterance.lang ?? "en-US",
+      rate: utterance.rate ?? 1.0,    // 0.0 ~ 1.0 in most TTS engines, see docs
+      pitch: utterance.pitch ?? 1.0,  // 0.0 ~ 1.0
+      volume: utterance.volume ?? 1.0 // 0.0 ~ 1.0
+      // 'category' or other options are also possible 
     })
       .then(() => {
         // Once TTS finishes successfully:

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 interface TableRightHeaderProps {
   headerDetails: Map<
     string,
@@ -13,6 +13,7 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
   showSubjects = false,
   subjects = [],
 }) => {
+  
   // For Assignment Report with All Subjects, show subjects as headers
   if (showSubjects && subjects.length > 0) {
     return (
@@ -29,7 +30,9 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
     <>
       {headerDetails.map((dayMap, index) => {
         const firstEntry = dayMap.values().next().value;
-        return <th key={index}>{firstEntry?.headerName || ''}</th>;
+        return (
+          <th key={index}>{firstEntry?.headerName || ''}</th>
+        );
       })}
     </>
   );

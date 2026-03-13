@@ -1,23 +1,23 @@
-import { FC, useEffect, useState } from 'react';
-import { AppUpdater, HotUpdateStatus } from '../services/AppUpdater';
-import { useHistory } from 'react-router';
-import { LANGUAGE, PAGES } from '../common/constants';
-import './HotUpdate.css';
-import { Capacitor } from '@capacitor/core';
-import { useFeatureValue, useFeatureIsOn } from '@growthbook/growthbook-react';
-import { ServiceConfig } from '../services/ServiceConfig';
-import Loading from '../components/Loading';
+import { FC, useEffect, useState } from "react";
+import { AppUpdater, HotUpdateStatus } from "../services/AppUpdater";
+import { useHistory } from "react-router";
+import { LANGUAGE, PAGES } from "../common/constants";
+import "./HotUpdate.css";
+import { Capacitor } from "@capacitor/core";
+import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import { ServiceConfig } from "../services/ServiceConfig";
+import Loading from "../components/Loading";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
   const [currentStatus, setCurrentStatus] = useState(
-    HotUpdateStatus.CHECKING_FOR_UPDATE,
+    HotUpdateStatus.CHECKING_FOR_UPDATE
   );
   const [isLoading, setIsLoading] = useState(true);
-  const can_hot_update = useFeatureIsOn('can_hot_update');
+  const can_hot_update = useFeatureIsOn("can_hot_update");
   const hot_update_server = useFeatureValue(
-    'hot_update_url',
-    'https://chimple-prod-hot-update.web.app/v7',
+    "hot_update_url",
+    "https://chimple-prod-hot-update.web.app/v7"
   );
   const api = ServiceConfig.getI().apiHandler;
 

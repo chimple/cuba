@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { IonAlert, IonicSafeString } from '@ionic/react';
-import Header from '../components/homePage/Header';
-import DisplaySubjects from '../components/DisplaySubjects';
-import './SubjectSelection.css';
-import { ServiceConfig } from '../../services/ServiceConfig';
+import React, { useState, useEffect } from "react";
+import {
+  IonAlert,
+  IonicSafeString,
+} from "@ionic/react";
+import Header from "../components/homePage/Header";
+import DisplaySubjects from "../components/DisplaySubjects";
+import "./SubjectSelection.css";
+import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   PAGES,
   TableTypes,
   CLASS,
   SCHOOL,
   School_Creation_Stages,
-} from '../../common/constants';
-import { Util } from '../../utility/util';
-import { t } from 'i18next';
-import SubjectSelectionComponent from '../components/SubjectSelectionComponent';
-import AddButton from '../../common/AddButton';
-import { RoleType } from '../../interface/modelInterfaces';
-import { useHistory, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../../redux/hooks';
-import { AuthState } from '../../redux/slices/auth/authSlice';
-import { RootState } from '../../redux/store';
+} from "../../common/constants";
+import { Util } from "../../utility/util";
+import { t } from "i18next";
+import SubjectSelectionComponent from "../components/SubjectSelectionComponent";
+import AddButton from "../../common/AddButton";
+import { RoleType } from "../../interface/modelInterfaces";
+import { useHistory, useLocation } from "react-router-dom";
+import { useAppSelector } from "../../redux/hooks";
+import { AuthState } from "../../redux/slices/auth/authSlice";
+import { RootState } from "../../redux/store";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
-  courses: TableTypes<'course'>[];
+  courses: TableTypes<"course">[];
 }
 
 const SubjectSelection: React.FC = () => {
@@ -44,8 +47,8 @@ const SubjectSelection: React.FC = () => {
     isSelect: isSelectSubject = false,
   } = (location.state || {}) as any;
 
-  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
   const [classCourseData, setClassCourseData] = useState<
     {
       class_id: string;
@@ -72,8 +75,8 @@ const SubjectSelection: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const [alertState, setAlertState] = useState({
     isOpen: false,
-    header: '',
-    message: '',
+    header: "",
+    message: "",
   });
   const navigationState = Util.getNavigationState();
   const [canModify, setCanModify] = useState(true);
@@ -105,8 +108,8 @@ const SubjectSelection: React.FC = () => {
   }, [paramClassId, paramSchoolId]);
 
   const fetchCurriculumsAndCourses = async (
-    context: 'school' | 'class',
-    schoolId?: string,
+    context: "school" | "class",
+    schoolId?: string
   ) => {
     try {
       // Fetch common data
@@ -122,7 +125,7 @@ const SubjectSelection: React.FC = () => {
           : [];
       // Extract course IDs for filtering
       const schoolCourseIds = schoolCourses.map(
-        (schoolCourse) => schoolCourse.course_id,
+        (schoolCourse) => schoolCourse.course_id
       );
       // Filter courseDocs based on the context
       const filteredCourseDocs =
@@ -135,13 +138,13 @@ const SubjectSelection: React.FC = () => {
         Record<string, CurriculumWithCourses>
       >((acc, curriculum) => {
         const coursesForCurriculum = filteredCourseDocs.filter(
-          (course) => course.curriculum_id === curriculum.id,
+          (course) => course.curriculum_id === curriculum.id
         );
 
         coursesForCurriculum.forEach((course) => {
           const grade = allGrades.find((grade) => grade.id === course.grade_id);
-          const gradeName = grade ? grade.name : 'N/A';
-          const key = `${curriculum.name} - ${t('Grade')} ${gradeName}`;
+          const gradeName = grade ? grade.name : "N/A";
+          const key = `${curriculum.name} - ${t("Grade")} ${gradeName}`;
 
           if (!acc[key]) {
             acc[key] = {
@@ -165,12 +168,12 @@ const SubjectSelection: React.FC = () => {
         .map((curriculumWithCourses) => ({
           ...curriculumWithCourses,
           courses: curriculumWithCourses.courses.sort((a, b) =>
-            a.name.localeCompare(b.name),
+            a.name.localeCompare(b.name)
           ),
         }))
         .sort((a, b) => {
           const nameComparison = a.curriculum.name.localeCompare(
-            b.curriculum.name,
+            b.curriculum.name
           );
 
           if (nameComparison !== 0) {
@@ -186,7 +189,7 @@ const SubjectSelection: React.FC = () => {
       // Helper function to extract numeric grade value
       function extractGradeNumber(grade: string | undefined): number {
         if (!grade) return 0;
-        if (grade.toLowerCase().includes('below')) return -1;
+        if (grade.toLowerCase().includes("below")) return -1;
 
         const match = grade.match(/\d+/);
         return match ? parseInt(match[0], 10) : 0;
@@ -199,13 +202,13 @@ const SubjectSelection: React.FC = () => {
         setCurriculumsWithCourses(sortedCurriculums);
       }
     } catch (error) {
-      console.error(t('Failed to fetch curriculums and courses'), error);
+      console.error(t("Failed to fetch curriculums and courses"), error);
     }
   };
   const handleSubjectSelection = async (courseId: string) => {
     if (selectedSubjects.includes(courseId)) {
       setSelectedSubjects((prevSelected) =>
-        prevSelected.filter((id) => id !== courseId),
+        prevSelected.filter((id) => id !== courseId)
       );
     } else {
       setSelectedSubjects((prev) => [...prev, courseId]);
@@ -223,20 +226,20 @@ const SubjectSelection: React.FC = () => {
         fetchCurriculumsAndCourses(CLASS, tempSchool?.id);
       }
     } catch (error) {
-      console.error('Failed to load class details', error);
+      console.error("Failed to load class details", error);
     }
   };
 
   const fetchSchoolAndClassSubjects = async (
     id: string,
-    type: 'class' | 'school',
+    type: "class" | "school"
   ) => {
     try {
       if (type === CLASS) {
         const selectedSubjectsFromApi = await api.getCoursesByClassId(id);
         setClassCourseData(selectedSubjectsFromApi);
         const courseIds = selectedSubjectsFromApi.map(
-          (subject) => subject.course_id,
+          (subject) => subject.course_id
         );
         setSelectedSubjects(courseIds);
         setInitialSelectedSubjects(courseIds);
@@ -246,7 +249,7 @@ const SubjectSelection: React.FC = () => {
         const selectedSubjectsFromApi = await api.getCoursesBySchoolId(id);
         setSchoolCourseData(selectedSubjectsFromApi);
         const courseIds = selectedSubjectsFromApi.map(
-          (subject) => subject.course_id,
+          (subject) => subject.course_id
         );
         setSelectedSubjects(courseIds);
         setInitialSelectedSubjects(courseIds);
@@ -259,7 +262,7 @@ const SubjectSelection: React.FC = () => {
 
   async function getConnectedClassesForCourse(
     classIds: string[],
-    courseId: string,
+    courseId: string
   ) {
     const connectedClasses: {
       created_at: string;
@@ -284,7 +287,7 @@ const SubjectSelection: React.FC = () => {
   const generateCourseHTML = (
     curriculumImage: string,
     courseName: string,
-    className: string,
+    className: string
   ): string => {
     return `
       <div class="course-item">
@@ -296,26 +299,26 @@ const SubjectSelection: React.FC = () => {
   const handleConfirmSelection = async () => {
     try {
       const deselectedSubjects = initialSelectedSubjects.filter(
-        (id) => !selectedSubjects.includes(id),
+        (id) => !selectedSubjects.includes(id)
       );
 
       if (paramSchoolId) {
         const currUser = await auth.getCurrentUser();
         if (!currUser) {
-          console.warn('User not authenticated');
+          console.warn("User not authenticated");
           return;
         }
 
         const classes = await api.getClassesForSchool(
           paramSchoolId,
-          currUser?.id,
+          currUser?.id
         );
         const classIds = classes.map((classData) => classData.id);
         const coursesLinkedToClasses = await Promise.all(
           deselectedSubjects.map(async (courseId) => {
             const connectedClass = await getConnectedClassesForCourse(
               classIds,
-              courseId,
+              courseId
             );
             if (connectedClass && connectedClass.length > 0) {
               return connectedClass.map((cls) => ({
@@ -324,7 +327,7 @@ const SubjectSelection: React.FC = () => {
               }));
             }
             return [];
-          }),
+          })
         );
 
         const flattenedCoursesLinkedToClasses = coursesLinkedToClasses.flat();
@@ -334,36 +337,36 @@ const SubjectSelection: React.FC = () => {
         if (coursesThatCannotBeRemoved.length > 0) {
           const courseDetails = await Promise.all(
             coursesThatCannotBeRemoved.map((entry) =>
-              api.getCourse(entry.courseId),
-            ),
+              api.getCourse(entry.courseId)
+            )
           );
 
           const curriculumDetails = await Promise.all(
             coursesThatCannotBeRemoved.map((entry, index) =>
-              api.getCurriculumById(courseDetails[index]?.curriculum_id ?? ''),
-            ),
+              api.getCurriculumById(courseDetails[index]?.curriculum_id ?? "")
+            )
           );
 
           const courseDisplayNames = coursesThatCannotBeRemoved.map(
             (entry, index) => {
-              const courseName = courseDetails[index]?.name || 'Unknown Course';
+              const courseName = courseDetails[index]?.name || "Unknown Course";
               const curriculumName =
-                curriculumDetails[index]?.name || 'Unknown Curriculum';
-              const curriculumImage = curriculumDetails[index]?.image || '';
+                curriculumDetails[index]?.name || "Unknown Curriculum";
+              const curriculumImage = curriculumDetails[index]?.image || "";
               return generateCourseHTML(
                 curriculumImage,
                 courseName,
-                entry.className,
+                entry.className
               ); // Return the HTML here
-            },
+            }
           );
 
           setAlertState({
             isOpen: true,
             header: t(
-              'This subject is linked to the below classes in the school and cannot be removed\n',
+              "This subject is linked to the below classes in the school and cannot be removed\n"
             ),
-            message: courseDisplayNames.join('\n'),
+            message: courseDisplayNames.join("\n"),
           });
           return;
         }
@@ -376,7 +379,7 @@ const SubjectSelection: React.FC = () => {
         if (paramClassId) {
           const matchingCourse = classCourseData.find(
             (entry) =>
-              entry.class_id === paramClassId && entry.course_id === courseId,
+              entry.class_id === paramClassId && entry.course_id === courseId
           );
           if (matchingCourse) {
             classCourseIds.push(matchingCourse.id);
@@ -384,7 +387,7 @@ const SubjectSelection: React.FC = () => {
         } else if (paramSchoolId) {
           const matchingCourse = schoolCourseData.find(
             (entry) =>
-              entry.school_id === paramSchoolId && entry.course_id === courseId,
+              entry.school_id === paramSchoolId && entry.course_id === courseId
           );
           if (matchingCourse) {
             schoolCourseIds.push(matchingCourse.id);
@@ -402,7 +405,7 @@ const SubjectSelection: React.FC = () => {
       const selectedCourseIds = curriculumsWithCourses.flatMap(({ courses }) =>
         courses
           .filter((course) => selectedSubjects.includes(course.id))
-          .map((course) => course.id),
+          .map((course) => course.id)
       );
 
       if (paramClassId) {
@@ -454,7 +457,7 @@ const SubjectSelection: React.FC = () => {
         fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
       }
     } catch (error) {
-      console.error('Failed to update course selections', error);
+      console.error("Failed to update course selections", error);
     }
   };
 
@@ -469,34 +472,34 @@ const SubjectSelection: React.FC = () => {
       if (paramSchoolId) {
         const currUser = await auth.getCurrentUser();
         if (!currUser) {
-          console.warn('User not authenticated');
+          console.warn("User not authenticated");
           return;
         }
         const classes = await api.getClassesForSchool(
           paramSchoolId,
-          currUser?.id,
+          currUser?.id
         );
         const classIds = classes.map((classData) => classData.id);
         // Check if the current subject is connected to any classes
         const connectedClasses = await getConnectedClassesForCourse(
           classIds,
-          courseId,
+          courseId
         );
         if (connectedClasses.length > 0) {
           const courseDetails = await api.getCourse(courseId);
           const curriculumDetails = await api.getCurriculumById(
-            courseDetails?.curriculum_id ?? '',
+            courseDetails?.curriculum_id ?? ""
           );
-          const curriculumImage = curriculumDetails?.image || '';
+          const curriculumImage = curriculumDetails?.image || "";
           const courseDisplayName = generateCourseHTML(
             curriculumImage,
-            courseDetails?.name || 'Unknown Course',
-            connectedClasses[0]?.name,
+            courseDetails?.name || "Unknown Course",
+            connectedClasses[0]?.name
           );
           setAlertState({
             isOpen: true,
             header: t(
-              'This subject is linked to the following class and cannot be removed:',
+              "This subject is linked to the following class and cannot be removed:"
             ),
             message: courseDisplayName,
           });
@@ -507,7 +510,7 @@ const SubjectSelection: React.FC = () => {
       if (paramClassId) {
         const matchingCourse = classCourseData.find(
           (entry) =>
-            entry.class_id === paramClassId && entry.course_id === courseId,
+            entry.class_id === paramClassId && entry.course_id === courseId
         );
         if (matchingCourse) {
           await api.removeCoursesFromClass([matchingCourse.id]);
@@ -515,7 +518,7 @@ const SubjectSelection: React.FC = () => {
       } else if (paramSchoolId) {
         const matchingCourse = schoolCourseData.find(
           (entry) =>
-            entry.school_id === paramSchoolId && entry.course_id === courseId,
+            entry.school_id === paramSchoolId && entry.course_id === courseId
         );
         if (matchingCourse) {
           await api.removeCoursesFromSchool([matchingCourse.id]);
@@ -523,10 +526,10 @@ const SubjectSelection: React.FC = () => {
       }
       // Update selected subjects
       setSelectedSubjects((prevSelected) =>
-        prevSelected.filter((id) => id !== courseId),
+        prevSelected.filter((id) => id !== courseId)
       );
     } catch (error) {
-      console.error('Error while removing subject:', error);
+      console.error("Error while removing subject:", error);
     }
   };
 
@@ -559,14 +562,14 @@ const SubjectSelection: React.FC = () => {
       curriculum: {
         id: curriculum.id,
         name: curriculum.name,
-        grade: curriculum.grade || 'N/A',
+        grade: curriculum.grade || "N/A",
       },
       courses: courses.map((course) => ({
         id: course.id,
         name: course.name,
         image: course.image || undefined,
       })),
-    }),
+    })
   );
 
   return (
@@ -616,7 +619,7 @@ const SubjectSelection: React.FC = () => {
        `)
         }
         buttons={[
-          { text: t('OK'), role: 'cancel', cssClass: 'alert-okay-button' },
+          { text: t("OK"), role: "cancel", cssClass: "alert-okay-button" },
         ]}
         cssClass="custom-alert-in-subject-selection-page"
       />

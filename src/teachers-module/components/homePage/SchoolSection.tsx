@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { IonButton, IonLabel } from '@ionic/react';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { t } from 'i18next';
-import './SchoolSection.css';
-import AutocompleteDropdown from '../SearchableDropdown';
-import { TableTypes } from '../../../common/constants';
-import { RoleType } from '../../../interface/modelInterfaces';
+import React, { useState, useEffect } from "react";
+import { IonButton, IonLabel } from "@ionic/react";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { t } from "i18next";
+import "./SchoolSection.css";
+import AutocompleteDropdown from "../SearchableDropdown";
+import { TableTypes } from "../../../common/constants";
+import { RoleType } from "../../../interface/modelInterfaces";
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -25,15 +25,15 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   handleManageSchoolClick,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
-    null,
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
   );
 
   useEffect(() => {
     const fetchUser = async () => {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error('No user is logged in.');
+        console.error("No user is logged in.");
         return;
       }
       setCurrentUser(user);
@@ -48,7 +48,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
       const result = await api.getSchoolsForUser(currentUser.id, {
         page,
         page_size: 20,
-        search: query || '',
+        search: query || "",
       });
 
       return result.map(({ school, role }: any) => ({
@@ -57,18 +57,18 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         role: role,
       }));
     } catch (err) {
-      console.error('Error fetching schools:', err);
+      console.error("Error fetching schools:", err);
       return [];
     }
   };
   const handleClearSchool = () => {
-    handleSchoolSelect({ id: '', name: '' });
+    handleSchoolSelect({ id: "", name: "" });
   };
   return (
     <>
       <div className="schoolsection-school">
         <img src="assets/icons/scholarIcon.svg" alt="SCHOOL" className="icon" />
-        <span className="school-iconlabel">{t('School')}</span>
+        <span className="school-iconlabel">{t("School")}</span>
       </div>
 
       <div className="school-dropdown">
@@ -89,10 +89,10 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
             fill="clear"
             color=""
             onClick={handleManageSchoolClick}
-            style={{ textTransform: 'none' }}
+            style={{ textTransform: "none" }}
           >
-            <IonLabel style={{ color: '#707070', fontSize: '18px' }}>
-              {t('Manage School')}
+            <IonLabel style={{ color: "#707070", fontSize: "18px" }}>
+              {t("Manage School")}
             </IonLabel>
           </IonButton>
         </div>

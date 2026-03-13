@@ -1,7 +1,7 @@
-import { Timestamp } from 'firebase/firestore';
-import BaseObject from './baseObject';
-import { DocumentReference } from 'firebase/firestore';
-import { StudentLessonResult } from '../common/courseConstants';
+import { Timestamp } from "firebase/firestore";
+import BaseObject from "./baseObject";
+import { DocumentReference } from "firebase/firestore";
+import { StudentLessonResult } from "../common/courseConstants";
 
 export default class StudentProfile extends BaseObject {
   private _classes: string[];
@@ -18,7 +18,7 @@ export default class StudentProfile extends BaseObject {
     schools: string[],
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string,
+    docId: string
   ) {
     super(updatedAt, createdAt, docId);
     this._lastPlayedCourse = lastPlayedCourse;

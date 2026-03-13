@@ -1,6 +1,6 @@
-import { Timestamp } from 'firebase/firestore';
-import BaseObject from './baseObject';
-import { RoleType } from '../interface/modelInterfaces';
+import { Timestamp } from "firebase/firestore";
+import BaseObject from "./baseObject";
+import { RoleType } from "../interface/modelInterfaces";
 
 export default class School extends BaseObject {
   private _name: string;
@@ -20,7 +20,7 @@ export default class School extends BaseObject {
     coordinator: string[],
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string,
+    docId: string
   ) {
     super(updatedAt, createdAt, docId);
     this._name = name;

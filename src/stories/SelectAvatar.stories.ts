@@ -1,22 +1,22 @@
 //@ts-nocheck
-import { fn } from '@storybook/test';
-import type { Meta, StoryObj } from '@storybook/react';
-import SelectAvatar from '../components/editStudent/SelectAvatar';
-import { AVATARS } from '../common/constants';
+import { fn } from "@storybook/test";
+import type { Meta, StoryObj } from "@storybook/react";
+import SelectAvatar from "../components/editStudent/SelectAvatar";
+import { AVATARS } from "../common/constants";
 
 const meta = {
-  title: 'Component/EditStudent/SelectAvatar',
+  title: "Component/EditStudent/SelectAvatar",
   component: SelectAvatar,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     avatar: {
       options: AVATARS,
       mapping: AVATARS,
       control: {
-        type: 'select',
+        type: "select",
         labels: AVATARS,
       },
     },

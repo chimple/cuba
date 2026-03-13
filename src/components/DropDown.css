@@ -1,17 +1,18 @@
 .dropdown-outer {
-  height: 9vh;
-  text-align: start;
-  padding-left: 0.2vw;
-  font-size: 20vh;
+    height: 9vh;
+    text-align: start;
+    padding-left: 0.2vw;
+    font-size: 20vh;
 }
 
 .dropdown-inner {
-  color: rgb(25, 25, 25);
-  font-size: 20vh;
+    color: rgb(25, 25, 25);
+    font-size: 20vh;
+    
 }
 
 .dropdown-item {
-  max-height: 9vh;
-  padding-left: 2vw;
-  font-size: 20vh;
+    max-height: 9vh;
+    padding-left: 2vw;
+    font-size: 20vh;    
 }

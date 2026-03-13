@@ -1,32 +1,36 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import './SchoolUserList.css';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { SCHOOL_USERS, TableTypes, OPS_ROLES } from '../../../common/constants';
-import { IonIcon } from '@ionic/react';
-import { RoleType } from '../../../interface/modelInterfaces';
-import SchoolUserDetail from './SchoolUserDetail';
-import { trashOutline } from 'ionicons/icons';
-import CommonDialogBox from '../../../common/CommonDialogBox';
-import { t } from 'i18next';
-import { Util } from '../../../utility/util';
+import React, { useEffect, useMemo, useState } from "react";
+import "./SchoolUserList.css";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import {
+  SCHOOL_USERS,
+  TableTypes,
+  OPS_ROLES,
+} from "../../../common/constants";
+import { IonIcon } from "@ionic/react";
+import { RoleType } from "../../../interface/modelInterfaces";
+import SchoolUserDetail from "./SchoolUserDetail";
+import { trashOutline } from "ionicons/icons";
+import CommonDialogBox from "../../../common/CommonDialogBox";
+import { t } from "i18next";
+import { Util } from "../../../utility/util";
 
 const SchoolUserList: React.FC<{
-  schoolDoc: TableTypes<'school'>;
+  schoolDoc: TableTypes<"school">;
   userType: SCHOOL_USERS;
   role: RoleType;
 }> = ({ schoolDoc, userType, role }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [allPrincipals, setAllPrincipals] = useState<TableTypes<'user'>[]>();
+  const [allPrincipals, setAllPrincipals] = useState<TableTypes<"user">[]>();
   const [allCoordinators, setAllCoordinators] =
-    useState<TableTypes<'user'>[]>();
-  const [allSponsors, setAllSponsors] = useState<TableTypes<'user'>[]>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
-    null,
+    useState<TableTypes<"user">[]>();
+  const [allSponsors, setAllSponsors] = useState<TableTypes<"user">[]>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
   );
   const [showSelfDeleteError, setShowSelfDeleteError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
-    null,
+  const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
+    null
   );
   const auth = ServiceConfig.getI()?.authHandler;
 
@@ -50,7 +54,7 @@ const SchoolUserList: React.FC<{
     }
   };
 
-  const handleDeleteClick = (user: TableTypes<'user'>) => {
+  const handleDeleteClick = (user: TableTypes<"user">) => {
     if (user.id === currentUser?.id) {
       setShowSelfDeleteError(true);
       return;
@@ -66,34 +70,34 @@ const SchoolUserList: React.FC<{
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.PRINCIPAL,
+            RoleType.PRINCIPAL
           );
           setAllPrincipals((prev) =>
-            prev?.filter((principal) => principal.id !== selectedUser.id),
+            prev?.filter((principal) => principal.id !== selectedUser.id)
           );
         } else if (userType === SCHOOL_USERS.COORDINATORS) {
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.COORDINATOR,
+            RoleType.COORDINATOR
           );
           setAllCoordinators((prev) =>
-            prev?.filter((coordinator) => coordinator.id !== selectedUser.id),
+            prev?.filter((coordinator) => coordinator.id !== selectedUser.id)
           );
         } else {
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.SPONSOR,
+            RoleType.SPONSOR
           );
           setAllCoordinators((prev) =>
-            prev?.filter((coordinator) => coordinator.id !== selectedUser.id),
+            prev?.filter((coordinator) => coordinator.id !== selectedUser.id)
           );
         }
         setShowConfirm(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error("Error deleting user:", error);
       }
       await api.updateSchoolLastModified(schoolDoc.id);
       await api.updateUserLastModified(selectedUser.id);
@@ -105,7 +109,7 @@ const SchoolUserList: React.FC<{
       OPS_ROLES.includes(role) ||
       role === RoleType.PRINCIPAL ||
       role === RoleType.COORDINATOR,
-    [role],
+    [role]
   );
 
   return (
@@ -135,7 +139,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t('No Principals Found')}</div>
+          <div className="no-users-found">{t("No Principals Found")}</div>
         ))}
 
       {userType === SCHOOL_USERS.COORDINATORS &&
@@ -163,7 +167,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t('No Coordinators Found')}</div>
+          <div className="no-users-found">{t("No Coordinators Found")}</div>
         ))}
 
       {userType === SCHOOL_USERS.SPONSORS &&
@@ -191,7 +195,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t('No Sponsors Found')}</div>
+          <div className="no-users-found">{t("No Sponsors Found")}</div>
         ))}
 
       <CommonDialogBox

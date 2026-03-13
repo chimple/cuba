@@ -1,11 +1,15 @@
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp } from "firebase/firestore";
 
 export default class BaseObject {
   private _updatedAt: Timestamp;
   private _createdAt: Timestamp;
   private _docId: string;
 
-  constructor(updatedAt: Timestamp, createdAt: Timestamp, docId: string) {
+  constructor(
+    updatedAt: Timestamp,
+    createdAt: Timestamp,
+    docId: string
+  ) {
     this._updatedAt = updatedAt;
     this._createdAt = createdAt;
     this._docId = docId;

@@ -4,7 +4,7 @@
   height: 10vh;
   gap: 1rem;
   background-color: white;
-  border-radius: min(20px, 5vh);
+  border-radius: min(20px,5vh);
   display: flex;
   padding: 0% min(20px, 2%);
   justify-content: center;

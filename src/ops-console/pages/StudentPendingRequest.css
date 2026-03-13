@@ -148,7 +148,7 @@ html {
   transform: none !important;
   padding: 0.35rem 0.5rem !important;
   height: 3rem;
-  background: #f0f4fa !important;
+  background: #F0F4FA !important;
 }
 
 .student-pending-request-details-table-card {
@@ -245,6 +245,7 @@ html {
 
   margin-right: 8px;
 }
+
 
 @media (max-width: 1100px) {
   .student-pending-request-details-card,

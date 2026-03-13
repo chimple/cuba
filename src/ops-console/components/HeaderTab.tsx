@@ -1,6 +1,6 @@
-import React from 'react';
-import { Tabs, Tab } from '@mui/material';
-import './HeaderTab.css';
+import React from "react";
+import { Tabs, Tab } from "@mui/material";
+import "./HeaderTab.css";
 
 interface TabComponentProps {
   activeTab: number;
@@ -20,17 +20,17 @@ const TabComponent: React.FC<TabComponentProps> = ({
       className="HeaderTab-tabs-container"
       variant="scrollable"
       scrollButtons="auto"
-      TabIndicatorProps={{ className: 'HeaderTab-custom-tab-indicator' }}
+      TabIndicatorProps={{ className: "HeaderTab-custom-tab-indicator" }}
     >
       {tabs.map((tab, index) => (
         <Tab
           sx={{
-            textTransform: 'none',
+            textTransform: "none",
           }}
           key={index}
           label={tab.label}
           className={`HeaderTab-tab-item ${
-            activeTab === index ? 'active' : ''
+            activeTab === index ? "active" : ""
           }`}
         />
       ))}

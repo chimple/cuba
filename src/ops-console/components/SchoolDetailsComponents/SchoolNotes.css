@@ -80,7 +80,8 @@
 }
 
 /* Active page */
-.school-notes-pagination-container .MuiPaginationItem-root.Mui-selected {
+.school-notes-pagination-container
+  .MuiPaginationItem-root.Mui-selected {
   background-color: #2563eb;
   color: #ffffff;
 }

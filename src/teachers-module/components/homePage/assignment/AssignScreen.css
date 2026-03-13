@@ -18,7 +18,7 @@
 .assign-screen-content {
   width: 100%;
   max-width: none;
-  height: 100%;
+  height: 100%; 
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -40,9 +40,9 @@
   flex-direction: column;
   gap: 30px !important;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 1; 
+  min-height: 0; 
+  overflow-y: auto; 
 }
 
 .assign-screen-card {
@@ -51,7 +51,11 @@
   width: 100%;
   flex: 1 1 auto;
   height: auto;
-  min-height: clamp(100px, 13vh, 156px);
+  min-height: clamp(
+    100px,
+    13vh,
+    156px
+  ); 
   font-size: clamp(12px, 2.8cqi, 20px);
   border-radius: clamp(28px, 2.5vw, 64px);
   border: clamp(4px, 0.35vw, 8px) solid var(--card-accent);
@@ -66,7 +70,7 @@
   font: inherit;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   position: relative;
-  overflow: hidden;
+  overflow: hidden; 
   container-type: inline-size;
   appearance: none;
   -webkit-appearance: none;
@@ -144,12 +148,12 @@
 
 .assign-screen-text {
   flex: 1;
-  min-width: 0;
+  min-width: 0; 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center; 
   gap: clamp(6px, 1vh, 10px);
-  height: auto;
+  height: auto; 
 }
 
 .assign-screen-card-caption {
@@ -158,7 +162,7 @@
   font-size: clamp(12px, 3.8cqi, 20px);
   line-height: 1.25;
   font-weight: 500;
-  text-align: center;
+  text-align: center; 
   white-space: normal;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -168,9 +172,9 @@
 
 .assign-screen-card-bottom {
   display: flex;
-  align-items: center;
+  align-items: center; 
   gap: clamp(8px, 1.2vw, 12px);
-  min-width: 0;
+  min-width: 0; 
 }
 
 .assign-screen-card-title {
@@ -274,6 +278,7 @@
     font-size: clamp(20px, 5.4vw, 26px) !important;
     line-height: 1.1;
   }
+
 }
 
 @media (max-width: 430px) {

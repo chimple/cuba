@@ -25,10 +25,8 @@
   overflow: hidden;
   height: 50vh;
   margin: 10%;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(clamp(80px, 40vh, 40px), 1fr)
-  );
+  grid-template-columns: repeat(auto-fill,
+      minmax(clamp(80px, 40vh, 40px), 1fr));
 }
 
 .vertical-line-container {

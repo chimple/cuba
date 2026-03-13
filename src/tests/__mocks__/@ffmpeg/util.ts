@@ -6,7 +6,7 @@
 
 export const fetchFile = jest.fn(async (input: any) => {
   // If given a Blob/File with arrayBuffer(), use it
-  if (input && typeof (input as any).arrayBuffer === 'function') {
+  if (input && typeof (input as any).arrayBuffer === "function") {
     const ab = await (input as any).arrayBuffer();
     return new Uint8Array(ab);
   }

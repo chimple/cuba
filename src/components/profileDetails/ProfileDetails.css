@@ -135,9 +135,7 @@
 
 .profiledetails-save-button:enabled:active {
   border-bottom: 3px solid #8a2901;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  transition: background 0.1s, color 0.1s;
 }
 
 .profiledetails-gender-fieldset {
@@ -207,9 +205,7 @@
   font-size: 26px;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  transition: background 0.1s, color 0.1s;
 }
 
 .profiledetails-skip-button:active {
@@ -258,7 +254,7 @@
 }
 
 .profiledetails-gender-label-text::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 0;

@@ -1,5 +1,5 @@
-import './RadialSeparators.css';
-import type { CSSProperties } from 'react';
+import "./RadialSeparators.css";
+import type { CSSProperties } from "react";
 
 interface SeparatorProps {
   turns: number;
@@ -28,11 +28,9 @@ function RadialSeparators(props: RadialSeparatorsProps) {
   const turns = 1 / props.count;
   return (
     <>
-      {Array.from({ length: props.count }, (_, index: number) => index).map(
-        (index: number) => (
-          <Separator key={index} turns={index * turns} style={props.style} />
-        ),
-      )}
+      {Array.from({ length: props.count }, (_, index: number) => index).map((index: number) => (
+        <Separator key={index} turns={index * turns} style={props.style} />
+      ))}
     </>
   );
 }

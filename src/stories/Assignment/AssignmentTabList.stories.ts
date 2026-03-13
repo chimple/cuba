@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import AssignmentTabList from '../../components/malta/assignment/AssignmentTabList';
-import { ASSIGNMENTTAB_LIST } from '../../common/constants';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import AssignmentTabList from "../../components/malta/assignment/AssignmentTabList";
+import { ASSIGNMENTTAB_LIST } from "../../common/constants";
 
 const meta = {
-  title: 'Component/malta/assignment/AssignmentTabList',
+  title: "Component/malta/assignment/AssignmentTabList",
   component: AssignmentTabList,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     tabHeader: {
       options: Object.values(ASSIGNMENTTAB_LIST),
       mapping: Object.values(ASSIGNMENTTAB_LIST),
       control: {
-        type: 'select',
+        type: "select",
         labels: Object.keys(ASSIGNMENTTAB_LIST),
       },
     },

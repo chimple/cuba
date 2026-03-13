@@ -1,7 +1,7 @@
-import React from 'react';
-import './UserProfileSection.css';
-import { t } from 'i18next';
-import CustomDropdown from './CustomDropdown';
+import React from "react";
+import "./UserProfileSection.css";
+import { t } from "i18next";
+import CustomDropdown from "./CustomDropdown";
 
 interface LanguageOption {
   label: string;
@@ -41,12 +41,12 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
     <div className="update-teacher-form">
       <form>
         <div className="input-group">
-          <label htmlFor="name">{t('Name')}</label>
+          <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
             id="name"
             name="name"
-            placeholder={t('Enter Name') || ''}
+            placeholder={t("Enter Name") || ""}
             value={fullName}
             onChange={(e) => onFullNameChange(e.target.value)}
             disabled={!isEditMode}
@@ -56,61 +56,60 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
 
         {isEditMode ? (
           <div className="input-group">
-            <label>{t('Select Language')}</label>
+            <label>{t("Select Language")}</label>
             <CustomDropdown
               options={mappedLanguageOptions}
               selectedValue={{
                 id: language,
-                name:
-                  mappedLanguageOptions.find((option) => option.id === language)
-                    ?.name || '',
+                name: mappedLanguageOptions.find(option => option.id === language)?.name || "",
               }}
               onOptionSelect={(selectedOption) => {
                 if (selectedOption) {
                   onLanguageChange(String(selectedOption.id));
                 }
               }}
-              placeholder={t('Select Language') as string}
+              placeholder={t("Select Language") as string}
             />
           </div>
         ) : (
           <>
             <div className="input-group">
-              <label htmlFor="email">{t('Email')}</label>
+              <label htmlFor="email">{t("Email")}</label>
               <input
                 type="text"
                 id="email"
                 name="email"
-                value={email || (t('Email not available') as string)}
+                value={email || (t("Email not available") as string)}
                 disabled
               />
               <hr className="horizontal-line" />
             </div>
 
             <div className="input-group">
-              <label htmlFor="phonenumber">{t('Phone')}</label>
+              <label htmlFor="phonenumber">{t("Phone")}</label>
               <input
                 type="text"
                 id="phonenumber"
                 name="phonenumber"
-                value={phoneNum || (t('Phone number not available') as string)}
+                value={phoneNum || (t("Phone number not available") as string)}
                 disabled
               />
               <hr className="horizontal-line" />
             </div>
 
             <div className="input-group">
-              <label htmlFor="language">{t('Language')}</label>
+              <label htmlFor="language">{t("Language")}</label>
               <input
                 type="text"
                 id="language"
                 name="language"
                 value={
                   languageOptions.find((lang) => lang.value === language)
-                    ?.label || ''
+                    ?.label || ""
                 }
                 disabled
               />
+
             </div>
           </>
         )}

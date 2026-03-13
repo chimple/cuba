@@ -1,5 +1,5 @@
-import React, { FC, ReactNode } from 'react';
-import './InputWithIcons.css';
+import React, { FC, ReactNode } from "react";
+import "./InputWithIcons.css";
 
 type InputProps = {
   label: string;
@@ -7,7 +7,7 @@ type InputProps = {
   value: string | number | undefined;
   setValue: (val: any) => void;
   icon: string;
-  type?: 'text' | 'number';
+  type?: "text" | "number";
   maxLength?: number;
   readOnly?: boolean;
   statusIcon?: ReactNode;
@@ -22,17 +22,17 @@ const InputWithIcons: FC<InputProps> = ({
   value,
   setValue,
   icon,
-  type = 'text',
+  type = "text",
   maxLength,
   readOnly = false,
   statusIcon,
   required,
   id,
-  labelOffsetClass = '',
+  labelOffsetClass = "",
 }) => {
   return (
     <div className="with-icon-input-wrapper">
-      <div className={`with-icon-input-label ${labelOffsetClass ?? ''}`}>
+      <div className={`with-icon-input-label ${labelOffsetClass ?? ""}`}>
         {label}
         {required && <span className="with-icon-required">*</span>}
       </div>
@@ -44,13 +44,13 @@ const InputWithIcons: FC<InputProps> = ({
         <input
           id={id}
           type={type}
-          value={value ?? ''}
+          value={value ?? ""}
           onChange={(e) => {
             const inputValue = e.target.value;
             if (readOnly) return;
-            if (type === 'number') {
+            if (type === "number") {
               if (!maxLength || inputValue.length <= maxLength) {
-                setValue(inputValue === '' ? undefined : parseInt(inputValue));
+                setValue(inputValue === "" ? undefined : parseInt(inputValue));
               }
             } else {
               if (!maxLength || inputValue.length <= maxLength) {

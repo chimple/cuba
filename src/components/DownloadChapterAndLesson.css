@@ -3,8 +3,9 @@
   width: clamp(30px, 8vh, 58px);
   border-radius: 50%;
   background-color: rgb(220, 213, 213);
-  cursor: 'pointer';
+  cursor: "pointer";
   position: relative;
+  
 }
 .loading-button-container {
   display: flex;

@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import TabList from '../../components/malta/common/SchoolClassSubjectsTab';
-import { COMMONTAB_LIST } from '../../common/constants';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import TabList from "../../components/malta/common/SchoolClassSubjectsTab";
+import { COMMONTAB_LIST } from "../../common/constants";
 
 const meta = {
-  title: 'Component/malta/school/TabList',
+  title: "Component/malta/school/TabList",
   component: TabList,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     tabHeader: {
       options: Object.values(COMMONTAB_LIST),
       mapping: Object.values(COMMONTAB_LIST),
       control: {
-        type: 'select',
+        type: "select",
         labels: Object.keys(COMMONTAB_LIST),
       },
     },

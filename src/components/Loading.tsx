@@ -1,13 +1,13 @@
-import React from 'react';
-import './Loading.css';
-import { t } from 'i18next';
+import React from "react";
+import "./Loading.css";
+import { t } from "i18next";
 
 interface LoadingProps {
   isLoading: boolean;
   msg?: string;
 }
 
-const Loading: React.FC<LoadingProps> = ({ isLoading, msg = '' }) => {
+const Loading: React.FC<LoadingProps> = ({ isLoading, msg = "" }) => {
   if (!isLoading) return null;
 
   return (

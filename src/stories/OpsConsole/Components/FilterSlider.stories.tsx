@@ -20,17 +20,11 @@ const meta: Meta<typeof FilterSlider> = {
       control: 'object',
       description: 'Available filter options',
     },
-    onFilterChange: {
-      action: 'filterChanged',
-      description: 'Filter change handler',
-    },
+    onFilterChange: { action: 'filterChanged', description: 'Filter change handler' },
     onApply: { action: 'apply', description: 'Apply button handler' },
     onCancel: { action: 'cancel', description: 'Cancel button handler' },
     onClose: { action: 'close', description: 'Close drawer handler' },
-    autocompleteStyles: {
-      control: 'object',
-      description: 'Custom styles for autocomplete',
-    },
+    autocompleteStyles: { control: 'object', description: 'Custom styles for autocomplete' },
   },
 } satisfies Meta<typeof FilterSlider>;
 

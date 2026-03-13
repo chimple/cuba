@@ -6,7 +6,7 @@
 .common-toggle-toggle-label {
   font-size: var(--text-size);
   color: var(--text-color);
-  font-family: 'BalooRegular' !important;
+  font-family: "BalooRegular" !important;
   margin: 0 0.5rem;
 }
 

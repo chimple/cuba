@@ -1,19 +1,14 @@
-import React from 'react';
-import './StudentReportHeader.css';
-import { TableTypes } from '../../../common/constants';
-import { t } from 'i18next';
-import ImageDropdown from '../imageDropdown';
+import React from "react";
+import "./StudentReportHeader.css";
+import { TableTypes } from "../../../common/constants";
+import { t } from "i18next";
+import ImageDropdown from "../imageDropdown";
 
 interface StudentReportHeaderProps {
-  student: TableTypes<'user'>;
-  selectedSubject?: TableTypes<'course'>;
-  mappedSubjectOptions: {
-    id: string;
-    name: string;
-    icon: string;
-    subjectDetail: string;
-  }[];
-  currentClass?: TableTypes<'class'>;
+  student: TableTypes<"user">;
+  selectedSubject?: TableTypes<"course">;
+  mappedSubjectOptions: { id: string; name: string, icon: string, subjectDetail: string }[];
+  currentClass?: TableTypes<"class">;
   onSubjectChange: (selected: {
     id: string | number;
     name: string;
@@ -47,27 +42,23 @@ const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
       </div>
       <div className="report-student-dropdown">
         <ImageDropdown
-          options={mappedSubjectOptions}
-          selectedValue={{
-            id: selectedSubject?.id ?? '',
-            name: selectedSubject?.name ?? '',
-            icon:
-              (selectedSubject as any)?.icon ??
-              mappedSubjectOptions.find(
-                (option) => option.id === selectedSubject?.id,
-              )?.icon ??
-              '',
-            subjectDetail:
-              (selectedSubject as any)?.subjectDetail ??
-              mappedSubjectOptions.find(
-                (option) => option.id === selectedSubject?.id,
-              )?.subjectDetail ??
-              '',
-          }}
-          onOptionSelect={onSubjectChange}
-          placeholder={t('Select Language') as string}
-          isDownBorder={false}
-        />
+  options={mappedSubjectOptions}
+  selectedValue={{
+    id: selectedSubject?.id ?? "",
+    name: selectedSubject?.name ?? "",
+    icon:
+      (selectedSubject as any)?.icon ??
+      mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.icon ??
+      "",
+    subjectDetail:
+      (selectedSubject as any)?.subjectDetail ??
+      mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+      "",
+  }}
+  onOptionSelect={onSubjectChange}
+  placeholder={t("Select Language") as string}
+  isDownBorder={false}
+/>
       </div>
     </div>
   );

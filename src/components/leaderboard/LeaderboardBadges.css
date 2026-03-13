@@ -42,8 +42,8 @@
   font-weight: bold;
   z-index: 1;
 }
-.lost-reward {
-  filter: grayscale(2);
+.lost-reward{
+filter: grayscale(2);
 }
 .red-circle svg {
   width: 2vw;
@@ -95,9 +95,5 @@
 }
 
 .lost-reward p {
-  color: rgb(
-    24,
-    44,
-    79
-  ) !important; /* Change to a visible color */ /* Ensure it's not hidden */
+  color: rgb(24, 44, 79) !important; /* Change to a visible color */ /* Ensure it's not hidden */
 }

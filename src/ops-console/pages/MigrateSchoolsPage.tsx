@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Button,
   CircularProgress,
@@ -8,21 +8,21 @@ import {
   Tab,
   Tabs,
   Typography,
-} from '@mui/material';
-import { t } from 'i18next';
-import DataTableBody from '../components/DataTableBody';
-import DataTablePagination from '../components/DataTablePagination';
-import SearchAndFilter from '../components/SearchAndFilter';
-import FilterSlider from '../components/FilterSlider';
-import SelectedFilters from '../components/SelectedFilters';
-import CommonPopup from '../components/CommonPopup';
-import { BsFillBellFill } from 'react-icons/bs';
+} from "@mui/material";
+import { t } from "i18next";
+import DataTableBody from "../components/DataTableBody";
+import DataTablePagination from "../components/DataTablePagination";
+import SearchAndFilter from "../components/SearchAndFilter";
+import FilterSlider from "../components/FilterSlider";
+import SelectedFilters from "../components/SelectedFilters";
+import CommonPopup from "../components/CommonPopup";
+import { BsFillBellFill } from "react-icons/bs";
 import {
   MigrationTab,
   useMigrateSchoolsPageLogic,
-} from './MigrateSchoolsPageLogic';
-import './MigrateSchoolsPage.css';
-import './MigrateSchoolsPageMobile.css';
+} from "./MigrateSchoolsPageLogic";
+import "./MigrateSchoolsPage.css";
+import "./MigrateSchoolsPageMobile.css";
 
 const MigrateSchoolsPage: React.FC = () => {
   const {
@@ -73,7 +73,7 @@ const MigrateSchoolsPage: React.FC = () => {
           className="migrate-schools-title-row"
         >
           <h1 id="migrate-schools-title" className="migrate-schools-title">
-            {t('Migrate Schools')}
+            {t("Migrate Schools")}
           </h1>
           <IconButton className="migrate-schools-bell-icon">
             <BsFillBellFill />
@@ -93,13 +93,13 @@ const MigrateSchoolsPage: React.FC = () => {
             textColor="primary"
           >
             <Tab
-              label={t('Migrate')}
+              label={t("Migrate")}
               value="migrate"
               id="migrate-schools-migrate-tab"
               className="migrate-schools-tab"
             />
             <Tab
-              label={t('Migrated')}
+              label={t("Migrated")}
               value="migrated"
               id="migrate-schools-migrated-tab"
               className="migrate-schools-tab"
@@ -143,9 +143,9 @@ const MigrateSchoolsPage: React.FC = () => {
       <div
         id="migrate-schools-table-wrap"
         className={`migrate-schools-table-wrap${
-          activeTab === 'migrated'
-            ? ' migrate-schools-table-wrap-hide-selection'
-            : ''
+          activeTab === "migrated"
+            ? " migrate-schools-table-wrap-hide-selection"
+            : ""
         }`}
       >
         {!isLoading && rows.length > 0 && (
@@ -157,14 +157,14 @@ const MigrateSchoolsPage: React.FC = () => {
             onSort={handleSort}
             loading={isLoading}
             selectableRows
-            selectedRowIds={activeTab === 'migrate' ? selectedSchoolIds : []}
+            selectedRowIds={activeTab === "migrate" ? selectedSchoolIds : []}
             onToggleRowSelection={
-              activeTab === 'migrate' ? handleToggleSchoolSelection : undefined
+              activeTab === "migrate" ? handleToggleSchoolSelection : undefined
             }
             onToggleSelectAll={
-              activeTab === 'migrate' ? handleSelectAllVisible : undefined
+              activeTab === "migrate" ? handleSelectAllVisible : undefined
             }
-            isRowSelectable={() => activeTab === 'migrate'}
+            isRowSelectable={() => activeTab === "migrate"}
             getRowId={(row) => String(row.sch_id || row.id)}
             disableRowNavigation
           />
@@ -172,7 +172,7 @@ const MigrateSchoolsPage: React.FC = () => {
 
         {!isLoading && rows.length === 0 && (
           <div id="migrate-schools-empty" className="migrate-schools-empty">
-            {t('No schools found.')}
+            {t("No schools found.")}
           </div>
         )}
       </div>
@@ -182,8 +182,8 @@ const MigrateSchoolsPage: React.FC = () => {
           id="migrate-schools-footer"
           className={`migrate-schools-footer${
             isSelectionActionVisible
-              ? ' migrate-schools-footer-with-action'
-              : ''
+              ? " migrate-schools-footer-with-action"
+              : ""
           }`}
         >
           <div
@@ -211,8 +211,8 @@ const MigrateSchoolsPage: React.FC = () => {
                   className="migrate-schools-selected-count-number"
                 >
                   ({selectedSchoolIds.length})
-                </span>{' '}
-                {t('Schools Selected')}
+                </span>{" "}
+                {t("Schools Selected")}
               </span>
               <Button
                 variant="contained"
@@ -221,7 +221,7 @@ const MigrateSchoolsPage: React.FC = () => {
                 onClick={handleOpenMigrateDialog}
                 disabled={isMigrating}
               >
-                {t('Migrate')}
+                {t("Migrate")}
               </Button>
             </div>
           )}
@@ -245,7 +245,7 @@ const MigrateSchoolsPage: React.FC = () => {
             className="migrate-schools-confirm-text"
           >
             {t(
-              'Are you sure you want to migrate the selected {{count}} schools to the next academic year?',
+              "Are you sure you want to migrate the selected {{count}} schools to the next academic year?",
               { count: selectedSchoolIds.length },
             )}
           </Typography>
@@ -254,7 +254,7 @@ const MigrateSchoolsPage: React.FC = () => {
             id="migrate-schools-confirm-warning"
             className="migrate-schools-confirm-warning"
           >
-            {t('This cannot be reversed. Please be certain.')}
+            {t("This cannot be reversed. Please be certain.")}
           </div>
 
           <div
@@ -268,7 +268,7 @@ const MigrateSchoolsPage: React.FC = () => {
               onClick={handleCloseMigrateDialog}
               disabled={isMigrating}
             >
-              {t('Cancel')}
+              {t("Cancel")}
             </Button>
             <Button
               variant="contained"
@@ -282,7 +282,7 @@ const MigrateSchoolsPage: React.FC = () => {
                 ) : undefined
               }
             >
-              {isMigrating ? t('Migrating...') : t('Migrate')}
+              {isMigrating ? t("Migrating...") : t("Migrate")}
             </Button>
           </div>
         </DialogContent>
@@ -294,14 +294,14 @@ const MigrateSchoolsPage: React.FC = () => {
         icon={
           <img
             src="assets/icons/migratesuccess.svg"
-            alt={String(t('Migration success'))}
+            alt={String(t("Migration success"))}
             id="migrate-schools-success-icon"
             className="migrate-schools-success-icon"
           />
         }
-        title={t('Successfully Migrated')}
+        title={t("Successfully Migrated")}
         subtitle={t(
-          'Selected {{count}} schools have migrated to the next academic year.',
+          "Selected {{count}} schools have migrated to the next academic year.",
           { count: selectedSchoolIds.length },
         )}
       />
@@ -312,18 +312,17 @@ const MigrateSchoolsPage: React.FC = () => {
         icon={
           <img
             src="assets/icons/migratefailure.svg"
-            alt={String(t('Something went wrong'))}
+            alt={String(t("Something went wrong"))}
             id="migrate-schools-failure-icon"
             className="migrate-schools-failure-icon"
           />
         }
-        title={t('Something went wrong')}
-        subtitle={t(
-          "We couldn't complete the migration. Please try again later",
-        )}
+        title={t("Something went wrong")}
+        subtitle={t("We couldn't complete the migration. Please try again later")}
       />
     </div>
   );
 };
 
 export default MigrateSchoolsPage;
+

@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { PAGES, SchoolWithRole, TableTypes } from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import Header from '../components/homePage/Header';
-import SchoolProfileContent from '../components/schoolComponent/SchoolProfileContent';
-import './SchoolProfile.css';
-import { useHistory, useLocation } from 'react-router-dom';
-import { Util } from '../../utility/util';
+import React, { useEffect, useState } from "react";
+import {
+  PAGES,
+  SchoolWithRole,
+  TableTypes,
+} from "../../common/constants";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import Header from "../components/homePage/Header";
+import SchoolProfileContent from "../components/schoolComponent/SchoolProfileContent";
+import "./SchoolProfile.css";
+import { useHistory, useLocation } from "react-router-dom";
+import { Util } from "../../utility/util";
 
 const SchoolProfile: React.FC = () => {
   const history = useHistory();
   const location = useLocation<SchoolWithRole>();
   const [currentSchool, setCurrentSchool] = useState<
-    TableTypes<'school'> | undefined
+    TableTypes<"school"> | undefined
   >();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
@@ -30,7 +34,7 @@ const SchoolProfile: React.FC = () => {
       if (!user) return;
       if (school) setCurrentSchool(school);
     } catch (error) {
-      console.error('Error initializing data:', error);
+      console.error("Error initializing data:", error);
     }
   };
 

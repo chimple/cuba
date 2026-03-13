@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import AddStudent from '../pages/AddStudent';
+import type { Meta, StoryObj } from "@storybook/react";
+import AddStudent from "../pages/AddStudent";
 
 const meta: Meta = {
-  title: 'Pages/Malta/AddStudent',
+  title: "Pages/Malta/AddStudent",
   component: AddStudent,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
 };
 

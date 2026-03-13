@@ -1,29 +1,29 @@
-import { FC, useState, useEffect } from 'react';
-import { t } from 'i18next';
-import SelectIconImage from './SelectIconImage';
-import { Splide, SplideSlide } from '@splidejs/react-splide';
+import { FC, useState, useEffect } from "react";
+import { t } from "i18next";
+import SelectIconImage from "./SelectIconImage";
+import { Splide, SplideSlide } from "@splidejs/react-splide";
 import {
   DEFUALT_SUBJECT_CARD_COLOUR,
   TableTypes,
-} from '../../common/constants';
-import { BsFillCheckCircleFill } from 'react-icons/bs';
-import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
-import Loading from '../Loading';
-import './AddCourse.css';
-import { ServiceConfig } from '../../services/ServiceConfig';
+} from "../../common/constants";
+import { BsFillCheckCircleFill } from "react-icons/bs";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+import Loading from "../Loading";
+import "./AddCourse.css";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const AddCourse: FC<{
-  courses: TableTypes<'course'>[];
-  onSelectedCoursesChange: (selectedCourses: TableTypes<'course'>[]) => void;
+  courses: TableTypes<"course">[];
+  onSelectedCoursesChange: (selectedCourses: TableTypes<"course">[]) => void;
 }> = ({ courses, onSelectedCoursesChange }) => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [coursesSelected, setCoursesSelected] =
-    useState<TableTypes<'course'>[]>();
-  const [curriculums, setCurriculums] = useState<TableTypes<'curriculum'>[]>();
+    useState<TableTypes<"course">[]>();
+  const [curriculums, setCurriculums] = useState<TableTypes<"curriculum">[]>();
   const [gradesMap, setGradesMap] = useState(
-    new Map<String, TableTypes<'grade'>>(),
+    new Map<String, TableTypes<"grade">>()
   );
   const api = ServiceConfig.getI().apiHandler;
   const [allCourses, setAllCourses] = useState([
@@ -34,7 +34,7 @@ const AddCourse: FC<{
   allCourses.sort((a, b) => {
     return (a.course.sort_index ?? 0) - (b.course.sort_index ?? 0);
   });
-  let selectedCourses: TableTypes<'course'>[] = [];
+  let selectedCourses: TableTypes<"course">[] = [];
 
   useEffect(() => {
     getCurriculum();
@@ -49,7 +49,7 @@ const AddCourse: FC<{
   const getAllGradeDocs = async () => {
     const grades = await api.getAllGrades();
     if (grades && grades.length > 0) {
-      const temp = new Map<string, TableTypes<'grade'>>();
+      const temp = new Map<string, TableTypes<"grade">>();
       grades.forEach((grade) => {
         temp.set(grade.id, grade);
       });
@@ -57,17 +57,17 @@ const AddCourse: FC<{
     }
   };
 
-  const handleClick = (course: TableTypes<'course'>) => {
+  const handleClick = (course: TableTypes<"course">) => {
     if (!online) {
       presentToast({
         message: t(`Device is offline.`),
-        color: 'danger',
+        color: "danger",
         duration: 3000,
-        position: 'bottom',
+        position: "bottom",
         buttons: [
           {
-            text: 'Dismiss',
-            role: 'cancel',
+            text: "Dismiss",
+            role: "cancel",
           },
         ],
       });
@@ -80,7 +80,7 @@ const AddCourse: FC<{
       } else {
         selectedCourses = coursesSelected!;
         const cCourse = selectedCourses?.find(
-          (courseObject) => courseObject.id === course.id,
+          (courseObject) => courseObject.id === course.id
         );
         if (cCourse == null || cCourse == undefined) {
           selectedCourses.push(course);
@@ -103,14 +103,14 @@ const AddCourse: FC<{
             arrows: false,
             wheel: false,
             lazyLoad: true,
-            direction: 'ltr',
+            direction: "ltr",
             pagination: false,
           }}
         >
           {allCourses.map((course) => {
             if (course.course.curriculum_id === curr) {
               const grade = gradesMap.get(course.course.grade_id!);
-              const gradeTitle = grade ? grade.name : '';
+              const gradeTitle = grade ? grade.name : "";
 
               return (
                 <SplideSlide
@@ -133,7 +133,7 @@ const AddCourse: FC<{
                       <div id="add-course-subject-card-select-icon">
                         <div>
                           <BsFillCheckCircleFill
-                            color={'white'}
+                            color={"white"}
                             className="add-course-gender-check-box"
                             size="4vh"
                           />
@@ -150,17 +150,17 @@ const AddCourse: FC<{
                       style={{
                         backgroundColor:
                           course.course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
-                        flexDirection: 'column',
+                        flexDirection: "column",
                       }}
                     >
                       <SelectIconImage
                         localSrc={`courses/chapter_icons/${course.course.code}.png`}
-                        defaultSrc={'assets/icons/DefaultIcon.png'}
+                        defaultSrc={"assets/icons/DefaultIcon.png"}
                         webSrc={
-                          course.course.image || 'assets/icons/DefaultIcon.png'
+                          course.course.image || "assets/icons/DefaultIcon.png"
                         }
-                        imageWidth={'80%'}
-                        imageHeight={'auto'}
+                        imageWidth={"80%"}
+                        imageHeight={"auto"}
                       />
                     </div>
 
@@ -191,14 +191,14 @@ const AddCourse: FC<{
         <div>
           {curriculums.map((curriculum) => {
             const coursesForCurriculum = allCourses.filter(
-              (course) => course.course.curriculum_id === curriculum.id,
+              (course) => course.course.curriculum_id === curriculum.id
             );
 
             if (coursesForCurriculum.length > 0) {
               return (
                 <div key={curriculum.id}>
                   <div className="add-course-subject-header">
-                    {t(curriculum.name) + ' ' + t('Curriculum')}
+                    {t(curriculum.name) + " " + t("Curriculum")}
                   </div>
                   {renderSubjectCard(curriculum.id, curriculum.name)}
                 </div>

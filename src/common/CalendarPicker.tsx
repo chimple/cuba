@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { IonDatetime, IonButtons, IonButton } from '@ionic/react';
-import './CalendarPicker.css';
-import { t } from 'i18next';
+import React, { useEffect, useRef, useState } from "react";
+import { IonDatetime, IonButtons, IonButton } from "@ionic/react";
+import "./CalendarPicker.css";
+import { t } from "i18next";
 
 interface CalendarPickerProps {
   value: string | null;
   onConfirm: (value: string) => void;
   onCancel: () => void;
-  mode: 'start' | 'end'; // Define if this is for start or end date selection
+  mode: "start" | "end"; // Define if this is for start or end date selection
   startDate?: string | null; // Pass selected start date to apply end date constraint
   minDate?: string;
   maxDate?: string;
@@ -26,12 +26,14 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
   const [currentValue, setCurrentValue] = useState<string | null>(value);
 
   // Format today’s date to 'yyyy-MM-dd' format
-  const today = new Date().toISOString().split('T')[0];
-  const effectiveMaxDate = (maxDate || today).split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
+  const effectiveMaxDate = (maxDate || today).split("T")[0];
   const effectiveMinDate =
-    mode === 'start' ? minDate : minDate || startDate || '1900-01-01';
+    mode === "start"
+      ? minDate
+      : minDate || startDate || "1900-01-01";
   // Ensure that effectiveMinDate is never undefined
-  const safeMinDate = effectiveMinDate ?? '1900-01-01';
+  const safeMinDate = effectiveMinDate ?? "1900-01-01";
 
   useEffect(() => {
     setCurrentValue(value);
@@ -39,7 +41,7 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
 
   useEffect(() => {
     if (datetimeRef.current) {
-      datetimeRef.current.value = currentValue || '';
+      datetimeRef.current.value = currentValue || "";
     }
   }, [currentValue]);
 
@@ -50,7 +52,7 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
   };
 
   const handleDateChange = (event: CustomEvent) => {
-    const newDate = event.detail.value?.split('T')[0]; // Extract only the date part
+    const newDate = event.detail.value?.split("T")[0]; // Extract only the date part
 
     // Directly compare dates as strings in 'yyyy-MM-dd' format
     if (newDate && newDate >= safeMinDate && newDate <= effectiveMaxDate) {
@@ -72,16 +74,16 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
         <IonButton
           onClick={onCancel}
           className="confirm-button"
-          style={{ textTransform: 'none' }}
+          style={{ textTransform: "none" }}
         >
-          {t('Cancel')}
+          {t("Cancel")}
         </IonButton>
         <IonButton
           onClick={handleConfirm}
           className="confirm-button"
-          style={{ textTransform: 'none' }}
+          style={{ textTransform: "none" }}
         >
-          {t('Confirm')}
+          {t("Confirm")}
         </IonButton>
       </IonButtons>
     </div>
@@ -89,3 +91,4 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
 };
 
 export default CalendarPicker;
+

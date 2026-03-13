@@ -9,6 +9,7 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 
+
 i18n.init({
   lng: 'en',
   fallbackLng: 'en',
@@ -64,7 +65,7 @@ const meta: Meta<typeof ProgramDetailsPage> = {
     (Story) => (
       <I18nextProvider i18n={i18n}>
         <MemoryRouter initialEntries={['/programs/123']}>
-          <Route path="/programs/:programId" component={Story} />
+        <Route path="/programs/:programId" component={Story} />
         </MemoryRouter>
       </I18nextProvider>
     ),
@@ -77,3 +78,4 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Page: Story = {};
+

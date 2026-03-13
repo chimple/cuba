@@ -1,28 +1,28 @@
 //@ts-nocheck
-import GenderAndAge from '../components/editStudent/GenderAndAge';
-import { fn } from '@storybook/test';
-import type { Meta, StoryObj } from '@storybook/react';
-import { GENDER } from '../common/constants';
+import GenderAndAge from "../components/editStudent/GenderAndAge";
+import { fn } from "@storybook/test";
+import type { Meta, StoryObj } from "@storybook/react";
+import { GENDER } from "../common/constants";
 
 const meta = {
-  title: 'Component/EditStudent/GenderAndAge',
+  title: "Component/EditStudent/GenderAndAge",
   component: GenderAndAge,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     gender: {
       options: Object.values(GENDER),
       mapping: Object.values(GENDER),
       control: {
-        type: 'select',
+        type: "select",
         labels: Object.keys(GENDER),
       },
     },
     age: {
       control: {
-        type: 'number',
+        type: "number",
         min: 4,
         max: 10,
         step: 1,

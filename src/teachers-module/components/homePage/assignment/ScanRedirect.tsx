@@ -1,6 +1,6 @@
-import { FC, useEffect } from 'react';
-import { useHistory } from 'react-router';
-import { PAGES } from '../../../../common/constants';
+import { FC, useEffect } from "react";
+import { useHistory } from "react-router";
+import { PAGES } from "../../../../common/constants";
 
 const ScanRedirect: FC = () => {
   const history = useHistory();
@@ -9,7 +9,7 @@ const ScanRedirect: FC = () => {
     history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
   }, [history]);
 
-  return null;
+  return null; 
 };
 
 export default ScanRedirect;

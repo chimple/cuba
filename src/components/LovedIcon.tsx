@@ -1,5 +1,6 @@
-import './LovedIcon.css';
-import { Favorite } from '@mui/icons-material';
+
+import "./LovedIcon.css";
+import { Favorite } from "@mui/icons-material";
 
 const LovedIcon: React.FC<{
   isLoved: boolean | undefined;
@@ -8,10 +9,9 @@ const LovedIcon: React.FC<{
   return (
     <div className="lovedicon">
       {isLoved && (
-        <div
-          className={`fav-icon ${hasChapterTitle ? 'with-chapter-title' : ''}`}
-        >
-          <Favorite className="fav-icon-image" id="fav-icon-image" />
+        <div className={`fav-icon ${hasChapterTitle ? 'with-chapter-title' : ''}`}>
+          <Favorite className="fav-icon-image"
+            id="fav-icon-image" />
         </div>
       )}
     </div>

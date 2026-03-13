@@ -1,5 +1,5 @@
-import React from 'react';
-import { t } from 'i18next';
+import React from "react";
+import { t } from "i18next";
 
 interface StudentProfileSectionProps {
   school: string;
@@ -18,23 +18,23 @@ const StudentProfileSection: React.FC<StudentProfileSectionProps> = ({
 }) => {
   return (
     <>
-      <h2 className="section-title">{t('Student Profile')}</h2>
+      <h2 className="section-title">{t("Student Profile")}</h2>
       <div className="student-profile-section">
         <div className="profile-lines-container">
           <div className="profile-line">
-            {t('School')}:{school}
+            {t("School")}:{school}
           </div>
           <div className="profile-line">
-            {t('Class')}:{className}
+            {t("Class")}:{className}
           </div>
           <div className="profile-line">
-            {t('Gender')}:{gender}
+            {t("Gender")}:{gender}
           </div>
           <div className="profile-line">
-            {t('Age')}:{age}
+            {t("Age")}:{age}
           </div>
           <div className="profile-line">
-            {t('Class Code')}:{classCode}
+            {t("Class Code")}:{classCode}
           </div>
         </div>
       </div>

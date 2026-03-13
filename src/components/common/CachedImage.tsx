@@ -1,7 +1,7 @@
-import { ImgHTMLAttributes, useEffect, useState } from 'react';
-import { Capacitor, CapacitorHttp } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { CACHE_IMAGE } from '../../common/constants';
+import { ImgHTMLAttributes, useEffect, useState } from "react";
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { CACHE_IMAGE } from "../../common/constants";
 
 function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
   const [imgSrc, setImgSrc] = useState<string>();
@@ -10,28 +10,28 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     if (!Capacitor.isNativePlatform()) return url;
     try {
       const result = await Filesystem.readFile({
-        path: CACHE_IMAGE + '/' + url.replaceAll('/', '-'),
+        path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
         directory: Directory.Cache,
       });
-      return 'data:image/png;base64,' + result.data;
+      return "data:image/png;base64," + result.data;
     } catch (error) {
       try {
         // retrieve the image
         const response = await CapacitorHttp.get({
           url: url,
-          responseType: 'blob',
+          responseType: "blob",
         });
         const blob = await response.data;
         await Filesystem.writeFile({
-          path: CACHE_IMAGE + '/' + url.replaceAll('/', '-'),
+          path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
           data: blob,
           directory: Directory.Cache,
         });
-        return 'data:image/png;base64,' + blob;
+        return "data:image/png;base64," + blob;
       } catch (error) {
         console.error(
-          '🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:',
-          JSON.stringify(error),
+          "🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:",
+          JSON.stringify(error)
         );
         return url;
       }
@@ -45,17 +45,13 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
         })
         .catch((error) => {
           console.error(
-            '🚀 ~ file: CachedImage.tsx:14 ~ useEffect ~ error:',
-            JSON.stringify(error),
+            "🚀 ~ file: CachedImage.tsx:14 ~ useEffect ~ error:",
+            JSON.stringify(error)
           );
           setImgSrc(props.src);
         });
     }
   }, [props]);
-  return !!imgSrc ? (
-    <img loading="lazy" {...props} src={imgSrc} alt={imgSrc} />
-  ) : (
-    <div></div>
-  );
+  return !!imgSrc ? <img loading="lazy" {...props} src={imgSrc} alt={imgSrc} /> : <div></div>;
 }
 export default CachedImage;

@@ -1,4 +1,4 @@
-import './LessonCardStarIcons.css';
+import "./LessonCardStarIcons.css";
 const LessonCardStarIcons: React.FC<{
   score: number;
 }> = ({ score }) => {
@@ -46,3 +46,5 @@ const LessonCardStarIcons: React.FC<{
   );
 };
 export default LessonCardStarIcons;
+
+

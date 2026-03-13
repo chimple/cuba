@@ -1,10 +1,10 @@
-import './GenderAndAge.css';
-import { CgBoy, CgGirl } from 'react-icons/cg';
-import { BsFillCheckCircleFill } from 'react-icons/bs';
-import { IonRow } from '@ionic/react';
-import React from 'react';
-import { GENDER } from '../../common/constants';
-import { t } from 'i18next';
+import "./GenderAndAge.css";
+import { CgBoy, CgGirl } from "react-icons/cg";
+import { BsFillCheckCircleFill } from "react-icons/bs";
+import { IonRow } from "@ionic/react";
+import React from "react";
+import { GENDER } from "../../common/constants";
+import { t } from "i18next";
 
 const GenderAndAge: React.FC<{
   gender: GENDER | undefined;
@@ -15,7 +15,7 @@ const GenderAndAge: React.FC<{
   return (
     <div>
       <div className="main-header">
-        <div className="gender-title">{t('What is your child’s gender?')}</div>
+        <div className="gender-title">{t("What is your child’s gender?")}</div>
         <div className="gender-container">
           <div
             className="gender-button"
@@ -25,10 +25,10 @@ const GenderAndAge: React.FC<{
           >
             <IonRow>
               <CgBoy size="8vh" color="#ffad1a" />
-              <p className="gender-text"> {t('Boy')}</p>
+              <p className="gender-text"> {t("Boy")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-              color={gender === GENDER.BOY ? '#81C127' : 'grey'}
+              color={gender === GENDER.BOY ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
             />
@@ -41,10 +41,10 @@ const GenderAndAge: React.FC<{
           >
             <IonRow>
               <CgGirl size="8vh" color="#e28daf" />
-              <p className="gender-text"> {t('Girl')}</p>
+              <p className="gender-text"> {t("Girl")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-              color={gender === GENDER.GIRL ? '#81C127' : 'grey'}
+              color={gender === GENDER.GIRL ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
             />
@@ -58,17 +58,17 @@ const GenderAndAge: React.FC<{
             >
               <IonRow>
                 <CgBoy size="8vh" color="#ffad1a" />
-                <p className="gender-text"> {t('Unspecified')}</p>
+                <p className="gender-text"> {t("Unspecified")}</p>
               </IonRow>
               <BsFillCheckCircleFill
-                color={gender === GENDER.OTHER ? '#81C127' : 'grey'}
+                color={gender === GENDER.OTHER ? "#81C127" : "grey"}
                 className="gender-check-box"
                 size="4vh"
               />
             </div>
           </div>
         </div>
-        <div className="gender-title">{t('What is your child’s age?')}</div>
+        <div className="gender-title">{t("What is your child’s age?")}</div>
         <div className="age-container">
           {Array(7)
             .fill(null)
@@ -77,16 +77,16 @@ const GenderAndAge: React.FC<{
               return (
                 <div
                   className={
-                    'age-button ' + (age === value ? 'active-age' : '')
+                    "age-button " + (age === value ? "active-age" : "")
                   }
                   onClick={() => {
                     onAgeChange(value);
                   }}
                   key={index}
                 >
-                  {(index === 0 ? '<' : '') +
+                  {(index === 0 ? "<" : "") +
                     value +
-                    (index === array.length - 1 ? '>' : '')}
+                    (index === array.length - 1 ? ">" : "")}
                 </div>
               );
             })}

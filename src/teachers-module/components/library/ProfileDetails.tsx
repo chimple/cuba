@@ -1,7 +1,7 @@
-import React from 'react';
-import './ProfileDetails.css';
-import { IonIcon } from '@ionic/react';
-import { camera } from 'ionicons/icons';
+import React from "react";
+import "./ProfileDetails.css";
+import { IonIcon } from "@ionic/react";
+import { camera } from "ionicons/icons";
 
 interface ProfileDetailsProps {
   width?: string;
@@ -15,13 +15,13 @@ interface ProfileDetailsProps {
 
 const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   imgSrc,
-  imgAlt = '',
+  imgAlt = "",
   onImageChange,
   className,
   isEditMode,
 }) => {
   return (
-    <div className={`profile-details-main ${className || ''}`}>
+    <div className={`profile-details-main ${className || ""}`}>
       <label htmlFor="profilePic" className="profile-details-data">
         <img src={imgSrc} alt="" className="profile-details-img" />
         {isEditMode && (
@@ -37,7 +37,7 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           name="profilePic"
           accept="image/*"
           onChange={onImageChange}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
       )}
     </div>

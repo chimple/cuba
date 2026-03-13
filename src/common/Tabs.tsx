@@ -1,6 +1,6 @@
-import React from 'react';
-import { AppBar, Tabs as MuiTabs, Tab } from '@mui/material';
-import { t } from 'i18next';
+import React from "react";
+import { AppBar, Tabs as MuiTabs, Tab } from "@mui/material";
+import { t } from "i18next";
 
 const Tabs: React.FC<{
   tabs: string[];
@@ -20,33 +20,33 @@ const Tabs: React.FC<{
         onChange={handleTabChange}
         textColor="primary"
         variant="fullWidth"
-        TabIndicatorProps={{ style: { background: '#7c5db0' } }}
+        TabIndicatorProps={{ style: { background: "#7c5db0" } }}
         sx={{
-          '& .MuiTab-root': {
+          "& .MuiTab-root": {
             // padding: "0 3vw",
-            margin: '1vh 0',
-            minHeight: '37px',
-            textTransform: 'none',
-            fontSize: '12.5px',
-            color: '#707070 !important',
-            '&:hover': {
-              backgroundColor: 'transparent',
+            margin: "1vh 0",
+            minHeight: "37px",
+            textTransform: "none",
+            fontSize: "12.5px",
+            color: "#707070 !important",
+            "&:hover": {
+              backgroundColor: "transparent",
             },
           },
-          '& .MuiTabs-flexContainer': {
-            width: '100vw',
-            background: 'white',
+          "& .MuiTabs-flexContainer": {
+            width: "100vw",
+            background: "white",
           },
-          '& .Mui-selected': {
-            minHeight: '37px',
-            background: 'white',
-            fontWeight: 'bold',
-            color: '#707070 !important',
+          "& .Mui-selected": {
+            minHeight: "37px",
+            background: "white",
+            fontWeight: "bold",
+            color: "#707070 !important",
           },
         }}
       >
         {tabs.map((tab, index) => (
-          <Tab key={index} label={t(tab)} id="school-user-tabs" />
+          <Tab key={index} label={t(tab)} id="school-user-tabs"/>
         ))}
       </MuiTabs>
     </AppBar>

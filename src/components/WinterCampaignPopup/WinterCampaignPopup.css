@@ -164,9 +164,7 @@
   cursor: pointer;
 
   transform: translateY(0.1rem);
-  transition:
-    transform 0.1s ease,
-    border-bottom 0.1s ease;
+  transition: transform 0.1s ease, border-bottom 0.1s ease;
 }
 
 .WinterCampaignPopup-campaign-cta:active {

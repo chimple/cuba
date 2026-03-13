@@ -1,14 +1,16 @@
-import React, { FC } from 'react';
-import { useHistory } from 'react-router';
-import noSchoolImage from '../assets/images/no_school_found.svg';
-import './NoSchoolsFound.css';
-import { t } from 'i18next';
-import CreateSchoolPrompt from './CreateSchoolPrompt';
+import React, { FC } from "react";
+import { useHistory } from "react-router";
+import noSchoolImage from "../assets/images/no_school_found.svg";
+import "./NoSchoolsFound.css";
+import { t } from "i18next";
+import CreateSchoolPrompt from "./CreateSchoolPrompt";
 
 const NoSchoolsFound: FC = () => {
   const history = useHistory();
 
-  const handleCreateSchool = () => {};
+  const handleCreateSchool = () => {
+    
+  };
 
   return (
     <div className="no-schools-found-container">
@@ -17,10 +19,10 @@ const NoSchoolsFound: FC = () => {
         alt="No results found"
         className="no-schools-found-image"
       />
-      <h2 className="no-schools-found-title">{t('No Results Found')}</h2>
+      <h2 className="no-schools-found-title">{t("No Results Found")}</h2>
       <p className="no-schools-found-subtitle">
         {t(
-          'Refine your results using filters or by rephrasing your school name',
+          "Refine your results using filters or by rephrasing your school name"
         )}
       </p>
       <hr className="no-schools-found-divider" />

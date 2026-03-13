@@ -1,5 +1,5 @@
-import BaseObject from './baseObject';
-import { DocumentReference, Timestamp } from 'firebase/firestore';
+import BaseObject from "./baseObject";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Class extends BaseObject {
   private _name: string;
@@ -28,7 +28,7 @@ export default class Class extends BaseObject {
     coordinator: string[],
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string,
+    docId: string
   ) {
     super(updatedAt, createdAt, docId);
     this._name = name;

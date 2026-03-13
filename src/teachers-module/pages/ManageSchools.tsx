@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   IonPage,
   IonContent,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-} from '@ionic/react';
-import { IconType, PAGES, TableTypes } from '../../common/constants';
-import { useHistory } from 'react-router-dom';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { RoleType } from '../../interface/modelInterfaces';
-import Header from '../components/homePage/Header';
-import './ManageSchools.css';
-import { t } from 'i18next';
-import DetailList from '../components/schoolComponent/DetailList';
-import { Util } from '../../utility/util';
-import DetailListHeader from '../components/schoolComponent/DetailListHeader';
-import Loading from '../../components/Loading';
+} from "@ionic/react";
+import { IconType, PAGES, TableTypes } from "../../common/constants";
+import { useHistory } from "react-router-dom";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { RoleType } from "../../interface/modelInterfaces";
+import Header from "../components/homePage/Header";
+import "./ManageSchools.css";
+import { t } from "i18next";
+import DetailList from "../components/schoolComponent/DetailList";
+import { Util } from "../../utility/util";
+import DetailListHeader from "../components/schoolComponent/DetailListHeader";
+import Loading from "../../components/Loading";
 
 const PAGE_SIZE = 20;
 
 let isManagerOrDirector = false;
 interface SchoolWithRole {
-  school: TableTypes<'school'>;
+  school: TableTypes<"school">;
   role: RoleType;
 }
 
 const ManageSchools: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
-    null,
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
   );
   const [allSchools, setAllSchools] = useState<SchoolWithRole[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]);
 
   const [page, setPage] = useState(1);
@@ -56,7 +56,7 @@ const ManageSchools: React.FC = () => {
       if (school) {
         isManagerOrDirector = await api.checkUserIsManagerOrDirector(
           school.id,
-          user.id,
+          user.id
         );
       }
 
@@ -73,7 +73,7 @@ const ManageSchools: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error initializing data:', error);
+      console.error("Error initializing data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +104,7 @@ const ManageSchools: React.FC = () => {
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error loading more schools:', error);
+      console.error("Error loading more schools:", error);
     } finally {
       setIsLoading(false);
       event.target.complete();
@@ -123,7 +123,7 @@ const ManageSchools: React.FC = () => {
 
   useEffect(() => {
     const filtered = allSchools.filter((item) =>
-      item.school.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      item.school.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredSchools(filtered);
   }, [allSchools, searchQuery]);
@@ -137,11 +137,11 @@ const ManageSchools: React.FC = () => {
           onSearchChange={setSearchQuery}
         />
       </div>
-      <div className="school-div">{t('Schools')}</div>
+      <div className="school-div">{t("Schools")}</div>
       {!(isLoading && allSchools.length === 0) && <DetailListHeader />}
       <IonContent className="content-background">
         {isLoading && allSchools.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
+          <div style={{ textAlign: "center", padding: "40px" }}>
             <Loading isLoading={true} />
           </div>
         ) : (
@@ -157,12 +157,13 @@ const ManageSchools: React.FC = () => {
             >
               <IonInfiniteScrollContent
                 loadingSpinner="bubbles"
-                loadingText={t('Loading more schools...') as string}
+                loadingText={t("Loading more schools...") as string}
               ></IonInfiniteScrollContent>
             </IonInfiniteScroll>
           </>
         )}
       </IonContent>
+
     </IonPage>
   );
 };

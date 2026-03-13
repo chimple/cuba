@@ -1,13 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import {
   applyColorMode,
   applyDragMode,
   applyLockedBackground,
   applyLockedStickerOutline,
   applyStickerVisibilityStrict,
-} from '../common/SvgHelpers';
+} from "../common/SvgHelpers";
 
-export type Mode = 'drag' | 'color' | 'preview';
+export type Mode = "drag" | "color" | "preview";
 
 type Props = {
   mode: Mode;
@@ -17,9 +17,9 @@ type Props = {
   collectedStickers?: string[];
   nextStickerId?: string;
   isDragEnabled?: boolean;
-  stickerVisibilityMode?: 'legacy' | 'strict';
+  stickerVisibilityMode?: "legacy" | "strict";
   colorModeUncolouredColor?: string;
-  colorModeUncolouredStyle?: 'fill' | 'outline';
+  colorModeUncolouredStyle?: "fill" | "outline";
   lockedStickerOutline?: boolean;
   lockedBackgroundColor?: string;
   showUncollectedStickers?: boolean;
@@ -33,9 +33,9 @@ export function SVGScene({
   collectedStickers = [],
   nextStickerId,
   isDragEnabled = true,
-  stickerVisibilityMode = 'legacy',
-  colorModeUncolouredColor = '#202020',
-  colorModeUncolouredStyle = 'fill',
+  stickerVisibilityMode = "legacy",
+  colorModeUncolouredColor = "#202020",
+  colorModeUncolouredStyle = "fill",
   lockedStickerOutline = false,
   lockedBackgroundColor,
   showUncollectedStickers = true,
@@ -49,23 +49,23 @@ export function SVGScene({
     if (!svg) return;
 
     // Apply the scene-specific SVG transforms after the inline SVG has mounted.
-    if (mode === 'color') {
+    if (mode === "color") {
       applyColorMode(svg, colorModeUncolouredColor, colorModeUncolouredStyle);
     }
 
     // Preview mode intentionally skips drag/color transforms and only applies
     // sticker visibility state below.
-    if (mode === 'drag' && isDragEnabled) {
+    if (mode === "drag" && isDragEnabled) {
       applyDragMode(svg);
     }
 
     // ---- Show collected stickers ----
     collectedStickers.forEach((id) => {
       const el = svg.querySelector(`[data-slot-id="${id}"]`);
-      if (el) (el as SVGElement).style.opacity = '1';
+      if (el) (el as SVGElement).style.opacity = "1";
     });
 
-    if (stickerVisibilityMode === 'strict') {
+    if (stickerVisibilityMode === "strict") {
       applyStickerVisibilityStrict(
         svg,
         collectedStickers,

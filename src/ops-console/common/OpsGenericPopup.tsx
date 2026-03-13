@@ -1,14 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   Typography,
   IconButton,
   Button,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import './OpsGenericPopup.css';
-import { t } from 'i18next';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import "./OpsGenericPopup.css";
+import { t } from "i18next";
 
 interface OpsGenericPopupProps {
   isOpen: boolean;
@@ -67,7 +67,10 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
         </IconButton>
 
         {icon && (
-          <div id="ops-generic-popup-icon" className="ops-generic-popup-icon">
+          <div
+            id="ops-generic-popup-icon"
+            className="ops-generic-popup-icon"
+          >
             {icon}
           </div>
         )}
@@ -89,14 +92,14 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
           id="ops-generic-popup-heading"
           className="ops-generic-popup-heading"
         >
-          {typeof heading === 'string' ? t(heading) || heading : ''}
+          {typeof heading === "string" ? t(heading) || heading : ""}
         </Typography>
 
         <Typography
           id="ops-generic-popup-text"
           className="ops-generic-popup-text"
         >
-          {typeof text === 'string' ? t(text) || text : ''}
+          {typeof text === "string" ? t(text) || text : ""}
         </Typography>
 
         {primaryButtonText && (
@@ -110,9 +113,9 @@ const OpsGenericPopup: React.FC<OpsGenericPopupProps> = ({
               handleClose();
             }}
           >
-            {typeof primaryButtonText === 'string'
+            {typeof primaryButtonText === "string"
               ? t(primaryButtonText) || primaryButtonText
-              : ''}
+              : ""}
           </Button>
         )}
       </DialogContent>

@@ -1,9 +1,9 @@
-export type VideoQuality = 'high' | 'medium' | 'low';
+export type VideoQuality = "high" | "medium" | "low";
 
 export type CompressWorkerRequest =
   | {
       id: string;
-      type: 'COMPRESS_VIDEO';
+      type: "COMPRESS_VIDEO";
       payload: {
         fileName: string;
         mimeType: string;
@@ -13,7 +13,7 @@ export type CompressWorkerRequest =
     }
   | {
       id: string;
-      type: 'COMPRESS_IMAGE_CANVAS';
+      type: "COMPRESS_IMAGE_CANVAS";
       payload: {
         fileName: string;
         mimeType: string;
@@ -24,7 +24,7 @@ export type CompressWorkerRequest =
     }
   | {
       id: string;
-      type: 'COMPRESS_IMAGE_FFMPEG';
+      type: "COMPRESS_IMAGE_FFMPEG";
       payload: {
         fileName: string;
         mimeType: string;
@@ -36,7 +36,7 @@ export type CompressWorkerProgressResponse = {
   id: string;
   ok: true;
   progress: number;
-  phase: 'loading' | 'processing' | 'finalizing';
+  phase: "loading" | "processing" | "finalizing";
 };
 
 export type CompressWorkerSuccessResponse = {
@@ -60,3 +60,4 @@ export type CompressWorkerResponse =
   | CompressWorkerProgressResponse
   | CompressWorkerSuccessResponse
   | CompressWorkerErrorResponse;
+

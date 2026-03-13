@@ -1,3 +1,4 @@
+
 .schoolcheckinmodal.check-in-modal-overlay {
   position: fixed;
   top: 0;
@@ -14,12 +15,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .schoolcheckinmodal .check-in-modal-container {
@@ -32,22 +29,14 @@
   flex-direction: column;
   overflow: hidden;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   max-height: 90vh; /* Default constraint */
 }
 
 @keyframes slideUp {
   /* Slightly more dramatic slide for "popup" feel */
-  from {
-    transform: translateY(50px) scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
+  from { transform: translateY(50px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 .schoolcheckinmodal .check-in-modal-header {
@@ -139,8 +128,8 @@
 }
 
 .schoolcheckinmodal .location-coords-label {
-  font-weight: 600;
-  color: #495057;
+    font-weight: 600;
+    color: #495057;
 }
 
 .schoolcheckinmodal #check-in-time-card {
@@ -149,30 +138,30 @@
 
 .schoolcheckinmodal #check-in-time-card .check-in-icon-wrapper {
   margin-top: 0;
-  display: flex;
-  align-self: center;
+  display: flex; 
+  align-self: center; 
 }
 
 .schoolcheckinmodal #check-in-time-card .check-in-card-content {
   justify-content: center;
-  gap: 2px;
+  gap: 2px; 
 }
 
 /* Time Card Text */
 .schoolcheckinmodal .date-text {
-  font-size: 0.9rem;
-  color: #212529;
-  font-weight: 700;
-  line-height: 1.2;
-  margin: 0;
+    font-size: 0.9rem;
+    color: #212529;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
 }
 
 .schoolcheckinmodal .time-text {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #212529;
-  line-height: 1.2;
-  margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.2;
+    margin: 0;
 }
 
 /* Map Widget */
@@ -286,99 +275,99 @@
 }
 
 .schoolcheckinmodal .radio-group {
-  display: flex;
-  gap: 16px;
+    display: flex;
+    gap: 16px;
 }
 
 .schoolcheckinmodal .radio-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 /* Disabled State */
 .schoolcheckinmodal .btn-confirm.disabled {
-  background-color: #a5d8ff;
-  border-color: #a5d8ff;
-  cursor: not-allowed;
+    background-color: #a5d8ff;
+    border-color: #a5d8ff;
+    cursor: not-allowed;
 }
 
 /* Confirmation Section explicit styling */
 .schoolcheckinmodal .check-in-confirmation-section {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 16px;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  gap: 16px; /* Space between question and options on mobile if wrapped */
+    margin-top: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    gap: 16px; /* Space between question and options on mobile if wrapped */
 }
 
 .schoolcheckinmodal .confirmation-question {
-  font-weight: 700;
-  color: #212529 !important;
-  margin-bottom: 0;
-  font-size: 0.95rem;
-  text-align: left;
-  flex: 1;
+    font-weight: 700;
+    color: #212529 !important;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+    text-align: left;
+    flex: 1;
 }
 
 .schoolcheckinmodal .radio-options-container {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  justify-content: flex-end;
-  flex-shrink: 0;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
 }
 
 .schoolcheckinmodal .radio-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
 }
 
 .schoolcheckinmodal .radio-option span {
-  color: #212529 !important;
-  font-weight: 500;
-  font-size: 0.95rem;
+    color: #212529 !important;
+    font-weight: 500;
+    font-size: 0.95rem;
 }
 
-.schoolcheckinmodal .radio-option input[type='radio'] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #757575;
-  border-radius: 50%;
-  margin: 0;
-  outline: none;
-  cursor: pointer;
-  background-color: white;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.schoolcheckinmodal .radio-option input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #757575;
+    border-radius: 50%;
+    margin: 0;
+    outline: none;
+    cursor: pointer;
+    background-color: white;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.schoolcheckinmodal .radio-option input[type='radio']:checked {
-  border-color: #1a73e8;
+.schoolcheckinmodal .radio-option input[type="radio"]:checked {
+    border-color: #1a73e8;
 }
 
-.schoolcheckinmodal .radio-option input[type='radio']:checked::after {
-  content: '';
-  width: 10px;
-  height: 10px;
-  background-color: #1a73e8;
-  border-radius: 50%;
-  display: block;
+.schoolcheckinmodal .radio-option input[type="radio"]:checked::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: #1a73e8;
+    border-radius: 50%;
+    display: block;
 }
 
 /* Mobile Responsiveness */
@@ -409,56 +398,54 @@
     padding: 12px;
     gap: 12px;
   }
-
+  
   .schoolcheckinmodal .confirmation-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
   }
-
+  
   .schoolcheckinmodal .radio-group {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 24px;
+      width: 100%;
+      justify-content: flex-start;
+      gap: 24px;
   }
 
   .schoolcheckinmodal .check-in-confirmation-section {
-    padding: 12px;
+      padding: 12px;
   }
 
   .schoolcheckinmodal .check-in-icon-wrapper {
     font-size: 1.3rem;
   }
 
-  .schoolcheckinmodal .location-detail-text,
-  .schoolcheckinmodal .date-text,
-  .schoolcheckinmodal .time-text {
+  .schoolcheckinmodal .location-detail-text, .schoolcheckinmodal .date-text, .schoolcheckinmodal .time-text {
     font-size: 0.85rem;
   }
 }
 
 /* Permission Denied Section */
 .schoolcheckinmodal .permission-denied-container {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 .schoolcheckinmodal .permission-error-text {
-  color: red;
-  font-size: 12px;
-  margin-bottom: 5px;
+    color: red;
+    font-size: 12px;
+    margin-bottom: 5px;
 }
 
 .schoolcheckinmodal .retry-permission-btn {
-  padding: 5px 10px;
-  font-size: 12px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+    padding: 5px 10px;
+    font-size: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .schoolcheckinmodal .map-leaf-container {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }

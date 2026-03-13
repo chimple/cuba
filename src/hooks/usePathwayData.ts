@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { useHistory } from 'react-router';
-import { t } from 'i18next';
-import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { useEffect, useRef, useState } from "react";
+import { useHistory } from "react-router";
+import { t } from "i18next";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 import {
   CAN_ACCESS_REMOTE_ASSETS,
@@ -17,12 +17,12 @@ import {
   CONTINUE,
   COURSE_CHANGED,
   CAMPAIGN_SEQUENCE_FINISHED,
-} from '../common/constants';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { Util } from '../utility/util';
-import { useReward } from './useReward';
-import { schoolUtil } from '../utility/schoolUtil';
-import { LessonNode } from './useLearningPath';
+} from "../common/constants";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "../utility/util";
+import { useReward } from "./useReward";
+import { schoolUtil } from "../utility/schoolUtil";
+import { LessonNode } from "./useLearningPath";
 
 export interface MascotProps {
   stateMachine: string;
@@ -38,7 +38,7 @@ export const usePathwayData = () => {
 
   // Portal containers
   const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
-    null,
+    null
   );
   const [rewardRiveContainer, setRewardRiveContainer] =
     useState<HTMLDivElement | null>(null);
@@ -50,17 +50,17 @@ export const usePathwayData = () => {
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState('');
+  const [modalText, setModalText] = useState("");
 
   const inactiveText = t(
-    'This lesson is locked. Play the current active lesson.',
+    "This lesson is locked. Play the current active lesson."
   );
-  const rewardText = t('Complete these 5 lessons to earn rewards');
+  const rewardText = t("Complete these 5 lessons to earn rewards");
   const shouldAnimate = modalText === rewardText;
 
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const isRewardFeatureOn: boolean =
-    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
 
   const {
     hasTodayReward,
@@ -70,8 +70,8 @@ export const usePathwayData = () => {
   } = useReward();
 
   // Course + chapter
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
 
   // Reward modal
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
@@ -80,13 +80,13 @@ export const usePathwayData = () => {
 
   // Mascot state
   const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
-    useState<string>('State Machine 3');
+    useState<string>("State Machine 3");
   const [chimpleRiveInputName, setChimpleRiveInputName] =
-    useState<string>('Number 2');
+    useState<string>("Number 2");
   const [chimpleRiveStateValue, setChimpleRiveStateValue] = useState<number>(1);
   const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
     string | undefined
-  >('id');
+  >("id");
 
   const [mascotKey, setMascotKey] = useState(0);
 
@@ -114,24 +114,24 @@ export const usePathwayData = () => {
   //  MASCOT: NORMAL STATE (IDLE)
   const updateMascotToNormalState = async (rewardId: string) => {
     const rewardRecord = await api.getRewardById(rewardId);
-    if (rewardRecord && rewardRecord.type === 'normal') {
+    if (rewardRecord && rewardRecord.type === "normal") {
       setChimpleRiveStateMachineName(
-        rewardRecord.state_machine || 'State Machine 3',
+        rewardRecord.state_machine || "State Machine 3"
       );
-      setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
+      setChimpleRiveInputName(rewardRecord.state_input_name || "Number 2");
       setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
       setChimpleRiveAnimationName(undefined);
       setMascotKey((prev) => prev + 1);
     } else {
-      setChimpleRiveAnimationName('id');
+      setChimpleRiveAnimationName("id");
       setMascotKey((prev) => prev + 1);
     }
   };
 
   //  MASCOT: CELEBRATION STATE
   const invokeMascotCelebration = async (state_number_input: number) => {
-    setChimpleRiveStateMachineName('State Machine 2');
-    setChimpleRiveInputName('Number 1');
+    setChimpleRiveStateMachineName("State Machine 2");
+    setChimpleRiveInputName("Number 1");
     setChimpleRiveStateValue(state_number_input || 1);
     setChimpleRiveAnimationName(undefined);
     setMascotKey((prev) => prev + 1);
@@ -146,11 +146,11 @@ export const usePathwayData = () => {
       ]).then(([, result]) => result);
 
       const currentReward = Util.retrieveUserReward();
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
 
       const receivedTodayReward =
         currentReward?.timestamp &&
-        new Date(currentReward.timestamp).toISOString().split('T')[0] ===
+        new Date(currentReward.timestamp).toISOString().split("T")[0] ===
           today &&
         todaysReward?.id === currentReward?.reward_id;
 
@@ -160,7 +160,7 @@ export const usePathwayData = () => {
         await updateMascotToNormalState(currentReward.reward_id);
       }
     } catch (err) {
-      console.error('Error in initializePathway:', err);
+      console.error("Error in initializePathway:", err);
     }
   };
 
@@ -232,7 +232,7 @@ export const usePathwayData = () => {
 
   const handleRewardBoxOpen = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, today);
     setRewardModalOpen(true);
   };
@@ -252,17 +252,17 @@ export const usePathwayData = () => {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
       const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+      let learningPath = pathToParse
+            ? JSON.parse(pathToParse)
+            : null;
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const pathItem = course?.path.find(
-        (p: LessonNode) => p.isPlayed === false,
-      );
-      if (!course || !pathItem) return;
-      const isAssessment = pathItem?.is_assessment;
+      const pathItem = course?.path.find((p : LessonNode) => p.isPlayed === false);
+      if(!course || !pathItem) return;
+      const isAssessment = pathItem?.is_assessment
 
       const lesson = await api.getLesson(
-        course.path.find((p: LessonNode) => p.isPlayed === false).lesson_id,
+        course.path.find((p : LessonNode) => p.isPlayed === false).lesson_id,
       );
       if (!lesson) return;
 
@@ -270,7 +270,7 @@ export const usePathwayData = () => {
       if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
         history.replace(PAGES.GAME + params, {
-          url: 'chimple-lib/index.html' + params,
+          url: "chimple-lib/index.html" + params,
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
           course: JSON.stringify(currentCourse),
@@ -279,8 +279,7 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
-          skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-            ?.skill_id,
+          skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
           is_assessment: isAssessment,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
@@ -292,8 +291,7 @@ export const usePathwayData = () => {
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
-            skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-              ?.skill_id,
+            skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
             is_assessment: isAssessment,
           },
         );
@@ -308,13 +306,12 @@ export const usePathwayData = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
-          skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-            ?.skill_id,
+          skillId: course.path.find((p : LessonNode) => p.isPlayed === false)?.skill_id,
           is_assessment: isAssessment,
         });
       }
     } catch (error) {
-      console.error('Error in playLesson:', error);
+      console.error("Error in playLesson:", error);
     }
   };
 

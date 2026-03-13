@@ -10,14 +10,13 @@ const theme = createTheme();
 
 const mockApiHandler = {
   getProgramManagers: () => Promise.resolve(['Alice Smith', 'Bob Johnson']),
-  getUniqueGeoData: () =>
-    Promise.resolve({
-      Country: ['India'],
-      State: ['Maharashtra'],
-      District: ['Pune'],
-      Block: ['Block A'],
-      Cluster: ['Cluster 1'],
-    }),
+  getUniqueGeoData: () => Promise.resolve({
+    Country: ['India'],
+    State: ['Maharashtra'],
+    District: ['Pune'],
+    Block: ['Block A'],
+    Cluster: ['Cluster 1'],
+  }),
 };
 
 (ServiceConfig.getI as any) = () => ({
@@ -25,7 +24,7 @@ const mockApiHandler = {
 });
 
 const meta: Meta<typeof NewProgram> = {
-  title: 'OpsConsole/Component/NewProgram',
+  title: "OpsConsole/Component/NewProgram",
   component: NewProgram,
   parameters: {
     layout: 'fullscreen',
@@ -39,8 +38,8 @@ const meta: Meta<typeof NewProgram> = {
           React.Fragment,
           null,
           React.createElement(CssBaseline),
-          React.createElement(Story),
-        ),
+          React.createElement(Story)
+        )
       );
     },
   ],

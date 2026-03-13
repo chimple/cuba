@@ -1,9 +1,9 @@
 #custom-app-bar {
   margin-right: 2vh;
   font-size: var(--text-size);
-
+  
   width: 17vw;
-  font-family: 'BalooRegular';
+  font-family: "BalooRegular";
   justify-content: space-evenly;
   white-space: nowrap;
 }
@@ -12,10 +12,11 @@
   position: absolute;
   margin: var(--margin);
   margin-right: 0;
+  
 }
 
 .back-button-in-custom-app-bar::before {
-  content: 'Back';
+  content: "Back";
   visibility: hidden;
   display: none;
 }

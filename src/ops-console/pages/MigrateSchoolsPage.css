@@ -417,16 +417,16 @@
 }
 
 .migrate-schools-footer
-  .MuiPaginationItem-previousNext[aria-label='Go to previous page']::after {
-  content: 'Previous';
+  .MuiPaginationItem-previousNext[aria-label="Go to previous page"]::after {
+  content: "Previous";
   font-size: 14px;
   margin-left: 4px;
   color: #6b7280;
 }
 
 .migrate-schools-footer
-  .MuiPaginationItem-previousNext[aria-label='Go to next page']::before {
-  content: 'Next';
+  .MuiPaginationItem-previousNext[aria-label="Go to next page"]::before {
+  content: "Next";
   font-size: 14px;
   margin-right: 4px;
   color: #1a71f6;

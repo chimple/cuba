@@ -1,5 +1,5 @@
-import React from 'react';
-import './WinterCampaignPopup.css';
+import React from "react";
+import "./WinterCampaignPopup.css";
 
 interface WinterCampaignPopupProps {
   isOpen: boolean;

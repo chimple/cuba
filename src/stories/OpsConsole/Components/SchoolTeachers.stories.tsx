@@ -1,8 +1,8 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { MemoryRouter } from 'react-router-dom';
-import SchoolTeachersComponent from '../../../ops-console/components/SchoolDetailsComponents/SchoolTeachers'; // Adjust path
-import { TeacherInfo } from '../../../common/constants';
+import type { Meta, StoryObj } from "@storybook/react";
+import { MemoryRouter } from "react-router-dom";
+import SchoolTeachersComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolTeachers"; // Adjust path
+import { TeacherInfo } from "../../../common/constants";
 const createMockTeacher = (
   id: string,
   name: string,
@@ -10,7 +10,7 @@ const createMockTeacher = (
   phone: string,
   email: string,
   grade: number,
-  classSection: string,
+  classSection: string
 ): TeacherInfo => {
   return {
     user: {
@@ -39,7 +39,7 @@ const createMockTeacher = (
       sfx_off: false,
       stars: 0,
       updated_at: null,
-      reward: null,
+      reward: null
     },
     grade,
     classSection,
@@ -48,72 +48,72 @@ const createMockTeacher = (
 
 const sampleApiTeachers: TeacherInfo[] = [
   createMockTeacher(
-    'T001',
-    'Albus Dumbledore',
-    'Male',
-    '001-HOG-WARTS',
-    'albus.d@hogwarts.wiz',
+    "T001",
+    "Albus Dumbledore",
+    "Male",
+    "001-HOG-WARTS",
+    "albus.d@hogwarts.wiz",
     0,
-    'Headmaster',
+    "Headmaster"
   ),
   createMockTeacher(
-    'T002',
-    'Minerva McGonagall',
-    'Female',
-    '002-HOG-WARTS',
-    'minerva.m@hogwarts.wiz',
+    "T002",
+    "Minerva McGonagall",
+    "Female",
+    "002-HOG-WARTS",
+    "minerva.m@hogwarts.wiz",
     7,
-    'Gryffindor',
+    "Gryffindor"
   ),
   createMockTeacher(
-    'T003',
-    'Severus Snape',
-    'Male',
-    '003-HOG-WARTS',
-    'severus.s@hogwarts.wiz',
+    "T003",
+    "Severus Snape",
+    "Male",
+    "003-HOG-WARTS",
+    "severus.s@hogwarts.wiz",
     0,
-    'Potions Master',
+    "Potions Master"
   ),
   createMockTeacher(
-    'T004',
-    'Rubeus Hagrid',
-    'Male',
-    '004-HOG-WARTS',
-    'rubeus.h@hogwarts.wiz',
+    "T004",
+    "Rubeus Hagrid",
+    "Male",
+    "004-HOG-WARTS",
+    "rubeus.h@hogwarts.wiz",
     1,
-    'Care of Magical Creatures',
+    "Care of Magical Creatures"
   ),
   createMockTeacher(
-    'T005',
-    'Filius Flitwick',
-    'Male',
-    '005-HOG-WARTS',
-    'filius.f@hogwarts.wiz',
+    "T005",
+    "Filius Flitwick",
+    "Male",
+    "005-HOG-WARTS",
+    "filius.f@hogwarts.wiz",
     5,
-    'Charms',
+    "Charms"
   ),
   createMockTeacher(
-    'T006',
-    'Pomona Sprout',
-    'Female',
-    '006-HOG-WARTS',
-    'pomona.s@hogwarts.wiz',
+    "T006",
+    "Pomona Sprout",
+    "Female",
+    "006-HOG-WARTS",
+    "pomona.s@hogwarts.wiz",
     2,
-    'Herbology',
+    "Herbology"
   ),
   createMockTeacher(
-    'T007',
-    'Sybill Trelawney',
-    'Female',
-    '007-HOG-WARTS',
-    'sybill.t@hogwarts.wiz',
+    "T007",
+    "Sybill Trelawney",
+    "Female",
+    "007-HOG-WARTS",
+    "sybill.t@hogwarts.wiz",
     3,
-    'Divination',
+    "Divination"
   ),
 ];
 
 const meta = {
-  title: 'SchoolManagement/SchoolTeachersPage',
+  title: "SchoolManagement/SchoolTeachersPage",
   component: SchoolTeachersComponent,
   decorators: [
     (Story) => (
@@ -122,19 +122,19 @@ const meta = {
       </MemoryRouter>
     ),
   ],
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   args: {
     isMobile: false,
-    schoolId: 'sample-hogwarts-id',
+    schoolId: "sample-hogwarts-id",
     data: {
       teachers: [],
       totalTeacherCount: 0,
     },
   },
   argTypes: {
-    data: { control: 'object' },
-    isMobile: { control: 'boolean' },
-    schoolId: { control: 'text' },
+    data: { control: "object" },
+    isMobile: { control: "boolean" },
+    schoolId: { control: "text" },
   },
 } satisfies Meta<typeof SchoolTeachersComponent>;
 
@@ -168,7 +168,7 @@ export const MobileView: Story = {
     isMobile: true,
   },
   parameters: {
-    viewport: { defaultViewport: 'iphone6' },
+    viewport: { defaultViewport: "iphone6" },
   },
 };
 
@@ -179,7 +179,7 @@ export const WithActiveFilters: Story = {
       totalTeacherCount: sampleApiTeachers.length,
     },
   },
-  name: 'With Data (Filtering Testable)',
+  name: "With Data (Filtering Testable)",
 };
 
 export const Searchable: Story = {
@@ -189,5 +189,5 @@ export const Searchable: Story = {
       totalTeacherCount: sampleApiTeachers.length,
     },
   },
-  name: 'With Data (Search Testable)',
+  name: "With Data (Search Testable)",
 };

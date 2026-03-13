@@ -1,261 +1,222 @@
-import { Chapter, Course, Lesson } from '../interface/curriculumInterfaces';
-import { Util } from '../utility/util';
-import { COURSES, EXAM, MIN_PASS, PRE_QUIZ } from '../common/constants';
-import Result from './result';
+import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
+import { Util } from "../utility/util";
+import { COURSES, EXAM, MIN_PASS, PRE_QUIZ } from "../common/constants";
+import Result  from "./result";
 
 export default class CurriculumController {
-  private static instance: CurriculumController;
-  private _lessonData: any;
+    private static instance: CurriculumController;
+    private _lessonData: any;
 
-  course: Course;
-  chapter: Chapter;
-  lesson: Lesson;
-  curriculum: Map<string, Course> = new Map();
-  allLessons: Map<string, Lesson> = new Map();
-  data: Array<Array<string>>;
-  currentProblem: number;
-  totalProblems: number;
-  currentCourseId: string;
-  currentChapterId: string;
-  currentLessonId: string;
-  assignments: any[] = [];
-  featuredLessons: any[] = [];
-  prevCourse: Course;
-  prevChapter: Chapter;
+    course: Course;
+    chapter: Chapter;
+    lesson: Lesson;
+    curriculum: Map<string, Course> = new Map();
+    allLessons: Map<string, Lesson> = new Map();
+    data: Array<Array<string>>;
+    currentProblem: number;
+    totalProblems: number;
+    currentCourseId: string;
+    currentChapterId: string;
+    currentLessonId: string;
+    assignments: any[] = [];
+    featuredLessons: any[] = [];
+    prevCourse: Course;
+    prevChapter: Chapter;
 
-  private constructor(
-    course: Course,
-    chapter: Chapter,
-    lesson: Lesson,
-    data: Array<Array<string>>,
-    currentProblem: number,
-    totalproblem: number,
-    currentCourseId: string,
-    currentChapterId: string,
-    currentLessonId: string,
-    prevCourse: Course,
-    prevChapter: Chapter,
-  ) {
-    this.course = course;
-    this.chapter = chapter;
-    this.lesson = lesson;
-    this.data = data;
-    this.currentProblem = currentProblem;
-    this.totalProblems = totalproblem;
-    this.currentCourseId = currentCourseId;
-    this.currentChapterId = currentChapterId;
-    this.currentLessonId = currentLessonId;
-    this.prevCourse = prevCourse;
-    this.prevChapter = prevChapter;
-  }
-
-  static getInstance(): CurriculumController {
-    if (!CurriculumController.instance) {
-      CurriculumController.instance = new CurriculumController(
-        null!,
-        null!,
-        null!,
-        [],
-        -1,
-        -1,
-        null!,
-        null!,
-        null!,
-        null!,
-        null!,
-      );
-    }
-    return CurriculumController.instance;
-  }
-
-  static get i(): CurriculumController {
-    return CurriculumController.getInstance();
-  }
-
-  async clear() {
-    this.course = null!;
-    this.chapter = null!;
-    this.lesson = null!;
-    this.curriculum.clear();
-    this.allLessons.clear();
-  }
-
-  // To load Course Jsons
-  async loadCourseJsons(courseIds: Array<string>) {
-    for (let i = 0; i < courseIds.length; i++) {
-      await this.loadSingleCourseJson(courseIds[i], {});
-    }
-  }
-
-  //To load single course Json
-  async loadSingleCourseJson(
-    courseId: string,
-    results: { [key: string]: Result },
-  ): Promise<Map<string, Course>> {
-    if (this.curriculum.get(courseId)) {
-      return this.curriculum;
+    private constructor(
+        course: Course,
+        chapter: Chapter,
+        lesson: Lesson,
+        data: Array<Array<string>>,
+        currentProblem: number,
+        totalproblem: number,
+        currentCourseId: string,
+        currentChapterId: string,
+        currentLessonId: string,
+        prevCourse: Course,
+        prevChapter: Chapter
+    ) {
+        this.course = course
+        this.chapter = chapter
+        this.lesson = lesson
+        this.data = data
+        this.currentProblem = currentProblem
+        this.totalProblems = totalproblem
+        this.currentCourseId = currentCourseId
+        this.currentChapterId = currentChapterId
+        this.currentLessonId = currentLessonId
+        this.prevCourse = prevCourse
+        this.prevChapter = prevChapter
     }
 
-    // let course: Course;
-    let res = await fetch('courses/' + courseId + '/course.json');
-    const data = await res.json();
-    let course = Util.toCourse(data);
-
-    //if quiz is  not played making all other lesson lock
-    if (!results[courseId + '_' + PRE_QUIZ] && courseId != COURSES.PUZZLE) {
-      course.chapters.forEach(async (chapter: Chapter) => {
-        chapter.course = course;
-        chapter.lessons.forEach(async (lesson) => {
-          lesson.isUnlock =
-            lesson.id != courseId + '_' + PRE_QUIZ ? false : true;
-          lesson.chapter = chapter;
-          this.allLessons.set(lesson.id, lesson);
-        });
-      });
-      this.curriculum.set(courseId, course);
-
-      return this.curriculum;
-    } else {
-      course.chapters.forEach(async (chapter: Chapter) => {
-        chapter.course = course;
-        chapter = await this.unlockingLessonsByChapterWise(
-          results,
-          courseId,
-          chapter,
-        );
-      });
-      this.curriculum.set(courseId, course);
-      return this.curriculum;
+    static getInstance(): CurriculumController {
+        if (!CurriculumController.instance) {
+            CurriculumController.instance = new CurriculumController(null!, null!, null!, [], -1, -1, null!, null!, null!, null!, null!);
+        }
+        return CurriculumController.instance;
     }
-  }
 
-  async unlockingLessonsByChapterWise(
-    playedLessons: any,
-    courseId: string,
-    chapter: Chapter,
-  ): Promise<Chapter> {
-    //Unlocking all Puzzle Lessons
-    if (courseId === COURSES.PUZZLE) {
-      let tempLessons: Lesson[] = chapter.lessons;
-      for (let i = 0; i < tempLessons.length; i++) {
-        tempLessons[i].isUnlock = true;
-        tempLessons[i].chapter = chapter;
-        this.allLessons.set(tempLessons[i].id, tempLessons[i]);
-      }
-      chapter.lessons = tempLessons;
-      return chapter;
-    } else {
-      let tempLessons: Lesson[] = chapter.lessons;
-      for (let i = 0; i < tempLessons.length; i++) {
-        //Unlocking Played lessons and Next Lesson
-        if (
-          (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) ||
-          (i - 1 >= 0 && playedLessons[tempLessons[i - 1]?.id])
-        ) {
-          tempLessons[i].isUnlock = true;
-          tempLessons[i].chapter = chapter;
-          this.allLessons.set(tempLessons[i].id, tempLessons[i]);
+    static get i(): CurriculumController {
+        return CurriculumController.getInstance();
+    }
 
-          // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
-          if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
-            if (
-              tempLessons[i].type != EXAM ||
-              (tempLessons[i].type === EXAM &&
-                playedLessons[tempLessons[i].id].score > MIN_PASS)
-            ) {
-              tempLessons[i + 1].isUnlock = true;
-              tempLessons[i + 1].chapter = chapter;
-              this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
-            } else {
-              tempLessons[i + 1].isUnlock = false;
-              tempLessons[i + 1].chapter = chapter;
-              this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
-              i++;
-            }
-          }
-          // Unlocking every first lessons in each chapter(i === 0 ? true)
-        } else if (i === 0) {
-          tempLessons[i].isUnlock = true;
-          tempLessons[i].chapter = chapter;
-          this.allLessons.set(tempLessons[i].id, tempLessons[i]);
+    async clear() {
+        this.course = null!
+        this.chapter = null!
+        this.lesson = null!
+        this.curriculum.clear();
+        this.allLessons.clear();
+    }
+
+    // To load Course Jsons
+    async loadCourseJsons(courseIds: Array<string>) {
+        for (let i = 0; i < courseIds.length; i++) {
+            await this.loadSingleCourseJson(courseIds[i], {})
+        }
+    }
+
+    //To load single course Json
+    async loadSingleCourseJson(courseId: string, results: { [key: string]: Result; }): Promise<Map<string, Course>> {
+
+        if (this.curriculum.get(courseId)) {
+            return this.curriculum;
+        }
+
+        // let course: Course;
+        let res = await fetch("courses/" + courseId + "/course.json")
+        const data = await res.json();
+        let course = Util.toCourse(data)
+
+        //if quiz is  not played making all other lesson lock
+        if (!results[courseId + "_" + PRE_QUIZ] && courseId != COURSES.PUZZLE) {
+            course.chapters.forEach(async (chapter: Chapter) => {
+                chapter.course = course;
+                chapter.lessons.forEach(async (lesson) => {
+                    lesson.isUnlock = lesson.id != courseId + "_" + PRE_QUIZ ? false : true;
+                    lesson.chapter = chapter;
+                    this.allLessons.set(lesson.id, lesson)
+                });
+            });
+            this.curriculum.set(courseId, course);
+
+            return this.curriculum
         } else {
-          tempLessons[i].isUnlock = false;
-          tempLessons[i].chapter = chapter;
-          this.allLessons.set(tempLessons[i].id, tempLessons[i]);
+            course.chapters.forEach(async (chapter: Chapter) => {
+                chapter.course = course;
+                chapter = await this.unlockingLessonsByChapterWise(results, courseId, chapter);
+            });
+            this.curriculum.set(courseId, course);
+            return this.curriculum;
         }
-      }
-      chapter.lessons = tempLessons;
-      return chapter;
     }
-  }
 
-  async unlockNextLesson(
-    courseId: string,
-    playedLessonId: string,
-    score: number,
-  ) {
-    const playedLesson = this.allLessons.get(playedLessonId);
-    playedLesson?.chapter.lessons.forEach((lesson, index, lessons) => {
-      if (playedLessonId === lesson.id) {
-        lessons[index].isUnlock = true;
-        if (lessons.length > index + 1) {
-          if (
-            lesson.type != EXAM ||
-            lesson.type === null ||
-            lesson.type === undefined ||
-            (lesson.type === EXAM && score > MIN_PASS)
-          ) {
-            lessons[index + 1].isUnlock = true;
-          }
+    async unlockingLessonsByChapterWise(playedLessons: any, courseId: string, chapter: Chapter): Promise<Chapter> {
+
+        //Unlocking all Puzzle Lessons
+        if (courseId === COURSES.PUZZLE) {
+            let tempLessons: Lesson[] = chapter.lessons;
+            for (let i = 0; i < tempLessons.length; i++) {
+                tempLessons[i].isUnlock = true;
+                tempLessons[i].chapter = chapter;
+                this.allLessons.set(tempLessons[i].id, tempLessons[i])
+            }
+            chapter.lessons = tempLessons
+            return chapter
+        } else {
+            let tempLessons: Lesson[] = chapter.lessons;
+            for (let i = 0; i < tempLessons.length; i++) {
+
+                //Unlocking Played lessons and Next Lesson
+                if ((playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) || (i - 1 >= 0 && playedLessons[tempLessons[i - 1]?.id])) {
+                    tempLessons[i].isUnlock = true
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
+
+                    // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
+                    if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
+                        if (tempLessons[i].type != EXAM || (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score > MIN_PASS)) {
+                            tempLessons[i + 1].isUnlock = true
+                            tempLessons[i + 1].chapter = chapter;
+                            this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
+                        } else {
+                            tempLessons[i + 1].isUnlock = false
+                            tempLessons[i + 1].chapter = chapter;
+                            this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
+                            i++
+                        }
+                    }
+                    // Unlocking every first lessons in each chapter(i === 0 ? true)
+                } else if (i === 0) {
+                    tempLessons[i].isUnlock = true
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
+                } else {
+                    tempLessons[i].isUnlock = false
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
+                }
+
+            }
+            chapter.lessons = tempLessons
+            return chapter
         }
-      }
-    });
-  }
-
-  async allChapterForSubject(
-    courseId: string,
-    results: { [key: string]: Result } = {},
-  ): Promise<Chapter[]> {
-    if (this.curriculum.get(courseId)?.chapters == undefined) {
-      const course = await this.loadSingleCourseJson(courseId, results);
-      return course.get(courseId)?.chapters || [];
     }
-    return this.curriculum.get(courseId)?.chapters || [];
-  }
 
-  async allLessonForSubject(
-    courseId: string,
-    results: { [key: string]: Result } = {},
-  ): Promise<Lesson[]> {
-    let course = this.curriculum || undefined;
-    const lessons: Lesson[] = [];
-    if (course.get(courseId)?.chapters == undefined) {
-      course = await this.loadSingleCourseJson(courseId, results);
-    }
-    const chapters = course.get(courseId)?.chapters || [];
-    for (let chapter of chapters) {
-      for (let lesson of chapter.lessons) {
-        lessons.push(lesson);
-      }
-    }
-    return lessons || [];
-  }
+    async unlockNextLesson(courseId: string, playedLessonId: string, score: number) {
 
-  nextProblem() {
-    if (this.currentProblem < this.totalProblems) {
-      this.currentProblem++;
-      this.data = [this._lessonData.rows[this.currentProblem - 1]];
+        const playedLesson = this.allLessons.get(playedLessonId)
+        playedLesson?.chapter.lessons.forEach((lesson, index, lessons) => {
+            if (playedLessonId === lesson.id) {
+                lessons[index].isUnlock = true;
+                if (lessons.length > index + 1) {
+                    if ((lesson.type != EXAM || lesson.type === null || lesson.type === undefined) || (lesson.type === EXAM && score > MIN_PASS)) {
+                        lessons[index + 1].isUnlock = true;
+                    }
+                }
+            }
+        });
     }
-  }
 
-  prevProblem() {
-    if (this.currentProblem > 1) {
-      this.currentProblem--;
-      this.data = [this._lessonData.rows[this.currentProblem - 1]];
+    async allChapterForSubject(courseId: string, results: { [key: string]: Result; } = {}): Promise<Chapter[]> {
+
+        if (this.curriculum.get(courseId)?.chapters == undefined) {
+            const course = await this.loadSingleCourseJson(courseId, results);
+            return course.get(courseId)?.chapters || [];
+        }
+        return this.curriculum.get(courseId)?.chapters || [];
     }
-  }
 
-  getAssignments(): Lesson[] {
-    return [];
-  }
+    async allLessonForSubject(courseId: string, results: { [key: string]: Result; } = {}): Promise<Lesson[]> {
+        let course = this.curriculum || undefined;
+        const lessons: Lesson[] = []
+        if (course.get(courseId)?.chapters == undefined) {
+            course = await this.loadSingleCourseJson(courseId, results);
+        }
+        const chapters = course.get(courseId)?.chapters || []
+        for (let chapter of chapters) {
+            for (let lesson of chapter.lessons) {
+                lessons.push(lesson)
+            }
+        }
+        return lessons || [];
+    }
+
+    nextProblem() {
+        if (this.currentProblem < this.totalProblems) {
+            this.currentProblem++;
+            this.data = [this._lessonData.rows[this.currentProblem - 1]];
+        }
+    }
+
+    prevProblem() {
+        if (this.currentProblem > 1) {
+            this.currentProblem--;
+            this.data = [this._lessonData.rows[this.currentProblem - 1]];
+        }
+    }
+
+    getAssignments(): Lesson[] {
+        return []
+    }
+
 }

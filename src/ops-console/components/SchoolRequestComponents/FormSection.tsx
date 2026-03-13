@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Grid, TextField, Typography, FormLabel } from '@mui/material';
+import React from "react";
+import { Box, Grid, TextField, Typography, FormLabel } from "@mui/material";
 
 interface Field {
   label: string;
@@ -20,16 +20,16 @@ const FormSection: React.FC<FormSectionProps> = ({ title, fields }) => {
   return (
     <Box
       sx={{
-        borderRadius: '8px',
-        padding: '10px',
-        marginBottom: '20px',
-        backgroundColor: '#f9fbfd',
+        borderRadius: "8px",
+        padding: "10px",
+        marginBottom: "20px",
+        backgroundColor: "#f9fbfd",
       }}
     >
       <Typography
         variant="subtitle2"
         fontWeight="bold"
-        sx={{ marginBottom: '16px', fontSize: '1rem', color: '#111827' }}
+        sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}
       >
         {title}
       </Typography>
@@ -37,25 +37,25 @@ const FormSection: React.FC<FormSectionProps> = ({ title, fields }) => {
       <Grid container spacing={2}>
         {fields.map((field, index) => (
           <Grid size={{ xs: 12, md: 6 }} key={index}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               <FormLabel
-                sx={{ fontSize: '1rem', color: '#111827', fontWeight: 500 }}
+                sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
               >
-                {field.label} {field.required ? '*' : ''}
+                {field.label} {field.required ? "*" : ""}
               </FormLabel>
               <TextField
                 fullWidth
                 placeholder={field.placeholder}
-                value={field.value || ''}
+                value={field.value || ""}
                 onChange={(e) => field.onChange?.(field.name, e.target.value)}
                 variant="outlined"
                 size="small"
                 disabled={field.editable === false}
                 InputProps={{
                   sx: {
-                    backgroundColor: '#fff',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
+                    backgroundColor: "#fff",
+                    borderRadius: "6px",
+                    fontSize: "1rem",
                   },
                 }}
               />

@@ -1,13 +1,14 @@
-import './coloring.css';
-import { useRef } from 'react';
-import { useSvgColoring } from './useSvgColoring';
-import { SVGScene } from './SVGScene';
-import ColorTray from './ColorTray';
-import PaintTopBar from './PaintTopBar';
-import pathwayBg from '../../assets/images/pathwayBackground1.svg';
-import cameraIcon from '../../assets/images/camera.svg';
+import "./coloring.css";
+import { useRef } from "react";
+import { useSvgColoring } from "./useSvgColoring";
+import { SVGScene } from "./SVGScene";
+import ColorTray from "./ColorTray";
+import PaintTopBar from "./PaintTopBar";
+import pathwayBg from "../../assets/images/pathwayBackground1.svg";
+import cameraIcon from "../../assets/images/camera.svg";
 // import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
-import { ReactComponent as SceneSvg } from '../../assets/images/Sea.svg';
+import { ReactComponent as SceneSvg } from "../../assets/images/Sea.svg";
+
 
 export default function ColoringBoard() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -22,7 +23,7 @@ export default function ColoringBoard() {
       />
 
       {/* Exit Button */}
-      <PaintTopBar onExit={() => console.log('exit')} />
+      <PaintTopBar onExit={() => console.log("exit")} />
 
       {/* Main Layout */}
       <div className="paint-layout">
@@ -35,7 +36,10 @@ export default function ColoringBoard() {
 
         {/* Right Panel */}
         <div className="right-panel">
-          <button className="save-btn" onClick={() => console.log('save')}>
+          <button
+            className="save-btn"
+            onClick={() => console.log("save")}
+          >
             <img src={cameraIcon} alt="save" />
             <span>Save</span>
           </button>

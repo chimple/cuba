@@ -1,15 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import LiveQuizCountdownTimer from '../components/liveQuiz/LiveQuizCountdownTimer';
-import { Timestamp } from '@firebase/firestore';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTimer";
+import { Timestamp } from "@firebase/firestore";
 
 const meta = {
-  title: 'Component/LiveQuiz/CountdownTimer',
+  title: "Component/LiveQuiz/CountdownTimer",
   component: LiveQuizCountdownTimer,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
   args: {
     onTimeOut: fn(),
@@ -17,9 +17,9 @@ const meta = {
   },
   argTypes: {
     startsAt: {
-      type: 'function',
+      type: "function",
       defaultValue: Timestamp.fromDate(
-        new Date(new Date().setSeconds(new Date().getSeconds() + 30)),
+        new Date(new Date().setSeconds(new Date().getSeconds() + 30))
       ),
     },
     onTimeOut: {
@@ -36,9 +36,9 @@ export const CountdownFor10Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 10)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -47,9 +47,9 @@ export const CountdownFor15Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 15)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -58,9 +58,9 @@ export const CountdownFor20Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 20)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -69,9 +69,9 @@ export const CountdownFor25Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 25)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -80,9 +80,9 @@ export const CountdownFor30Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 30)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -91,9 +91,9 @@ export const CountdownFor35Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 35)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -102,9 +102,9 @@ export const CountdownFor40Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 40)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 export const CountdownFor45Sec: Story = {
@@ -112,9 +112,9 @@ export const CountdownFor45Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 45)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 export const CountdownFor50Sec: Story = {
@@ -122,9 +122,9 @@ export const CountdownFor50Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 50)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 export const CountdownFor55Sec: Story = {
@@ -132,9 +132,9 @@ export const CountdownFor55Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 55)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 
@@ -143,9 +143,9 @@ export const CountdownFor60Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 60)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };
 export const CountdownFor65Sec: Story = {
@@ -153,8 +153,8 @@ export const CountdownFor65Sec: Story = {
     onTimeOut: fn(),
     startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 65)),
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
 };

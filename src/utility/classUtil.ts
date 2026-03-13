@@ -3,10 +3,10 @@ import {
   LIDO_ASSESSMENT,
   TABLESORTBY,
   TableTypes,
-} from '../common/constants';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { addDays, addMonths, subDays } from 'date-fns';
-import { Util } from './util';
+} from "../common/constants";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { addDays, addMonths, subDays } from "date-fns";
+import { Util } from "./util";
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -19,13 +19,13 @@ export class ClassUtil {
     const adjustedoneWeekBack = subDays(currentDate, 7);
     var currentDateTimeStamp = adjustedcurrentDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
 
     const oneWeekBackTimeStamp = adjustedoneWeekBack
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
 
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
@@ -57,7 +57,7 @@ export class ClassUtil {
         if (!acc[student_id]) {
           acc[student_id] = new Set();
         }
-        acc[student_id].add(assignment_id ?? '');
+        acc[student_id].add(assignment_id ?? "");
         return acc;
       },
       {} as { [key: string]: Set<string> },
@@ -117,30 +117,30 @@ export class ClassUtil {
   public async divideStudents(classId: string, courseIds: string[]) {
     const greenGroup: Map<
       string,
-      TableTypes<'user'> | TableTypes<'result'>[]
+      TableTypes<"user"> | TableTypes<"result">[]
     >[] = [];
     const yellowGroup: Map<
       string,
-      TableTypes<'user'> | TableTypes<'result'>[]
+      TableTypes<"user"> | TableTypes<"result">[]
     >[] = [];
-    const redGroup: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>[] =
+    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
       [];
     const greyGroup: Map<
       string,
-      TableTypes<'user'> | TableTypes<'result'>[]
+      TableTypes<"user"> | TableTypes<"result">[]
     >[] = [];
     const currentDate = new Date();
     const adjustedcurrentDate = addDays(currentDate, 1);
     const adjustedoneWeekBack = subDays(currentDate, 7);
     var currentDateTimeStamp = adjustedcurrentDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
 
     const oneWeekBackTimeStamp = adjustedoneWeekBack
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       courseIds,
@@ -170,9 +170,9 @@ export class ClassUtil {
         results[0].created_at <= oneWeekBackTimeStamp
       ) {
         greyGroup.push(
-          new Map<string, TableTypes<'user'> | TableTypes<'result'>[]>([
-            ['student', student],
-            ['results', results],
+          new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+            ["student", student],
+            ["results", results],
           ]),
         );
       } else {
@@ -185,23 +185,23 @@ export class ClassUtil {
 
         if (averageScore >= 70) {
           greenGroup.push(
-            new Map<string, TableTypes<'user'> | TableTypes<'result'>[]>([
-              ['student', student],
-              ['results', results],
+            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+              ["student", student],
+              ["results", results],
             ]),
           );
         } else if (averageScore <= 49) {
           redGroup.push(
-            new Map<string, TableTypes<'user'> | TableTypes<'result'>[]>([
-              ['student', student],
-              ['results', results],
+            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+              ["student", student],
+              ["results", results],
             ]),
           );
         } else {
           yellowGroup.push(
-            new Map<string, TableTypes<'user'> | TableTypes<'result'>[]>([
-              ['student', student],
-              ['results', results],
+            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+              ["student", student],
+              ["results", results],
             ]),
           );
         }
@@ -222,7 +222,7 @@ export class ClassUtil {
     var currentDate = new Date(startDate);
     endDate = addDays(new Date(endDate), 1);
     while (currentDate < endDate) {
-      days.push(currentDate.toLocaleDateString('en-US', { weekday: 'long' }));
+      days.push(currentDate.toLocaleDateString("en-US", { weekday: "long" }));
       currentDate = addDays(new Date(currentDate), 1);
     }
 
@@ -234,8 +234,8 @@ export class ClassUtil {
     endDate = addDays(new Date(endDate), 1);
 
     while (currentDate < endDate) {
-      const monthName = currentDate.toLocaleDateString('en-US', {
-        month: 'long',
+      const monthName = currentDate.toLocaleDateString("en-US", {
+        month: "long",
       });
       if (!months.includes(monthName)) {
         months.push(monthName); // Add month name if it's not already in the list
@@ -250,7 +250,7 @@ export class ClassUtil {
     const allResults = Object.values(results).flat();
 
     return allResults.reduce((total, result) => {
-      if (result && typeof result === 'object') {
+      if (result && typeof result === "object") {
         return total + ((result as any).score || 0); // Casting to any
       }
       return total;
@@ -284,12 +284,12 @@ export class ClassUtil {
     const daysInRange = this.getDaysInRange(startDate, endDate);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
 
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
@@ -300,7 +300,7 @@ export class ClassUtil {
       });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<'user'>; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -312,7 +312,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[day] = [];
       });
     });
-    const lessonCache = new Map<string, TableTypes<'lesson'>>();
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -327,8 +327,8 @@ export class ClassUtil {
 
       for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
-        const dayName = resultDate.toLocaleDateString('en-US', {
-          weekday: 'long',
+        const dayName = resultDate.toLocaleDateString("en-US", {
+          weekday: "long",
         });
 
         const dayResults = resultsByStudent.get(student.id)?.results[dayName];
@@ -363,8 +363,8 @@ export class ClassUtil {
 
       daysMap.set(day, {
         headerName: day,
-        startAt: '',
-        endAt: '',
+        startAt: "",
+        endAt: "",
       });
 
       return daysMap;
@@ -388,12 +388,12 @@ export class ClassUtil {
     const adjustedEndDate = addDays(new Date(endDate), 1);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
@@ -404,7 +404,7 @@ export class ClassUtil {
 
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<'user'>; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
@@ -415,7 +415,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[month] = [];
       });
     });
-    const lessonCache = new Map<string, TableTypes<'lesson'>>();
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -429,8 +429,8 @@ export class ClassUtil {
         : res;
       for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
-        const monthName = resultDate.toLocaleDateString('en-US', {
-          month: 'long',
+        const monthName = resultDate.toLocaleDateString("en-US", {
+          month: "long",
         });
 
         const monthResults = resultsByStudent.get(student.id)?.results[
@@ -466,8 +466,8 @@ export class ClassUtil {
 
       monthsMap.set(month, {
         headerName: month,
-        startAt: '',
-        endAt: '',
+        startAt: "",
+        endAt: "",
       });
 
       return monthsMap;
@@ -481,7 +481,7 @@ export class ClassUtil {
     const date = new Date(timestamp);
     const day = date.getDate();
     const month = date.getMonth() + 1;
-    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}`;
+    return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}`;
   }
   public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
@@ -496,12 +496,12 @@ export class ClassUtil {
 
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
 
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy === TABLESORTBY.NAME) {
@@ -564,11 +564,11 @@ export class ClassUtil {
       >();
 
       assignmentMap.set(assignment.id, {
-        headerName: lesson?.name ?? '',
+        headerName: lesson?.name ?? "",
         startAt: this.formatDate(assignment.starts_at),
-        endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : '',
+        endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
         belongsToClass: belongsToClass,
-        courseId: assignment.course_id ?? '',
+        courseId: assignment.course_id ?? "",
       });
 
       return assignmentMap;
@@ -576,7 +576,7 @@ export class ClassUtil {
 
     let resultsByStudent = new Map<
       string,
-      { student: TableTypes<'user'>; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -596,14 +596,14 @@ export class ClassUtil {
       }
     }
     // lesson cache for LIDO aggregation
-    const lessonCache = new Map<string, TableTypes<'lesson'>>();
+    const lessonCache = new Map<string, TableTypes<"lesson">>();
 
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
 
       const bucket =
-        resultsByStudent.get(studentId)?.results[assignmentId ?? ''];
+        resultsByStudent.get(studentId)?.results[assignmentId ?? ""];
 
       if (!bucket) return;
 
@@ -657,16 +657,16 @@ export class ClassUtil {
     endDate: string,
     classId: string,
   ) {
-    const adjustedStartDate = subDays(new Date(startDate ?? ''), 1);
-    const adjustedEndDate = addDays(new Date(endDate ?? ''), 1);
+    const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
+    const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const res = await this.api.getStudentResultByDate(
       studentId,
       courseIds,
@@ -703,9 +703,9 @@ export class ClassUtil {
         }
 
         finalResults.push({
-          lessonName: lesson?.name ?? '',
+          lessonName: lesson?.name ?? "",
           score: Math.round(finalScore),
-          date: new Date(result.created_at!).toLocaleDateString('en-GB'),
+          date: new Date(result.created_at!).toLocaleDateString("en-GB"),
           isAssignment: result.assignment_id ? true : false,
         });
       } catch (error) {
@@ -729,12 +729,12 @@ export class ClassUtil {
 
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace('T', ' ')
-      .replace('Z', '+00');
+      .replace("T", " ")
+      .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
@@ -765,16 +765,16 @@ export class ClassUtil {
       >();
 
       lessonMap.set(lesson.id, {
-        headerName: lesson?.name ?? '',
-        startAt: '',
-        endAt: '',
+        headerName: lesson?.name ?? "",
+        startAt: "",
+        endAt: "",
       });
 
       return lessonMap;
     });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<'user'>; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -798,8 +798,8 @@ export class ClassUtil {
       const studentId = result.student_id;
       const lessonId = result.lesson_id;
 
-      if (resultsByStudent.get(studentId)?.results[lessonId ?? '']) {
-        resultsByStudent.get(studentId)!.results[lessonId ?? ''].push(result);
+      if (resultsByStudent.get(studentId)?.results[lessonId ?? ""]) {
+        resultsByStudent.get(studentId)!.results[lessonId ?? ""].push(result);
       }
     });
     return {
@@ -809,13 +809,13 @@ export class ClassUtil {
   }
 
   public async groupStudentsByCategoryInList(
-    studentsMap: Map<string, Map<string, TableTypes<'user'>>>,
-  ): Promise<Map<string, TableTypes<'user'>[]>> {
-    const groups: Map<string, TableTypes<'user'>[]> = new Map();
+    studentsMap: Map<string, Map<string, TableTypes<"user">>>,
+  ): Promise<Map<string, TableTypes<"user">[]>> {
+    const groups: Map<string, TableTypes<"user">[]> = new Map();
 
     studentsMap.forEach((studentM: Map<string, any>, index: string) => {
       studentM.forEach((element: any) => {
-        const studentData = element.get('student');
+        const studentData = element.get("student");
         if (!studentData) {
           return; // Skip this element if no student data is present
         }
@@ -835,11 +835,11 @@ export class ClassUtil {
   public sortStudentsByTotalScoreAssignment = (
     studentsMap: Map<
       string,
-      { student: TableTypes<'user'>; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >,
   ): Map<
     string,
-    { student: TableTypes<'user'>; results: Record<string, any[]> }
+    { student: TableTypes<"user">; results: Record<string, any[]> }
   > => {
     // Convert Map to array of entries
     const studentsArray = Array.from(studentsMap.entries());

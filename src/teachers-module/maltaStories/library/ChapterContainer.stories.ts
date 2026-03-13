@@ -1,10 +1,10 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import ChapterContainer from '../../components/library/ChapterContainer';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import ChapterContainer from "../../components/library/ChapterContainer";
 
 const meta = {
-  title: 'teachers-module/library/ChapterContainer',
+  title: "teachers-module/library/ChapterContainer",
   component: ChapterContainer,
 
   argTypes: {
@@ -14,15 +14,15 @@ const meta = {
   parameters: {},
   args: {
     chapter: {
-      course_id: 'string',
-      created_at: 'string',
-      id: '',
-      image: 'string',
+      course_id: "string",
+      created_at: "string",
+      id: "",
+      image: "string",
       is_deleted: false,
-      name: 'string',
+      name: "string",
       sort_index: 0,
-      sub_topics: '',
-      updated_at: '',
+      sub_topics: "",
+      updated_at: "",
     },
     lessons: [
       {
@@ -30,9 +30,9 @@ const meta = {
         cocos_lesson_id: null,
         cocos_subject_code: null,
         color: null,
-        created_at: '',
+        created_at: "",
         created_by: null,
-        id: '',
+        id: "",
         image: null,
         is_deleted: null,
         language_id: null,
@@ -57,15 +57,15 @@ export const Test1: Story = {
   args: {
     isOpened: true,
     chapter: {
-      course_id: 'string',
-      created_at: 'string',
-      id: 'string',
-      image: 'string',
+      course_id: "string",
+      created_at: "string",
+      id: "string",
+      image: "string",
       is_deleted: false,
-      name: 'Chapter1',
+      name: "Chapter1",
       sort_index: 0,
-      sub_topics: '',
-      updated_at: '',
+      sub_topics: "",
+      updated_at: "",
     },
     lessons: [
       {
@@ -73,13 +73,13 @@ export const Test1: Story = {
         cocos_lesson_id: null,
         cocos_subject_code: null,
         color: null,
-        created_at: '',
+        created_at: "",
         created_by: null,
-        id: '',
+        id: "",
         image: null,
         is_deleted: null,
         language_id: null,
-        name: 'lesson1',
+        name: "lesson1",
         outcome: null,
         plugin_type: null,
         status: null,
@@ -95,15 +95,15 @@ export const Test2: Story = {
   args: {
     isOpened: true,
     chapter: {
-      course_id: 'string',
-      created_at: 'string',
-      id: 'string',
-      image: 'string',
+      course_id: "string",
+      created_at: "string",
+      id: "string",
+      image: "string",
       is_deleted: false,
-      name: 'Chapter1',
+      name: "Chapter1",
       sort_index: 0,
-      sub_topics: '',
-      updated_at: '',
+      sub_topics: "",
+      updated_at: "",
     },
     lessons: [
       {
@@ -111,13 +111,13 @@ export const Test2: Story = {
         cocos_lesson_id: null,
         cocos_subject_code: null,
         color: null,
-        created_at: '',
+        created_at: "",
         created_by: null,
-        id: '',
+        id: "",
         image: null,
         is_deleted: null,
         language_id: null,
-        name: 'lesson1',
+        name: "lesson1",
         outcome: null,
         plugin_type: null,
         status: null,
@@ -131,13 +131,13 @@ export const Test2: Story = {
         cocos_lesson_id: null,
         cocos_subject_code: null,
         color: null,
-        created_at: '',
+        created_at: "",
         created_by: null,
-        id: '',
+        id: "",
         image: null,
         is_deleted: null,
         language_id: null,
-        name: 'lesson2',
+        name: "lesson2",
         outcome: null,
         plugin_type: null,
         status: null,

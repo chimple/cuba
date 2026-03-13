@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import LessonIcon from '../../components/malta/assignment/LessonIcon';
+import type { Meta, StoryObj } from "@storybook/react";
+import LessonIcon from "../../components/malta/assignment/LessonIcon";
 
 const meta = {
-  title: 'Component/malta/assignment/LessonIcon',
+  title: "Component/malta/assignment/LessonIcon",
   component: LessonIcon,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
   args: {},
 } satisfies Meta<typeof LessonIcon>;
@@ -17,10 +17,10 @@ type Story = StoryObj<typeof meta>;
 
 export const lesson1: Story = {
   args: {
-    id: 'kn2_0401',
-    cocosSubjectCode: 'kn',
-    thumbnail: 'kn2_0401.png',
+    id: "kn2_0401",
+    cocosSubjectCode: "kn",
+    thumbnail: "kn2_0401.png",
     selected: true,
-    title: 'Lesson1',
+    title: "Lesson1",
   },
 };

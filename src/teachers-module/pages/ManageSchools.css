@@ -12,7 +12,7 @@
 /* Hide scrollbar for IE, Edge, and Firefox */
 .main-page ion-content::part(scroll) {
   -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;    /* Firefox */
 }
 .school-list {
   overflow-y: auto;

@@ -1,7 +1,7 @@
-import { FC } from 'react';
-import { AVATARS } from '../../common/constants';
-import './SelectAvatar.css';
-import { BsFillCheckCircleFill } from 'react-icons/bs';
+import { FC } from "react";
+import { AVATARS } from "../../common/constants";
+import "./SelectAvatar.css";
+import { BsFillCheckCircleFill } from "react-icons/bs";
 
 const SelectAvatar: FC<{
   avatar: string | undefined;
@@ -21,7 +21,7 @@ const SelectAvatar: FC<{
                 <img
                   aria-label={_avatar}
                   className="edit-avatar-img"
-                  src={'assets/avatars/' + _avatar + '.png'}
+                  src={"assets/avatars/" + _avatar + ".png"}
                   alt=""
                 />
                 {avatar === _avatar && (

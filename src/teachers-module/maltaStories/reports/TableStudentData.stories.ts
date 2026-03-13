@@ -1,12 +1,12 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import TableStudentData from '../../components/reports/TableStudentData';
-import { TABLEDROPDOWN } from '../../../common/constants';
+import type { Meta, StoryObj } from "@storybook/react";
+import TableStudentData from "../../components/reports/TableStudentData";
+import { TABLEDROPDOWN } from "../../../common/constants";
 
 const meta = {
-  title: 'teachers-module/report/TableStudentData',
+  title: "teachers-module/report/TableStudentData",
   component: TableStudentData,
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {},
 
   args: {},
@@ -32,7 +32,7 @@ export const Test1: Story = {
     assignmentMap: {
       Monday: { belongsToClass: true },
     },
-    selectedType: TABLEDROPDOWN.WEEKLY,
+    selectedType: TABLEDROPDOWN.WEEKLY
   },
 };
 export const Count: Story = {
@@ -60,58 +60,56 @@ export const Count: Story = {
     assignmentMap: {
       Monday: { belongsToClass: true },
     },
-    selectedType: TABLEDROPDOWN.WEEKLY,
+    selectedType: TABLEDROPDOWN.WEEKLY
   },
 };
 
 export const Count1: Story = {
-  args: {
-    studentData: {
-      Friday: [],
-      Saturday: [
-        {
-          score: 100,
-        },
-        {
-          score: 80,
-        },
-        {
-          score: 60,
-        },
-      ],
-      Sunday: [],
-      Monday: [
-        {
-          score: 10,
-        },
-        {
-          score: 30,
-        },
-        {
-          score: 40,
-        },
-      ],
-      Tuesday: [],
-      Wednesday: [
-        {
-          score: 40,
-        },
-        {
-          score: 30,
-        },
-        {
-          score: 70,
-        },
-      ],
-      Thursday: [],
+    args: {
+      studentData: {
+        Friday: [],
+        Saturday: [{
+            score: 100,
+          },
+          {
+            score: 80,
+          },
+          {
+            score: 60,
+          },],
+        Sunday: [],
+        Monday: [
+          {
+            score: 10,
+          },
+          {
+            score: 30,
+          },
+          {
+            score: 40,
+          },
+        ],
+        Tuesday: [],
+        Wednesday: [
+            {
+                score: 40,
+              },
+              {
+                score: 30,
+              },
+              {
+                score: 70,
+              },
+        ],
+        Thursday: [],
+      },
+      isScore: false,
+      assignmentMap: {
+        Monday: { belongsToClass: true },
+      },
+      selectedType: TABLEDROPDOWN.WEEKLY
     },
-    isScore: false,
-    assignmentMap: {
-      Monday: { belongsToClass: true },
-    },
-    selectedType: TABLEDROPDOWN.WEEKLY,
-  },
-};
+  };
 export const Score: Story = {
   args: {
     studentData: {
@@ -143,6 +141,6 @@ export const Score: Story = {
     assignmentMap: {
       Monday: { belongsToClass: true },
     },
-    selectedType: TABLEDROPDOWN.WEEKLY,
+    selectedType: TABLEDROPDOWN.WEEKLY
   },
 };

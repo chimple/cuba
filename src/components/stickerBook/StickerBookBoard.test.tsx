@@ -1,9 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import StickerBookBoard from './StickerBookBoard';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import StickerBookBoard from "./StickerBookBoard";
 
 const baseProps = {
-  title: 'STICKER BOOK : ANIMALS',
-  svgUrl: '/assets/icons/StickerBookBoard.svg',
+  title: "STICKER BOOK : ANIMALS",
+  svgUrl: "/assets/icons/StickerBookBoard.svg",
   canGoPrev: true,
   canGoNext: true,
   locked: false,
@@ -12,7 +12,7 @@ const baseProps = {
   onNext: jest.fn(),
 };
 
-describe('StickerBookBoard', () => {
+describe("StickerBookBoard", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -29,7 +29,7 @@ describe('StickerBookBoard', () => {
     ) as jest.Mock;
   });
 
-  test('renders component', () => {
+  test("renders component", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -40,7 +40,7 @@ describe('StickerBookBoard', () => {
     );
   });
 
-  test('renders board title', () => {
+  test("renders board title", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -52,7 +52,7 @@ describe('StickerBookBoard', () => {
     expect(screen.getByText(/STICKER BOOK/i)).toBeInTheDocument();
   });
 
-  test('renders correct title text', () => {
+  test("renders correct title text", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -63,11 +63,11 @@ describe('StickerBookBoard', () => {
     );
 
     expect(
-      screen.getByText((content) => content.includes('STICKER BOOK : ANIMALS')),
+      screen.getByText((content) => content.includes("STICKER BOOK : ANIMALS")),
     ).toBeInTheDocument();
   });
 
-  test('renders back button', () => {
+  test("renders back button", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -76,10 +76,10 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
       />,
     );
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
-  test('back button triggers callback', () => {
+  test("back button triggers callback", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -88,11 +88,11 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
       />,
     );
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole("button"));
     expect(baseProps.onBack).toHaveBeenCalled();
   });
 
-  test('fetches svg on mount', async () => {
+  test("fetches svg on mount", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -107,7 +107,7 @@ describe('StickerBookBoard', () => {
     });
   });
 
-  test('fetch called with correct url', async () => {
+  test("fetch called with correct url", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -118,11 +118,11 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith('/assets/icons/StickerBookBoard.svg');
+      expect(fetch).toHaveBeenCalledWith("/assets/icons/StickerBookBoard.svg");
     });
   });
 
-  test('fetch called once', async () => {
+  test("fetch called once", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -137,7 +137,7 @@ describe('StickerBookBoard', () => {
     });
   });
 
-  test('renders svg after load', async () => {
+  test("renders svg after load", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -148,11 +148,11 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('svg')).toBeInTheDocument();
+      expect(document.querySelector("svg")).toBeInTheDocument();
     });
   });
 
-  test('renders navigation buttons', async () => {
+  test("renders navigation buttons", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -163,12 +163,12 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(container.querySelector('#sticker-book-nav-left')).toBeTruthy();
-      expect(container.querySelector('#sticker-book-nav-right')).toBeTruthy();
+      expect(container.querySelector("#sticker-book-nav-left")).toBeTruthy();
+      expect(container.querySelector("#sticker-book-nav-right")).toBeTruthy();
     });
   });
 
-  test('left navigation triggers onPrev', async () => {
+  test("left navigation triggers onPrev", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -180,14 +180,14 @@ describe('StickerBookBoard', () => {
 
     await waitFor(() => {
       fireEvent.click(
-        container.querySelector('#sticker-book-nav-left') as HTMLElement,
+        container.querySelector("#sticker-book-nav-left") as HTMLElement,
       );
     });
 
     expect(baseProps.onPrev).toHaveBeenCalled();
   });
 
-  test('right navigation triggers onNext', async () => {
+  test("right navigation triggers onNext", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -199,14 +199,14 @@ describe('StickerBookBoard', () => {
 
     await waitFor(() => {
       fireEvent.click(
-        container.querySelector('#sticker-book-nav-right') as HTMLElement,
+        container.querySelector("#sticker-book-nav-right") as HTMLElement,
       );
     });
 
     expect(baseProps.onNext).toHaveBeenCalled();
   });
 
-  test('shows disabled layer when locked', () => {
+  test("shows disabled layer when locked", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -217,11 +217,11 @@ describe('StickerBookBoard', () => {
     );
 
     expect(
-      document.querySelector('.sticker-book-disabled-layer'),
+      document.querySelector(".sticker-book-disabled-layer"),
     ).toBeInTheDocument();
   });
 
-  test('disabled layer not shown when unlocked', () => {
+  test("disabled layer not shown when unlocked", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -231,21 +231,21 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('.sticker-book-disabled-layer')).toBeNull();
+    expect(document.querySelector(".sticker-book-disabled-layer")).toBeNull();
   });
 
-  test('renders with collected stickers', () => {
+  test("renders with collected stickers", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
         isLocked={false}
         {...baseProps}
-        collectedStickers={['lion', 'tiger']}
+        collectedStickers={["lion", "tiger"]}
       />,
     );
   });
 
-  test('handles svgRaw provided', () => {
+  test("handles svgRaw provided", () => {
     render(
       <StickerBookBoard
         svgRaw={`<svg width="500" height="300">
@@ -258,11 +258,11 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('svg')).toBeInTheDocument();
+    expect(document.querySelector("svg")).toBeInTheDocument();
   });
   /* ---------------- ADDITIONAL TEST CASES ---------------- */
 
-  test('board root container exists', () => {
+  test("board root container exists", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -272,10 +272,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-board-root')).toBeInTheDocument();
+    expect(document.querySelector("#sb-board-root")).toBeInTheDocument();
   });
 
-  test('board frame container exists', () => {
+  test("board frame container exists", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -285,10 +285,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-frame')).toBeInTheDocument();
+    expect(document.querySelector("#sb-frame")).toBeInTheDocument();
   });
 
-  test('board content container exists', () => {
+  test("board content container exists", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -298,10 +298,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-board-content')).toBeInTheDocument();
+    expect(document.querySelector("#sb-board-content")).toBeInTheDocument();
   });
 
-  test('back button supports multiple clicks', () => {
+  test("back button supports multiple clicks", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -311,7 +311,7 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole("button");
 
     fireEvent.click(btn);
     fireEvent.click(btn);
@@ -320,7 +320,7 @@ describe('StickerBookBoard', () => {
     expect(baseProps.onBack).toHaveBeenCalledTimes(3);
   });
 
-  test('component renders without collected stickers', () => {
+  test("component renders without collected stickers", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -331,33 +331,18 @@ describe('StickerBookBoard', () => {
     );
   });
 
-  test('component renders with many stickers', () => {
+  test("component renders with many stickers", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
         isLocked={false}
         {...baseProps}
-        collectedStickers={['lion', 'tiger', 'cat', 'dog', 'elephant']}
+        collectedStickers={["lion", "tiger", "cat", "dog", "elephant"]}
       />,
     );
   });
 
-  test('svg background group exists after load', async () => {
-    render(
-      <StickerBookBoard
-        svgRaw={null}
-        isLocked={false}
-        {...baseProps}
-        collectedStickers={[]}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(document.querySelector('#background')).toBeInTheDocument();
-    });
-  });
-
-  test('svg stickers group exists after load', async () => {
+  test("svg background group exists after load", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -368,11 +353,26 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('#stickers')).toBeInTheDocument();
+      expect(document.querySelector("#background")).toBeInTheDocument();
     });
   });
 
-  test('navigation buttons remain clickable', async () => {
+  test("svg stickers group exists after load", async () => {
+    render(
+      <StickerBookBoard
+        svgRaw={null}
+        isLocked={false}
+        {...baseProps}
+        collectedStickers={[]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector("#stickers")).toBeInTheDocument();
+    });
+  });
+
+  test("navigation buttons remain clickable", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -384,10 +384,10 @@ describe('StickerBookBoard', () => {
 
     await waitFor(() => {
       const left = container.querySelector(
-        '#sticker-book-nav-left',
+        "#sticker-book-nav-left",
       ) as HTMLElement;
       const right = container.querySelector(
-        '#sticker-book-nav-right',
+        "#sticker-book-nav-right",
       ) as HTMLElement;
 
       fireEvent.click(left);
@@ -398,7 +398,7 @@ describe('StickerBookBoard', () => {
     expect(baseProps.onNext).toHaveBeenCalled();
   });
 
-  test('left navigation supports multiple clicks', async () => {
+  test("left navigation supports multiple clicks", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -410,7 +410,7 @@ describe('StickerBookBoard', () => {
 
     await waitFor(() => {
       const left = container.querySelector(
-        '#sticker-book-nav-left',
+        "#sticker-book-nav-left",
       ) as HTMLElement;
 
       fireEvent.click(left);
@@ -420,7 +420,7 @@ describe('StickerBookBoard', () => {
     expect(baseProps.onPrev).toHaveBeenCalledTimes(2);
   });
 
-  test('right navigation supports multiple clicks', async () => {
+  test("right navigation supports multiple clicks", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -432,7 +432,7 @@ describe('StickerBookBoard', () => {
 
     await waitFor(() => {
       const right = container.querySelector(
-        '#sticker-book-nav-right',
+        "#sticker-book-nav-right",
       ) as HTMLElement;
 
       fireEvent.click(right);
@@ -442,8 +442,8 @@ describe('StickerBookBoard', () => {
     expect(baseProps.onNext).toHaveBeenCalledTimes(2);
   });
 
-  test('component does not crash when fetch fails', async () => {
-    global.fetch = jest.fn(() => Promise.reject('fetch failed')) as jest.Mock;
+  test("component does not crash when fetch fails", async () => {
+    global.fetch = jest.fn(() => Promise.reject("fetch failed")) as jest.Mock;
 
     render(
       <StickerBookBoard
@@ -455,7 +455,7 @@ describe('StickerBookBoard', () => {
     );
   });
 
-  test('component renders title container', () => {
+  test("component renders title container", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -465,10 +465,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-board-title')).toBeInTheDocument();
+    expect(document.querySelector("#sb-board-title")).toBeInTheDocument();
   });
 
-  test('board title contains sticker text', () => {
+  test("board title contains sticker text", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -478,12 +478,12 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-board-title')?.textContent).toContain(
-      'STICKER BOOK',
+    expect(document.querySelector("#sb-board-title")?.textContent).toContain(
+      "STICKER BOOK",
     );
   });
 
-  test('component supports rerender', () => {
+  test("component supports rerender", () => {
     const { rerender } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -498,12 +498,12 @@ describe('StickerBookBoard', () => {
         svgRaw={null}
         isLocked={false}
         {...baseProps}
-        collectedStickers={['lion']}
+        collectedStickers={["lion"]}
       />,
     );
   });
 
-  test('component supports rerender with locked state', () => {
+  test("component supports rerender with locked state", () => {
     const { rerender } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -523,7 +523,7 @@ describe('StickerBookBoard', () => {
     );
   });
 
-  test('locked layer appears after rerender', () => {
+  test("locked layer appears after rerender", () => {
     const { rerender } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -543,11 +543,11 @@ describe('StickerBookBoard', () => {
     );
 
     expect(
-      document.querySelector('.sticker-book-disabled-layer'),
+      document.querySelector(".sticker-book-disabled-layer"),
     ).toBeInTheDocument();
   });
 
-  test('board content container has correct class', () => {
+  test("board content container has correct class", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -558,11 +558,11 @@ describe('StickerBookBoard', () => {
     );
 
     expect(
-      document.querySelector('.sticker-book-board-content'),
+      document.querySelector(".sticker-book-board-content"),
     ).toBeInTheDocument();
   });
 
-  test('component renders svg element', async () => {
+  test("component renders svg element", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -573,11 +573,11 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('svg')).toBeInTheDocument();
+      expect(document.querySelector("svg")).toBeInTheDocument();
     });
   });
 
-  test('component does not crash with empty props', () => {
+  test("component does not crash with empty props", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -593,7 +593,7 @@ describe('StickerBookBoard', () => {
     );
   });
 
-  test('navigation icons exist', async () => {
+  test("navigation icons exist", async () => {
     const { container } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -604,12 +604,12 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(container.querySelector('#sticker-book-nav-left')).toBeTruthy();
-      expect(container.querySelector('#sticker-book-nav-right')).toBeTruthy();
+      expect(container.querySelector("#sticker-book-nav-left")).toBeTruthy();
+      expect(container.querySelector("#sticker-book-nav-right")).toBeTruthy();
     });
   });
 
-  test('svg width attribute exists', async () => {
+  test("svg width attribute exists", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -620,11 +620,11 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('svg')?.getAttribute('width')).toBe('500');
+      expect(document.querySelector("svg")?.getAttribute("width")).toBe("500");
     });
   });
 
-  test('svg height attribute exists', async () => {
+  test("svg height attribute exists", async () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -635,11 +635,11 @@ describe('StickerBookBoard', () => {
     );
 
     await waitFor(() => {
-      expect(document.querySelector('svg')?.getAttribute('height')).toBe('300');
+      expect(document.querySelector("svg")?.getAttribute("height")).toBe("300");
     });
   });
 
-  test('component handles many rerenders', () => {
+  test("component handles many rerenders", () => {
     const { rerender } = render(
       <StickerBookBoard
         svgRaw={null}
@@ -661,7 +661,7 @@ describe('StickerBookBoard', () => {
     }
   });
 
-  test('component renders top row container', () => {
+  test("component renders top row container", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -671,10 +671,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-top-row')).toBeInTheDocument();
+    expect(document.querySelector("#sb-top-row")).toBeInTheDocument();
   });
 
-  test('component renders board container', () => {
+  test("component renders board container", () => {
     render(
       <StickerBookBoard
         svgRaw={null}
@@ -684,10 +684,10 @@ describe('StickerBookBoard', () => {
       />,
     );
 
-    expect(document.querySelector('#sb-board')).toBeInTheDocument();
+    expect(document.querySelector("#sb-board")).toBeInTheDocument();
   });
 
-  test('component handles large sticker list', () => {
+  test("component handles large sticker list", () => {
     const stickers = Array.from({ length: 50 }, (_, i) => `sticker${i}`);
 
     render(

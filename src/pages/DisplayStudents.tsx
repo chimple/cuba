@@ -1,28 +1,28 @@
-import { IonPage } from '@ionic/react';
-import { FC, useEffect, useState } from 'react';
-import ChimpleLogo from '../components/ChimpleLogo';
-import './DisplayStudents.css';
+import { IonPage } from "@ionic/react";
+import { FC, useEffect, useState } from "react";
+import ChimpleLogo from "../components/ChimpleLogo";
+import "./DisplayStudents.css";
 import {
   AVATARS,
   PAGES,
   MODES,
   TableTypes,
   EDIT_STUDENTS_MAP,
-} from '../common/constants';
-import { useHistory } from 'react-router';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { t } from 'i18next';
-import { Util } from '../utility/util';
-import ParentalLock from '../components/parent/ParentalLock';
-import { schoolUtil } from '../utility/schoolUtil';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
-import SkeltonLoading from '../components/SkeltonLoading';
-import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
-import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+} from "../common/constants";
+import { useHistory } from "react-router";
+import { ServiceConfig } from "../services/ServiceConfig";
+import { t } from "i18next";
+import { Util } from "../utility/util";
+import ParentalLock from "../components/parent/ParentalLock";
+import { schoolUtil } from "../utility/schoolUtil";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import SkeltonLoading from "../components/SkeltonLoading";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [students, setStudents] = useState<TableTypes<'user'>[]>();
+  const [students, setStudents] = useState<TableTypes<"user">[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
@@ -39,7 +39,7 @@ const DisplayStudents: FC<{}> = () => {
   }, []);
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: 'landscape' });
+      ScreenOrientation.lock({ orientation: "landscape" });
     }
   };
   const getStudents = async () => {
@@ -62,7 +62,7 @@ const DisplayStudents: FC<{}> = () => {
     setGbUpdated(true);
     setIsLoading(false);
   };
-  const onStudentClick = async (student: TableTypes<'user'>) => {
+  const onStudentClick = async (student: TableTypes<"user">) => {
     schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     // 2) Update GrowthBook attributes immediately for the newly selected student
@@ -81,14 +81,19 @@ const DisplayStudents: FC<{}> = () => {
       const currClass = await api.getClassById(firstClass.id);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
-      console.warn('No classes found for the student.');
+      console.warn("No classes found for the student.");
       await schoolUtil.setCurrentClass(undefined);
     }
-    if (!student.language_id) {
+    if (
+     
+      !student.language_id
+      
+    ) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
+      
       history.replace(PAGES.HOME + window.location.search);
     }
   };
@@ -96,13 +101,13 @@ const DisplayStudents: FC<{}> = () => {
     if (!online) {
       presentToast({
         message: t(`Device is offline. Cannot create a new child profile`),
-        color: 'danger',
+        color: "danger",
         duration: 3000,
-        position: 'bottom',
+        position: "bottom",
         buttons: [
           {
-            text: 'Dismiss',
-            role: 'cancel',
+            text: "Dismiss",
+            role: "cancel",
           },
         ],
       });
@@ -119,19 +124,25 @@ const DisplayStudents: FC<{}> = () => {
     <IonPage id="display-students">
       {/* <IonContent> */}
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon"></div>
+        <div id="display-students-parent-icon">
+          
+        </div>
         <ChimpleLogo
-          header={t('Welcome to Chimple!')}
-          msg={[t('Select the child’s profile')]}
+          header={t("Welcome to Chimple!")}
+          msg={[
+            t("Select the child’s profile"),
+            
+          ]}
         />
         <button
           id="display-students-parent-button"
           onClick={() => {
+            
             setShowDialogBox(true);
           }}
         >
-          {t('Parent')}
-          <img id="parent-icon" src={'assets/icons/user.png'} alt="" />
+          {t("Parent")}
+          <img id="parent-icon" src={"assets/icons/user.png"} alt="" />
         </button>
       </div>
       {!isLoading && students && (
@@ -147,7 +158,7 @@ const DisplayStudents: FC<{}> = () => {
                   className="avatar-img"
                   src={
                     (studentMode === MODES.SCHOOL && student.image) ||
-                    'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'
+                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
                   }
                   alt=""
                 />
@@ -155,12 +166,12 @@ const DisplayStudents: FC<{}> = () => {
                   <span className="display-student-name-profile">Profile:</span>
                 )}
                 <span className="display-student-name">
-                  {student.name ? student.name : '\u00A0'}
+                  {student.name ? student.name : "\u00A0"}
                 </span>
               </div>
             ))}
           </div>
-
+          
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
@@ -175,6 +186,7 @@ const DisplayStudents: FC<{}> = () => {
         </div>
       )}
       <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT} />
+      
     </IonPage>
   );
 };

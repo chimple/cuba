@@ -1,44 +1,44 @@
-import React, { useEffect, useState, useRef } from 'react';
-import './ClassForm.css';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { t } from 'i18next';
+import React, { useEffect, useState, useRef } from "react";
+import "./ClassForm.css";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 const ClassForm: React.FC<{
   onClose: () => void;
-  mode: 'create' | 'edit';
+  mode: "create" | "edit";
   classData?: any;
   schoolId?: string;
   whatspAppBotNumber?: string;
   onSaved?: () => void;
-}> = ({ onClose, mode, classData, schoolId, whatspAppBotNumber, onSaved }) => {
+}> = ({ onClose, mode, classData, schoolId,whatspAppBotNumber, onSaved }) => {
   const [formValues, setFormValues] = useState<any>({
-    grade: '',
-    section: '',
-    whatsapp_invite_link: '',
+    grade: "",
+    section: "",
+    whatsapp_invite_link: "",
   });
 
-  const [resolvedGroupId, setResolvedGroupId] = useState<string>('');
+  const [resolvedGroupId, setResolvedGroupId] = useState<string>("");
   const [AllCourses, setAllCourses] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    if (mode === 'edit' && classData) {
-      const grade = (classData.name || '').replace(/[^0-9]/g, '');
-      const section = (classData.name || '').replace(/[0-9]/g, '');
+    if (mode === "edit" && classData) {
+      const grade = (classData.name || "").replace(/[^0-9]/g, "");
+      const section = (classData.name || "").replace(/[0-9]/g, "");
 
       setFormValues({
-        grade: grade || '',
-        section: section || '',
-        whatsapp_invite_link: classData.whatsapp_invite_link ?? '',
+        grade: grade || "",
+        section: section || "",
+        whatsapp_invite_link: classData.whatsapp_invite_link ?? "",
       });
-      setResolvedGroupId(classData.group_id ?? '');
+      setResolvedGroupId(classData.group_id ?? "");
       setSelectedCourse(classData.courses.map((c: any) => c.id));
     }
   }, [mode, classData]);
@@ -47,10 +47,10 @@ const ClassForm: React.FC<{
     const fetchDropdownData = async () => {
       setLoading(true);
       try {
-        const schoolCourse = await api.getCoursesBySchoolId(schoolId ?? '');
+        const schoolCourse = await api.getCoursesBySchoolId(schoolId ?? "");
 
         if (!schoolCourse?.length) {
-          setErrorMessage('No Courses available in this school.');
+          setErrorMessage("No Courses available in this school.");
           setAllCourses([]);
           setLoading(false);
           return;
@@ -74,26 +74,26 @@ const ClassForm: React.FC<{
         ]);
 
         const curriculumMap = new Map(
-          curriculums.map((c: any) => [c.id, c.name]),
+          curriculums.map((c: any) => [c.id, c.name])
         );
         const gradeMap = new Map(grades.map((g: any) => [g.id, g.name]));
 
         // Merge into display-ready structure
         const coursesWithNames = courseDetails.map((course: any) => ({
           ...course,
-          curriculum_name: curriculumMap.get(course.curriculum_id) || '',
-          grade_name: gradeMap.get(course.grade_id) || '',
+          curriculum_name: curriculumMap.get(course.curriculum_id) || "",
+          grade_name: gradeMap.get(course.grade_id) || "",
         }));
 
         setAllCourses(coursesWithNames);
 
-        if (mode === 'edit' && classData?.Courses) {
+        if (mode === "edit" && classData?.Courses) {
           setSelectedCourse(classData.Courses.map((c: any) => c.course_id));
         }
 
-        setErrorMessage('');
+        setErrorMessage("");
       } catch (error) {
-        console.error('Error fetching courses:', error);
+        console.error("Error fetching courses:", error);
       } finally {
         setLoading(false);
       }
@@ -103,7 +103,7 @@ const ClassForm: React.FC<{
   }, [schoolId, mode]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormValues((prev: any) => ({ ...prev, [name]: value }));
@@ -111,45 +111,46 @@ const ClassForm: React.FC<{
 
   const handleSelectCourse = (id: string) => {
     setSelectedCourse((prev: string[]) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
     );
   };
 
   const isFormValid =
-    formValues.grade.trim() !== '' &&
+    formValues.grade.trim() !== "" &&
     selectedCourse.length > 0 &&
     !(
-      mode === 'edit' &&
+      mode === "edit" &&
       classData?.name === formValues.grade + formValues.section &&
-      formValues.whatsapp_invite_link.trim() ===
-        classData?.whatsapp_invite_link?.trim() &&
+      formValues.whatsapp_invite_link.trim() === classData?.whatsapp_invite_link?.trim()&&
       JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
         JSON.stringify(selectedCourse)
     );
 
+
   const placeholder =
     selectedCourse.length > 0
       ? `${selectedCourse.length} Subjects Selected`
-      : t('Select Courses');
+      : t("Select Courses");
 
   const normalizeWhatsAppInviteLink = (raw: string): string => {
-    if (!raw) return '';
+        if (!raw) return "";
 
-    const trimmed = raw.trim();
+        const trimmed = raw.trim();
 
-    // take everything after the last "/"
-    const parts = trimmed.split('/');
-    const code = parts[parts.length - 1];
+        // take everything after the last "/"
+        const parts = trimmed.split("/");
+        const code = parts[parts.length - 1];
 
-    if (!code) return '';
+        if (!code) return "";
 
-    return `https://chat.whatsapp.com/invite/${code}`;
+        return `https://chat.whatsapp.com/invite/${code}`;
   };
 
   const didInviteLinkChange =
-    mode === 'edit' &&
-    normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
-      (classData?.invite_link ?? '');
+  mode === "edit" &&
+  normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
+    (classData?.invite_link ?? "");
+
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
@@ -159,107 +160,107 @@ const ClassForm: React.FC<{
     try {
       let classId = classData?.id;
       const name = formValues.grade + formValues.section;
-      if (mode === 'create' || classData.name !== name) {
+      if (mode === "create" || classData.name !== name) {
         const classes = await api.getClassesBySchoolId(schoolId);
         if (classes.find((c: any) => c.name === name)) {
-          setErrorMessage('Class name already exists.');
+          setErrorMessage("Class name already exists.");
           setSaving(false);
           return;
         }
       }
 
-      if (mode === 'edit') {
-        const normalizedInviteLink = normalizeWhatsAppInviteLink(
-          formValues.whatsapp_invite_link,
-        );
+      if (mode === "edit") {
+          const normalizedInviteLink = normalizeWhatsAppInviteLink(
+            formValues.whatsapp_invite_link
+          );
 
-        let groupIdToStore = resolvedGroupId; // 👈 default = reuse old
+          let groupIdToStore = resolvedGroupId; // 👈 default = reuse old
 
-        // 🔁 Only re-resolve if link actually changed
-        if (didInviteLinkChange && normalizedInviteLink) {
-          try {
-            const gId = await api.getGroupIdByInvite(
-              normalizedInviteLink,
-              whatspAppBotNumber || '',
-            );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
+          // 🔁 Only re-resolve if link actually changed
+          if (didInviteLinkChange && normalizedInviteLink) {
+            try {
+              const gId = await api.getGroupIdByInvite(
+                normalizedInviteLink,
+                whatspAppBotNumber || ""
+              );
+              let resolvedGroupIdValue = "";
+              if (gId && typeof gId === "object" && !Array.isArray(gId)) {
+                const groupId = (gId as { group_id?: string | null }).group_id;
+                if (typeof groupId === "string") {
+                  resolvedGroupIdValue = groupId;
+                }
               }
-            }
 
-            if (!resolvedGroupIdValue) {
-              setErrorMessage('Invalid WhatsApp Invite Link.');
+              if (!resolvedGroupIdValue) {
+                setErrorMessage("Invalid WhatsApp Invite Link.");
+                setSaving(false);
+                return;
+              }
+
+              groupIdToStore = resolvedGroupIdValue;
+              setResolvedGroupId(resolvedGroupIdValue);
+
+            } catch (e) {
+              console.error("getGroupIdByInvite failed", e);
+              setErrorMessage("Failed to resolve WhatsApp group.");
               setSaving(false);
               return;
             }
-
-            groupIdToStore = resolvedGroupIdValue;
-            setResolvedGroupId(resolvedGroupIdValue);
-          } catch (e) {
-            console.error('getGroupIdByInvite failed', e);
-            setErrorMessage('Failed to resolve WhatsApp group.');
-            setSaving(false);
-            return;
           }
-        }
 
-        // 🔄 Update class with BOTH values
-        await api.updateClass(
-          classId,
-          name,
-          groupIdToStore, // 👈 group_id (new or reused)
-          normalizedInviteLink, // 👈 invite_link (always canonical)
-        );
-      } else {
-        const normalizedInviteLink = normalizeWhatsAppInviteLink(
-          formValues.whatsapp_invite_link,
-        );
-        let groupIdToStore = '';
-        if (normalizedInviteLink) {
-          try {
-            const gId = await api.getGroupIdByInvite(
-              normalizedInviteLink,
-              whatspAppBotNumber || '',
-            );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
+          // 🔄 Update class with BOTH values
+          await api.updateClass(
+            classId,
+            name,
+            groupIdToStore,        // 👈 group_id (new or reused)
+            normalizedInviteLink  // 👈 invite_link (always canonical)
+          );
+        } else {
+              const normalizedInviteLink = normalizeWhatsAppInviteLink( formValues.whatsapp_invite_link);
+              let groupIdToStore = "";
+              if (normalizedInviteLink) {
+                try {
+                  const gId = await api.getGroupIdByInvite(
+                    normalizedInviteLink,
+                    whatspAppBotNumber || ""
+                  );
+                  let resolvedGroupIdValue = "";
+                  if (gId && typeof gId === "object" && !Array.isArray(gId)) {
+                    const groupId = (gId as { group_id?: string | null }).group_id;
+                    if (typeof groupId === "string") {
+                      resolvedGroupIdValue = groupId;
+                    }
+                  }
+
+                  if (!resolvedGroupIdValue) {
+                    setErrorMessage("Invalid WhatsApp Invite Link.");
+                    setSaving(false);
+                    return;
+                  }
+
+                  groupIdToStore = resolvedGroupIdValue;
+                  setResolvedGroupId(resolvedGroupIdValue);
+
+                } catch (e) {
+                  console.error("getGroupIdByInvite failed", e);
+                  setErrorMessage("Failed to resolve WhatsApp group.");
+                  setSaving(false);
+                  return;
+                }
               }
+
+              const newClass = await api.createClass(
+                schoolId,
+                name,
+                groupIdToStore,                  // ✅ now correct
+                normalizedInviteLink // ✅
+              );
+
+              classId = newClass.id;
             }
-
-            if (!resolvedGroupIdValue) {
-              setErrorMessage('Invalid WhatsApp Invite Link.');
-              setSaving(false);
-              return;
-            }
-
-            groupIdToStore = resolvedGroupIdValue;
-            setResolvedGroupId(resolvedGroupIdValue);
-          } catch (e) {
-            console.error('getGroupIdByInvite failed', e);
-            setErrorMessage('Failed to resolve WhatsApp group.');
-            setSaving(false);
-            return;
-          }
-        }
-
-        const newClass = await api.createClass(
-          schoolId,
-          name,
-          groupIdToStore, // ✅ now correct
-          normalizedInviteLink, // ✅
-        );
-
-        classId = newClass.id;
-      }
       await api.updateClassCourses(classId, selectedCourse);
     } catch (e) {
-      console.error('Error:', e);
+      console.error("Error:", e);
     } finally {
       setSaving(false);
     }
@@ -272,9 +273,9 @@ const ClassForm: React.FC<{
         setDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -282,15 +283,15 @@ const ClassForm: React.FC<{
     <div className="class-form-overlay">
       <div className="class-form-container">
         <div className="class-form-title">
-          {mode === 'edit'
+          {mode === "edit"
             ? `Class : ${formValues.grade} ${formValues.section}`
-            : t('Create Class')}
+            : t("Create Class")}
         </div>
 
         <div className="class-form-row">
           <div className="class-form-group">
             <label>
-              {t('Grade')}
+              {t("Grade")}
               <span className="class-form-group-required-star"> *</span>
             </label>
             <input
@@ -300,18 +301,18 @@ const ClassForm: React.FC<{
               max={10}
               value={formValues.grade}
               onChange={handleChange}
-              placeholder={t('Enter Grade') ?? ''}
+              placeholder={t("Enter Grade") ?? ""}
             />
           </div>
 
           <div className="class-form-group">
-            <label>{t('Class Section')}</label>
+            <label>{t("Class Section")}</label>
             <input
               name="section"
               type="text"
               value={formValues.section}
               onChange={handleChange}
-              placeholder={t('Enter Class Section') ?? ''}
+              placeholder={t("Enter Class Section") ?? ""}
             />
           </div>
         </div>
@@ -321,7 +322,7 @@ const ClassForm: React.FC<{
           ref={dropdownRef}
         >
           <label>
-            {t('Courses')}
+            {t("Courses")}
             <span className="class-form-group-required-star"> *</span>
           </label>
 
@@ -332,7 +333,7 @@ const ClassForm: React.FC<{
             {placeholder}
             <img
               src="/assets/loginAssets/DropDownArrow.svg"
-              className={dropdownOpen ? 'rotate' : ''}
+              className={dropdownOpen ? "rotate" : ""}
             />
           </div>
 
@@ -343,7 +344,7 @@ const ClassForm: React.FC<{
                   (a, b) =>
                     a.curriculum_name.localeCompare(b.curriculum_name) ||
                     a.grade_name.localeCompare(b.grade_name) ||
-                    a.name.localeCompare(b.name),
+                    a.name.localeCompare(b.name)
                 )
                 .map((course: any) => (
                   <label key={course.id} className="class-form-multi-option">
@@ -373,13 +374,13 @@ const ClassForm: React.FC<{
             name="whatsapp_invite_link"
             value={formValues.whatsapp_invite_link}
             onChange={handleChange}
-            placeholder={t('Enter WhatsApp Invite Link') ?? ''}
+            placeholder={t("Enter WhatsApp Invite Link") ?? ""}
           />
         </div>
 
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
-            {t('Cancel')}
+            {t("Cancel")}
           </button>
           <button
             className="class-form-save-btn"
@@ -387,10 +388,10 @@ const ClassForm: React.FC<{
             disabled={!isFormValid || loading || saving}
           >
             {saving
-              ? t('Saving') + '...'
-              : mode === 'edit'
-                ? t('Save')
-                : t('Create Class')}
+              ? t("Saving") + "..."
+              : mode === "edit"
+              ? t("Save")
+              : t("Create Class")}
           </button>
         </div>
       </div>

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useIonToast } from '@ionic/react';
-import { t } from 'i18next';
+import { useState, useEffect } from "react";
+import { useIonToast } from "@ionic/react";
+import { t } from "i18next";
 
-type ToastPosition = 'bottom' | 'top' | 'middle' | undefined;
+type ToastPosition = "bottom" | "top" | "middle" | undefined;
 
 interface ToastOptions {
   message: string;
@@ -36,7 +36,7 @@ export function useOnlineOfflineErrorMessageHandler(): OnlineOfflineHandlerResul
     await present({
       ...options,
       message: t(options.message),
-      position: options.position || 'bottom',
+      position: options.position || "bottom",
       buttons: options.buttons.map((button) => ({
         ...button,
         text: t(button.text),
@@ -45,12 +45,12 @@ export function useOnlineOfflineErrorMessageHandler(): OnlineOfflineHandlerResul
   };
 
   useEffect(() => {
-    window.addEventListener('online', handleOnlineEvent);
-    window.addEventListener('offline', handleOfflineEvent);
+    window.addEventListener("online", handleOnlineEvent);
+    window.addEventListener("offline", handleOfflineEvent);
 
     return () => {
-      window.removeEventListener('online', handleOnlineEvent);
-      window.removeEventListener('offline', handleOfflineEvent);
+      window.removeEventListener("online", handleOnlineEvent);
+      window.removeEventListener("offline", handleOfflineEvent);
     };
   }, []);
 

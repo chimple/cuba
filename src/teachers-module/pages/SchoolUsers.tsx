@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import Tabs from '../../common/Tabs';
-import Header from '../components/homePage/Header';
-import AddButton from '../../common/AddButton';
-import './ClassUsers.css';
-import { PAGES, SCHOOL_USERS, SchoolWithRole } from '../../common/constants';
-import { Util } from '../../utility/util';
-import { useHistory, useLocation } from 'react-router-dom';
-import { RoleType } from '../../interface/modelInterfaces';
-import SchoolUserList from '../components/schoolUsers/SchoolUserList';
-import { IonPage } from '@ionic/react';
+import React, { useEffect, useState } from "react";
+import Tabs from "../../common/Tabs";
+import Header from "../components/homePage/Header";
+import AddButton from "../../common/AddButton";
+import "./ClassUsers.css";
+import { PAGES, SCHOOL_USERS, SchoolWithRole } from "../../common/constants";
+import { Util } from "../../utility/util";
+import { useHistory, useLocation } from "react-router-dom";
+import { RoleType } from "../../interface/modelInterfaces";
+import SchoolUserList from "../components/schoolUsers/SchoolUserList";
+import { IonPage } from "@ionic/react";
 
 const SchoolUsers: React.FC = () => {
   const history = useHistory();
@@ -30,13 +30,14 @@ const SchoolUsers: React.FC = () => {
     RoleType.FIELD_COORDINATOR,
   ].includes(role);
 
-  const canAddSponsor = [RoleType.PRINCIPAL, RoleType.COORDINATOR].includes(
-    role,
-  );
+  const canAddSponsor = [
+    RoleType.PRINCIPAL,
+    RoleType.COORDINATOR,
+  ].includes(role);
 
   const init = async () => {
     const queryParams = new URLSearchParams(location.search);
-    const tab = queryParams.get('tab');
+    const tab = queryParams.get("tab");
     if (tab === SCHOOL_USERS.COORDINATORS) {
       handleTabSelect(SCHOOL_USERS.COORDINATORS);
     } else if (tab === SCHOOL_USERS.SPONSORS) {
@@ -122,14 +123,12 @@ const SchoolUsers: React.FC = () => {
             )}
           </div>
           <>
-            {selectedTab === SCHOOL_USERS.PRINCIPALS &&
-              canAddPrincipalOrCoordinator && (
-                <AddButton onClick={addPrincipal} />
-              )}
-            {selectedTab === SCHOOL_USERS.COORDINATORS &&
-              canAddPrincipalOrCoordinator && (
-                <AddButton onClick={addCoordinator} />
-              )}
+            {selectedTab === SCHOOL_USERS.PRINCIPALS && canAddPrincipalOrCoordinator && (
+              <AddButton onClick={addPrincipal} />
+            )}
+            {selectedTab === SCHOOL_USERS.COORDINATORS && canAddPrincipalOrCoordinator && (
+              <AddButton onClick={addCoordinator} />
+            )}
             {selectedTab === SCHOOL_USERS.SPONSORS && canAddSponsor && (
               <AddButton onClick={addSponsor} />
             )}

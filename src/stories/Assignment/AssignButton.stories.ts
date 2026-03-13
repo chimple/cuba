@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
-import CommonButton from '../../components/malta/common/CommonButton';
+import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "@storybook/test";
+import CommonButton from "../../components/malta/common/CommonButton";
 
 const meta = {
-  title: 'Component/malta/CommonButton',
+  title: "Component/malta/CommonButton",
   component: CommonButton,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   argTypes: {
     title: {
-      options: Object.values(''),
-      mapping: Object.values(''),
+      options: Object.values(""),
+      mapping: Object.values(""),
       control: {
-        type: 'text',
-        labels: Object.keys(''),
+        type: "text",
+        labels: Object.keys(""),
       },
     },
   },
@@ -28,7 +28,7 @@ type Story = StoryObj<typeof meta>;
 
 export const assignButton: Story = {
   args: {
-    title: 'Assign',
+    title: "Assign",
     disabled: true,
     onClicked: fn(),
   },
@@ -36,7 +36,7 @@ export const assignButton: Story = {
 
 export const switchSchoolButton: Story = {
   args: {
-    title: 'Switch school',
+    title: "Switch school",
     disabled: false,
     onClicked: fn(),
   },
@@ -44,7 +44,7 @@ export const switchSchoolButton: Story = {
 
 export const cancelButton: Story = {
   args: {
-    title: 'Cancel',
+    title: "Cancel",
     disabled: false,
     onClicked: fn(),
   },
@@ -52,7 +52,7 @@ export const cancelButton: Story = {
 
 export const saveButton: Story = {
   args: {
-    title: 'Save',
+    title: "Save",
     disabled: false,
     onClicked: fn(),
   },

@@ -6,7 +6,7 @@
   height: 100vh;
   border-radius: 20px 0 0 20px;
   background: #fffdee;
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   display: flex;
   flex-direction: column;
   z-index: 999;
@@ -103,13 +103,14 @@
 .profile-details {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* no vertical centering */
+  justify-content: flex-start;  /* no vertical centering */
   flex: 1;
   min-width: 0;
 
   /* 👇 this is the main change: move all three lines slightly down */
-  padding-top: 10px; /* try 8–12px to match exactly */
+  padding-top: 10px;            /* try 8–12px to match exactly */
 }
+
 
 .text-truncate {
   white-space: nowrap;
@@ -134,9 +135,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px; /* was 12px – tighter like mockup */
+  margin-bottom: 8px;  /* was 12px – tighter like mockup */
   width: 100%;
 }
+
 
 .info-icon {
   width: 16px; /* Slightly larger icons */

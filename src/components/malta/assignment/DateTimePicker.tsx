@@ -1,5 +1,5 @@
-import { IonDatetime, IonDatetimeButton, IonModal } from '@ionic/react';
-import { FC } from 'react';
+import { IonDatetime, IonDatetimeButton, IonModal } from "@ionic/react";
+import { FC } from "react";
 
 interface DateTimePickerProps {
   date: string;
@@ -10,7 +10,11 @@ const DateTimePicker: FC<DateTimePickerProps> = ({ date }) => {
     <>
       <IonDatetimeButton datetime={date}></IonDatetimeButton>
       <IonModal keepContentsMounted={true}>
-        <IonDatetime id={date} presentation="date" value={date}></IonDatetime>
+        <IonDatetime
+          id={date}
+          presentation="date"
+          value={date}
+        ></IonDatetime>
       </IonModal>
     </>
   );

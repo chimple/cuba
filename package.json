@@ -141,27 +141,9 @@
       "plugin:storybook/recommended",
       "plugin:prettier/recommended"
     ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.test.js",
-          "**/*.test.jsx",
-          "**/*.test.ts",
-          "**/*.test.tsx"
-        ],
-        "rules": {
-          "jest/no-conditional-expect": "warn",
-          "jest/no-mocks-import": "warn",
-          "testing-library/no-container": "warn",
-          "testing-library/no-node-access": "warn",
-          "testing-library/no-unnecessary-act": "warn",
-          "testing-library/no-wait-for-multiple-assertions": "warn",
-          "testing-library/no-wait-for-side-effects": "warn",
-          "testing-library/prefer-screen-queries": "warn",
-          "testing-library/render-result-naming-convention": "warn"
-        }
-      }
-    ]
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "error"
+    }
   },
   "browserslist": {
     "production": [
@@ -218,7 +200,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint",
+      "eslint --max-warnings=0",
       "prettier --check"
     ],
     "*.{css,json,md}": [
