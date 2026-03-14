@@ -28,11 +28,13 @@
 }
 
 .StickerBookCompletionPopup-modal::after {
-  content: "";
+  content: '';
   position: absolute;
   right: calc(-1.5 * var(--close-outset));
   top: 0;
-  width: calc(var(--close-size) + (var(--close-outset) * 0.25) + (var(--close-pad) * 0.6));
+  width: calc(
+    var(--close-size) + (var(--close-outset) * 0.25) + (var(--close-pad) * 0.6)
+  );
   /* width: calc(var(--close-size) + (var(--close-outset) * 0.45) + (var(--close-pad) * 0.6)); */
   height: calc(var(--close-size) + var(--close-top) * 2);
   border-radius: 0 999px 999px 0;
@@ -136,14 +138,14 @@
 
 .StickerBookCompletionPopup-action--save {
   color: #2d1644;
-  background: #C094EF;
-  box-shadow: 0 0.36rem 0 #300D37;
+  background: #c094ef;
+  box-shadow: 0 0.36rem 0 #300d37;
 }
 
 .StickerBookCompletionPopup-action--paint {
   color: #ffffff;
-  background:  #F34D08;
-  box-shadow: 0 0.36rem 0 #8D2900;
+  background: #f34d08;
+  box-shadow: 0 0.36rem 0 #8d2900;
 }
 
 .StickerBookCompletionPopup-action:active:not(:disabled) {

@@ -25,7 +25,7 @@ import {
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
 import { StickerBookPreviewData } from '../components/learningPathway/StickerBookPreviewModal';
-import { StickerBookCompletionData } from "../components/stickerBook/StickerBookCompletionPopup";
+import { StickerBookCompletionData } from '../components/stickerBook/StickerBookCompletionPopup';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 
 interface UsePathwaySVGParams {
@@ -254,10 +254,9 @@ export function usePathwaySVG({
       const stickerPreviewPayload = isStickerBookPreviewOn
         ? await getStickerPreviewPayload()
         : null;
-      const stickerCompletionPayload =
-        isStickerBookCompletionPopupOn
-          ? await getStickerCompletionPayload()
-          : null;
+      const stickerCompletionPayload = isStickerBookCompletionPopupOn
+        ? await getStickerCompletionPayload()
+        : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
@@ -277,7 +276,10 @@ export function usePathwaySVG({
             isStickerBookCompletionPopupOn &&
             stickerCompletionPayload
           ) {
-            setTimeout(() => onStickerCompletionReady(stickerCompletionPayload), 0);
+            setTimeout(
+              () => onStickerCompletionReady(stickerCompletionPayload),
+              0,
+            );
           }
         } catch {
           sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
@@ -889,21 +891,22 @@ export function usePathwaySVG({
       const totalStickerCount =
         book.total_stickers || book.stickers_metadata?.length || 0;
       const isCompleted =
-        progress?.status === "completed" ||
-        (totalStickerCount > 0 && collectedStickerIds.length >= totalStickerCount);
+        progress?.status === 'completed' ||
+        (totalStickerCount > 0 &&
+          collectedStickerIds.length >= totalStickerCount);
 
       if (!isCompleted) return null;
 
       return {
-        source: "learning_pathway",
+        source: 'learning_pathway',
         stickerBookId: book.id,
-        stickerBookTitle: book.title || "Sticker Book",
-        stickerBookSvgUrl: book.svg_url || "",
+        stickerBookTitle: book.title || 'Sticker Book',
+        stickerBookSvgUrl: book.svg_url || '',
         collectedStickerIds,
         totalStickerCount,
       };
     } catch (error) {
-      console.error("Failed to build sticker completion payload:", error);
+      console.error('Failed to build sticker completion payload:', error);
       return null;
     }
   }

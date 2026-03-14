@@ -1,18 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { t } from "i18next";
-import { useHistory } from "react-router";
-import BrushRoundedIcon from "@mui/icons-material/BrushRounded";
-import { toBlob } from "html-to-image";
-import fallbackStickerBookLayout from "../../assets/images/newWhole_layout.svg";
-import cameraIcon from "../../assets/images/camera.svg";
-import { EVENTS, PAGES } from "../../common/constants";
-import { Util } from "../../utility/util";
-import { SVGScene } from "../coloring/SVGScene";
-import { ParsedSvg, parseSvg } from "../common/SvgHelpers";
-import "./StickerBookCompletionPopup.css";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { t } from 'i18next';
+import { useHistory } from 'react-router';
+import { toBlob } from 'html-to-image';
+import fallbackStickerBookLayout from '../../assets/images/newWhole_layout.svg';
+import cameraIcon from '../../assets/images/camera.svg';
+import { EVENTS, PAGES } from '../../common/constants';
+import { Util } from '../../utility/util';
+import { SVGScene } from '../coloring/SVGScene';
+import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
+import './StickerBookCompletionPopup.css';
 
 export interface StickerBookCompletionData {
-  source: "learning_pathway" | "homework_pathway";
+  source: 'learning_pathway' | 'homework_pathway';
   stickerBookId: string;
   stickerBookTitle: string;
   stickerBookSvgUrl: string;
@@ -22,7 +21,7 @@ export interface StickerBookCompletionData {
 
 interface StickerBookCompletionPopupProps {
   data: StickerBookCompletionData;
-  onClose: (reason: "backdrop" | "close_button") => void;
+  onClose: (reason: 'backdrop' | 'close_button') => void;
 }
 
 const InlineSvg = React.forwardRef<
@@ -36,22 +35,25 @@ const InlineSvg = React.forwardRef<
   useEffect(() => {
     const el = localRef.current;
     if (!el) return;
-    if (className) el.setAttribute("class", className);
+    if (className) el.setAttribute('class', className);
     Object.entries(svg.attrs).forEach(([name, value]) => {
       el.setAttribute(name, value);
     });
-    el.setAttribute("width", "100%");
-    el.setAttribute("height", "100%");
-    el.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    el.setAttribute('width', '100%');
+    el.setAttribute('height', '100%');
+    el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   }, [svg, className]);
 
   return <svg ref={localRef} dangerouslySetInnerHTML={{ __html: svg.inner }} />;
 });
 
-InlineSvg.displayName = "InlineSvg";
+InlineSvg.displayName = 'InlineSvg';
 
 function sanitizeFileName(value: string): string {
-  return value.replace(/[^a-z0-9-_]+/gi, "_").replace(/^_+|_+$/g, "") || "sticker-book";
+  return (
+    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
+    'sticker-book'
+  );
 }
 
 const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
@@ -59,7 +61,7 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
   onClose,
 }) => {
   const history = useHistory();
-  const [svgMarkup, setSvgMarkup] = useState<string>("");
+  const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const bookSvgRef = useRef<SVGSVGElement | null>(null);
@@ -68,7 +70,7 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
 
   const analyticsPayload = useMemo(
     () => ({
-      user_id: Util.getCurrentStudent()?.id ?? "unknown",
+      user_id: Util.getCurrentStudent()?.id ?? 'unknown',
       source: data.source,
       sticker_book_id: data.stickerBookId,
       sticker_book_title: data.stickerBookTitle,
@@ -86,14 +88,19 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
       try {
         const response = await fetch(data.stickerBookSvgUrl);
         if (!response.ok) {
-          throw new Error(`Failed to fetch sticker book SVG: ${response.status}`);
+          throw new Error(
+            `Failed to fetch sticker book SVG: ${response.status}`,
+          );
         }
         const text = await response.text();
         if (mounted) {
           setSvgMarkup(text);
         }
       } catch (error) {
-        console.warn("Failed to load completion sticker book SVG. Falling back.", error);
+        console.warn(
+          'Failed to load completion sticker book SVG. Falling back.',
+          error,
+        );
         const fallbackResponse = await fetch(fallbackStickerBookLayout);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {
@@ -115,19 +122,22 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
 
   const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
-      onClose("backdrop");
+      onClose('backdrop');
     }
   };
 
   const handleSave = async () => {
-    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED, analyticsPayload);
+    Util.logEvent(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
+      analyticsPayload,
+    );
     if (!shareTargetRef.current) return;
 
     setIsSaving(true);
     try {
       const blob = await toBlob(shareTargetRef.current, {
         cacheBust: true,
-        backgroundColor: "#bee7de",
+        backgroundColor: '#bee7de',
         pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
       });
       if (!blob) return;
@@ -135,24 +145,30 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
       const file = new File(
         [blob],
         `${sanitizeFileName(data.stickerBookTitle)}.png`,
-        { type: "image/png" },
+        { type: 'image/png' },
       );
 
       await Util.sendContentToAndroidOrWebShare(
-        t("STICKER BOOK"),
-        data.stickerBookTitle || t("STICKER BOOK"),
+        t('STICKER BOOK'),
+        data.stickerBookTitle || t('STICKER BOOK'),
         undefined,
         [file],
       );
     } catch (error) {
-      console.error("[StickerBook] Failed to share sticker book snapshot:", error);
+      console.error(
+        '[StickerBook] Failed to share sticker book snapshot:',
+        error,
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   const handlePaint = () => {
-    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED, analyticsPayload);
+    Util.logEvent(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
+      analyticsPayload,
+    );
     history.push(PAGES.COLORING_BOARD, {
       stickerBookId: data.stickerBookId,
       stickerBookSvgUrl: data.stickerBookSvgUrl,
@@ -175,8 +191,8 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
         <button
           type="button"
           className="StickerBookCompletionPopup-close"
-          onClick={() => onClose("close_button")}
-          aria-label={String(t("Close"))}
+          onClick={() => onClose('close_button')}
+          aria-label={String(t('Close'))}
         >
           <img src="pathwayAssets/menuCross.svg" alt="close-icon" />
         </button>
@@ -186,7 +202,9 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
           className="StickerBookCompletionPopup-book-frame"
         >
           {isLoading ? (
-            <div className="StickerBookCompletionPopup-loading">{t("loading")}</div>
+            <div className="StickerBookCompletionPopup-loading">
+              {t('loading')}
+            </div>
           ) : (
             <div className="StickerBookCompletionPopup-book">
               {parsedSvg && (
@@ -214,7 +232,7 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
             disabled={isSaving}
           >
             <img src={cameraIcon} alt="" aria-hidden="true" />
-            <span>{t("Save")}</span>
+            <span>{t('Save')}</span>
           </button>
 
           <button
@@ -223,7 +241,7 @@ const StickerBookCompletionPopup: React.FC<StickerBookCompletionPopupProps> = ({
             onClick={handlePaint}
           >
             <img src="assets/icons/PaintBucket.svg" alt="" aria-hidden="true" />
-            <span>{t("Paint")}</span>
+            <span>{t('Paint')}</span>
           </button>
         </div>
       </div>

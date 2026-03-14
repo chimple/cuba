@@ -107,7 +107,7 @@ import {
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
-import type { StickerBookCompletionData } from "../components/stickerBook/StickerBookCompletionPopup";
+import type { StickerBookCompletionData } from '../components/stickerBook/StickerBookCompletionPopup';
 
 declare global {
   interface Window {
@@ -2919,9 +2919,8 @@ export class Util {
           false,
         );
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
-        const stickerAwardResult = await Util.tryAwardStickerForCompletedPathway(
-          currentStudent.id,
-        );
+        const stickerAwardResult =
+          await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (stickerAwardResult.completed) {
             sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
@@ -3022,16 +3021,22 @@ export class Util {
         studentId,
       );
       if (!nextStickerId) {
-        return { completed: false, stickerBookId: current.book.id, payload: null };
+        return {
+          completed: false,
+          stickerBookId: current.book.id,
+          payload: null,
+        };
       }
 
       await api.updateStickerWon(current.book.id, nextStickerId);
       const updated = await api.getCurrentStickerBookWithProgress(studentId);
       const totalStickerCount =
-        updated?.book?.total_stickers || updated?.book?.stickers_metadata?.length || 0;
+        updated?.book?.total_stickers ||
+        updated?.book?.stickers_metadata?.length ||
+        0;
       const collectedCount = updated?.progress?.stickers_collected?.length || 0;
       const completed =
-        updated?.progress?.status === "completed" ||
+        updated?.progress?.status === 'completed' ||
         (totalStickerCount > 0 && collectedCount >= totalStickerCount);
 
       return {
@@ -3040,10 +3045,10 @@ export class Util {
         payload:
           completed && updated?.book?.id
             ? {
-                source: "learning_pathway",
+                source: 'learning_pathway',
                 stickerBookId: updated.book.id,
-                stickerBookTitle: updated.book.title || "Sticker Book",
-                stickerBookSvgUrl: updated.book.svg_url || "",
+                stickerBookTitle: updated.book.title || 'Sticker Book',
+                stickerBookSvgUrl: updated.book.svg_url || '',
                 collectedStickerIds: updated.progress?.stickers_collected ?? [],
                 totalStickerCount,
               }
