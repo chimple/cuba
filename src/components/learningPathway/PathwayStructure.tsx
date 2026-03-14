@@ -14,8 +14,15 @@ import StickerBookPreviewModal, {
 import { useHistory } from 'react-router';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
+import StickerBookCompletionPopup, {
+  StickerBookCompletionData,
+} from '../stickerBook/StickerBookCompletionPopup';
 import { Util } from '../../utility/util';
-import { EVENTS } from '../../common/constants';
+import {
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  EVENTS,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+} from '../../common/constants';
 
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
@@ -23,6 +30,11 @@ const PathwayStructure: React.FC = () => {
     React.useState<StickerBookPreviewData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
     React.useState<boolean>(false);
+  const [stickerCompletionData, setStickerCompletionData] =
+    React.useState<StickerBookCompletionData | null>(null);
+  const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
+    React.useState<boolean>(false);
+  const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
 
   const {
     // refs
@@ -70,6 +82,34 @@ const PathwayStructure: React.FC = () => {
     checkAndUpdateReward,
   } = usePathwayData();
 
+  const openStickerCompletion = React.useCallback(
+    (data: StickerBookCompletionData) => {
+      const completionKey = [
+        data.source,
+        data.stickerBookId,
+        data.collectedStickerIds.length,
+        data.totalStickerCount,
+      ].join(':');
+
+      if (lastStickerCompletionOpenKeyRef.current === completionKey) {
+        return;
+      }
+
+      lastStickerCompletionOpenKeyRef.current = completionKey;
+      setStickerCompletionData(data);
+      setIsStickerCompletionOpen(true);
+      Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED, {
+        user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+        source: data.source,
+        sticker_book_id: data.stickerBookId,
+        sticker_book_title: data.stickerBookTitle,
+        collected_count: data.collectedStickerIds.length,
+        total_stickers: data.totalStickerCount,
+      });
+    },
+    [],
+  );
+
   // Mounts SVG with everything needed
   usePathwaySVG({
     containerRef,
@@ -99,6 +139,9 @@ const PathwayStructure: React.FC = () => {
         source: data.source,
       });
     },
+    onStickerCompletionReady: (data) => {
+      openStickerCompletion(data);
+    },
   });
 
   const closeStickerPreview = React.useCallback(
@@ -115,6 +158,46 @@ const PathwayStructure: React.FC = () => {
     },
     [stickerPreviewData],
   );
+
+  const closeStickerCompletion = React.useCallback(
+    (reason: 'backdrop' | 'close_button') => {
+      if (stickerCompletionData && reason === 'close_button') {
+        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED, {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          source: stickerCompletionData.source,
+          sticker_book_id: stickerCompletionData.stickerBookId,
+          sticker_book_title: stickerCompletionData.stickerBookTitle,
+          collected_count: stickerCompletionData.collectedStickerIds.length,
+          total_stickers: stickerCompletionData.totalStickerCount,
+        });
+      }
+      setIsStickerCompletionOpen(false);
+    },
+    [stickerCompletionData],
+  );
+
+  React.useEffect(() => {
+    const handleStickerCompletionReady = (event: Event) => {
+      const customEvent = event as CustomEvent<StickerBookCompletionData>;
+      const data = customEvent.detail;
+      if (!data?.stickerBookId) return;
+
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      openStickerCompletion(data);
+    };
+
+    window.addEventListener(
+      STICKER_BOOK_COMPLETION_READY_EVENT,
+      handleStickerCompletionReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        STICKER_BOOK_COMPLETION_READY_EVENT,
+        handleStickerCompletionReady as EventListener,
+      );
+    };
+  }, [openStickerCompletion]);
 
   return (
     <>
@@ -169,6 +252,13 @@ const PathwayStructure: React.FC = () => {
         <StickerBookPreviewModal
           data={stickerPreviewData}
           onClose={closeStickerPreview}
+        />
+      )}
+
+      {isStickerCompletionOpen && stickerCompletionData && (
+        <StickerBookCompletionPopup
+          data={stickerCompletionData}
+          onClose={closeStickerCompletion}
         />
       )}
     </>
