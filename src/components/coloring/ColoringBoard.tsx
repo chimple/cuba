@@ -75,11 +75,7 @@ const ColoringBoard: React.FC = () => {
       setIsLoading(true);
       try {
         if (state?.svgRaw) {
-          if (mounted)
-            setSvgMarkup(
-              state.svgRaw ??
-                'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg',
-            );
+          if (mounted) setSvgMarkup(state.svgRaw);
           return;
         }
 

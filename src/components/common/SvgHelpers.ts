@@ -250,12 +250,22 @@ export function applyColorMode(
     }
 
     const isUncoloured = el.getAttribute('uncoloured') === 'true';
-    const isHighlight =
-      el.getAttribute('mode') === 'color' ||
-      el.getAttribute('color') === 'mode';
+    const isHighlight = el.getAttribute('mode') === 'color';
     const isSpecial = el.getAttribute('special') === 'true';
     const hasColorId = el.hasAttribute('color-id');
     const hasMarkId = el.hasAttribute('mark-id');
+
+    if (isSpecial) {
+      if (isHighlight) {
+        el.setAttribute('fill', '#FFFFFF4D');
+        el.setAttribute('stroke', 'none');
+        el.removeAttribute('stroke-width');
+        el.removeAttribute('opacity');
+      } else {
+        el.setAttribute('stroke', '#FFFFFF4D');
+      }
+      return;
+    }
     if (isHighlight) {
       const hasFill =
         el.hasAttribute('fill') && el.getAttribute('fill') !== 'none';
@@ -293,17 +303,6 @@ export function applyColorMode(
       if (hasFill) {
         el.setAttribute('fill', '#FFFFFF');
         el.setAttribute('fill-opacity', '0.3');
-      }
-      return;
-    }
-
-    if (isSpecial) {
-      el.setAttribute('stroke', '#FFFFFF');
-
-      if (isHighlight) {
-        el.setAttribute('stroke-opacity', '0.3');
-      } else {
-        el.removeAttribute('stroke-opacity');
       }
       return;
     }
