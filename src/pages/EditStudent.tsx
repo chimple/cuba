@@ -27,6 +27,7 @@ import { Keyboard } from '@capacitor/keyboard';
 import BackButton from '../components/common/BackButton';
 import i18n from '../i18n';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import logger from '../utility/logger';
 
 let localStoreData: any = {};
 
@@ -239,7 +240,7 @@ const EditStudent = () => {
           );
           history.replace(PAGES.HOME);
         } catch (err) {
-          console.error('Auto profile creation failed', err);
+          logger.error('Auto profile creation failed', err);
         } finally {
           setIsCreatingProfile(false);
         }

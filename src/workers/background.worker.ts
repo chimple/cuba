@@ -1,3 +1,4 @@
+import logger from '../utility/logger';
 import {
   WorkerAckMessage,
   BackgroundWorkerTask,
@@ -649,7 +650,7 @@ workerScope.onmessage = async (
       error: error instanceof Error ? error.message : String(error),
     };
     workerScope.postMessage(response);
-    console.error(`[BG-WORKER] failed`, {
+    logger.error(`[BG-WORKER] failed`, {
       id: request.id,
       type: request.type,
       error: response.error,

@@ -17,13 +17,16 @@ import {
   LIDO_ASSESSMENT,
   EVENTS,
   STICKER_BOOK_PREVIEW_ENABLED,
+  STICKER_BOOK_COMPLETION_POPUP,
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
-import { StickerBookPreviewData } from '../components/learningPathway/StickerBookPreviewModal';
+import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
+import logger from '../utility/logger';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -43,7 +46,8 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
-  onStickerPreviewReady: (data: StickerBookPreviewData) => void;
+  onStickerPreviewReady: (data: StickerBookModalData) => void;
+  onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
 
 // CACHES
@@ -160,9 +164,13 @@ export function usePathwaySVG({
   setIsRewardPathLoaded,
   isRewardPathLoaded,
   onStickerPreviewReady,
+  onStickerCompletionReady,
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
   const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
+  const isStickerBookCompletionPopupOn = useFeatureIsOn(
+    STICKER_BOOK_COMPLETION_POPUP,
+  );
   // Default to sticker rewards when the experiment value is missing.
   const rewardBoxVariant = useFeatureValue(
     PATHWAY_END_REWARD_BOX_VARIANT,
@@ -176,7 +184,12 @@ export function usePathwaySVG({
     return () => {
       delete (window as any).__triggerPathwayReload__;
     };
-  }, [isRewardPathLoaded, isStickerBookPreviewOn, rewardBoxVariant]);
+  }, [
+    isRewardPathLoaded,
+    isStickerBookPreviewOn,
+    isStickerBookCompletionPopupOn,
+    rewardBoxVariant,
+  ]);
 
   async function loadSVG() {
     if (!containerRef.current) return;
@@ -197,7 +210,7 @@ export function usePathwaySVG({
           Util.getLatestLearningPathByUpdatedAt(currentStudent);
         learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
-        console.warn('No learning path found for current student');
+        logger.warn('No learning path found for current student');
         return;
       }
 
@@ -230,7 +243,7 @@ export function usePathwaySVG({
           api.getChapterById(pathItem.chapter_id),
         ]);
       } catch (err) {
-        console.warn(
+        logger.warn(
           'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
           err,
         );
@@ -241,10 +254,37 @@ export function usePathwaySVG({
       const stickerPreviewPayload = isStickerBookPreviewOn
         ? await getStickerPreviewPayload()
         : null;
+      const stickerCompletionPayload = isStickerBookCompletionPopupOn
+        ? await getStickerCompletionPayload()
+        : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
+
+      const rawCompletionPopup = sessionStorage.getItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      );
+      if (rawCompletionPopup) {
+        try {
+          const parsed = JSON.parse(rawCompletionPopup);
+          const shouldOpenForStudent =
+            parsed?.studentId && parsed.studentId === currentStudent.id;
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          if (
+            shouldOpenForStudent &&
+            isStickerBookCompletionPopupOn &&
+            stickerCompletionPayload
+          ) {
+            setTimeout(
+              () => onStickerCompletionReady(stickerCompletionPayload),
+              0,
+            );
+          }
+        } catch {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        }
+      }
 
       // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
       if (isStickerBookPreviewOn && stickerPreviewPayload) {
@@ -773,16 +813,16 @@ export function usePathwaySVG({
         }
 
         const endTime = performance.now();
-        console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
       });
     } catch (error) {
-      console.error('Failed to load SVG:', error);
+      logger.error('Failed to load SVG:', error);
     }
   }
 
   // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
   // This is the single place where we resolve next sticker image fallback.
-  async function getStickerPreviewPayload(): Promise<StickerBookPreviewData | null> {
+  async function getStickerPreviewPayload(): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
@@ -814,7 +854,7 @@ export function usePathwaySVG({
           );
           if (dataUrl) nextStickerImage = dataUrl;
         } catch (err) {
-          console.warn(
+          logger.warn(
             '[StickerBook] Failed to build sticker preview image from book SVG',
             err,
           );
@@ -832,11 +872,44 @@ export function usePathwaySVG({
         nextStickerImage,
       };
     } catch (error) {
-      console.error('Failed to build sticker preview payload:', error);
+      logger.error('Failed to build sticker preview payload:', error);
       return null;
     }
   }
 
+  async function getStickerCompletionPayload(): Promise<StickerBookModalData | null> {
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.id) return null;
+
+      const currentBookWithProgress =
+        await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      if (!currentBookWithProgress?.book) return null;
+
+      const { book, progress } = currentBookWithProgress;
+      const collectedStickerIds = progress?.stickers_collected ?? [];
+      const totalStickerCount =
+        book.total_stickers || book.stickers_metadata?.length || 0;
+      const isCompleted =
+        progress?.status === 'completed' ||
+        (totalStickerCount > 0 &&
+          collectedStickerIds.length >= totalStickerCount);
+
+      if (!isCompleted) return null;
+
+      return {
+        source: 'learning_pathway',
+        stickerBookId: book.id,
+        stickerBookTitle: book.title || 'Sticker Book',
+        stickerBookSvgUrl: book.svg_url || '',
+        collectedStickerIds,
+        totalStickerCount,
+      };
+    } catch (error) {
+      logger.error('Failed to build sticker completion payload:', error);
+      return null;
+    }
+  }
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
@@ -849,7 +922,7 @@ export function usePathwaySVG({
         pathwayTemplateCache = text;
         return text;
       } catch (err) {
-        console.error('Error in loading pathway template ', err);
+        logger.error('Error in loading pathway template ', err);
       }
     }
 
@@ -899,7 +972,7 @@ export function usePathwaySVG({
         try {
           group = await fetchLocalGroup(remote);
         } catch (err) {
-          console.warn('Failed to load local halo.svg, fetching remote', err);
+          logger.warn('Failed to load local halo.svg, fetching remote', err);
         }
       }
       if (!group) {

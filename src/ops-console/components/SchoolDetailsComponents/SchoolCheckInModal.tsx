@@ -19,6 +19,7 @@ import 'leaflet/dist/leaflet.css';
 import { SchoolVisitAction } from '../../../common/constants';
 
 import L from 'leaflet';
+import logger from '../../../utility/logger';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -64,7 +65,7 @@ const MapBoundsFitter = ({
           paddingBottomRight: [50, 20],
         });
       } catch (e) {
-        console.warn('Map fitBounds failed', e);
+        logger.warn('Map fitBounds failed', e);
       }
     } else {
       map.setView([schoolLoc.lat, schoolLoc.lng], 15);
@@ -117,7 +118,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
             setUserAddress(data.display_name);
           }
         } catch (error) {
-          console.error('Failed to fetch address', error);
+          logger.error('Failed to fetch address', error);
         }
       }
     };
@@ -223,7 +224,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
               };
 
               const handleWebError = (err: GeolocationPositionError) => {
-                console.warn('Web Geolocation High Accuracy Error', err);
+                logger.warn('Web Geolocation High Accuracy Error', err);
 
                 // Permission check
                 if (err.code === 1 || err.message?.includes('denied')) {
@@ -238,11 +239,11 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 if (watcherId !== null)
                   navigator.geolocation.clearWatch(watcherId as number);
 
-                console.log('Web: Falling back to low accuracy...');
+                logger.info('Web: Falling back to low accuracy...');
                 const fallbackId = navigator.geolocation.watchPosition(
                   successHandler,
                   (fallbackErr) => {
-                    console.error('Web Fallback Error', fallbackErr);
+                    logger.error('Web Fallback Error', fallbackErr);
                     if (
                       fallbackErr.code === 1 ||
                       fallbackErr.message?.includes('denied')
@@ -293,7 +294,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                 if (!isMounted) return;
 
                 if (err) {
-                  console.warn('High accuracy watch error', err);
+                  logger.warn('High accuracy watch error', err);
 
                   // Check if error is permission denied (code 1)
                   if (err.code === 1 || err.message?.includes('denied')) {
@@ -309,7 +310,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                   if (watcherId !== null)
                     Geolocation.clearWatch({ id: watcherId as string });
 
-                  console.log('Falling back to low accuracy...');
+                  logger.info('Falling back to low accuracy...');
                   Geolocation.watchPosition(
                     {
                       enableHighAccuracy: false,
@@ -319,7 +320,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     (fallbackPos, fallbackErr) => {
                       if (!isMounted) return;
                       if (fallbackErr) {
-                        console.error('Fallback watch error', fallbackErr);
+                        logger.error('Fallback watch error', fallbackErr);
                         // Check permission on fallback too
                         if (
                           fallbackErr.code === 1 ||
@@ -357,7 +358,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
             }
           }
         } catch (error: any) {
-          console.error('Error starting location watch', error);
+          logger.error('Error starting location watch', error);
           if (isMounted) {
             // Check if error is permission denied (code 1)
             if (error?.code === 1 || error?.message?.includes('denied')) {
@@ -412,7 +413,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       // Force re-run of the watcher effect
       setRetryTrigger((prev) => prev + 1);
     } catch (e: any) {
-      console.error('Retry failed', e);
+      logger.error('Retry failed', e);
       if (e?.code === 1 || e?.message?.includes('denied')) {
         setIsPermissionDenied(true);
         setLocationError('Location permission denied.');
@@ -439,7 +440,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       }
       return true;
     } catch (error) {
-      console.error('Failed to update school location', error);
+      logger.error('Failed to update school location', error);
       setLocationError('Failed to update school location.');
       return false;
     } finally {

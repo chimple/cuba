@@ -3,6 +3,7 @@ import { Box, Typography, CircularProgress, Divider } from '@mui/material';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import InfoCard from './InfoCard';
+import logger from '../../utility/logger';
 
 interface SubjectCurriculumCardProps {
   schoolId: string;
@@ -108,7 +109,7 @@ const SubjectCurriculumCard: React.FC<SubjectCurriculumCardProps> = ({
 
         setRows(finalRows);
       } catch (e) {
-        console.error('Failed to fetch curriculum/grade/subjects', e);
+        logger.error('Failed to fetch curriculum/grade/subjects', e);
       } finally {
         setLoading(false);
       }

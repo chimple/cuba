@@ -8,6 +8,7 @@ import {
   parseJSONParam,
   useMigrateSchoolsPageLogic,
 } from './MigrateSchoolsPageLogic';
+import logger from '../../utility/logger';
 
 const mockReplace = jest.fn();
 let mockLocationSearch = '';
@@ -634,7 +635,7 @@ describe('useMigrateSchoolsPageLogic', () => {
 
   // TC 8.10-8.12: Populate filter options and safely handle options API errors.
   it('should populate filter options and handle options api error safely', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
     mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockRejectedValueOnce(
       new Error('options failed'),
@@ -1049,7 +1050,7 @@ describe('useMigrateSchoolsPageLogic', () => {
 
   // TC 16.1-16.2-3.6: Safely handle null or failed school list API responses.
   it('should handle null/malformed api response and exceptions safely', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
     mockApiHandler.getSchoolsWithProgramAccess.mockResolvedValueOnce(null);
     const { result, rerender } = renderHook(() => useMigrateSchoolsPageLogic());

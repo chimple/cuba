@@ -9,6 +9,7 @@ import { useHistory, useLocation } from 'react-router';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { schoolUtil } from '../../utility/schoolUtil';
 import InputWithIcons from '../common/InputWithIcons';
+import logger from '../../utility/logger';
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -64,6 +65,7 @@ const JoinClass: FC<{
         setShowDialogBox(true);
       } catch (error) {
         if (error instanceof Object) {
+          logger.error('Error fetching class data:', error);
           let eMsg: string =
             'Error: Invalid inviteCode' === error.toString()
               ? t('Invalid code. Please check and Try again.')
@@ -110,7 +112,7 @@ const JoinClass: FC<{
         if (currClass) {
           await schoolUtil.setCurrentClass(currClass);
         } else {
-          console.error('Class data not found.');
+          logger.error('Class data not found.');
           throw new Error('Class data could not be fetched.');
         }
         await api.updateSchoolLastModified(codeResult['school_id']);
@@ -123,7 +125,7 @@ const JoinClass: FC<{
       // history.replace("/");
       // window.location.reload();
     } catch (error) {
-      console.error('Join class failed:', error);
+      logger.error('Join class failed:', error);
       if (error instanceof Object) setError(error.toString());
     } finally {
       setLoading(false);

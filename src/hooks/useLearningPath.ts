@@ -11,6 +11,7 @@ import {
   LANGUAGE,
 } from '../common/constants';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import logger from '../utility/logger';
 
 export type LearningPath = {
   courses: {
@@ -304,7 +305,7 @@ export const sortCoursesByStudentLanguage = async (
       }
     }
   } catch (e) {
-    console.error('Error sorting courses by language', e);
+    logger.error('Error sorting courses by language', e);
   }
 
   return courses;

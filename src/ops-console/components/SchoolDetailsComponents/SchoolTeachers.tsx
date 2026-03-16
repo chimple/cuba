@@ -49,6 +49,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
+import logger from '../../../utility/logger';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -243,7 +244,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             setTotalCount(response.total);
           }
         } catch (error) {
-          console.error('Failed to fetch teachers:', error);
+          logger.error('Failed to fetch teachers:', error);
         } finally {
           setIsLoading(false);
         }
@@ -330,7 +331,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               );
               return [row.id as string, group] as const;
             } catch (error) {
-              console.error('Failed to fetch WhatsApp group members:', error);
+              logger.error('Failed to fetch WhatsApp group members:', error);
               return [row.id as string, null] as const;
             }
           }),
@@ -356,7 +357,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         });
         setWhatsappMembersByClass(next);
       } catch (error) {
-        console.error('Failed to fetch WhatsApp group members:', error);
+        logger.error('Failed to fetch WhatsApp group members:', error);
         if (!cancelled) {
           setWhatsappMembersByClass(new Map());
         }
@@ -780,7 +781,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       } catch (e: any) {
         const message = e instanceof Error ? e.message : String(e);
         setErrorMessage({ text: message, type: 'error' });
-        console.error('Failed to add teacher:', e);
+        logger.error('Failed to add teacher:', e);
       } finally {
         setIsSubmitting(false); // stop loading
       }
@@ -990,7 +991,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         '';
       const teacherName = deleteTargetTeacher.user.name;
       if (!teacherId || !classId) {
-        console.error('Missing teacherId or classId');
+        logger.error('Missing teacherId or classId');
         return;
       }
 
@@ -1012,7 +1013,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       setDeleteTargetTeacher(null);
       fetchTeachers(page, searchTerm);
     } catch (error) {
-      console.error('Delete teacher failed:', error);
+      logger.error('Delete teacher failed:', error);
     } finally {
       setIsDeleting(false);
     }

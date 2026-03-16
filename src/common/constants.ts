@@ -885,6 +885,17 @@ export enum EVENTS {
   STICKER_BOOK_PAGE_NEXT = 'sticker_book_page_next',
   STICKER_BOOK_PAGE_PREV = 'sticker_book_page_prev',
   STICKER_BOOK_PAGE_BACK = 'sticker_book_page_back',
+  STICKER_BOOK_PROGRESS_COUNTS = 'sticker_book_progress_counts',
+  PAINT_MODE_PAGE_VIEW = 'paint_mode_page_view',
+  PAINT_MODE_BUTTON_TAP = 'paint_mode_button_tap',
+  PAINT_SAVE_TAP = 'paint_save_tap',
+  PAINT_IMAGE_SAVED = 'paint_image_saved',
+  PAINT_COLOR_TAP = 'paint_color_tap',
+  PAINT_CANVAS_TAP = 'paint_canvas_tap',
+  PAINT_EXIT_TAP = 'paint_exit_tap',
+  PAINT_EXIT_STAY_TAP = 'paint_exit_stay_tap',
+  PAINT_EXIT_CONFIRM_TAP = 'paint_exit_confirm_tap',
+  PAINT_EXIT_CLOSE_TAP = 'paint_exit_close_tap',
   HOMEWORK_PATHWAY_CREATED = 'homework_pathway_created',
   HOMEWORK_PATHWAY_COMPLETED = 'homework_pathway_completed',
   HOMEWORK_PATHWAY_COURSE_CHANGED = 'homework_pathway_course_changed',
@@ -900,6 +911,10 @@ export enum EVENTS {
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
+  STICKER_BOOK_COMPLETION_POPUP_OPENED = 'sticker_book_completion_popup_opened',
+  STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED = 'sticker_book_completion_popup_close_clicked',
+  STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED = 'sticker_book_completion_popup_save_clicked',
+  STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED = 'sticker_book_completion_popup_paint_clicked',
 }
 
 export const FCM_TOKENS = 'fcmTokens';
@@ -1024,6 +1039,7 @@ export const ALL_SUBJECT = {
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
+export const STICKER_BOOK_COMPLETION_POPUP = 'sticker_book_completion_popup';
 export const PATHWAY_END_REWARD_BOX_VARIANT = 'pathway-end-reward-box-variant';
 export const LEARNING_PATH_ASSETS = 'learning_path_assets';
 export const HOMEWORK_PATHWAY_ASSETS = 'homework_pathway_assets';
@@ -1033,6 +1049,11 @@ export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS =
 export const HOMEWORK_PATHWAY_DROPDOWN = 'homework_pathway_dropdown';
 export const HOMEWORK_PATHWAY = 'homework_pathway';
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
+export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
+  'auto_open_sticker_completion_popup';
+export const STICKER_BOOK_COMPLETION_READY_EVENT =
+  'sticker_book_completion_ready';
+export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';
 export const CHIMPLE_DIGITAL_SKILLS = '19bb079f-bc69-44e4-bc1d-0b77f2683b6c';

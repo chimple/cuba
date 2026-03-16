@@ -55,6 +55,7 @@
     "@sentry/react": "9.46.0",
     "@splidejs/react-splide": "^0.7.12",
     "@supabase/supabase-js": "^2.57.4",
+    "@types/pino": "^7.0.4",
     "algoliasearch": "^5.37.0",
     "axios": "^1.12.2",
     "capacitor-fs": "^0.1.1",
@@ -78,6 +79,7 @@
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",
     "lido-standalone": "^0.0.0-alpha-72",
+    "pino": "^10.3.1",
     "qrcode.react": "^4.2.0",
     "query-string": "^9.3.1",
     "react": "^19.1.1",
@@ -141,27 +143,18 @@
       "plugin:storybook/recommended",
       "plugin:prettier/recommended"
     ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.test.js",
-          "**/*.test.jsx",
-          "**/*.test.ts",
-          "**/*.test.tsx"
-        ],
-        "rules": {
-          "jest/no-conditional-expect": "warn",
-          "jest/no-mocks-import": "warn",
-          "testing-library/no-container": "warn",
-          "testing-library/no-node-access": "warn",
-          "testing-library/no-unnecessary-act": "warn",
-          "testing-library/no-wait-for-multiple-assertions": "warn",
-          "testing-library/no-wait-for-side-effects": "warn",
-          "testing-library/prefer-screen-queries": "warn",
-          "testing-library/render-result-naming-convention": "warn"
-        }
-      }
-    ]
+    "rules": {
+      "no-console": "error",
+      "jest/no-conditional-expect": "warn",
+      "jest/no-mocks-import": "warn",
+      "testing-library/no-container": "warn",
+      "testing-library/no-node-access": "warn",
+      "testing-library/no-unnecessary-act": "warn",
+      "testing-library/no-wait-for-multiple-assertions": "warn",
+      "testing-library/no-wait-for-side-effects": "warn",
+      "testing-library/prefer-screen-queries": "warn",
+      "testing-library/render-result-naming-convention": "warn"
+    }
   },
   "browserslist": {
     "production": [

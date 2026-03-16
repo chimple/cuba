@@ -1,5 +1,3 @@
-
-
 {
     " OFF ": "DESLIGADO",
     " ON ": "LIGADO",
@@ -867,8 +865,10 @@
     "Your progress stays synced and consistent across all devices.": "O seu progresso permanece sincronizado e consistente em todos os dispositivos.",
     "Zebra": "Zebra",
     "Name Surname": "Nome Sobrenome",
-    "Parents Section":"Seção Pais",
+    "Parents Section": "Seção Pais",
     "Rewards": "Recompensas",
     "Select one": "Selecione um",
-    "SKIP FOR NOW": "PULAR"
+    "SKIP FOR NOW": "PULAR",
+    "Please click this link to access your Homework": "Por favor, clique neste link para aceder à sua tarefa de casa",
+    "Dear Students, Your teacher has assigned you the below homework. Please go to Chimple Learning app and complete it.\n\n": "Caros alunos, o vosso professor atribuiu a seguinte tarefa de casa. Por favor, acedam à aplicação Chimple Learning e concluam-na.\n\n"
 }

@@ -5,6 +5,7 @@ import { LeaderboardRewardsType, TableTypes } from '../../common/constants';
 import './LeaderboardBonus.css';
 import LessonCard from '../LessonCard';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 interface BonusInfo {
   bonus: TableTypes<'lesson'> | undefined;
@@ -110,7 +111,7 @@ const LeaderboardBonus: FC = () => {
         }
       });
     } else {
-      console.error(`No data found for month ${nextMonth}`);
+      logger.error(`No data found for month ${nextMonth}`);
       return [];
     }
     const bonusDocs = await api.getBonusesByIds(bonusIds);
@@ -161,7 +162,7 @@ const LeaderboardBonus: FC = () => {
 
       return lessons.reverse();
     } catch (error) {
-      console.error('Error fetching unlocked bonuses:', error);
+      logger.error('Error fetching unlocked bonuses:', error);
       return [];
     }
   };
@@ -208,7 +209,7 @@ const LeaderboardBonus: FC = () => {
         }
       });
     } else {
-      console.error(`No data found for month ${nextMonth}`);
+      logger.error(`No data found for month ${nextMonth}`);
       return [];
     }
     const bonusDocs = await api.getBonusesByIds(bonusIds);

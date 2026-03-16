@@ -5,6 +5,7 @@ import { useHistory, useLocation } from 'react-router';
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Column } from '../components/DataTableBody';
+import logger from '../../utility/logger';
 
 export type Filters = Record<string, string[]>;
 export type MigrationTab = 'migrate' | 'migrated';
@@ -340,7 +341,7 @@ export const useMigrateSchoolsPageLogic = () => {
           }));
         }
       } catch (error) {
-        console.error('Failed to fetch filter options', error);
+        logger.error('Failed to fetch filter options', error);
       } finally {
         setIsFilterLoading(false);
       }
@@ -492,7 +493,7 @@ export const useMigrateSchoolsPageLogic = () => {
 
       setRows(formatted);
     } catch (error) {
-      console.error('Failed to fetch migrate schools list', error);
+      logger.error('Failed to fetch migrate schools list', error);
       setRows([]);
       setTotal(0);
     } finally {
@@ -772,7 +773,7 @@ export const useMigrateSchoolsPageLogic = () => {
       setIsMigrateDialogOpen(false);
       setIsFailurePopupOpen(true);
     } catch (error) {
-      console.error('Failed to migrate selected schools', error);
+      logger.error('Failed to migrate selected schools', error);
       setIsMigrateDialogOpen(false);
       setIsFailurePopupOpen(true);
     } finally {

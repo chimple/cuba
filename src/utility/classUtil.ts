@@ -7,6 +7,7 @@ import {
 import { ServiceConfig } from '../services/ServiceConfig';
 import { addDays, addMonths, subDays } from 'date-fns';
 import { Util } from './util';
+import logger from './logger';
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -709,7 +710,7 @@ export class ClassUtil {
           isAssignment: result.assignment_id ? true : false,
         });
       } catch (error) {
-        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
+        logger.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
     }
 

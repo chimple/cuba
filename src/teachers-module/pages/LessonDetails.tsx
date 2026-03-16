@@ -21,6 +21,7 @@ import AssigmentCount from '../components/library/AssignmentCount';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
+import logger from '../../utility/logger';
 interface LessonDetailsProps {}
 type LessonDetailsState = {
   course?: TableTypes<'course'>;
@@ -96,7 +97,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     // try {
     //   await Browser.open({ url: urlToOpen });
     // } catch (error) {
-    //   console.error("Error opening in-app browser:", error);
+    //   logger.error("Error opening in-app browser:", error);
     //   window.open(urlToOpen, '_blank');
     // }
     if (lesson.plugin_type === COCOS) {
@@ -226,7 +227,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch subject', err);
+        logger.error('Failed to fetch subject', err);
       }
     } else {
       setSubjectName(course.name);

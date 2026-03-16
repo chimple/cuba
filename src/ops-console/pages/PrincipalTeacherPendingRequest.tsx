@@ -22,6 +22,7 @@ import { OpsUtil } from '../OpsUtility/OpsUtil';
 import { t } from 'i18next';
 import { BsFillBellFill } from 'react-icons/bs';
 import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
+import logger from '../../utility/logger';
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -64,7 +65,7 @@ const PrincipalTeacherPendingRequest = () => {
 
         setGradeOptions(gradeOpts);
       } catch (err) {
-        console.error('Error fetching classes for school:', err);
+        logger.error('Error fetching classes for school:', err);
       }
     }
 
@@ -152,7 +153,7 @@ const PrincipalTeacherPendingRequest = () => {
           try {
             await api.addUserToSchool(schoolId, requestData.requestedBy, role);
           } catch (err) {
-            console.error('Error adding user to school:', err);
+            logger.error('Error adding user to school:', err);
           }
         } else if (role === RequestTypes.TEACHER) {
           try {
@@ -162,7 +163,7 @@ const PrincipalTeacherPendingRequest = () => {
               requestData.requestedBy,
             );
           } catch (err) {
-            console.error('Error adding teacher to class:', err);
+            logger.error('Error adding teacher to class:', err);
           }
         }
       }
@@ -179,7 +180,7 @@ const PrincipalTeacherPendingRequest = () => {
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
       );
     } catch (error) {
-      console.error('Error approving request:', error);
+      logger.error('Error approving request:', error);
     }
   };
 
@@ -187,7 +188,7 @@ const PrincipalTeacherPendingRequest = () => {
     const auth = ServiceConfig.getI().authHandler;
     const user = await auth.getCurrentUser();
     if (!user?.id) {
-      console.error('No logged-in user found. Cannot reject request.');
+      logger.error('No logged-in user found. Cannot reject request.');
       return;
     }
     const userId = user?.id;

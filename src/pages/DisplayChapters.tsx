@@ -24,6 +24,7 @@ import DropDown from '../components/DropDown';
 import SkeltonLoading from '../components/SkeltonLoading';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
+import logger from '../utility/logger';
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -161,7 +162,7 @@ const DisplayChapters: FC<{}> = () => {
         setCourses(undefined);
       }
     } else {
-      console.warn('Course not found in local data.');
+      logger.warn('Course not found in local data.');
     }
     setIsLoading(false);
     getLocalGradeMap();
@@ -234,7 +235,7 @@ const DisplayChapters: FC<{}> = () => {
       return lessons;
     } catch (error) {
       // Handle errors
-      console.error('Error fetching lessons:', error);
+      logger.error('Error fetching lessons:', error);
       setIsLoading(false);
       return [];
     }

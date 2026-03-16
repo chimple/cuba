@@ -5,6 +5,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { COURSE_CHANGED } from '../../common/constants';
 import { useTranslation } from 'react-i18next';
 import { LessonNode } from '../../hooks/useLearningPath';
+import logger from '../../utility/logger';
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -65,7 +66,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     // Listen for course changes
     const syncHandleCourseChange = (event: Event) => {
       updateChapter().catch((err) =>
-        console.error('Error handling course change:', err),
+        logger.error('Error handling course change:', err),
       );
     };
 

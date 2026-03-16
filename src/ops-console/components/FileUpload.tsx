@@ -16,6 +16,7 @@ import {
   BULK_UPLOAD_TEMPLATE_URL,
   FileUploadStep,
 } from '../../common/constants';
+import logger from '../../utility/logger';
 
 type NamedContact = {
   name: string;
@@ -167,7 +168,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       workbookSheetNames = parsedWorkbook.sheetNames;
       workbookSheets = parsedWorkbook.sheets;
     } catch (workerError) {
-      console.warn(
+      logger.warn(
         'XLSX parsing failed in worker, falling back to main thread parsing.',
         workerError,
       );
@@ -1087,7 +1088,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       });
       output = builtWorkbook.fileBuffer;
     } catch (workerError) {
-      console.warn(
+      logger.warn(
         'XLSX generation failed in worker, falling back to main thread generation.',
         workerError,
       );
@@ -1122,7 +1123,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         studentData: validatedSheets.student,
       });
     } catch (error) {
-      console.error(
+      logger.error(
         'Bulk upload payload generation failed in worker, falling back to main thread payload mapper.',
         error,
       );
@@ -1151,7 +1152,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       progressRef.current = 100;
       setVerifyingProgressState(progressRef.current);
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.error('Download failed:', error);
     }
   };
 

@@ -8,6 +8,7 @@ import { t } from 'i18next';
 import { useHistory } from 'react-router';
 import NextButton from '../components/common/NextButton';
 import { Util } from '../utility/util';
+import logger from '../utility/logger';
 
 type ParticipantScore = {
   studentDocId: string;
@@ -94,7 +95,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         setStudents(tempStudentsMap);
       }
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file:LiveQuizLeaderBoard.tsx:80~Error fetching liveQuiz room data:',
         error,
       );

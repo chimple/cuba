@@ -36,6 +36,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Link as RouterLink } from 'react-router-dom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import './NewProgram.css';
+import logger from '../../utility/logger';
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({
@@ -164,7 +165,7 @@ const NewProgram: React.FC = () => {
         const data = await api.getProgramManagers();
         setProgramManagers(data);
       } catch (error) {
-        console.error(error);
+        logger.error(error);
       }
     };
 
@@ -378,10 +379,10 @@ const NewProgram: React.FC = () => {
         clearForm();
         history.replace(PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE);
       } else {
-        console.error('Error in saving ops program');
+        logger.error('Error in saving ops program');
       }
     } catch (error) {
-      console.error('Error saving program:', error);
+      logger.error('Error saving program:', error);
     }
   };
 

@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import DashBoardStudentProgres from './DashBoardStudentProgres';
 import { LIDO_ASSESSMENT } from '../../../common/constants';
+import logger from '../../../utility/logger';
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
@@ -418,9 +419,7 @@ describe('DashBoardStudentProgres', () => {
   });
 
   it('continues rendering later results when one lesson fetch throws', async () => {
-    const consoleSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApiHandler.getLesson
       .mockRejectedValueOnce(new Error('boom'))
       .mockResolvedValueOnce({
@@ -446,9 +445,7 @@ describe('DashBoardStudentProgres', () => {
   });
 
   it('stops chapter lookup for a failed lesson fetch and still processes later chapter lookups', async () => {
-    const consoleSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const consoleSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApiHandler.getLesson
       .mockRejectedValueOnce(new Error('boom'))
       .mockResolvedValueOnce({

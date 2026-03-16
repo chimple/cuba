@@ -16,6 +16,7 @@ import { Util } from '../utility/util';
 import { useHistory } from 'react-router';
 import { schoolUtil } from '../utility/schoolUtil';
 import ProfileMenu from './ProfileMenu/ProfileMenu';
+import logger from '../utility/logger';
 
 // Define the Props for StarsCounter
 interface StarsCounterProps {
@@ -119,7 +120,7 @@ const HomeHeader: React.FC<{
       setCurrentHeaderIconList(headerIconList);
       setStudent(student);
     } catch (error) {
-      console.error('Error in init:', error);
+      logger.error('Error in init:', error);
     }
   };
 

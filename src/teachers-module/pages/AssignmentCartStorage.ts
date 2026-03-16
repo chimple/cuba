@@ -1,4 +1,5 @@
 import type { AssignmentCartData } from '../../services/api/ServiceApi';
+import logger from '../../utility/logger';
 
 const ASSIGNMENT_CART_STORAGE_PREFIX = 'assignment_cart:';
 
@@ -31,7 +32,7 @@ export const readAssignmentCartFromStorage = (
     if (!isValidAssignmentCartData(parsed)) return;
     return parsed;
   } catch (error) {
-    console.error('Failed to parse assignment cart from storage', error);
+    logger.error('Failed to parse assignment cart from storage', error);
     return;
   }
 };

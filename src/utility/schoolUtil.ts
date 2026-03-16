@@ -14,6 +14,7 @@ import { Util } from './util';
 import { reinitializeHardwareBackButton } from '../common/backButtonRegistry';
 import { store } from '../redux/store';
 import { setAuthUser, setUser } from '../redux/slices/auth/authSlice';
+import logger from './logger';
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -29,7 +30,7 @@ export class schoolUtil {
 
       return currentClass;
     } catch (error) {
-      console.error('Failed to parse CURRENT_SCHOOL from localStorage:', error);
+      logger.error('Failed to parse CURRENT_SCHOOL from localStorage:', error);
       return undefined;
     }
   }
@@ -130,7 +131,7 @@ export class schoolUtil {
 
         return true;
       } else {
-        console.warn('User not found. Please verify your credentials.');
+        logger.warn('User not found. Please verify your credentials.');
         window.history.replaceState(
           window.history.state,
           '',
@@ -139,7 +140,7 @@ export class schoolUtil {
         return false;
       }
     } catch (error) {
-      console.error('Login unsuccessful. Please try again later.', error);
+      logger.error('Login unsuccessful. Please try again later.', error);
       return false;
     }
   }

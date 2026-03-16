@@ -1,6 +1,7 @@
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { useState, useEffect } from 'react';
 import { LANGUAGE } from '../../common/constants';
+import logger from '../../utility/logger';
 
 export function useAudioPlayer(audioSrc: string) {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -75,7 +76,7 @@ export function useTtsAudioPlayer(audioText: string) {
         });
       }
     } catch (error) {
-      console.error('TTS speech failed ', isTtsPlaying, error);
+      logger.error('TTS speech failed ', isTtsPlaying, error);
     }
   };
 

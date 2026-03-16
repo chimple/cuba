@@ -1,7 +1,25 @@
+const path = require('path');
 module.exports = {
   webpack: {
+    configure: (webpackConfig) => {
+      const babelLoader = webpackConfig.module.rules
+        .find((rule) => Array.isArray(rule.oneOf))
+        .oneOf.find(
+          (rule) => rule.loader && rule.loader.includes('babel-loader'),
+        );
+
+      if (babelLoader) {
+        babelLoader.options.plugins = [
+          ...(babelLoader.options.plugins || []),
+          path.resolve(__dirname, 'scripts/babel-plugin-logger-metadata.js'),
+        ];
+      }
+
+      return webpackConfig;
+    },
+
     alias: {
-      './workers/node': false, // ignore node-only worker in lido-standalone
+      './workers/node': false,
     },
   },
   jest: {
@@ -183,3 +201,4 @@ module.exports = {
     return devServerConfig;
   },
 };
+

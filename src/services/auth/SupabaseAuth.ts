@@ -22,6 +22,7 @@ import { schoolUtil } from '../../utility/schoolUtil';
 import { Capacitor } from '@capacitor/core';
 import { store } from '../../redux/store';
 import { logout, setRoles } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -87,15 +88,15 @@ export class SupabaseAuth implements ServiceAuth {
             };
           });
         } catch (err) {
-          console.error('Error checking special/program user:', err);
+          logger.error('Error checking special/program user:', err);
         }
         if (isSpl) {
-          console.log('User is a special or program user');
+          logger.info('User is a special or program user');
         } else {
-          console.log('User is NOT a special or program user');
+          logger.info('User is NOT a special or program user');
         }
       } else {
-        console.error('Supabase DB client is not initialized.');
+        logger.error('Supabase DB client is not initialized.');
       }
       if (!isSpl) {
         let isFirstSync = true;
@@ -113,7 +114,7 @@ export class SupabaseAuth implements ServiceAuth {
       const userData = await api.getUserByDocId(data.user.id);
       return { user: data.user, success: true, isSpl, userData };
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:',
         error,
       );
@@ -163,7 +164,7 @@ export class SupabaseAuth implements ServiceAuth {
         userData,
       };
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:',
         error,
       );
@@ -176,13 +177,13 @@ export class SupabaseAuth implements ServiceAuth {
       const { data, error } = await this._auth.resetPasswordForEmail(email);
 
       if (error) {
-        console.error('Reset password error:', error.message);
+        logger.error('Reset password error:', error.message);
         return false;
       }
 
       return true;
     } catch (err: any) {
-      console.error('Unexpected error in resetPasswordForEmail:', err.message);
+      logger.error('Unexpected error in resetPasswordForEmail:', err.message);
       return false;
     }
   }
@@ -192,7 +193,7 @@ export class SupabaseAuth implements ServiceAuth {
     const { data, error } = await this._auth.updateUser(attributes);
 
     if (error) {
-      console.error('Error updating user:', error.message);
+      logger.error('Error updating user:', error.message);
       return false;
     }
     return true;
@@ -229,7 +230,7 @@ export class SupabaseAuth implements ServiceAuth {
         });
 
         if (error) {
-          console.error('Web Google login failed:', error);
+          logger.error('Web Google login failed:', error);
           return { success: false, isSpl: false, userData: null };
         }
         return { success: true, isSpl: false, userData: null };
@@ -269,7 +270,7 @@ export class SupabaseAuth implements ServiceAuth {
         userData,
       };
     } catch (error: any) {
-      console.error(
+      logger.error(
         '🚀 ~ SupabaseAuth ~ googleSign ~ error:',
         error?.stack || error,
       );
@@ -319,7 +320,7 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async doRefreshSession(): Promise<void> {
     if (!navigator.onLine) {
-      console.log('Device is offline. Skipping session refresh.');
+      logger.info('Device is offline. Skipping session refresh.');
       return;
     }
     // Read refresh token from Redux (preferred) with localStorage fallback
@@ -337,7 +338,7 @@ export class SupabaseAuth implements ServiceAuth {
         (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24),
       );
       if (daysDiff < 1) {
-        console.log(
+        logger.info(
           `Refresh token is only ${daysDiff} day(s) old. No need to refresh.`,
         );
         return;
@@ -357,12 +358,12 @@ export class SupabaseAuth implements ServiceAuth {
         }
       }
     } catch (error) {
-      console.error('Unexpected error while refreshing session:', error);
+      logger.error('Unexpected error while refreshing session:', error);
 
       try {
         await schoolUtil.trySchoolRelogin();
       } catch (retryError) {
-        console.error('trySchoolRelogin failed:', retryError);
+        logger.error('trySchoolRelogin failed:', retryError);
       }
     }
   }
@@ -384,7 +385,7 @@ export class SupabaseAuth implements ServiceAuth {
         const reduxUser = state?.auth?.authUser;
         return !!reduxUser;
       } catch (e) {
-        console.error('Error accessing Redux store for auth state:', e);
+        logger.error('Error accessing Redux store for auth state:', e);
         await this.logOut();
         return false;
       }
@@ -399,7 +400,7 @@ export class SupabaseAuth implements ServiceAuth {
       const result = await this.generateOtp(phoneNumber, '');
       return result.success;
     } catch (error) {
-      console.error('Resend OTP failed: ', error);
+      logger.error('Resend OTP failed: ', error);
       return false;
     }
   }
@@ -421,7 +422,7 @@ export class SupabaseAuth implements ServiceAuth {
       }
       return { success: true };
     } catch (error: any) {
-      console.error('Failed with ', error);
+      logger.error('Failed with ', error);
       return {
         success: false,
         error:
@@ -462,7 +463,7 @@ export class SupabaseAuth implements ServiceAuth {
         const nextAttempt = burn ? attempt + 1 : attempt;
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
-        console.warn(
+        logger.warn(
           `RPC attempt ${attempt}/${max} failed${
             burn ? '' : ' (not counting)'
           }; retrying in ${backoff}ms`,
@@ -667,7 +668,7 @@ export class SupabaseAuth implements ServiceAuth {
         createdUser = await api.getUserByDocId(id);
       }
       if (!createdUser) {
-        console.error(
+        logger.error(
           'Failed to initialize user record: User could not be created or retrieved.',
         );
         return null;
@@ -681,7 +682,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       return { user: createdUser, isSpl: isSplQuery };
     } catch (error) {
-      console.error('initializeUserRecord failed:', error);
+      logger.error('initializeUserRecord failed:', error);
       return null;
     }
   }

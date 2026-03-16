@@ -36,6 +36,7 @@ import {
   setRoles,
   setUser,
 } from '../redux/slices/auth/authSlice';
+import logger from '../utility/logger';
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -225,7 +226,7 @@ const SelectMode: FC = () => {
         dispatch(setRoles(userRoles));
       }
     } catch (e) {
-      console.error('Error fetching user roles:', e);
+      logger.error('Error fetching user roles:', e);
     }
   };
   const restoreAuth = async () => {
@@ -288,7 +289,7 @@ const SelectMode: FC = () => {
       setCurrentClasses(element);
       localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
     } catch (error) {
-      console.error('Error fetching classes:', error);
+      logger.error('Error fetching classes:', error);
     }
   };
   const displayStudents = async (curClass: TableTypes<'class'>) => {

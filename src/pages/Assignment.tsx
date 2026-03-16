@@ -26,6 +26,7 @@ import HomeworkPathway from '../components/assignment/HomeworkPathway';
 import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
 import { useGbContext } from '../growthbook/Growthbook';
+import logger from '../utility/logger';
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
@@ -177,7 +178,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
           : [...lessons, ...filteredLessons];
         setLessons(mergedLessons);
       } catch (error) {
-        console.error('Failed to load pending assignments:', error);
+        logger.error('Failed to load pending assignments:', error);
         if (fullRefresh) {
           setAssignments([]);
           assignmentCount(0);
@@ -260,7 +261,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         init(false, false);
       })
       .catch((error) => {
-        console.error('Error syncing assignments:', error);
+        logger.error('Error syncing assignments:', error);
       });
   }, []);
 
@@ -309,7 +310,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
     } catch (error) {
-      console.error('Error downloading homework:', error);
+      logger.error('Error downloading homework:', error);
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
         JSON.stringify(false),
@@ -377,7 +378,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       // reset the gbUpdated flag after handling it
       if (gbUpdated && typeof setGbUpdated === 'function') setGbUpdated(false);
     } catch (e) {
-      console.warn('GrowthBook evaluation error:', e);
+      logger.warn('GrowthBook evaluation error:', e);
     }
     // Run on mount and whenever gbUpdated changes
   }, [growthbook, gbUpdated]);

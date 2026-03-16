@@ -11,6 +11,7 @@ import { IonButton, IonPage } from '@ionic/react';
 import { RoleType } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
 import ProfileDetails from '../components/library/ProfileDetails';
+import logger from '../../utility/logger';
 interface LocationState {
   school?: SchoolWithRole['school'];
   role?: RoleType;
@@ -110,7 +111,7 @@ const EditSchool: React.FC = () => {
         // });
       }
     } catch (error) {
-      console.error('Failed to save school:', error);
+      logger.error('Failed to save school:', error);
     } finally {
       setIsSaving(false);
     }

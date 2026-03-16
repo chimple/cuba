@@ -6,6 +6,7 @@ import './SchoolSection.css';
 import AutocompleteDropdown from '../SearchableDropdown';
 import { TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
+import logger from '../../../utility/logger';
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -33,7 +34,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
     const fetchUser = async () => {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error('No user is logged in.');
+        logger.error('No user is logged in.');
         return;
       }
       setCurrentUser(user);
@@ -57,7 +58,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         role: role,
       }));
     } catch (err) {
-      console.error('Error fetching schools:', err);
+      logger.error('Error fetching schools:', err);
       return [];
     }
   };

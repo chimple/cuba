@@ -15,6 +15,7 @@ import {
   LATEST_STARS,
   STARS_COUNT,
 } from '../common/constants';
+import logger from '../utility/logger';
 
 jest.mock('./Home/DropdownMenu', () => () => (
   <div data-testid="dropdown-menu" />
@@ -50,11 +51,11 @@ const mockApi = {
 
 describe('LearningPathway', () => {
   const getPath = jest.fn();
-  let originalConsoleError: typeof console.error;
+  let originalConsoleError: typeof logger.error;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    originalConsoleError = console.error;
+    originalConsoleError = logger.error;
     jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
       const msg = String(args[0] ?? '');
       if (msg.includes('AggregateError')) return;

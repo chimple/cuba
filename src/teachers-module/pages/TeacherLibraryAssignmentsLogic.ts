@@ -11,6 +11,7 @@ import {
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { TeacherAssignmentPageType } from '../components/homePage/assignment/TeacherAssignment';
+import logger from '../../utility/logger';
 
 export interface AssignmentLessonItem {
   id: string;
@@ -144,7 +145,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
 
       setGroups(sortedGroups);
     } catch (error) {
-      console.error('Failed to load library assignments:', error);
+      logger.error('Failed to load library assignments:', error);
       setGroups([]);
     } finally {
       setLoading(false);

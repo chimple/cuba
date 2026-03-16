@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SelectIcon from './SelectIcon';
+import { logger } from '../../utility/logger';
 
 /* ================= MOCKS ================= */
 
@@ -217,7 +218,7 @@ describe('SelectIcon Component', () => {
   });
 
   test('29. no console errors during render', () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation();
+    const spy = jest.spyOn(logger, 'error').mockImplementation();
     render(<SelectIcon isSelected={false} onClick={mockClick} />);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
