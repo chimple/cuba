@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useSvgColoring } from './useSvgColoring';
 import { SVGScene } from './SVGScene';
-import ColorTray from './ColorTray';
+import ColorPalette from './ColorPalette';
 import PaintTopBar from './PaintTopBar';
 // import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
 import logger from '../../utility/logger';
@@ -192,7 +192,7 @@ const ColoringBoard: React.FC = () => {
         </div>
       </div>
 
-      {/* 3) Save + Color tray */}
+      {/* 3) Save + Color palette */}
       <div id="coloring-board-controls" className="coloring-board-controls">
         <StickerBookActions
           showPaint={false}
@@ -202,7 +202,7 @@ const ColoringBoard: React.FC = () => {
         />
 
         <div id="coloring-board-tray" className="coloring-board-tray">
-          <ColorTray
+          <ColorPalette
             selected={coloring.selectedColor}
             onSelect={coloring.setSelectedColor}
           />
