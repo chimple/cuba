@@ -27,7 +27,7 @@ export default function StickerBookActions({
         onClick={onSave}
         disabled={saveDisabled}
       >
-        <img src={cameraIcon} alt={t('Save')||""} />
+        <img src={cameraIcon} alt={t('Save') || ''} />
         {t('Save')}
       </button>
 
@@ -39,7 +39,7 @@ export default function StickerBookActions({
           onClick={onPaint}
           disabled={paintDisabled}
         >
-          <img src="/assets/icons/PaintBucket.svg" alt={t('Paint')||""} />
+          <img src="/assets/icons/PaintBucket.svg" alt={t('Paint') || ''} />
           {t('Paint')}
         </button>
       )}

@@ -289,9 +289,7 @@ describe('ColoringBoard', () => {
       svgRaw: '<svg></svg>',
     });
 
-    await waitFor(() =>
-      expect(screen.getByTestId('svg-scene')).toBeInTheDocument(),
-    );
+    await screen.findByTestId('svg-scene');
   });
 
   /* ---------------- FETCH CALLED ON URL ---------------- */
@@ -346,9 +344,7 @@ describe('ColoringBoard', () => {
       svgRaw: '<svg></svg>',
     });
 
-    await waitFor(() =>
-      expect(screen.getByTestId('svg-scene')).toBeInTheDocument(),
-    );
+    await screen.findByTestId('svg-scene');
 
     expect(fetch).not.toHaveBeenCalled();
   });
