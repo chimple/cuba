@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ColorTray from './ColorTray';
+import ColorPalette from './ColorPalette';
 
 /* ---------------- MOCK UTIL ---------------- */
 
@@ -37,8 +37,8 @@ const COLORS = [
 
 /* ---------------- TEST HELPER ---------------- */
 
-const renderTray = (selected = '', onSelect = jest.fn()) => {
-  render(<ColorTray selected={selected} onSelect={onSelect} />);
+const renderPalette = (selected = '', onSelect = jest.fn()) => {
+  render(<ColorPalette selected={selected} onSelect={onSelect} />);
   return { onSelect };
 };
 
@@ -46,7 +46,7 @@ const renderTray = (selected = '', onSelect = jest.fn()) => {
 /* ===================== TESTS ===================== */
 /* ================================================= */
 
-describe('ColorTray', () => {
+describe('ColorPalette', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -54,21 +54,21 @@ describe('ColorTray', () => {
   /* ---------- RENDER ---------- */
 
   test('renders tray container', () => {
-    renderTray();
+    renderPalette();
 
-    expect(document.querySelector('.color-tray-div')).toBeInTheDocument();
+    expect(document.querySelector('.color-palette')).toBeInTheDocument();
   });
 
   test('renders all color buttons', () => {
-    renderTray();
+    renderPalette();
 
-    const buttons = document.querySelectorAll('.color-tray-color-box');
+    const buttons = document.querySelectorAll('.color-palette-swatch');
 
     expect(buttons.length).toBe(8);
   });
 
   test('each button is a button element', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -78,7 +78,7 @@ describe('ColorTray', () => {
   /* ---------- COLOR STYLES ---------- */
 
   test('each color button has correct background', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -88,7 +88,7 @@ describe('ColorTray', () => {
   });
 
   test('buttons contain expected colors', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -100,7 +100,7 @@ describe('ColorTray', () => {
   /* ---------- SELECTED STATE ---------- */
 
   test('applies selected class to chosen color', () => {
-    renderTray('#FF2E88');
+    renderPalette('#FF2E88');
 
     const first = screen.getAllByRole('button')[0];
 
@@ -108,7 +108,7 @@ describe('ColorTray', () => {
   });
 
   test('only one color is selected', () => {
-    renderTray('#FF2E88');
+    renderPalette('#FF2E88');
 
     const selected = document.querySelectorAll('.selected');
 
@@ -116,7 +116,7 @@ describe('ColorTray', () => {
   });
 
   test('no selected class if no color selected', () => {
-    renderTray('');
+    renderPalette('');
 
     const selected = document.querySelectorAll('.selected');
 
@@ -124,7 +124,7 @@ describe('ColorTray', () => {
   });
 
   test('correct button becomes selected', () => {
-    renderTray('#FFD600');
+    renderPalette('#FFD600');
 
     const buttons = screen.getAllByRole('button');
 
@@ -134,7 +134,7 @@ describe('ColorTray', () => {
   /* ---------- CLICK HANDLING ---------- */
 
   test('clicking a color triggers onSelect', () => {
-    const { onSelect } = renderTray();
+    const { onSelect } = renderPalette();
 
     const button = screen.getAllByRole('button')[2];
 
@@ -144,7 +144,7 @@ describe('ColorTray', () => {
   });
 
   test('onSelect receives correct color', () => {
-    const { onSelect } = renderTray();
+    const { onSelect } = renderPalette();
 
     const button = screen.getAllByRole('button')[3];
 
@@ -154,7 +154,7 @@ describe('ColorTray', () => {
   });
 
   test('multiple clicks trigger onSelect multiple times', () => {
-    const { onSelect } = renderTray();
+    const { onSelect } = renderPalette();
 
     const button = screen.getAllByRole('button')[0];
 
@@ -166,7 +166,7 @@ describe('ColorTray', () => {
   });
 
   test('clicking different colors triggers different values', () => {
-    const { onSelect } = renderTray();
+    const { onSelect } = renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -180,7 +180,7 @@ describe('ColorTray', () => {
   /* ---------- ANALYTICS ---------- */
 
   test('logs analytics event on click', () => {
-    renderTray();
+    renderPalette();
 
     const button = screen.getAllByRole('button')[0];
 
@@ -190,7 +190,7 @@ describe('ColorTray', () => {
   });
 
   test('logs correct analytics event name', () => {
-    renderTray();
+    renderPalette();
 
     const button = screen.getAllByRole('button')[0];
 
@@ -203,7 +203,7 @@ describe('ColorTray', () => {
   });
 
   test('logs correct color in analytics', () => {
-    renderTray();
+    renderPalette();
 
     const button = screen.getAllByRole('button')[2];
 
@@ -218,7 +218,7 @@ describe('ColorTray', () => {
   });
 
   test('logs user id in analytics', () => {
-    renderTray();
+    renderPalette();
 
     const button = screen.getAllByRole('button')[0];
 
@@ -233,7 +233,7 @@ describe('ColorTray', () => {
   });
 
   test('logs page path in analytics', () => {
-    renderTray();
+    renderPalette();
 
     const button = screen.getAllByRole('button')[0];
 
@@ -250,17 +250,17 @@ describe('ColorTray', () => {
   /* ---------- STRUCTURE ---------- */
 
   test('all buttons have correct class', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
     buttons.forEach((btn) => {
-      expect(btn).toHaveClass('color-tray-color-box');
+      expect(btn).toHaveClass('color-palette-swatch');
     });
   });
 
   test('buttons have unique keys', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -268,7 +268,7 @@ describe('ColorTray', () => {
   });
 
   test('buttons use type button', () => {
-    renderTray();
+    renderPalette();
 
     const buttons = screen.getAllByRole('button');
 
@@ -278,9 +278,9 @@ describe('ColorTray', () => {
   });
 
   test('tray container remains stable after clicks', () => {
-    renderTray();
+    renderPalette();
 
-    const container = document.querySelector('.color-tray-div');
+    const container = document.querySelector('.color-palette');
 
     const button = screen.getAllByRole('button')[0];
 
@@ -290,7 +290,7 @@ describe('ColorTray', () => {
   });
 
   test('clicking selected color still triggers event', () => {
-    const { onSelect } = renderTray('#FF2E88');
+    const { onSelect } = renderPalette('#FF2E88');
 
     const button = screen.getAllByRole('button')[0];
 
@@ -300,7 +300,7 @@ describe('ColorTray', () => {
   });
 
   test('component renders without crashing', () => {
-    renderTray();
+    renderPalette();
 
     expect(true).toBe(true);
   });

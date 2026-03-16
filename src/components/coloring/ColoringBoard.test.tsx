@@ -57,8 +57,8 @@ jest.mock('./SVGScene', () => ({
   ),
 }));
 
-jest.mock('./ColorTray', () => (props: any) => (
-  <div data-testid="color-tray">ColorTray</div>
+jest.mock('./ColorPalette', () => (props: any) => (
+  <div data-testid="color-palette">ColorPalette</div>
 ));
 
 jest.mock('./PaintTopBar', () => (props: any) => (
@@ -216,7 +216,7 @@ describe('ColoringBoard', () => {
   test('renders color tray', () => {
     renderBoard();
 
-    expect(screen.getByTestId('color-tray')).toBeInTheDocument();
+    expect(screen.getByTestId('color-palette')).toBeInTheDocument();
   });
   /* ---------------- FRAME CONTAINER ---------------- */
 
@@ -418,6 +418,6 @@ describe('ColoringBoard', () => {
   test('color tray always visible', () => {
     renderBoard();
 
-    expect(screen.getByTestId('color-tray')).toBeVisible();
+    expect(screen.getByTestId('color-palette')).toBeVisible();
   });
 });
