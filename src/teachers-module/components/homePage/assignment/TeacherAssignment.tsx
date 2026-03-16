@@ -21,6 +21,7 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from '../../../../components/Loading';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
+import logger from '../../../../utility/logger';
 
 declare global {
   interface Window {
@@ -207,7 +208,7 @@ const TeacherAssignment: FC<{
 
       const courseChapters = await api.getChaptersForCourse(course.id);
       if (!courseChapters || courseChapters.length === 0) {
-        console.warn(`No chapters found for course ID: ${course.id}`);
+        logger.warn(`No chapters found for course ID: ${course.id}`);
         continue;
       }
       const chapterId = lastAssignment
@@ -236,7 +237,7 @@ const TeacherAssignment: FC<{
           const nextChapter = allChapters[i + 1];
 
           if (!nextChapter) {
-            console.warn('No next chapter found for course', course.id);
+            logger.warn('No next chapter found for course', course.id);
             continue;
           }
 
@@ -532,7 +533,7 @@ const TeacherAssignment: FC<{
         Toast.show({ text: 'No QR code detected.' });
       }
     } catch (err) {
-      console.error('Scan failed:', err);
+      logger.error('Scan failed:', err);
     } finally {
       setLoading(false);
     }
@@ -628,7 +629,7 @@ const TeacherAssignment: FC<{
       // await init();
     } catch (error) {
       Toast.show({ text: t('Something Went wrong') });
-      console.error('Error processing scanned data:', error);
+      logger.error('Error processing scanned data:', error);
     }
   };
   return (

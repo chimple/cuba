@@ -31,6 +31,7 @@ import {
   registerBackButtonHandler,
   reinitializeHardwareBackButton,
 } from '../../common/backButtonRegistry';
+import logger from '../../utility/logger';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -225,7 +226,7 @@ const ProfileDetails = () => {
       }
       return;
     } catch (e) {
-      console.error('Back Logic Error', e);
+      logger.error('Back Logic Error', e);
       history.replace(PAGES.DISPLAY_STUDENT);
     } finally {
       setTimeout(() => {
@@ -356,7 +357,7 @@ const ProfileDetails = () => {
       if (tmpPath) history.replace(tmpPath);
       else history.replace(PAGES.HOME);
     } catch (err) {
-      console.error('Error saving profile:', err);
+      logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);
     }
   };
@@ -398,7 +399,7 @@ const ProfileDetails = () => {
 
       history.replace(PAGES.HOME);
     } catch (err) {
-      console.error('Error skipping profile:', err);
+      logger.error('Error skipping profile:', err);
       setIsCreatingProfile(false);
     }
   };
@@ -409,7 +410,7 @@ const ProfileDetails = () => {
       className="profiledetails-container"
       onClick={(e) => {
         logProfileClick(e).catch((err) =>
-          console.error('Error in logProfileClick', err),
+          logger.error('Error in logProfileClick', err),
         );
       }}
     >

@@ -10,6 +10,7 @@ import SelectIconImage from '../../../../components/displaySubjects/SelectIconIm
 import Loading from '../../../../components/Loading';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import AssigmentCount from '../../library/AssignmentCount';
+import logger from '../../../../utility/logger';
 
 type LessonUI = {
   id: string;
@@ -96,7 +97,7 @@ const QRAssignments: React.FC = () => {
       const course = await api.getCourse(location.state.courseId);
       setToggleCourseName(course?.name ?? '');
     } catch (e) {
-      console.error('QR Assignments init failed', e);
+      logger.error('QR Assignments init failed', e);
     } finally {
       setLoading(false);
     }

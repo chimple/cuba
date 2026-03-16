@@ -6,6 +6,7 @@ import { TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
 import { ErrorOutlineOutlined } from '@mui/icons-material';
 import WhatsAppInviteLinkInput from './WhatsAppInviteLinkInput';
+import logger from '../../../utility/logger';
 
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<'class'>;
@@ -67,7 +68,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
         setMembers(parsedMembers.length);
         setInviteLink(parsedGroup?.inviteLink ?? null);
       } catch (err) {
-        console.error('Failed to fetch data:', err);
+        logger.error('Failed to fetch data:', err);
       }
     };
 
@@ -149,7 +150,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
         return;
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       setError(t('Something went wrong. Please try again.'));
     } finally {
       setLoading(false);

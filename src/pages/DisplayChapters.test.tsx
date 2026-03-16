@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import DisplayChapters from './DisplayChapters';
 import { ServiceConfig } from '../services/ServiceConfig';
+import logger from '../utility/logger';
 import {
   CURRENT_SELECTED_CHAPTER,
   CURRENT_SELECTED_COURSE,
@@ -389,7 +390,7 @@ describe('DisplayChapters', () => {
 
   it('handles lesson API failure without rendering lesson slider', async () => {
     const user = userEvent.setup();
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
     mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(

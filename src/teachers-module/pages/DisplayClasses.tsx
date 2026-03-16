@@ -7,6 +7,7 @@ import { Util } from '../../utility/util';
 import { PAGES, TableTypes } from '../../common/constants';
 import BackButton from '../../components/common/BackButton';
 import './DisplayClasses.css';
+import logger from '../../utility/logger';
 
 const DisplayClasses: FC = () => {
   const history = useHistory();
@@ -83,7 +84,7 @@ const DisplayClasses: FC = () => {
       }
       setAllClasses(fetchedClasses);
     } catch (error) {
-      console.error('Error initializing data:', error);
+      logger.error('Error initializing data:', error);
     }
   };
 

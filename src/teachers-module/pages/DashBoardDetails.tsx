@@ -6,6 +6,7 @@ import { BANDWISECOLOR, PAGES, TableTypes } from '../../common/constants';
 import { t } from 'i18next';
 import DashBoardStudentProgres from '../components/homePage/DashBoardStudentProgres';
 import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 interface DashBoardDetailsProps {}
 type DashBoardDetailsState = {
@@ -34,7 +35,7 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
         const tempClass = await Util.getCurrentClass();
         setCurrentClass(tempClass || null);
       } catch (err) {
-        console.error('DashBoardDetails → Failed to load current class:', err);
+        logger.error('DashBoardDetails → Failed to load current class:', err);
         setCurrentClass(null);
       }
     };

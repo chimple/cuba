@@ -19,6 +19,7 @@ import Breadcrumb from '../components/Breadcrumb';
 import SearchAndFilter from '../components/SearchAndFilter';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
+import logger from '../../utility/logger';
 
 interface ProgramConnectedSchoolPageProps {
   id: string;
@@ -163,7 +164,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
 
       setSchools(formatted);
     } catch (error) {
-      console.error('Error loading schools:', error);
+      logger.error('Error loading schools:', error);
     } finally {
       setLoadingData(false);
     }
@@ -176,7 +177,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         const response = await api.getSchoolFilterOptionsForProgram(id);
         setFilterOptions(response || {});
       } catch (error) {
-        console.error('Error loading filter options:', error);
+        logger.error('Error loading filter options:', error);
         setFilterOptions({});
       } finally {
         setLoadingFilters(false);

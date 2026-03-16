@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import CachedImage from './CachedImage';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { Filesystem } from '@capacitor/filesystem';
+import logger from '../../utility/logger';
 
 /* ================= MOCKS ================= */
 
@@ -162,7 +163,7 @@ describe('CachedImage Component', () => {
   });
 
   test('9. logs error on HTTP failure', async () => {
-    console.error = jest.fn();
+    logger.error = jest.fn();
 
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.readFile as jest.Mock).mockRejectedValue(new Error());
@@ -171,7 +172,7 @@ describe('CachedImage Component', () => {
     render(<CachedImage src={testUrl} />);
 
     await waitFor(() => {
-      expect(console.error).toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 

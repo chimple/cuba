@@ -6,6 +6,7 @@ import { t } from 'i18next';
 import QRCodeGenerator from '../../components/classcode/QrCodeGenerator';
 import CodeDropDown from '../../components/classcode/CodeDropDown';
 import html2canvas from 'html2canvas';
+import logger from '../../utility/logger';
 
 interface ClassCodeProps {}
 const ClassCode: React.FC<ClassCodeProps> = () => {
@@ -21,7 +22,7 @@ const ClassCode: React.FC<ClassCodeProps> = () => {
         window.open(whatsappURL);
       })
       .catch((error) => {
-        console.error('Error capturing screen:', error);
+        logger.error('Error capturing screen:', error);
       });
   };
   return (

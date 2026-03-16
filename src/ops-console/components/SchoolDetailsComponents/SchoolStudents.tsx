@@ -58,6 +58,7 @@ import OpsGenericPopup from '../../common/OpsGenericPopup';
 import verifiedIcon from '../../assets/icons/verifiedicon.svg';
 import ErrorIcon from '../../assets/icons/erroricon.svg';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
+import logger from '../../../utility/logger';
 
 type ApiStudentData = StudentInfo;
 
@@ -293,7 +294,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setTotalCount(response.total);
         }
       } catch (error) {
-        console.error('Failed to fetch students:', error);
+        logger.error('Failed to fetch students:', error);
       } finally {
         setIsLoading(false);
       }
@@ -538,7 +539,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               );
               return [row.id as string, group] as const;
             } catch (error) {
-              console.error('Failed to fetch WhatsApp group members:', error);
+              logger.error('Failed to fetch WhatsApp group members:', error);
               return [row.id as string, null] as const;
             }
           }),
@@ -564,7 +565,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         });
         setWhatsappMembersByClass(next);
       } catch (error) {
-        console.error('Failed to fetch WhatsApp group members:', error);
+        logger.error('Failed to fetch WhatsApp group members:', error);
         if (!cancelled) {
           setWhatsappMembersByClass(new Map());
         }
@@ -684,7 +685,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
         setStudentPerformanceMap(performanceMap);
       } catch (error) {
-        console.error('Error fetching student performance data:', error);
+        logger.error('Error fetching student performance data:', error);
         sortedStudents.forEach((student) => {
           performanceMap.set(student.user.id, 'Not Tracked');
         });
@@ -1284,7 +1285,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         : getRandomAvatar();
 
     if (!classId) {
-      console.error('Class ID missing for student');
+      logger.error('Class ID missing for student');
       return;
     }
     await api.updateStudentFromSchoolMode(
@@ -1368,7 +1369,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setErrorMessage({ text: result.message, type: 'error' });
         }
       } catch (error) {
-        console.error('Error adding student:', error);
+        logger.error('Error adding student:', error);
         setErrorMessage({
           text: 'An unexpected error occurred. Please try again.',
           type: 'error',
@@ -1406,7 +1407,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         '';
 
       if (!studentId || !classId) {
-        console.error('Missing studentId or classId');
+        logger.error('Missing studentId or classId');
         return;
       }
       const studentName = deleteTargetStudent?.user?.name;
@@ -1431,7 +1432,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
       fetchStudents(page, debouncedSearchTerm);
     } catch (error) {
-      console.error('Delete failed:', error);
+      logger.error('Delete failed:', error);
     } finally {
       setIsDeleting(false);
     }
@@ -1455,11 +1456,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const fromName = student?.user?.fullName || student?.user?.name;
       const toName = mergePrimaryStudent.name;
       if (!oldId || !newId) {
-        console.error('Invalid student IDs');
+        logger.error('Invalid student IDs');
         return;
       }
       if (oldId === newId) {
-        console.error('Cannot merge same student');
+        logger.error('Cannot merge same student');
         return;
       }
 
@@ -1507,7 +1508,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsMergeStudentModalOpen(false);
       setMergePrimaryStudent(null);
     } catch (error: any) {
-      console.error('Merge failed:', error);
+      logger.error('Merge failed:', error);
       setPopup({
         open: true,
         image: ErrorIcon,

@@ -19,6 +19,7 @@ import {
   sortCoursesByStudentLanguage,
   useLearningPath,
 } from '../hooks/useLearningPath';
+import logger from '../utility/logger';
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -92,7 +93,7 @@ const LearningPathway: React.FC = () => {
           classId: currClass?.id,
         });
       } catch (e) {
-        console.error('Error in init() learningPathway', e);
+        logger.error('Error in init() learningPathway', e);
       } finally {
         setLoading(false);
       }

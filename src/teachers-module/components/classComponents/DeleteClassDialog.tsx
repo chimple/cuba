@@ -11,6 +11,7 @@ import { useHistory } from 'react-router-dom';
 import { t } from 'i18next';
 import './DeleteClassDialog.css';
 import { Util } from '../../../utility/util';
+import logger from '../../../utility/logger';
 
 const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -27,7 +28,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
         setShowConfirm(true);
       }
     } catch (error) {
-      console.error('Failed to fetch students for class', error);
+      logger.error('Failed to fetch students for class', error);
     }
   };
 
@@ -54,7 +55,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
       window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
       history.replace(PAGES.MANAGE_CLASS);
     } catch (error) {
-      console.error('Failed to delete class', error);
+      logger.error('Failed to delete class', error);
     }
   };
 

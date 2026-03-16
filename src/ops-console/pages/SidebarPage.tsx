@@ -29,6 +29,7 @@ import AddSchoolPage from './AddSchoolPage';
 import ActivitiesPage from './ActivitiesPage';
 import SchoolActivities from './SchoolActivities';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
+import logger from '../../utility/logger';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -60,13 +61,13 @@ const SidebarPage: React.FC = () => {
     try {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error('No user is logged in.');
+        logger.error('No user is logged in.');
         return;
       }
 
       setCurrentUser(user);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      logger.error('Error fetching user data:', error);
     }
   };
 

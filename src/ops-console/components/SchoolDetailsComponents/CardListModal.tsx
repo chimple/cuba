@@ -5,6 +5,7 @@ import { ServiceConfig } from '../../../services/ServiceConfig';
 import { CircularProgress } from '@mui/material';
 import './CardListModal.css';
 import { t } from 'i18next';
+import logger from '../../../utility/logger';
 
 interface StudentItem {
   user?: {
@@ -83,7 +84,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
       setStudents(res.data || []);
       setTotal(res.total || 0);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     } finally {
       if (currentRequest === requestIdRef.current) {
         setLoading(false);

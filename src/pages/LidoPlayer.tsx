@@ -33,6 +33,7 @@ import { palUtil } from '../utility/palUtil';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
+import logger from '../utility/logger';
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -85,7 +86,7 @@ const LidoPlayer: FC = () => {
   });
   const isExitingRef = useRef(false);
 
-  const onNextContainer = (e: any) => console.log('Next', e);
+  const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
@@ -123,7 +124,7 @@ const LidoPlayer: FC = () => {
       const _currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!storedData) {
-        console.warn('⚠️ No stored data found.');
+        logger.warn('⚠️ No stored data found.');
         return;
       }
       const scoresList: Array<{
@@ -151,7 +152,7 @@ const LidoPlayer: FC = () => {
             ? JSON.parse(lesson.metadata || '{}')
             : lesson.metadata || {};
       } catch (e) {
-        console.error('Meta error', e);
+        logger.error('Meta error', e);
       }
       const activitiesMeta = dbMetaData?.activity || {};
       const skillAggregator = new Map<
@@ -218,7 +219,7 @@ const LidoPlayer: FC = () => {
           if (!abilityUpdates.outcome_id)
             abilityUpdates.outcome_id = currentOutcomeId;
         } catch (e) {
-          console.error('PAL Error', e);
+          logger.error('PAL Error', e);
         }
 
         const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -296,7 +297,7 @@ const LidoPlayer: FC = () => {
       }
       localStorage.removeItem(LIDO_SCORES_KEY);
     } catch (error) {
-      console.error('❌ Failed to process lesson end', error);
+      logger.error('❌ Failed to process lesson end', error);
       push();
     }
   };
@@ -479,7 +480,7 @@ const LidoPlayer: FC = () => {
         try {
           const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
           if (!pathStr) {
-            console.warn(
+            logger.warn(
               '[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage',
             );
           } else {
@@ -497,7 +498,7 @@ const LidoPlayer: FC = () => {
             }
           }
         } catch (err) {
-          console.error(
+          logger.error(
             '[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY',
             err,
           );
@@ -578,7 +579,7 @@ const LidoPlayer: FC = () => {
             try {
               await api.updateStudentStars(student.id, newLocalStars);
             } catch (err) {
-              console.warn(
+              logger.warn(
                 '[Homework bonus] Failed to sync +10 bonus to backend, keeping local only',
                 err,
               );
@@ -586,7 +587,7 @@ const LidoPlayer: FC = () => {
             localStorage.removeItem(HOMEWORK_PATHWAY);
           }
         } catch (err) {
-          console.error(
+          logger.error(
             '[Homework bonus] Failed to award homework completion bonus',
             err,
           );
@@ -639,7 +640,7 @@ const LidoPlayer: FC = () => {
       );
       setShowDialogBox(true);
     } catch (error) {
-      console.error('❌ Failed to process lesson end', error);
+      logger.error('❌ Failed to process lesson end', error);
       localStorage.removeItem(LIDO_SCORES_KEY);
       push();
     }
@@ -765,7 +766,7 @@ const LidoPlayer: FC = () => {
             path: audioPath,
           });
         } catch (firstError) {
-          console.error(
+          logger.error(
             '[LidoPlayer] Common audio not accessible, retrying once...',
           );
           // small delay to handle async extract race (very common on Android)
@@ -777,7 +778,7 @@ const LidoPlayer: FC = () => {
         }
         setCommonAudioPath(Capacitor.convertFileSrc(commonAudioUri.uri));
       } catch (e) {
-        console.error('[LidoPlayer] Failed to resolve common audio path', e);
+        logger.error('[LidoPlayer] Failed to resolve common audio path', e);
         presentToast();
         push();
         return;

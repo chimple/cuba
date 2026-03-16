@@ -8,6 +8,7 @@ import { t } from 'i18next';
 import { FaHeart } from 'react-icons/fa';
 import { RxCross2 } from 'react-icons/rx';
 import { TiTick } from 'react-icons/ti';
+import logger from '../../utility/logger';
 
 interface stickerInfo {
   sticker: TableTypes<'sticker'> | undefined;
@@ -112,7 +113,7 @@ const LeaderboardStickers: FC = () => {
       }
       return stickers.reverse();
     } catch (error) {
-      console.error('Error fetching unlocked stickers:', error);
+      logger.error('Error fetching unlocked stickers:', error);
       return [];
     }
   };
@@ -191,7 +192,7 @@ const LeaderboardStickers: FC = () => {
         },
       );
     } else {
-      console.error(`No data found for week ${nextWeek}`);
+      logger.error(`No data found for week ${nextWeek}`);
       return [];
     }
     const stickerDocs = await api.getStickersByIds(stickerIds);

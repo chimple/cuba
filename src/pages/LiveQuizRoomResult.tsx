@@ -9,6 +9,7 @@ import { PAGES, TableTypes } from '../common/constants';
 import { GiCrown } from 'react-icons/gi';
 import { t } from 'i18next';
 import { IonPage } from '@ionic/react';
+import logger from '../utility/logger';
 
 const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<
@@ -100,7 +101,7 @@ const LiveQuizRoomResult: React.FC = () => {
         setTopThreeStudents(topThreeStudents);
       }
     } catch (error) {
-      console.error('Error fetching LiveQuizRoom data:', error);
+      logger.error('Error fetching LiveQuizRoom data:', error);
     }
     setTimeout(() => {
       setCongratsVisible(false);

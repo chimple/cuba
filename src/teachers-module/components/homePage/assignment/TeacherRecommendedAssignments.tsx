@@ -15,6 +15,7 @@ import {
   getRecommendedLessons,
 } from './AssignmentUtil';
 import Loading from '../../../../components/Loading';
+import logger from '../../../../utility/logger';
 
 export enum TeacherRecommendedAssignmentsType {
   RECOMMENDED = 'recommended',
@@ -68,7 +69,7 @@ const TeacherRecommendedAssignments: FC = () => {
       // Update the selected lessons count
       updateSelectedLesson(recommended);
     } catch (error) {
-      console.error('Error loading recommended lessons', error);
+      logger.error('Error loading recommended lessons', error);
     } finally {
       setLoading(false);
     }

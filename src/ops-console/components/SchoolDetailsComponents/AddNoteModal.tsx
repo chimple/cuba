@@ -5,6 +5,7 @@ import './AddNoteModal.css';
 import { useMediaActions } from '../../common/mediaactions';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import AttachMedia from '../../common/AttachMedia';
+import logger from '../../../utility/logger';
 
 interface AddNoteModalProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
       });
     } catch (err) {
-      console.error('Failed to save note:', err);
+      logger.error('Failed to save note:', err);
       setError(t('Failed to save note. Please try again.').toString());
     } finally {
       setIsSaving(false);
