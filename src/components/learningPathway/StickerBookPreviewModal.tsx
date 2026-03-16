@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from 'i18next';
-import fallbackStickerBookLayout from '../../assets/images/newWhole_layout.svg';
 import { SVGScene } from '../coloring/SVGScene';
 import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
 import './StickerBookPreviewModal.css';
@@ -15,7 +14,8 @@ export interface StickerBookPreviewData {
   nextStickerName: string;
   nextStickerImage?: string;
 }
-
+const fallbackStickerBookLayoutUrl =
+  'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
 interface StickerBookPreviewModalProps {
   data: StickerBookPreviewData;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
@@ -76,7 +76,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       } catch (error) {
         // Keep the preview usable even if the configured book SVG fails to load.
         console.warn('Failed to load sticker book SVG. Falling back.', error);
-        const fallbackResponse = await fetch(fallbackStickerBookLayout);
+        const fallbackResponse = await fetch(fallbackStickerBookLayoutUrl);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {
           setSvgMarkup(fallbackText);
