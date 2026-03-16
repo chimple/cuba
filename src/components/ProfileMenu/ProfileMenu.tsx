@@ -29,7 +29,6 @@ import i18n from '../../i18n';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
-import { hasStickerBookNotification } from '../../utility/stickerBookNotification';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -42,6 +41,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [schoolName, setSchoolName] = useState<string>('');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [hasUnseenStickers, setHasUnseenStickers] = useState<boolean>(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
   const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
@@ -55,17 +55,23 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
   const shouldShowStickerBookNotification =
-    hasStickerBookNotification(student?.id) &&
-    isStickerBookNotificationDotEnabled;
+    hasUnseenStickers && isStickerBookNotificationDotEnabled;
 
   useEffect(() => {
     loadProfileData();
   }, []);
   const loadProfileData = async () => {
-    setStudent(Util.getCurrentStudent());
+    const currentStudent = Util.getCurrentStudent();
+    setStudent(currentStudent);
     const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
     setClassName(className);
     setSchoolName(schoolName);
+
+    if (currentStudent?.id) {
+      const userStickers = await api.getUserSticker(currentStudent.id);
+      const hasUnseen = userStickers.some((s) => !s.is_seen);
+      setHasUnseenStickers(hasUnseen);
+    }
   };
   // Handles Edit action:
   // 1. Fetches all available languages
@@ -88,11 +94,15 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
   };
 
-  const onStickerBook = () => {
+  const onStickerBook = async () => {
     Util.logEvent(EVENTS.STICKER_BOOK_MENU_TAP, {
       user_id: student?.id,
       source: 'profile_menu',
     });
+    if (student?.id && hasUnseenStickers) {
+      await api.updateRewardAsSeen(student.id);
+      setHasUnseenStickers(false);
+    }
     history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };
 

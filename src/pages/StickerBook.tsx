@@ -7,7 +7,6 @@ import StickerBookBoard from '../components/stickerBook/StickerBookBoard';
 import Loading from '../components/Loading';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
-import { clearStickerBookNotification } from '../utility/stickerBookNotification';
 import './StickerBook.css';
 
 type CurrentProgress = {
@@ -51,7 +50,9 @@ const StickerBook: React.FC = () => {
       return;
     }
 
-    clearStickerBookNotification(currentStudent.id);
+    if (currentStudent?.id) {
+      await api.updateRewardAsSeen(currentStudent.id);
+    }
 
     try {
       const [allBooks, currentBookResult] = await Promise.all([

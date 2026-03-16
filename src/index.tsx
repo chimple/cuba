@@ -48,6 +48,7 @@ import { GbProvider } from './growthbook/Growthbook';
 import { initializeFireBase } from './services/Firebase';
 import * as Sentry from '@sentry/capacitor';
 import * as SentryReact from '@sentry/react';
+import './utility/stickerBookTestUtils'; // Import test utilities for development
 import { Preferences } from '@capacitor/preferences';
 import { Provider } from 'react-redux';
 import { persistor, store } from './redux/store';

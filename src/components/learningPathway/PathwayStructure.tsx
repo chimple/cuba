@@ -16,7 +16,6 @@ import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
 import { EVENTS } from '../../common/constants';
-import { setStickerBookNotification } from '../../utility/stickerBookNotification';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
@@ -145,7 +144,6 @@ const PathwayStructure: React.FC = () => {
   const closeStickerPreview = React.useCallback(
     (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
       if (!stickerPreviewData) return;
-      setStickerBookNotification(Util.getCurrentStudent()?.id);
       Util.logEvent(EVENTS.STICKER_PREVIEW_POPUP_CLOSED, {
         user_id: Util.getCurrentStudent()?.id ?? 'unknown',
         sticker_book_id: stickerPreviewData.stickerBookId,
