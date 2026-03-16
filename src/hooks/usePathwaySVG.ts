@@ -911,6 +911,40 @@ export function usePathwaySVG({
     }
   }
 
+  async function getStickerCompletionPayload(): Promise<StickerBookModalData | null> {
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.id) return null;
+
+      const currentBookWithProgress =
+        await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      if (!currentBookWithProgress?.book) return null;
+
+      const { book, progress } = currentBookWithProgress;
+      const collectedStickerIds = progress?.stickers_collected ?? [];
+      const totalStickerCount =
+        book.total_stickers || book.stickers_metadata?.length || 0;
+      const isCompleted =
+        progress?.status === 'completed' ||
+        (totalStickerCount > 0 &&
+          collectedStickerIds.length >= totalStickerCount);
+
+      if (!isCompleted) return null;
+
+      return {
+        source: 'learning_pathway',
+        stickerBookId: book.id,
+        stickerBookTitle: book.title || 'Sticker Book',
+        stickerBookSvgUrl: book.svg_url || '',
+        collectedStickerIds,
+        totalStickerCount,
+      };
+    } catch (error) {
+      logger.error('Failed to build sticker completion payload:', error);
+      return null;
+    }
+  }
+
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
