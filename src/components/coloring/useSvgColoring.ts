@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Util } from '../../utility/util';
-import { EVENTS } from '../../common/constants';
 
 export type ColoredRegions = Record<string, string>;
 
@@ -29,44 +27,14 @@ export const useSvgColoring = (
       const regionId = colorable.getAttribute('color-id');
       if (!regionId) return;
 
-      const paintShape = (shape: Element) => {
-        shape.setAttribute('fill', selectedColor);
-        (shape as SVGElement).style.setProperty(
-          'fill',
-          selectedColor,
-          'important',
-        );
-        shape.setAttribute('data-colored', 'true');
-      };
-
-      const tag = colorable.tagName.toLowerCase();
-      if (tag === 'g') {
-        const shapes = colorable.querySelectorAll(
-          'path,circle,ellipse,rect,polygon,polyline',
-        );
-        if (shapes.length) {
-          shapes.forEach((shape) => paintShape(shape));
-        } else {
-          paintShape(colorable);
-        }
-      } else {
-        paintShape(colorable);
-      }
+      colorable.setAttribute('fill', selectedColor);
 
       setColoredRegions((prev) => ({
         ...prev,
         [regionId]: selectedColor,
       }));
-
-      Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
-        user_id: Util.getCurrentStudent()?.id ?? null,
-        region_id: regionId,
-        color: selectedColor,
-        colored_count: Object.keys(coloredRegions).length + 1,
-        page_path: window.location.pathname,
-      });
     },
-    [selectedColor, coloredRegions],
+    [selectedColor],
   );
 
   useEffect(() => {

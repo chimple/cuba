@@ -1,6 +1,5 @@
 import React from 'react';
-// Changes: expanded StickerBook page coverage for paint, navigation, and completion.
-import { render, waitFor, screen, act } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import StickerBook from './StickerBook';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -23,31 +22,28 @@ jest.mock('react-router', () => ({
   useHistory: jest.fn(),
 }));
 
-jest.mock('@growthbook/growthbook-react', () => ({
-  useFeatureIsOn: jest.fn(() => true),
+jest.mock('i18next', () => ({
+  t: (key: string) => key,
 }));
 
 jest.mock('../components/Loading', () => (props: any) => (
   <div data-testid="loading">{props.isLoading ? 'loading' : 'loaded'}</div>
 ));
 
-const mockStickerBookBoard = jest.fn();
+const mockStickerBookBoard = jest.fn<React.ReactElement, [any]>(() => (
+  <div data-testid="sticker-book-board" />
+));
 
 jest.mock('../components/stickerBook/StickerBookBoard', () => ({
   __esModule: true,
-  default: (props: any) => {
-    mockStickerBookBoard(props);
-    return <div data-testid="sticker-book-board" />;
-  },
+  default: (props: any) => mockStickerBookBoard(props),
 }));
 
 const getLastProps = () => {
   const calls = mockStickerBookBoard.mock.calls;
-
-  if (!calls || calls.length === 0) return null;
-
-  return calls[calls.length - 1][0];
+  return (calls[calls.length - 1]?.[0] ?? null) as any | null;
 };
+
 const expectProps = () => {
   const props = getLastProps();
   expect(props).not.toBeNull();
@@ -64,7 +60,6 @@ jest.mock('../utility/util', () => ({
   Util: {
     getCurrentStudent: jest.fn(),
     setPathToBackButton: jest.fn(),
-    logEvent: jest.fn(),
   },
 }));
 
@@ -83,33 +78,27 @@ describe('StickerBook page', () => {
     replaceMock.mockClear();
     pushMock.mockClear();
     goBackMock.mockClear();
-
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
-
+    (Util.setPathToBackButton as jest.Mock).mockClear();
     (useHistory as jest.Mock).mockReturnValue({
       replace: replaceMock,
       push: pushMock,
       goBack: goBackMock,
     });
-
     (global as any).fetch = jest.fn().mockResolvedValue({
-      text: jest.fn().mockResolvedValue('<svg></svg>'),
+      text: async () => '<svg></svg>',
     });
   });
 
   test('redirects to select mode when no current student', async () => {
     (Util.getCurrentStudent as jest.Mock).mockReturnValue(null);
-
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn(),
         getCurrentStickerBookWithProgress: jest.fn(),
-        getUserWonStickerBooks: jest.fn(),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       expect(replaceMock).toHaveBeenCalledWith(PAGES.SELECT_MODE);
     });
@@ -123,12 +112,9 @@ describe('StickerBook page', () => {
           book: makeBook(),
           progress: { stickers_collected: ['a'] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       expect(mockStickerBookBoard).toHaveBeenCalled();
     });
@@ -142,19 +128,16 @@ describe('StickerBook page', () => {
           book: makeBook(),
           progress: { stickers_collected: [] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       const props = expectProps();
       expect(props.title).toBe('ANIMALS');
     });
   });
 
-  test('passes collected stickers when unlocked', async () => {
+  test('passes collected stickers when book is unlocked', async () => {
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn().mockResolvedValue([makeBook()]),
@@ -162,12 +145,9 @@ describe('StickerBook page', () => {
           book: makeBook(),
           progress: { stickers_collected: ['s1', 's2'] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       const props = expectProps();
       expect(props.collectedStickers).toEqual(['s1', 's2']);
@@ -175,17 +155,14 @@ describe('StickerBook page', () => {
     });
   });
 
-  test('sets isLocked true when no progress', async () => {
+  test('sets isLocked true when current progress is missing', async () => {
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn().mockResolvedValue([makeBook()]),
         getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue(null),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       const props = expectProps();
       expect(props.isLocked).toBe(true);
@@ -193,14 +170,13 @@ describe('StickerBook page', () => {
     });
   });
 
-  test('computes nextStickerId correctly', async () => {
+  test('computes nextStickerId from metadata sequence', async () => {
     const book = makeBook({
       stickers_metadata: [
         { id: 's1', sequence: 1 },
         { id: 's2', sequence: 2 },
       ],
     });
-
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn().mockResolvedValue([book]),
@@ -208,22 +184,18 @@ describe('StickerBook page', () => {
           book,
           progress: { stickers_collected: ['s1'] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
     await waitFor(() => {
       const props = expectProps();
       expect(props.nextStickerId).toBe('s2');
     });
   });
 
-  test('onNext navigates to next book', async () => {
-    const book1 = makeBook({ id: 'b1', title: 'A', sort_index: 1 });
-    const book2 = makeBook({ id: 'b2', title: 'B', sort_index: 2 });
-
+  test('sets canGoPrev and canGoNext correctly for first book', async () => {
+    const book1 = makeBook({ id: 'b1', sort_index: 1 });
+    const book2 = makeBook({ id: 'b2', sort_index: 2, title: 'Sea' });
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
@@ -231,24 +203,150 @@ describe('StickerBook page', () => {
           book: book1,
           progress: { stickers_collected: [] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
-
-    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
-
-    const props = expectProps();
-    props.onNext();
-
     await waitFor(() => {
-      const updated = expectProps();
-      expect(updated.title).toBe('B');
+      const props = expectProps();
+      expect(props.canGoPrev).toBe(false);
+      expect(props.canGoNext).toBe(true);
     });
   });
 
-  test('onBack triggers Util.setPathToBackButton', async () => {
+  test('sets canGoPrev true when not on first book', async () => {
+    const book1 = makeBook({ id: 'b1', sort_index: 1 });
+    const book2 = makeBook({ id: 'b2', sort_index: 2, title: 'Sea' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book: book2,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.canGoPrev).toBe(true);
+      expect(props.canGoNext).toBe(false);
+    });
+  });
+
+  test('onNext advances the selected book', async () => {
+    const book1 = makeBook({ id: 'b1', sort_index: 1, title: 'A' });
+    const book2 = makeBook({ id: 'b2', sort_index: 2, title: 'B' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book: book1,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
+    const firstProps = expectProps();
+    firstProps.onNext();
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.title).toBe('B');
+    });
+  });
+
+  test('onPrev does not go below first book', async () => {
+    const book1 = makeBook({ id: 'b1', sort_index: 1, title: 'A' });
+    const book2 = makeBook({ id: 'b2', sort_index: 2, title: 'B' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book: book1,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
+    const firstProps = expectProps();
+    firstProps.onPrev();
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.title).toBe('A');
+    });
+  });
+
+  test('resolves relative svg_url correctly', async () => {
+    const book = makeBook({ svg_url: 'assets/books/rel.svg' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/assets/books/rel.svg');
+    });
+  });
+
+  test('uses default SVG when svg_url is empty', async () => {
+    const book = makeBook({ svg_url: '' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/assets/icons/StickerBookBoard.svg',
+      );
+    });
+  });
+
+  test('passes svgRaw to StickerBookBoard after fetch', async () => {
+    const book = makeBook({ svg_url: '/assets/books/book.svg' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.svgRaw).toBe('<svg></svg>');
+    });
+  });
+
+  test('does not render board while loading', async () => {
+    const slowPromise = new Promise(() => {});
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockReturnValue(slowPromise),
+        getCurrentStickerBookWithProgress: jest
+          .fn()
+          .mockReturnValue(slowPromise),
+      },
+    });
+    render(<StickerBook />);
+    expect(screen.getByTestId('loading')).toHaveTextContent('loading');
+    expect(mockStickerBookBoard).not.toHaveBeenCalled();
+  });
+
+  test('renders board when loading completes', async () => {
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
         getAllStickerBooks: jest.fn().mockResolvedValue([makeBook()]),
@@ -256,187 +354,66 @@ describe('StickerBook page', () => {
           book: makeBook(),
           progress: { stickers_collected: [] },
         }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
       },
     });
-
     render(<StickerBook />);
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('loaded');
+    });
+    await waitFor(() => {
+      expect(mockStickerBookBoard).toHaveBeenCalled();
+    });
+  });
 
+  test('uses sorted books by sort_index', async () => {
+    const book1 = makeBook({ id: 'b1', sort_index: 2, title: 'B' });
+    const book2 = makeBook({ id: 'b2', sort_index: 1, title: 'A' });
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book: book2,
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.title).toBe('A');
+    });
+  });
+
+  test('onBack wires to Util.setPathToBackButton', async () => {
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([makeBook()]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book: makeBook(),
+          progress: { stickers_collected: [] },
+        }),
+      },
+    });
+    render(<StickerBook />);
     await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
-
     const props = expectProps();
     props.onBack();
-
     expect(Util.setPathToBackButton).toHaveBeenCalledWith(
       PAGES.HOME,
       expect.anything(),
     );
   });
 
-  test('does not render board while loading', () => {
-    const slowPromise = new Promise(() => {});
-
+  test('handles missing books gracefully', async () => {
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
       apiHandler: {
-        getAllStickerBooks: jest.fn().mockReturnValue(slowPromise),
-        getCurrentStickerBookWithProgress: jest
-          .fn()
-          .mockReturnValue(slowPromise),
-        getUserWonStickerBooks: jest.fn().mockReturnValue(slowPromise),
+        getAllStickerBooks: jest.fn().mockResolvedValue([]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue(null),
       },
     });
-
     render(<StickerBook />);
-
-    expect(screen.getByTestId('loading')).toHaveTextContent('loading');
-    expect(mockStickerBookBoard).not.toHaveBeenCalled();
-  });
-
-  test('fetches svg correctly', async () => {
-    const book = makeBook({ svg_url: 'assets/books/rel.svg' });
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
-      },
-    });
-
-    render(<StickerBook />);
-
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/assets/books/rel.svg');
-    });
-  });
-
-  test('onSave is passed and can be invoked', async () => {
-    const book = makeBook();
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
-    const props = expectProps();
-    expect(typeof props.onSave).toBe('function');
-  });
-
-  test('onPrev does not go before first book', async () => {
-    const book1 = makeBook({ id: 'b1', title: 'A', sort_index: 1 });
-    const book2 = makeBook({ id: 'b2', title: 'B', sort_index: 2 });
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book1, book2]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book: book1,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
-    const props = expectProps();
-    act(() => {
-      props.onPrev();
-    });
-
-    await waitFor(() => {
-      const updated = expectProps();
-      expect(updated.title).toBe('A');
-    });
-  });
-
-  test('canGoPrev and canGoNext are false when only one book', async () => {
-    const book = makeBook({ id: 'b1', title: 'Only', sort_index: 1 });
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => {
-      const props = expectProps();
-      expect(props.canGoPrev).toBe(false);
-      expect(props.canGoNext).toBe(false);
-    });
-  });
-
-  test('collectedStickers uses completed set when book completed', async () => {
-    const book = makeBook({
-      stickers_metadata: [
-        { id: 's1', sequence: 1 },
-        { id: 's2', sequence: 2 },
-      ],
-    });
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: ['s1'] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([book]),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => {
-      const props = expectProps();
-      expect(props.collectedStickers).toEqual(['s1', 's2']);
-    });
-  });
-
-  test('isLocked is false when book is completed', async () => {
-    const book = makeBook({
-      stickers_metadata: [
-        { id: 's1', sequence: 1 },
-        { id: 's2', sequence: 2 },
-      ],
-    });
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([book]),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => {
-      const props = expectProps();
-      expect(props.isLocked).toBe(false);
+      expect(mockStickerBookBoard).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,6 +1,4 @@
-import './ColorTray.css';
-import { Util } from '../../utility/util';
-import { EVENTS } from '../../common/constants';
+import './coloring.css';
 
 type Props = {
   selected: string;
@@ -20,7 +18,7 @@ const COLORS = [
 
 export default function ColorTray({ selected, onSelect }: Props) {
   return (
-    <div className="color-tray-div">
+    <div className="color-tray">
       {COLORS.map((c) => {
         const isSelected = selected === c;
 
@@ -28,16 +26,9 @@ export default function ColorTray({ selected, onSelect }: Props) {
           <button
             key={c}
             type="button"
-            className={`color-tray-color-box ${isSelected ? 'selected' : ''}`}
+            className={`color-box ${isSelected ? 'selected' : ''}`}
             style={{ background: c }}
-            onClick={() => {
-              Util.logEvent(EVENTS.PAINT_COLOR_TAP, {
-                user_id: Util.getCurrentStudent()?.id ?? null,
-                color: c,
-                page_path: window.location.pathname,
-              });
-              onSelect(c);
-            }}
+            onClick={() => onSelect(c)}
           />
         );
       })}
