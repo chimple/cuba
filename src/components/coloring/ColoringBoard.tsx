@@ -6,12 +6,12 @@ import { useSvgColoring } from './useSvgColoring';
 import { SVGScene } from './SVGScene';
 import ColorTray from './ColorTray';
 import PaintTopBar from './PaintTopBar';
-import cameraIcon from '../../assets/images/camera.svg';
 import { parseSvg, ParsedSvg, sanitizeSvg } from '../common/SvgHelpers';
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
 import PaintExitPopup from './PaintExitPopup';
 import { t } from 'i18next';
+import StickerBookActions from '../stickerBook/StickerBookActions';
 
 type ColoringBoardRouteState = {
   svgUrl?: string;
@@ -121,6 +121,20 @@ const ColoringBoard: React.FC = () => {
     }
   };
 
+  const handleSave = () => {
+    Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      page_path: window.location.pathname,
+      source: PAGES.COLORING_BOARD,
+    });
+    Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      page_path: window.location.pathname,
+      source: PAGES.COLORING_BOARD,
+    });
+    console.log('save');
+  };
+
   return (
     <div
       id="coloring-board-root"
@@ -182,25 +196,12 @@ const ColoringBoard: React.FC = () => {
 
       {/* 3) Save + Color tray */}
       <div id="coloring-board-controls" className="coloring-board-controls">
-        <button
-          className="coloring-board-save-btn"
-          onClick={() => {
-            Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
-              user_id: Util.getCurrentStudent()?.id ?? null,
-              page_path: window.location.pathname,
-              source: PAGES.COLORING_BOARD,
-            });
-            Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
-              user_id: Util.getCurrentStudent()?.id ?? null,
-              page_path: window.location.pathname,
-              source: PAGES.COLORING_BOARD,
-            });
-            console.log('save');
-          }}
-        >
-          <img src={cameraIcon} alt={t('Save')||""} />
-          <span>{t('Save')}</span>
-        </button>
+        <StickerBookActions
+          showPaint={false}
+          onSave={handleSave}
+          onPaint={() => {}}
+          paintDisabled={true}
+        />
 
         <div id="coloring-board-tray" className="coloring-board-tray">
           <ColorTray

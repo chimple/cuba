@@ -65,22 +65,29 @@
 /* 3) RIGHT CONTROLS (Save + Tray) */
 .coloring-board-controls {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 12px;
-  height: 100%;
+  height: auto;
 }
 
 .coloring-board-tray {
-  margin-top: auto;
-  align-self: flex-end;
+  margin-top: 0;
+  align-self: center;
   display: flex;
   justify-content: flex-end;
-  flex: 1;
 }
 
 .coloring-board-tray .color-tray-div {
   height: 100%;
+}
+
+.coloring-board-controls .StickerBookActions-root {
+  position: static;
+  top: auto;
+  right: auto;
+  flex-direction: row;
+  align-items: center;
 }
 
 @media (min-width: 801px) {
@@ -91,6 +98,8 @@
   .coloring-board-controls {
     margin-top: 50px;
     gap: 6px;
+    flex-direction: column;
+    align-items: center;
   }
 
   .coloring-board-tray .color-tray-div {
