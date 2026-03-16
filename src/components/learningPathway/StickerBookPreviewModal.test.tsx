@@ -6,15 +6,39 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { toBlob } from 'html-to-image';
 import StickerBookPreviewModal, {
-  StickerBookPreviewData,
+  StickerBookModalData,
 } from './StickerBookPreviewModal';
+import { Util } from '../../utility/util';
+import { EVENTS, PAGES } from '../../common/constants';
 
 const originalFetch = global.fetch;
+const mockPush = jest.fn();
+
+jest.mock('react-router', () => ({
+  useHistory: () => ({
+    push: mockPush,
+  }),
+}));
+
+jest.mock('html-to-image', () => ({
+  toBlob: jest.fn(),
+}));
+
+jest.mock('../../assets/images/camera.svg', () => 'camera.svg');
+
+jest.mock('../../utility/util', () => ({
+  Util: {
+    logEvent: jest.fn(),
+    getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+    sendContentToAndroidOrWebShare: jest.fn(),
+  },
+}));
 
 const buildData = (
-  override: Partial<StickerBookPreviewData> = {},
-): StickerBookPreviewData => ({
+  override: Partial<StickerBookModalData> = {},
+): StickerBookModalData => ({
   source: 'learning_pathway',
   stickerBookId: 'book-1',
   stickerBookTitle: 'Book 1',
@@ -23,6 +47,18 @@ const buildData = (
   nextStickerId: 'slot-next',
   nextStickerName: 'Rocket',
   nextStickerImage: 'https://example.com/rocket.png',
+  ...override,
+});
+
+const buildCompletionData = (
+  override: Partial<StickerBookModalData> = {},
+): StickerBookModalData => ({
+  source: 'learning_pathway',
+  stickerBookId: 'book-complete',
+  stickerBookTitle: 'Completed Book',
+  stickerBookSvgUrl: 'https://example.com/completed.svg',
+  collectedStickerIds: ['slot-collected', 'slot-next', 'slot-locked'],
+  totalStickerCount: 6,
   ...override,
 });
 
@@ -57,6 +93,10 @@ const svgWithoutSlots = `
 describe('StickerBookPreviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
+    (toBlob as jest.Mock).mockResolvedValue(
+      new Blob(['png'], { type: 'image/png' }),
+    );
   });
 
   afterEach(() => {
@@ -546,6 +586,75 @@ describe('StickerBookPreviewModal', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('renders completion mode buttons instead of preview helper content', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-save'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-paint'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('StickerBookPreviewModal-helper-text'),
+    ).not.toBeInTheDocument();
+  });
+
+  test('completion mode save and paint keep existing behavior', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-save'));
+
+    await waitFor(() =>
+      expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledTimes(1),
+    );
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
+      expect.objectContaining({
+        sticker_book_id: 'book-complete',
+        collected_count: 3,
+        total_stickers: 6,
+      }),
+    );
+
+    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-paint'));
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
+      expect.objectContaining({
+        sticker_book_id: 'book-complete',
+      }),
+    );
+    expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      stickerBookId: 'book-complete',
+      stickerBookSvgUrl: 'https://example.com/completed.svg',
+      collectedStickerIds: ['slot-collected', 'slot-next', 'slot-locked'],
     });
   });
 });

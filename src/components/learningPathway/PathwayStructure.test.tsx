@@ -1,9 +1,20 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react';
 import PathwayStructure from './PathwayStructure';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
+import {
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  EVENTS,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+} from '../../common/constants';
 
 jest.mock('../../hooks/usePathwayData');
 jest.mock('../../hooks/usePathwaySVG');
@@ -29,19 +40,41 @@ jest.mock('./DailyRewardModal', () => (props: any) => (
     <button onClick={props.onPlay}>play</button>
   </div>
 ));
-jest.mock('./StickerBookPreviewModal', () => (props: any) => (
-  <div data-testid="sticker-book-preview-modal">
-    <div data-testid="sticker-book-preview-next-id">
-      {props.data?.nextStickerId}
-    </div>
-    <button
-      data-testid="sticker-book-preview-close"
-      onClick={() => props.onClose('close_button')}
-    >
-      close-sticker-preview
-    </button>
-  </div>
-));
+jest.mock(
+  './StickerBookPreviewModal',
+  () => (props: any) =>
+    props.mode === 'completion' ? (
+      <div data-testid="sticker-book-completion-popup">
+        <div data-testid="sticker-book-completion-title">
+          {props.data?.stickerBookTitle}
+        </div>
+        <button
+          data-testid="sticker-book-completion-close"
+          onClick={() => props.onClose('close_button')}
+        >
+          close-sticker-completion
+        </button>
+        <button
+          data-testid="sticker-book-completion-backdrop"
+          onClick={() => props.onClose('backdrop')}
+        >
+          backdrop-sticker-completion
+        </button>
+      </div>
+    ) : (
+      <div data-testid="sticker-book-preview-modal">
+        <div data-testid="sticker-book-preview-next-id">
+          {props.data?.nextStickerId}
+        </div>
+        <button
+          data-testid="sticker-book-preview-close"
+          onClick={() => props.onClose('close_button')}
+        >
+          close-sticker-preview
+        </button>
+      </div>
+    ),
+);
 
 describe('PathwayStructure', () => {
   const setModalOpen = jest.fn();
@@ -49,6 +82,14 @@ describe('PathwayStructure', () => {
   const handleRewardBoxOpen = jest.fn();
   const handleRewardModalClose = jest.fn();
   const handleRewardModalPlay = jest.fn();
+  const buildCompletionData = () => ({
+    source: 'learning_pathway' as const,
+    stickerBookId: 'book-6',
+    stickerBookTitle: 'Final Sticker Page',
+    stickerBookSvgUrl: 'https://example.com/final.svg',
+    collectedStickerIds: ['s1', 's2', 's3', 's4', 's5', 's6'],
+    totalStickerCount: 6,
+  });
 
   const buildHookData = (override: Partial<any> = {}) => {
     const riveHost = document.createElement('div');
@@ -98,6 +139,8 @@ describe('PathwayStructure', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
     (usePathwaySVG as jest.Mock).mockImplementation(() => null);
     (usePathwayData as jest.Mock).mockReturnValue(buildHookData());
   });
@@ -394,5 +437,111 @@ describe('PathwayStructure', () => {
     expect(
       (Util.logEvent as jest.Mock).mock.calls.length,
     ).toBeGreaterThanOrEqual(2);
+  });
+
+  test('opens sticker completion modal when usePathwaySVG triggers onStickerCompletionReady', () => {
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerCompletionReady(buildCompletionData());
+    });
+
+    expect(
+      screen.getByTestId('sticker-book-completion-popup'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId('sticker-book-completion-title'),
+    ).toHaveTextContent('Final Sticker Page');
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED,
+      expect.objectContaining({
+        user_id: 'student-1',
+        sticker_book_id: 'book-6',
+        collected_count: 6,
+        total_stickers: 6,
+      }),
+    );
+  });
+
+  test('close button closes sticker completion modal and logs close analytics', () => {
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerCompletionReady(buildCompletionData());
+    });
+
+    fireEvent.click(screen.getByTestId('sticker-book-completion-close'));
+    expect(
+      screen.queryByTestId('sticker-book-completion-popup'),
+    ).not.toBeInTheDocument();
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED,
+      expect.objectContaining({
+        sticker_book_id: 'book-6',
+        collected_count: 6,
+      }),
+    );
+  });
+
+  test('opens sticker completion modal from completion-ready window event and clears session key', async () => {
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      JSON.stringify({ studentId: 'student-1' }),
+    );
+    render(<PathwayStructure />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+          detail: buildCompletionData(),
+        }),
+      );
+    });
+
+    expect(
+      await screen.findByTestId('sticker-book-completion-popup'),
+    ).toBeInTheDocument();
+    expect(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY),
+    ).toBeNull();
+  });
+
+  test('ignores invalid sticker completion ready events', async () => {
+    render(<PathwayStructure />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+          detail: { ...buildCompletionData(), stickerBookId: '' },
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('sticker-book-completion-popup'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  test('removes sticker completion ready listener on unmount', () => {
+    const addSpy = jest.spyOn(window, 'addEventListener');
+    const removeSpy = jest.spyOn(window, 'removeEventListener');
+
+    const { unmount } = render(<PathwayStructure />);
+    const handler = addSpy.mock.calls.find(
+      (call) => String(call[0]) === STICKER_BOOK_COMPLETION_READY_EVENT,
+    )?.[1] as EventListener;
+
+    unmount();
+
+    expect(removeSpy).toHaveBeenCalledWith(
+      STICKER_BOOK_COMPLETION_READY_EVENT,
+      handler,
+    );
+    addSpy.mockRestore();
+    removeSpy.mockRestore();
   });
 });
