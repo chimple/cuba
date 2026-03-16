@@ -13,7 +13,6 @@ type Props = {
   mode: Mode;
   svgRefExternal?: React.RefObject<SVGSVGElement | null>;
   children: React.ReactElement<any>;
-
   collectedStickers?: string[];
   nextStickerId?: string;
   isDragEnabled?: boolean;
@@ -44,22 +43,34 @@ export function SVGScene({
   const internalRef = useRef<SVGSVGElement | null>(null);
   const svgRef = svgRefExternal ?? internalRef;
 
+  const colorModeApplied = useRef(false);
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
-    // Apply the scene-specific SVG transforms after the inline SVG has mounted.
-    if (mode === 'color') {
+    /* ---------------- COLOR MODE ---------------- */
+    if (mode === 'color' && !colorModeApplied.current) {
       applyColorMode(svg, colorModeUncolouredColor, colorModeUncolouredStyle);
+
+      // Ensure already painted shapes stay colored
+      const painted = svg.querySelectorAll("[data-colored='true']");
+      painted.forEach((el) => {
+        const shape = el as SVGElement;
+        const fill = shape.getAttribute('fill');
+        if (fill) {
+          shape.style.setProperty('fill', fill, 'important');
+        }
+      });
+
+      colorModeApplied.current = true;
     }
 
-    // Preview mode intentionally skips drag/color transforms and only applies
-    // sticker visibility state below.
+    /* ---------------- DRAG MODE ---------------- */
     if (mode === 'drag' && isDragEnabled) {
       applyDragMode(svg);
     }
 
-    // ---- Show collected stickers ----
+    /* ---------------- STICKER VISIBILITY ---------------- */
     collectedStickers.forEach((id) => {
       const el = svg.querySelector(`[data-slot-id="${id}"]`);
       if (el) (el as SVGElement).style.opacity = '1';
@@ -74,6 +85,7 @@ export function SVGScene({
       );
     }
 
+    /* ---------------- LOCKED ELEMENTS ---------------- */
     if (lockedStickerOutline) {
       applyLockedStickerOutline(svg);
     }
