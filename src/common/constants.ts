@@ -895,8 +895,6 @@ export enum EVENTS {
   STICKER_PREVIEW_BOX_CLICKED = 'sticker_preview_box_clicked',
   STICKER_PREVIEW_POPUP_SHOWN = 'sticker_preview_popup_shown',
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
-  STICKER_BOOK_NOTIFICATION_SHOWN = 'sticker_book_notification_shown',
-  STICKER_BOOK_NOTIFICATION_CLEARED = 'sticker_book_notification_cleared',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
   STICKER_BOOK_COMPLETION_POPUP_OPENED = 'sticker_book_completion_popup_opened',

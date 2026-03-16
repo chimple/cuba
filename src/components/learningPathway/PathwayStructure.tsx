@@ -15,9 +15,9 @@ import { useHistory } from 'react-router';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
-import { EVENTS } from '../../common/constants';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  EVENTS,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 

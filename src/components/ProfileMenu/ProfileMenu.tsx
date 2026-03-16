@@ -276,7 +276,10 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                 <span className="profile-menu-label">{t(item.label)}</span>
                 {item.label === 'Sticker Book' &&
                   shouldShowStickerBookNotification && (
-                    <span className="profile-menu-notification-dot" />
+                    <span
+                      className="profile-menu-notification-dot"
+                      data-testid="sticker-book-notification-dot"
+                    />
                   )}
               </div>
             </div>
