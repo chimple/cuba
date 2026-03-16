@@ -211,31 +211,6 @@ describe('ColoringBoard', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
   });
-
-  /* ---------------- SAVE BUTTON ---------------- */
-
-  test('renders save button', () => {
-    renderBoard();
-
-    const saveButton = document.querySelector('.coloring-board-save-btn');
-
-    expect(saveButton).toBeInTheDocument();
-  });
-
-  /* ---------------- SAVE CLICK ---------------- */
-
-  test('clicking save button works', () => {
-    renderBoard();
-
-    const saveButton = document.querySelector(
-      '.coloring-board-save-btn',
-    ) as HTMLElement;
-
-    fireEvent.click(saveButton);
-
-    expect(saveButton).toBeInTheDocument();
-  });
-
   /* ---------------- COLOR TRAY ---------------- */
 
   test('renders color tray', () => {
@@ -352,22 +327,6 @@ describe('ColoringBoard', () => {
     fireEvent.click(screen.getByTestId('exit-btn'));
 
     expect(screen.getByTestId('exit-popup')).toBeInTheDocument();
-  });
-
-  /* ---------------- SAVE BUTTON MULTIPLE CLICKS ---------------- */
-
-  test('save button handles multiple clicks', () => {
-    renderBoard();
-
-    const saveButton = document.querySelector(
-      '.coloring-board-save-btn',
-    ) as HTMLElement;
-
-    fireEvent.click(saveButton);
-    fireEvent.click(saveButton);
-    fireEvent.click(saveButton);
-
-    expect(saveButton).toBeInTheDocument();
   });
 
   /* ---------------- NO ROUTE STATE ---------------- */

@@ -25,12 +25,16 @@
 }
 
 .StickerBookActions-save {
+  display: flex;
+  flex-direction: column;
   border-bottom: clamp(3px, 0.6vw, 5px) solid #300d37;
   background: #c094ef;
   color: #2a004a;
 }
 
 .StickerBookActions-paint {
+  display: flex;
+  flex-direction: column;
   border-bottom: clamp(3px, 0.6vw, 5px) solid #8d2900;
   background: #f34d08;
   color: #ffffff;
