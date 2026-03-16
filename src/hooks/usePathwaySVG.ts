@@ -910,7 +910,6 @@ export function usePathwaySVG({
       return null;
     }
   }
-
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
