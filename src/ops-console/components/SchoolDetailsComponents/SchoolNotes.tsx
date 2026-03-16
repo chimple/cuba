@@ -7,6 +7,7 @@ import { ServiceConfig } from '../../../services/ServiceConfig';
 import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { Pagination } from '@mui/material';
+import logger from '../../../utility/logger';
 
 type ApiNote = {
   id: string;
@@ -102,11 +103,11 @@ const SchoolNotes: React.FC = () => {
         offset,
         sortMode === 'nameAsc' ? 'createdBy' : 'createdAt',
       );
-      console.log('RAW API NOTES (current user role):', res.data);
+      logger.info('RAW API NOTES (current user role):', res.data);
 
       const mapped = res.data.map((r: ApiNote) => mapApiNote(r));
 
-      console.log('[UI] Mapped notes:', {
+      logger.info('[UI] Mapped notes:', {
         mappedLength: mapped.length,
         sampleMapped: mapped[0],
       });
@@ -117,7 +118,7 @@ const SchoolNotes: React.FC = () => {
       // Compute pages
       setTotalPages(Math.max(1, Math.ceil(res.totalCount / NOTES_PER_PAGE)));
     } catch (err) {
-      console.error('Error loading notes:', err);
+      logger.error('Error loading notes:', err);
       setNotes([]);
       setError(t('Failed to load notes') as string);
     } finally {
@@ -152,7 +153,7 @@ const SchoolNotes: React.FC = () => {
         setSelectedNote(mapped);
         setDrawerOpen(true);
       } catch (e) {
-        console.error('NOTES_UPDATED_EVENT error:', e);
+        logger.error('NOTES_UPDATED_EVENT error:', e);
       }
     };
 

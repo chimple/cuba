@@ -9,6 +9,7 @@ import { trashOutline } from 'ionicons/icons';
 import CommonDialogBox from '../../../common/CommonDialogBox';
 import { t } from 'i18next';
 import { Util } from '../../../utility/util';
+import logger from '../../../utility/logger';
 
 const SchoolUserList: React.FC<{
   schoolDoc: TableTypes<'school'>;
@@ -93,7 +94,7 @@ const SchoolUserList: React.FC<{
         setShowConfirm(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error('Error deleting user:', error);
+        logger.error('Error deleting user:', error);
       }
       await api.updateSchoolLastModified(schoolDoc.id);
       await api.updateUserLastModified(selectedUser.id);

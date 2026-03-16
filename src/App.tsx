@@ -140,6 +140,7 @@ import GenericPopup from './components/GenericPopUp/GenericPopUp';
 import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
+import { logger } from './utility/logger';
 import {
   Dialog,
   DialogTitle,
@@ -256,10 +257,6 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const currentTab = params.get('tab');
 
-    // console.log("POPUP CHECK");
-    // console.log("tab from URL:", currentTab);
-    // console.log("screen_name from GB:", popupConfig.screen_name);
-
     if (
       currentTab &&
       popupConfig.screen_name &&
@@ -272,7 +269,7 @@ const App: React.FC = () => {
 
   useLayoutEffect(() => {
     const handler = (e: any) => {
-      console.log('POPUP EVENT RECEIVED:', e.detail);
+      logger.info('POPUP EVENT RECEIVED', e.detail);
       setPopupData(e.detail);
     };
 
@@ -285,7 +282,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handler = (e: any) => {
-      console.log('POPUP EVENT:', e.detail);
+      logger.info('POPUP EVENT', e.detail);
       setPopupData(e.detail);
     };
 
@@ -394,7 +391,7 @@ const App: React.FC = () => {
           throw new Error('Error in creating directory for cache');
         });
       } catch (e) {
-        console.log('Error in creating directory for cache');
+        logger.error('Error in creating directory for cache', e);
       }
     }
     //Checking for flexible update in play-store
@@ -517,10 +514,10 @@ const App: React.FC = () => {
             processNotificationData(data);
           }
         } catch (error) {
-          console.error('Error retrieving notification data:', error);
+          logger.error('Error retrieving notification data:', error);
         }
       } else {
-        console.warn('Util.port or fetchNotificationData is not available.');
+        logger.warn('Util.port or fetchNotificationData is not available.');
       }
     }
   };
@@ -532,7 +529,7 @@ const App: React.FC = () => {
     // Update Avatar Suggestion local Json
     try {
     } catch (error) {
-      console.error('Util.migrateLocalJsonFile failed ', error);
+      logger.error('Util.migrateLocalJsonFile failed ', error);
     }
   }
   return (

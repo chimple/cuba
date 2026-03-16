@@ -18,6 +18,7 @@ import { useHistory } from 'react-router';
 import { Util } from '../../../../utility/util';
 import { t } from 'i18next';
 import ImageDropdown from '../../imageDropdown';
+import logger from '../../../../utility/logger';
 
 type SubjectOption = {
   icon: string;
@@ -98,7 +99,7 @@ const DashBoard: React.FC = ({}) => {
 
       setMappedSubjectOptions(_mappedSubjectOptions);
     } catch (error) {
-      console.error('Error fetching curriculums or grades:', error);
+      logger.error('Error fetching curriculums or grades:', error);
       setMappedSubjectOptions([]);
     }
     setSelectedSubject(Util.getCurrentCourse(current_class?.id) ?? ALL_SUBJECT);

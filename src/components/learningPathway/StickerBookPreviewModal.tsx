@@ -4,6 +4,7 @@ import fallbackStickerBookLayout from '../../assets/images/newWhole_layout.svg';
 import { SVGScene } from '../coloring/SVGScene';
 import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
 import './StickerBookPreviewModal.css';
+import logger from '../../utility/logger';
 
 export interface StickerBookPreviewData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -75,7 +76,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         }
       } catch (error) {
         // Keep the preview usable even if the configured book SVG fails to load.
-        console.warn('Failed to load sticker book SVG. Falling back.', error);
+        logger.warn('Failed to load sticker book SVG. Falling back.', error);
         const fallbackResponse = await fetch(fallbackStickerBookLayout);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {

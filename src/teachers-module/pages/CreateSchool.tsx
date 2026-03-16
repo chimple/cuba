@@ -6,6 +6,7 @@ import Header from '../components/homePage/Header';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { PAGES, RequestTypes } from '../../common/constants';
 import SelectField from '../components/SelectField';
+import logger from '../../utility/logger';
 
 interface CreateSchoolLocationState {
   country?: string;
@@ -145,7 +146,7 @@ const CreateSchool: React.FC = () => {
       await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
-      console.error('Error creating school:', error);
+      logger.error('Error creating school:', error);
     } finally {
       setSending(false);
     }

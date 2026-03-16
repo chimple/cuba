@@ -12,6 +12,7 @@ import {
   TableTypes,
 } from '../../../../common/constants';
 import { Toast } from '@capacitor/toast';
+import logger from '../../../../utility/logger';
 
 const mockHistory = { replace: jest.fn(), push: jest.fn() };
 
@@ -94,23 +95,29 @@ const mockAuth = {
 };
 
 describe('CreateSelectedAssignment (QR flow)', () => {
+  let consoleErrorSpy: jest.SpyInstance | null = null;
+
   beforeEach(() => {
     jest.clearAllMocks();
 
-    const originalConsoleError = console.error;
-    jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
-      const firstArg = args[0];
-      const message = typeof firstArg === 'string' ? firstArg : '';
+    const originalConsoleError = logger.error;
+    consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation((...args: any[]) => {
+        const firstArg = args[0];
+        const message = typeof firstArg === 'string' ? firstArg : '';
 
-      if (message.includes('not wrapped in act')) return;
-      if (
-        message.includes('Each child in a list should have a unique "key" prop')
-      )
-        return;
-      if (message.includes('Current user or class not found')) return;
+        if (message.includes('not wrapped in act')) return;
+        if (
+          message.includes(
+            'Each child in a list should have a unique "key" prop',
+          )
+        )
+          return;
+        if (message.includes('Current user or class not found')) return;
 
-      originalConsoleError(...args);
-    });
+        originalConsoleError(...args);
+      });
 
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
       apiHandler: mockApi,
@@ -158,7 +165,8 @@ describe('CreateSelectedAssignment (QR flow)', () => {
   });
 
   afterEach(() => {
-    (console.error as unknown as jest.Mock).mockRestore();
+    consoleErrorSpy?.mockRestore();
+    consoleErrorSpy = null;
   });
 
   test('falls back to getChapterByLesson and creates QR assignment with qr_code source', async () => {

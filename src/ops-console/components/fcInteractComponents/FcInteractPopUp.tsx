@@ -16,6 +16,7 @@ import { t } from 'i18next';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { useMediaActions } from '../../common/mediaactions';
 import AttachMedia from '../../common/AttachMedia';
+import logger from '../../../utility/logger';
 
 type Q = { id: string; question: string };
 
@@ -123,7 +124,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
           setLocalQuestions(formattedQuestions);
         }
       } catch (err) {
-        console.error('Question fetch error', err);
+        logger.error('Question fetch error', err);
       } finally {
         if (mounted) setIsQuestionsLoading(false);
       }
@@ -223,7 +224,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       await api.saveFcUserForm(payload);
       onClose();
     } catch (err) {
-      console.error('Failed to save FC interaction:', err);
+      logger.error('Failed to save FC interaction:', err);
     } finally {
       setIsSaving(false);
     }

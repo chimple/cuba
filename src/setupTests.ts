@@ -71,7 +71,6 @@ jest.mock('./services/ServiceConfig', () => ({
     }),
   },
 }));
-
 // Mock our local Growthbook provider/hooks so components don't throw in tests
 jest.mock('./growthbook/Growthbook', () => ({
   GbProvider: ({ children }: any) => children,

@@ -8,6 +8,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import logger from '../../../utility/logger';
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -110,7 +111,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         );
       }
     } catch (err) {
-      console.error('Error processing request:', err);
+      logger.error('Error processing request:', err);
       setError(
         t('Failed to process request. Please try again.') ||
           'Failed to process request. Please try again.',

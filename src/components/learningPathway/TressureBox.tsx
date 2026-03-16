@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './TressureBox.css';
+import logger from '../../utility/logger';
 
 interface TressureBoxProps {
   startNumber: number;
@@ -40,7 +41,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
           }, 600);
         }
       } catch (error) {
-        console.error('Error in updating number:', error);
+        logger.error('Error in updating number:', error);
       }
     };
     updateNumber();

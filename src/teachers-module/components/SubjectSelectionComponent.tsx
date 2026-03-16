@@ -3,6 +3,7 @@ import { IonButton, IonIcon } from '@ionic/react';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import './SubjectSelectionComponent.css';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 interface SubjectSelectionProps {
   curriculumsWithCourses: {
@@ -38,7 +39,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
     try {
       await onConfirm(); // Call the onConfirm function, assuming it returns a Promise
     } catch (error) {
-      console.error('Error during confirmation:', error);
+      logger.error('Error during confirmation:', error);
     } finally {
       setLoading(false); // Re-enable the button after the operation
     }

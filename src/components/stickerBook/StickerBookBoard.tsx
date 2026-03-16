@@ -11,6 +11,7 @@ import {
 } from '../common/SvgHelpers';
 import NewBackButton from '../common/NewBackButton';
 import './StickerBookBoard.css';
+import logger from '../../utility/logger';
 
 type Props = {
   title: string;
@@ -110,7 +111,7 @@ const StickerBookBoard: React.FC<Props> = ({
       .then((text) => {
         if (isMounted) setBoardSvgRaw(text);
       })
-      .catch((e) => console.error('Failed to load board svg:', e));
+      .catch((e) => logger.error('Failed to load board svg:', e));
     return () => {
       isMounted = false;
     };

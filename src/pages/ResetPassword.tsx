@@ -6,6 +6,7 @@ import { IonButton, IonIcon, IonInput } from '@ionic/react';
 import { eye, eyeOff } from 'ionicons/icons';
 import './ResetPassword.css';
 import { t } from 'i18next';
+import logger from '../utility/logger';
 
 const ResetPassword: React.FC = () => {
   const location = useLocation();
@@ -34,7 +35,7 @@ const ResetPassword: React.FC = () => {
       setMessage('Password reset successful. Redirecting to login...');
       setTimeout(() => history.push(PAGES.LOGIN), 2000);
     } else {
-      console.error('error in updating user....');
+      logger.error('error in updating user....', {});
     }
   };
 

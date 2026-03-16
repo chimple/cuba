@@ -1,3 +1,5 @@
+import logger from '../../utility/logger';
+
 // Parsed SVG payload for inline rendering.
 export type ParsedSvg = {
   inner: string;
@@ -19,7 +21,7 @@ export function parseSvg(raw: string): ParsedSvg | null {
 
     return { inner: svg.innerHTML, attrs };
   } catch (e) {
-    console.error('Failed to parse sticker book svg:', e);
+    logger.error('Failed to parse sticker book svg:', e);
     return null;
   }
 }

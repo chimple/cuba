@@ -13,6 +13,7 @@ import { RoleLabels, RoleType } from '../../interface/modelInterfaces';
 import { IonAlert } from '@ionic/react';
 import { PROFILETYPE } from '../../common/constants';
 import EditIcon from '@mui/icons-material/Edit';
+import logger from '../../utility/logger';
 
 const UserDetailsPage: React.FC = () => {
   const [user, setUser] = useState<any>();
@@ -76,7 +77,7 @@ const UserDetailsPage: React.FC = () => {
       setShowConfirm(false);
       history.goBack();
     } catch (error) {
-      console.error('Failed to delete user completely:', error);
+      logger.error('Failed to delete user completely:', error);
     }
   };
 
@@ -129,7 +130,7 @@ const UserDetailsPage: React.FC = () => {
       setPreviewUrl(null);
       setSelectedFile(null);
     } catch (error) {
-      console.error('Failed to update user info:', error);
+      logger.error('Failed to update user info:', error);
     }
   };
 

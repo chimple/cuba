@@ -45,6 +45,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Json } from '../database';
+import logger from '../../utility/logger';
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -1231,7 +1232,7 @@ export interface ServiceApi {
    * Example usage:
    * searchLessons("math")
    *   .then(lessons => {})
-   *   .catch(error => console.error(error));
+   *   .catch(error => logger.error(error));
    */
 
   searchLessons(searchString: string): Promise<TableTypes<'lesson'>[]>;

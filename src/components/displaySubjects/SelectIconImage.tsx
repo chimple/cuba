@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import './SelectIconImage.css';
+import logger from '../../utility/logger';
 
 const SelectIconImage: FC<{
   localSrc?: string;
@@ -60,7 +61,7 @@ const SelectIconImage: FC<{
               : defaultSrc,
         );
       } catch (error) {
-        console.error('Image loading failed:', error);
+        logger.error('Image loading failed:', error);
         setActiveSrc(defaultSrc);
       } finally {
         setIsLoading(false);

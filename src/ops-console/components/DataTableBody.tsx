@@ -13,6 +13,7 @@ import {
 import './DataTableBody.css';
 import { useHistory } from 'react-router';
 import { PAGES } from '../../common/constants';
+import logger from '../../utility/logger';
 
 export interface Column<T> {
   key: keyof T;
@@ -132,7 +133,7 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
 
       const id = row.id;
       if (!id) {
-        console.warn("Row missing 'id' property");
+        logger.warn("Row missing 'id' property");
         return;
       }
 

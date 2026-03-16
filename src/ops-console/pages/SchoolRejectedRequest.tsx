@@ -8,6 +8,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import RejectionDetails from '../components/SchoolRequestComponents/RejectedDetails';
+import logger from '../../utility/logger';
 
 const SchoolRejectedRequest: React.FC = () => {
   const history = useHistory();
@@ -29,7 +30,7 @@ const SchoolRejectedRequest: React.FC = () => {
           setUser(state.request.requestedBy);
         }
       } catch (error) {
-        console.error('Error fetching request data:', error);
+        logger.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }

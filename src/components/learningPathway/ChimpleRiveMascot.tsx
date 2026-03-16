@@ -12,6 +12,7 @@ import {
 } from '../../common/constants';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import logger from '../../utility/logger';
 
 interface ChimpleRiveMascotProps {
   stateMachine?: string;
@@ -90,7 +91,7 @@ export default function ChimpleRiveMascot({
         }
         // If no data or error, keep default local path
       } catch (error) {
-        console.log(
+        logger.error(
           'Error reading remote mascot file, keeping local path:',
           error,
         );
@@ -114,7 +115,7 @@ export default function ChimpleRiveMascot({
         numberInput.value = value;
       }
     } catch (error) {
-      console.error('Failed to set numberInput value:', error);
+      logger.error('Failed to set numberInput value:', error);
     }
   }, [value, numberInput, animationName]);
 

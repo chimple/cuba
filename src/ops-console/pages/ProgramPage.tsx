@@ -29,6 +29,7 @@ import { BsFillBellFill } from 'react-icons/bs';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 type ProgramRow = {
   programName: any;
@@ -143,7 +144,7 @@ const ProgramsPage: React.FC = () => {
         setFilterOptions(filterResponse);
         setIsProgramManager(!!isManager);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        logger.error('Failed to fetch data:', error);
         setIsProgramManager(false);
       } finally {
         setLoadingFilters(false);
@@ -192,7 +193,7 @@ const ProgramsPage: React.FC = () => {
         setPrograms(data);
         setTotalCount(data.length > 0 ? data[0].total_count : 0);
       } catch (error) {
-        console.error('Failed to fetch programs:', error);
+        logger.error('Failed to fetch programs:', error);
         setPrograms([]);
         setTotalCount(0);
       } finally {

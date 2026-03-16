@@ -7,6 +7,7 @@ import {
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
@@ -22,16 +23,16 @@ class PopupManager {
   /** -------- Trigger Entry Points -------- */
 
   onAppOpen(config: PopupConfig) {
-    console.log('onAppOpen Triggered for Popup1:', config.id);
+    logger.info('onAppOpen Triggered for Popup1:', config.id);
 
     if (config.triggers.type === GENERIC_POPUP_TRIGGER_CONDITION.APP_OPEN) {
-      console.log('onAppOpen Triggered for Popup:', config.id);
+      logger.info('onAppOpen Triggered for Popup:', config.id);
       this.tryShowPopup(config);
     }
   }
 
   onGameComplete(config: PopupConfig) {
-    console.log('onGameComplete Triggered for Popup:', config.id ?? 'unknown');
+    logger.info('onGameComplete Triggered for Popup:', config.id ?? 'unknown');
     if (
       !config?.triggers ||
       config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.GAME_COMPLETE
@@ -45,7 +46,7 @@ class PopupManager {
   }
 
   onTimeElapsed(config: PopupConfig) {
-    console.log('onTimeElapsed Triggered for Popup:', config.id);
+    logger.info('onTimeElapsed Triggered for Popup:', config.id);
     if (config.triggers.type !== GENERIC_POPUP_TRIGGER_CONDITION.TIME_ELAPSED)
       return;
     if (this.isPopupActive) return;
@@ -57,11 +58,9 @@ class PopupManager {
   /** -------- Validation Logic -------- */
 
   private tryShowPopup(config: PopupConfig) {
-    console.log('tryShowPopup called for Popup:', config);
     if (!config.isActive) return;
-
     if (this.isPopupActive || (window as any).isAnyPopupOpen?.()) {
-      console.log('Popup blocked: another popup active');
+      logger.info('Popup blocked: another popup active');
       return;
     }
 
@@ -109,7 +108,6 @@ class PopupManager {
   /** -------- Render + Analytics -------- */
 
   private showPopup(config: PopupConfig) {
-    console.log('SHOW POPUP CALLED:', config.id);
     this.isPopupActive = true;
     this.incrementCount(config);
 
@@ -162,8 +160,6 @@ class PopupManager {
           normalizedTarget === 'rewards' || normalizedTarget === 'leaderboard'
             ? '/leaderboard'
             : '/home';
-
-        console.log('✅ Navigating to:', baseRoute, rawTarget);
         window.location.replace(`${baseRoute}?tab=${rawTarget}`);
         return;
       }

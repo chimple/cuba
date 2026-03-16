@@ -32,6 +32,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { palUtil } from '../utility/palUtil';
+import logger from '../utility/logger';
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -361,7 +362,7 @@ const CocosGame: React.FC = () => {
         const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
 
         if (!pathStr) {
-          console.warn(
+          logger.warn(
             '[Homework bonus pre-check] No HOMEWORK_PATHWAY in sessionStorage',
           );
         } else {
@@ -380,7 +381,7 @@ const CocosGame: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error(
+        logger.error(
           '[Homework bonus pre-check] Error while reading HOMEWORK_PATHWAY',
           err,
         );
@@ -480,7 +481,7 @@ const CocosGame: React.FC = () => {
           try {
             await api.updateStudentStars(student.id, newLocalStars);
           } catch (err) {
-            console.warn(
+            logger.warn(
               '[Homework bonus] Failed to sync +10 bonus to backend, keeping local only',
               err,
             );
@@ -488,7 +489,7 @@ const CocosGame: React.FC = () => {
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
-        console.error(
+        logger.error(
           '[Homework bonus] Failed to award homework completion bonus',
           err,
         );
@@ -561,7 +562,7 @@ const CocosGame: React.FC = () => {
                     await savingPromiseRef.current;
                   }
                 } catch (error) {
-                  console.error('Error saving data', error);
+                  logger.error('Error saving data', error);
                 }
                 setShowDialogBox(false);
                 push();

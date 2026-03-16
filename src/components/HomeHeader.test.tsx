@@ -12,6 +12,7 @@ import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
 import { HOMEHEADERLIST, MODES } from '../common/constants';
+import logger from '../utility/logger';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (s: string) => s }),
@@ -43,11 +44,11 @@ const mockApi = {
 
 describe('HomeHeader', () => {
   const onHeaderIconClick = jest.fn();
-  let originalConsoleError: typeof console.error;
+  let originalConsoleError: typeof logger.error;
 
   beforeEach(() => {
     jest.resetAllMocks();
-    originalConsoleError = console.error;
+    originalConsoleError = logger.error;
     jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
       const msg = String(args[0] ?? '');
       // Ignore known jsdom/XHR noise not related to HomeHeader logic assertions.

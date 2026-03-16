@@ -9,6 +9,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory, useLocation } from 'react-router-dom';
 import { RoleType } from '../../interface/modelInterfaces';
 import DropdownField from '../components/DropdownField';
+import logger from '../../utility/logger';
 
 const DEFAULT_COUNTRY = 'INDIA';
 
@@ -258,7 +259,7 @@ const AddSchoolPage: React.FC = () => {
           }));
         }
       } catch (err) {
-        console.error('UDISE fetch error:', err);
+        logger.error('UDISE fetch error:', err);
       }
     }
   };
@@ -449,7 +450,7 @@ const AddSchoolPage: React.FC = () => {
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
-      console.error('Save error:', err);
+      logger.error('Save error:', err);
     } finally {
       setIsSaving(false);
     }

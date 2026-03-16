@@ -3,6 +3,7 @@ import {
   CountryCode,
   PhoneNumber,
 } from 'libphonenumber-js';
+import logger from '../../utility/logger';
 
 export class OpsUtil {
   public static validateAndFormatPhoneNumber(
@@ -66,7 +67,7 @@ export class OpsUtil {
     }
 
     // Fallback if nothing matches
-    console.warn(
+    logger.warn(
       `--- parseClassName: Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`,
     );
     return { grade: 0, section: cleanedName };

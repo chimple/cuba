@@ -10,6 +10,7 @@ import RequestFromCard from '../components/SchoolRequestComponents/RequestFromCa
 import { PAGES } from '../../common/constants';
 import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const SchoolPendingRequest: React.FC = () => {
   const history = useHistory();
@@ -35,7 +36,7 @@ const SchoolPendingRequest: React.FC = () => {
           setUser(state.request.requestedBy);
         }
       } catch (error) {
-        console.error('Error fetching request data:', error);
+        logger.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }

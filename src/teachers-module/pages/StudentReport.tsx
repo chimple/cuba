@@ -12,6 +12,7 @@ import CalendarPicker from '../../common/CalendarPicker';
 import { PAGES, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { ClassUtil } from '../../utility/classUtil';
+import logger from '../../utility/logger';
 
 type StudentReportLocationState = {
   student?: TableTypes<'user'>;
@@ -93,7 +94,7 @@ const StudentReport: React.FC = () => {
         setCurrentClass(classToUse);
       }
     } catch (error) {
-      console.log('Failed to load class details.');
+      logger.error('Failed to load class details.', error);
     }
   };
 
@@ -147,7 +148,7 @@ const StudentReport: React.FC = () => {
 
       setMappedSubjectOptions(_mappedSubjectOptions);
     } catch (error) {
-      console.error('Error fetching curriculums or grades:', error);
+      logger.error('Error fetching curriculums or grades:', error);
       setMappedSubjectOptions([]);
     }
 

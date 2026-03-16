@@ -2,6 +2,7 @@ import { Capacitor, CapacitorHttp, WebView } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { COPIED_BUNDLE_FILES_INDEX } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
+import logger from '../utility/logger';
 
 // --------------
 // INTERNAL TYPES
@@ -76,13 +77,13 @@ export const AppUpdater = {
     // Start the app update job.
     const timeStart = new Date();
 
-    console.debug('AppUpdater: Starting...');
+    logger.debug('AppUpdater: Starting...');
 
     try {
       // Get the currently installed release version.
       let activeRelease = await getCurrentRelease();
       statusCallback(HotUpdateStatus.CHECKING_FOR_UPDATE);
-      console.debug(
+      logger.debug(
         '🚀 ~ file: AppUpdater.ts.ts:91 ~ activeRelease:',
         JSON.stringify(activeRelease),
       );
@@ -91,7 +92,7 @@ export const AppUpdater = {
       if (!activeRelease) {
         statusCallback(HotUpdateStatus.COPY_FROM_BUNDLE);
         buildReleaseFromBundle();
-        console.debug('copying the files from bundle in background');
+        logger.debug('copying the files from bundle in background');
         return false;
       }
       localStorage.removeItem(COPIED_BUNDLE_FILES_INDEX);
@@ -156,7 +157,7 @@ export const AppUpdater = {
         activeFiles: currentRelease.checksum.files,
         serverFiles: serverChecksum.files,
       }).catch((error) => {
-        console.warn(
+        logger.warn(
           'AppUpdater: Worker planning failed, falling back to in-thread checksum comparison.',
           error,
         );
@@ -255,7 +256,7 @@ async function checkForDownloadedHotUpdate(): Promise<boolean> {
  * @returns The installed release details.
  */
 async function getCurrentRelease(): Promise<Release | null> {
-  console.debug('AppUpdater: Looking for current release.');
+  logger.debug('AppUpdater: Looking for current release.');
 
   try {
     const result = await Filesystem.readFile({
@@ -280,7 +281,7 @@ async function getCurrentRelease(): Promise<Release | null> {
       ) as Checksum;
 
       // Return the release version details.
-      console.debug(`AppUpdater: Found release version '${data.id}'`);
+      logger.debug(`AppUpdater: Found release version '${data.id}'`);
 
       return {
         id: data.id,
@@ -289,7 +290,7 @@ async function getCurrentRelease(): Promise<Release | null> {
       };
     }
   } catch (ignore) {
-    console.debug(
+    logger.debug(
       'AppUpdater: Could not find "version.json", must be a new app install.',
     );
   }
@@ -305,7 +306,7 @@ async function getCurrentRelease(): Promise<Release | null> {
  * @returns The built release details.
  */
 async function buildReleaseFromBundle(): Promise<Release> {
-  console.debug('AppUpdater: Building initial release from app bundle.');
+  logger.debug('AppUpdater: Building initial release from app bundle.');
 
   try {
     // Get the bundled release checksum.
@@ -339,14 +340,14 @@ async function buildReleaseFromBundle(): Promise<Release> {
       const currentFile = checksum.files[i];
       const url = `http://localhost/${currentFile.path}`;
       // const alreadyCopied = copiedBundleFiles.find((value) => url === value);
-      console.debug(
+      logger.debug(
         '🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:',
         i,
         currentFile.path,
         JSON.stringify(copiedBundleFiles),
       );
       // if (!!alreadyCopied) continue;
-      console.debug(
+      logger.debug(
         '🚀 ~ file: AppUpdater.ts:293 ~ buildReleaseFromBundle ~ continue:',
         currentFile.path,
         'total',
@@ -394,7 +395,7 @@ async function buildReleaseFromBundle(): Promise<Release> {
       checksum: checksum,
     };
   } catch (error) {
-    console.error(error);
+    logger.error(error);
 
     // Clean-up the job output when things go wrong.
     await removeDir('releases', Directory.Data);
@@ -414,7 +415,7 @@ async function setCurrentRelease(
   releaseName: string,
   timestamp: Date = new Date(),
 ): Promise<void> {
-  console.debug(`AppUpdater: App configured for release '${releaseName}'.`);
+  logger.debug(`AppUpdater: App configured for release '${releaseName}'.`);
 
   // Update app release summary file.
   await Filesystem.writeFile({
@@ -435,7 +436,7 @@ async function setCurrentRelease(
  * @param activeReleaseName - The active release not to delete.
  */
 async function deleteOldReleases(activeReleaseName: string): Promise<void> {
-  console.debug('AppUpdater: Deleting old releases.');
+  logger.debug('AppUpdater: Deleting old releases.');
 
   // Get a list of all the release directories.
   const installedReleases = (
@@ -467,7 +468,7 @@ async function deleteOldReleases(activeReleaseName: string): Promise<void> {
  * @param releaseName - The name to the new release.
  */
 async function activateRelease(releaseName: string): Promise<void> {
-  console.debug(`AppUpdater: Reloading app to release '${releaseName}'.`);
+  logger.debug(`AppUpdater: Reloading app to release '${releaseName}'.`);
 
   // Get the URI path to the app release directory.
   const releasePath = await Filesystem.getUri({
@@ -505,7 +506,7 @@ async function activateRelease(releaseName: string): Promise<void> {
  * @returns The web app checksum data.
  */
 async function getServerChecksum(url: string): Promise<Checksum | null> {
-  console.debug(`AppUpdater: Getting latest release checksum from '${url}'`);
+  logger.debug(`AppUpdater: Getting latest release checksum from '${url}'`);
 
   try {
     const res = await CapacitorHttp.request({
@@ -517,7 +518,7 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
       return res.data as Checksum;
     }
   } catch (error) {
-    console.debug(
+    logger.debug(
       'AppUpdater: Could not download and parse server checksum.\n\n',
       error,
     );
@@ -538,7 +539,7 @@ async function copyFromPreviousRelease(
   toPath: string,
   directory: Directory,
 ): Promise<void> {
-  // console.debug(`AppUpdater: Copy from previous release: '${fromPath}'`);
+  // logger.debug(`AppUpdater: Copy from previous release: '${fromPath}'`);
   try {
     await Filesystem.copy({
       from: fromPath,
@@ -563,7 +564,7 @@ async function downloadFileFromWebServer(
   directory: Directory,
 ): Promise<void> {
   try {
-    console.debug(`AppUpdater: Download from Server:${url} '${path}'`);
+    logger.debug(`AppUpdater: Download from Server:${url} '${path}'`);
     const result = await Filesystem.downloadFile({
       url: url,
       path: path,
@@ -572,7 +573,7 @@ async function downloadFileFromWebServer(
       connectTimeout: 10 * 1000,
       readTimeout: 10 * 1000,
     });
-    console.debug('🚀 ~ file: AppUpdater.ts.ts:540 ~ result:', result.path);
+    logger.debug('🚀 ~ file: AppUpdater.ts.ts:540 ~ result:', result.path);
     // const res = await CapacitorHttp.get({
     //   url: url,
     //   responseType: "blob",
@@ -584,7 +585,7 @@ async function downloadFileFromWebServer(
     //   directory: directory,
     // });
   } catch (error) {
-    console.error(
+    logger.error(
       '🚀 ~ file: AppUpdater.ts.ts:526 ~ error:',
       JSON.stringify(error),
       error,
@@ -613,7 +614,7 @@ export async function downloadFileFromAppBundle(
   directory: Directory,
   index: number,
 ): Promise<boolean> {
-  console.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
+  logger.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
 
   /*
 		This is a complex issue to solve without writing native code. But the below workaround works perfectly well
@@ -709,7 +710,7 @@ export async function downloadFileFromAppBundle(
     }
     localStorage.setItem(COPIED_BUNDLE_FILES_INDEX, index.toString());
   } catch (error) {
-    console.debug(
+    logger.debug(
       `AppUpdater: Could not copy '${path}' from app bundle`,
       url,
       error,
@@ -736,7 +737,7 @@ async function createDir(path: string, directory: Directory): Promise<void> {
     return;
   }
 
-  // console.debug(`AppUpdater: Creating '${path}' directory`);
+  // logger.debug(`AppUpdater: Creating '${path}' directory`);
 
   try {
     await Filesystem.mkdir({
@@ -745,7 +746,7 @@ async function createDir(path: string, directory: Directory): Promise<void> {
       recursive: true,
     });
   } catch (ignore) {
-    console.debug(`AppUpdater: Directory '${path}' already exists`);
+    logger.debug(`AppUpdater: Directory '${path}' already exists`);
   }
 }
 
@@ -760,7 +761,7 @@ async function removeDir(path: string, directory: Directory): Promise<void> {
     return;
   }
 
-  console.debug(`AppUpdater: Removing '${path}' directory`);
+  logger.debug(`AppUpdater: Removing '${path}' directory`);
 
   try {
     await Filesystem.rmdir({
@@ -769,6 +770,6 @@ async function removeDir(path: string, directory: Directory): Promise<void> {
       recursive: true,
     });
   } catch (ignore) {
-    console.debug(`AppUpdater: Directory '${path}' already removed`);
+    logger.debug(`AppUpdater: Directory '${path}' already removed`);
   }
 }

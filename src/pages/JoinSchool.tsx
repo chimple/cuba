@@ -5,6 +5,7 @@ import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory, useLocation } from 'react-router-dom';
 import { PAGES, RequestTypes } from '../common/constants';
 import { t } from 'i18next';
+import logger from '../utility/logger';
 
 const JoinSchool: React.FC = () => {
   const [requestType, setRequestType] = useState<RequestTypes>();
@@ -30,7 +31,7 @@ const JoinSchool: React.FC = () => {
         setSelectedClass(allClasses[0]);
       }
     } catch (error) {
-      console.error('Error fetching request data:', error);
+      logger.error('Error fetching request data:', error);
     }
   };
   useEffect(() => {
@@ -51,7 +52,7 @@ const JoinSchool: React.FC = () => {
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
-      console.error('Error sending join school request:', error);
+      logger.error('Error sending join school request:', error);
     } finally {
       setSending(false);
     }

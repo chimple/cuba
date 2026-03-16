@@ -8,6 +8,7 @@ import Loading from '../components/Loading';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import './StickerBook.css';
+import logger from '../utility/logger';
 
 type CurrentProgress = {
   bookId: string;
@@ -75,7 +76,7 @@ const StickerBook: React.FC = () => {
         setSelectedIndex(0);
       }
     } catch (e) {
-      console.error('Failed to load sticker book data:', e);
+      logger.error('Failed to load sticker book data:', e);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +89,7 @@ const StickerBook: React.FC = () => {
       const svgText = await response.text();
       setSvgCache((prev) => ({ ...prev, [book.id]: svgText }));
     } catch (e) {
-      console.error('Failed to load sticker book svg:', e);
+      logger.error('Failed to load sticker book svg:', e);
     }
   };
 

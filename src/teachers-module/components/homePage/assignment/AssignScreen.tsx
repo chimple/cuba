@@ -10,6 +10,7 @@ import {
 import { PAGES } from '../../../../common/constants';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
+import logger from '../../../../utility/logger';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -61,7 +62,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
         fromPage: PAGES.HOME_PAGE,
       });
     } catch (error) {
-      console.error('Scan failed:', error);
+      logger.error('Scan failed:', error);
 
       await Toast.show({
         text: t('Something Went wrong'),

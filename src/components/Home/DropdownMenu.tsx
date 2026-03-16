@@ -10,6 +10,7 @@ import SelectIconImage from '../displaySubjects/SelectIconImage';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
+import logger from '../../utility/logger';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -107,7 +108,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
               return { course, grade: gradeDoc, curriculum: curriculumDoc };
             } catch (err) {
-              console.error('Failed to fetch homework course', err);
+              logger.error('Failed to fetch homework course', err);
               return null;
             }
           });
@@ -137,12 +138,12 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
       if (!currentStudent?.learning_path) {
-        console.error('No learning path found for the user');
+        logger.error('No learning path found for the user');
         return;
       }
 
       if (!currentStudent?.learning_path) {
-        console.error('No learning path found for the user');
+        logger.error('No learning path found for the user');
         return;
       }
 
@@ -175,7 +176,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
               curriculum: curriculumDoc,
             };
           } catch (error) {
-            console.error(
+            logger.error(
               `Failed to fetch details for course ${entry.course_id}`,
               error,
             );
@@ -212,7 +213,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         return detailedCourses[currentIndex] || detailedCourses[0] || null;
       });
     } catch (error) {
-      console.error('Error in fetchLearningPathCourseDetails:', error);
+      logger.error('Error in fetchLearningPathCourseDetails:', error);
     }
   };
 
@@ -286,7 +287,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
       if (onCourseChange) onCourseChange();
     } catch (error) {
-      console.error('Error in handleSelect:', error);
+      logger.error('Error in handleSelect:', error);
     }
   };
 

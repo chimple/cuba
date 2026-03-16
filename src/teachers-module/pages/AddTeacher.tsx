@@ -7,6 +7,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import './AddTeacher.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const AddTeacher: React.FC = () => {
   const history = useHistory();
@@ -67,7 +68,7 @@ const AddTeacher: React.FC = () => {
         setUser(undefined);
       }
     } catch (error) {
-      console.error('Failed to fetch user', error);
+      logger.error('Failed to fetch user', error);
       setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
@@ -85,7 +86,7 @@ const AddTeacher: React.FC = () => {
       await api.updateUserLastModified(user.id);
       history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
     } catch (error) {
-      console.error('Failed to add teacher', error);
+      logger.error('Failed to add teacher', error);
     } finally {
       setIsLoading(false);
     }

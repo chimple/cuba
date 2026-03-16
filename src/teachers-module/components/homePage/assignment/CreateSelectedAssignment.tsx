@@ -24,6 +24,7 @@ import { Toast } from '@capacitor/toast';
 import { addDays, addMonths, format } from 'date-fns';
 import { Trans } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
+import logger from '../../../../utility/logger';
 interface LessonDetail {
   subject: string;
   chapter: string;
@@ -184,7 +185,7 @@ const CreateSelectedAssignment = ({
       const currUser = await auth.getCurrentUser();
       // Guard clases for missing data
       if (!currUser || !current_class) {
-        console.error('Current user or class not found');
+        logger.error('Current user or class not found');
         setIsLoading(false);
         return;
       }
@@ -210,7 +211,7 @@ const CreateSelectedAssignment = ({
               : (recommendedAssignments[subjectId]?.lessons ?? []);
 
           if (!tempLessons.length) {
-            console.warn(`No lessons found for subjectId ${subjectId}`);
+            logger.warn(`No lessons found for subjectId ${subjectId}`);
             continue;
           }
           // Process lessons asynchronously in parallel
@@ -221,7 +222,7 @@ const CreateSelectedAssignment = ({
                   les.id === lessonId,
               );
               if (!tempLes) {
-                console.warn(`Lesson not found for lessonId: ${lessonId}`);
+                logger.warn(`Lesson not found for lessonId: ${lessonId}`);
                 return;
               }
 
@@ -229,7 +230,7 @@ const CreateSelectedAssignment = ({
                 (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
                 '';
               if (!tempChapterId) {
-                console.warn(`Chapter not found for lessonId: ${lessonId}`);
+                logger.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
 
@@ -251,7 +252,7 @@ const CreateSelectedAssignment = ({
       }
       setShareTextLessonDetails(tempLessonInfo);
     } catch (error) {
-      console.error('Error creating assignments:', error);
+      logger.error('Error creating assignments:', error);
     }
   };
 
@@ -376,7 +377,7 @@ const CreateSelectedAssignment = ({
         }
       }
     } catch (error) {
-      console.error('Failed to resolve school language for share text:', error);
+      logger.error('Failed to resolve school language for share text:', error);
     }
 
     if (schoolLanguageCode) {
@@ -438,7 +439,7 @@ const CreateSelectedAssignment = ({
 
         // Guard clases for missing data
         if (!currUser || !current_class) {
-          console.error('Current user or class not found');
+          logger.error('Current user or class not found');
           setIsLoading(false);
           return;
         }
@@ -490,7 +491,7 @@ const CreateSelectedAssignment = ({
         );
         api.createOrUpdateAssignmentCart(currUser?.id, _totalSelectedLesson);
       } catch (error) {
-        console.error('Error updating assignment cart:', error);
+        logger.error('Error updating assignment cart:', error);
       }
     })();
 
@@ -546,7 +547,7 @@ const CreateSelectedAssignment = ({
                 : (recommendedAssignments[subjectId]?.lessons ?? []);
 
             if (!tempLessons.length) {
-              console.warn(`No lessons found for subjectId ${subjectId}`);
+              logger.warn(`No lessons found for subjectId ${subjectId}`);
               continue;
             }
             // Process lessons asynchronously in parallel
@@ -558,7 +559,7 @@ const CreateSelectedAssignment = ({
                     les.id === lessonId,
                 );
                 if (!tempLes) {
-                  console.warn(`Lesson not found for lessonId: ${lessonId}`);
+                  logger.warn(`Lesson not found for lessonId: ${lessonId}`);
                   return;
                 }
 
@@ -571,7 +572,7 @@ const CreateSelectedAssignment = ({
                         current_class.id,
                       )));
                 if (!tempChapterId) {
-                  console.warn(`Chapter not found for lessonId: ${lessonId}`);
+                  logger.warn(`Chapter not found for lessonId: ${lessonId}`);
                   return;
                 }
                 // ✨ MODIFICATION: Create a staggered timestamp for ordering
@@ -653,7 +654,7 @@ const CreateSelectedAssignment = ({
           _totalSelectedLesson,
         );
       } catch (error) {
-        console.error('Error creating assignments in background:', error);
+        logger.error('Error creating assignments in background:', error);
       }
     })();
   };

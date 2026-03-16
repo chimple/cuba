@@ -105,6 +105,7 @@ import {
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
+import logger from './logger';
 
 declare global {
   interface Window {
@@ -365,7 +366,7 @@ export class Util {
       return `${androidBase}${lessonId}/`;
     }
 
-    console.error('Lesson bundle not found :', lessonId);
+    logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
 
@@ -408,7 +409,7 @@ export class Util {
                 );
                 return true;
               } catch {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
                 );
               }
@@ -421,7 +422,7 @@ export class Util {
                   return true;
                 }
               } catch {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
                 );
               }
@@ -429,7 +430,7 @@ export class Util {
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
               );
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
-                console.error('[LessonDownloader] No remote ZIP URLs found');
+                logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
               }
 
@@ -444,7 +445,7 @@ export class Util {
                 for (const bundleUrl of bundleZipUrls) {
                   const zipUrl = bundleUrl + lessonId + '.zip';
                   try {
-                    console.log(
+                    logger.info(
                       `[LessonDownloader] Attempting download from: ${zipUrl}`,
                     );
                     const downloadPromise = await CapacitorHttp.get({
@@ -462,18 +463,18 @@ export class Util {
                     );
                     zip = await Promise.race([downloadPromise, timeoutPromise]);
                     if (zip && zip.data && zip.status === 200) {
-                      console.log(
+                      logger.info(
                         `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`,
                       );
                       downloadSuccessful = true;
                       break;
                     } else {
-                      console.warn(
+                      logger.warn(
                         `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`,
                       );
                     }
                   } catch (err) {
-                    console.error(
+                    logger.error(
                       `[LessonDownloader] Error downloading ${zipUrl}:`,
                       err,
                     );
@@ -481,14 +482,14 @@ export class Util {
                 }
                 if (!downloadSuccessful) {
                   downloadAttempts++;
-                  console.warn(
+                  logger.warn(
                     `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`,
                   );
                 }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
-                console.error(
+                logger.error(
                   `[LessonDownloader] Failed to download lesson ${lessonId}`,
                 );
                 return false;
@@ -504,7 +505,7 @@ export class Util {
                   base64: zipDataStr,
                 },
               ).catch((error) => {
-                console.warn(
+                logger.warn(
                   `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
                   error,
                 );
@@ -519,7 +520,7 @@ export class Util {
               });
               const buffer = new Uint8Array(preparedZip.arrayBuffer);
               if (preparedZip.sha256Hex) {
-                console.log(
+                logger.info(
                   `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
                 );
               }
@@ -530,7 +531,7 @@ export class Util {
                 filepaths: ['.'],
                 filter: (filepath) => !filepath.startsWith('dist/'),
                 onProgress: (event) =>
-                  console.log(
+                  logger.info(
                     '[LessonDownloader] Unzipping progress:',
                     event.filename,
                     event.loaded,
@@ -559,7 +560,7 @@ export class Util {
               );
               return lessonDownloadSuccess;
             } catch (err) {
-              console.error(
+              logger.error(
                 `[LessonDownloader] Error processing lesson ${lessonId}:`,
                 err,
               );
@@ -569,7 +570,7 @@ export class Util {
         );
 
         if (!results.every((r) => r === true)) {
-          console.error(
+          logger.error(
             '[LessonDownloader] Some lessons in chunk failed to download:',
             lessonIdsChunk,
           );
@@ -587,7 +588,7 @@ export class Util {
 
       return true;
     } catch (err) {
-      console.error(
+      logger.error(
         '[LessonDownloader] Unexpected error in downloadZipBundle:',
         err,
       );
@@ -652,13 +653,13 @@ export class Util {
           const config = JSON.parse(decoded);
 
           if (config.uniqueId === uniqueId) {
-            console.log(`✅ ${assetType} assets are already up to date.`);
+            logger.info(`✅ ${assetType} assets are already up to date.`);
             this.setGameUrl(androidPath);
             return true;
           }
         }
       } catch (err) {
-        console.warn(
+        logger.warn(
           `Could not read existing config for ${assetType}, proceeding with download.`,
         );
       }
@@ -681,7 +682,7 @@ export class Util {
         );
         buffer = new Uint8Array(prepared.arrayBuffer);
       } catch (workerError) {
-        console.warn(
+        logger.warn(
           `[${assetType}] Worker decode failed, falling back to main thread decode.`,
           workerError,
         );
@@ -694,7 +695,7 @@ export class Util {
         filter: (filepath: string) => !filepath.startsWith('dist/'),
         onProgress: (event) => {
           // ✅ Use the dynamic assetType parameter for clearer logging
-          console.log(`Unzipping ${assetType} assets:`, event.filename);
+          logger.info(`Unzipping ${assetType} assets:`, event.filename);
         },
         data: buffer,
       });
@@ -717,7 +718,7 @@ export class Util {
       this.setGameUrl(androidPath);
       return true;
     } catch (err) {
-      console.error(
+      logger.error(
         `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
         err,
       );
@@ -750,7 +751,7 @@ export class Util {
         this.removeLessonIdFromLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
       }
     } catch (error) {
-      console.error('Error deleting lesson:', error);
+      logger.error('Error deleting lesson:', error);
     }
     return false;
   }
@@ -773,7 +774,7 @@ export class Util {
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
       return true;
     } catch (error) {
-      console.error('Error deleting all lessons:', error);
+      logger.error('Error deleting all lessons:', error);
       return false;
     }
   }
@@ -810,7 +811,7 @@ export class Util {
         lastRendered = new Date().getTime();
         localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
       } catch (error) {
-        console.error('Error listing folders:', error);
+        logger.error('Error listing folders:', error);
         return null;
       }
 
@@ -902,7 +903,7 @@ export class Util {
         );
       });
     } catch (error) {
-      console.error('launchCocosGame(): error ', error);
+      logger.error('launchCocosGame(): error ', error);
     }
   }
 
@@ -1034,7 +1035,7 @@ export class Util {
           Util.port.shareUserId({ userId: params.user_id }),
         );
       } catch (e) {
-        console.warn('Port.shareUserId skipped:', e);
+        logger.warn('Port.shareUserId skipped:', e);
       }
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
@@ -1050,7 +1051,7 @@ export class Util {
         params: params,
       });
     } catch (error) {
-      console.error(
+      logger.error(
         'Error logging event to firebase analytics ',
         eventName,
         ':',
@@ -1077,7 +1078,7 @@ export class Util {
         value: currentUser.gender?.toLocaleString() || '',
       });
     } catch (error) {
-      console.error('Set User Properties Error ', error);
+      logger.error('Set User Properties Error ', error);
     }
   }
 
@@ -1147,7 +1148,7 @@ export class Util {
         const gl = canvas.getContext('webgl') as WebGLRenderingContext | null;
 
         if (!gl) {
-          console.error('WebGL is not supported on this device or browser.');
+          logger.error('WebGL is not supported on this device or browser.');
           return false;
         }
 
@@ -1158,7 +1159,7 @@ export class Util {
         ): WebGLShader | null => {
           const shader = gl.createShader(type);
           if (!shader) {
-            console.error('Failed to create shader.');
+            logger.error('Failed to create shader.');
             return null;
           }
           gl.shaderSource(shader, source);
@@ -1166,7 +1167,7 @@ export class Util {
 
           // Check for shader compilation errors
           if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.error(
+            logger.error(
               `Error compiling shader: ${gl.getShaderInfoLog(shader)}`,
             );
             gl.deleteShader(shader);
@@ -1202,7 +1203,7 @@ export class Util {
         );
 
         if (!vertexShader || !fragmentShader) {
-          console.error('Shader creation or validation failed.');
+          logger.error('Shader creation or validation failed.');
           return false;
         }
 
@@ -1211,7 +1212,7 @@ export class Util {
           'webglcontextlost',
           (event) => {
             try {
-              console.error('WebGL context lost detected.');
+              logger.error('WebGL context lost detected.');
               event.preventDefault(); // Prevent the browser from handling context loss
               const webglContext = canvas.getContext(
                 'webgl',
@@ -1222,14 +1223,14 @@ export class Util {
 
                 // If the context cannot be restored, reload the page
                 if (!rest) {
-                  console.error(
+                  logger.error(
                     'Unable to restore WebGL context. Reloading page...',
                   );
                   window.location.reload();
                 }
               }
             } catch (error) {
-              console.error('Error handling webglcontextlost:', error);
+              logger.error('Error handling webglcontextlost:', error);
             }
           },
           false,
@@ -1248,7 +1249,7 @@ export class Util {
               if (webglContext) {
               }
             } catch (error) {
-              console.error('Error handling webglcontextrestored:', error);
+              logger.error('Error handling webglcontextrestored:', error);
             }
           },
           false,
@@ -1256,11 +1257,11 @@ export class Util {
 
         return true; // Return true if canvas exists and WebGL is initialized
       } else {
-        console.warn('GameCanvas element not found.');
+        logger.warn('GameCanvas element not found.');
         return false;
       }
     } catch (error) {
-      console.error('Error in checkingIfGameCanvasAvailable:', error);
+      logger.error('Error in checkingIfGameCanvasAvailable:', error);
       return false;
     }
   };
@@ -1426,7 +1427,7 @@ export class Util {
         }
       }
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:',
         JSON.stringify(error),
       );
@@ -1465,7 +1466,7 @@ export class Util {
               },
             );
           } catch (error) {
-            console.error(
+            logger.error(
               '🚀 ~ file: util.ts:630 ~ error:',
               JSON.stringify(error),
             );
@@ -1478,7 +1479,7 @@ export class Util {
       if (result.receive === 'granted') return;
       await FirebaseMessaging.requestPermissions();
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:',
         JSON.stringify(error),
       );
@@ -1615,7 +1616,7 @@ export class Util {
     try {
       await InAppReview.requestReview();
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:',
         JSON.stringify(error),
       );
@@ -1653,7 +1654,7 @@ export class Util {
       });
       const res: any = result.data;
     } catch (error) {
-      console.error('🚀 ~ file: util.ts:707 ~ migrate ~ error:', error);
+      logger.error('🚀 ~ file: util.ts:707 ~ migrate ~ error:', error);
       return { migrated: false };
     }
   }
@@ -1669,7 +1670,7 @@ export class Util {
       const student = await Util.getCurrentStudent();
 
       if (!student) {
-        console.error('Student is undefined or null');
+        logger.error('Student is undefined or null');
         return false;
       }
 
@@ -1689,7 +1690,7 @@ export class Util {
 
       return canShowAvatarValue;
     } catch (error) {
-      console.error('Error in getCanShowAvatar:', error);
+      logger.error('Error in getCanShowAvatar:', error);
       return false;
     }
   }
@@ -1725,7 +1726,7 @@ export class Util {
       });
       localStorage.setItem(localStorageNameForFilePath, res.uri);
     } catch (error) {
-      console.error('Json File Migration failed ', error);
+      logger.error('Json File Migration failed ', error);
 
       throw error;
     }
@@ -1828,7 +1829,7 @@ export class Util {
 
       return true;
     } catch (error) {
-      console.error('unlockWeeklySticker() error ', error);
+      logger.error('unlockWeeklySticker() error ', error);
       return false;
     }
   }
@@ -1883,7 +1884,7 @@ export class Util {
       // store refreshToken in Redux store as JSON string
       store.dispatch(setRefreshToken(JSON.stringify(data)));
     } catch (e) {
-      console.error('Unable to store refresh token to Redux store', e);
+      logger.error('Unable to store refresh token to Redux store', e);
     }
   }
 
@@ -1898,7 +1899,7 @@ export class Util {
       const parsed = JSON.parse(reduxVal);
       return { token: parsed.token, savedAt: parsed.savedAt };
     } catch (e) {
-      console.error('Unable to read refresh token from Redux store', e);
+      logger.error('Unable to read refresh token from Redux store', e);
       return null;
     }
   }
@@ -1937,7 +1938,7 @@ export class Util {
 
         return schools.some((item) => item.school.id === schoolId);
       } catch (error) {
-        console.error('Error checking school via user:', error);
+        logger.error('Error checking school via user:', error);
         return false;
       }
     };
@@ -1960,7 +1961,7 @@ export class Util {
           classCount: classes.length,
         };
       } catch (error) {
-        console.error('Error checking class via user:', error);
+        logger.error('Error checking class via user:', error);
         return;
       }
     };
@@ -1975,8 +1976,6 @@ export class Util {
       isSchoolConnected(api.currentSchool.id).then((res) => {
         if (!res) {
           api.currentSchool = undefined;
-
-          console.log('School no longer connected → removing from storage');
           localStorage.removeItem(SCHOOL);
           localStorage.removeItem(CLASS);
           return;
@@ -1991,12 +1990,9 @@ export class Util {
             const { classExists, classCount } = cls;
 
             if (!classExists) {
-              console.log('Class no longer connected → removing class');
               localStorage.removeItem(CLASS);
-
               // If only one class existed and that gets removed → remove school too
               if (classCount === 1) {
-                console.log('Last class removed → removing school as well');
                 api.currentSchool = undefined;
                 localStorage.removeItem(SCHOOL);
               }
@@ -2035,11 +2031,11 @@ export class Util {
           const { classExists, classCount } = cls;
 
           if (!classExists) {
-            console.log('Class no longer connected → removing class');
+            logger.info('Class no longer connected → removing class');
             localStorage.removeItem(CLASS);
 
             if (classCount === 1) {
-              console.log('Last class removed → removing school as well');
+              logger.info('Last class removed → removing school as well');
               api.currentSchool = undefined;
               localStorage.removeItem(SCHOOL);
             }
@@ -2074,7 +2070,7 @@ export class Util {
       api.currentClass = currentClass;
       return currentClass;
     } catch (err) {
-      console.error('Failed to parse currentClass from localStorage', err);
+      logger.error('Failed to parse currentClass from localStorage', err);
       return;
     }
   }
@@ -2097,7 +2093,7 @@ export class Util {
           imageFile: imageFile, // Pass the File object for Android
         })
         .then(() => {})
-        .catch((error) => console.error('Error sharing content:', error));
+        .catch((error) => logger.error('Error sharing content:', error));
     } else {
       // Web sharing
       const shareData: ShareData = {
@@ -2110,7 +2106,7 @@ export class Util {
       await navigator
         .share(shareData)
         .then(() => {})
-        .catch((error) => console.error('Error sharing content:', error));
+        .catch((error) => logger.error('Error sharing content:', error));
     }
   }
 
@@ -2174,7 +2170,7 @@ export class Util {
           return uri + '/'; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
-        console.error('path error', error);
+        logger.error('path error', error);
       }
       throw new Error('Failed to retrieve Android bundle path.');
     }
@@ -2197,7 +2193,7 @@ export class Util {
         fileName: data.fileName,
       });
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.error('Download failed:', error);
     }
   }
   public static handleMissingEntities(
@@ -2273,7 +2269,7 @@ export class Util {
       }
       return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       return null;
     }
   }
@@ -2292,7 +2288,7 @@ export class Util {
 
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logger.error('Decryption failed:', error);
       return null;
     }
   }
@@ -2311,7 +2307,7 @@ export class Util {
         localStorage.setItem(SCHOOL_LOGIN, encryptedData);
       }
     } catch (error) {
-      console.error('Failed to encrypt and store login details:', error);
+      logger.error('Failed to encrypt and store login details:', error);
     }
   }
 
@@ -2326,7 +2322,7 @@ export class Util {
         contentType.includes('application/json')
       ) {
         const text = await response.text();
-        console.error(
+        logger.error(
           'Unexpected content instead of a file:',
           text.slice(0, 100),
         );
@@ -2337,7 +2333,7 @@ export class Util {
       const blob = await response.blob();
       this.handleBlobDownloadAndSave(blob, 'BulkUploadTemplate.xlsx');
     } catch (error) {
-      console.error('Download failed:', error);
+      logger.error('Download failed:', error);
     }
   }
 
@@ -2372,7 +2368,7 @@ export class Util {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Failed to save or download file:', error);
+      logger.error('Failed to save or download file:', error);
     }
   }
   public static mergeStudentsByUpdatedAt(
@@ -2408,8 +2404,6 @@ export class Util {
           directory: Directory.External,
         });
         const res = await this.blobToString(result.data);
-        console.log('llllllllllllllllllllllll', res);
-
         const svgData = atob(res); // decode base64
 
         if (body) {
@@ -2428,7 +2422,7 @@ export class Util {
         body?.style.setProperty('background-repeat', 'no-repeat');
         body?.style.setProperty('background-size', 'cover');
         body?.style.setProperty('background-position', 'center center');
-        console.error('Failed to load remote background image:', e);
+        logger.error('Failed to load remote background image:', e);
       }
     } else {
       body?.style.setProperty(
@@ -2507,7 +2501,7 @@ export class Util {
       store.dispatch(setUser(updatedUserData));
       auth.currentUser = updatedUserData;
     } catch (error) {
-      console.error('Failed to update user language:', error);
+      logger.error('Failed to update user language:', error);
     }
   }
   public static async fetchTodaysReward() {
@@ -2531,7 +2525,7 @@ export class Util {
       );
       return todaysReward;
     } catch (error) {
-      console.error('Error fetching Chimple Rive config:', error);
+      logger.error('Error fetching Chimple Rive config:', error);
     }
   }
   public static async updateUserReward() {
@@ -2571,7 +2565,7 @@ export class Util {
         );
       }
     } catch (error) {
-      console.error('Error updating student reward:', error);
+      logger.error('Error updating student reward:', error);
     }
   }
   public static retrieveUserReward() {
@@ -2590,7 +2584,7 @@ export class Util {
 
       return currentReward;
     } catch (error) {
-      console.error('Error managing daily user reward in localStorage:', error);
+      logger.error('Error managing daily user reward in localStorage:', error);
       return {};
     }
   }
@@ -2598,9 +2592,7 @@ export class Util {
     try {
       const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
-        console.error(
-          'Could not find homework path in localStorage to update.',
-        );
+        logger.error('Could not find homework path in localStorage to update.');
         return;
       }
 
@@ -2650,7 +2642,7 @@ export class Util {
                   assignmentPayload,
                 );
               } catch (e) {
-                console.warn(
+                logger.warn(
                   '[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED',
                   e,
                 );
@@ -2663,7 +2655,7 @@ export class Util {
             }
           }
         } catch (e) {
-          console.warn('[Analytics] assignment-completed block failed', e);
+          logger.warn('[Analytics] assignment-completed block failed', e);
         }
 
         // --- 2) Decide if this was the last lesson in the path ---
@@ -2702,13 +2694,13 @@ export class Util {
             try {
               Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
             } catch (e) {
-              console.warn(
+              logger.warn(
                 '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED',
                 e,
               );
             }
           } catch (e) {
-            console.warn('[Analytics] pathway-completed block failed', e);
+            logger.warn('[Analytics] pathway-completed block failed', e);
           }
 
           // finally remove the path from storage
@@ -2757,13 +2749,13 @@ export class Util {
           try {
             Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
           } catch (e) {
-            console.warn(
+            logger.warn(
               '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)',
               e,
             );
           }
         } catch (e) {
-          console.warn('[Analytics] pathway completed (fallback) failed', e);
+          logger.warn('[Analytics] pathway completed (fallback) failed', e);
         }
 
         localStorage.removeItem(HOMEWORK_PATHWAY);
@@ -2772,7 +2764,7 @@ export class Util {
         localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
-      console.error('Failed to update homework path:', error);
+      logger.error('Failed to update homework path:', error);
     }
   }
   public static async updateLearningPath(
@@ -2972,7 +2964,7 @@ export class Util {
         Util.setCurrentStudent(updatedStudent);
       }
     } catch (error) {
-      console.error('Error updating learning path:', error);
+      logger.error('Error updating learning path:', error);
     }
   }
 
@@ -2993,7 +2985,7 @@ export class Util {
 
       await api.updateStickerWon(current.book.id, nextStickerId);
     } catch (error) {
-      console.warn('[StickerBook] Failed to award pathway sticker:', error);
+      logger.warn('[StickerBook] Failed to award pathway sticker:', error);
     }
   }
 
@@ -3032,7 +3024,7 @@ export class Util {
 
       return student?.learning_path ?? null;
     } catch (error) {
-      console.error('Error resolving latest learning path:', error);
+      logger.error('Error resolving latest learning path:', error);
       return student?.learning_path ?? null;
     }
   }
@@ -3066,7 +3058,7 @@ export class Util {
       }
       return bestLocal;
     } catch (e) {
-      console.warn('[Util.getLocalStarsForStudent] failed, using fallback', e);
+      logger.warn('[Util.getLocalStarsForStudent] failed, using fallback', e);
       return fallback;
     }
   }
@@ -3094,7 +3086,7 @@ export class Util {
           schoolName = schoolDoc?.name || '';
         }
       } catch (error) {
-        console.error('Error fetching class/school details:', error);
+        logger.error('Error fetching class/school details:', error);
       }
     }
     return { className, schoolName };
@@ -3113,7 +3105,7 @@ export class Util {
 
       localStorage.setItem(LATEST_STARS(studentId), stars.toString());
     } catch (e) {
-      console.warn('[Util.setLocalStarsForStudent] failed', e);
+      logger.warn('[Util.setLocalStarsForStudent] failed', e);
     }
   }
 
@@ -3134,7 +3126,7 @@ export class Util {
         }),
       );
     } catch (e) {
-      console.warn('[Util.bumpLocalStarsForStudent] event dispatch failed', e);
+      logger.warn('[Util.bumpLocalStarsForStudent] event dispatch failed', e);
     }
 
     return next;
@@ -3244,7 +3236,7 @@ export class Util {
         }),
       );
     } catch (error) {
-      console.error('Failed to refresh homework path with latest:', error);
+      logger.error('Failed to refresh homework path with latest:', error);
     }
   }
   public static pickFiveHomeworkLessons(
@@ -3390,7 +3382,7 @@ export class Util {
       });
 
       if (!download || download.status !== 200 || !download.data) {
-        console.error('[LidoCommonAudio] ZIP download failed');
+        logger.error('[LidoCommonAudio] ZIP download failed');
         return false;
       }
 
@@ -3410,7 +3402,7 @@ export class Util {
         );
         buffer = new Uint8Array(prepared.arrayBuffer);
       } catch (workerError) {
-        console.warn(
+        logger.warn(
           '[LidoCommonAudio] Worker decode failed, falling back to main thread decode.',
           workerError,
         );
@@ -3427,7 +3419,7 @@ export class Util {
 
       return true;
     } catch (err) {
-      console.error(
+      logger.error(
         '[LidoCommonAudio] Unexpected error while downloading audio:',
         err,
       );
@@ -3437,7 +3429,7 @@ export class Util {
   static async ensureLidoCommonAudioForStudent(student: TableTypes<'user'>) {
     try {
       if (!student?.language_id) {
-        console.warn('[LidoCommonAudio] Student has no language');
+        logger.warn('[LidoCommonAudio] Student has no language');
         return;
       }
 
@@ -3449,7 +3441,7 @@ export class Util {
       );
 
       if (!audioConfig?.lido_common_audio_url) {
-        console.warn('[LidoCommonAudio] No audio config found');
+        logger.warn('[LidoCommonAudio] No audio config found');
         return;
       }
       await Util.downloadLidoCommonAudio(
@@ -3457,7 +3449,7 @@ export class Util {
         student.language_id,
       );
     } catch (err) {
-      console.error('[LidoCommonAudio] ensure failed:', err);
+      logger.error('[LidoCommonAudio] ensure failed:', err);
     }
   }
 
@@ -3558,7 +3550,7 @@ export class Util {
       updateLocalAttributes(attributeParams);
       return [];
     } catch (error) {
-      console.error('[Util.updateSchStdAttb] failed:', error);
+      logger.error('[Util.updateSchStdAttb] failed:', error);
       return [];
     }
   }

@@ -16,6 +16,7 @@ import { Util } from '../../utility/util';
 import { t } from 'i18next';
 import ChapterWiseLessons from '../components/ChapterWiseLessons';
 import { readAssignmentCartFromStorage } from './AssignmentCartStorage';
+import logger from '../../utility/logger';
 
 type LessonMeta = {
   chapterId: string | null;
@@ -445,7 +446,7 @@ const SearchLesson: React.FC = () => {
         });
         setAssignedLessonIds(nextAssignedLessonIds);
       } catch (error) {
-        console.error('Failed to load assigned lessons in search:', error);
+        logger.error('Failed to load assigned lessons in search:', error);
         setAssignedLessonIds(new Set());
       }
     };

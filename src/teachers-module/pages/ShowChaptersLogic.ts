@@ -1,4 +1,5 @@
 import { AssignmentSource, TableTypes } from '../../common/constants';
+import logger from '../../utility/logger';
 
 type ChapterSelectionValue =
   | Partial<Record<AssignmentSource, string[]>>
@@ -54,7 +55,7 @@ export const getCartChapterIdsForCourse = (
 
     return selectedChapterIds;
   } catch (error) {
-    console.error(
+    logger.error(
       'Failed to parse assignment cart for chapter targeting:',
       error,
     );

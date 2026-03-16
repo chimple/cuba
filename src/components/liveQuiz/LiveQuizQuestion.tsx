@@ -16,6 +16,7 @@ import { HiSpeakerWave } from 'react-icons/hi2';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import LiveQuizNavigationDots from './LiveQuizNavigationDots';
 import { schoolUtil } from '../../utility/schoolUtil';
+import logger from '../../utility/logger';
 
 let questionInterval: ReturnType<typeof setInterval> | undefined;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -354,7 +355,7 @@ const LiveQuizQuestion: FC<{
           break;
         }
       } catch {
-        console.warn('Failed to fetch from remote:', baseUrl);
+        logger.warn('Failed to fetch from remote:', baseUrl);
       }
     }
 
@@ -367,7 +368,7 @@ const LiveQuizQuestion: FC<{
       configFile = await readLocalConfig(configPath);
 
       if (!configFile && lessonId) {
-        console.warn('[LiveQuiz] Config not found locally, downloading...');
+        logger.warn('[LiveQuiz] Config not found locally, downloading...');
         await downloadQuiz(lessonId);
 
         // Retry reading after download
@@ -608,7 +609,7 @@ const LiveQuizQuestion: FC<{
         setAudio(false);
       }
     } catch (error) {
-      console.error('🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:', error);
+      logger.error('🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:', error);
     }
   };
 
@@ -643,7 +644,7 @@ const LiveQuizQuestion: FC<{
     try {
       await TextToSpeech.stop();
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:',
         error,
       );
@@ -655,7 +656,7 @@ const LiveQuizQuestion: FC<{
         audio.currentTime = 0;
       });
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:',
         error,
       );

@@ -23,6 +23,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddNoteModal from '../components/SchoolDetailsComponents/AddNoteModal';
 import { SchoolTabs } from '../../interface/modelInterfaces';
 import { NOTES_UPDATED_EVENT } from '../../common/constants';
+import logger from '../../utility/logger';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -127,7 +128,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       // switch to Notes tab
       setActiveTab(SchoolTabs.Notes);
     } catch (err) {
-      console.error('Failed to create note:', err);
+      logger.error('Failed to create note:', err);
       // optional: show UI error (not added to keep changes minimal)
     }
   };
@@ -272,7 +273,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         }
       }
     } catch (e) {
-      console.error('Failed to record visit', e);
+      logger.error('Failed to record visit', e);
       await Toast.show({
         text: t('Failed to record visit. Please try again.'),
         duration: 'long',

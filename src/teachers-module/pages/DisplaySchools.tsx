@@ -27,6 +27,7 @@ import Loading from '../../components/Loading';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 interface SchoolWithRole {
   school: TableTypes<'school'>;
@@ -129,7 +130,7 @@ const DisplaySchools: FC = () => {
     try {
       await Util.updateUserLanguage(languageCode ?? 'en');
     } catch (error) {
-      console.error('Failed to update user language on init:', error);
+      logger.error('Failed to update user language on init:', error);
     }
     setPage(1);
     setHasMore(true);

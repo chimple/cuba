@@ -98,6 +98,7 @@ import {
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
 import { store } from '../../redux/store';
 import { Json } from '../database';
+import logger from '../../utility/logger';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -155,7 +156,7 @@ export class SqliteApi implements ServiceApi {
       ret = await this._sqlite.checkConnectionsConsistency();
       isConn = (await this._sqlite.isConnection(this.DB_NAME, false)).result;
     } catch (error) {
-      console.error('🚀 ~ Api ~ init ~ error:', error);
+      logger.error('🚀 ~ Api ~ init ~ error:', error);
     }
     try {
       const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
@@ -195,7 +196,7 @@ export class SqliteApi implements ServiceApi {
                 const tableName = match[1];
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
-                console.log(
+                logger.info(
                   `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`,
                 );
               }
@@ -224,7 +225,7 @@ export class SqliteApi implements ServiceApi {
           }
         }
 
-        console.log(
+        logger.info(
           '🚀 ~ SqliteApi ~ init ~ upgradeStatements:',
           upgradeStatements,
         );
@@ -237,7 +238,7 @@ export class SqliteApi implements ServiceApi {
         );
       }
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ init ~ error:', JSON.stringify(error));
+      logger.error('🚀 ~ SqliteApi ~ init ~ error:', JSON.stringify(error));
     }
 
     if (ret && ret.result && isConn) {
@@ -254,7 +255,7 @@ export class SqliteApi implements ServiceApi {
     try {
       await this._db?.open();
     } catch (err) {
-      console.error('🚀 ~ SqliteApi ~ init ~ err:', err);
+      logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
     }
     await this.setUpDatabase();
     return this._db;
@@ -268,9 +269,9 @@ export class SqliteApi implements ServiceApi {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
-      // console.log("📊 sqlite_master count result:", res1);
+      // logger.info("📊 sqlite_master count result:", res1);
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ SqliteApi ~ setUpDatabase ~ error:',
         JSON.stringify(error),
       );
@@ -283,25 +284,25 @@ export class SqliteApi implements ServiceApi {
     ) {
       try {
         try {
-          //  console.log("⬇️ About to import SQLite schema from JSON");
+          //  logger.info("⬇️ About to import SQLite schema from JSON");
           const importData = await fetch('databases/import.json');
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
-          // console.log("✅ importFromJson SUCCESS:", resImport);
+          // logger.info("✅ importFromJson SUCCESS:", resImport);
           localStorage.setItem(
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
-          console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
+          logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
           window.location.replace(BASE_NAME || '/');
           return;
         } catch (error) {
-          console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
+          logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
         }
       } catch (error) {
-        console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
+        logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
     }
     if (this._syncTableData) {
@@ -321,7 +322,7 @@ export class SqliteApi implements ServiceApi {
         });
         for (const _tableName of Object.keys(this._syncTableData)) {
           const updatePullSyncQuery = `UPDATE pull_sync_info SET last_pulled = '${this._syncTableData[_tableName]}' WHERE table_name = '${_tableName}'`;
-          console.log(
+          logger.info(
             '🚀 ~ SqliteApi ~ setUpDatabase ~ updatePullSyncQuery:',
             updatePullSyncQuery,
           );
@@ -339,7 +340,7 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        console.log('syncing');
+        logger.info('syncing');
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
@@ -349,7 +350,7 @@ export class SqliteApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.log('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
     }
   }
 
@@ -460,7 +461,7 @@ export class SqliteApi implements ServiceApi {
 
         timeoutId = window.setTimeout(() => finish(false), duration + 200);
       } catch (err) {
-        console.warn('Fallback toast failed:', err);
+        logger.warn('Fallback toast failed:', err);
         timeoutId = window.setTimeout(() => finish(false), duration);
       }
     });
@@ -470,7 +471,7 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
-    console.log('🚀 ~ pullChanges ~ isInitialFetch:', isInitialFetch);
+    logger.info('🚀 ~ pullChanges ~ isInitialFetch:', isInitialFetch);
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
@@ -481,7 +482,7 @@ export class SqliteApi implements ServiceApi {
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
             [tableName, FORCE_FULL_SYNC_DATE],
           );
-          console.log(`Forcing full sync for table: ${tableName}`);
+          logger.info(`Forcing full sync for table: ${tableName}`);
         }
       }
       this._tablesNeedingFullSync.clear();
@@ -499,7 +500,7 @@ export class SqliteApi implements ServiceApi {
       const res = (await this._db.query(tablePullSync)).values ?? [];
       res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
     } catch (error) {
-      console.error('🚀 ~ Api ~ syncDB ~ error:', error);
+      logger.error('🚀 ~ Api ~ syncDB ~ error:', error);
       await this.createSyncTables();
     }
     let data = new Map<string, any[]>();
@@ -515,38 +516,38 @@ export class SqliteApi implements ServiceApi {
           );
           break;
         } catch (err) {
-          console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+          logger.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
           if (attempt < maxAttempts) {
             const delay = 500 * Math.pow(2, attempt);
             await new Promise((res) => setTimeout(res, delay));
             attempt += 1;
             continue;
           }
-          console.warn('❌ All retries failed. Truncating local tables...');
+          logger.warn('❌ All retries failed. Truncating local tables...');
           if (!this._db) return;
           const query = `PRAGMA foreign_keys=OFF;`;
           const result = await this._db?.query(query);
-          console.log(result);
+          logger.info(result);
           for (const table of orderedTableNames) {
             const tableDel = `DELETE FROM "${table}";`;
             const res = await this._db.query(tableDel);
-            console.log(res);
+            logger.info(res);
           }
           const vaccum = `VACUUM;`;
           const resv = await this._db.query(vaccum);
-          console.log(resv);
+          logger.info(resv);
           const querys = `PRAGMA foreign_keys=ON;`;
           const results = await this._db?.query(querys);
-          console.log(results);
+          logger.info(results);
           const userWantsRetry = await this.showToastWithRetry(
             'Sync failed. Retry now?',
           );
           if (userWantsRetry) {
-            console.warn('🔁 Final retry triggered by user.');
+            logger.warn('🔁 Final retry triggered by user.');
             attempt = 1;
             continue;
           }
-          console.warn('⛔ User canceled final retry.');
+          logger.warn('⛔ User canceled final retry.');
           return;
         }
       }
@@ -597,7 +598,7 @@ export class SqliteApi implements ServiceApi {
         },
       );
     } catch (workerError) {
-      console.warn(
+      logger.warn(
         'Falling back to main-thread sync batch generation after worker failure:',
         workerError,
       );
@@ -684,7 +685,7 @@ export class SqliteApi implements ServiceApi {
             localSchool = JSON.parse(localSchoolRaw);
           } catch (e) {
             localStorage.removeItem(SCHOOL);
-            console.warn('invalid local school data removed');
+            logger.warn('invalid local school data removed');
             return;
           }
 
@@ -700,7 +701,7 @@ export class SqliteApi implements ServiceApi {
           if (deletedSchoolUser) {
             localStorage.removeItem(SCHOOL);
             localStorage.removeItem(CLASS);
-            console.log('local school removed because school_user is_deleted');
+            logger.info('local school removed because school_user is_deleted');
           }
         }
         await this.syncDbNow(Object.values(TABLES), [
@@ -733,11 +734,11 @@ export class SqliteApi implements ServiceApi {
     let res: any[] = [];
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
-      console.log('🚀 ~ syncDB ~ tablePushSync:', res);
+      logger.info('🚀 ~ syncDB ~ tablePushSync:', res);
 
       this.updateDebugInfo(res.length, 0, 0); //update debug info
     } catch (error) {
-      console.error('🚀 ~ Api ~ syncDB ~ error:', error);
+      logger.error('🚀 ~ Api ~ syncDB ~ error:', error);
       await this.createSyncTables();
     }
     if (res && res.length) {
@@ -757,9 +758,9 @@ export class SqliteApi implements ServiceApi {
             ...mutate?.error,
           });
           if (mutate?.error?.code === '23505' || mutate?.status === 409) {
-            console.log('🟢 Duplicate key ignored (already exists on server)');
+            logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
-            console.log('🔴 Real push error:', mutate?.error);
+            logger.info('🔴 Real push error:', mutate?.error);
             return false;
           }
         }
@@ -785,14 +786,14 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return;
     // 🔒 LOCK
     if (this._syncInProgress) {
-      console.log('🟡 Sync already running → scheduling another run');
+      logger.info('🟡 Sync already running → scheduling another run');
       this._syncRequestedAgain = true;
       return true;
     }
     this._syncInProgress = true;
     try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
-      console.log(
+      logger.info(
         'logs to check synced tables',
         JSON.stringify(refresh_tables),
       );
@@ -813,7 +814,7 @@ export class SqliteApi implements ServiceApi {
         await this.pullChanges(tableNames, isFirstSync);
         const res = await this.pushChanges(Object.values(TABLES));
         const tables = "'" + tableNames.join("', '") + "'";
-        // console.log("logs to check synced tables1", JSON.stringify(tables));
+        // logger.info("logs to check synced tables1", JSON.stringify(tables));
         const currentTimestamp = new Date();
         const reducedTimestamp = new Date(currentTimestamp); // clone it
         reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
@@ -826,7 +827,7 @@ export class SqliteApi implements ServiceApi {
     } finally {
       this._syncInProgress = false;
       if (this._syncRequestedAgain) {
-        console.log(
+        logger.info(
           '🔁 Running sync again because changes happened during sync',
         );
         this._syncRequestedAgain = false;
@@ -836,7 +837,7 @@ export class SqliteApi implements ServiceApi {
         }, 0);
       }
     }
-    // console.log("logs to check synced tables2", JSON.stringify(tables));
+    // logger.info("logs to check synced tables2", JSON.stringify(tables));
   }
 
   private async createSyncTables() {
@@ -1712,7 +1713,7 @@ export class SqliteApi implements ServiceApi {
         [timestamp, studentId, localParentId],
       );
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
   }
   async getCourseByUserGradeId(
@@ -1788,7 +1789,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`,
     );
-    console.log('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
     return res?.values ?? [];
   }
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
@@ -1855,7 +1856,7 @@ export class SqliteApi implements ServiceApi {
 
   async getAllLanguages(): Promise<TableTypes<'language'>[]> {
     const res = await this._db?.query('select * from ' + TABLES.Language);
-    console.log('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
     return res?.values ?? [];
   }
 
@@ -1946,7 +1947,7 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log('🚀 ~ SqliteApi ~ updateMusicFlag ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateMusicFlag ~ res:', res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       music_off: value ? 1 : 0,
       id: userId,
@@ -1963,7 +1964,7 @@ export class SqliteApi implements ServiceApi {
       WHERE id = ?;
     `;
     const res = await this.executeQuery(query, [value, localeId, userId]);
-    console.log('🚀 ~ SqliteApi ~ updateLanguage ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateLanguage ~ res:', res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
       locale_id: localeId,
@@ -1977,7 +1978,7 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log(
+    logger.info(
       '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
       res,
       ServiceConfig.getI().authHandler.currentUser,
@@ -2472,7 +2473,7 @@ export class SqliteApi implements ServiceApi {
           throw new Error('User data or ID is missing in the store');
         userId = data?.id ?? 'anonymous';
       } catch (error) {
-        console.error('Failed to get user from redux store:', error);
+        logger.error('Failed to get user from redux store:', error);
       }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
@@ -2917,7 +2918,7 @@ export class SqliteApi implements ServiceApi {
       }
       return student;
     } catch (error) {
-      console.error('Error updating student:', error);
+      logger.error('Error updating student:', error);
       throw error; // Rethrow error after logging
     }
   }
@@ -3095,7 +3096,7 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    console.log('🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
+    logger.info('🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
     if (!res || !res.values || res.values.length < 1) return {};
     const resultMap: { [lessonDocId: string]: TableTypes<'result'> } = {};
     for (const data of res.values) {
@@ -3135,7 +3136,7 @@ export class SqliteApi implements ServiceApi {
       where user_id = "${studentId}"
       and role = "${RoleType.STUDENT}" and is_deleted = 0`,
     );
-    console.log('🚀 ~ SqliteApi ~ isStudentLinked ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ isStudentLinked ~ res:', res);
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
@@ -3371,7 +3372,7 @@ export class SqliteApi implements ServiceApi {
       if (!result?.values) return false;
       return result.values.length > 0; // Return true if at least one match is found
     } catch (error) {
-      console.error('Error checking course in classes:', error);
+      logger.error('Error checking course in classes:', error);
       throw error;
     }
   }
@@ -3379,7 +3380,7 @@ export class SqliteApi implements ServiceApi {
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        logger.warn('No course IDs provided for removal.');
         return;
       }
 
@@ -3396,13 +3397,13 @@ export class SqliteApi implements ServiceApi {
         });
       });
     } catch (error) {
-      console.error('Error removing courses from class_course', error);
+      logger.error('Error removing courses from class_course', error);
     }
   }
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        logger.warn('No course IDs provided for removal.');
         return;
       }
 
@@ -3419,7 +3420,7 @@ export class SqliteApi implements ServiceApi {
         });
       });
     } catch (error) {
-      console.error('Error removing courses from school_course', error);
+      logger.error('Error removing courses from school_course', error);
     }
   }
   async deleteUserFromClass(
@@ -3583,7 +3584,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: true,
       });
     } catch (error) {
-      console.error('Failed to delete class:', error);
+      logger.error('Failed to delete class:', error);
       throw error;
     }
   }
@@ -3608,7 +3609,7 @@ export class SqliteApi implements ServiceApi {
     updatedClassQuery += ` WHERE id = "${classId}";`;
 
     const res = await this.executeQuery(updatedClassQuery);
-    console.log('🚀 ~ SqliteApi ~ updateClass ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateClass ~ res:', res);
 
     // Include group_id in push only if provided
     const updatedData: any = { id: classId, name: className };
@@ -3726,13 +3727,13 @@ export class SqliteApi implements ServiceApi {
             leaderBoardList.weekly.push(leaderboardEntry);
             break;
           default:
-            console.warn('Unknown leaderboard type: ', result.type);
+            logger.warn('Unknown leaderboard type: ', result.type);
         }
       });
 
       return leaderBoardList;
     } catch (error) {
-      console.error(
+      logger.error(
         'Error in getLeaderboardStudentResultFromB2CCollection: ',
         error,
       );
@@ -3817,7 +3818,7 @@ export class SqliteApi implements ServiceApi {
       ];
       return courses;
     } catch (error) {
-      console.error('Error fetching courses by grade:', error);
+      logger.error('Error fetching courses by grade:', error);
       return [];
     }
   }
@@ -4004,7 +4005,7 @@ export class SqliteApi implements ServiceApi {
 
       return res.values;
     } catch (error) {
-      console.error('Error fetching badges by IDs:', error);
+      logger.error('Error fetching badges by IDs:', error);
       return [];
     }
   }
@@ -4020,7 +4021,7 @@ export class SqliteApi implements ServiceApi {
       if (!res || !res.values || res.values.length < 1) return [];
       return res.values;
     } catch (error) {
-      console.error('Error fetching stickers by IDs:', error);
+      logger.error('Error fetching stickers by IDs:', error);
       return [];
     }
   }
@@ -4035,7 +4036,7 @@ export class SqliteApi implements ServiceApi {
       if (!res || !res.values || res.values.length < 1) return [];
       return res.values;
     } catch (error) {
-      console.error('Error fetching stickers by IDs:', error);
+      logger.error('Error fetching stickers by IDs:', error);
       return [];
     }
   }
@@ -4047,18 +4048,18 @@ export class SqliteApi implements ServiceApi {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No reward found for the given year.');
+        logger.error('No reward found for the given year.');
         return;
       }
       const periodData = JSON.parse(data.values[0][periodType]);
       try {
         if (periodData) return periodData;
       } catch (parseError) {
-        console.error('Error parsing JSON string:', parseError);
+        logger.error('Error parsing JSON string:', parseError);
         return undefined;
       }
     } catch (error) {
-      console.error('Error fetching reward by ID:', error);
+      logger.error('Error fetching reward by ID:', error);
       return undefined;
     }
   }
@@ -4069,14 +4070,14 @@ export class SqliteApi implements ServiceApi {
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No sticker found for the given user id.');
+        logger.error('No sticker found for the given user id.');
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching sticker by user ID:', error);
+      logger.error('Error fetching sticker by user ID:', error);
       return [];
     }
   }
@@ -4086,14 +4087,14 @@ export class SqliteApi implements ServiceApi {
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No badge found for the given user id.');
+        logger.error('No badge found for the given user id.');
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching user bade by user iD:', error);
+      logger.error('Error fetching user bade by user iD:', error);
       return [];
     }
   }
@@ -4104,14 +4105,14 @@ export class SqliteApi implements ServiceApi {
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        console.error('No bonus found for the given user id.');
+        logger.error('No bonus found for the given user id.');
         return [];
       }
 
       const periodData = data.values;
       return periodData;
     } catch (error) {
-      console.error('Error fetching bonus by user ID:', error);
+      logger.error('Error fetching bonus by user ID:', error);
       return [];
     }
   }
@@ -4121,7 +4122,7 @@ export class SqliteApi implements ServiceApi {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
       await this._db?.query(query);
     } catch (error) {
-      console.error('Error updating rewards as seen:', error);
+      logger.error('Error updating rewards as seen:', error);
       throw new Error('Error updating rewards as seen.');
     }
   }
@@ -4257,7 +4258,7 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log('🚀 ~ SqliteApi ~ updateFCM Token:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateFCM Token:', res);
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
@@ -4389,7 +4390,7 @@ export class SqliteApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.error('Error in createAssignment:', error);
+      logger.error('Error in createAssignment:', error);
     }
   }
 
@@ -4434,7 +4435,7 @@ export class SqliteApi implements ServiceApi {
       await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
       return false;
     }
   }
@@ -4736,7 +4737,7 @@ order by
       const serverResults = await this._serverApi.searchLessons(searchString);
       res.push(...serverResults);
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ searchLessons ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ searchLessons ~ error:', error);
     }
 
     if (res.length > 0) return res;
@@ -4752,7 +4753,7 @@ order by
       limit,
     ]);
     if (nameResults.values) res.push(...nameResults.values);
-    console.log('🚀 ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
+    logger.info('🚀 ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
     const outcomeSearchQuery = `
     SELECT *
     FROM lesson
@@ -4765,7 +4766,7 @@ order by
       outcomeLength,
     ]);
     if (outcomeResults.values) res.push(...outcomeResults.values);
-    console.log('🚀 ~ SqliteApi ~ searchLessons ~ dat1:', outcomeResults);
+    logger.info('🚀 ~ SqliteApi ~ searchLessons ~ dat1:', outcomeResults);
     return res;
   }
 
@@ -4794,7 +4795,7 @@ order by
         ? matchedLesson.chapter_id
         : res.values[0].chapter_id;
     } catch (error) {
-      console.error('Error fetching chapter by IDs:', error);
+      logger.error('Error fetching chapter by IDs:', error);
       return;
     }
   }
@@ -5274,7 +5275,7 @@ order by
         return res.values[0];
       }
     } catch (error) {
-      console.error('Error fetching teacher joined date:', error);
+      logger.error('Error fetching teacher joined date:', error);
     }
 
     return undefined;
@@ -5297,7 +5298,7 @@ order by
 
       return userIds ?? [];
     } catch (error) {
-      console.error('Error fetching user IDs:', error);
+      logger.error('Error fetching user IDs:', error);
       return [];
     }
   }
@@ -5328,7 +5329,7 @@ order by
         is_deleted: true,
       });
     } catch (error) {
-      console.error('🚀 ~ SqliteApi ~ deleteTeacher ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteTeacher ~ error:', error);
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
@@ -5344,7 +5345,7 @@ order by
       const res = await this._db?.query(query);
       return res?.values?.[0]?.code;
     } catch (error) {
-      console.error('Error executing query:', error); // Log any errors
+      logger.error('Error executing query:', error); // Log any errors
       return;
     }
   }
@@ -5457,7 +5458,7 @@ order by
     limit: number = 20,
   ): Promise<PrincipalAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -5543,7 +5544,7 @@ order by
     limit: number = 20,
   ): Promise<CoordinatorAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -5729,7 +5730,7 @@ order by
         message: 'User removed from school successfully.',
       };
     } catch (error: any) {
-      console.error('🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:', error);
 
       // ✅ Error return added
       return {
@@ -5936,7 +5937,7 @@ order by
       );
 
       const nextLocalStars = currentLocalStars + starsCount;
-      console.log('zuzu 2', { studentId, stars: nextLocalStars });
+      logger.info('zuzu 2', { studentId, stars: nextLocalStars });
 
       localStorage.setItem(latestStarsKey, nextLocalStars.toString());
 
@@ -5956,7 +5957,7 @@ order by
         is_immediate_sync,
       );
     } catch (error) {
-      console.error('Error setting stars for student:', error);
+      logger.error('Error setting stars for student:', error);
     }
   }
   async getCoursesForPathway(
@@ -6003,7 +6004,7 @@ order by
         JSON.stringify(latestPathToSave),
       );
     } catch (error) {
-      console.error('Error updating learning path:', error);
+      logger.error('Error updating learning path:', error);
     }
     return student;
   }
@@ -6037,7 +6038,7 @@ order by
       res = (await this._db.query(tablePushSync)).values ?? [];
       return res.length;
     } catch (error) {
-      console.error('❌ Failed to count pending changes:', error);
+      logger.error('❌ Failed to count pending changes:', error);
       return 0;
     }
   }
@@ -6232,7 +6233,7 @@ order by
         stars: totalStars,
       });
     } catch (error) {
-      console.error('Error setting stars for student:', error);
+      logger.error('Error setting stars for student:', error);
     }
   }
   async getChapterIdbyQrLink(
@@ -6248,7 +6249,7 @@ order by
       if (!res || !res.values || res.values.length < 1) return;
       return res.values[0];
     } catch (error) {
-      console.error('Error fetching chapter by QR link:', error);
+      logger.error('Error fetching chapter by QR link:', error);
       return;
     }
   }
@@ -6340,7 +6341,7 @@ order by
     limit: number = 20,
   ): Promise<TeacherAPIResponse> {
     if (!this._db) {
-      console.warn('SQLite DB not initialized.');
+      logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -6433,7 +6434,7 @@ order by
       return { grade: isNaN(grade) ? 0 : grade, section };
     }
 
-    console.warn(
+    logger.warn(
       `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`,
     );
     return { grade: 0, section: cleanedName };
@@ -6445,7 +6446,7 @@ order by
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
     if (!this._db) {
-      console.warn('Database not initialized, cannot fetch student info.');
+      logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
     }
 
@@ -6558,7 +6559,7 @@ order by
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
     if (!this._db) {
-      console.warn('Database not initialized, cannot fetch student info.');
+      logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
     }
 
@@ -6669,7 +6670,7 @@ order by
     studentId: string,
   ): Promise<{ user: any; parents: any[] }> {
     if (!this._db) {
-      console.warn('Database not initialized.');
+      logger.warn('Database not initialized.');
       return { user: null, parents: [] };
     }
 
@@ -6702,7 +6703,7 @@ order by
         parents: parentRows,
       };
     } catch (error) {
-      console.error(
+      logger.error(
         'Error fetching student and parent by student ID (SQLite):',
         error,
       );
@@ -6713,7 +6714,7 @@ order by
     studentId: string,
   ): Promise<TableTypes<'user'>[]> {
     if (!this._db) {
-      console.warn('Database not initialized.');
+      logger.warn('Database not initialized.');
       return [];
     }
 
@@ -6732,7 +6733,7 @@ order by
       const parentRows = parentRes?.values ?? [];
       return parentRows;
     } catch (error) {
-      console.error('Error fetching parents by student ID', error);
+      logger.error('Error fetching parents by student ID', error);
       return [];
     }
   }
@@ -6859,7 +6860,7 @@ order by
         message: 'Students merged successfully.',
       };
     } catch (error: any) {
-      console.error(
+      logger.error(
         'Error merging student in SQLite (mergeStudentRequestSqlite):',
         error,
       );
@@ -7119,7 +7120,7 @@ order by
     chapterIds: string[],
   ): Promise<TableTypes<'chapter'>[]> {
     if (!chapterIds || chapterIds.length === 0) {
-      console.warn('getChaptersByIds was called with no chapter IDs.');
+      logger.warn('getChaptersByIds was called with no chapter IDs.');
       return [];
     }
 
@@ -7134,13 +7135,13 @@ order by
       const res = await this.executeQuery(query, chapterIds);
 
       if (!res || !res.values) {
-        console.warn('No chapters found for the provided ChapterIDs');
+        logger.warn('No chapters found for the provided ChapterIDs');
         return [];
       }
 
       return res.values as TableTypes<'chapter'>[];
     } catch (error) {
-      console.error('Error fetching chapters', error);
+      logger.error('Error fetching chapters', error);
       return [];
     }
   }
@@ -7322,15 +7323,15 @@ order by
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
-    console.log(result);
+    logger.info(result);
     for (const table of tableNames) {
       const tableDel = `DELETE FROM "${table}";`;
       const res = await this._db.query(tableDel);
-      console.log(res);
+      logger.info(res);
     }
     const vaccum = `VACUUM;`;
     const resv = await this._db.query(vaccum);
-    console.log(resv);
+    logger.info(resv);
   }
   async approveOpsRequest(
     requestId: string,
@@ -7449,12 +7450,12 @@ order by
       const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
       const res = await this.executeQuery(query, [rewardId]);
       if (!res || !res.values || res.values.length === 0) {
-        console.warn(`No reward found for ID: ${rewardId}`);
+        logger.warn(`No reward found for ID: ${rewardId}`);
         return undefined;
       }
       return res.values[0] as TableTypes<'rive_reward'>;
     } catch (error) {
-      console.error('Error fetching reward by ID', error);
+      logger.error('Error fetching reward by ID', error);
       return undefined;
     }
   }
@@ -7463,12 +7464,12 @@ order by
       const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
       const res = await this.executeQuery(query, []);
       if (!res || !res.values) {
-        console.warn(`No rewards found`);
+        logger.warn(`No rewards found`);
         return [];
       }
       return res.values as TableTypes<'rive_reward'>[];
     } catch (error) {
-      console.error('Error fetching all rewards', error);
+      logger.error('Error fetching all rewards', error);
       return [];
     }
   }
@@ -7478,7 +7479,7 @@ order by
     created_at?: string,
   ): Promise<void> {
     if (!rewardId) {
-      console.warn('No rewardId provided to updateUserReward');
+      logger.warn('No rewardId provided to updateUserReward');
       return;
     }
 
@@ -7487,7 +7488,7 @@ order by
         userId,
       )) as TableTypes<'user'> | null;
       if (!currentUser) {
-        console.warn(`No user found`);
+        logger.warn(`No user found`);
         return;
       }
 
@@ -7511,7 +7512,7 @@ order by
       );
       Util.setCurrentStudent(currentUser);
     } catch (error) {
-      console.error('❌ Error updating user reward:', error);
+      logger.error('❌ Error updating user reward:', error);
     }
   }
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
@@ -7545,7 +7546,7 @@ order by
       const res = await this.executeQuery(query, params);
       return res?.values ?? [];
     } catch (err) {
-      console.error('Error fetching completed homework counts in SQLite:', err);
+      logger.error('Error fetching completed homework counts in SQLite:', err);
       return [];
     }
   }
@@ -7561,7 +7562,7 @@ order by
     role: RoleType,
     isEmailVerified: boolean,
   ): Promise<void> {
-    console.error('Method not implemented.');
+    logger.error('Method not implemented.');
   }
   async insertSchoolDetails(
     schoolId: string,
@@ -7610,7 +7611,7 @@ order by
         pushObject,
       );
     } catch (error) {
-      console.error('❌ Error inserting school details:', error);
+      logger.error('❌ Error inserting school details:', error);
     }
   }
 
@@ -7632,7 +7633,7 @@ order by
         distanceFromSchool,
       );
     } catch (error) {
-      console.error('❌ Error recording school visit:', error);
+      logger.error('❌ Error recording school visit:', error);
       return null;
     }
   }
@@ -7690,7 +7691,7 @@ order by
         });
       }
     } catch (error) {
-      console.error('❌ Error replacing class courses:', error);
+      logger.error('❌ Error replacing class courses:', error);
     }
   }
   public async addStudentWithParentValidation(params: {
@@ -7763,7 +7764,7 @@ order by
     content: string;
     mediaLinks?: string[] | null;
   }): Promise<any> {
-    console.warn('createNoteForSchool is not supported in SQLite mode');
+    logger.warn('createNoteForSchool is not supported in SQLite mode');
     return this._serverApi.createNoteForSchool(params);
   }
 
@@ -7773,7 +7774,7 @@ order by
     offset?: number,
     sortBy?: 'createdAt' | 'createdBy',
   ): Promise<PaginatedResponse<SchoolNote>> {
-    console.warn('getNotesBySchoolId is not supported in SQLite mode');
+    logger.warn('getNotesBySchoolId is not supported in SQLite mode');
 
     return this._serverApi.getNotesBySchoolId(schoolId, limit, offset, sortBy);
   }
@@ -7843,7 +7844,7 @@ order by
 
       return rows[0];
     } catch (err) {
-      console.error('[SQLite] getLidoCommonAudioUrl failed:', err);
+      logger.error('[SQLite] getLidoCommonAudioUrl failed:', err);
       return null;
     }
   }
@@ -7950,7 +7951,7 @@ order by
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
-      console.error(
+      logger.error(
         '❌ Error fetching subject lessons by subject (SQL):',
         error,
       );
@@ -7999,7 +8000,7 @@ order by
 
       return rows.length > 0;
     } catch (error) {
-      console.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL lesson history:', error);
       return false;
     }
   }
@@ -8309,7 +8310,7 @@ order by
 
       return !!(res?.values && res.values.length > 0);
     } catch (error) {
-      console.error('Error checking existing assignment:', error);
+      logger.error('Error checking existing assignment:', error);
       return false;
     }
   }
