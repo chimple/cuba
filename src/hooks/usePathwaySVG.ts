@@ -24,10 +24,7 @@ import {
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
-import {
-  StickerBookCompletionData,
-  StickerBookPreviewData,
-} from '../components/learningPathway/StickerBookPreviewModal';
+import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 
 interface UsePathwaySVGParams {
@@ -48,8 +45,8 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
-  onStickerPreviewReady: (data: StickerBookPreviewData) => void;
-  onStickerCompletionReady: (data: StickerBookCompletionData) => void;
+  onStickerPreviewReady: (data: StickerBookModalData) => void;
+  onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
 
 // CACHES
@@ -824,7 +821,7 @@ export function usePathwaySVG({
 
   // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
   // This is the single place where we resolve next sticker image fallback.
-  async function getStickerPreviewPayload(): Promise<StickerBookPreviewData | null> {
+  async function getStickerPreviewPayload(): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
@@ -879,7 +876,7 @@ export function usePathwaySVG({
     }
   }
 
-  async function getStickerCompletionPayload(): Promise<StickerBookCompletionData | null> {
+  async function getStickerCompletionPayload(): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;

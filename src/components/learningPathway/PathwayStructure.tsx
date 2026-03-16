@@ -8,8 +8,7 @@ import RewardBox from './RewardBox';
 import DailyRewardModal from './DailyRewardModal';
 import RewardRive from './RewardRive';
 import StickerBookPreviewModal, {
-  StickerBookCompletionData,
-  StickerBookPreviewData,
+  StickerBookModalData,
 } from './StickerBookPreviewModal';
 
 import { useHistory } from 'react-router';
@@ -25,11 +24,11 @@ import {
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
   const [stickerPreviewData, setStickerPreviewData] =
-    React.useState<StickerBookPreviewData | null>(null);
+    React.useState<StickerBookModalData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
     React.useState<boolean>(false);
   const [stickerCompletionData, setStickerCompletionData] =
-    React.useState<StickerBookCompletionData | null>(null);
+    React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
     React.useState<boolean>(false);
   const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
@@ -81,7 +80,7 @@ const PathwayStructure: React.FC = () => {
   } = usePathwayData();
 
   const openStickerCompletion = React.useCallback(
-    (data: StickerBookCompletionData) => {
+    (data: StickerBookModalData) => {
       const completionKey = [
         data.source,
         data.stickerBookId,
@@ -176,7 +175,7 @@ const PathwayStructure: React.FC = () => {
 
   React.useEffect(() => {
     const handleStickerCompletionReady = (event: Event) => {
-      const customEvent = event as CustomEvent<StickerBookCompletionData>;
+      const customEvent = event as CustomEvent<StickerBookModalData>;
       const data = customEvent.detail;
       if (!data?.stickerBookId) return;
 

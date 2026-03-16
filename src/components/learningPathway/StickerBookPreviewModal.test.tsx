@@ -8,8 +8,7 @@ import {
 } from '@testing-library/react';
 import { toBlob } from 'html-to-image';
 import StickerBookPreviewModal, {
-  StickerBookCompletionData,
-  StickerBookPreviewData,
+  StickerBookModalData,
 } from './StickerBookPreviewModal';
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
@@ -38,8 +37,8 @@ jest.mock('../../utility/util', () => ({
 }));
 
 const buildData = (
-  override: Partial<StickerBookPreviewData> = {},
-): StickerBookPreviewData => ({
+  override: Partial<StickerBookModalData> = {},
+): StickerBookModalData => ({
   source: 'learning_pathway',
   stickerBookId: 'book-1',
   stickerBookTitle: 'Book 1',
@@ -52,8 +51,8 @@ const buildData = (
 });
 
 const buildCompletionData = (
-  override: Partial<StickerBookCompletionData> = {},
-): StickerBookCompletionData => ({
+  override: Partial<StickerBookModalData> = {},
+): StickerBookModalData => ({
   source: 'learning_pathway',
   stickerBookId: 'book-complete',
   stickerBookTitle: 'Completed Book',

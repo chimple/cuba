@@ -107,7 +107,7 @@ import {
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
-import type { StickerBookCompletionData } from '../components/learningPathway/StickerBookPreviewModal';
+import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 
 declare global {
   interface Window {
@@ -3004,7 +3004,7 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
-    payload: StickerBookCompletionData | null;
+    payload: StickerBookModalData | null;
   }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {

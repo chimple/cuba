@@ -10,28 +10,20 @@ import { SVGScene } from '../coloring/SVGScene';
 import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
 import './StickerBookPreviewModal.css';
 
-export interface StickerBookPreviewData {
+export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
   stickerBookId: string;
   stickerBookTitle: string;
   stickerBookSvgUrl: string;
   collectedStickerIds: string[];
-  nextStickerId: string;
-  nextStickerName: string;
+  nextStickerId?: string;
+  nextStickerName?: string;
   nextStickerImage?: string;
-}
-
-export interface StickerBookCompletionData {
-  source: 'learning_pathway' | 'homework_pathway';
-  stickerBookId: string;
-  stickerBookTitle: string;
-  stickerBookSvgUrl: string;
-  collectedStickerIds: string[];
-  totalStickerCount: number;
+  totalStickerCount?: number;
 }
 
 interface StickerBookPreviewModalProps {
-  data: StickerBookPreviewData | StickerBookCompletionData;
+  data: StickerBookModalData;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
   mode?: 'preview' | 'completion';
 }
@@ -82,8 +74,6 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isCompletionMode = mode === 'completion';
-  const previewData = data as StickerBookPreviewData;
-  const completionData = data as StickerBookCompletionData;
 
   const analyticsPayload = useMemo(
     () => ({
@@ -93,10 +83,10 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       sticker_book_title: data.stickerBookTitle,
       collected_count: data.collectedStickerIds.length,
       total_stickers: isCompletionMode
-        ? completionData.totalStickerCount
+        ? (data.totalStickerCount ?? data.collectedStickerIds.length)
         : data.collectedStickerIds.length,
     }),
-    [completionData.totalStickerCount, data, isCompletionMode],
+    [data, isCompletionMode],
   );
 
   useEffect(() => {
@@ -246,7 +236,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
                   svgRefExternal={bookSvgRef}
                   collectedStickers={data.collectedStickerIds}
                   nextStickerId={
-                    isCompletionMode ? undefined : previewData.nextStickerId
+                    isCompletionMode ? undefined : data.nextStickerId
                   }
                   isDragEnabled={false}
                   stickerVisibilityMode="strict"
@@ -302,10 +292,8 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
                 {t('Finish the pathway & collect this')}
               </p>
               <img
-                src={
-                  previewData.nextStickerImage || 'assets/icons/DefaultIcon.png'
-                }
-                alt={previewData.nextStickerName}
+                src={data.nextStickerImage || 'assets/icons/DefaultIcon.png'}
+                alt={data.nextStickerName || 'Sticker'}
                 className="StickerBookPreviewModal-next-image"
                 data-testid="StickerBookPreviewModal-next-image"
               />
