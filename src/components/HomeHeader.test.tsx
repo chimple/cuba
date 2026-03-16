@@ -49,7 +49,7 @@ describe('HomeHeader', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     originalConsoleError = logger.error;
-    jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
+    jest.spyOn(logger, 'error').mockImplementation((...args: any[]) => {
       const msg = String(args[0] ?? '');
       // Ignore known jsdom/XHR noise not related to HomeHeader logic assertions.
       if (msg.includes('AggregateError')) return;

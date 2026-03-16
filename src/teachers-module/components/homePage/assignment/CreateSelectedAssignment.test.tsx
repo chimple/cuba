@@ -102,7 +102,7 @@ describe('CreateSelectedAssignment (QR flow)', () => {
 
     const originalConsoleError = logger.error;
     consoleErrorSpy = jest
-      .spyOn(console, 'error')
+      .spyOn(logger, 'error')
       .mockImplementation((...args: any[]) => {
         const firstArg = args[0];
         const message = typeof firstArg === 'string' ? firstArg : '';
