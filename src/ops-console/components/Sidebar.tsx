@@ -7,6 +7,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import BookIcon from '@mui/icons-material/Book';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import './Sidebar.css';
@@ -63,6 +64,11 @@ const navItems = [
     label: NavItems.REQUESTS,
     route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
     icon: <IoGitPullRequestSharp />,
+  },
+  {
+    label: NavItems.MODULE,
+    route: PAGES.SIDEBAR_PAGE + PAGES.MODULE_PAGE,
+    icon: <ViewModuleIcon />,
   },
   {
     label: NavItems.USERS,
