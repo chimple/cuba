@@ -24,8 +24,10 @@ import {
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
-import { StickerBookPreviewData } from '../components/learningPathway/StickerBookPreviewModal';
-import { StickerBookCompletionData } from '../components/stickerBook/StickerBookCompletionPopup';
+import {
+  StickerBookCompletionData,
+  StickerBookPreviewData,
+} from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 
 interface UsePathwaySVGParams {

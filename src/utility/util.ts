@@ -107,7 +107,7 @@ import {
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
-import type { StickerBookCompletionData } from '../components/stickerBook/StickerBookCompletionPopup';
+import type { StickerBookCompletionData } from '../components/learningPathway/StickerBookPreviewModal';
 
 declare global {
   interface Window {

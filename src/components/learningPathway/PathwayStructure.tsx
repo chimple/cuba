@@ -8,15 +8,13 @@ import RewardBox from './RewardBox';
 import DailyRewardModal from './DailyRewardModal';
 import RewardRive from './RewardRive';
 import StickerBookPreviewModal, {
+  StickerBookCompletionData,
   StickerBookPreviewData,
 } from './StickerBookPreviewModal';
 
 import { useHistory } from 'react-router';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
-import StickerBookCompletionPopup, {
-  StickerBookCompletionData,
-} from '../stickerBook/StickerBookCompletionPopup';
 import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
@@ -256,9 +254,14 @@ const PathwayStructure: React.FC = () => {
       )}
 
       {isStickerCompletionOpen && stickerCompletionData && (
-        <StickerBookCompletionPopup
+        <StickerBookPreviewModal
           data={stickerCompletionData}
-          onClose={closeStickerCompletion}
+          mode="completion"
+          onClose={
+            closeStickerCompletion as (
+              reason: 'close_button' | 'backdrop' | 'acknowledge_button',
+            ) => void
+          }
         />
       )}
     </>

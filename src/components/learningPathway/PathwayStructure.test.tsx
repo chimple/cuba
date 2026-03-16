@@ -40,38 +40,41 @@ jest.mock('./DailyRewardModal', () => (props: any) => (
     <button onClick={props.onPlay}>play</button>
   </div>
 ));
-jest.mock('./StickerBookPreviewModal', () => (props: any) => (
-  <div data-testid="sticker-book-preview-modal">
-    <div data-testid="sticker-book-preview-next-id">
-      {props.data?.nextStickerId}
-    </div>
-    <button
-      data-testid="sticker-book-preview-close"
-      onClick={() => props.onClose('close_button')}
-    >
-      close-sticker-preview
-    </button>
-  </div>
-));
-jest.mock('../stickerBook/StickerBookCompletionPopup', () => (props: any) => (
-  <div data-testid="sticker-book-completion-popup">
-    <div data-testid="sticker-book-completion-title">
-      {props.data?.stickerBookTitle}
-    </div>
-    <button
-      data-testid="sticker-book-completion-close"
-      onClick={() => props.onClose('close_button')}
-    >
-      close-sticker-completion
-    </button>
-    <button
-      data-testid="sticker-book-completion-backdrop"
-      onClick={() => props.onClose('backdrop')}
-    >
-      backdrop-sticker-completion
-    </button>
-  </div>
-));
+jest.mock(
+  './StickerBookPreviewModal',
+  () => (props: any) =>
+    props.mode === 'completion' ? (
+      <div data-testid="sticker-book-completion-popup">
+        <div data-testid="sticker-book-completion-title">
+          {props.data?.stickerBookTitle}
+        </div>
+        <button
+          data-testid="sticker-book-completion-close"
+          onClick={() => props.onClose('close_button')}
+        >
+          close-sticker-completion
+        </button>
+        <button
+          data-testid="sticker-book-completion-backdrop"
+          onClick={() => props.onClose('backdrop')}
+        >
+          backdrop-sticker-completion
+        </button>
+      </div>
+    ) : (
+      <div data-testid="sticker-book-preview-modal">
+        <div data-testid="sticker-book-preview-next-id">
+          {props.data?.nextStickerId}
+        </div>
+        <button
+          data-testid="sticker-book-preview-close"
+          onClick={() => props.onClose('close_button')}
+        >
+          close-sticker-preview
+        </button>
+      </div>
+    ),
+);
 
 describe('PathwayStructure', () => {
   const setModalOpen = jest.fn();
