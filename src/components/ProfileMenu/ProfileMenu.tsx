@@ -29,6 +29,7 @@ import i18n from '../../i18n';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
+import logger from '../../utility/logger';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -61,16 +62,20 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     loadProfileData();
   }, []);
   const loadProfileData = async () => {
-    const currentStudent = Util.getCurrentStudent();
-    setStudent(currentStudent);
-    const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
-    setClassName(className);
-    setSchoolName(schoolName);
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      setStudent(currentStudent);
+      const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
+      setClassName(className);
+      setSchoolName(schoolName);
 
-    if (currentStudent?.id) {
-      const userStickers = await api.getUserSticker(currentStudent.id);
-      const hasUnseen = userStickers.some((s) => !s.is_seen);
-      setHasUnseenStickers(hasUnseen);
+      if (currentStudent?.id) {
+        const userStickers = await api.getUserSticker(currentStudent.id);
+        const hasUnseen = userStickers.some((s) => !s.is_seen);
+        setHasUnseenStickers(hasUnseen);
+      }
+    } catch (error) {
+      logger.error('Failed to load profile data:', error);
     }
   };
   // Handles Edit action:
@@ -99,8 +104,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       user_id: student?.id,
       source: 'profile_menu',
     });
-    if (student?.id && hasUnseenStickers) {
-      await api.updateRewardAsSeen(student.id);
+    if (hasUnseenStickers) {
       setHasUnseenStickers(false);
     }
     history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });

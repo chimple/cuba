@@ -137,7 +137,7 @@ describe('ProfileMenu Notification Logic', () => {
     expect(dot).not.toBeInTheDocument();
   });
 
-  test('clears notification and calls API when clicking Sticker Book', async () => {
+  test('clears notification when clicking Sticker Book', async () => {
     mockApi.getUserSticker.mockResolvedValue([{ id: 's1', is_seen: false }]);
 
     render(
@@ -157,7 +157,7 @@ describe('ProfileMenu Notification Logic', () => {
       EVENTS.STICKER_BOOK_MENU_TAP,
       expect.any(Object),
     );
-    expect(mockApi.updateRewardAsSeen).toHaveBeenCalledWith(mockStudent.id);
+    expect(mockApi.updateRewardAsSeen).not.toHaveBeenCalled();
 
     // Dot should disappear from UI
     await waitFor(() => {
