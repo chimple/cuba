@@ -12142,7 +12142,7 @@ export class SupabaseApi implements ServiceApi {
   async isSplUser(): Promise<boolean> {
     if (!this.supabase) return false;
     try {
-      const { data, error } = await this.supabase.functions.invoke(
+      const { data, error } = await this.supabase.rpc(
         'is_special_or_program_user',
       );
       if (error) {
