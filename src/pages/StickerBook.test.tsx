@@ -105,6 +105,7 @@ describe('StickerBook page', () => {
         getAllStickerBooks: jest.fn(),
         getCurrentStickerBookWithProgress: jest.fn(),
         getUserWonStickerBooks: jest.fn(),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -124,6 +125,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: ['a'] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -143,6 +145,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -163,6 +166,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: ['s1', 's2'] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -181,6 +185,7 @@ describe('StickerBook page', () => {
         getAllStickerBooks: jest.fn().mockResolvedValue([makeBook()]),
         getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue(null),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -209,6 +214,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: ['s1'] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -232,6 +238,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -257,6 +264,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -283,6 +291,7 @@ describe('StickerBook page', () => {
           .fn()
           .mockReturnValue(slowPromise),
         getUserWonStickerBooks: jest.fn().mockReturnValue(slowPromise),
+        updateRewardAsSeen: jest.fn().mockReturnValue(slowPromise),
       },
     });
 
@@ -303,6 +312,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -324,6 +334,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -346,6 +357,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -374,6 +386,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -402,6 +415,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: ['s1'] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([book]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
@@ -429,6 +443,7 @@ describe('StickerBook page', () => {
           progress: { stickers_collected: [] },
         }),
         getUserWonStickerBooks: jest.fn().mockResolvedValue([book]),
+        updateRewardAsSeen: jest.fn(),
       },
     });
 
