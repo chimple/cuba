@@ -1,16 +1,34 @@
 import React from 'react';
 import { LaunchRounded } from '@mui/icons-material';
-import { useHistory } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 import { t } from 'i18next';
 import {
   MODULE_CARD_DEFINITIONS,
   getModuleCardInitials,
   getModuleCardRoute,
 } from './modulePageLogic';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RoleType } from '../../interface/modelInterfaces';
+import { PAGES } from '../../common/constants';
 import './ModulePage.css';
 
 const ModulePage: React.FC = () => {
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const hasModuleAccess = userRoles.some(
+    (role) =>
+      role === RoleType.SUPER_ADMIN ||
+      role === RoleType.OPERATIONAL_DIRECTOR,
+  );
+
+  if (!hasModuleAccess) {
+    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}`} />;
+  }
 
   return (
     <div id="module-page" className="module-page">

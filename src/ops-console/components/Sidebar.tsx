@@ -206,7 +206,16 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessUsersPage = userRoles.some((role) =>
               rolesWithAccess.includes(role as RoleType),
             );
+            const moduleRolesWithAccess = [
+              RoleType.SUPER_ADMIN,
+              RoleType.OPERATIONAL_DIRECTOR,
+            ];
+            const canAccessModulePage = userRoles.some((role) =>
+              moduleRolesWithAccess.includes(role as RoleType),
+            );
             if (item.label === NavItems.USERS && !canAccessUsersPage)
+              return null;
+            if (item.label === NavItems.MODULE && !canAccessModulePage)
               return null;
 
             return (
