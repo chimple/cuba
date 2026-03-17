@@ -1,9 +1,15 @@
-
-
 plugins{
     id 'com.android.application'
     id 'com.google.firebase.crashlytics'
 }
+
+def escapeForBuildConfig = { value ->
+    return "\"" + (value ?: "").replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+}
+
+def supabaseUrl = project.findProperty("SUPABASE_URL") ?: System.getenv("REACT_APP_SUPABASE_URL") ?: ""
+def supabaseKey = project.findProperty("SUPABASE_KEY") ?: System.getenv("REACT_APP_SUPABASE_KEY") ?: ""
+
 android {
     namespace "org.chimple.bahama"
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -13,6 +19,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 87
         versionName "10.1.0"
+        buildConfigField "String", "SUPABASE_URL", escapeForBuildConfig(supabaseUrl)
+        buildConfigField "String", "SUPABASE_KEY", escapeForBuildConfig(supabaseKey)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -46,6 +54,9 @@ android {
             signingConfig signingConfigs.release
         }
     }
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 repositories {
@@ -69,6 +80,7 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-auth:21.3.0'
     implementation 'com.google.android.gms:play-services-auth-api-phone:18.1.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
     implementation "androidx.work:work-runtime:2.8.1"
     implementation 'com.google.firebase:firebase-messaging:23.3.1'

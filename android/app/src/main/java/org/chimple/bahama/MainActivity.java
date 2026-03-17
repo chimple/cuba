@@ -56,6 +56,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         decorView.setSystemUiVisibility(uiOptions);
         FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
+        SyncScheduler.scheduleDailySync(this);
 
         // --- ✅ Initialize WebGL Monitor ---
         if (this.bridge != null && this.bridge.getWebView() != null) {
