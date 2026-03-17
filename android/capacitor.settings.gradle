@@ -44,9 +44,6 @@ project(':capacitor-device').projectDir = new File('../node_modules/@capacitor/d
 include ':capacitor-filesystem'
 project(':capacitor-filesystem').projectDir = new File('../node_modules/@capacitor/filesystem/android')
 
-include ':capacitor-geolocation'
-project(':capacitor-geolocation').projectDir = new File('../node_modules/@capacitor/geolocation/android')
-
 include ':capacitor-haptics'
 project(':capacitor-haptics').projectDir = new File('../node_modules/@capacitor/haptics/android')
 
@@ -55,9 +52,6 @@ project(':capacitor-keyboard').projectDir = new File('../node_modules/@capacitor
 
 include ':capacitor-local-notifications'
 project(':capacitor-local-notifications').projectDir = new File('../node_modules/@capacitor/local-notifications/android')
-
-include ':capacitor-preferences'
-project(':capacitor-preferences').projectDir = new File('../node_modules/@capacitor/preferences/android')
 
 include ':capacitor-screen-orientation'
 project(':capacitor-screen-orientation').projectDir = new File('../node_modules/@capacitor/screen-orientation/android')
@@ -73,9 +67,6 @@ project(':capacitor-toast').projectDir = new File('../node_modules/@capacitor/to
 
 include ':capawesome-capacitor-app-update'
 project(':capawesome-capacitor-app-update').projectDir = new File('../node_modules/@capawesome/capacitor-app-update/android')
-
-include ':capawesome-capacitor-live-update'
-project(':capawesome-capacitor-live-update').projectDir = new File('../node_modules/@capawesome/capacitor-live-update/android')
 
 include ':capgo-capacitor-social-login'
 project(':capgo-capacitor-social-login').projectDir = new File('../node_modules/@capgo/capacitor-social-login/android')
