@@ -2899,6 +2899,19 @@ export class Util {
 
       /* 5️⃣ Move course index if path completed */
       if (pathCompleted) {
+        let preAwardCollectedStickerIds: string[] = [];
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
+          try {
+            const currentBookWithProgress =
+              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                currentStudent.id,
+              );
+            preAwardCollectedStickerIds =
+              currentBookWithProgress?.progress?.stickers_collected ?? [];
+          } catch {
+            preAwardCollectedStickerIds = [];
+          }
+        }
         if (isRewardLesson) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
@@ -2915,13 +2928,17 @@ export class Util {
           10,
           false,
         );
-        // If stickers are available (and we're online), award the next sticker for completing this pathway.
-        await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        // If stickers are available (and we're online), award the current pathway sticker.
+        const awardedStickerId = await Util.tryAwardStickerForCompletedPathway(
+          currentStudent.id,
+        );
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           sessionStorage.setItem(
             AUTO_OPEN_STICKER_PREVIEW_KEY,
             JSON.stringify({
               studentId: currentStudent.id,
+              awardedStickerId: awardedStickerId ?? null,
+              preAwardCollectedStickerIds,
               createdAt: new Date().toISOString(),
             }),
           );
@@ -2978,22 +2995,24 @@ export class Util {
 
   private static async tryAwardStickerForCompletedPathway(
     studentId: string,
-  ): Promise<void> {
+  ): Promise<string | null> {
     try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return null;
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
-      if (!current?.book?.id) return;
+      if (!current?.book?.id) return null;
 
       const nextStickerId = await api.getNextWinnableSticker(
         current.book.id,
         studentId,
       );
-      if (!nextStickerId) return;
+      if (!nextStickerId) return null;
 
       await api.updateStickerWon(current.book.id, nextStickerId);
+      return nextStickerId;
     } catch (error) {
       console.warn('[StickerBook] Failed to award pathway sticker:', error);
+      return null;
     }
   }
 

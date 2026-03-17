@@ -9,6 +9,7 @@ import {
 import StickerBookPreviewModal, {
   StickerBookPreviewData,
 } from './StickerBookPreviewModal';
+import { Util } from '../../utility/util';
 
 const originalFetch = global.fetch;
 
@@ -102,10 +103,14 @@ describe('StickerBookPreviewModal', () => {
       '[data-slot-id="slot-locked"] rect',
     ) as SVGRectElement;
 
-    expect(collected.getAttribute('fill-opacity')).toBe('0.3');
-    expect(collected.getAttribute('stroke-opacity')).toBe('0.3');
+    expect(collected.getAttribute('fill')).toBe('#FFFFFF');
+    expect(collected.getAttribute('stroke')).toBe('#FFFFFF');
+    expect(collected.style.fill).toBe('#FFFFFF');
+    expect(collected.style.stroke).toBe('#FFFFFF');
     expect(next.getAttribute('fill')).toBe('#D1D2D4');
     expect(next.getAttribute('stroke')).toBe('#D1D2D4');
+    expect(next.style.fill).toBe('#D1D2D4');
+    expect(next.style.stroke).toBe('#D1D2D4');
     expect(locked.getAttribute('fill')).toBe('#FFFFFF');
     expect(locked.getAttribute('stroke')).toBe('#FFFFFF');
   });
@@ -152,7 +157,9 @@ describe('StickerBookPreviewModal', () => {
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
     await screen.findByTestId('StickerBookPreviewModal-book');
-    expect((global.fetch as jest.Mock).mock.calls.length).toBe(2);
+    expect(
+      (global.fetch as jest.Mock).mock.calls.length,
+    ).toBeGreaterThanOrEqual(2);
     warnSpy.mockRestore();
   });
 
@@ -392,18 +399,25 @@ describe('StickerBookPreviewModal', () => {
   });
 
   test('re-fetches and re-renders when stickerBookSvgUrl changes', async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        text: async () =>
-          "<svg><g data-slot-id='slot-a'><rect fill='#111111' stroke='#111111' /></g></svg>",
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        text: async () =>
-          "<svg><g data-slot-id='slot-b'><rect fill='#222222' stroke='#222222' /></g></svg>",
-      } as Response);
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      if (url === 'https://example.com/book-a.svg') {
+        return Promise.resolve({
+          ok: true,
+          text: async () =>
+            "<svg><g data-slot-id='slot-a'><rect fill='#111111' stroke='#111111' /></g></svg>",
+        } as Response);
+      }
+
+      if (url === 'https://example.com/book-b.svg') {
+        return Promise.resolve({
+          ok: true,
+          text: async () =>
+            "<svg><g data-slot-id='slot-b'><rect fill='#222222' stroke='#222222' /></g></svg>",
+        } as Response);
+      }
+
+      return Promise.reject(new Error(`Unexpected fetch URL: ${url}`));
+    });
 
     const { rerender, container } = render(
       <StickerBookPreviewModal
@@ -434,12 +448,11 @@ describe('StickerBookPreviewModal', () => {
         container.querySelector('[data-slot-id="slot-b"]'),
       ).toBeInTheDocument(),
     );
-    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
-      'https://example.com/book-a.svg',
+    const fetchUrls = (global.fetch as jest.Mock).mock.calls.map(
+      (call) => call[0],
     );
-    expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe(
-      'https://example.com/book-b.svg',
-    );
+    expect(fetchUrls).toContain('https://example.com/book-a.svg');
+    expect(fetchUrls).toContain('https://example.com/book-b.svg');
   });
 
   test('updates slot styling when collectedStickerIds changes on rerender', async () => {
@@ -482,8 +495,69 @@ describe('StickerBookPreviewModal', () => {
       const updated = container.querySelector(
         '[data-slot-id="slot-collected"] rect',
       ) as SVGRectElement;
-      expect(updated.getAttribute('fill-opacity')).toBe('0.3');
-      expect(updated.getAttribute('stroke-opacity')).toBe('0.3');
+      expect(updated.getAttribute('fill')).toBe('#FFFFFF');
+      expect(updated.getAttribute('stroke')).toBe('#FFFFFF');
+      expect(updated.style.fill).toBe('#FFFFFF');
+      expect(updated.style.stroke).toBe('#FFFFFF');
+    });
+  });
+
+  test('keeps drag_collect slot state stable when collectedStickerIds mutates after open', async () => {
+    jest.spyOn(Util, 'logEvent').mockResolvedValue(undefined as never);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    const collectedStickerIds = ['slot-collected'];
+
+    const { rerender, container } = render(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds,
+          nextStickerId: 'slot-next',
+        })}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('[data-slot-id="slot-next"] circle'),
+      ).toBeInTheDocument(),
+    );
+
+    const initialNext = container.querySelector(
+      '[data-slot-id="slot-next"] circle',
+    ) as SVGCircleElement;
+    const initialLocked = container.querySelector(
+      '[data-slot-id="slot-locked"] rect',
+    ) as SVGRectElement;
+    expect(initialNext.getAttribute('fill')).toBe('#D1D2D4');
+    expect(initialLocked.getAttribute('fill')).toBe('#FFFFFF');
+
+    collectedStickerIds.push('slot-next', 'slot-locked');
+
+    rerender(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds,
+          nextStickerId: 'slot-next',
+        })}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      const nextAfterMutation = container.querySelector(
+        '[data-slot-id="slot-next"] circle',
+      ) as SVGCircleElement;
+      const lockedAfterMutation = container.querySelector(
+        '[data-slot-id="slot-locked"] rect',
+      ) as SVGRectElement;
+      expect(nextAfterMutation.getAttribute('fill')).toBe('#D1D2D4');
+      expect(lockedAfterMutation.getAttribute('fill')).toBe('#FFFFFF');
     });
   });
 

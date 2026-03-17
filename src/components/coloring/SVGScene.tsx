@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import {
   applyColorMode,
   applyDragMode,
@@ -44,9 +44,13 @@ export function SVGScene({
   const internalRef = useRef<SVGSVGElement | null>(null);
   const svgRef = svgRefExternal ?? internalRef;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
+
+    // IMPORTANT: wait until SVG slots exist
+    const slots = svg.querySelectorAll('[data-slot-id]');
+    if (!slots.length) return;
 
     // Apply the scene-specific SVG transforms after the inline SVG has mounted.
     if (mode === 'color') {

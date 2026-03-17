@@ -897,6 +897,16 @@ export enum EVENTS {
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
+  STICKER_DRAG_POPUP_SHOWN = 'sticker_drag_popup_shown',
+  STICKER_DRAG_POPUP_EXPANDED = 'sticker_drag_popup_expanded',
+  STICKER_DRAG_POPUP_CLOSED = 'sticker_drag_popup_closed',
+  STICKER_DRAG_STARTED = 'sticker_drag_started',
+  STICKER_DRAG_DROPPED_SUCCESS = 'sticker_drag_dropped_success',
+  STICKER_DRAG_DROPPED_MISS = 'sticker_drag_dropped_miss',
+  STICKER_DRAG_STICKER_SHOWN = 'sticker_drag_sticker_shown',
+  STICKER_DRAG_POINTER_SHOWN = 'sticker_drag_pointer_shown',
+  STICKER_DRAG_CONFETTI_SHOWN = 'sticker_drag_confetti_shown',
+  STICKER_DRAG_POPUP_TO_PROFILE = 'sticker_drag_popup_to_profile',
 }
 
 export const FCM_TOKENS = 'fcmTokens';
