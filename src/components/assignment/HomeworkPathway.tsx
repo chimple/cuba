@@ -20,7 +20,7 @@ import PathwayModal from '../learningPathway/PathwayModal';
 import { t } from 'i18next';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from './HomeworkCompleteModal';
-
+import logger from '../../utility/logger';
 // Make sure this interface is defined at the top of your component file
 interface HomeworkPath {
   path_id: string;
@@ -108,7 +108,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         await api.updateStudentStars(studentId, localStars);
       }
     } catch (err) {
-      console.warn('[Stars sync] Failed to sync stars with backend', err);
+      logger.error('[Stars sync] Failed to sync stars with backend', err);
     }
   };
 
@@ -141,7 +141,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     try {
       await api.updateStudentStars(student.id, newLocalStars);
     } catch (err) {
-      console.warn(
+      logger.error(
         '[awardStarsForPathCompletion] failed to sync with backend',
         err,
       );
@@ -194,7 +194,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
-        console.warn('Invalid HOMEWORK_PATHWAY in localStorage:', err);
+        logger.error('Invalid HOMEWORK_PATHWAY in localStorage:', err);
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
     }
@@ -350,7 +350,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                     changedEvent,
                   );
                 } catch (err) {
-                  console.warn(
+                  logger.error(
                     '[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event',
                     err,
                   );
@@ -419,7 +419,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
             chapterName = chapter?.name || chapterName;
           }
         } catch (error) {
-          console.warn('Failed fetching chapter details', error);
+          logger.error('Failed fetching chapter details', error);
         }
 
         setBoxDetails({
@@ -431,7 +431,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       // 8️⃣ Notify structure to re-render
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
-      console.error('Error in fetchHomeworkPathway:', error);
+      logger.error('Error in fetchHomeworkPathway:', error);
     } finally {
       setLoading(false);
     }
@@ -529,7 +529,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       };
       Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
     } catch (err) {
-      console.warn(
+      logger.error(
         '[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event',
         err,
       );
@@ -600,7 +600,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           await fetchHomeworkPathway(student, selectedSubject || undefined); // Refetch to update UI
         }
       } catch (e) {
-        console.error('Failed to update homework progress', e);
+        logger.error('Failed to update homework progress', e);
         setIsHomeworkComplete(true); // Failsafe
       }
     } else {

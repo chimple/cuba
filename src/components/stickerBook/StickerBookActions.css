@@ -1,0 +1,60 @@
+.StickerBookActions-root {
+  position: absolute;
+  top: 12px;
+  right: -96px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.StickerBookActions-save,
+.StickerBookActions-paint {
+  display: flex;
+  width: clamp(70px, 10vw, 90px);
+  height: clamp(36px, 6vw, 46px);
+  padding: clamp(3px, 0.6vw, 4px) clamp(12px, 2vw, 18px);
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: clamp(12px, 2vw, 14px);
+  cursor: pointer;
+}
+
+.StickerBookActions-save {
+  display: flex;
+  flex-direction: column;
+  border-bottom: clamp(3px, 0.6vw, 5px) solid #300d37;
+  background: #c094ef;
+  color: #2a004a;
+}
+
+.StickerBookActions-paint {
+  display: flex;
+  flex-direction: column;
+  border-bottom: clamp(3px, 0.6vw, 5px) solid #8d2900;
+  background: #f34d08;
+  color: #ffffff;
+}
+
+.StickerBookActions-save img,
+.StickerBookActions-paint img {
+  width: 18px;
+  height: 18px;
+}
+
+.StickerBookActions-save:disabled,
+.StickerBookActions-paint:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .StickerBookActions-root {
+    right: -70px;
+    top: 10px;
+  }
+}

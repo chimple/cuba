@@ -30,6 +30,7 @@ import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import logger from '../../../utility/logger';
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -96,7 +97,7 @@ const SideMenu: React.FC<{
       const currentUser =
         await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!currentUser) {
-        console.error('No user is logged in.');
+        logger.error('No user is logged in.');
         return;
       }
       setFullName(currentUser.name || '');
@@ -170,7 +171,7 @@ const SideMenu: React.FC<{
         setSchoolRoles(roles);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
     }
   };
   const switchUser = async () => {
@@ -196,12 +197,12 @@ const SideMenu: React.FC<{
   }: { id?: string | number; name?: string; role?: RoleType } = {}) => {
     try {
       if (!id) {
-        console.warn('Invalid ID or no ID provided for school selection');
+        logger.warn('Invalid ID or no ID provided for school selection');
         return;
       }
       const school = await api.getSchoolById(String(id));
       if (!school?.id) {
-        console.warn('School not found');
+        logger.warn('School not found');
         return;
       }
       const schoolRole =
@@ -217,7 +218,7 @@ const SideMenu: React.FC<{
       });
       const classes = await api.getClassesForSchool(school.id, currentUserId);
       if (!classes || classes.length === 0) {
-        console.warn('No classes found for the selected school');
+        logger.warn('No classes found for the selected school');
         Util.setCurrentClass(null);
         setCurrentClassId('');
         setcurrentClassDetail({ id: '', name: '' });
@@ -243,7 +244,7 @@ const SideMenu: React.FC<{
       setClassCode(classCode);
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
-      console.error('Error handling school selection:', error);
+      logger.error('Error handling school selection:', error);
     }
   };
 
@@ -253,26 +254,26 @@ const SideMenu: React.FC<{
   }: { id?: string | number; name?: string } = {}) => {
     try {
       if (!id || id === currentClassId) {
-        console.warn('Invalid ID or duplicate selection');
+        logger.warn('Invalid ID or duplicate selection');
         return;
       }
 
       const classIdStr = String(id).trim();
       if (!classIdStr) {
-        console.warn('Class ID is empty after conversion');
+        logger.warn('Class ID is empty after conversion');
         return;
       }
 
       const currentClass = await api.getClassById(classIdStr);
       if (!currentClass || !currentClass.id) {
-        console.warn('Class not found or invalid response');
+        logger.warn('Class not found or invalid response');
         return;
       }
 
       Util.setCurrentClass(currentClass);
 
       if (!currentClass.id) {
-        console.warn('Missing class ID after setting current class');
+        logger.warn('Missing class ID after setting current class');
         return;
       }
 
@@ -287,12 +288,12 @@ const SideMenu: React.FC<{
         setClassCode(classCode);
       } else {
         setClassCode(undefined);
-        console.warn('Class code is null or undefined');
+        logger.warn('Class code is null or undefined');
       }
 
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
-      console.error('Error handling class selection:', error);
+      logger.error('Error handling class selection:', error);
     }
   };
 

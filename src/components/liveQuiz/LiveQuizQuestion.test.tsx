@@ -12,6 +12,7 @@ import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { LIVE_QUIZ_QUESTION_TIME } from '../../models/liveQuiz';
 import { PAGES } from '../../common/constants';
+import logger from '../../utility/logger';
 
 const mockReplace = jest.fn();
 const mockAudioPlay = jest.fn().mockResolvedValue(undefined);
@@ -62,7 +63,7 @@ const mockAuth = {
 };
 
 describe('LiveQuizQuestion component', () => {
-  let originalConsoleError: typeof console.error;
+  let originalConsoleError: typeof logger.error;
   beforeAll(() => {
     // @ts-ignore
     global.Audio = jest.fn(() => ({
@@ -93,7 +94,7 @@ describe('LiveQuizQuestion component', () => {
     mockApi.updateResult.mockResolvedValue(undefined);
     mockApi.getAssignmentById.mockResolvedValue({ chapter_id: 'ch-1' });
     mockAuth.getCurrentUser.mockResolvedValue({ id: 'user-1' });
-    originalConsoleError = console.error;
+    originalConsoleError = logger.error;
     jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
       const msg = String(args[0] ?? '');
       if (msg.includes('AggregateError')) return;

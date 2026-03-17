@@ -20,6 +20,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
+import logger from '../../utility/logger';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -199,7 +200,7 @@ const SubjectSelection: React.FC = () => {
         setCurriculumsWithCourses(sortedCurriculums);
       }
     } catch (error) {
-      console.error(t('Failed to fetch curriculums and courses'), error);
+      logger.error(t('Failed to fetch curriculums and courses'), error);
     }
   };
   const handleSubjectSelection = async (courseId: string) => {
@@ -223,7 +224,7 @@ const SubjectSelection: React.FC = () => {
         fetchCurriculumsAndCourses(CLASS, tempSchool?.id);
       }
     } catch (error) {
-      console.error('Failed to load class details', error);
+      logger.error('Failed to load class details', error);
     }
   };
 
@@ -252,7 +253,7 @@ const SubjectSelection: React.FC = () => {
         setInitialSelectedSubjects(courseIds);
       }
     } catch (error) {
-      console.error(`Failed to fetch courses for ${type} with ID ${id}`, error);
+      logger.error(`Failed to fetch courses for ${type} with ID ${id}`, error);
       return [];
     }
   };
@@ -302,7 +303,7 @@ const SubjectSelection: React.FC = () => {
       if (paramSchoolId) {
         const currUser = await auth.getCurrentUser();
         if (!currUser) {
-          console.warn('User not authenticated');
+          logger.warn('User not authenticated');
           return;
         }
 
@@ -454,7 +455,7 @@ const SubjectSelection: React.FC = () => {
         fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
       }
     } catch (error) {
-      console.error('Failed to update course selections', error);
+      logger.error('Failed to update course selections', error);
     }
   };
 
@@ -469,7 +470,7 @@ const SubjectSelection: React.FC = () => {
       if (paramSchoolId) {
         const currUser = await auth.getCurrentUser();
         if (!currUser) {
-          console.warn('User not authenticated');
+          logger.warn('User not authenticated');
           return;
         }
         const classes = await api.getClassesForSchool(
@@ -526,7 +527,7 @@ const SubjectSelection: React.FC = () => {
         prevSelected.filter((id) => id !== courseId),
       );
     } catch (error) {
-      console.error('Error while removing subject:', error);
+      logger.error('Error while removing subject:', error);
     }
   };
 

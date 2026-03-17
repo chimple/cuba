@@ -35,6 +35,7 @@ import {
 } from '../../growthbook/Growthbook';
 import { toPng } from 'html-to-image';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import logger from '../../utility/logger';
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -102,7 +103,7 @@ const HomePage: React.FC = () => {
       });
       setGbUpdated(true);
     } catch (error) {
-      console.error('Failed to load class details', error);
+      logger.error('Failed to load class details', error);
     }
   };
   const init = async () => {
@@ -235,7 +236,7 @@ const HomePage: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Failed to capture or share screenshot.', err);
+      logger.error('Failed to capture or share screenshot.', err);
     } finally {
       el.style.marginTop = prevMargin;
     }

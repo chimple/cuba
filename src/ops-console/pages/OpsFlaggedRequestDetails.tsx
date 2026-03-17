@@ -26,6 +26,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import './OpsFlaggedRequestDetails.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 
 const OpsFlaggedRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,7 +146,7 @@ const OpsFlaggedRequestDetails = () => {
         }
       }
     } catch (e) {
-      console.error('Error fetching flagged request:', e);
+      logger.error('Error fetching flagged request:', e);
       setError(t('Failed to load request details. Please try again.'));
     } finally {
       setIsLoading(false);
@@ -179,7 +180,7 @@ const OpsFlaggedRequestDetails = () => {
       );
       setRequestTypeOptions(types);
     } catch (e) {
-      console.error('Error fetching dropdown options:', e);
+      logger.error('Error fetching dropdown options:', e);
     } finally {
       setIsLoadingDropdowns(false);
     }
@@ -202,7 +203,7 @@ const OpsFlaggedRequestDetails = () => {
         }
       }
     } catch (e) {
-      console.error('Error fetching classes:', e);
+      logger.error('Error fetching classes:', e);
     }
   };
 
@@ -226,7 +227,7 @@ const OpsFlaggedRequestDetails = () => {
         })),
       );
     } catch (e) {
-      console.error('Error searching schools:', e);
+      logger.error('Error searching schools:', e);
     }
   };
 
@@ -294,7 +295,7 @@ const OpsFlaggedRequestDetails = () => {
         });
       }
     } catch (e) {
-      console.error('Error fetching school by UDISE:', e);
+      logger.error('Error fetching school by UDISE:', e);
       setValidationErrors({
         ...validationErrors,
         udise: t('Failed to fetch school details'),
@@ -313,7 +314,7 @@ const OpsFlaggedRequestDetails = () => {
         setSelectedCountry(school.country || 'India');
       }
     } catch (e) {
-      console.error('Error fetching full school details:', e);
+      logger.error('Error fetching full school details:', e);
     }
   };
 
@@ -391,7 +392,7 @@ const OpsFlaggedRequestDetails = () => {
         search: `?tab=${REQUEST_TABS.APPROVED}`,
       });
     } catch (e) {
-      console.error('Error approving request:', e);
+      logger.error('Error approving request:', e);
       setError(t('Failed to approve request. Please try again.'));
     } finally {
       setIsApproving(false);

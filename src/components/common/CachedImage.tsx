@@ -2,6 +2,7 @@ import { ImgHTMLAttributes, useEffect, useState } from 'react';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { CACHE_IMAGE } from '../../common/constants';
+import logger from '../../utility/logger';
 
 function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
   const [imgSrc, setImgSrc] = useState<string>();
@@ -29,7 +30,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
         });
         return 'data:image/png;base64,' + blob;
       } catch (error) {
-        console.error(
+        logger.error(
           '🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:',
           JSON.stringify(error),
         );
@@ -44,7 +45,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
           setImgSrc(src);
         })
         .catch((error) => {
-          console.error(
+          logger.error(
             '🚀 ~ file: CachedImage.tsx:14 ~ useEffect ~ error:',
             JSON.stringify(error),
           );

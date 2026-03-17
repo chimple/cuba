@@ -53,6 +53,7 @@ import { Provider } from 'react-redux';
 import { persistor, store } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { BrowserRouter } from 'react-router-dom';
+import logger from './utility/logger';
 
 Sentry.init(
   {
@@ -93,7 +94,6 @@ if (isNativePlatform) {
         key: VERSION_KEY,
       });
       if (versionName !== storedVersion) {
-        console.log('⚠️ APK version changed → clearing old hot update bundle');
         // reset the hot update bundle
         await LiveUpdate.reset();
         // store new version
@@ -103,7 +103,7 @@ if (isNativePlatform) {
     await checkNativeVersionAndReset();
     await LiveUpdate.ready();
   } catch (error) {
-    console.error(
+    logger.error(
       'Error in checkNativeVersionAndReset() or LiveUpdate.ready()',
       error,
     );
@@ -149,7 +149,7 @@ window.onerror = (message, source, lineno, colno, error) => {
 const container = document.getElementById('root');
 const root = createRoot(container!, {
   onUncaughtError: SentryReact.reactErrorHandler((error, errorInfo) => {
-    console.warn('Uncaught error', error, errorInfo.componentStack);
+    logger.warn('Uncaught error', error, errorInfo.componentStack);
   }),
   onCaughtError: SentryReact.reactErrorHandler(),
   // Callback called when React automatically recovers from errors.
@@ -175,7 +175,7 @@ const gb = new GrowthBook({
           const currentUser = await auth.getCurrentUser();
           userId = currentUser?.id ?? 'anonymous';
         } catch (e) {
-          console.log('Error reading user from auth handler:', e);
+          logger.error('Error reading user from auth handler:', e);
         }
       }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
@@ -184,7 +184,7 @@ const gb = new GrowthBook({
         variation_id: result.key,
       });
     } catch (error) {
-      console.error('Error in GrowthBook tracking callback:', error);
+      logger.error('Error in GrowthBook tracking callback:', error);
     }
   },
 });
@@ -198,10 +198,10 @@ async function checkForUpdate() {
   let majorVersion = '0';
   const maxRetries = 5;
   const canHotUpdate = gb.isOn(CAN_HOT_UPDATE);
-  console.log('🚀 Started for updates...');
+  logger.info('🚀 Started for updates...');
   try {
     if (isNativePlatform && canHotUpdate) {
-      console.log('🚀 Checking for updates...');
+      logger.info('🚀 Checking for updates...');
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split('.')[0];
       Util.setHotUpdateState({
@@ -228,7 +228,7 @@ async function checkForUpdate() {
         currentBundleId !== result.bundleId &&
         isUpdateAllowed
       ) {
-        console.log('🚀 LiveUpdate fetch latest bundle result', result);
+        logger.info('🚀 LiveUpdate fetch latest bundle result', result);
         Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
           user_id: userId,
           current_bundle_id: currentBundleId,
@@ -247,7 +247,7 @@ async function checkForUpdate() {
           try {
             // Check online/offline
             if (!navigator.onLine) throw new Error('Device is offline');
-            console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
+            logger.info(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
             const start = performance.now();
             Util.setHotUpdateState({
               status: 'Downloading (Auto)',
@@ -274,10 +274,10 @@ async function checkForUpdate() {
               app_version: versionName,
               update_type: result.artifactType,
             });
-            console.log(
+            logger.info(
               `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`,
             );
-            console.log(
+            logger.info(
               `⏱️ Total time taken to download and set nextBundle ID: ${(
                 totalEnd - start
               ).toFixed(2)} ms`,
@@ -285,7 +285,7 @@ async function checkForUpdate() {
             success = true;
           } catch (err: any) {
             const msg = err instanceof Error ? err.message : String(err);
-            console.error(`❌ Sync attempt ${attempt} failed`, err);
+            logger.error(`❌ Sync attempt ${attempt} failed`, err);
             Util.setHotUpdateState({
               status: 'Auto update failed',
               progress: 0,
@@ -293,7 +293,7 @@ async function checkForUpdate() {
             });
 
             if (attempt === maxRetries) {
-              console.error('❌ All retry attempts failed');
+              logger.error('❌ All retry attempts failed');
               Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
@@ -309,7 +309,7 @@ async function checkForUpdate() {
           }
         }
       } else {
-        console.log(
+        logger.info(
           '🚀 LiveUpdate: No new update available, Current applied bundleID: ',
           currentBundleId,
         );
@@ -317,7 +317,7 @@ async function checkForUpdate() {
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error('LiveUpdate failed❌', err);
+    logger.error('LiveUpdate failed❌', err);
     Util.setHotUpdateState({
       status: 'Auto update failed',
       progress: 0,
@@ -386,6 +386,6 @@ if (isOpsUser) {
 serviceWorkerRegistration.unregister();
 
 // If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
+// to log results (for example: reportWebVitals(logger.info))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 // reportWebVitals();

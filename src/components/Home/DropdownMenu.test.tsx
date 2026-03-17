@@ -4,6 +4,7 @@ import DropdownMenu from './DropdownMenu';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { COURSE_CHANGED, EVENTS, LIVE_QUIZ } from '../../common/constants';
+import logger from '../../utility/logger';
 
 jest.mock('../displaySubjects/SelectIconImage', () => (props: any) => (
   <img alt="select-icon" src={props.defaultSrc || 'default.png'} />
@@ -22,6 +23,12 @@ const mockApi = {
 describe('DropdownMenu', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    if (!Element.prototype.scrollIntoView) {
+      Object.defineProperty(Element.prototype, 'scrollIntoView', {
+        value: jest.fn(),
+        writable: true,
+      });
+    }
     jest
       .spyOn(ServiceConfig, 'getI')
       .mockReturnValue({ apiHandler: mockApi } as any);
@@ -212,7 +219,7 @@ describe('DropdownMenu', () => {
   });
 
   test('handles per-course API failure gracefully in homework mode', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.getPendingAssignments.mockResolvedValue([
       { course_id: 'c1', type: 'assignment' },
       { course_id: 'c2', type: 'assignment' },
@@ -231,7 +238,7 @@ describe('DropdownMenu', () => {
   });
 
   test('handles top-level fetch errors without crashing', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.getPendingAssignments.mockRejectedValue(new Error('network fail'));
     render(<DropdownMenu syncWithLearningPath={false} />);
 
@@ -315,7 +322,7 @@ describe('DropdownMenu', () => {
   });
 
   test('learning-path mode without learning_path does not crash', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     (Util.getCurrentStudent as jest.Mock).mockReturnValueOnce({
       id: 'stu-1',
       learning_path: null,
@@ -388,7 +395,7 @@ describe('DropdownMenu', () => {
   });
 
   test('gracefully handles handleSelect errors', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.getCourse.mockImplementation((id: string) =>
       Promise.resolve({
         id,

@@ -8,6 +8,7 @@ import { t } from 'i18next';
 import { FaHeart } from 'react-icons/fa';
 import { RxCross2 } from 'react-icons/rx';
 import { TiTick } from 'react-icons/ti';
+import logger from '../../utility/logger';
 interface BadgeInfo {
   badge: TableTypes<'badge'> | undefined;
   isUnlocked: boolean;
@@ -122,7 +123,7 @@ const LeaderboardBadges: FC = () => {
         }
       });
     } else {
-      console.error(`No data found for week ${nextWeek}`);
+      logger.error(`No data found for week ${nextWeek}`);
       return [];
     }
     const badgeDocs = await api.getBadgesByIds(badgeIds);
@@ -136,7 +137,7 @@ const LeaderboardBadges: FC = () => {
     const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
 
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error('No rewards document or weekly data found');
+      logger.error('No rewards document or weekly data found');
       return [];
     }
 
@@ -185,7 +186,7 @@ const LeaderboardBadges: FC = () => {
 
       return badges.reverse();
     } catch (error) {
-      console.error('Error fetching unlocked badges:', error);
+      logger.error('Error fetching unlocked badges:', error);
       return [];
     }
   };
@@ -196,7 +197,7 @@ const LeaderboardBadges: FC = () => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error('No rewards document or weekly data found');
+      logger.error('No rewards document or weekly data found');
       return [];
     }
     const currentWeek = Util.getCurrentWeekNumber();
@@ -223,7 +224,7 @@ const LeaderboardBadges: FC = () => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error('No rewards document or weekly data found');
+      logger.error('No rewards document or weekly data found');
       return [];
     }
 
@@ -237,7 +238,7 @@ const LeaderboardBadges: FC = () => {
         }
       });
     } else {
-      console.error(`No data found for week ${currentWeek}`);
+      logger.error(`No data found for week ${currentWeek}`);
       return [];
     }
     const badgeDocs = await api.getBadgesByIds(badgeIds);

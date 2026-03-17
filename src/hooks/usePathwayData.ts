@@ -23,6 +23,7 @@ import { Util } from '../utility/util';
 import { useReward } from './useReward';
 import { schoolUtil } from '../utility/schoolUtil';
 import { LessonNode } from './useLearningPath';
+import logger from '../utility/logger';
 
 export interface MascotProps {
   stateMachine: string;
@@ -160,7 +161,7 @@ export const usePathwayData = () => {
         await updateMascotToNormalState(currentReward.reward_id);
       }
     } catch (err) {
-      console.error('Error in initializePathway:', err);
+      logger.error('Error in initializePathway:', err);
     }
   };
 
@@ -314,7 +315,7 @@ export const usePathwayData = () => {
         });
       }
     } catch (error) {
-      console.error('Error in playLesson:', error);
+      logger.error('Error in playLesson:', error);
     }
   };
 

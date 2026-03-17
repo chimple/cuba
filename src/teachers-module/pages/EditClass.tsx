@@ -13,6 +13,7 @@ import Header from '../components/homePage/Header';
 import { Util } from '../../utility/util';
 import './EditClass.css';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 type LocationState = {
   school?: TableTypes<'school'>;
@@ -54,7 +55,7 @@ const EditClass: FC = () => {
         setClassName(classToUse.name);
       }
     } catch (error) {
-      console.error('Failed to load class details.', error);
+      logger.error('Failed to load class details.', error);
     }
   };
 
@@ -72,7 +73,7 @@ const EditClass: FC = () => {
         });
       }
     } catch (error) {
-      console.error('unable to create a class', error);
+      logger.error('unable to create a class', error);
     }
   };
 
@@ -92,7 +93,7 @@ const EditClass: FC = () => {
       window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
       history.replace(PAGES.MANAGE_CLASS);
     } catch (error) {
-      console.error('unable to update a class', error);
+      logger.error('unable to update a class', error);
     } finally {
       setIsSaving(false);
     }

@@ -9,6 +9,7 @@ import { Util } from '../../utility/util';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import { LeaderboardInfo } from '../../services/api/ServiceApi';
+import logger from '../../utility/logger';
 
 export enum AvatarModes {
   Welcome,
@@ -246,7 +247,7 @@ export class AvatarObj {
       this._option3 = currentSuggestionInJson[11];
       this._option4 = currentSuggestionInJson[12];
     } catch (error) {
-      console.error('Failed to load Avatar Data', error);
+      logger.error('Failed to load Avatar Data', error);
     }
   }
 
@@ -349,7 +350,7 @@ export class AvatarObj {
       }
       this._mode = AvatarModes.ShowWeeklyProgress;
     } catch (error) {
-      console.error('loadAvatarWeeklyProgressData error ', error);
+      logger.error('loadAvatarWeeklyProgressData error ', error);
     }
   }
 }

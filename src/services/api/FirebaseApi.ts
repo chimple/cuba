@@ -68,6 +68,7 @@ import Badge from '../../models/Badge';
 import Rewards from '../../models/Rewards';
 import Sticker from '../../models/Sticker';
 import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -282,7 +283,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return curriculums;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:206 ~ FirebaseApi ~ getAllCurriculums ~ error:',
         JSON.stringify(error),
       );
@@ -303,7 +304,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return grades;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:228 ~ FirebaseApi ~ getAllGrades ~ error:',
         JSON.stringify(error),
       );
@@ -327,7 +328,7 @@ export class FirebaseApi implements ServiceApi {
 
       return avatarInfoData;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:262 ~ FirebaseApi ~ getAvatarInfo ~ error:',
         JSON.stringify(error),
       );
@@ -348,7 +349,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return languages;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:250 ~ FirebaseApi ~ getAllLanguages ~ error:',
         JSON.stringify(error),
       );
@@ -381,7 +382,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return users;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:280 ~ FirebaseApi ~ getParentStudentProfiles ~ error:',
         JSON.stringify(error),
       );
@@ -479,7 +480,7 @@ export class FirebaseApi implements ServiceApi {
       if (!result.data()) return;
       return result.data() as Language;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:360 ~ FirebaseApi ~ getLanguageWithId ~ error:',
         error,
       );
@@ -516,7 +517,7 @@ export class FirebaseApi implements ServiceApi {
       return this.sortSubject(subjects);
       return this.sortSubject(subjects);
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:',
         JSON.stringify(error),
       );
@@ -545,7 +546,7 @@ export class FirebaseApi implements ServiceApi {
         });
       }
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ addCoursesForParentsStudent ~ error:',
         JSON.stringify(error),
       );
@@ -567,7 +568,7 @@ export class FirebaseApi implements ServiceApi {
 
       return lessonsMap;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:382 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -590,7 +591,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return this.sortSubject(subjects);
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:444 ~ FirebaseApi ~ getCoursesForClassStudent ~ error:',
         error,
       );
@@ -632,7 +633,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return lesson;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:399 ~ FirebaseApi ~ getLesson ~ error:',
         JSON.stringify(error),
       );
@@ -656,7 +657,7 @@ export class FirebaseApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:367 ~ FirebaseApi ~ getLessonsForChapter ~ error:',
         JSON.stringify(error),
       );
@@ -746,7 +747,7 @@ export class FirebaseApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:523 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -978,7 +979,7 @@ export class FirebaseApi implements ServiceApi {
       this._subjectsCache[id] = subject;
       return subject;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:',
         JSON.stringify(error),
       );
@@ -999,7 +1000,7 @@ export class FirebaseApi implements ServiceApi {
       this._CourseCache[id] = course;
       return course;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:',
         JSON.stringify(error),
       );
@@ -1011,7 +1012,7 @@ export class FirebaseApi implements ServiceApi {
     subjectId: string,
     frameworkId: string,
   ): Promise<TableTypes<'domain'>[]> {
-    console.warn(
+    logger.warn(
       'getDomainsBySubjectAndFramework is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1020,7 +1021,7 @@ export class FirebaseApi implements ServiceApi {
   async getCompetenciesByDomainIds(
     domainIds: string[],
   ): Promise<TableTypes<'competency'>[]> {
-    console.warn(
+    logger.warn(
       'getCompetenciesByDomainIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1029,7 +1030,7 @@ export class FirebaseApi implements ServiceApi {
   async getOutcomesByCompetencyIds(
     competencyIds: string[],
   ): Promise<TableTypes<'outcome'>[]> {
-    console.warn(
+    logger.warn(
       'getOutcomesByCompetencyIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1038,7 +1039,7 @@ export class FirebaseApi implements ServiceApi {
   async getSkillsByOutcomeIds(
     outcomeIds: string[],
   ): Promise<TableTypes<'skill'>[]> {
-    console.warn(
+    logger.warn(
       'getSkillsByOutcomeIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1048,7 +1049,7 @@ export class FirebaseApi implements ServiceApi {
     studentId: string,
     skillIds: string[],
   ): Promise<TableTypes<'result'>[]> {
-    console.warn(
+    logger.warn(
       'getResultsBySkillIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1057,7 +1058,7 @@ export class FirebaseApi implements ServiceApi {
   async getSkillRelationsByTargetIds(
     targetSkillIds: string[],
   ): Promise<TableTypes<'skill_relation'>[]> {
-    console.warn(
+    logger.warn(
       'getSkillRelationsByTargetIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1066,7 +1067,7 @@ export class FirebaseApi implements ServiceApi {
   async getSkillLessonsBySkillIds(
     skillIds: string[],
   ): Promise<TableTypes<'skill_lesson'>[]> {
-    console.warn(
+    logger.warn(
       'getSkillLessonsBySkillIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
@@ -1110,7 +1111,7 @@ export class FirebaseApi implements ServiceApi {
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:734 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -1126,7 +1127,7 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonsData) return;
       return lessonsData.lessons;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:753 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -1145,7 +1146,7 @@ export class FirebaseApi implements ServiceApi {
       this._classCache[id] = classData;
       return classData;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:770 ~ FirebaseApi ~ getClassById ~ error:',
         JSON.stringify(error),
       );
@@ -1164,7 +1165,7 @@ export class FirebaseApi implements ServiceApi {
       this._schoolCache[id] = schoolData;
       return schoolData;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:787 ~ FirebaseApi ~ getSchoolById ~ error:',
         JSON.stringify(error),
       );
@@ -1238,7 +1239,7 @@ export class FirebaseApi implements ServiceApi {
 
       return filteredAssignments;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -1291,7 +1292,7 @@ export class FirebaseApi implements ServiceApi {
       this._schoolsCache[user.docId] = schools;
       return schools;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:904 ~ FirebaseApi ~ getSchoolsForUser ~ error:',
         JSON.stringify(error),
       );
@@ -1306,7 +1307,7 @@ export class FirebaseApi implements ServiceApi {
       const schools = await this.getSchoolsForUser(user);
       if (!!schools && schools.length > 0) return true;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:921 ~ FirebaseApi ~ isUserTeacher ~ error:',
         JSON.stringify(error),
       );
@@ -1363,7 +1364,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return classes;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:967 ~ FirebaseApi ~ getClassesForSchool ~ error:',
         JSON.stringify(error),
       );
@@ -1401,7 +1402,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return students;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:1006 ~ FirebaseApi ~ getStudentsForClass ~ error:',
         error,
       );
@@ -1522,7 +1523,7 @@ export class FirebaseApi implements ServiceApi {
 
       return leaderBoardList;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -1575,7 +1576,7 @@ export class FirebaseApi implements ServiceApi {
 
       return leaderBoardList;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:',
         JSON.stringify(error),
       );
@@ -1597,7 +1598,7 @@ export class FirebaseApi implements ServiceApi {
         // return updatedStudent;
       }
     } catch (error) {
-      console.error('Error fetching user:', error);
+      logger.error('Error fetching user:', error);
       return;
     }
   }
@@ -1631,7 +1632,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return courses;
     } catch (error) {
-      console.error('Error fetching courses by grade:', error);
+      logger.error('Error fetching courses by grade:', error);
       return [];
     }
   }
@@ -1657,7 +1658,7 @@ export class FirebaseApi implements ServiceApi {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching lesson by ID:', error);
+      logger.error('Error fetching lesson by ID:', error);
       return null;
     }
   }
@@ -1675,7 +1676,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return courses;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:1132 ~ FirebaseApi ~ getAllCourses ~ error:',
         JSON.stringify(error),
       );
@@ -1761,7 +1762,7 @@ export class FirebaseApi implements ServiceApi {
       assignmentData.docId = id;
       return assignmentData;
     } catch (error) {
-      console.error(
+      logger.error(
         '🚀 ~ file: FirebaseApi.ts:1600 ~ FirebaseApi ~ getAssignmentById ~ error:',
         error,
       );
@@ -1780,7 +1781,7 @@ export class FirebaseApi implements ServiceApi {
       data.docId = id;
       return data;
     } catch (error) {
-      console.error('🚀 ~ FirebaseApi ~ getBadgeById ~ error:', error);
+      logger.error('🚀 ~ FirebaseApi ~ getBadgeById ~ error:', error);
     }
   }
 
@@ -1797,7 +1798,7 @@ export class FirebaseApi implements ServiceApi {
       data.docId = id;
       return data;
     } catch (error) {
-      console.error('🚀 ~ FirebaseApi ~ getStickerById ~ error:', error);
+      logger.error('🚀 ~ FirebaseApi ~ getStickerById ~ error:', error);
     }
   }
 
@@ -1814,7 +1815,7 @@ export class FirebaseApi implements ServiceApi {
       data.docId = id;
       return data;
     } catch (error) {
-      console.error('🚀 ~ FirebaseApi ~ getRewardById ~ error:', error);
+      logger.error('🚀 ~ FirebaseApi ~ getRewardById ~ error:', error);
     }
   }
   public async updateRewardAsSeen(studentId: string): Promise<void> {

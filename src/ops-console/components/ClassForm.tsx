@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import './ClassForm.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const ClassForm: React.FC<{
   onClose: () => void;
@@ -93,7 +94,7 @@ const ClassForm: React.FC<{
 
         setErrorMessage('');
       } catch (error) {
-        console.error('Error fetching courses:', error);
+        logger.error('Error fetching courses:', error);
       } finally {
         setLoading(false);
       }
@@ -199,7 +200,7 @@ const ClassForm: React.FC<{
             groupIdToStore = resolvedGroupIdValue;
             setResolvedGroupId(resolvedGroupIdValue);
           } catch (e) {
-            console.error('getGroupIdByInvite failed', e);
+            logger.error('getGroupIdByInvite failed', e);
             setErrorMessage('Failed to resolve WhatsApp group.');
             setSaving(false);
             return;
@@ -241,7 +242,7 @@ const ClassForm: React.FC<{
             groupIdToStore = resolvedGroupIdValue;
             setResolvedGroupId(resolvedGroupIdValue);
           } catch (e) {
-            console.error('getGroupIdByInvite failed', e);
+            logger.error('getGroupIdByInvite failed', e);
             setErrorMessage('Failed to resolve WhatsApp group.');
             setSaving(false);
             return;
@@ -259,7 +260,7 @@ const ClassForm: React.FC<{
       }
       await api.updateClassCourses(classId, selectedCourse);
     } catch (e) {
-      console.error('Error:', e);
+      logger.error('Error:', e);
     } finally {
       setSaving(false);
     }

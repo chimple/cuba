@@ -4,6 +4,7 @@ import './DashBoardStudentProgress.css'; // Import the CSS file
 import { LIDO_ASSESSMENT, TableTypes } from '../../../common/constants';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
 
 interface DashBoardStudentProgresProps {
   studentProgress: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>;
@@ -64,7 +65,7 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
         _res.set('chapterName', chapterName);
         finalResults.push(_res);
       } catch (error) {
-        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
+        logger.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
     }
 

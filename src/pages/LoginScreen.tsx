@@ -48,6 +48,7 @@ import {
   setRoles,
   setUser,
 } from '../redux/slices/auth/authSlice';
+import logger from '../utility/logger';
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -229,7 +230,7 @@ const LoginScreen: React.FC = () => {
         dispatch(setRoles(userRoles));
       }
     } catch (e) {
-      console.error('Error fetching user roles:', e);
+      logger.error('Error fetching user roles:', e);
     }
   };
 
@@ -401,7 +402,7 @@ const LoginScreen: React.FC = () => {
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
-      console.log('Error in OTP verification', error);
+      logger.info('Error in OTP verification', error);
       const updates = () => {
         setAnimatedLoading(false);
         dispatch(setAuthLoading(false));

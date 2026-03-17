@@ -10,6 +10,7 @@ import { trashOutline } from 'ionicons/icons';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import logger from '../../../utility/logger';
 
 const UserList: React.FC<{
   schoolDoc: TableTypes<'school'>;
@@ -91,7 +92,7 @@ const UserList: React.FC<{
         setShowConfirm(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error('Error deleting user:', error);
+        logger.error('Error deleting user:', error);
       }
     }
   };

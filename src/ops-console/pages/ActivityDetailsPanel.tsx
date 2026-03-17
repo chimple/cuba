@@ -14,6 +14,7 @@ import { OpsUtil } from '../OpsUtility/OpsUtil';
 import { t } from 'i18next';
 import { FcActivity } from '../../interface/modelInterfaces';
 import MediaDisplay, { MediaItem } from '../components/MediaDisplay';
+import logger from '../../utility/logger';
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak  (with ID)
@@ -168,7 +169,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
           : 'image',
       }));
     } catch (err) {
-      console.error('Invalid media_links JSON', err);
+      logger.error('Invalid media_links JSON', err);
       mediaItems = [];
     }
   }

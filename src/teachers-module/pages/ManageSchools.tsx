@@ -16,6 +16,7 @@ import DetailList from '../components/schoolComponent/DetailList';
 import { Util } from '../../utility/util';
 import DetailListHeader from '../components/schoolComponent/DetailListHeader';
 import Loading from '../../components/Loading';
+import logger from '../../utility/logger';
 
 const PAGE_SIZE = 20;
 
@@ -73,7 +74,7 @@ const ManageSchools: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error initializing data:', error);
+      logger.error('Error initializing data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +105,7 @@ const ManageSchools: React.FC = () => {
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error loading more schools:', error);
+      logger.error('Error loading more schools:', error);
     } finally {
       setIsLoading(false);
       event.target.complete();

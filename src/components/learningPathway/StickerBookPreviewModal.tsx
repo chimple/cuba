@@ -1,30 +1,38 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from 'i18next';
+import { useHistory } from 'react-router';
+import { toBlob } from 'html-to-image';
 import fallbackStickerBookLayout from '../../assets/images/newWhole_layout.svg';
-import { EVENTS } from '../../common/constants';
-import { Util } from '../../utility/util';
 import {
   ParsedSvg,
   applyStickerVisibilityStrict,
   parseSvg,
 } from '../common/SvgHelpers';
+import cameraIcon from '../../assets/images/camera.svg';
+import { EVENTS, PAGES } from '../../common/constants';
+import { Util } from '../../utility/util';
+import { SVGScene } from '../coloring/SVGScene';
 import './StickerBookPreviewModal.css';
+import logger from '../../utility/logger';
 
-export interface StickerBookPreviewData {
+export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
   stickerBookId: string;
   stickerBookTitle: string;
   stickerBookSvgUrl: string;
   collectedStickerIds: string[];
-  nextStickerId: string;
-  nextStickerName: string;
+  nextStickerId?: string;
+  nextStickerName?: string;
   nextStickerImage?: string;
+  totalStickerCount?: number;
 }
-
+const fallbackStickerBookLayoutUrl =
+  'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
 interface StickerBookPreviewModalProps {
-  data: StickerBookPreviewData;
+  data: StickerBookModalData;
   variant?: 'preview' | 'drag_collect';
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
+  mode?: 'preview' | 'completion';
 }
 
 const InlineSvg = React.forwardRef<
@@ -228,13 +236,21 @@ const CONFETTI_CLOUDS = [
   { left: '70%', top: '58%', size: '6rem', rotate: '10deg' },
   { left: '12%', top: '60%', size: '4.6rem', rotate: '14deg' },
 ];
+function sanitizeFileName(value: string): string {
+  return (
+    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
+    'sticker-book'
+  );
+}
 
 const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   data,
   variant = 'preview',
   onClose,
+  mode = 'preview',
 }) => {
-  const stableDataRef = useRef<StickerBookPreviewData>({
+  const history = useHistory();
+  const stableDataRef = useRef<StickerBookModalData>({
     ...data,
     collectedStickerIds: Array.isArray(data.collectedStickerIds)
       ? [...data.collectedStickerIds]
@@ -264,6 +280,10 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   const isDragVariant = variant === 'drag_collect';
   const renderData = isDragVariant ? stableDataRef.current : data;
 
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const shareTargetRef = useRef<HTMLDivElement | null>(null);
+  const isCompletionMode = mode === 'completion';
+
   const addTimer = (callback: () => void, delayMs: number) => {
     const timeoutId = window.setTimeout(callback, delayMs);
     timersRef.current.push(timeoutId);
@@ -278,6 +298,20 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       ...extra,
     });
   };
+
+  const analyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+      source: data.source,
+      sticker_book_id: data.stickerBookId,
+      sticker_book_title: data.stickerBookTitle,
+      collected_count: data.collectedStickerIds.length,
+      total_stickers: isCompletionMode
+        ? (data.totalStickerCount ?? data.collectedStickerIds.length)
+        : data.collectedStickerIds.length,
+    }),
+    [data, isCompletionMode],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -307,8 +341,8 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         }
       } catch (error) {
         // Keep the preview usable even if the configured book SVG fails to load.
-        console.warn('Failed to load sticker book SVG. Falling back.', error);
-        const fallbackResponse = await fetch(fallbackStickerBookLayout);
+        logger.warn('Failed to load sticker book SVG. Falling back.', error);
+        const fallbackResponse = await fetch(fallbackStickerBookLayoutUrl);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {
           setSvgMarkup(fallbackText);
@@ -516,8 +550,12 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
   const sceneCollectedStickers = useMemo(() => {
     if (isDragVariant && isDropSuccessful) {
       return Array.from(
-        new Set([...sanitizedCollectedStickers, renderData.nextStickerId]),
-      );
+        new Set(
+          [...sanitizedCollectedStickers, renderData.nextStickerId].filter(
+            Boolean,
+          ),
+        ), // 👈 FIX
+      ) as string[];
     }
     return sanitizedCollectedStickers;
   }, [
@@ -547,10 +585,59 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
       const serializedSvg = new XMLSerializer().serializeToString(svg);
       return parseSvg(serializedSvg);
     } catch (error) {
-      console.error('Failed to prepare sticker preview scene SVG:', error);
+      logger.error('Failed to prepare sticker preview scene SVG:', error);
       return parsedSvg;
     }
   }, [parsedSvg, sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
+  const handleSave = async () => {
+    Util.logEvent(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
+      analyticsPayload,
+    );
+    if (!shareTargetRef.current) return;
+
+    setIsSaving(true);
+    try {
+      const blob = await toBlob(shareTargetRef.current, {
+        cacheBust: true,
+        backgroundColor: '#bee7de',
+        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      });
+      if (!blob) return;
+
+      const file = new File(
+        [blob],
+        `${sanitizeFileName(data.stickerBookTitle)}.png`,
+        { type: 'image/png' },
+      );
+
+      await Util.sendContentToAndroidOrWebShare(
+        t('STICKER BOOK'),
+        data.stickerBookTitle || t('STICKER BOOK'),
+        undefined,
+        [file],
+      );
+    } catch (error) {
+      logger.error(
+        '[StickerBook] Failed to share sticker book snapshot:',
+        error,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePaint = () => {
+    Util.logEvent(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
+      analyticsPayload,
+    );
+    history.push(PAGES.COLORING_BOARD, {
+      stickerBookId: data.stickerBookId,
+      stickerBookSvgUrl: data.stickerBookSvgUrl,
+      collectedStickerIds: data.collectedStickerIds,
+    });
+  };
 
   return (
     <div
@@ -570,7 +657,9 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         <button
           className="StickerBookPreviewModal-close"
           onClick={() => onClose('close_button')}
-          aria-label="close-sticker-book-preview"
+          aria-label={
+            isCompletionMode ? String(t('Close')) : 'close-sticker-book-preview'
+          }
           data-testid="StickerBookPreviewModal-close"
         >
           <img
@@ -582,8 +671,13 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
 
         <div
           className="StickerBookPreviewModal-book-frame"
-          ref={frameRef}
           data-testid="StickerBookPreviewModal-book-frame"
+          ref={(el) => {
+            frameRef.current = el;
+            if (isCompletionMode) {
+              shareTargetRef.current = el;
+            }
+          }}
         >
           {isDragVariant && (showIntroConfetti || showDropConfetti) && (
             <div
@@ -687,43 +781,81 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         </div>
 
         <div
-          className="StickerBookPreviewModal-bottom-strip"
+          className={`StickerBookPreviewModal-bottom-strip${
+            isCompletionMode
+              ? ' StickerBookPreviewModal-bottom-strip--completion'
+              : ''
+          }`}
           data-testid="StickerBookPreviewModal-bottom-strip"
         >
-          <p
-            className="StickerBookPreviewModal-helper-text"
-            data-testid="StickerBookPreviewModal-helper-text"
-          >
-            {isDragVariant ? (
-              <>
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
-                {t('Yay! You have earned a sticker!')}
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
-              </>
-            ) : (
-              t('Finish the pathway & collect this')
-            )}
-          </p>
-          {!isDragVariant && (
+          {isCompletionMode ? (
+            // ✅ COMPLETION MODE (from dev)
             <>
-              <img
-                src={
-                  renderData.nextStickerImage || 'assets/icons/DefaultIcon.png'
-                }
-                alt={renderData.nextStickerName}
-                className="StickerBookPreviewModal-next-image"
-                data-testid="StickerBookPreviewModal-next-image"
-              />
-              <p
-                className="StickerBookPreviewModal-next-name"
-                data-testid="StickerBookPreviewModal-next-name"
+              <button
+                type="button"
+                className="StickerBookPreviewModal-action StickerBookPreviewModal-action--save"
+                onClick={handleSave}
+                disabled={isSaving}
+                data-testid="StickerBookPreviewModal-save"
               >
-                {t('sticker')}.
+                <img src={cameraIcon} alt="" aria-hidden="true" />
+                <span>{t('Save')}</span>
+              </button>
+              <button
+                type="button"
+                className="StickerBookPreviewModal-action StickerBookPreviewModal-action--paint"
+                onClick={handlePaint}
+                data-testid="StickerBookPreviewModal-paint"
+              >
+                <img
+                  src="assets/icons/PaintBucket.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span>{t('Paint')}</span>
+              </button>
+            </>
+          ) : (
+            // ✅ NON-COMPLETION (merge your logic here)
+            <>
+              <p
+                className="StickerBookPreviewModal-helper-text"
+                data-testid="StickerBookPreviewModal-helper-text"
+              >
+                {isDragVariant ? (
+                  <>
+                    <span className="StickerBookPreviewModal-celebration-icon">
+                      🎉
+                    </span>
+                    {t('Yay! You have earned a sticker!')}
+                    <span className="StickerBookPreviewModal-celebration-icon">
+                      🎉
+                    </span>
+                  </>
+                ) : (
+                  t('Finish the pathway & collect this')
+                )}
               </p>
+
+              {!isDragVariant && (
+                <>
+                  <img
+                    src={
+                      renderData.nextStickerImage ||
+                      'assets/icons/DefaultIcon.png'
+                    }
+                    alt={renderData.nextStickerName || 'Sticker'}
+                    className="StickerBookPreviewModal-next-image"
+                    data-testid="StickerBookPreviewModal-next-image"
+                  />
+                  <p
+                    className="StickerBookPreviewModal-next-name"
+                    data-testid="StickerBookPreviewModal-next-name"
+                  >
+                    {t('sticker')}.
+                  </p>
+                </>
+              )}
             </>
           )}
         </div>

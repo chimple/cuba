@@ -6,6 +6,7 @@ import { t } from 'i18next';
 import './SchoolCoordinators.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { CoordinatorInfo } from '../../../common/constants';
+import logger from '../../../utility/logger';
 
 interface DisplayCoordinator {
   id: string;
@@ -54,7 +55,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
         setCoordinators(response.data);
         setTotalCount(response.total);
       } catch (error) {
-        console.error('Failed to fetch coordinators:', error);
+        logger.error('Failed to fetch coordinators:', error);
       } finally {
         setIsLoading(false);
       }
