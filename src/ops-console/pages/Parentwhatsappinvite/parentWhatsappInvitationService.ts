@@ -1,10 +1,10 @@
-import { ApiHandler } from '../../services/api/ApiHandler';
-import { StudentInfo, TableTypes } from '../../common/constants';
+import { ApiHandler } from '../../../services/api/ApiHandler';
 import {
   formatSmsReadyIndianPhone,
   normalizeIndianPhone10,
-} from '../utils/phoneNormalization';
+} from '../../utils/phoneNormalization';
 
+// Parses numeric env values with a safe positive fallback.
 const parseNumberEnv = (
   value: string | undefined,
   fallback: number,
@@ -13,6 +13,7 @@ const parseNumberEnv = (
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+// Runtime config values for MSG91, WhatsApp Cloud, and Maytapi integrations.
 const MSG91_SEND_URL = process.env.REACT_APP_PARENT_WA_MSG91_SEND_URL ?? '';
 const MSG91_REPORT_URL = process.env.REACT_APP_PARENT_WA_MSG91_REPORT_URL ?? '';
 const MSG91_AUTHKEY = process.env.REACT_APP_PARENT_WA_MSG91_AUTHKEY ?? '';
@@ -24,13 +25,6 @@ const WHATSAPP_TEMPLATE_SEND_URL =
   process.env.REACT_APP_PARENT_WA_WHATSAPP_TEMPLATE_SEND_URL ?? '';
 const WHATSAPP_ACCESS_TOKEN =
   process.env.REACT_APP_PARENT_WA_WHATSAPP_ACCESS_TOKEN ?? '';
-const MAYTAPI_GROUP_BASE_URL =
-  process.env.REACT_APP_PARENT_WA_MAYTAPI_GROUP_BASE_URL ?? '';
-const MAYTAPI_PRODUCT_ID =
-  process.env.REACT_APP_PARENT_WA_MAYTAPI_PRODUCT_ID ?? '';
-const MAYTAPI_PHONE_ID = process.env.REACT_APP_PARENT_WA_MAYTAPI_PHONE_ID ?? '';
-const MAYTAPI_API_TOKEN =
-  process.env.REACT_APP_PARENT_WA_MAYTAPI_API_TOKEN ?? '';
 
 const REQUEST_TIMEOUT_MS = parseNumberEnv(
   process.env.REACT_APP_PARENT_WA_REQUEST_TIMEOUT_MS,
@@ -45,6 +39,16 @@ const RETRY_COUNT = parseNumberEnv(
   2,
 );
 
+/*
+External HTTP APIs (ACTIVE runtime calls):
+- Maytapi group fetch via Supabase RPC: parent_wa_get_group_details
+- MSG91 report: POST {MSG91_REPORT_URL}?startDate=...&endDate=...
+- MSG91 send flow via Supabase RPC: send_parent_whatsapp_msg91_invites
+- WhatsApp media upload: POST {WHATSAPP_MEDIA_UPLOAD_URL}
+- WhatsApp template/marketing send: POST {WHATSAPP_TEMPLATE_SEND_URL}
+*/
+
+// Common external API error object propagated to UI and logs.
 export type ParentWhatsappApiError = {
   message: string;
   statusCode?: number;
@@ -52,6 +56,7 @@ export type ParentWhatsappApiError = {
   exceptionMessage?: string;
 };
 
+// A single parent invite row generated from UDISE analysis.
 export type ParentWhatsappInviteRow = {
   udise: string;
   school: string;
@@ -60,6 +65,7 @@ export type ParentWhatsappInviteRow = {
   inviteLink: string;
 };
 
+// Captures per-group failures during WhatsApp group/member analysis.
 export type ParentWhatsappFailedGroupRow = {
   udise: string;
   school: string;
@@ -71,6 +77,7 @@ export type ParentWhatsappFailedGroupRow = {
   exceptionMessage?: string;
 };
 
+// End-to-end analysis output used by the invite send flow.
 export type ParentWhatsappAnalysisResult = {
   processedUdise: string[];
   inviteList: ParentWhatsappInviteRow[];
@@ -78,6 +85,7 @@ export type ParentWhatsappAnalysisResult = {
   totalMissing: number;
 };
 
+// Details of one failed MSG91 batch send attempt.
 export type ParentWhatsappSmsBatchFailure = {
   batchIndex: number;
   recipients: string[];
@@ -85,16 +93,19 @@ export type ParentWhatsappSmsBatchFailure = {
   error: ParentWhatsappApiError;
 };
 
+// MSG91 send result summary with success count and failed batches.
 export type ParentWhatsappSmsSendResult = {
   successCount: number;
   failedBatches: ParentWhatsappSmsBatchFailure[];
 };
 
+// Per-number WhatsApp template send failure details.
 export type ParentWhatsappSendFailure = {
   mobile: string;
   error: ParentWhatsappApiError;
 };
 
+// Flags showing whether required external endpoints are configured.
 export type ParentWhatsappConfigStatus = {
   hasMsg91Send: boolean;
   hasMsg91Report: boolean;
@@ -102,11 +113,13 @@ export type ParentWhatsappConfigStatus = {
   hasWhatsappTemplateSend: boolean;
 };
 
+// Parsed WhatsApp group members and invite link for comparison.
 type ParsedWhatsappGroup = {
   members: Set<string>;
   inviteLink: string | null;
 };
 
+// Maytapi group response shape variants handled by parser.
 type MaytapiGroupPayload = {
   data?: {
     participants?: unknown[];
@@ -120,18 +133,14 @@ type MaytapiGroupPayload = {
   inviteLink?: string;
 };
 
+// Generic parsed HTTP response with raw text and JSON payload.
 type ParsedEndpointResponse = {
   response: Response;
   text: string;
   payload: unknown;
 };
 
-type ParentPhoneRow = {
-  user?: {
-    phone?: string | null;
-  } | null;
-};
-
+// Minimal class row shape needed for invite/group processing.
 type DirectClassRow = {
   id: string;
   name: string;
@@ -139,11 +148,19 @@ type DirectClassRow = {
   whatsapp_invite_link?: string | null;
 };
 
+type ParentWhatsappSchoolRow = {
+  id: string;
+  name: string;
+  whatsapp_bot_number?: string | null;
+};
+
+// Small async delay helper used in retry backoff.
 const wait = (ms: number) =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
 
+// Structured console logger for parent WhatsApp workflow events.
 const logParentWhatsappEvent = (
   event: string,
   details: Record<string, unknown>,
@@ -151,13 +168,7 @@ const logParentWhatsappEvent = (
   console.info(`[ParentWhatsappInvitation] ${event}`, details);
 };
 
-const getSupabaseClientFromApi = (api: ApiHandler): any | null => {
-  const service = (api as unknown as { s?: any }).s;
-  if (service?.supabase) return service.supabase;
-  if (service?._serverApi?.supabase) return service._serverApi.supabase;
-  return null;
-};
-
+// Normalizes UDISE input into expected 11-digit code format.
 const normalizeUdiseCode = (raw: string): string | null => {
   const digits = raw.replace(/\D/g, '');
   if (!digits) return null;
@@ -166,6 +177,7 @@ const normalizeUdiseCode = (raw: string): string | null => {
   return null;
 };
 
+// Safely parses JSON payload text without throwing.
 const safeJsonParse = (value: string): unknown => {
   if (!value) return null;
   try {
@@ -175,6 +187,7 @@ const safeJsonParse = (value: string): unknown => {
   }
 };
 
+// Extracts a readable error message from nested API error payloads.
 const extractMessageFromPayload = (payload: unknown): string | null => {
   if (!payload || typeof payload !== 'object') return null;
   const record = payload as Record<string, unknown>;
@@ -213,6 +226,7 @@ const extractMessageFromPayload = (payload: unknown): string | null => {
   return candidate || null;
 };
 
+// Builds a normalized ParentWhatsappApiError from mixed error inputs.
 const buildApiError = (params: {
   message?: string;
   statusCode?: number;
@@ -238,6 +252,7 @@ const buildApiError = (params: {
   };
 };
 
+// Detects direct MSG91 control domain usage (blocked by browser CORS).
 const isDirectMsg91ControlUrl = (url: string): boolean => {
   try {
     return new URL(url).hostname === 'control.msg91.com';
@@ -246,6 +261,7 @@ const isDirectMsg91ControlUrl = (url: string): boolean => {
   }
 };
 
+// Blocks direct MSG91 browser URLs and guides users to backend/proxy endpoints.
 const ensureBrowserSafeExternalUrl = (
   url: string,
   action: string,
@@ -267,6 +283,7 @@ const ensureBrowserSafeExternalUrl = (
   return url;
 };
 
+// Detects direct WhatsApp Graph API URL usage.
 const isDirectGraphApiUrl = (url: string): boolean => {
   try {
     return /(^|\.)graph\.facebook\.com$/i.test(new URL(url).hostname);
@@ -275,9 +292,11 @@ const isDirectGraphApiUrl = (url: string): boolean => {
   }
 };
 
+// Marks retryable HTTP statuses (429 and 5xx).
 const isTransientStatus = (status: number): boolean =>
   status === 429 || (status >= 500 && status <= 599);
 
+// Marks retryable network/runtime fetch failures.
 const shouldRetryError = (error: unknown): boolean => {
   if (!(error instanceof Error)) return false;
   return (
@@ -288,6 +307,7 @@ const shouldRetryError = (error: unknown): boolean => {
   );
 };
 
+// Parses fetch response into response/text/json payload bundle.
 const parseEndpointResponse = async (
   response: Response,
 ): Promise<ParsedEndpointResponse> => {
@@ -299,6 +319,7 @@ const parseEndpointResponse = async (
   };
 };
 
+// Runs fetch with AbortController timeout protection.
 const requestWithTimeout = async (
   input: RequestInfo,
   init: RequestInit,
@@ -317,6 +338,7 @@ const requestWithTimeout = async (
   }
 };
 
+// Retries transient network/status failures with exponential backoff.
 const requestWithRetry = async (
   requestFactory: () => Promise<Response>,
   retries: number = RETRY_COUNT,
@@ -342,6 +364,7 @@ const requestWithRetry = async (
   }
 };
 
+// Splits invite rows into fixed-size batches for MSG91 sends.
 const chunkInviteRows = (
   inviteRows: ParentWhatsappInviteRow[],
   batchSize: number,
@@ -353,6 +376,7 @@ const chunkInviteRows = (
   return chunks;
 };
 
+// Extracts and normalizes a member phone from mixed Maytapi participant shapes.
 const parseMemberPhone = (member: unknown): string | null => {
   if (typeof member === 'string') {
     return normalizeIndianPhone10(member.replace('@c.us', ''));
@@ -386,6 +410,7 @@ const parseMemberPhone = (member: unknown): string | null => {
   return null;
 };
 
+// Converts raw group payload into normalized members + invite link.
 const parseWhatsappGroupDetails = (raw: unknown): ParsedWhatsappGroup => {
   const parsedGroup =
     typeof raw === 'object' && raw !== null && !Array.isArray(raw)
@@ -426,15 +451,15 @@ const parseWhatsappGroupDetails = (raw: unknown): ParsedWhatsappGroup => {
   };
 };
 
-const extractParentPhonesFromStudents = (
-  students: StudentInfo[],
-): Set<string> => {
+// Fetches parent phones for a class via dedicated parent WhatsApp API method.
+const fetchParentPhonesForClass = async (
+  api: ApiHandler,
+  classId: string,
+): Promise<Set<string>> => {
+  const rawPhones = await api.getParentWhatsappParentPhonesByClassId(classId);
   const parentPhones = new Set<string>();
-
-  students.forEach((student) => {
-    const normalizedParentPhone = normalizeIndianPhone10(
-      String(student.parent?.phone ?? ''),
-    );
+  rawPhones.forEach((phone) => {
+    const normalizedParentPhone = normalizeIndianPhone10(phone);
     if (normalizedParentPhone) {
       parentPhones.add(normalizedParentPhone);
     }
@@ -443,165 +468,39 @@ const extractParentPhonesFromStudents = (
   return parentPhones;
 };
 
-const fetchParentPhonesForClass = async (
-  api: ApiHandler,
-  classId: string,
-): Promise<Set<string>> => {
-  const apiSupabase = getSupabaseClientFromApi(api);
-
-  if (apiSupabase) {
-    const { data, error } = await apiSupabase
-      .from('class_user')
-      .select('user:user_id(phone)')
-      .eq('class_id', classId)
-      .eq('role', 'parent')
-      .eq('is_deleted', false);
-
-    if (!error) {
-      const parentPhones = new Set<string>();
-
-      (data as ParentPhoneRow[] | null)?.forEach((row) => {
-        const normalizedParentPhone = normalizeIndianPhone10(
-          String(row.user?.phone ?? ''),
-        );
-        if (normalizedParentPhone) {
-          parentPhones.add(normalizedParentPhone);
-        }
-      });
-
-      return parentPhones;
-    }
-
-    logParentWhatsappEvent('parent_phone_query_fallback', {
-      classId,
-      reason: error.message,
-    });
-  }
-
-  const pageSize = 200;
-  const allStudents: StudentInfo[] = [];
-  let page = 1;
-  let total = 0;
-
-  do {
-    const response = await api.getStudentsAndParentsByClassId(
-      classId,
-      page,
-      pageSize,
-    );
-    total = response.total ?? 0;
-    allStudents.push(...(response.data ?? []));
-    page += 1;
-  } while (allStudents.length < total);
-
-  return extractParentPhonesFromStudents(allStudents);
-};
-
+// Finds an exact UDISE school via dedicated parent WhatsApp API method.
 const findSchoolByUdise = async (
   api: ApiHandler,
   udiseCode: string,
-): Promise<TableTypes<'school'> | null> => {
-  const apiSupabase = getSupabaseClientFromApi(api);
-  if (apiSupabase) {
-    const { data, error } = await apiSupabase
-      .from('school')
-      .select('id, name, whatsapp_bot_number')
-      .eq('udise', udiseCode)
-      .eq('is_deleted', false)
-      .limit(1)
-      .maybeSingle();
-
-    if (!error && data?.id) {
-      return data as TableTypes<'school'>;
-    }
-  }
-
-  const result = await api.searchSchools({ p_search_text: udiseCode });
-  const exactMatch =
-    result.schools.find(
-      (school) => String(school.udise ?? '').trim() === udiseCode,
-    ) ?? null;
-
-  if (!exactMatch?.id) {
-    return null;
-  }
-
-  const school = await api.getSchoolById(exactMatch.id);
-  return school ?? exactMatch;
+): Promise<ParentWhatsappSchoolRow | null> => {
+  return await api.getParentWhatsappSchoolByUdise(udiseCode);
 };
 
+// Fetches classes for a school via dedicated parent WhatsApp API method.
 const fetchClassesForSchool = async (
   api: ApiHandler,
   schoolId: string,
 ): Promise<DirectClassRow[]> => {
-  const apiSupabase = getSupabaseClientFromApi(api);
-  if (apiSupabase) {
-    const { data, error } = await apiSupabase
-      .from('class')
-      .select('id, name, group_id, whatsapp_invite_link')
-      .eq('school_id', schoolId)
-      .eq('is_deleted', false);
-
-    if (!error && Array.isArray(data)) {
-      return data as DirectClassRow[];
-    }
-  }
-
-  const classes = await api.getClassesBySchoolId(schoolId);
-  return classes.map((classRow) => ({
-    id: classRow.id,
-    name: classRow.name,
-    group_id: classRow.group_id,
-    whatsapp_invite_link: null,
-  }));
+  return await api.getParentWhatsappClassesBySchoolId(schoolId);
 };
 
+// Fetches WhatsApp group details via parent WhatsApp dedicated RPC path.
 const fetchWhatsappGroupDetails = async (
   api: ApiHandler,
   groupId: string,
-  botNumber: string,
 ): Promise<unknown> => {
-  if (
-    MAYTAPI_GROUP_BASE_URL &&
-    MAYTAPI_PRODUCT_ID &&
-    MAYTAPI_PHONE_ID &&
-    MAYTAPI_API_TOKEN
-  ) {
-    const url =
-      `${MAYTAPI_GROUP_BASE_URL}/${MAYTAPI_PRODUCT_ID}/${MAYTAPI_PHONE_ID}` +
-      `/getGroups/${groupId}?invite=true`;
-
-    const response = await requestWithRetry(() =>
-      requestWithTimeout(url, {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          'x-maytapi-key': MAYTAPI_API_TOKEN,
-        },
-      }),
-    );
-
-    try {
-      const parsedResponse = await parseEndpointResponse(response);
-      assertSuccessfulResponse(
-        parsedResponse,
-        'Failed to fetch WhatsApp group details.',
-      );
-      return parsedResponse.payload;
-    } catch (error) {
-      logParentWhatsappEvent('maytapi_fallback_to_api', {
-        groupId,
-        statusCode:
-          error && typeof error === 'object' && 'statusCode' in error
-            ? Number((error as { statusCode?: number }).statusCode)
-            : undefined,
-      });
-    }
+  try {
+    return await api.getParentWhatsappGroupDetails(groupId);
+  } catch (error) {
+    throw buildApiError({
+      message: 'Failed to fetch WhatsApp group details.',
+      exceptionMessage: error instanceof Error ? error.message : String(error),
+      payload: error,
+    });
   }
-
-  return api.getWhatsappGroupDetails(groupId, botNumber);
 };
 
+// Ensures mandatory endpoint URLs are configured before outbound calls.
 const ensureConfiguredUrl = (url: string, action: string): string => {
   if (!url) {
     throw buildApiError({
@@ -611,6 +510,7 @@ const ensureConfiguredUrl = (url: string, action: string): string => {
   return url;
 };
 
+// Throws a normalized error when HTTP response or payload indicates failure.
 const assertSuccessfulResponse = (
   parsedResponse: ParsedEndpointResponse,
   defaultMessage: string,
@@ -633,14 +533,16 @@ const assertSuccessfulResponse = (
   });
 };
 
+// Returns which parent WhatsApp integration endpoints are currently configured.
 export const getParentWhatsappConfigStatus =
   (): ParentWhatsappConfigStatus => ({
-    hasMsg91Send: Boolean(MSG91_SEND_URL),
+    hasMsg91Send: true,
     hasMsg91Report: Boolean(MSG91_REPORT_URL),
     hasWhatsappMediaUpload: Boolean(WHATSAPP_MEDIA_UPLOAD_URL),
     hasWhatsappTemplateSend: Boolean(WHATSAPP_TEMPLATE_SEND_URL),
   });
 
+// Runs UDISE analysis to compute missing parents and build invite rows.
 export const processParentWhatsappUdiseCodes = async (params: {
   api: ApiHandler;
   udiseCodes: string[];
@@ -662,18 +564,13 @@ export const processParentWhatsappUdiseCodes = async (params: {
 
     for (const classRow of classes) {
       const groupId = String(classRow.group_id ?? '').trim();
-      const botNumber = String(school.whatsapp_bot_number ?? '').trim();
 
-      if (!botNumber || !groupId) {
+      if (!groupId) {
         continue;
       }
 
       try {
-        const rawGroup = await fetchWhatsappGroupDetails(
-          api,
-          groupId,
-          botNumber,
-        );
+        const rawGroup = await fetchWhatsappGroupDetails(api, groupId);
         const group = parseWhatsappGroupDetails(rawGroup);
         const inviteLink =
           group.inviteLink ??
@@ -770,6 +667,7 @@ export const processParentWhatsappUdiseCodes = async (params: {
   };
 };
 
+// Fetches MSG91 report rows for the selected date range.
 export const fetchParentWhatsappMsg91Report = async (params: {
   startDate: string;
   endDate: string;
@@ -812,72 +710,103 @@ export const fetchParentWhatsappMsg91Report = async (params: {
     : [];
 };
 
+// Sends invite batches to MSG91 via Supabase RPC and returns detailed failures.
 export const sendParentWhatsappMsg91Invites = async (
+  api: ApiHandler,
   inviteRows: ParentWhatsappInviteRow[],
 ): Promise<ParentWhatsappSmsSendResult> => {
-  const url = ensureBrowserSafeExternalUrl(
-    ensureConfiguredUrl(MSG91_SEND_URL, 'MSG91 send'),
-    'MSG91 send',
-    'REACT_APP_PARENT_WA_MSG91_SEND_URL',
+  if (!inviteRows.length) {
+    return {
+      successCount: 0,
+      failedBatches: [],
+    };
+  }
+
+  const rpcPayload = await api.getParentWhatsappMsg91SendResult(
+    inviteRows,
+    MSG91_BATCH_SIZE,
   );
+  const payload =
+    rpcPayload && typeof rpcPayload === 'object'
+      ? (rpcPayload as {
+          successCount?: unknown;
+          failedBatches?: unknown;
+        })
+      : null;
+
+  const successCountRaw = Number(payload?.successCount ?? 0);
+  const successCount =
+    Number.isFinite(successCountRaw) && successCountRaw >= 0
+      ? successCountRaw
+      : 0;
+
+  const chunkedInviteRows = chunkInviteRows(inviteRows, MSG91_BATCH_SIZE);
+  const rawFailedBatches = Array.isArray(payload?.failedBatches)
+    ? payload?.failedBatches
+    : [];
   const failedBatches: ParentWhatsappSmsBatchFailure[] = [];
-  let successCount = 0;
 
-  const batches = chunkInviteRows(inviteRows, MSG91_BATCH_SIZE);
+  for (const [index, rawFailure] of rawFailedBatches.entries()) {
+    const failure =
+      rawFailure && typeof rawFailure === 'object'
+        ? (rawFailure as {
+            batchIndex?: unknown;
+            recipients?: unknown;
+            statusCode?: unknown;
+            responseText?: unknown;
+            exceptionMessage?: unknown;
+            error?: unknown;
+          })
+        : null;
 
-  for (const [index, batch] of batches.entries()) {
-    const recipients = batch.map((row) => ({
-      mobiles: row.mobile,
-      var1: row.inviteLink,
-    }));
+    const batchIndexRaw = Number(failure?.batchIndex);
+    const batchIndex =
+      Number.isFinite(batchIndexRaw) && batchIndexRaw > 0
+        ? batchIndexRaw
+        : index + 1;
 
-    logParentWhatsappEvent('msg91_batch_send_start', {
-      batchIndex: index + 1,
-      batchSize: recipients.length,
+    const inviteBatch = chunkedInviteRows[batchIndex - 1] ?? [];
+    const recipients = Array.isArray(failure?.recipients)
+      ? failure.recipients.map((recipient) => String(recipient))
+      : inviteBatch.map((row) => row.mobile);
+
+    const statusCode =
+      typeof failure?.statusCode === 'number'
+        ? failure.statusCode
+        : typeof failure?.statusCode === 'string'
+          ? Number(failure.statusCode)
+          : undefined;
+
+    const responseText =
+      typeof failure?.responseText === 'string'
+        ? failure.responseText
+        : undefined;
+    const exceptionMessage =
+      typeof failure?.exceptionMessage === 'string'
+        ? failure.exceptionMessage
+        : undefined;
+
+    const apiError = buildApiError({
+      message: 'Failed to send MSG91 batch.',
+      statusCode: Number.isFinite(statusCode ?? NaN) ? statusCode : undefined,
+      responseText,
+      exceptionMessage,
+      payload: failure?.error ?? failure,
     });
 
-    try {
-      const response = await requestWithRetry(() =>
-        requestWithTimeout(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(MSG91_AUTHKEY ? { authkey: MSG91_AUTHKEY } : {}),
-          },
-          body: JSON.stringify({
-            template_id: MSG91_TEMPLATE_ID,
-            short_url: '1',
-            recipients,
-          }),
-        }),
-      );
+    logParentWhatsappEvent('msg91_batch_send_failed', {
+      batchIndex,
+      batchSize: recipients.length,
+      statusCode: apiError.statusCode,
+      exceptionMessage: apiError.exceptionMessage,
+    });
 
-      const parsedResponse = await parseEndpointResponse(response);
-      assertSuccessfulResponse(parsedResponse, 'Failed to send MSG91 batch.');
-      successCount += batch.length;
-    } catch (error) {
-      const apiError =
-        error instanceof Error
-          ? buildApiError({
-              message: error.message,
-              exceptionMessage: error.message,
-            })
-          : (error as ParentWhatsappApiError);
-
-      logParentWhatsappEvent('msg91_batch_send_failed', {
-        batchIndex: index + 1,
-        batchSize: recipients.length,
-        statusCode: apiError.statusCode,
-        exceptionMessage: apiError.exceptionMessage,
-      });
-
-      failedBatches.push({
-        batchIndex: index + 1,
-        recipients: recipients.map((recipient) => recipient.mobiles),
-        inviteRows: batch,
-        error: apiError,
-      });
-    }
+    failedBatches.push({
+      batchIndex,
+      recipients,
+      inviteRows: inviteBatch,
+      error: apiError,
+    });
   }
 
   return {
@@ -886,6 +815,7 @@ export const sendParentWhatsappMsg91Invites = async (
   };
 };
 
+// Uploads WhatsApp media and returns the generated media id.
 export const uploadParentWhatsappMedia = async (
   file: File,
 ): Promise<string> => {
@@ -938,6 +868,7 @@ export const uploadParentWhatsappMedia = async (
   return mediaId;
 };
 
+// Sends one WhatsApp template message (with optional header media).
 export const sendParentWhatsappTemplateMessage = async (params: {
   to: string;
   templateName: string;

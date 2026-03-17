@@ -48,6 +48,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
+import { Json } from '../database';
 import logger from '../../utility/logger';
 
 export class ApiHandler implements ServiceApi {
@@ -409,6 +410,21 @@ export class ApiHandler implements ServiceApi {
     id: string,
   ): Promise<TableTypes<'school'> | undefined> {
     return await this.s.getSchoolById(id);
+  }
+
+  public async getParentWhatsappSchoolByUdise(
+    udiseCode: string,
+  ): Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null> {
+    if (!this.s.getParentWhatsappSchoolByUdise) {
+      throw new Error(
+        'Parent WhatsApp school lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappSchoolByUdise(udiseCode);
   }
 
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -1602,6 +1618,33 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<'class'>[]> {
     return await this.s.getClassesBySchoolId(schoolId);
   }
+
+  public async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  > {
+    if (!this.s.getParentWhatsappClassesBySchoolId) {
+      throw new Error(
+        'Parent WhatsApp class lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappClassesBySchoolId(schoolId);
+  }
+
+  public async getParentWhatsappParentPhonesByClassId(
+    classId: string,
+  ): Promise<string[]> {
+    if (!this.s.getParentWhatsappParentPhonesByClassId) {
+      throw new Error(
+        'Parent WhatsApp parent phone lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappParentPhonesByClassId(classId);
+  }
   public async createAutoProfile(
     languageDocId: string | undefined,
   ): Promise<TableTypes<'user'>> {
@@ -2035,6 +2078,30 @@ export class ApiHandler implements ServiceApi {
   }
   public async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this.s.getWhatsappGroupDetails(groupId, bot);
+  }
+
+  public async getParentWhatsappGroupDetails(groupId: string) {
+    if (!this.s.getParentWhatsappGroupDetails) {
+      throw new Error(
+        'Parent WhatsApp group lookup RPC is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappGroupDetails(groupId);
+  }
+
+  public async getParentWhatsappMsg91SendResult(
+    inviteRows: Json,
+    batchSize: number,
+  ) {
+    if (!this.s.getParentWhatsappMsg91SendResult) {
+      throw new Error(
+        'Parent WhatsApp MSG91 send RPC is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappMsg91SendResult(
+      inviteRows,
+      batchSize,
+    );
   }
 
   public async getGroupIdByInvite(invite_link: string, bot: string) {

@@ -3045,6 +3045,39 @@ export class SupabaseApi implements ServiceApi {
     }
     return data ?? undefined;
   }
+
+  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select('id, name, whatsapp_bot_number')
+      .eq('udise', udiseCode)
+      .eq('is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error(
+        'Error in parent WhatsApp school lookup by UDISE:',
+        error,
+      );
+      throw error;
+    }
+
+    return data
+      ? {
+          id: data.id,
+          name: data.name,
+          whatsapp_bot_number: data.whatsapp_bot_number,
+        }
+      : null;
+  }
   async isStudentLinked(
     studentId: string,
     fromCache: boolean,
@@ -3343,6 +3376,71 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return classes || [];
+  }
+
+  // Parent WhatsApp Invitation: class lookup with group and invite fields.
+  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  > {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, name, group_id, whatsapp_invite_link')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      console.error(
+        'Error in parent WhatsApp class lookup by school ID:',
+        error,
+      );
+      throw error;
+    }
+
+    return (data ?? []).map((classRow) => ({
+      id: classRow.id,
+      name: classRow.name,
+      group_id: classRow.group_id,
+      whatsapp_invite_link: classRow.whatsapp_invite_link,
+    }));
+  }
+
+  // Parent WhatsApp Invitation: parent phone lookup from class_user join.
+  async getParentWhatsappParentPhonesByClassId(
+    classId: string,
+  ): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select('user:user_id(phone)')
+      .eq('class_id', classId)
+      .eq('role', RoleType.PARENT)
+      .eq('is_deleted', false);
+
+    if (error) {
+      console.error(
+        'Error in parent WhatsApp parent phone lookup by class ID:',
+        error,
+      );
+      throw error;
+    }
+
+    const phoneSet = new Set<string>();
+    (data ?? []).forEach((row: any) => {
+      const phone = String(row?.user?.phone ?? '').trim();
+      if (phone) {
+        phoneSet.add(phone);
+      }
+    });
+
+    return Array.from(phoneSet);
   }
 
   async getUsersByIds(userIds: string[]): Promise<TableTypes<'user'>[]> {
@@ -11784,6 +11882,41 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data.data;
+  }
+
+  async getParentWhatsappGroupDetails(groupId: string) {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.rpc(
+      'parent_wa_get_group_details',
+      {
+        p_group_id: groupId,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+    if (!this.supabase) return {
+      successCount: 0,
+      failedBatches: [],
+    };
+    const { data, error } = await this.supabase.rpc(
+      'send_parent_whatsapp_msg91_invites',
+      {
+        p_invite_rows: inviteRows,
+        p_batch_size: batchSize,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
   }
   async getGroupIdByInvite(invite_link: string, bot: string) {
     if (!this.supabase) return [];

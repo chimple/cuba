@@ -3120,6 +3120,20 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
+  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null> {
+    if (!this._serverApi.getParentWhatsappSchoolByUdise) {
+      throw new Error(
+        'Parent WhatsApp school lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappSchoolByUdise(udiseCode);
+  }
   public async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -5524,6 +5538,35 @@ order by
     const res = await this._db?.query(query, [schoolId]);
 
     return res?.values ?? [];
+  }
+
+  // Parent WhatsApp Invitation: class lookup with group/invite fields.
+  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  > {
+    if (!this._serverApi.getParentWhatsappClassesBySchoolId) {
+      throw new Error(
+        'Parent WhatsApp class lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolId);
+  }
+
+  // Parent WhatsApp Invitation: parent phones from class_user -> user join.
+  async getParentWhatsappParentPhonesByClassId(
+    classId: string,
+  ): Promise<string[]> {
+    if (!this._serverApi.getParentWhatsappParentPhonesByClassId) {
+      throw new Error(
+        'Parent WhatsApp parent phone lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappParentPhonesByClassId(classId);
   }
   async getCoordinatorsForSchool(
     schoolId: string,
@@ -8193,6 +8236,22 @@ order by
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
+  }
+  async getParentWhatsappGroupDetails(groupId: string) {
+    return this._serverApi.getParentWhatsappGroupDetails
+      ? await this._serverApi.getParentWhatsappGroupDetails(groupId)
+      : [];
+  }
+  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+    return this._serverApi.getParentWhatsappMsg91SendResult
+      ? await this._serverApi.getParentWhatsappMsg91SendResult(
+          inviteRows,
+          batchSize,
+        )
+      : {
+          successCount: 0,
+          failedBatches: [],
+        };
   }
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);
