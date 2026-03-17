@@ -4,48 +4,18 @@ import {
   normalizeIndianPhone10,
 } from '../../utils/phoneNormalization';
 
-// Parses numeric env values with a safe positive fallback.
-const parseNumberEnv = (
-  value: string | undefined,
-  fallback: number,
-): number => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
-
 // Runtime config values for MSG91, WhatsApp Cloud, and Maytapi integrations.
-const MSG91_SEND_URL = process.env.REACT_APP_PARENT_WA_MSG91_SEND_URL ?? '';
-const MSG91_REPORT_URL = process.env.REACT_APP_PARENT_WA_MSG91_REPORT_URL ?? '';
-const MSG91_AUTHKEY = process.env.REACT_APP_PARENT_WA_MSG91_AUTHKEY ?? '';
-const MSG91_TEMPLATE_ID =
-  process.env.REACT_APP_PARENT_WA_MSG91_TEMPLATE_ID ?? '';
-const WHATSAPP_MEDIA_UPLOAD_URL =
-  process.env.REACT_APP_PARENT_WA_WHATSAPP_MEDIA_UPLOAD_URL ?? '';
-const WHATSAPP_TEMPLATE_SEND_URL =
-  process.env.REACT_APP_PARENT_WA_WHATSAPP_TEMPLATE_SEND_URL ?? '';
-const WHATSAPP_ACCESS_TOKEN =
-  process.env.REACT_APP_PARENT_WA_WHATSAPP_ACCESS_TOKEN ?? '';
-
-const REQUEST_TIMEOUT_MS = parseNumberEnv(
-  process.env.REACT_APP_PARENT_WA_REQUEST_TIMEOUT_MS,
-  15000,
-);
-const MSG91_BATCH_SIZE = parseNumberEnv(
-  process.env.REACT_APP_PARENT_WA_MSG91_BATCH_SIZE,
-  100,
-);
-const RETRY_COUNT = parseNumberEnv(
-  process.env.REACT_APP_PARENT_WA_RETRY_COUNT,
-  2,
-);
+const REQUEST_TIMEOUT_MS = 15000;
+const MSG91_BATCH_SIZE = 100;
+const RETRY_COUNT = 3;
 
 /*
 External HTTP APIs (ACTIVE runtime calls):
 - Maytapi group fetch via Supabase RPC: parent_wa_get_group_details
-- MSG91 report: POST {MSG91_REPORT_URL}?startDate=...&endDate=...
+- MSG91 report via Supabase RPC: fetch_parent_whatsapp_msg91_report
 - MSG91 send flow via Supabase RPC: send_parent_whatsapp_msg91_invites
-- WhatsApp media upload: POST {WHATSAPP_MEDIA_UPLOAD_URL}
-- WhatsApp template/marketing send: POST {WHATSAPP_TEMPLATE_SEND_URL}
+- WhatsApp media upload via Supabase Edge Function: upload-parent-whatsapp-media
+- WhatsApp template/marketing send via Supabase RPC: send_parent_whatsapp_template_message
 */
 
 // Common external API error object propagated to UI and logs.
@@ -159,6 +129,21 @@ const wait = (ms: number) =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+
+// Encodes a File into plain base64 content for RPC/Edge payloads.
+const fileToBase64 = async (file: File): Promise<string> => {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 0x8000;
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    const chunk = bytes.subarray(index, index + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+};
 
 // Structured console logger for parent WhatsApp workflow events.
 const logParentWhatsappEvent = (
@@ -281,15 +266,6 @@ const ensureBrowserSafeExternalUrl = (
   }
 
   return url;
-};
-
-// Detects direct WhatsApp Graph API URL usage.
-const isDirectGraphApiUrl = (url: string): boolean => {
-  try {
-    return /(^|\.)graph\.facebook\.com$/i.test(new URL(url).hostname);
-  } catch {
-    return /graph\.facebook\.com/i.test(url);
-  }
 };
 
 // Marks retryable HTTP statuses (429 and 5xx).
@@ -500,16 +476,6 @@ const fetchWhatsappGroupDetails = async (
   }
 };
 
-// Ensures mandatory endpoint URLs are configured before outbound calls.
-const ensureConfiguredUrl = (url: string, action: string): string => {
-  if (!url) {
-    throw buildApiError({
-      message: `${action} is not configured. Add the required React env URL first.`,
-    });
-  }
-  return url;
-};
-
 // Throws a normalized error when HTTP response or payload indicates failure.
 const assertSuccessfulResponse = (
   parsedResponse: ParsedEndpointResponse,
@@ -537,9 +503,9 @@ const assertSuccessfulResponse = (
 export const getParentWhatsappConfigStatus =
   (): ParentWhatsappConfigStatus => ({
     hasMsg91Send: true,
-    hasMsg91Report: Boolean(MSG91_REPORT_URL),
-    hasWhatsappMediaUpload: Boolean(WHATSAPP_MEDIA_UPLOAD_URL),
-    hasWhatsappTemplateSend: Boolean(WHATSAPP_TEMPLATE_SEND_URL),
+    hasMsg91Report: true,
+    hasWhatsappMediaUpload: true,
+    hasWhatsappTemplateSend: true,
   });
 
 // Runs UDISE analysis to compute missing parents and build invite rows.
@@ -669,45 +635,63 @@ export const processParentWhatsappUdiseCodes = async (params: {
 
 // Fetches MSG91 report rows for the selected date range.
 export const fetchParentWhatsappMsg91Report = async (params: {
+  api: ApiHandler;
   startDate: string;
   endDate: string;
 }): Promise<Record<string, unknown>[]> => {
-  const url = ensureBrowserSafeExternalUrl(
-    ensureConfiguredUrl(MSG91_REPORT_URL, 'MSG91 report'),
-    'MSG91 report',
-    'REACT_APP_PARENT_WA_MSG91_REPORT_URL',
+  const rpcPayload = await params.api.getParentWhatsappMsg91ReportRows(
+    params.startDate,
+    params.endDate,
   );
-  const requestUrl = `${url}?startDate=${encodeURIComponent(params.startDate)}&endDate=${encodeURIComponent(params.endDate)}`;
-  const response = await requestWithRetry(() =>
-    requestWithTimeout(requestUrl, {
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        ...(MSG91_AUTHKEY ? { authkey: MSG91_AUTHKEY } : {}),
-      },
-      body: '',
-    }),
-  );
+  const payload =
+    rpcPayload && typeof rpcPayload === 'object'
+      ? (rpcPayload as {
+          success?: unknown;
+          statusCode?: unknown;
+          responseText?: unknown;
+          data?: unknown;
+          raw?: unknown;
+        })
+      : null;
 
-  const parsedResponse = await parseEndpointResponse(response);
-  assertSuccessfulResponse(parsedResponse, 'Failed to fetch MSG91 report.');
+  const isSuccess = payload?.success === undefined || payload.success === true;
 
-  if (Array.isArray(parsedResponse.payload)) {
-    return parsedResponse.payload as Record<string, unknown>[];
+  if (!isSuccess) {
+    const statusCode =
+      typeof payload?.statusCode === 'number'
+        ? payload.statusCode
+        : typeof payload?.statusCode === 'string'
+          ? Number(payload.statusCode)
+          : undefined;
+    throw buildApiError({
+      message: 'Failed to fetch MSG91 report.',
+      statusCode,
+      responseText:
+        typeof payload?.responseText === 'string'
+          ? payload.responseText
+          : undefined,
+      payload,
+    });
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data as Record<string, unknown>[];
   }
 
   if (
-    parsedResponse.payload &&
-    typeof parsedResponse.payload === 'object' &&
-    'data' in parsedResponse.payload &&
-    Array.isArray(parsedResponse.payload.data)
+    payload?.raw &&
+    typeof payload.raw === 'object' &&
+    'data' in payload.raw &&
+    Array.isArray((payload.raw as { data?: unknown[] }).data)
   ) {
-    return parsedResponse.payload.data as Record<string, unknown>[];
+    return (payload.raw as { data: Record<string, unknown>[] }).data;
   }
 
-  return parsedResponse.payload
-    ? [parsedResponse.payload as Record<string, unknown>]
-    : [];
+  if (payload?.raw && Array.isArray(payload.raw)) {
+    return payload.raw as Record<string, unknown>[];
+  }
+
+  return [];
 };
 
 // Sends invite batches to MSG91 via Supabase RPC and returns detailed failures.
@@ -817,51 +801,59 @@ export const sendParentWhatsappMsg91Invites = async (
 
 // Uploads WhatsApp media and returns the generated media id.
 export const uploadParentWhatsappMedia = async (
+  api: ApiHandler,
   file: File,
 ): Promise<string> => {
-  const url = ensureConfiguredUrl(
-    WHATSAPP_MEDIA_UPLOAD_URL,
-    'WhatsApp media upload',
+  const fileB64 = await fileToBase64(file);
+  const rpcPayload = await api.uploadParentWhatsappMediaRpc(
+    fileB64,
+    file.name,
+    file.type || 'application/octet-stream',
   );
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('messaging_product', 'whatsapp');
+  const payload =
+    rpcPayload && typeof rpcPayload === 'object'
+      ? (rpcPayload as {
+          success?: unknown;
+          statusCode?: unknown;
+          responseText?: unknown;
+          id?: unknown;
+          mediaId?: unknown;
+          raw?: unknown;
+        })
+      : null;
 
-  if (isDirectGraphApiUrl(url) && !WHATSAPP_ACCESS_TOKEN) {
+  const isSuccess = payload?.success === undefined || payload.success === true;
+  if (!isSuccess) {
+    const statusCode =
+      typeof payload?.statusCode === 'number'
+        ? payload.statusCode
+        : typeof payload?.statusCode === 'string'
+          ? Number(payload.statusCode)
+          : undefined;
     throw buildApiError({
-      message:
-        'WhatsApp access token is missing for direct Graph API media upload.',
-      exceptionMessage:
-        'Set REACT_APP_PARENT_WA_WHATSAPP_ACCESS_TOKEN or use a backend proxy endpoint.',
+      message: 'Failed to upload WhatsApp media.',
+      statusCode,
+      responseText:
+        typeof payload?.responseText === 'string'
+          ? payload.responseText
+          : undefined,
+      payload,
     });
   }
 
-  const headers: Record<string, string> = {};
-  if (WHATSAPP_ACCESS_TOKEN) {
-    headers.Authorization = `Bearer ${WHATSAPP_ACCESS_TOKEN}`;
-  }
-
-  const response = await requestWithRetry(() =>
-    requestWithTimeout(url, {
-      method: 'POST',
-      ...(Object.keys(headers).length > 0 ? { headers } : {}),
-      body: formData,
-    }),
-  );
-
-  const parsedResponse = await parseEndpointResponse(response);
-  assertSuccessfulResponse(parsedResponse, 'Failed to upload WhatsApp media.');
-
-  const payload =
-    parsedResponse.payload && typeof parsedResponse.payload === 'object'
-      ? (parsedResponse.payload as { id?: string; mediaId?: string })
-      : null;
-  const mediaId = payload?.id ?? payload?.mediaId;
+  const mediaId =
+    (typeof payload?.id === 'string' ? payload.id : null) ??
+    (typeof payload?.mediaId === 'string' ? payload.mediaId : null) ??
+    (payload?.raw &&
+    typeof payload.raw === 'object' &&
+    typeof (payload.raw as { id?: unknown }).id === 'string'
+      ? ((payload.raw as { id?: string }).id ?? null)
+      : null);
 
   if (!mediaId) {
     throw buildApiError({
       message: 'WhatsApp media upload succeeded but no media id was returned.',
-      responseText: parsedResponse.text,
+      payload,
     });
   }
 
@@ -869,80 +861,47 @@ export const uploadParentWhatsappMedia = async (
 };
 
 // Sends one WhatsApp template message (with optional header media).
-export const sendParentWhatsappTemplateMessage = async (params: {
-  to: string;
-  templateName: string;
-  templateLang: string;
-  messageType: 'utility' | 'marketing';
-  mediaId?: string | null;
-  mediaType?: 'image' | 'video' | null;
-}): Promise<void> => {
-  const configuredUrl = ensureConfiguredUrl(
-    WHATSAPP_TEMPLATE_SEND_URL,
-    'WhatsApp template send',
-  );
-  const isDirectGraphApi = isDirectGraphApiUrl(configuredUrl);
-  const requestUrl =
-    isDirectGraphApi && params.messageType === 'marketing'
-      ? configuredUrl.replace(/\/messages(\?.*)?$/i, '/marketing_messages$1')
-      : configuredUrl;
+export const sendParentWhatsappTemplateMessage = async (
+  api: ApiHandler,
+  params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  },
+): Promise<void> => {
+  const rpcPayload = await api.sendParentWhatsappTemplateMessageRpc(params);
+  const payload =
+    rpcPayload && typeof rpcPayload === 'object'
+      ? (rpcPayload as {
+          success?: unknown;
+          statusCode?: unknown;
+          responseText?: unknown;
+          raw?: unknown;
+        })
+      : null;
 
-  if (isDirectGraphApi && !WHATSAPP_ACCESS_TOKEN) {
-    throw buildApiError({
-      message:
-        'WhatsApp access token is missing for direct Graph API template send.',
-      exceptionMessage:
-        'Set REACT_APP_PARENT_WA_WHATSAPP_ACCESS_TOKEN or use a backend proxy endpoint.',
-    });
+  const isSuccess = payload?.success === undefined || payload.success === true;
+  if (isSuccess) {
+    return;
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (WHATSAPP_ACCESS_TOKEN) {
-    headers.Authorization = `Bearer ${WHATSAPP_ACCESS_TOKEN}`;
-  }
+  const statusCode =
+    typeof payload?.statusCode === 'number'
+      ? payload.statusCode
+      : typeof payload?.statusCode === 'string'
+        ? Number(payload.statusCode)
+        : undefined;
 
-  const graphApiPayload: Record<string, unknown> = {
-    messaging_product: 'whatsapp',
-    to: params.to,
-    type: 'template',
-    template: {
-      name: params.templateName,
-      language: { code: params.templateLang },
-    },
-  };
-
-  if (params.mediaId && params.mediaType) {
-    graphApiPayload.template = {
-      ...(graphApiPayload.template as Record<string, unknown>),
-      components: [
-        {
-          type: 'header',
-          parameters: [
-            {
-              type: params.mediaType,
-              [params.mediaType]: {
-                id: params.mediaId,
-              },
-            },
-          ],
-        },
-      ],
-    };
-  }
-
-  const response = await requestWithRetry(() =>
-    requestWithTimeout(requestUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(isDirectGraphApi ? graphApiPayload : params),
-    }),
-  );
-
-  const parsedResponse = await parseEndpointResponse(response);
-  assertSuccessfulResponse(
-    parsedResponse,
-    'Failed to send WhatsApp template message.',
-  );
+  throw buildApiError({
+    message: 'Failed to send WhatsApp template message.',
+    statusCode,
+    responseText:
+      typeof payload?.responseText === 'string'
+        ? payload.responseText
+        : undefined,
+    payload: payload?.raw ?? payload,
+  });
 };

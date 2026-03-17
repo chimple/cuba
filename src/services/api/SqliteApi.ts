@@ -5566,7 +5566,9 @@ order by
         'Parent WhatsApp parent phone lookup is not implemented in Supabase API.',
       );
     }
-    return await this._serverApi.getParentWhatsappParentPhonesByClassId(classId);
+    return await this._serverApi.getParentWhatsappParentPhonesByClassId(
+      classId,
+    );
   }
   async getCoordinatorsForSchool(
     schoolId: string,
@@ -8251,6 +8253,52 @@ order by
       : {
           successCount: 0,
           failedBatches: [],
+        };
+  }
+  async getParentWhatsappMsg91ReportRows(startDate: string, endDate: string) {
+    return this._serverApi.getParentWhatsappMsg91ReportRows
+      ? await this._serverApi.getParentWhatsappMsg91ReportRows(
+          startDate,
+          endDate,
+        )
+      : {
+          success: true,
+          statusCode: 200,
+          data: [],
+          raw: [],
+        };
+  }
+  async uploadParentWhatsappMediaRpc(
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    return this._serverApi.uploadParentWhatsappMediaRpc
+      ? await this._serverApi.uploadParentWhatsappMediaRpc(
+          fileB64,
+          fileName,
+          mimeType,
+        )
+      : {
+          success: false,
+          statusCode: 500,
+          responseText: 'Parent WhatsApp media upload RPC not implemented.',
+        };
+  }
+  async sendParentWhatsappTemplateMessageRpc(params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) {
+    return this._serverApi.sendParentWhatsappTemplateMessageRpc
+      ? await this._serverApi.sendParentWhatsappTemplateMessageRpc(params)
+      : {
+          success: false,
+          statusCode: 500,
+          responseText: 'Parent WhatsApp template send RPC not implemented.',
         };
   }
   async getGroupIdByInvite(invite_link: string, bot: string) {

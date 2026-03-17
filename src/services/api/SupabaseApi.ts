@@ -3063,10 +3063,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error(
-        'Error in parent WhatsApp school lookup by UDISE:',
-        error,
-      );
+      console.error('Error in parent WhatsApp school lookup by UDISE:', error);
       throw error;
     }
 
@@ -11900,15 +11897,101 @@ export class SupabaseApi implements ServiceApi {
     return data;
   }
   async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
-    if (!this.supabase) return {
-      successCount: 0,
-      failedBatches: [],
-    };
+    if (!this.supabase)
+      return {
+        successCount: 0,
+        failedBatches: [],
+      };
     const { data, error } = await this.supabase.rpc(
       'send_parent_whatsapp_msg91_invites',
       {
         p_invite_rows: inviteRows,
         p_batch_size: batchSize,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async getParentWhatsappMsg91ReportRows(startDate: string, endDate: string) {
+    if (!this.supabase) {
+      return {
+        success: true,
+        statusCode: 200,
+        data: [],
+        raw: [],
+      };
+    }
+    const { data, error } = await this.supabase.rpc(
+      'fetch_parent_whatsapp_msg91_report',
+      {
+        p_start_date: startDate,
+        p_end_date: endDate,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async uploadParentWhatsappMediaRpc(
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    if (!this.supabase) {
+      return {
+        success: false,
+        statusCode: 500,
+        responseText: 'Supabase client is not initialized.',
+      };
+    }
+    const { data, error } = await this.supabase.functions.invoke(
+      'upload-parent-whatsapp-media',
+      {
+        body: {
+          fileB64,
+          fileName,
+          mimeType,
+        },
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async sendParentWhatsappTemplateMessageRpc(params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) {
+    if (!this.supabase) {
+      return {
+        success: false,
+        statusCode: 500,
+        responseText: 'Supabase client is not initialized.',
+      };
+    }
+    const { data, error } = await this.supabase.rpc(
+      'send_parent_whatsapp_template_message',
+      {
+        p_to: params.to,
+        p_template_name: params.templateName,
+        p_template_lang: params.templateLang,
+        p_message_type: params.messageType,
+        p_media_id: params.mediaId ?? undefined,
+        p_media_type: params.mediaType ?? undefined,
       },
     );
 

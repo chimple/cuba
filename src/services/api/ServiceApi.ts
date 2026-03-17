@@ -2186,9 +2186,9 @@ export interface ServiceApi {
   >;
 
   // Parent WhatsApp Invitation: parent phone lookup from class_user -> user join.
-  getParentWhatsappParentPhonesByClassId?: (classId: string) => Promise<
-    string[]
-  >;
+  getParentWhatsappParentPhonesByClassId?: (
+    classId: string,
+  ) => Promise<string[]>;
 
   /**
    * Creates a auto student profile for a parent and returns the student object
@@ -2764,6 +2764,29 @@ export interface ServiceApi {
     inviteRows: Json,
     batchSize: number,
   ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: fetch MSG91 report via dedicated Supabase RPC.
+  getParentWhatsappMsg91ReportRows?: (
+    startDate: string,
+    endDate: string,
+  ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: upload media via Supabase Edge Function invoke.
+  uploadParentWhatsappMediaRpc?: (
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: send one template message via dedicated Supabase RPC.
+  sendParentWhatsappTemplateMessageRpc?: (params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) => Promise<Json>;
 
   /**
    * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.

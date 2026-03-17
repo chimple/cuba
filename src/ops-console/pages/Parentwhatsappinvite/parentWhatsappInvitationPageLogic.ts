@@ -350,6 +350,14 @@ export const useParentWhatsappInvitationPageLogic =
     };
 
     const handleFetchReport = async (): Promise<void> => {
+      if (!api) {
+        setReportFeedback({
+          severity: 'error',
+          text: t('API service is not ready yet in this session.'),
+        });
+        return;
+      }
+
       if (!startDate || !endDate) {
         setReportFeedback({
           severity: 'warning',
@@ -361,6 +369,7 @@ export const useParentWhatsappInvitationPageLogic =
       try {
         setIsLoadingReport(true);
         const rows = await fetchParentWhatsappMsg91Report({
+          api,
           startDate,
           endDate,
         });
@@ -388,6 +397,13 @@ export const useParentWhatsappInvitationPageLogic =
 
     const handleSendWhatsapp = async (): Promise<void> => {
       if (isSendingWhatsapp) return;
+      if (!api) {
+        setManualFeedback({
+          severity: 'error',
+          text: t('API service is not ready yet in this session.'),
+        });
+        return;
+      }
 
       const parsedPhones = parseIndianPhoneInput(phoneInput);
       setManualValidation(parsedPhones);
@@ -435,7 +451,7 @@ export const useParentWhatsappInvitationPageLogic =
         setManualSendSummary(null);
 
         if (uploadedMedia) {
-          mediaId = await uploadParentWhatsappMedia(uploadedMedia);
+          mediaId = await uploadParentWhatsappMedia(api, uploadedMedia);
         }
 
         const failures: ParentWhatsappSendFailure[] = [];
@@ -455,7 +471,7 @@ export const useParentWhatsappInvitationPageLogic =
           }
 
           try {
-            await sendParentWhatsappTemplateMessage({
+            await sendParentWhatsappTemplateMessage(api, {
               to: outboundPhone,
               templateName: templateName.trim(),
               templateLang: templateLang.trim(),

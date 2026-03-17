@@ -177,28 +177,4 @@ module.exports = {
       },
     },
   },
-  devServer: (devServerConfig) => {
-    devServerConfig.proxy = {
-      ...(devServerConfig.proxy || {}),
-      '/proxy/msg91/flow': {
-        target: 'https://control.msg91.com',
-        changeOrigin: true,
-        secure: true,
-        pathRewrite: {
-          '^/proxy/msg91/flow': '/api/v5/flow',
-        },
-      },
-      '/proxy/msg91/report': {
-        target: 'https://control.msg91.com',
-        changeOrigin: true,
-        secure: true,
-        pathRewrite: {
-          '^/proxy/msg91/report': '/api/v5/report/logs/p/sms',
-        },
-      },
-    };
-
-    return devServerConfig;
-  },
 };
-

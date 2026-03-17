@@ -412,9 +412,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolById(id);
   }
 
-  public async getParentWhatsappSchoolByUdise(
-    udiseCode: string,
-  ): Promise<{
+  public async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
     name: string;
     whatsapp_bot_number?: string | null;
@@ -2098,10 +2096,52 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp MSG91 send RPC is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappMsg91SendResult(
-      inviteRows,
-      batchSize,
+    return await this.s.getParentWhatsappMsg91SendResult(inviteRows, batchSize);
+  }
+
+  public async getParentWhatsappMsg91ReportRows(
+    startDate: string,
+    endDate: string,
+  ) {
+    if (!this.s.getParentWhatsappMsg91ReportRows) {
+      throw new Error(
+        'Parent WhatsApp MSG91 report RPC is not implemented in current API service.',
+      );
+    }
+    return await this.s.getParentWhatsappMsg91ReportRows(startDate, endDate);
+  }
+
+  public async uploadParentWhatsappMediaRpc(
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    if (!this.s.uploadParentWhatsappMediaRpc) {
+      throw new Error(
+        'Parent WhatsApp media upload RPC is not implemented in current API service.',
+      );
+    }
+    return await this.s.uploadParentWhatsappMediaRpc(
+      fileB64,
+      fileName,
+      mimeType,
     );
+  }
+
+  public async sendParentWhatsappTemplateMessageRpc(params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) {
+    if (!this.s.sendParentWhatsappTemplateMessageRpc) {
+      throw new Error(
+        'Parent WhatsApp template send RPC is not implemented in current API service.',
+      );
+    }
+    return await this.s.sendParentWhatsappTemplateMessageRpc(params);
   }
 
   public async getGroupIdByInvite(invite_link: string, bot: string) {
