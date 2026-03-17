@@ -79,7 +79,6 @@
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",
     "lido-standalone": "^0.0.0-alpha-72",
-    "pino": "^10.3.1",
     "qrcode.react": "^4.2.0",
     "query-string": "^9.3.1",
     "react": "^19.1.1",

@@ -76,7 +76,6 @@ const SearchLesson: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
 
   const hasRestoredRef = useRef(false);
-  const OTHER_KEY = 'other';
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const requestIdRef = useRef(0);
   const selectedLessonRef = useRef(selectedLesson);
@@ -545,7 +544,7 @@ const SearchLesson: React.FC = () => {
 
   const groupedLessons = useMemo(() => {
     if (isLoading || !Object.keys(lessonMetaMap).length) {
-      return { courseGroups: [], otherLessons: [] };
+      return { courseGroups: [] };
     }
 
     const lowerTerm = searchTerm.trim().toLowerCase();
@@ -568,12 +567,9 @@ const SearchLesson: React.FC = () => {
       }
     >();
 
-    const otherLessons: TableTypes<'lesson'>[] = [];
-
     filtered.forEach((lesson) => {
       const meta = lessonMetaMap[lesson.id];
       if (!meta || !meta.chapterId) {
-        otherLessons.push(lesson);
         return;
       }
 
@@ -613,7 +609,7 @@ const SearchLesson: React.FC = () => {
       }),
     );
 
-    return { courseGroups, otherLessons };
+    return { courseGroups };
   }, [lessons, lessonMetaMap, searchTerm, isLoading]);
 
   return (
@@ -701,20 +697,17 @@ const SearchLesson: React.FC = () => {
 
         {!isLoading && (
           <div id="search-lesson-results" className="search-lesson-results">
-            {groupedLessons.courseGroups.length === 0 &&
-              groupedLessons.otherLessons.length === 0 &&
-              searchTerm && (
-                <div
-                  id="search-lessons-no-results"
-                  className="search-lessons-no-results"
-                >
-                  {t('No results found')}
-                </div>
-              )}
+            {groupedLessons.courseGroups.length === 0 && searchTerm && (
+              <div
+                id="search-lessons-no-results"
+                className="search-lessons-no-results"
+              >
+                {t('No results found')}
+              </div>
+            )}
 
             <ChapterWiseLessons
               courseGroups={groupedLessons.courseGroups}
-              otherLessons={groupedLessons.otherLessons}
               isLessonSelected={isLessonSelected}
               toggleLessonSelection={toggleLessonSelection}
               isChapterFullySelected={isChapterFullySelected}
