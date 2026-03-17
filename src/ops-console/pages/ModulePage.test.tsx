@@ -274,6 +274,22 @@ describe('ModulePage component', () => {
     expect(mockT).toHaveBeenCalledWith('Navigate');
     expect(mockT).toHaveBeenCalledWith(MODULE_CARD_DEFINITIONS[0].title);
   });
+
+  // Covers rendering behavior when translation output is non-English text.
+  it('renders translated non-English labels when t() returns localized strings', () => {
+    mockT.mockImplementation((key: string) => {
+      if (key === 'Module') return 'Módulo';
+      if (key === 'Navigate') return 'Navegar';
+      if (key === MODULE_CARD_DEFINITIONS[0].title) return 'Invitación WhatsApp';
+      return key;
+    });
+
+    render(<ModulePage />);
+
+    expect(screen.getByText('Módulo')).toBeInTheDocument();
+    expect(screen.getByText('Navegar')).toBeInTheDocument();
+    expect(screen.getByText('Invitación WhatsApp')).toBeInTheDocument();
+  });
 });
 
 describe('ModulePage logic helpers', () => {

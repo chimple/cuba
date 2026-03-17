@@ -28,6 +28,27 @@ jest.mock('i18next', () => ({
     if (key.includes('{{value}}') && options?.value !== undefined) {
       return key.replace('{{value}}', String(options.value));
     }
+    if (key.includes('{{count}}') && options?.count !== undefined) {
+      return key.replace('{{count}}', String(options.count));
+    }
+    if (key.includes('{{phone}}') && options?.phone !== undefined) {
+      return key.replace('{{phone}}', String(options.phone));
+    }
+    if (
+      key.includes('{{successCount}}') &&
+      options?.successCount !== undefined
+    ) {
+      return key.replace('{{successCount}}', String(options.successCount));
+    }
+    if (key.includes('{{failedCount}}') && options?.failedCount !== undefined) {
+      return key.replace('{{failedCount}}', String(options.failedCount));
+    }
+    if (
+      key.includes('{{failureCount}}') &&
+      options?.failureCount !== undefined
+    ) {
+      return key.replace('{{failureCount}}', String(options.failureCount));
+    }
     return key;
   },
 }));
@@ -519,6 +540,122 @@ describe('ParentWhatsappInvitationPage component', () => {
     const uploadZone = container.querySelector('[role="button"][tabindex="0"]');
     expect(uploadZone).toBeInTheDocument();
   });
+
+  // Covers toggle checked modifier CSS class for checked and unchecked states.
+  it('applies checked CSS modifier class only when toggle is checked', () => {
+    const { rerender } = renderPage({ isWhatsappMode: false, showMsg91Report: false });
+    expect(
+      document.querySelector('.parent-whatsapp-page-toggle-control--checked'),
+    ).not.toBeInTheDocument();
+
+    mockUseParentWhatsappInvitationPageLogic.mockReturnValue(
+      createLogicState({ isWhatsappMode: true, showMsg91Report: false }) as any,
+    );
+    rerender(<ParentWhatsappInvitationPage />);
+    expect(
+      document.querySelector('.parent-whatsapp-page-toggle-control--checked'),
+    ).toBeInTheDocument();
+  });
+
+  // Covers WhatsApp toggle re-click behavior by sending false when currently true.
+  it('calls setIsWhatsappMode(false) when whatsapp toggle is clicked while checked', async () => {
+    const user = userEvent.setup();
+    const { state } = renderPage({ isWhatsappMode: true });
+    await user.click(screen.getByRole('switch', { name: /WhatsApp/i }));
+    expect(state.setIsWhatsappMode).toHaveBeenCalledWith(false);
+  });
+
+  // Covers WhatsApp send button enabled and disabled states.
+  it('toggles Send WhatsApp Message button disabled state using isSendingWhatsapp', () => {
+    const { rerender } = renderPage({ isWhatsappMode: true, isSendingWhatsapp: true });
+    expect(
+      screen.getByRole('button', { name: 'Send WhatsApp Message' }),
+    ).toBeDisabled();
+
+    mockUseParentWhatsappInvitationPageLogic.mockReturnValue(
+      createLogicState({ isWhatsappMode: true, isSendingWhatsapp: false }) as any,
+    );
+    rerender(<ParentWhatsappInvitationPage />);
+    expect(
+      screen.getByRole('button', { name: 'Send WhatsApp Message' }),
+    ).toBeEnabled();
+  });
+
+  // Covers absence of uploaded file info card when no file is selected.
+  it('does not render uploaded file card when uploadedMedia is null', () => {
+    renderPage({ isWhatsappMode: true, uploadedMedia: null });
+    expect(screen.queryByRole('button', { name: 'Remove uploaded file' })).toBeNull();
+  });
+
+  // Covers hidden state for feedback and summary when both are null.
+  it('hides manual feedback and summary pills when both values are null', () => {
+    renderPage({
+      isWhatsappMode: true,
+      manualFeedback: null,
+      manualSendSummary: null,
+    });
+    expect(screen.queryByText('Attempted:')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  // Covers invalid numbers table hidden state when invalid list is empty.
+  it('does not render Invalid Numbers card when invalid list is empty', () => {
+    renderPage({
+      isWhatsappMode: true,
+      manualValidation: { normalizedPhones: [], duplicates: [], invalid: [] },
+    });
+    expect(screen.queryByText('Invalid Numbers')).toBeNull();
+  });
+
+  // Covers default limit value and limit stepper/button handlers in SMS mode.
+  it('renders default limit and calls setLimit through stepper and number input', () => {
+    const { state } = renderPage({ isWhatsappMode: false, limit: 300 });
+    expect(screen.getByDisplayValue('300')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '+' }));
+    expect(state.setLimit).toHaveBeenCalledWith(expect.any(Function));
+
+    fireEvent.click(screen.getByRole('button', { name: '-' }));
+    expect(state.setLimit).toHaveBeenCalledWith(expect.any(Function));
+
+    fireEvent.change(screen.getByDisplayValue('300'), { target: { value: '0' } });
+    expect(state.setLimit).toHaveBeenCalledWith(1);
+  });
+
+  // Covers hidden analysis output when analysisResult is null.
+  it('does not render analysis section when analysisResult is null', () => {
+    renderPage({ isWhatsappMode: false, showMsg91Report: false, analysisResult: null });
+    expect(screen.queryByText('Processed UDISE')).toBeNull();
+  });
+
+  // Covers DataFrameCard header formatting and derived columns in report table rows.
+  it('renders derived report columns and formatted header labels when columns are not provided', () => {
+    renderPage({
+      isWhatsappMode: false,
+      showMsg91Report: true,
+      reportRows: [{ responseText: 'ok', status_code: 200 }],
+    });
+    expect(screen.getByText('Response Text')).toBeInTheDocument();
+    expect(screen.getByText('Status Code')).toBeInTheDocument();
+  });
+
+  // Covers FieldBlock structure by ensuring labels and corresponding inputs are rendered together.
+  it('renders FieldBlock labels with their input controls in the same block', () => {
+    const { container } = renderPage({ isWhatsappMode: false, showMsg91Report: false });
+    const udiseLabel = screen.getByText('Enter UDISE codes');
+    const fieldBlock = udiseLabel.closest('#parent-whatsapp-page-field-block');
+    expect(fieldBlock).toBeInTheDocument();
+    expect(fieldBlock?.querySelector('textarea')).toBeInTheDocument();
+
+    const reportView = createLogicState({
+      isWhatsappMode: false,
+      showMsg91Report: true,
+    });
+    mockUseParentWhatsappInvitationPageLogic.mockReturnValue(reportView as any);
+    const { container: reportContainer } = render(<ParentWhatsappInvitationPage />);
+    expect(screen.getByText('Start Date')).toBeInTheDocument();
+    expect(reportContainer.querySelector('input[type="date"]')).toBeInTheDocument();
+  });
 });
 
 describe('ParentWhatsappInvitationPage logic helpers', () => {
@@ -894,6 +1031,28 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     expect(result.current.smsFeedback?.severity).toBe('warning');
   });
 
+  // Covers warning path when analysis exists but invite list is empty.
+  it('sets sms warning when analysisResult.inviteList is empty', async () => {
+    jest
+      .spyOn(parentWhatsappInvitationService, 'processParentWhatsappUdiseCodes')
+      .mockResolvedValueOnce({
+        processedUdise: ['01111111111'],
+        inviteList: [],
+        failedGroups: [],
+        totalMissing: 0,
+      } as any);
+
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    act(() => {
+      result.current.setUdiseInput('01111111111');
+    });
+    await act(async () => {
+      await result.current.handleAnalyze();
+      await result.current.handleSendSmsInvites();
+    });
+    expect(result.current.smsFeedback?.severity).toBe('warning');
+  });
+
   // Covers SMS invite success and warning variants based on failed batches.
   it('sets success or warning sms feedback based on failed batch count', async () => {
     const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
@@ -1078,6 +1237,177 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     expect(result.current.manualFeedback?.severity).toBe('warning');
     expect(result.current.manualSendSummary?.failed.length).toBe(1);
   });
+
+  // Covers WhatsApp send API-missing and template-language validation branches.
+  it('returns manual feedback errors for missing api and missing template fields', async () => {
+    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: null } as any);
+    const { result: noApi } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
+    await act(async () => {
+      await noApi.current.handleSendWhatsapp();
+    });
+    expect(noApi.current.manualFeedback?.severity).toBe('error');
+
+    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: mockApi } as any);
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('');
+      result.current.setPhoneInput('9876543210');
+    });
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+    expect(result.current.manualFeedback?.severity).toBe('warning');
+  });
+
+  // Covers early return branch when handleSendWhatsapp is called while already sending.
+  it('does not re-enter whatsapp send loop when a send is already in progress', async () => {
+    const deferred = createDeferred<void>();
+    jest
+      .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappTemplateMessage')
+      .mockReturnValueOnce(deferred.promise)
+      .mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('en');
+      result.current.setPhoneInput('9876543210');
+    });
+
+    let firstRun!: Promise<void>;
+    act(() => {
+      firstRun = result.current.handleSendWhatsapp();
+    });
+
+    await waitFor(() => {
+      expect(result.current.isSendingWhatsapp).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+
+    expect(
+      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage,
+    ).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      deferred.resolve();
+      await firstRun;
+    });
+  });
+
+  // Covers WhatsApp send warning branch for over-1000 unique phone inputs.
+  it('shows warning when more than 1000 unique phone numbers are provided', async () => {
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const phones = Array.from({ length: 1001 }, (_, index) => {
+      const suffix = String(100000000 + index).padStart(9, '0');
+      return `9${suffix}`;
+    }).join('\n');
+
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('en');
+      result.current.setPhoneInput(phones);
+    });
+
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+
+    expect(result.current.manualFeedback?.severity).toBe('warning');
+    expect(result.current.manualFeedback?.text).toContain('1000');
+  });
+
+  // Covers WhatsApp send warning when no valid phone numbers are present.
+  it('shows warning when no valid Indian mobile numbers are provided', async () => {
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('en');
+      result.current.setPhoneInput('12345');
+    });
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+    expect(result.current.manualFeedback?.severity).toBe('warning');
+  });
+
+  // Covers invalid-media, upload-failure, and no-media-upload branches for WhatsApp send.
+  it('handles invalid media, media upload failure, and no-media send branches', async () => {
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('en');
+      result.current.setPhoneInput('9876543210');
+      result.current.setUploadedMedia(new File(['a'], 'invalid.pdf'));
+    });
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+    expect(result.current.manualFeedback?.severity).toBe('error');
+
+    jest
+      .spyOn(parentWhatsappInvitationService, 'uploadParentWhatsappMedia')
+      .mockRejectedValueOnce(new Error('upload failed'));
+    act(() => {
+      result.current.setUploadedMedia(new File(['a'], 'ok.png', { type: 'image/png' }));
+    });
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+    expect(result.current.manualFeedback?.text).toBe('upload failed');
+
+    const uploadSpy = jest.spyOn(
+      parentWhatsappInvitationService,
+      'uploadParentWhatsappMedia',
+    );
+    uploadSpy.mockClear();
+    act(() => {
+      result.current.setUploadedMedia(null);
+    });
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+    expect(uploadSpy).not.toHaveBeenCalled();
+  });
+
+  // Covers SMS send thrown error branch and loading reset in handleSendSmsInvites.
+  it('sets sms error feedback when sendParentWhatsappMsg91Invites throws', async () => {
+    jest
+      .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappMsg91Invites')
+      .mockRejectedValueOnce(new Error('sms send failed'));
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+
+    act(() => {
+      result.current.setUdiseInput('01111111111');
+    });
+    await act(async () => {
+      await result.current.handleAnalyze();
+      await result.current.handleSendSmsInvites();
+    });
+
+    expect(result.current.smsFeedback?.severity).toBe('error');
+    expect(result.current.smsFeedback?.text).toBe('sms send failed');
+    expect(result.current.isSendingSms).toBe(false);
+  });
+
+  // Covers report warning branch for missing end date specifically.
+  it('sets warning report feedback when endDate is empty', async () => {
+    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    act(() => {
+      result.current.setStartDate('2025-01-01');
+      result.current.setEndDate('');
+    });
+    await act(async () => {
+      await result.current.handleFetchReport();
+    });
+    expect(result.current.reportFeedback?.severity).toBe('warning');
+  });
 });
 
 describe('ParentWhatsappInvitationPage service exports', () => {
@@ -1243,6 +1573,37 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     ).toEqual([{ id: 2 }]);
   });
 
+  // Covers remaining report response shapes: raw array, no shape fallback, and missing success flag.
+  it('handles raw-array and fallback report payload shapes', async () => {
+    const api = createApiMock();
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ raw: [{ id: 9 }] });
+    expect(
+      await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
+        api: api as any,
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+      }),
+    ).toEqual([{ id: 9 }]);
+
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ success: true });
+    expect(
+      await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
+        api: api as any,
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+      }),
+    ).toEqual([]);
+
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ data: [{ id: 3 }] });
+    expect(
+      await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
+        api: api as any,
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+      }),
+    ).toEqual([{ id: 3 }]);
+  });
+
   // Covers MSG91 invite send mappings for empty input, successCount clamping, and failed batch fallback.
   it('maps send invite response with success counts and failed batch fallbacks', async () => {
     const api = createApiMock();
@@ -1276,6 +1637,49 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     expect(mapped.failedBatches[0].recipients).toEqual(['919876543210']);
   });
 
+  // Covers failed-batch recipient mapping using explicit recipients and no-failure fallback.
+  it('maps explicit recipients and supports no failedBatches payload', async () => {
+    const api = createApiMock();
+    const inviteRows = [
+      {
+        udise: '1',
+        school: 'S1',
+        className: 'C1',
+        mobile: '919876543210',
+        inviteLink: 'link',
+      },
+      {
+        udise: '1',
+        school: 'S1',
+        className: 'C1',
+        mobile: '919876543211',
+        inviteLink: 'link',
+      },
+    ];
+
+    api.getParentWhatsappMsg91SendResult.mockResolvedValueOnce({
+      successCount: 2,
+      failedBatches: [
+        { batchIndex: 1, recipients: ['919000000000'], error: { message: 'x' } },
+      ],
+    });
+
+    const withRecipients =
+      await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
+        api as any,
+        inviteRows,
+      );
+    expect(withRecipients.failedBatches[0].recipients).toEqual(['919000000000']);
+
+    api.getParentWhatsappMsg91SendResult.mockResolvedValueOnce({ successCount: 2 });
+    const noFailures =
+      await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
+        api as any,
+        inviteRows,
+      );
+    expect(noFailures.failedBatches).toEqual([]);
+  });
+
   // Covers media upload success id extraction, mime fallback, and failure branches.
   it('handles media upload success ids, mime fallback, and failure branches', async () => {
     const api = createApiMock();
@@ -1301,6 +1705,22 @@ describe('ParentWhatsappInvitationPage service exports', () => {
         createMockFile('b.png'),
       ),
     ).resolves.toBe('id-1');
+
+    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ mediaId: 'id-2' });
+    await expect(
+      parentWhatsappInvitationService.uploadParentWhatsappMedia(
+        api as any,
+        createMockFile('b2.png'),
+      ),
+    ).resolves.toBe('id-2');
+
+    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ raw: { id: 'id-3' } });
+    await expect(
+      parentWhatsappInvitationService.uploadParentWhatsappMedia(
+        api as any,
+        createMockFile('b3.png'),
+      ),
+    ).resolves.toBe('id-3');
 
     api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ success: true, raw: {} });
     await expect(
@@ -1357,6 +1777,21 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       }),
     ).rejects.toEqual(
       expect.objectContaining({ statusCode: 400, responseText: 'bad request' }),
+    );
+
+    api.sendParentWhatsappTemplateMessageRpc.mockResolvedValueOnce({});
+    await expect(
+      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(api as any, {
+        to: '919876543212',
+        templateName: 'welcome',
+        templateLang: 'en',
+        messageType: 'marketing',
+        mediaId: null,
+        mediaType: null,
+      }),
+    ).resolves.toBeUndefined();
+    expect(api.sendParentWhatsappTemplateMessageRpc).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaId: null, mediaType: null }),
     );
   });
 
