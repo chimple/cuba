@@ -8,6 +8,7 @@ import React, {
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
+import logger from '../utility/logger';
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -136,7 +137,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       'PREPARE_GROWTHBOOK_ATTRIBUTES',
       { attributes, language },
     ).catch((error) => {
-      console.error(
+      logger.error(
         'GrowthBook worker attribute prep failed, falling back to main thread.',
         error,
       );

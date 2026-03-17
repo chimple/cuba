@@ -11,6 +11,8 @@ import {
 } from '../common/SvgHelpers';
 import NewBackButton from '../common/NewBackButton';
 import './StickerBookBoard.css';
+import logger from '../../utility/logger';
+import StickerBookActions from './StickerBookActions';
 
 type Props = {
   title: string;
@@ -18,11 +20,14 @@ type Props = {
   collectedStickers: string[];
   nextStickerId?: string;
   isLocked: boolean;
+  canPaint?: boolean;
+  onSave?: () => void;
   canGoPrev: boolean;
   canGoNext: boolean;
   onPrev: () => void;
   onNext: () => void;
   onBack: () => void;
+  onPaint?: () => void;
 };
 
 // Renders raw SVG markup inline so we can manipulate the DOM later.
@@ -61,17 +66,21 @@ const StickerBookBoard: React.FC<Props> = ({
   collectedStickers,
   nextStickerId,
   isLocked,
+  canPaint = false,
+  onSave,
   canGoPrev,
   canGoNext,
   onPrev,
   onNext,
   onBack,
+  onPaint,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
   const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
 
   const logPayload = {
+    user_id: Util.getCurrentStudent()?.id ?? null,
     book_title: title,
     collected_count: collectedStickers.length,
     next_sticker_id: nextStickerId ?? null,
@@ -92,6 +101,32 @@ const StickerBookBoard: React.FC<Props> = ({
     onBack();
   };
 
+  const handlePaint = () => {
+    Util.logEvent(EVENTS.PAINT_MODE_BUTTON_TAP, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: window.location.pathname,
+      source: 'sticker_book',
+    });
+    if (onPaint) onPaint();
+  };
+
+  const handleSave = () => {
+    Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: window.location.pathname,
+      source: 'sticker_book',
+    });
+    Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: window.location.pathname,
+      source: 'sticker_book',
+    });
+    if (onSave) onSave();
+  };
+
   const parsedSvg = useMemo(() => {
     if (!svgRaw) return null;
     return parseSvg(svgRaw);
@@ -110,7 +145,7 @@ const StickerBookBoard: React.FC<Props> = ({
       .then((text) => {
         if (isMounted) setBoardSvgRaw(text);
       })
-      .catch((e) => console.error('Failed to load board svg:', e));
+      .catch((e) => logger.error('Failed to load board svg:', e));
     return () => {
       isMounted = false;
     };
@@ -158,6 +193,13 @@ const StickerBookBoard: React.FC<Props> = ({
 
       <div id="sb-frame" className="sticker-book-frame">
         <div id="sb-board" className="sticker-book-board">
+          <StickerBookActions
+            showPaint={canPaint}
+            onSave={handleSave}
+            onPaint={handlePaint}
+            saveDisabled={!onSave}
+            paintDisabled={!svgRaw || !onPaint}
+          />
           {parsedBoardSvg && (
             <InlineSvg
               svg={parsedBoardSvg}
@@ -184,8 +226,14 @@ const StickerBookBoard: React.FC<Props> = ({
               <SVGScene
                 mode={isLocked ? 'color' : 'drag'}
                 svgRefExternal={svgRef}
-                collectedStickers={collectedStickers}
-                nextStickerId={nextStickerId}
+                collectedStickers={
+                  isLocked
+                    ? collectedStickers
+                    : [...collectedStickers, nextStickerId].filter(
+                        (id): id is string => Boolean(id),
+                      )
+                }
+                nextStickerId={isLocked ? nextStickerId : undefined}
                 isDragEnabled={false}
                 stickerVisibilityMode={isLocked ? 'legacy' : 'strict'}
                 colorModeUncolouredColor="#FFFFFF"

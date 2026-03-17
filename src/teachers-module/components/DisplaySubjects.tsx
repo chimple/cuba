@@ -6,6 +6,7 @@ import './DisplaySubjects.css';
 import { TableTypes } from '../../common/constants';
 import { Util } from '../../utility/util';
 import { RoleType } from '../../interface/modelInterfaces';
+import logger from '../../utility/logger';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -51,12 +52,12 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
     if (selectedSubjects.length === 1) {
       // If only one subject is left, show the "cannot delete" alert
       setIsLastSubjectAlertOpen(true);
-      console.debug('Cannot delete the last remaining subject.');
+      logger.debug('Cannot delete the last remaining subject.');
     } else {
       // Otherwise, proceed with the removal confirmation
       onSubjectClick(subject); // Set the current subject
       setIsModalOpen(true); // Open the confirmation modal
-      console.debug('Delete confirmation triggered for subject:', subject);
+      logger.debug('Delete confirmation triggered for subject:', subject);
     }
   };
 
@@ -64,7 +65,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   const handleRemoveSubject = () => {
     if (currentSubject) {
       onRemoveSubject(currentSubject); // Remove the subject
-      console.debug('Subject removed:', currentSubject);
+      logger.debug('Subject removed:', currentSubject);
     }
     setIsModalOpen(false); // Close the modal after removal
   };
@@ -168,7 +169,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
             cssClass: 'alert-ok-button',
             handler: () => {
               setIsLastSubjectAlertOpen(false); // Close the alert
-              console.debug('Last subject alert closed.');
+              logger.debug('Last subject alert closed.');
             },
           },
         ]}

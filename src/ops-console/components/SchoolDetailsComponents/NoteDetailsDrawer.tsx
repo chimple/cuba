@@ -12,6 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { t } from 'i18next';
 import './NoteDetailsDrawer.css';
 import MediaDisplay, { MediaItem } from '../../components/MediaDisplay';
+import logger from '../../../utility/logger';
 
 /* helpers */
 function parseMonthNameToNumber(mon: string): number | null {
@@ -138,7 +139,7 @@ const NoteDetailsDrawer: React.FC<Props> = ({ note, open, onClose }) => {
           : 'image',
       }));
     } catch (err) {
-      console.error('Invalid media_links JSON', err);
+      logger.error('Invalid media_links JSON', err);
       mediaItems = [];
     }
   }

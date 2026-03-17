@@ -9,6 +9,7 @@ import UserProfileSection from '../components/UserProfileSection';
 import { Util } from '../../utility/util';
 import ProfileDetails from '../components/library/ProfileDetails';
 import { useHistory } from 'react-router-dom';
+import logger from '../../utility/logger';
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
@@ -58,7 +59,7 @@ const UserProfile: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching languages:', error);
+      logger.error('Error fetching languages:', error);
     }
   };
 
@@ -71,7 +72,7 @@ const UserProfile: React.FC = () => {
         setCurrentClass(tempClass);
       }
     } catch (error) {
-      console.error('Failed to load class details', error);
+      logger.error('Failed to load class details', error);
     }
   };
 
@@ -81,7 +82,7 @@ const UserProfile: React.FC = () => {
   }, []);
 
   if (!currentClass?.id) {
-    console.error('No current class selected.');
+    logger.error('No current class selected.');
     return null;
   }
 
@@ -104,7 +105,7 @@ const UserProfile: React.FC = () => {
         profilePicValue,
       );
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
     }
     setIsEditMode(false);
   };

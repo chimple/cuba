@@ -26,6 +26,7 @@ import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
 import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
+import logger from '../utility/logger';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -209,7 +210,7 @@ export function usePathwaySVG({
           Util.getLatestLearningPathByUpdatedAt(currentStudent);
         learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
-        console.warn('No learning path found for current student');
+        logger.warn('No learning path found for current student');
         return;
       }
 
@@ -242,7 +243,7 @@ export function usePathwaySVG({
           api.getChapterById(pathItem.chapter_id),
         ]);
       } catch (err) {
-        console.warn(
+        logger.warn(
           'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
           err,
         );
@@ -812,10 +813,10 @@ export function usePathwaySVG({
         }
 
         const endTime = performance.now();
-        console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
       });
     } catch (error) {
-      console.error('Failed to load SVG:', error);
+      logger.error('Failed to load SVG:', error);
     }
   }
 
@@ -853,7 +854,7 @@ export function usePathwaySVG({
           );
           if (dataUrl) nextStickerImage = dataUrl;
         } catch (err) {
-          console.warn(
+          logger.warn(
             '[StickerBook] Failed to build sticker preview image from book SVG',
             err,
           );
@@ -871,7 +872,7 @@ export function usePathwaySVG({
         nextStickerImage,
       };
     } catch (error) {
-      console.error('Failed to build sticker preview payload:', error);
+      logger.error('Failed to build sticker preview payload:', error);
       return null;
     }
   }
@@ -905,11 +906,10 @@ export function usePathwaySVG({
         totalStickerCount,
       };
     } catch (error) {
-      console.error('Failed to build sticker completion payload:', error);
+      logger.error('Failed to build sticker completion payload:', error);
       return null;
     }
   }
-
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
@@ -922,7 +922,7 @@ export function usePathwaySVG({
         pathwayTemplateCache = text;
         return text;
       } catch (err) {
-        console.error('Error in loading pathway template ', err);
+        logger.error('Error in loading pathway template ', err);
       }
     }
 
@@ -972,7 +972,7 @@ export function usePathwaySVG({
         try {
           group = await fetchLocalGroup(remote);
         } catch (err) {
-          console.warn('Failed to load local halo.svg, fetching remote', err);
+          logger.warn('Failed to load local halo.svg, fetching remote', err);
         }
       }
       if (!group) {

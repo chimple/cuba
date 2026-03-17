@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import QRAssignments from './QRAssignments';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
+import logger from '../../../../utility/logger';
 import { Util } from '../../../../utility/util';
 import { PAGES } from '../../../../common/constants';
 
@@ -364,7 +365,7 @@ describe('QRAssignments – full coverage', () => {
 
   /* ---------- API Error ---------- */
   test('handles API failure gracefully', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleSpy = jest.spyOn(logger, 'error').mockImplementation();
     mockApi.getLessonsForChapter.mockRejectedValue(new Error('API Failure'));
 
     renderPage();

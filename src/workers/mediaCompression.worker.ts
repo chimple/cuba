@@ -5,11 +5,11 @@ import {
   CompressWorkerResponse,
   VideoQuality,
 } from './mediaCompression.worker.types';
+import { logger } from '../utility/logger';
 
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope;
 const WORKER_SIGNATURE = '[MEDIA-WORKER]';
 const FFMPEG_CACHE_PREFIX = 'ffmpeg-core-cache-v0.12.6';
-
 let ffmpegInstance: FFmpeg | null = null;
 let ffmpegLoading: Promise<FFmpeg> | null = null;
 let ffmpegLoadFailed = false;
@@ -151,7 +151,7 @@ const getFFmpeg = async (): Promise<FFmpeg> => {
         try {
           await loadCore(localBase, true);
         } catch (error) {
-          console.error(
+          logger.error(
             `${WORKER_SIGNATURE} local mt FFmpeg load failed, trying fallbacks.`,
             error,
           );
@@ -410,7 +410,7 @@ workerScope.onmessage = async (event: MessageEvent<CompressWorkerRequest>) => {
       error: error instanceof Error ? error.message : String(error),
     };
     workerScope.postMessage(response);
-    console.error(`${WORKER_SIGNATURE} failed`, {
+    logger.error(`${WORKER_SIGNATURE} failed`, {
       id: request.id,
       type: request.type,
       error: response.error,

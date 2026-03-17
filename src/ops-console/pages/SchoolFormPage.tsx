@@ -17,6 +17,7 @@ import { t } from 'i18next';
 import { PAGES, STATUS } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { RoleType } from '../../interface/modelInterfaces';
+import logger from '../../utility/logger';
 
 const SchoolFormPage: React.FC = () => {
   const history = useHistory();
@@ -104,7 +105,7 @@ const SchoolFormPage: React.FC = () => {
           setFieldCoordinator(null);
         }
       } catch (error) {
-        console.error('Error initializing form:', error);
+        logger.error('Error initializing form:', error);
       } finally {
         setLoading(false);
       }
@@ -213,7 +214,7 @@ const SchoolFormPage: React.FC = () => {
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (error) {
-      console.error('Error saving school:', error);
+      logger.error('Error saving school:', error);
     }
   }
 

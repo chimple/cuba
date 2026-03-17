@@ -24,6 +24,7 @@ import SelectIconImage from './displaySubjects/SelectIconImage';
 import { Util } from '../utility/util';
 import DownloadLesson from './DownloadChapterAndLesson';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import logger from '../utility/logger';
 
 const LessonCard: React.FC<{
   width: string;
@@ -101,7 +102,7 @@ const LessonCard: React.FC<{
         }
       }
     } catch (error) {
-      console.error('Error fetching course data:', error);
+      logger.error('Error fetching course data:', error);
     }
   };
 

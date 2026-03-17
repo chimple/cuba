@@ -5,6 +5,7 @@ import Header from '../components/homePage/Header';
 import './ShowStudentsInAssignmentPage.css';
 import CreateSelectedAssignment from '../components/homePage/assignment/CreateSelectedAssignment';
 import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 const ShowStudentsInAssignmentPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -26,7 +27,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
       const currentSchool = Util.getCurrentSchool();
       setCurrentSchool(currentSchool);
     } catch (error) {
-      console.error('Failed to load ', error);
+      logger.error('Failed to load ', error);
     }
   };
 

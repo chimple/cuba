@@ -19,6 +19,7 @@ import {
   getCartChapterIdsForCourse,
   resolveInitialChapterId,
 } from './ShowChaptersLogic';
+import logger from '../../utility/logger';
 
 interface ShowChaptersProps {}
 
@@ -78,7 +79,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         const tempClass = await Util.getCurrentClass();
         setCurrentClass(tempClass || null);
       } catch (err) {
-        console.error('ShowChapters → Failed to load current class:', err);
+        logger.error('ShowChapters → Failed to load current class:', err);
         setCurrentClass(null);
       }
     };
@@ -310,7 +311,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       setAssignedLessonIds(assignedLessonSet);
       setHasLoadedAssignedLessons(true);
     } catch (error) {
-      console.error('Failed to load assigned lessons for course:', error);
+      logger.error('Failed to load assigned lessons for course:', error);
     } finally {
       setIsLoadingAssignedLessons(false);
     }

@@ -25,6 +25,7 @@ import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 const filterConfigsForSchool = [
   { key: 'partner', label: t('Select Partner') },
@@ -146,7 +147,7 @@ const SchoolList: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error('Failed to fetch filter options', error);
+        logger.error('Failed to fetch filter options', error);
       } finally {
         setIsFilterLoading(false);
       }
@@ -217,7 +218,7 @@ const SchoolList: React.FC = () => {
 
       setSchools(enrichedSchools);
     } catch (error) {
-      console.error('Failed to fetch filtered schools:', error);
+      logger.error('Failed to fetch filtered schools:', error);
       setSchools([]);
       setTotal(0);
     } finally {

@@ -91,6 +91,7 @@ import {
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
+import logger from '../../utility/logger';
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -120,14 +121,14 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) {
-      console.error('Error fetching chapters for course:', error);
+      logger.error('Error fetching chapters for course:', error);
       return [];
     }
 
     return data ?? [];
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
-    console.warn('Delegating clearSpecificTablesSqlite to SqliteApi');
+    logger.warn('Delegating clearSpecificTablesSqlite to SqliteApi');
     const sqliteApi = await SqliteApi.getInstance();
     return sqliteApi.clearCacheData(tableNames);
   }
@@ -149,7 +150,7 @@ export class SupabaseApi implements ServiceApi {
       .order('updated_at', { ascending: false });
 
     if (classWiseError) {
-      console.error('Error fetching class-wise assignments:', classWiseError);
+      logger.error('Error fetching class-wise assignments:', classWiseError);
       return;
     }
 
@@ -169,7 +170,7 @@ export class SupabaseApi implements ServiceApi {
       .order('updated_at', { ascending: false });
 
     if (individualError) {
-      console.error('Error fetching individual assignments:', individualError);
+      logger.error('Error fetching individual assignments:', individualError);
       return;
     }
 
@@ -193,7 +194,7 @@ export class SupabaseApi implements ServiceApi {
           .maybeSingle();
 
         if (resultError) {
-          console.error('Error checking assignment result:', resultError);
+          logger.error('Error checking assignment result:', resultError);
           return null;
         }
         return !result ? assignment : null;
@@ -215,7 +216,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching favourite lessons:', error);
+      logger.error('Error fetching favourite lessons:', error);
       return [];
     }
 
@@ -251,7 +252,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', RoleType.STUDENT)
       .eq('is_deleted', false);
     if (error || !classUserData) {
-      console.error('Error fetching student classes and schools', error);
+      logger.error('Error fetching student classes and schools', error);
       return data;
     }
 
@@ -299,7 +300,7 @@ export class SupabaseApi implements ServiceApi {
     });
 
     if (error) {
-      console.error('Error creating user:', error);
+      logger.error('Error creating user:', error);
       return;
     }
     return user;
@@ -366,7 +367,7 @@ export class SupabaseApi implements ServiceApi {
       .from('profile-images')
       .upload(filePath, renamedFile, { upsert: true });
     if (uploadResponse?.error) {
-      console.error('Error uploading file:', uploadResponse.error.message);
+      logger.error('Error uploading file:', uploadResponse.error.message);
       return null;
     }
     // Get the Public URL of the uploaded file
@@ -393,10 +394,7 @@ export class SupabaseApi implements ServiceApi {
       .upload(filePath, file, { upsert: true });
 
     if (uploadResponse.error) {
-      console.error(
-        'Error uploading school visit media:',
-        uploadResponse.error,
-      );
+      logger.error('Error uploading school visit media:', uploadResponse.error);
       throw uploadResponse.error;
     }
 
@@ -437,7 +435,7 @@ export class SupabaseApi implements ServiceApi {
             },
             async (payload) => {
               const status = payload.new?.status;
-              console.log('🔄 Realtime update received:', status);
+              logger.info('🔄 Realtime update received:', status);
               if ((status === 'success' || status === 'failed') && !resolved) {
                 resolved = true;
                 await channel.unsubscribe();
@@ -447,13 +445,13 @@ export class SupabaseApi implements ServiceApi {
           )
           .subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
-              console.log('📡 Realtime subscription active.');
+              logger.info('📡 Realtime subscription active.');
               subscriptionFailCount = 0;
             } else {
               subscriptionFailCount++;
-              console.warn('⚠️ Subscription status:', status);
+              logger.warn('⚠️ Subscription status:', status);
               if (subscriptionFailCount > 2) {
-                console.warn(
+                logger.warn(
                   '🔁 Reinitializing subscription due to failures...',
                 );
                 await channel.unsubscribe();
@@ -477,7 +475,7 @@ export class SupabaseApi implements ServiceApi {
               async (payload) => {
                 const status = payload.new?.status;
                 const id = payload.new?.id;
-                console.log(
+                logger.info(
                   '🔄 [Fallback] Realtime update:',
                   status,
                   'ID:',
@@ -489,7 +487,7 @@ export class SupabaseApi implements ServiceApi {
                 ) {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
-                  console.log(
+                  logger.info(
                     `✅ / ❌ Fallback resolved with status: ${status}`,
                   );
                   resolve(status === 'success');
@@ -506,7 +504,7 @@ export class SupabaseApi implements ServiceApi {
       );
       uploadId = data?.upload_id;
       if (uploadId) {
-        console.log('📡 Received upload_id:', uploadId);
+        logger.info('📡 Received upload_id:', uploadId);
         if (fallbackChannel) {
           await fallbackChannel.unsubscribe();
         }
@@ -516,16 +514,14 @@ export class SupabaseApi implements ServiceApi {
           .eq('id', uploadId)
           .single();
         if (row?.status === 'success') {
-          console.log('✅ Already succeeded before subscription.');
           return resolve(true);
         }
         if (row?.status === 'failed') {
-          console.log('❌ Already failed before subscription.');
           return resolve(false);
         }
         directChannel = subscribeToDirectChannel();
       } else {
-        console.warn('❗ No upload_id returned — using fallback listener.');
+        logger.warn('❗ No upload_id returned — using fallback listener.');
       }
     });
   }
@@ -632,7 +628,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (functionError) {
-        console.error(
+        logger.error(
           'Edge function error in school-data-migrate:',
           functionError,
         );
@@ -705,7 +701,7 @@ export class SupabaseApi implements ServiceApi {
         try {
           parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
         } catch (error: any) {
-          console.error('User Error', error);
+          logger.error('User Error', error);
         }
         Util.logEvent(EVENTS.SYNCHING_ERROR, {
           user_name: parent_user?.name || null,
@@ -731,7 +727,7 @@ export class SupabaseApi implements ServiceApi {
       try {
         parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
       } catch (error: any) {
-        console.error('User Error', error);
+        logger.error('User Error', error);
       }
       Util.logEvent(EVENTS.SYNCHING_ERROR, {
         user_name: parent_user?.name || null,
@@ -740,7 +736,7 @@ export class SupabaseApi implements ServiceApi {
         last_modified_date: 'not found',
         error_message: err || 'Unknown error',
       });
-      console.error(':rocket: ~ Api ~ getTablesData ~ error:', err);
+      logger.error(':rocket: ~ Api ~ getTablesData ~ error:', err);
       throw err;
     }
   }
@@ -813,7 +809,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     try {
       if (!this.supabase) {
-        console.error('Supabase client not initialized');
+        logger.error('Supabase client not initialized');
         return null;
       }
 
@@ -821,7 +817,7 @@ export class SupabaseApi implements ServiceApi {
         data: { user },
       } = await this.supabase.auth.getUser();
       if (!user) {
-        console.error('SupabaseApi: User not logged in');
+        logger.error('SupabaseApi: User not logged in');
         throw 'User is not Logged in';
       }
 
@@ -847,7 +843,7 @@ export class SupabaseApi implements ServiceApi {
           .single();
 
         if (error) {
-          console.error('SupabaseApi: Insert Error:', error);
+          logger.error('SupabaseApi: Insert Error:', error);
           throw error;
         }
         return data;
@@ -863,7 +859,7 @@ export class SupabaseApi implements ServiceApi {
           .limit(1);
 
         if (fetchError) {
-          console.error('SupabaseApi: Error fetching open visit:', fetchError);
+          logger.error('SupabaseApi: Error fetching open visit:', fetchError);
           throw fetchError;
         }
 
@@ -885,17 +881,17 @@ export class SupabaseApi implements ServiceApi {
             .single();
 
           if (error) {
-            console.error('SupabaseApi: Update Error:', error);
+            logger.error('SupabaseApi: Update Error:', error);
             throw error;
           }
           return data;
         } else {
-          console.warn('SupabaseApi: No active visit found to check out from.');
+          logger.warn('SupabaseApi: No active visit found to check out from.');
           return null;
         }
       }
     } catch (error) {
-      console.error(
+      logger.error(
         'SupabaseApi: Unexpected error recording school visit:',
         error,
       );
@@ -926,13 +922,13 @@ export class SupabaseApi implements ServiceApi {
 
       if (error) {
         if (error.code === 'PGRST116') return null;
-        console.error('SupabaseApi: Error getting last visit:', error);
+        logger.error('SupabaseApi: Error getting last visit:', error);
         return null;
       }
 
       return data;
     } catch (e) {
-      console.error('SupabaseApi: getLastSchoolVisit exception:', e);
+      logger.error('SupabaseApi: getLastSchoolVisit exception:', e);
       return null;
     }
   }
@@ -992,7 +988,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error updating school profile:', error);
+      logger.error('Error updating school profile:', error);
       throw error;
     }
     return updatedSchool;
@@ -1010,7 +1006,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching class courses:', error);
+      logger.error('Error fetching class courses:', error);
       return [];
     }
 
@@ -1029,7 +1025,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching school courses:', error);
+      logger.error('Error fetching school courses:', error);
       return [];
     }
 
@@ -1041,7 +1037,7 @@ export class SupabaseApi implements ServiceApi {
     const updatedAt = new Date().toISOString();
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        logger.warn('No course IDs provided for removal.');
         return;
       }
 
@@ -1051,10 +1047,10 @@ export class SupabaseApi implements ServiceApi {
         .in('id', ids);
 
       if (error) {
-        console.error('Error removing courses from class_course:', error);
+        logger.error('Error removing courses from class_course:', error);
       }
     } catch (err) {
-      console.error('Exception in removeCoursesFromClass:', err);
+      logger.error('Exception in removeCoursesFromClass:', err);
     }
   }
 
@@ -1063,7 +1059,7 @@ export class SupabaseApi implements ServiceApi {
     const updatedAt = new Date().toISOString();
     try {
       if (ids.length === 0) {
-        console.warn('No course IDs provided for removal.');
+        logger.warn('No course IDs provided for removal.');
         return;
       }
 
@@ -1073,10 +1069,10 @@ export class SupabaseApi implements ServiceApi {
         .in('id', ids);
 
       if (error) {
-        console.error('Error removing courses from school_course:', error);
+        logger.error('Error removing courses from school_course:', error);
       }
     } catch (err) {
-      console.error('Exception in removeCoursesFromSchool:', err);
+      logger.error('Exception in removeCoursesFromSchool:', err);
     }
   }
   async checkCourseInClasses(
@@ -1097,13 +1093,13 @@ export class SupabaseApi implements ServiceApi {
         .limit(1);
 
       if (error) {
-        console.error('Error checking course in classes:', error);
+        logger.error('Error checking course in classes:', error);
         return false;
       }
 
       return !!data && data.length > 0;
     } catch (err) {
-      console.error('Exception in checkCourseInClasses:', err);
+      logger.error('Exception in checkCourseInClasses:', err);
       return false;
     }
   }
@@ -1190,7 +1186,7 @@ export class SupabaseApi implements ServiceApi {
         .insert([newSchool]);
 
       if (schoolError) {
-        console.error('Error inserting into school:', schoolError);
+        logger.error('Error inserting into school:', schoolError);
         throw schoolError;
       }
     }
@@ -1214,7 +1210,7 @@ export class SupabaseApi implements ServiceApi {
         .insert([newSchoolUser]);
 
       if (userError) {
-        console.error('Error inserting into school_user:', userError);
+        logger.error('Error inserting into school_user:', userError);
         throw userError;
       }
     }
@@ -1245,7 +1241,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(1);
 
     if (selectError) {
-      console.error('Error checking for existing request:', selectError);
+      logger.error('Error checking for existing request:', selectError);
       throw selectError;
     }
 
@@ -1294,7 +1290,7 @@ export class SupabaseApi implements ServiceApi {
       .insert([newRequest]);
 
     if (insertError) {
-      console.error('Error inserting school request:', insertError);
+      logger.error('Error inserting school request:', insertError);
       throw insertError;
     }
 
@@ -1315,7 +1311,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching existing school request:', error);
+      logger.error('Error fetching existing school request:', error);
       throw error;
     }
 
@@ -1378,7 +1374,7 @@ export class SupabaseApi implements ServiceApi {
       .insert([newStudent]);
 
     if (userInsertError) {
-      console.error('Error inserting student profile:', userInsertError);
+      logger.error('Error inserting student profile:', userInsertError);
       throw userInsertError;
     }
 
@@ -1400,7 +1396,7 @@ export class SupabaseApi implements ServiceApi {
       .insert([parentUserData]);
 
     if (parentInsertError) {
-      console.error('Error inserting parent_user link:', parentInsertError);
+      logger.error('Error inserting parent_user link:', parentInsertError);
       throw parentInsertError;
     }
 
@@ -1531,7 +1527,7 @@ export class SupabaseApi implements ServiceApi {
       .insert(newStudent);
 
     if (userInsertError) {
-      console.error('Error inserting user:', userInsertError);
+      logger.error('Error inserting user:', userInsertError);
       throw userInsertError;
     }
 
@@ -1555,7 +1551,7 @@ export class SupabaseApi implements ServiceApi {
       .insert(newClassUser);
 
     if (classUserInsertError) {
-      console.error('Error inserting class_user:', classUserInsertError);
+      logger.error('Error inserting class_user:', classUserInsertError);
       throw classUserInsertError;
     }
     return newStudent;
@@ -1581,7 +1577,7 @@ export class SupabaseApi implements ServiceApi {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching curriculums:', error);
+      logger.error('Error fetching curriculums:', error);
       return [];
     }
     return data ?? [];
@@ -1599,7 +1595,7 @@ export class SupabaseApi implements ServiceApi {
       });
 
     if (error) {
-      console.error('Error fetching grades:', error);
+      logger.error('Error fetching grades:', error);
       return [];
     }
 
@@ -1616,7 +1612,7 @@ export class SupabaseApi implements ServiceApi {
       .order('code', { ascending: true });
 
     if (error) {
-      console.error('Error fetching languages:', error);
+      logger.error('Error fetching languages:', error);
       return [];
     }
 
@@ -1636,7 +1632,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching parent-student profiles:', error);
+      logger.error('Error fetching parent-student profiles:', error);
       return [];
     }
 
@@ -1746,7 +1742,7 @@ export class SupabaseApi implements ServiceApi {
         throw new Error(`Failed to update sound flag: ${error.message}`);
       }
     } catch (error) {
-      console.error('Error updating sound flag:', error);
+      logger.error('Error updating sound flag:', error);
     }
   }
   async updateMusicFlag(userId: string, value: boolean) {
@@ -1762,7 +1758,7 @@ export class SupabaseApi implements ServiceApi {
         throw new Error(`Failed to update music flag: ${error.message}`);
       }
     } catch (error) {
-      console.error('Error updating music flag:', error);
+      logger.error('Error updating music flag:', error);
     }
   }
   async updateLanguage(userId: string, value: string) {
@@ -1785,7 +1781,7 @@ export class SupabaseApi implements ServiceApi {
         throw new Error(`Failed to update language: ${error.message}`);
       }
     } catch (error) {
-      console.error('Error updating language:', error);
+      logger.error('Error updating language:', error);
     }
   }
   async updateFcmToken(userId: string) {
@@ -1801,7 +1797,7 @@ export class SupabaseApi implements ServiceApi {
         throw new Error(`Failed to update FCM token: ${error.message}`);
       }
     } catch (error) {
-      console.error('Error updating FCM token:', error);
+      logger.error('Error updating FCM token:', error);
     }
   }
   async updateTcAccept(userId: string) {
@@ -1823,7 +1819,7 @@ export class SupabaseApi implements ServiceApi {
         auth.currentUser = currentUser;
       }
     } catch (error) {
-      console.error('Error updating T&C acceptance:', error);
+      logger.error('Error updating T&C acceptance:', error);
     }
   }
   async getLanguageWithId(
@@ -1846,7 +1842,7 @@ export class SupabaseApi implements ServiceApi {
 
       return data ?? undefined;
     } catch (error) {
-      console.error('Error in getLanguageWithId:', error);
+      logger.error('Error in getLanguageWithId:', error);
       return Promise.reject(error);
     }
   }
@@ -1863,7 +1859,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error fetching lesson:', error);
+      logger.error('Error fetching lesson:', error);
       if (error.code === 'PGRST116') {
         // No rows found
         return null;
@@ -1921,7 +1917,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (ucError) {
-      console.error('Error fetching user courses:', ucError);
+      logger.error('Error fetching user courses:', ucError);
       return [];
     }
 
@@ -1939,7 +1935,7 @@ export class SupabaseApi implements ServiceApi {
     const { data: courses, error: cError } = await query;
 
     if (cError) {
-      console.error('Error fetching additional courses:', cError);
+      logger.error('Error fetching additional courses:', cError);
       return [];
     }
 
@@ -1968,7 +1964,7 @@ export class SupabaseApi implements ServiceApi {
       .insert(newUserCourses);
 
     if (error) {
-      console.error('Error inserting user_course:', error);
+      logger.error('Error inserting user_course:', error);
       throw error;
     }
   }
@@ -1984,7 +1980,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching courses for class student:', error);
+      logger.error('Error fetching courses for class student:', error);
       throw error;
     }
     const courses = (data ?? [])
@@ -2001,7 +1997,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
     if (error) {
-      console.error('Error fetching lesson:', error);
+      logger.error('Error fetching lesson:', error);
       return undefined;
     }
     return data ?? undefined;
@@ -2016,7 +2012,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching bonuses by IDs:', error);
+      logger.error('Error fetching bonuses by IDs:', error);
       return [];
     }
 
@@ -2031,7 +2027,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
     if (error) {
-      console.error('Error fetching chapter:', error);
+      logger.error('Error fetching chapter:', error);
       return undefined;
     }
     return data ?? undefined;
@@ -2066,7 +2062,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) {
-      console.error('Error fetching chapter lessons:', error);
+      logger.error('Error fetching chapter lessons:', error);
       return [];
     }
 
@@ -2091,7 +2087,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (courseError || !courses) {
-      console.error('Error fetching courses:', courseError);
+      logger.error('Error fetching courses:', courseError);
       return { grades: [], courses: [] };
     }
 
@@ -2114,7 +2110,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (gradeError || !grades) {
-      console.error('Error fetching grades:', gradeError);
+      logger.error('Error fetching grades:', gradeError);
       return { grades: [], courses };
     }
     return { grades, courses };
@@ -2147,7 +2143,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching live quiz lessons:', error);
+      logger.error('Error fetching live quiz lessons:', error);
       return [];
     }
 
@@ -2187,7 +2183,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Favorite fetch error:', error);
+      logger.error('Favorite fetch error:', error);
       return {} as TableTypes<'favorite_lesson'>;
     }
 
@@ -2206,7 +2202,7 @@ export class SupabaseApi implements ServiceApi {
       .upsert(favorite, { onConflict: 'id' });
 
     if (upsertError) {
-      console.error('Favorite upsert error:', upsertError);
+      logger.error('Favorite upsert error:', upsertError);
       return {} as TableTypes<'favorite_lesson'>;
     }
 
@@ -2283,7 +2279,7 @@ export class SupabaseApi implements ServiceApi {
       .insert(newResult);
 
     if (insertError) {
-      console.error('Error inserting result:', insertError);
+      logger.error('Error inserting result:', insertError);
       return {} as TableTypes<'result'>;
     }
 
@@ -2337,7 +2333,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', student.id);
 
     if (updateError) {
-      console.error('Error updating student stars:', updateError);
+      logger.error('Error updating student stars:', updateError);
     }
 
     // Sync local student data
@@ -2517,7 +2513,7 @@ export class SupabaseApi implements ServiceApi {
 
       return student;
     } catch (error) {
-      console.error('Error updating student in school mode:', error);
+      logger.error('Error updating student in school mode:', error);
       throw error;
     }
   }
@@ -2566,7 +2562,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', user.id);
 
     if (error) {
-      console.error('Error updating user profile:', error);
+      logger.error('Error updating user profile:', error);
       throw error;
     }
     Object.assign(user, updatedFields);
@@ -2595,7 +2591,7 @@ export class SupabaseApi implements ServiceApi {
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching class_course:', error);
+          logger.error('Error fetching class_course:', error);
           throw error;
         }
 
@@ -2614,7 +2610,7 @@ export class SupabaseApi implements ServiceApi {
             .insert(newEntry);
 
           if (insertError) {
-            console.error('Error inserting class_course:', insertError);
+            logger.error('Error inserting class_course:', insertError);
             throw insertError;
           }
         } else if (existingEntry.is_deleted) {
@@ -2625,7 +2621,7 @@ export class SupabaseApi implements ServiceApi {
             .eq('id', existingEntry.id);
 
           if (updateError) {
-            console.error('Error updating class_course:', updateError);
+            logger.error('Error updating class_course:', updateError);
             throw updateError;
           }
         } else {
@@ -2636,7 +2632,7 @@ export class SupabaseApi implements ServiceApi {
             .eq('id', existingEntry.id);
 
           if (timestampError) {
-            console.error('Error updating updated_at:', timestampError);
+            logger.error('Error updating updated_at:', timestampError);
             throw timestampError;
           }
         }
@@ -2664,7 +2660,7 @@ export class SupabaseApi implements ServiceApi {
           .maybeSingle();
 
         if (error) {
-          console.error('Error fetching school_course:', error);
+          logger.error('Error fetching school_course:', error);
           throw error;
         }
 
@@ -2683,7 +2679,7 @@ export class SupabaseApi implements ServiceApi {
             .insert(newEntry);
 
           if (insertError) {
-            console.error('Error inserting school_course:', insertError);
+            logger.error('Error inserting school_course:', insertError);
             throw insertError;
           }
         } else if (existingEntry.is_deleted) {
@@ -2694,7 +2690,7 @@ export class SupabaseApi implements ServiceApi {
             .eq('id', existingEntry.id);
 
           if (updateError) {
-            console.error('Error updating school_course:', updateError);
+            logger.error('Error updating school_course:', updateError);
             throw updateError;
           }
         } else {
@@ -2705,7 +2701,7 @@ export class SupabaseApi implements ServiceApi {
             .eq('id', existingEntry.id);
 
           if (timestampError) {
-            console.error('Error updating updated_at:', timestampError);
+            logger.error('Error updating updated_at:', timestampError);
             throw timestampError;
           }
         }
@@ -2722,7 +2718,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
     if (error) {
-      console.error('Error fetching subject:', error);
+      logger.error('Error fetching subject:', error);
       return undefined;
     }
     return data ?? undefined;
@@ -2736,7 +2732,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
     if (error) {
-      console.error('Error fetching course:', error);
+      logger.error('Error fetching course:', error);
       return undefined;
     }
     return data ?? undefined;
@@ -2751,7 +2747,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       return [];
     }
 
@@ -2772,7 +2768,7 @@ export class SupabaseApi implements ServiceApi {
       .or('is_deleted.eq.false');
 
     if (error) {
-      console.error('Error fetching domains:', error);
+      logger.error('Error fetching domains:', error);
       return [];
     }
 
@@ -2791,7 +2787,7 @@ export class SupabaseApi implements ServiceApi {
       .or('is_deleted.eq.false');
 
     if (error) {
-      console.error('Error fetching competencies:', error);
+      logger.error('Error fetching competencies:', error);
       return [];
     }
 
@@ -2811,7 +2807,7 @@ export class SupabaseApi implements ServiceApi {
       .or('is_deleted.eq.false');
 
     if (error) {
-      console.error('Error fetching outcomes:', error);
+      logger.error('Error fetching outcomes:', error);
       return [];
     }
 
@@ -2830,7 +2826,7 @@ export class SupabaseApi implements ServiceApi {
       .or('is_deleted.eq.false');
 
     if (error) {
-      console.error('Error fetching skills:', error);
+      logger.error('Error fetching skills:', error);
       return [];
     }
 
@@ -2852,7 +2848,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching results by skills:', error);
+      logger.error('Error fetching results by skills:', error);
       return [];
     }
 
@@ -2872,7 +2868,7 @@ export class SupabaseApi implements ServiceApi {
       .or('is_deleted.eq.false');
 
     if (error) {
-      console.error('Error fetching skill relations:', error);
+      logger.error('Error fetching skill relations:', error);
       return [];
     }
 
@@ -2909,7 +2905,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) {
-      console.error('Error fetching skill lessons:', error);
+      logger.error('Error fetching skill lessons:', error);
       return [];
     }
 
@@ -2929,7 +2925,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching student results:', error);
+      logger.error('Error fetching student results:', error);
       return [];
     }
 
@@ -2968,7 +2964,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching student progress:', error);
+      logger.error('Error fetching student progress:', error);
       return {};
     }
 
@@ -3008,7 +3004,7 @@ export class SupabaseApi implements ServiceApi {
     );
 
     if (error || !data) {
-      console.error('RPC failed:', error);
+      logger.error('RPC failed:', error);
       return {};
     }
 
@@ -3030,7 +3026,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error in getting class', error);
+      logger.error('Error in getting class', error);
       return;
     }
     return data ?? undefined;
@@ -3044,7 +3040,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
     if (error) {
-      console.error('Error in getting school', error);
+      logger.error('Error in getting school', error);
       return;
     }
     return data ?? undefined;
@@ -3063,7 +3059,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error in isStudentLinked', error);
+      logger.error('Error in isStudentLinked', error);
       return false;
     }
     return true;
@@ -3090,7 +3086,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching assignments:', error);
+      logger.error('Error fetching assignments:', error);
       return [];
     }
 
@@ -3130,7 +3126,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (specialError) {
-      console.error('Error fetching special_users:', specialError);
+      logger.error('Error fetching special_users:', specialError);
     } else if (specialUser) {
       const role = specialUser.role as RoleType;
 
@@ -3150,7 +3146,7 @@ export class SupabaseApi implements ServiceApi {
 
         const { data: allSchools, error: allErr } = await query;
         if (allErr) {
-          console.error('Error fetching all schools:', allErr);
+          logger.error('Error fetching all schools:', allErr);
           return [];
         }
         return (allSchools ?? []).map((school) => ({ school, role }));
@@ -3168,7 +3164,7 @@ export class SupabaseApi implements ServiceApi {
           .eq('is_deleted', false);
 
         if (puErr) {
-          console.error('Error fetching program_user:', puErr);
+          logger.error('Error fetching program_user:', puErr);
           return [];
         }
 
@@ -3186,7 +3182,7 @@ export class SupabaseApi implements ServiceApi {
 
           const { data: progSchools, error: psErr } = await query;
           if (psErr) {
-            console.error('Error fetching program schools:', psErr);
+            logger.error('Error fetching program schools:', psErr);
             return [];
           }
 
@@ -3214,7 +3210,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classUserError) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
     } else if (classUsers?.length) {
       const classIds = classUsers.map((cu) => cu.class_id);
       const { data: classes } = await this.supabase
@@ -3309,7 +3305,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('class.is_deleted', false);
 
     if (classUserError) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
     }
 
     if (classUsers && classUsers.length > 0) {
@@ -3327,7 +3323,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (allClassesError) {
-      console.error('Error fetching all classes:', allClassesError);
+      logger.error('Error fetching all classes:', allClassesError);
     }
 
     return allClasses || [];
@@ -3342,7 +3338,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching classes by school ID:', error);
+      logger.error('Error fetching classes by school ID:', error);
       return [];
     }
 
@@ -3359,7 +3355,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching users by IDs:', error);
+      logger.error('Error fetching users by IDs:', error);
       return [];
     }
 
@@ -3373,7 +3369,7 @@ export class SupabaseApi implements ServiceApi {
     classId?: string,
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
-      console.warn('Supabase not initialized.');
+      logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -3435,7 +3431,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching student info:', error);
+      logger.error('Error fetching student info:', error);
       return { data: [], total: 0 };
     }
 
@@ -3469,7 +3465,7 @@ export class SupabaseApi implements ServiceApi {
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
-      console.warn('Supabase not initialized.');
+      logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -3501,7 +3497,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching students and parents by class ID:', error);
+      logger.error('Error fetching students and parents by class ID:', error);
       return { data: [], total: 0 };
     }
 
@@ -3530,7 +3526,7 @@ export class SupabaseApi implements ServiceApi {
     parents: any[];
   }> {
     if (!this.supabase) {
-      console.warn('Supabase not initialized.');
+      logger.warn('Supabase not initialized.');
       return { user: null, parents: [] };
     }
 
@@ -3551,7 +3547,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error || !data) {
-      console.error('Error fetching student and parent by student ID:', error);
+      logger.error('Error fetching student and parent by student ID:', error);
       return { user: null, parents: [] };
     }
     const parents = (data.parent_links || []).map((link: any) => link.parent);
@@ -3565,7 +3561,7 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
   ): Promise<TableTypes<'user'>[]> {
     if (!this.supabase) {
-      console.warn('Supabase not initialized.');
+      logger.warn('Supabase not initialized.');
       return [];
     }
 
@@ -3582,7 +3578,7 @@ export class SupabaseApi implements ServiceApi {
     // no is_deleted filter
 
     if (error || !data) {
-      console.error('Error fetching parents by student ID:', error);
+      logger.error('Error fetching parents by student ID:', error);
       return [];
     }
 
@@ -4146,7 +4142,7 @@ export class SupabaseApi implements ServiceApi {
         message: 'Learning pathway merged successfully.',
       };
     } catch (error: any) {
-      console.error('MERGE PATHWAY ERROR:', error);
+      logger.error('MERGE PATHWAY ERROR:', error);
 
       return {
         success: false,
@@ -4208,7 +4204,7 @@ export class SupabaseApi implements ServiceApi {
     limit: number = 20,
   ): Promise<TeacherAPIResponse> {
     if (!this.supabase) {
-      console.warn('Supabase not initialized.');
+      logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
 
@@ -4232,7 +4228,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching teacher info:', error);
+      logger.error('Error fetching teacher info:', error);
       return { data: [], total: 0 };
     }
 
@@ -4277,7 +4273,7 @@ export class SupabaseApi implements ServiceApi {
       return { grade: isNaN(grade) ? 0 : grade, section };
     }
 
-    console.warn(
+    logger.warn(
       `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`,
     );
     return { grade: 0, section: cleanedName };
@@ -4294,7 +4290,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classUserError) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
     }
 
     if (classUsers && classUsers.length > 0) {
@@ -4307,7 +4303,7 @@ export class SupabaseApi implements ServiceApi {
         .order('created_at', { ascending: true });
 
       if (studentError) {
-        console.error('Error fetching students:', studentError);
+        logger.error('Error fetching students:', studentError);
       }
 
       return students || [];
@@ -4380,7 +4376,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { error } = await this.supabase.from('class').insert(newClass);
     if (error) {
-      console.error('Error inserting class:', error);
+      logger.error('Error inserting class:', error);
       throw error;
     }
     return newClass;
@@ -4397,7 +4393,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('role', RoleType.TEACHER);
 
       if (classUserUpdateError) {
-        console.error('Error updating class_user:', classUserUpdateError);
+        logger.error('Error updating class_user:', classUserUpdateError);
         throw classUserUpdateError;
       }
 
@@ -4411,7 +4407,7 @@ export class SupabaseApi implements ServiceApi {
           .eq('is_deleted', true);
 
       if (classUserFetchError) {
-        console.error(
+        logger.error(
           'Error fetching updated class_user records:',
           classUserFetchError,
         );
@@ -4428,7 +4424,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('class_id', classId);
 
       if (classCourseUpdateError) {
-        console.error('Error updating class_course:', classCourseUpdateError);
+        logger.error('Error updating class_course:', classCourseUpdateError);
         throw classCourseUpdateError;
       }
 
@@ -4441,7 +4437,7 @@ export class SupabaseApi implements ServiceApi {
           .eq('is_deleted', true);
 
       if (classCourseFetchError) {
-        console.error(
+        logger.error(
           'Error fetching updated class_course records:',
           classCourseFetchError,
         );
@@ -4459,11 +4455,11 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (classUpdateError) {
-        console.error('Error soft-deleting class:', classUpdateError);
+        logger.error('Error soft-deleting class:', classUpdateError);
         throw classUpdateError;
       }
     } catch (error) {
-      console.error('Failed to delete class:', error);
+      logger.error('Failed to delete class:', error);
       throw error;
     }
   }
@@ -4493,7 +4489,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', classId);
 
     if (error) {
-      console.error('Error updating class name:', error);
+      logger.error('Error updating class name:', error);
       throw error;
     }
   }
@@ -4563,13 +4559,13 @@ export class SupabaseApi implements ServiceApi {
             leaderBoardList.weekly.push(leaderboardEntry);
             break;
           default:
-            console.warn('Unknown leaderboard type: ', result.type);
+            logger.warn('Unknown leaderboard type: ', result.type);
         }
       }
 
       return leaderBoardList;
     } catch (e) {
-      console.error('Error in getLeaderboardResults: ', e);
+      logger.error('Error in getLeaderboardResults: ', e);
       // Return an empty leaderboard structure in case of error
       return {
         weekly: [],
@@ -4597,7 +4593,7 @@ export class SupabaseApi implements ServiceApi {
     `;
 
       if (!this.supabase) {
-        console.error('Supabase instance is not initialized');
+        logger.error('Supabase instance is not initialized');
         return;
       }
 
@@ -4608,13 +4604,13 @@ export class SupabaseApi implements ServiceApi {
 
       // Handle errors in the query execution
       if (error) {
-        console.error('Error fetching leaderboard data: ', error);
+        logger.error('Error fetching leaderboard data: ', error);
         return;
       }
 
       // Handle case where no data is returned
       if (!data) {
-        console.warn('No data returned from get_leaderboard_generic_data');
+        logger.warn('No data returned from get_leaderboard_generic_data');
         return;
       }
 
@@ -4641,13 +4637,13 @@ export class SupabaseApi implements ServiceApi {
             leaderBoardList.weekly.push(leaderboardEntry);
             break;
           default:
-            console.warn('Unknown leaderboard type: ', result.type);
+            logger.warn('Unknown leaderboard type: ', result.type);
         }
       });
 
       return leaderBoardList;
     } catch (error) {
-      console.error(
+      logger.error(
         'Error in getLeaderboardStudentResultFromB2CCollection: ',
         error,
       );
@@ -4726,7 +4722,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('lesson.is_deleted', false);
 
     if (error) {
-      console.error('Error fetching lesson from chapter:', error);
+      logger.error('Error fetching lesson from chapter:', error);
       return { lesson: [], course: [] };
     }
 
@@ -4771,7 +4767,7 @@ export class SupabaseApi implements ServiceApi {
 
       return [...gradeCourses, ...puzzleCourses];
     } catch (error) {
-      console.error('Error fetching courses by grade:', error);
+      logger.error('Error fetching courses by grade:', error);
       return [];
     }
   }
@@ -4785,7 +4781,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) {
-      console.error('Error fetching all courses:', error);
+      logger.error('Error fetching all courses:', error);
       return [];
     }
 
@@ -4813,7 +4809,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('chapter.is_deleted', false);
 
     if (error) {
-      console.error('Error fetching courses from lesson:', error);
+      logger.error('Error fetching courses from lesson:', error);
       return [];
     }
 
@@ -4855,15 +4851,13 @@ export class SupabaseApi implements ServiceApi {
             if (onDataChange) {
               onDataChange(payload.new as TableTypes<'assignment_user'>);
             } else {
-              console.error(
-                '🛑 onDataChange is undefined for assignment_user!',
-              );
+              logger.error('🛑 onDataChange is undefined for assignment_user!');
             }
           },
         )
         .subscribe();
     } catch (error) {
-      console.error('🛑 Error in Supabase assignment_user listener:', error);
+      logger.error('🛑 Error in Supabase assignment_user listener:', error);
     }
   }
 
@@ -4894,13 +4888,13 @@ export class SupabaseApi implements ServiceApi {
             if (onDataChange) {
               onDataChange(payload.new as TableTypes<'assignment'>);
             } else {
-              console.error('🛑 onDataChange is undefined!');
+              logger.error('🛑 onDataChange is undefined!');
             }
           },
         )
         .subscribe();
     } catch (error) {
-      console.error('🛑 Error in Supabase listener:', error);
+      logger.error('🛑 Error in Supabase listener:', error);
     }
   }
   async removeAssignmentChannel() {
@@ -4945,7 +4939,7 @@ export class SupabaseApi implements ServiceApi {
         .subscribe();
       return;
     } catch (error) {
-      console.error('Error setting up live quiz room listener:', error);
+      logger.error('Error setting up live quiz room listener:', error);
       throw error;
     }
   }
@@ -4973,7 +4967,7 @@ export class SupabaseApi implements ServiceApi {
         score: score,
       });
     } catch (error) {
-      console.error('Error updating quiz result:', error);
+      logger.error('Error updating quiz result:', error);
       throw error;
     }
   }
@@ -5026,7 +5020,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error fetching assignment by id:', error);
+      logger.error('Error fetching assignment by id:', error);
       return undefined;
     }
 
@@ -5044,7 +5038,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching assignments by ids:', error);
+      logger.error('Error fetching assignments by ids:', error);
       return [];
     }
 
@@ -5074,7 +5068,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching badges by IDs:', error);
+      logger.error('Error fetching badges by IDs:', error);
       return [];
     }
 
@@ -5090,7 +5084,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching stickers by IDs:', error);
+      logger.error('Error fetching stickers by IDs:', error);
       return [];
     }
 
@@ -5110,7 +5104,7 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (error) {
-        console.error('Error fetching reward by ID:', error);
+        logger.error('Error fetching reward by ID:', error);
         return;
       }
 
@@ -5120,13 +5114,13 @@ export class SupabaseApi implements ServiceApi {
         Array.isArray(data) ||
         !(periodType in data)
       ) {
-        console.error('No reward found for the given year or periodType.');
+        logger.error('No reward found for the given year or periodType.');
         return;
       }
       const rewardPayload = data[periodType as keyof typeof data];
 
       if (!rewardPayload) {
-        console.error('No reward found for the given year or periodType.');
+        logger.error('No reward found for the given year or periodType.');
         return;
       }
 
@@ -5135,11 +5129,11 @@ export class SupabaseApi implements ServiceApi {
           ? JSON.parse(rewardPayload)
           : (rewardPayload as TableTypes<'reward'>);
       } catch (parseError) {
-        console.error('Error parsing JSON from reward data:', parseError);
+        logger.error('Error parsing JSON from reward data:', parseError);
         return;
       }
     } catch (error) {
-      console.error('Unexpected error in getRewardsById:', error);
+      logger.error('Unexpected error in getRewardsById:', error);
       return;
     }
   }
@@ -5153,18 +5147,18 @@ export class SupabaseApi implements ServiceApi {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error fetching stickers by user ID:', error);
+        logger.error('Error fetching stickers by user ID:', error);
         return [];
       }
 
       if (!data || data.length === 0) {
-        console.error('No sticker found for the given user ID.');
+        logger.error('No sticker found for the given user ID.');
         return [];
       }
 
       return data;
     } catch (error) {
-      console.error('Unexpected error in getUserSticker:', error);
+      logger.error('Unexpected error in getUserSticker:', error);
       return [];
     }
   }
@@ -5179,18 +5173,18 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error fetching user badge by user ID:', error);
+        logger.error('Error fetching user badge by user ID:', error);
         return [];
       }
 
       if (!data || data.length === 0) {
-        console.error('No badge found for the given user ID.');
+        logger.error('No badge found for the given user ID.');
         return [];
       }
 
       return data;
     } catch (error) {
-      console.error('Unexpected error in getUserBadge:', error);
+      logger.error('Unexpected error in getUserBadge:', error);
       return [];
     }
   }
@@ -5205,18 +5199,18 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error fetching user bonus by user ID:', error);
+        logger.error('Error fetching user bonus by user ID:', error);
         return [];
       }
 
       if (!data || data.length === 0) {
-        console.error('No bonus found for the given user ID.');
+        logger.error('No bonus found for the given user ID.');
         return [];
       }
 
       return data;
     } catch (error) {
-      console.error('Unexpected error in getUserBonus:', error);
+      logger.error('Unexpected error in getUserBonus:', error);
       return [];
     }
   }
@@ -5232,11 +5226,11 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error updating rewards as seen:', error);
+        logger.error('Error updating rewards as seen:', error);
         throw new Error('Error updating rewards as seen.');
       }
     } catch (err) {
-      console.error('Unexpected error updating rewards as seen:', err);
+      logger.error('Unexpected error updating rewards as seen:', err);
       throw new Error('Unexpected error updating rewards as seen.');
     }
   }
@@ -5255,7 +5249,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .single();
       if (error || !schoolData) {
-        console.error('Error fetching school data:', error);
+        logger.error('Error fetching school data:', error);
         return null;
       }
 
@@ -5266,7 +5260,7 @@ export class SupabaseApi implements ServiceApi {
         schoolModel: model || '',
       };
     } catch (err) {
-      console.error('Unexpected error in getSchoolDetailsByUdise:', err);
+      logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
       return null;
     }
   }
@@ -5283,13 +5277,13 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (error || !data) {
-        console.error('Error fetching school_data record:', error);
+        logger.error('Error fetching school_data record:', error);
         return null;
       }
 
       return data; // return entire row
     } catch (err) {
-      console.error('Unexpected error in getSchoolDataByUdise:', err);
+      logger.error('Unexpected error in getSchoolDataByUdise:', err);
       return null;
     }
   }
@@ -5320,13 +5314,13 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (error) {
-        console.error('Error fetching grade by ID:', error);
+        logger.error('Error fetching grade by ID:', error);
         return;
       }
 
       return data;
     } catch (err) {
-      console.error('Unexpected error fetching grade by ID:', err);
+      logger.error('Unexpected error fetching grade by ID:', err);
       return;
     }
   }
@@ -5343,13 +5337,13 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error fetching grades by IDs:', error);
+        logger.error('Error fetching grades by IDs:', error);
         return [];
       }
 
       return data ?? [];
     } catch (err) {
-      console.error('Unexpected error fetching grades by IDs:', err);
+      logger.error('Unexpected error fetching grades by IDs:', err);
       return [];
     }
   }
@@ -5367,13 +5361,13 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (error) {
-        console.error('Error fetching curriculum by ID:', error);
+        logger.error('Error fetching curriculum by ID:', error);
         return;
       }
 
       return data ?? undefined;
     } catch (err) {
-      console.error('Unexpected error fetching curriculum by ID:', err);
+      logger.error('Unexpected error fetching curriculum by ID:', err);
       return;
     }
   }
@@ -5390,13 +5384,13 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error fetching curriculums by IDs:', error);
+        logger.error('Error fetching curriculums by IDs:', error);
         return [];
       }
 
       return data ?? [];
     } catch (err) {
-      console.error('Unexpected error fetching curriculums by IDs:', err);
+      logger.error('Unexpected error fetching curriculums by IDs:', err);
       return [];
     }
   }
@@ -5613,7 +5607,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(20);
 
     if (error) {
-      console.error('searchLessons error', error);
+      logger.error('searchLessons error', error);
       return [];
     }
 
@@ -5658,7 +5652,7 @@ export class SupabaseApi implements ServiceApi {
 
       return matchedLesson ? matchedLesson.chapter_id : data[0].chapter_id;
     } catch (error) {
-      console.error('Error fetching chapter by lesson ID:', error);
+      logger.error('Error fetching chapter by lesson ID:', error);
       return;
     }
   }
@@ -5734,7 +5728,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(10);
 
     if (error) {
-      console.error('Error fetching student results:', error.message);
+      logger.error('Error fetching student results:', error.message);
       return [];
     }
 
@@ -5756,7 +5750,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching assignment_user records:', error.message);
+      logger.error('Error fetching assignment_user records:', error.message);
       return [];
     }
 
@@ -5774,7 +5768,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching results by assignment IDs:', error.message);
+      logger.error('Error fetching results by assignment IDs:', error.message);
       return;
     }
 
@@ -5803,7 +5797,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('user.result.is_deleted', false);
 
     if (error) {
-      console.error('Error fetching results for class members:', error.message);
+      logger.error('Error fetching results for class members:', error.message);
       return [];
     }
 
@@ -5823,7 +5817,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching assignments:', error.message);
+      logger.error('Error fetching assignments:', error.message);
       return;
     }
 
@@ -5893,7 +5887,7 @@ export class SupabaseApi implements ServiceApi {
         ]);
 
       if (assignmentError) {
-        console.error('Error inserting assignment:', assignmentError.message);
+        logger.error('Error inserting assignment:', assignmentError.message);
       }
 
       // If not class-wise, insert into assignment_user
@@ -5912,14 +5906,14 @@ export class SupabaseApi implements ServiceApi {
           .insert(assignmentUserEntries);
 
         if (userError) {
-          console.error(
+          logger.error(
             'Error inserting assignment_user records:',
             userError.message,
           );
         }
       }
     } catch (error) {
-      console.error('Unexpected error in createAssignment:', error);
+      logger.error('Unexpected error in createAssignment:', error);
     }
   }
 
@@ -5937,7 +5931,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classUserError) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
       return [];
     }
 
@@ -5952,7 +5946,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (userError) {
-      console.error('Error fetching users:', userError);
+      logger.error('Error fetching users:', userError);
       return [];
     }
 
@@ -6015,7 +6009,7 @@ export class SupabaseApi implements ServiceApi {
       .insert(classUser);
 
     if (insertError) {
-      console.error('Error inserting class_user:', insertError);
+      logger.error('Error inserting class_user:', insertError);
       throw insertError;
     }
 
@@ -6067,7 +6061,7 @@ export class SupabaseApi implements ServiceApi {
         );
 
       if (userInsertError) {
-        console.error('Error inserting user:', userInsertError);
+        logger.error('Error inserting user:', userInsertError);
         throw userInsertError;
       }
     }
@@ -6088,7 +6082,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (schoolUserError) {
-      console.error('Error querying school_user:', schoolUserError);
+      logger.error('Error querying school_user:', schoolUserError);
       return false;
     }
     if (schoolUsers && schoolUsers.length > 0) return true;
@@ -6101,7 +6095,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classError) {
-      console.error('Error querying class:', classError);
+      logger.error('Error querying class:', classError);
       return false;
     }
     if (!classes || classes.length === 0) return false;
@@ -6119,7 +6113,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (teacherError) {
-      console.error('Error querying class_user:', teacherError);
+      logger.error('Error querying class_user:', teacherError);
       return false;
     }
 
@@ -6141,7 +6135,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (schoolUserError) {
-      console.error('Error querying school_user:', schoolUserError);
+      logger.error('Error querying school_user:', schoolUserError);
       return false;
     }
     if (schoolUsers && schoolUsers.length > 0) return true;
@@ -6157,7 +6151,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle(); // Returns null if no match
 
     if (error) {
-      console.error('Error checking user in class:', error);
+      logger.error('Error checking user in class:', error);
       return false;
     }
 
@@ -6185,7 +6179,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error querying school_user:', error);
+      logger.error('Error querying school_user:', error);
       return false;
     }
 
@@ -6216,7 +6210,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching assignments:', error);
+      logger.error('Error fetching assignments:', error);
       return { classWiseAssignments: [], individualAssignments: [] };
     }
 
@@ -6244,7 +6238,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching teacher joined date:', error);
+      logger.error('Error fetching teacher joined date:', error);
       return undefined;
     }
 
@@ -6260,7 +6254,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching assigned students:', error);
+      logger.error('Error fetching assigned students:', error);
       return [];
     }
 
@@ -6288,7 +6282,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching student result by date:', error);
+      logger.error('Error fetching student result by date:', error);
       return;
     }
 
@@ -6306,7 +6300,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching lessons by IDs:', error);
+      logger.error('Error fetching lessons by IDs:', error);
       return;
     }
 
@@ -6327,7 +6321,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (fetchError) {
-        console.error('Error fetching teacher entry:', fetchError);
+        logger.error('Error fetching teacher entry:', fetchError);
         return;
       }
 
@@ -6344,13 +6338,13 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', entryToUpdate.id);
 
       if (updateError) {
-        console.error('Error updating teacher record:', updateError);
+        logger.error('Error updating teacher record:', updateError);
         return;
       }
 
       // No pushChanges needed
     } catch (error) {
-      console.error('SupabaseApi ~ deleteTeacher ~ error:', error);
+      logger.error('SupabaseApi ~ deleteTeacher ~ error:', error);
     }
   }
 
@@ -6370,13 +6364,13 @@ export class SupabaseApi implements ServiceApi {
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase error in getClassCodeById:', error);
+        logger.error('Supabase error in getClassCodeById:', error);
         return;
       }
 
       return data?.code;
     } catch (err) {
-      console.error('Error in getClassCodeById:', err);
+      logger.error('Error in getClassCodeById:', err);
       return;
     }
   }
@@ -6403,13 +6397,13 @@ export class SupabaseApi implements ServiceApi {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase error in getResultByChapterByDate:', error);
+        logger.error('Supabase error in getResultByChapterByDate:', error);
         return;
       }
 
       return data?.length ? data : undefined;
     } catch (err) {
-      console.error('Error in getResultByChapterByDate:', err);
+      logger.error('Error in getResultByChapterByDate:', err);
       return;
     }
   }
@@ -6443,7 +6437,7 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await query;
 
       if (error) {
-        console.error(
+        logger.error(
           'Supabase error in getUniqueAssignmentIdsByCourseAndChapter:',
           error,
         );
@@ -6454,7 +6448,7 @@ export class SupabaseApi implements ServiceApi {
         new Set((data ?? []).map((row: any) => row.id).filter(Boolean)),
       ) as string[];
     } catch (err) {
-      console.error('Error in getUniqueAssignmentIdsByCourseAndChapter:', err);
+      logger.error('Error in getUniqueAssignmentIdsByCourseAndChapter:', err);
       return [];
     }
   }
@@ -6496,7 +6490,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Supabase error in getSchoolsWithRoleAutouser:', error);
+        logger.error('Supabase error in getSchoolsWithRoleAutouser:', error);
         return;
       }
 
@@ -6506,7 +6500,7 @@ export class SupabaseApi implements ServiceApi {
 
       return schools ?? [];
     } catch (err) {
-      console.error('Error in getSchoolsWithRoleAutouser:', err);
+      logger.error('Error in getSchoolsWithRoleAutouser:', err);
       return;
     }
   }
@@ -6523,7 +6517,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .order('created_at', { ascending: true });
     if (error) {
-      console.error('Error fetching principals:', error);
+      logger.error('Error fetching principals:', error);
       return;
     }
 
@@ -6555,7 +6549,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1); // Apply pagination
 
     if (error) {
-      console.error('Error fetching principals:', error);
+      logger.error('Error fetching principals:', error);
       return { data: [], total: 0 };
     }
 
@@ -6589,7 +6583,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching coordinators:', error);
+      logger.error('Error fetching coordinators:', error);
       return;
     }
 
@@ -6621,7 +6615,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1); // Apply pagination
 
     if (error) {
-      console.error('Error fetching coordinators:', error);
+      logger.error('Error fetching coordinators:', error);
       return { data: [], total: 0 };
     }
 
@@ -6651,7 +6645,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error fetching sponsors:', error);
+      logger.error('Error fetching sponsors:', error);
       return;
     }
 
@@ -6681,7 +6675,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(1);
 
     if (selectError) {
-      console.error('Error checking existing school_user:', selectError);
+      logger.error('Error checking existing school_user:', selectError);
       return;
     }
     if (existing && existing.length > 0) return;
@@ -6701,7 +6695,7 @@ export class SupabaseApi implements ServiceApi {
       .insert([schoolUser]);
 
     if (insertError) {
-      console.error('Error inserting into school_user:', insertError);
+      logger.error('Error inserting into school_user:', insertError);
       return;
     }
     const { error: schoolUpdateError } = await this.supabase
@@ -6736,7 +6730,7 @@ export class SupabaseApi implements ServiceApi {
         .upsert([cleanUserDoc], { onConflict: 'id' });
 
       if (userInsertError) {
-        console.error('Error upserting user:', userInsertError);
+        logger.error('Error upserting user:', userInsertError);
       }
     }
   }
@@ -6760,7 +6754,7 @@ export class SupabaseApi implements ServiceApi {
         .maybeSingle();
 
       if (selectError) {
-        console.error('Error selecting school_user:', selectError);
+        logger.error('Error selecting school_user:', selectError);
         return { success: false, message: selectError.message };
       }
 
@@ -6776,7 +6770,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', data.id);
 
       if (updateError) {
-        console.error('Error updating school_user:', updateError);
+        logger.error('Error updating school_user:', updateError);
         return { success: false, message: updateError.message };
       }
 
@@ -6785,7 +6779,7 @@ export class SupabaseApi implements ServiceApi {
         message: 'User removed from school successfully.',
       };
     } catch (error: any) {
-      console.error('SupabaseApi ~ deleteUserFromSchool ~ error:', error);
+      logger.error('SupabaseApi ~ deleteUserFromSchool ~ error:', error);
       return {
         success: false,
         message: error?.message || 'Unexpected error occurred.',
@@ -6803,7 +6797,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', schoolId);
 
     if (error) {
-      console.error("Error updating school's updated_at:", error);
+      logger.error("Error updating school's updated_at:", error);
     }
   }
   async updateClassLastModified(classId: string): Promise<void> {
@@ -6817,7 +6811,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', classId);
 
     if (error) {
-      console.error("Error updating class's updated_at:", error);
+      logger.error("Error updating class's updated_at:", error);
     }
   }
   async updateUserLastModified(userId: string): Promise<void> {
@@ -6831,7 +6825,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', userId);
 
     if (error) {
-      console.error("Error updating user's updated_at:", error);
+      logger.error("Error updating user's updated_at:", error);
     }
   }
 
@@ -7208,10 +7202,10 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', studentId);
 
       if (updateError) {
-        console.error('Error updating stars in Supabase:', updateError);
+        logger.error('Error updating stars in Supabase:', updateError);
       }
     } catch (error) {
-      console.error('Error in setStarsForStudents:', error);
+      logger.error('Error in setStarsForStudents:', error);
     }
   }
   async countAllPendingPushes(): Promise<number> {
@@ -7233,7 +7227,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (classUserError || !classUserData) {
-      console.error('Error fetching class_user:', classUserError);
+      logger.error('Error fetching class_user:', classUserError);
       return {} as TableTypes<'class'>;
     }
 
@@ -7250,7 +7244,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (classError || !classData) {
-      console.error('Error fetching class:', classError);
+      logger.error('Error fetching class:', classError);
       return {} as TableTypes<'class'>;
     }
     return classData;
@@ -7269,7 +7263,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (userCoursesError) {
-      console.error('Error fetching user courses:', userCoursesError);
+      logger.error('Error fetching user courses:', userCoursesError);
       return [];
     }
     if (!userCourses || userCourses.length === 0) {
@@ -7288,7 +7282,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (coursesError) {
-      console.error('Error fetching courses:', coursesError);
+      logger.error('Error fetching courses:', coursesError);
       return [];
     }
 
@@ -7307,7 +7301,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
     student.learning_path = learning_path;
     if (error) {
-      console.error('Error updating learning path:', error);
+      logger.error('Error updating learning path:', error);
       throw error;
     }
     return student;
@@ -7315,7 +7309,7 @@ export class SupabaseApi implements ServiceApi {
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      logger.error('Supabase client is not initialized');
       return {};
     }
 
@@ -7324,7 +7318,7 @@ export class SupabaseApi implements ServiceApi {
         'get_program_filter_options',
       );
       if (error) {
-        console.error('RPC error:', error);
+        logger.error('RPC error:', error);
         return {};
       }
 
@@ -7344,7 +7338,7 @@ export class SupabaseApi implements ServiceApi {
       }
       return parsed;
     } catch (err) {
-      console.error('Unexpected error:', err);
+      logger.error('Unexpected error:', err);
       return {};
     }
   }
@@ -7369,7 +7363,7 @@ export class SupabaseApi implements ServiceApi {
     order?: 'asc' | 'desc';
   }): Promise<{ data: any[] }> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized');
+      logger.error('Supabase client not initialized');
       return { data: [] };
     }
 
@@ -7386,26 +7380,26 @@ export class SupabaseApi implements ServiceApi {
       });
 
       if (error) {
-        console.error('Error calling get_programs_for_user RPC:', error);
+        logger.error('Error calling get_programs_for_user RPC:', error);
         return { data: [] };
       }
       return { data: data || [] };
     } catch (err) {
-      console.error('Unexpected error in getPrograms:', err);
+      logger.error('Unexpected error in getPrograms:', err);
       return { data: [] };
     }
   }
 
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
     const { data, error } = await this.supabase.rpc('get_program_managers');
 
     if (error) {
-      console.error('Error fetching managers:', error);
+      logger.error('Error fetching managers:', error);
       return [];
     }
 
@@ -7420,7 +7414,7 @@ export class SupabaseApi implements ServiceApi {
     District: string[];
   }> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return {
         Country: [],
         State: [],
@@ -7448,7 +7442,7 @@ export class SupabaseApi implements ServiceApi {
   async insertProgram(payload: any): Promise<boolean> {
     try {
       if (!this.supabase) {
-        console.error('Supabase client is not initialized.');
+        logger.error('Supabase client is not initialized.');
         return false;
       }
       const programId = uuidv4();
@@ -7489,7 +7483,7 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (error) {
-        console.error('Insert error:', error);
+        logger.error('Insert error:', error);
         return false;
       }
 
@@ -7508,13 +7502,13 @@ export class SupabaseApi implements ServiceApi {
         .insert(programUserRows);
 
       if (programUserError) {
-        console.error('Error inserting program users:', programUserError);
+        logger.error('Error inserting program users:', programUserError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('insertProgram failed:', error);
+      logger.error('insertProgram failed:', error);
       return false;
     }
   }
@@ -7523,7 +7517,7 @@ export class SupabaseApi implements ServiceApi {
     offset: number = 0,
   ): Promise<TableTypes<'school'>[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
     const { data, error } = await this.supabase
@@ -7533,7 +7527,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching schools:', error);
+      logger.error('Error fetching schools:', error);
       return [];
     }
     return data ?? [];
@@ -7545,7 +7539,7 @@ export class SupabaseApi implements ServiceApi {
     offset: number = 0,
   ): Promise<TableTypes<'school'>[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
@@ -7557,7 +7551,7 @@ export class SupabaseApi implements ServiceApi {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching schools by model:', error);
+      logger.error('Error fetching schools by model:', error);
       return [];
     }
     return data ?? [];
@@ -7565,7 +7559,7 @@ export class SupabaseApi implements ServiceApi {
 
   async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
@@ -7576,7 +7570,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classError || !classes) {
-      console.error('Error fetching classes:', classError);
+      logger.error('Error fetching classes:', classError);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7594,7 +7588,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', RoleType.TEACHER);
 
     if (classUserError || !classUsers) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7624,7 +7618,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
@@ -7635,7 +7629,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (classError || !classes) {
-      console.error('Error fetching classes:', classError);
+      logger.error('Error fetching classes:', classError);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7653,7 +7647,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', RoleType.STUDENT);
 
     if (classUserError || !classUsers) {
-      console.error('Error fetching class users:', classUserError);
+      logger.error('Error fetching class users:', classUserError);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7686,7 +7680,7 @@ export class SupabaseApi implements ServiceApi {
     schoolIds: string[],
   ): Promise<SchoolRoleMap[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
@@ -7698,7 +7692,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', RoleType.PROGRAM_MANAGER);
 
     if (error || !data) {
-      console.error('Error fetching program managers:', error);
+      logger.error('Error fetching program managers:', error);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7729,7 +7723,7 @@ export class SupabaseApi implements ServiceApi {
     schoolIds: string[],
   ): Promise<SchoolRoleMap[]> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return [];
     }
 
@@ -7741,7 +7735,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', RoleType.FIELD_COORDINATOR);
 
     if (error || !data) {
-      console.error('Error fetching field coordinators:', error);
+      logger.error('Error fetching field coordinators:', error);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
     }
 
@@ -7778,7 +7772,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', schoolId)
       .maybeSingle();
     if (error) {
-      console.error('Error fetching program with join:', error);
+      logger.error('Error fetching program with join:', error);
       return;
     }
     const program = (data?.program ?? undefined) as
@@ -7825,11 +7819,11 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', studentId);
 
       if (error) {
-        console.error('Error setting stars for student:', error);
+        logger.error('Error setting stars for student:', error);
         throw error;
       }
     } catch (error) {
-      console.error('Error setting stars for student:', error);
+      logger.error('Error setting stars for student:', error);
     }
   }
 
@@ -7840,7 +7834,7 @@ export class SupabaseApi implements ServiceApi {
     programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return null;
     }
 
@@ -7852,7 +7846,7 @@ export class SupabaseApi implements ServiceApi {
         .single();
 
       if (programError || !program) {
-        console.error('Error fetching program:', programError);
+        logger.error('Error fetching program:', programError);
         return null;
       }
 
@@ -7863,7 +7857,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('role', 'program_manager');
 
       if (mappingsError) {
-        console.error('Error fetching program managers:', mappingsError);
+        logger.error('Error fetching program managers:', mappingsError);
         return null;
       }
 
@@ -7876,7 +7870,7 @@ export class SupabaseApi implements ServiceApi {
         .select('id, name, phone')
         .in('id', userIds);
       if (usersError) {
-        console.error('Error fetching user details:', usersError);
+        logger.error('Error fetching user details:', usersError);
         return null;
       }
 
@@ -7945,7 +7939,7 @@ export class SupabaseApi implements ServiceApi {
         programManagers,
       };
     } catch (err) {
-      console.error('Unexpected error in getProgramData:', err);
+      logger.error('Unexpected error in getProgramData:', err);
       return null;
     }
   }
@@ -7953,7 +7947,7 @@ export class SupabaseApi implements ServiceApi {
     Record<string, string[]>
   > {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      logger.error('Supabase client is not initialized');
       return {};
     }
 
@@ -7963,7 +7957,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (error) {
-        console.error('RPC error in getSchoolFilterOptions:', error);
+        logger.error('RPC error in getSchoolFilterOptions:', error);
         return {};
       }
 
@@ -7992,7 +7986,7 @@ export class SupabaseApi implements ServiceApi {
 
       return parsed;
     } catch (err) {
-      console.error('Unexpected error in getSchoolFilterOptions:', err);
+      logger.error('Unexpected error in getSchoolFilterOptions:', err);
       return {};
     }
   }
@@ -8001,7 +7995,7 @@ export class SupabaseApi implements ServiceApi {
     programId: string,
   ): Promise<Record<string, string[]>> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      logger.error('Supabase client is not initialized');
       return {};
     }
 
@@ -8012,7 +8006,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (error) {
-        console.error('RPC error in getSchoolFilterOptionsForProgram:', error);
+        logger.error('RPC error in getSchoolFilterOptionsForProgram:', error);
         return {};
       }
 
@@ -8042,7 +8036,7 @@ export class SupabaseApi implements ServiceApi {
 
       return parsed;
     } catch (err) {
-      console.error(
+      logger.error(
         'Unexpected error in getSchoolFilterOptionsForProgram:',
         err,
       );
@@ -8168,7 +8162,7 @@ export class SupabaseApi implements ServiceApi {
     total: number;
   }> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      logger.error('Supabase client is not initialized');
       return { data: [], total: 0 };
     }
 
@@ -8190,7 +8184,7 @@ export class SupabaseApi implements ServiceApi {
         payload,
       );
       if (error) {
-        console.error(
+        logger.error(
           'RPC error in get_filtered_schools_with_optional_program:',
           error,
         );
@@ -8214,7 +8208,7 @@ export class SupabaseApi implements ServiceApi {
         total: typeof data.total === 'number' ? data.total : 0,
       };
     } catch (err) {
-      console.error(
+      logger.error(
         'Unexpected error in get_filtered_schools_with_optional_program:',
         err,
       );
@@ -8237,7 +8231,7 @@ export class SupabaseApi implements ServiceApi {
     };
 
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      logger.error('Supabase client is not initialized');
       return fallbackResponse;
     }
 
@@ -8273,7 +8267,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (error) {
-        console.error('RPC error in get_schools_with_program_access:', error);
+        logger.error('RPC error in get_schools_with_program_access:', error);
         return fallbackResponse;
       }
 
@@ -8326,10 +8320,7 @@ export class SupabaseApi implements ServiceApi {
             : 0,
       };
     } catch (err) {
-      console.error(
-        'Unexpected error in get_schools_with_program_access:',
-        err,
-      );
+      logger.error('Unexpected error in get_schools_with_program_access:', err);
       return fallbackResponse;
     }
   }
@@ -8384,7 +8375,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.User)
       .insert([newStudent]);
     if (userInsertError) {
-      console.error('Error inserting auto profile user:', userInsertError);
+      logger.error('Error inserting auto profile user:', userInsertError);
       throw userInsertError;
     }
 
@@ -8405,7 +8396,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.ParentUser)
       .insert([parentUserData]);
     if (parentInsertError) {
-      console.error(
+      logger.error(
         'Error inserting parent_user for auto profile:',
         parentInsertError,
       );
@@ -8455,7 +8446,7 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.UserCourse)
         .insert([newUserCourse]);
       if (userCourseInsertError) {
-        console.error(
+        logger.error(
           'Error inserting user_course for auto profile:',
           userCourseInsertError,
         );
@@ -8467,7 +8458,7 @@ export class SupabaseApi implements ServiceApi {
 
   async isProgramUser(): Promise<boolean> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return false;
     }
     const _currentUser =
@@ -8485,7 +8476,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(1);
 
     if (error) {
-      console.error('Error checking program_user table', error);
+      logger.error('Error checking program_user table', error);
       return false;
     }
 
@@ -8503,7 +8494,7 @@ export class SupabaseApi implements ServiceApi {
     totalCount: number;
   }> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return { data: [], totalCount: 0 };
     }
     const _currentUser =
@@ -8537,7 +8528,7 @@ export class SupabaseApi implements ServiceApi {
         .order(sortBy, { ascending: sortOrder === 'asc' })
         .range(from, to);
       if (error) {
-        console.error('Supabase fetch error:', error);
+        logger.error('Supabase fetch error:', error);
         return { data: [], totalCount: 0 };
       }
       if (!data) return { data: [], totalCount: 0 };
@@ -8559,7 +8550,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('role', RoleType.PROGRAM_MANAGER)
         .eq('is_deleted', false);
       if (programsError) {
-        console.error(
+        logger.error(
           "Error fetching program manager's programs:",
           programsError,
         );
@@ -8593,7 +8584,7 @@ export class SupabaseApi implements ServiceApi {
         .order(sortBy, { ascending: sortOrder === 'asc' })
         .range(from, to);
       if (error) {
-        console.error('Error fetching field coordinators:', error);
+        logger.error('Error fetching field coordinators:', error);
         return { data: [], totalCount: 0 };
       }
       if (!users) {
@@ -8621,7 +8612,7 @@ export class SupabaseApi implements ServiceApi {
     avg_weekly_time_minutes: number;
   }> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return {
         total_students: 0,
         total_teachers: 0,
@@ -8640,7 +8631,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (error || !data) {
-        console.error('RPC error:', error);
+        logger.error('RPC error:', error);
         return {
           total_students: 0,
           total_teachers: 0,
@@ -8668,7 +8659,7 @@ export class SupabaseApi implements ServiceApi {
         avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
-      console.error('Unexpected error:', err);
+      logger.error('Unexpected error:', err);
       return {
         total_students: 0,
         total_teachers: 0,
@@ -8686,7 +8677,7 @@ export class SupabaseApi implements ServiceApi {
     avg_weekly_time_minutes: number;
   }> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized.');
+      logger.error('Supabase client is not initialized.');
       return {
         active_student_percentage: 0,
         active_teacher_percentage: 0,
@@ -8703,7 +8694,7 @@ export class SupabaseApi implements ServiceApi {
       );
 
       if (error) {
-        console.error('RPC error:', error);
+        logger.error('RPC error:', error);
         return {
           active_student_percentage: 0,
           active_teacher_percentage: 0,
@@ -8721,7 +8712,7 @@ export class SupabaseApi implements ServiceApi {
         avg_weekly_time_minutes: stats?.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
-      console.error('Unexpected error:', err);
+      logger.error('Unexpected error:', err);
       return {
         active_student_percentage: 0,
         active_teacher_percentage: 0,
@@ -8732,7 +8723,7 @@ export class SupabaseApi implements ServiceApi {
 
   async isProgramManager(): Promise<boolean> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return false;
     }
     const _currentUser =
@@ -8747,7 +8738,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .limit(1);
     if (error) {
-      console.error('Error checking program_user table', error);
+      logger.error('Error checking program_user table', error);
       return false;
     }
     return !!(data && data.length > 0);
@@ -8755,12 +8746,12 @@ export class SupabaseApi implements ServiceApi {
 
   async getUserSpecialRoles(userId: string): Promise<string[]> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return [];
     }
 
     if (!userId) {
-      console.warn('userId is missing. Cannot fetch roles.');
+      logger.warn('userId is missing. Cannot fetch roles.');
       return [];
     }
 
@@ -8778,10 +8769,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error(
-          'Error fetching roles from special_users:',
-          error.message,
-        );
+        logger.error('Error fetching roles from special_users:', error.message);
         return [];
       }
 
@@ -8791,14 +8779,14 @@ export class SupabaseApi implements ServiceApi {
 
       return roles;
     } catch (e) {
-      console.error('Unexpected error while fetching user special roles:', e);
+      logger.error('Unexpected error while fetching user special roles:', e);
       return [];
     }
   }
 
   async updateSpecialUserRole(userId: string, role: string): Promise<void> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return;
     }
     const updatedAt = new Date().toISOString();
@@ -8813,15 +8801,15 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error updating role in special_users:', error.message);
+        logger.error('Error updating role in special_users:', error.message);
       }
     } catch (e) {
-      console.error('Unexpected error while updating user role:', e);
+      logger.error('Unexpected error while updating user role:', e);
     }
   }
   async deleteSpecialUser(userId: string): Promise<void> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return;
     }
     try {
@@ -8831,16 +8819,16 @@ export class SupabaseApi implements ServiceApi {
         .eq('user_id', userId)
         .eq('is_deleted', false);
       if (error) {
-        console.error('Error deleting user in special_users:', error.message);
+        logger.error('Error deleting user in special_users:', error.message);
       }
     } catch (e) {
-      console.error('Unexpected error while deleting user:', e);
+      logger.error('Unexpected error while deleting user:', e);
     }
   }
 
   async updateProgramUserRole(userId: string, role: string): Promise<void> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return;
     }
     const updatedAt = new Date().toISOString();
@@ -8855,16 +8843,16 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error updating role in program_user:', error.message);
+        logger.error('Error updating role in program_user:', error.message);
       }
     } catch (e) {
-      console.error('Unexpected error while updating user role:', e);
+      logger.error('Unexpected error while updating user role:', e);
     }
   }
 
   async deleteProgramUser(userId: string): Promise<void> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return;
     }
     try {
@@ -8874,10 +8862,10 @@ export class SupabaseApi implements ServiceApi {
         .eq('user', userId)
         .eq('is_deleted', false);
       if (error) {
-        console.error('Error deleting user in program_user:', error.message);
+        logger.error('Error deleting user in program_user:', error.message);
       }
     } catch (e) {
-      console.error('Unexpected error while deleting user:', e);
+      logger.error('Unexpected error while deleting user:', e);
     }
   }
 
@@ -8886,7 +8874,7 @@ export class SupabaseApi implements ServiceApi {
     role: RoleType,
   ): Promise<void> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return;
     }
     try {
@@ -8897,24 +8885,22 @@ export class SupabaseApi implements ServiceApi {
         .eq('role', role)
         .eq('is_deleted', false);
       if (error) {
-        console.error('Error deleting user in program_user:', error.message);
+        logger.error('Error deleting user in program_user:', error.message);
       }
     } catch (e) {
-      console.error('Unexpected error while deleting user:', e);
+      logger.error('Unexpected error while deleting user:', e);
     }
   }
   async getChaptersByIds(
     chapterIds: string[],
   ): Promise<TableTypes<'chapter'>[]> {
     if (!this.supabase) {
-      console.error(
-        'getChaptersByIds failed: Supabase client not initialized.',
-      );
+      logger.error('getChaptersByIds failed: Supabase client not initialized.');
       return [];
     }
 
     if (!chapterIds || chapterIds.length === 0) {
-      console.warn('getChaptersByIds was called with no chapter IDs.');
+      logger.warn('getChaptersByIds was called with no chapter IDs.');
       return [];
     }
 
@@ -8926,13 +8912,13 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.warn('Error fetching chapters by IDs:', chapterIds);
+        logger.warn('Error fetching chapters by IDs:', chapterIds);
         throw error;
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching chapters', error);
+      logger.error('Error fetching chapters', error);
       return [];
     }
   }
@@ -8950,10 +8936,10 @@ export class SupabaseApi implements ServiceApi {
       });
 
       if (error) {
-        console.error('Failed to add parent to class:', error.message);
+        logger.error('Failed to add parent to class:', error.message);
       }
     } catch (error) {
-      console.error('Error in addParentToNewClass:', error);
+      logger.error('Error in addParentToNewClass:', error);
     }
   }
 
@@ -9193,7 +9179,7 @@ export class SupabaseApi implements ServiceApi {
       const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
       return { data, total: total ?? 0, totalPages, page, limit };
     } catch (err) {
-      console.error('Error in getOpsRequests:', err);
+      logger.error('Error in getOpsRequests:', err);
       return { data: [], total: 0, totalPages: 0, page, limit };
     }
   }
@@ -9216,7 +9202,7 @@ export class SupabaseApi implements ServiceApi {
       ]);
 
       if (requestTypeResponse.error) {
-        console.error(
+        logger.error(
           'Failed to fetch request types:',
           requestTypeResponse.error.message,
         );
@@ -9224,7 +9210,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (schoolResponse.error) {
-        console.error('Failed to fetch schools:', schoolResponse.error.message);
+        logger.error('Failed to fetch schools:', schoolResponse.error.message);
         throw schoolResponse.error;
       }
       // 1. Get unique request types
@@ -9252,7 +9238,7 @@ export class SupabaseApi implements ServiceApi {
         school: uniqueSchools,
       };
     } catch (error) {
-      console.error('Error in getRequestFilterOptions:', error);
+      logger.error('Error in getRequestFilterOptions:', error);
       throw error;
     }
   }
@@ -9476,7 +9462,7 @@ export class SupabaseApi implements ServiceApi {
             total: mergedRows.length,
           });
         } catch (err) {
-          console.error(err);
+          logger.error(err);
           resolve({ data: [], total: 0 });
         }
       }, 400);
@@ -9497,7 +9483,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('school_id', schoolId)
         .eq('is_deleted', false);
       if (classError || !classData) {
-        console.error('Error fetching classes for school:', classError);
+        logger.error('Error fetching classes for school:', classError);
         return { data: [], total: 0 };
       }
       const classIds = classData.map((row: any) => row.id);
@@ -9512,7 +9498,7 @@ export class SupabaseApi implements ServiceApi {
         .ilike('user.name', `%${searchTerm}%`)
         .not('user', 'is', null);
       if (classUserError || !classUserData) {
-        console.error('Error fetching class_user rows:', classUserError);
+        logger.error('Error fetching class_user rows:', classUserError);
         return { data: [], total: 0 };
       }
       // Step 3: Get parent info for each teacher using an inner query
@@ -9591,7 +9577,7 @@ export class SupabaseApi implements ServiceApi {
       });
       return { data: result, total: classUserData.length };
     } catch (err) {
-      console.error('Error searching teachers in school:', err);
+      logger.error('Error searching teachers in school:', err);
       return { data: [], total: 0 };
     }
   }
@@ -9627,7 +9613,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error approving ops_request:', error);
+      logger.error('Error approving ops_request:', error);
       return undefined;
     }
 
@@ -9663,7 +9649,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error responding to school_request:', error);
+      logger.error('Error responding to school_request:', error);
       return undefined;
     }
 
@@ -9672,7 +9658,7 @@ export class SupabaseApi implements ServiceApi {
 
   async getProgramsByRole(): Promise<{ data: TableTypes<'program'>[] }> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return { data: [] };
     }
 
@@ -9694,7 +9680,7 @@ export class SupabaseApi implements ServiceApi {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching programs:', error);
+        logger.error('Error fetching programs:', error);
         return { data: [] };
       }
       return { data: data || [] };
@@ -9711,10 +9697,7 @@ export class SupabaseApi implements ServiceApi {
           .eq('is_deleted', false);
 
       if (programUsersError) {
-        console.error(
-          'Error fetching program_user entries:',
-          programUsersError,
-        );
+        logger.error('Error fetching program_user entries:', programUsersError);
         return { data: [] };
       }
       if (!programUsers || programUsers.length === 0) {
@@ -9729,7 +9712,7 @@ export class SupabaseApi implements ServiceApi {
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching programs for program manager:', error);
+        logger.error('Error fetching programs for program manager:', error);
         return { data: [] };
       }
       return { data: programs || [] };
@@ -9752,7 +9735,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (linkError || !programUsers?.length) {
-      console.error('Error fetching program_user:', linkError);
+      logger.error('Error fetching program_user:', linkError);
       return { data: [] };
     }
     const userIds = programUsers
@@ -9766,7 +9749,7 @@ export class SupabaseApi implements ServiceApi {
       .order('name', { ascending: true });
 
     if (userError) {
-      console.error('Error fetching users:', userError);
+      logger.error('Error fetching users:', userError);
       return { data: [] };
     }
     return { data: users || [] };
@@ -9806,7 +9789,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error updating school status:', error);
+      logger.error('Error updating school status:', error);
     }
   }
   async getGeoData(params: GeoDataParams): Promise<string[]> {
@@ -9815,7 +9798,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.rpc('get_geo_data', params);
 
     if (error || !data) {
-      console.error("RPC 'get_geo_data' failed with params:", params, error);
+      logger.error("RPC 'get_geo_data' failed with params:", params, error);
       return [];
     }
     return data || [];
@@ -9824,7 +9807,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return null;
     const { data, error } = await this.supabase.rpc('get_client_country_code');
     if (error) {
-      console.error('Error fetching geo data:', error);
+      logger.error('Error fetching geo data:', error);
       return null;
     }
     return data;
@@ -9851,7 +9834,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await query.limit(1).maybeSingle();
 
     if (error) {
-      console.error('getLocaleByIdOrCode error:', error);
+      logger.error('getLocaleByIdOrCode error:', error);
       throw error;
     }
 
@@ -9862,18 +9845,18 @@ export class SupabaseApi implements ServiceApi {
     params: SearchSchoolsParams,
   ): Promise<SearchSchoolsResult> {
     if (!this.supabase) {
-      console.error('Supabase client is not available.');
+      logger.error('Supabase client is not available.');
       return { total_count: 0, schools: [] };
     }
 
     const { data, error } = await this.supabase.rpc('search_schools', params);
 
     if (error) {
-      console.error("RPC 'search_schools' failed:", params, error);
+      logger.error("RPC 'search_schools' failed:", params, error);
       return { total_count: 0, schools: [] };
     }
     const resultRow = Array.isArray(data) ? data[0] : data;
-    console.log('searchSchools result:', data);
+    logger.info('searchSchools result:', data);
     return {
       total_count: resultRow.total_count,
       schools: (resultRow.schools as School[]) ?? [],
@@ -9906,7 +9889,7 @@ export class SupabaseApi implements ServiceApi {
     ]);
 
     if (error) {
-      console.error('❌ Error inserting join school request:', error);
+      logger.error('❌ Error inserting join school request:', error);
       throw error;
     }
   }
@@ -9922,7 +9905,7 @@ export class SupabaseApi implements ServiceApi {
       },
     );
     if (error) {
-      console.error('Error fetching classes by school ID:', error);
+      logger.error('Error fetching classes by school ID:', error);
       return [];
     }
     return classes || [];
@@ -9938,13 +9921,13 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', rewardId)
         .eq('is_deleted', false);
       if (error) {
-        console.error('Error fetching reward by ID:', error);
+        logger.error('Error fetching reward by ID:', error);
       }
       return data && data.length > 0
         ? (data[0] as TableTypes<'rive_reward'>)
         : undefined;
     } catch (error) {
-      console.log('Unexpected error fetching reward by ID:', error);
+      logger.error('Unexpected error fetching reward by ID:', error);
       return undefined;
     }
   }
@@ -9959,12 +9942,12 @@ export class SupabaseApi implements ServiceApi {
         .order('state_number_input');
 
       if (error) {
-        console.error('Error fetching all rewards', error);
+        logger.error('Error fetching all rewards', error);
         return [];
       }
       return data as TableTypes<'rive_reward'>[];
     } catch (error) {
-      console.error('Error fetching all rewards', error);
+      logger.error('Error fetching all rewards', error);
       return [];
     }
   }
@@ -9979,7 +9962,7 @@ export class SupabaseApi implements ServiceApi {
         userId,
       )) as TableTypes<'user'> | null;
       if (!currentUser) {
-        console.warn(`No user found`);
+        logger.warn(`No user found`);
         return;
       }
 
@@ -10000,12 +9983,12 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (error) {
-        console.error('Error updating user reward:', error);
+        logger.error('Error updating user reward:', error);
         return;
       }
       Util.setCurrentStudent(currentUser);
     } catch (error) {
-      console.error('❌ Error updating user reward:', error);
+      logger.error('❌ Error updating user reward:', error);
     }
   }
   async getActiveStudentsCountByClass(
@@ -10023,7 +10006,7 @@ export class SupabaseApi implements ServiceApi {
       },
     );
     if (error) {
-      console.error('Error fetching active students count:', error);
+      logger.error('Error fetching active students count:', error);
       throw error;
     }
     return (data ?? 0).toString();
@@ -10044,7 +10027,7 @@ export class SupabaseApi implements ServiceApi {
         .is('is_deleted', false);
 
       if (error) {
-        console.error('Error fetching completed homework counts:', error);
+        logger.error('Error fetching completed homework counts:', error);
         return [];
       }
 
@@ -10062,7 +10045,7 @@ export class SupabaseApi implements ServiceApi {
         }),
       );
     } catch (err) {
-      console.error('Exception in getCompletedHomeworkCountForSubjects:', err);
+      logger.error('Exception in getCompletedHomeworkCountForSubjects:', err);
       return [];
     }
   }
@@ -10089,7 +10072,7 @@ export class SupabaseApi implements ServiceApi {
     const { error } = await query;
 
     if (error) {
-      console.error('Error deleting approved ops_requests:', error);
+      logger.error('Error deleting approved ops_requests:', error);
     }
   }
 
@@ -10115,7 +10098,7 @@ export class SupabaseApi implements ServiceApi {
       roleNorm === norm(RoleType.PRINCIPAL) || roleNorm === 'principal';
     const isTeacherRole =
       roleNorm === norm(RoleType.TEACHER) || roleNorm === 'teacher';
-    console.log('Invoking get_or_create_user with:', {
+    logger.info('Invoking get_or_create_user with:', {
       name,
       phone: phoneNumber,
       email,
@@ -10127,11 +10110,11 @@ export class SupabaseApi implements ServiceApi {
       },
     );
     if (error) {
-      console.error('user-upsert failed:', error);
+      logger.error('user-upsert failed:', error);
       throw error;
     }
     if (!data || !data.user) {
-      console.error('Invalid response from user-upsert:', data);
+      logger.error('Invalid response from user-upsert:', data);
       throw new Error('Invalid response from user-upsert');
     }
     const { message, user } = data as {
@@ -10155,7 +10138,7 @@ export class SupabaseApi implements ServiceApi {
           .update({ is_deleted: true, updated_at: timestamp })
           .in('id', toDelete);
         if (dedupeErr) {
-          console.error(`Failed to dedupe ${table}:`, dedupeErr);
+          logger.error(`Failed to dedupe ${table}:`, dedupeErr);
           throw dedupeErr;
         }
       }
@@ -10170,7 +10153,7 @@ export class SupabaseApi implements ServiceApi {
         .order('id', { ascending: true });
 
       if (clsErr) {
-        console.error('Failed to resolve school_id from classIds:', clsErr);
+        logger.error('Failed to resolve school_id from classIds:', clsErr);
         throw clsErr;
       }
 
@@ -10207,7 +10190,7 @@ export class SupabaseApi implements ServiceApi {
         .order('id', { ascending: false });
 
       if (teacherCUErr) {
-        console.error('Failed to fetch teacher class_user rows:', teacherCUErr);
+        logger.error('Failed to fetch teacher class_user rows:', teacherCUErr);
         throw teacherCUErr;
       }
 
@@ -10225,7 +10208,7 @@ export class SupabaseApi implements ServiceApi {
           .limit(1);
 
         if (matchErr) {
-          console.error(
+          logger.error(
             'Failed to check teacher classes against school:',
             matchErr,
           );
@@ -10254,7 +10237,7 @@ export class SupabaseApi implements ServiceApi {
         .limit(10);
 
       if (principalErr) {
-        console.error(
+        logger.error(
           'Failed to check principal role in school_user:',
           principalErr,
         );
@@ -10287,7 +10270,7 @@ export class SupabaseApi implements ServiceApi {
           .limit(10);
 
       if (fetchSchoolUserErr) {
-        console.error('Failed to fetch school_user:', fetchSchoolUserErr);
+        logger.error('Failed to fetch school_user:', fetchSchoolUserErr);
         throw fetchSchoolUserErr;
       }
 
@@ -10304,7 +10287,7 @@ export class SupabaseApi implements ServiceApi {
           .select('*');
 
         if (updateErr) {
-          console.error('Failed to update school_user:', updateErr);
+          logger.error('Failed to update school_user:', updateErr);
           throw updateErr;
         }
 
@@ -10326,7 +10309,7 @@ export class SupabaseApi implements ServiceApi {
           .select('*');
 
         if (insertErr) {
-          console.error('Failed to insert school_user:', insertErr);
+          logger.error('Failed to insert school_user:', insertErr);
           throw insertErr;
         }
 
@@ -10347,7 +10330,7 @@ export class SupabaseApi implements ServiceApi {
           .order('id', { ascending: false })
           .limit(10);
       if (fetchClassUserErr) {
-        console.error('Failed to fetch class_user:', fetchClassUserErr);
+        logger.error('Failed to fetch class_user:', fetchClassUserErr);
         throw fetchClassUserErr;
       }
       const existingClassUser = await dedupeAndPickLatest(
@@ -10361,7 +10344,7 @@ export class SupabaseApi implements ServiceApi {
           .eq('id', existingClassUser.id)
           .select('*');
         if (updateErr) {
-          console.error('Failed to update class_user:', updateErr);
+          logger.error('Failed to update class_user:', updateErr);
           throw updateErr;
         }
         classUsers.push(updatedRows?.[0] ?? existingClassUser);
@@ -10382,7 +10365,7 @@ export class SupabaseApi implements ServiceApi {
           .select('*');
 
         if (insertErr) {
-          console.error('Failed to insert class_user:', insertErr);
+          logger.error('Failed to insert class_user:', insertErr);
           throw insertErr;
         }
 
@@ -10417,7 +10400,7 @@ export class SupabaseApi implements ServiceApi {
       });
 
     if (apiError) {
-      console.error('user-upsert failed:', apiError);
+      logger.error('user-upsert failed:', apiError);
       throw apiError;
     }
 
@@ -10455,7 +10438,7 @@ export class SupabaseApi implements ServiceApi {
         .insert(insertPayload);
 
       if (error) {
-        console.error('Error inserting at_school/hybrid user:', error);
+        logger.error('Error inserting at_school/hybrid user:', error);
       }
     } else {
       const { error } = await this.supabase
@@ -10464,7 +10447,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('id', existing.id);
 
       if (error) {
-        console.error('Error updating at_school/hybrid user:', error);
+        logger.error('Error updating at_school/hybrid user:', error);
       }
     }
   }
@@ -10496,7 +10479,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error('Error inserting school details:', error);
+      logger.error('Error inserting school details:', error);
     }
   }
   async updateClassCourses(
@@ -10515,7 +10498,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (deleteError) {
-      console.error('Error removing old class_course entries:', deleteError);
+      logger.error('Error removing old class_course entries:', deleteError);
       throw deleteError;
     }
 
@@ -10535,7 +10518,7 @@ export class SupabaseApi implements ServiceApi {
         .insert(newEntries);
 
       if (insertError) {
-        console.error('Error inserting new class_course entries:', insertError);
+        logger.error('Error inserting new class_course entries:', insertError);
         throw insertError;
       }
     }
@@ -10605,7 +10588,7 @@ export class SupabaseApi implements ServiceApi {
             student_id: studentID || null,
           });
         if (childCreateError) {
-          console.error(
+          logger.error(
             'Error creating at-school student user:',
             childCreateError,
           );
@@ -10623,7 +10606,7 @@ export class SupabaseApi implements ServiceApi {
             is_deleted: false,
           });
         if (studentClassError) {
-          console.error(
+          logger.error(
             'Error adding at-school student to class:',
             studentClassError,
           );
@@ -10646,7 +10629,7 @@ export class SupabaseApi implements ServiceApi {
         });
 
       if (userError) {
-        console.error('Error creating/getting parent user:', userError);
+        logger.error('Error creating/getting parent user:', userError);
         return {
           success: false,
           message: 'Error creating parent account',
@@ -10654,7 +10637,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!userData || !userData.user) {
-        console.error('Invalid response from user-upsert:', userData);
+        logger.error('Invalid response from user-upsert:', userData);
         return { success: false, message: 'Invalid response from server' };
       }
 
@@ -10667,7 +10650,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (countError) {
-        console.error('Error counting children:', countError);
+        logger.error('Error counting children:', countError);
         return {
           success: false,
           message: 'Error checking existing profiles',
@@ -10698,7 +10681,7 @@ export class SupabaseApi implements ServiceApi {
         });
 
       if (childCreateError) {
-        console.error('Error creating child user:', childCreateError);
+        logger.error('Error creating child user:', childCreateError);
         return { success: false, message: 'Error creating student profile' };
       }
 
@@ -10714,7 +10697,7 @@ export class SupabaseApi implements ServiceApi {
         });
 
       if (parentUserError) {
-        console.error('Error linking child to parent:', parentUserError);
+        logger.error('Error linking child to parent:', parentUserError);
         return { success: false, message: 'Error linking student to parent' };
       }
 
@@ -10731,7 +10714,7 @@ export class SupabaseApi implements ServiceApi {
         });
 
       if (studentClassError) {
-        console.error('Error adding student to class:', studentClassError);
+        logger.error('Error adding student to class:', studentClassError);
         return { success: false, message: 'Error adding student to class' };
       }
 
@@ -10746,7 +10729,7 @@ export class SupabaseApi implements ServiceApi {
           .maybeSingle();
 
       if (parentCheckError) {
-        console.error('Error checking parent in class:', parentCheckError);
+        logger.error('Error checking parent in class:', parentCheckError);
       }
 
       if (!parentInClass) {
@@ -10763,7 +10746,7 @@ export class SupabaseApi implements ServiceApi {
           });
 
         if (parentClassError) {
-          console.error('Error adding parent to class:', parentClassError);
+          logger.error('Error adding parent to class:', parentClassError);
         }
       }
 
@@ -10776,7 +10759,7 @@ export class SupabaseApi implements ServiceApi {
         },
       };
     } catch (error) {
-      console.error(
+      logger.error(
         'Unexpected error in addStudentWithParentValidation:',
         error,
       );
@@ -10813,7 +10796,7 @@ export class SupabaseApi implements ServiceApi {
     });
 
     if (error) {
-      console.error('Error fetching FC Questions:', error);
+      logger.error('Error fetching FC Questions:', error);
       return [];
     }
 
@@ -10908,7 +10891,7 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching user forms:', error);
+      logger.error('Error fetching user forms:', error);
       return [];
     }
 
@@ -10927,7 +10910,7 @@ export class SupabaseApi implements ServiceApi {
       .order('check_in_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching visit:', error);
+      logger.error('Error fetching visit:', error);
       return [];
     }
 
@@ -10959,7 +10942,7 @@ export class SupabaseApi implements ServiceApi {
         performance: performance,
       };
     } catch (error) {
-      console.error('Error in getActivitiesFilterOptions:', error);
+      logger.error('Error in getActivitiesFilterOptions:', error);
       throw error;
     }
   }
@@ -10983,7 +10966,7 @@ export class SupabaseApi implements ServiceApi {
       .gte('created_at', FIFTEEN_DAYS_AGO);
 
     if (error) {
-      console.error('Error fetching assignments:', error);
+      logger.error('Error fetching assignments:', error);
       return null;
     }
 
@@ -10999,7 +10982,7 @@ export class SupabaseApi implements ServiceApi {
     mediaLinks?: string[] | null;
   }): Promise<any> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return null;
     }
 
@@ -11081,7 +11064,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (insertRes.error) {
-      console.error('Insert error:', insertRes.error);
+      logger.error('Insert error:', insertRes.error);
       throw insertRes.error;
     }
 
@@ -11138,7 +11121,7 @@ export class SupabaseApi implements ServiceApi {
     sortBy: 'createdAt' | 'createdBy' = 'createdAt',
   ): Promise<{ data: any[]; totalCount: number }> {
     if (!this.supabase) {
-      console.error('Supabase client not initialized.');
+      logger.error('Supabase client not initialized.');
       return { data: [], totalCount: 0 };
     }
 
@@ -11189,7 +11172,7 @@ export class SupabaseApi implements ServiceApi {
       const notesRes = await notesQ.range(offset, offset + limit - 1);
 
       if (notesRes.error) {
-        console.error('[API] Supabase error:', notesRes.error);
+        logger.error('[API] Supabase error:', notesRes.error);
         return { data: [], totalCount: 0 };
       }
 
@@ -11212,7 +11195,7 @@ export class SupabaseApi implements ServiceApi {
 
       return { data: mapped, totalCount };
     } catch (e) {
-      console.error('getNotesBySchoolId error:', e);
+      logger.error('getNotesBySchoolId error:', e);
       return { data: [], totalCount: 0 };
     }
   }
@@ -11230,7 +11213,7 @@ export class SupabaseApi implements ServiceApi {
     }
     try {
       if (!schoolId) {
-        console.error('Error getting current school');
+        logger.error('Error getting current school');
         return {
           visits: 0,
           calls_made: 0,
@@ -11251,7 +11234,7 @@ export class SupabaseApi implements ServiceApi {
         .gte('created_at', fromIso)
         .is('is_deleted', false);
       if (visitsError) {
-        console.error('Error counting visits:', visitsError);
+        logger.error('Error counting visits:', visitsError);
       }
       const visits = visitsCount ?? 0;
       const { data: forms, error: formsError } = await this.supabase
@@ -11263,7 +11246,7 @@ export class SupabaseApi implements ServiceApi {
         .gte('created_at', fromIso)
         .is('is_deleted', false);
       if (formsError) {
-        console.error('Error fetching fc_user_forms:', formsError);
+        logger.error('Error fetching fc_user_forms:', formsError);
         return {
           visits,
           calls_made: 0,
@@ -11306,7 +11289,7 @@ export class SupabaseApi implements ServiceApi {
         teachers_interacted,
       };
     } catch (err) {
-      console.error('Exception in getFCSchoolStatsForUser:', err);
+      logger.error('Exception in getFCSchoolStatsForUser:', err);
       return {
         visits: 0,
         calls_made: 0,
@@ -11359,7 +11342,7 @@ export class SupabaseApi implements ServiceApi {
         .or(orConditions.join(','));
 
       if (error) {
-        console.error('[Supabase] getLidoCommonAudioUrl error:', error);
+        logger.error('[Supabase] getLidoCommonAudioUrl error:', error);
         return null;
       }
 
@@ -11379,7 +11362,7 @@ export class SupabaseApi implements ServiceApi {
         lido_common_audio_url: data[0].lido_common_audio_url ?? null,
       };
     } catch (err) {
-      console.error('[Supabase] getLidoCommonAudioUrl failed:', err);
+      logger.error('[Supabase] getLidoCommonAudioUrl failed:', err);
       return null;
     }
   }
@@ -11439,7 +11422,7 @@ export class SupabaseApi implements ServiceApi {
         .limit(50);
 
       if (error) {
-        console.error('Abort query error:', error);
+        logger.error('Abort query error:', error);
         return {} as TableTypes<'subject_lesson'>;
       }
 
@@ -11517,7 +11500,7 @@ export class SupabaseApi implements ServiceApi {
         ? (pendingLessons[0] as TableTypes<'subject_lesson'>)
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
-      console.error(
+      logger.error(
         '❌ Error fetching subject lessons by subject (Supabase):',
         error,
       );
@@ -11539,7 +11522,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.error('Error fetching skill by skillId:', error);
+      logger.error('Error fetching skill by skillId:', error);
       return undefined;
     }
 
@@ -11552,12 +11535,6 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     try {
       if (!this.supabase) return false;
-
-      console.log('Executing Supabase query to check played PLA lesson:', {
-        studentId,
-        courseId,
-      });
-
       const { data, error } = await this.supabase
         .from('result')
         .select(
@@ -11597,13 +11574,13 @@ export class SupabaseApi implements ServiceApi {
         .limit(1);
 
       if (error) {
-        console.error('❌ Error checking played PLA lesson:', error);
+        logger.error('❌ Error checking played PLA lesson:', error);
         return false;
       }
 
       return Array.isArray(data) && data.length > 0;
     } catch (error) {
-      console.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL lesson history:', error);
       return false;
     }
   }
@@ -11619,7 +11596,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', schoolId);
 
     if (error) {
-      console.error('Error updating school program:', error);
+      logger.error('Error updating school program:', error);
       return false;
     }
 
@@ -11681,7 +11658,7 @@ export class SupabaseApi implements ServiceApi {
       .limit(50);
 
     if (abortError) {
-      console.error('Abort query error:', abortError);
+      logger.error('Abort query error:', abortError);
       return [];
     }
 
@@ -11886,7 +11863,7 @@ export class SupabaseApi implements ServiceApi {
     );
 
     if (error || !data?.success) {
-      console.error('Invite lookup failed', error || data);
+      logger.error('Invite lookup failed', error || data);
       return null;
     }
 
@@ -11902,7 +11879,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('id', classId);
 
     if (updateError) {
-      console.error('Failed to update class with group_id', updateError);
+      logger.error('Failed to update class with group_id', updateError);
       return null;
     }
 
@@ -11925,7 +11902,7 @@ export class SupabaseApi implements ServiceApi {
         .in('lesson_id', lessonIds);
 
       if (error) {
-        console.error(
+        logger.error(
           'Supabase error in getAssignmentInfoForLessonsPerClass:',
           error,
         );
@@ -11936,7 +11913,7 @@ export class SupabaseApi implements ServiceApi {
         new Set((data ?? []).map((row: any) => row.lesson_id).filter(Boolean)),
       ) as string[];
     } catch (err) {
-      console.error('Error in getAssignmentInfoForLessonsPerClass:', err);
+      logger.error('Error in getAssignmentInfoForLessonsPerClass:', err);
       return [];
     }
   }
@@ -12020,7 +11997,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('sticker_book.is_deleted', false);
 
     if (error) {
-      console.error('getUserWonStickerBooks error:', error);
+      logger.error('getUserWonStickerBooks error:', error);
       return [];
     }
 
@@ -12156,7 +12133,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error checking existing assignment:', error);
+      logger.error('Error checking existing assignment:', error);
       return false;
     }
 
@@ -12165,16 +12142,16 @@ export class SupabaseApi implements ServiceApi {
   async isSplUser(): Promise<boolean> {
     if (!this.supabase) return false;
     try {
-      const { data, error } = await this.supabase.functions.invoke(
+      const { data, error } = await this.supabase.rpc(
         'is_special_or_program_user',
       );
       if (error) {
-        console.error('Error checking special user status:', error);
+        logger.error('Error checking special user status:', error);
         return false;
       }
       return !!data;
     } catch (e) {
-      console.error('Exception in isSplUser:', e);
+      logger.error('Exception in isSplUser:', e);
       return false;
     }
   }

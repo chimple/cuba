@@ -21,6 +21,7 @@ import ClassForm from '../ClassForm';
 import { ClassWithDetails, SchoolStats } from '../../pages/SchoolDetailsPage';
 import { TableTypes, AGE_OPTIONS, GENDER } from '../../../common/constants';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
+import logger from '../../../utility/logger';
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;
@@ -171,7 +172,7 @@ const SchoolClasses: React.FC<Props> = ({
                 : null;
             return { classId: c.id, isExited: parsed?.is_exited ?? false };
           } catch (err) {
-            console.error(
+            logger.error(
               `Failed to fetch WhatsApp group details for group ${c.group_id}:`,
               err,
             );
@@ -203,7 +204,7 @@ const SchoolClasses: React.FC<Props> = ({
         const details = await api.getPhoneDetailsByBotNum(String(bot));
         if (!cancelled) setPhoneDetails(details);
       } catch (e) {
-        console.error('getPhoneDetailsByBotNum failed', e);
+        logger.error('getPhoneDetailsByBotNum failed', e);
       }
 
       if (!cancelled) setWaMetaLoading(false); // ✅ critical
@@ -214,7 +215,7 @@ const SchoolClasses: React.FC<Props> = ({
     };
   }, [bot]); // ✅ MUST depend on bot
 
-  console.log('WhatsApp Phone Details value:', phoneDetails);
+  logger.info('WhatsApp Phone Details value:', phoneDetails);
 
   useEffect(() => {
     let cancelled = false;
@@ -271,7 +272,7 @@ const SchoolClasses: React.FC<Props> = ({
       const newCode = await api.createClassCode(classId);
       setCodes((prev) => ({ ...prev, [classId]: String(newCode) }));
     } catch (err) {
-      console.error('Failed to create class code:', err);
+      logger.error('Failed to create class code:', err);
     } finally {
       setLoadingIds((s) => ({ ...s, [classId]: false }));
     }
@@ -419,7 +420,7 @@ const SchoolClasses: React.FC<Props> = ({
         setStudentErrorMessage({ text: result.message, type: 'error' });
       }
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
       setStudentErrorMessage({
         text: 'An unexpected error occurred. Please try again.',
         type: 'error',

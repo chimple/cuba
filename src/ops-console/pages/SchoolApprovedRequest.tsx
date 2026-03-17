@@ -8,6 +8,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import ApprovedDetails from '../components/SchoolRequestComponents/ApprovedDetails';
+import logger from '../../utility/logger';
 
 const SchoolApprovedRequest: React.FC = () => {
   const history = useHistory();
@@ -30,7 +31,7 @@ const SchoolApprovedRequest: React.FC = () => {
           setRequestedBy(state.request.requestedBy);
         }
       } catch (error) {
-        console.error('Error fetching request data:', error);
+        logger.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }

@@ -27,6 +27,7 @@ import PathwayModal from '../learningPathway/PathwayModal';
 import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
 import RewardBox from '../learningPathway/RewardBox';
 import DailyRewardModal from '../learningPathway/DailyRewardModal';
+import logger from '../../utility/logger';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -128,7 +129,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         });
         return `data:image/svg+xml;base64,${file.data}`;
       } catch (err) {
-        console.warn('Fallback to web asset for:', webPath, err);
+        logger.error('Fallback to web asset for:', webPath, err);
         return webPath;
       }
     }
@@ -226,7 +227,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       sessionStorage.setItem(key, JSON.stringify(lesson));
       return lesson;
     } catch (e) {
-      console.warn('Could not fetch lesson details (offline)', e);
+      logger.warn('Could not fetch lesson details (offline)', e);
       return {};
     }
   };
@@ -300,7 +301,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           // ❌ Path empty or finished → remove it
           localStorage.removeItem(HOMEWORK_PATHWAY);
         } catch (err) {
-          console.warn('Invalid cached path, rebuilding...', err);
+          logger.warn('Invalid cached path, rebuilding...', err);
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       }
@@ -359,7 +360,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             {} as { [key: string]: number },
           );
         } catch (e) {
-          console.warn('Could not fetch completed counts (offline)', e);
+          logger.warn('Could not fetch completed counts (offline)', e);
         }
       }
 
@@ -383,7 +384,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
       setHomeworkLessons(lessonsWithDetails);
     } catch (error) {
-      console.error('Failed to fetch homework lessons:', error);
+      logger.error('Failed to fetch homework lessons:', error);
       setHomeworkLessons([]);
     }
   };
@@ -424,7 +425,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         fetchedCourse = cData;
         fetchedChapter = chData;
       } catch (err) {
-        console.warn(
+        logger.warn(
           'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
         );
         // Create minimal fallbacks so the UI doesn't crash
@@ -440,7 +441,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       }
 
       if (!fetchedCourse || !fetchedChapter) {
-        console.error('Could not determine course/chapter data.');
+        logger.error('Could not determine course/chapter data.');
         fetchedCourse = { id: firstHomeworkItem.course_id } as any;
         fetchedChapter = { id: firstHomeworkItem.chapter_id } as any;
       }
@@ -953,7 +954,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             requestAnimationFrame(animateBezier);
             await Util.updateUserReward();
           } catch (e) {
-            console.warn('Reward animation failed offline', e);
+            logger.warn('Reward animation failed offline', e);
           }
         };
 
@@ -961,7 +962,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         try {
           newRewardId = await checkAndUpdateReward();
         } catch (e) {
-          console.warn('Check Reward failed offline', e);
+          logger.warn('Check Reward failed offline', e);
         }
 
         if (
@@ -1029,7 +1030,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const endTime = performance.now();
       });
     } catch (error) {
-      console.error('Failed to load SVG:', error);
+      logger.error('Failed to load SVG:', error);
     }
   };
 
@@ -1057,7 +1058,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const showModal = await shouldShowDailyRewardModal();
         setRewardModalOpen(showModal);
       } catch (e) {
-        console.warn('Reward Modal Check failed offline');
+        logger.warn('Reward Modal Check failed offline');
       }
     };
     if (isRewardFeatureOn) {
@@ -1081,7 +1082,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         setMascotKey((prev) => prev + 1);
       }
     } catch (e) {
-      console.warn('Update mascot failed offline', e);
+      logger.warn('Update mascot failed offline', e);
     }
   };
 
@@ -1151,7 +1152,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         });
       }
     } catch (error) {
-      console.error('Error in playLesson:', error);
+      logger.error('Error in playLesson:', error);
     }
   };
 

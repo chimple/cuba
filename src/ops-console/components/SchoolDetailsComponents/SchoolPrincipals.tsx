@@ -29,6 +29,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
+import logger from '../../../utility/logger';
 
 interface DisplayPrincipal {
   id: string;
@@ -101,7 +102,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         setPrincipals(response.data);
         setTotalCount(response.total);
       } catch (error) {
-        console.error('Failed to fetch principals:', error);
+        logger.error('Failed to fetch principals:', error);
       } finally {
         setIsLoading(false);
       }
@@ -273,7 +274,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       } catch (e: any) {
         const message = e instanceof Error ? e.message : String(e);
         setErrorMessage({ text: message, type: 'error' });
-        console.error('Failed to add principal:', e);
+        logger.error('Failed to add principal:', e);
       } finally {
         setIsSubmitting(false);
       }
@@ -407,7 +408,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       const principalId = deleteTargetPrincipal.id;
 
       if (!principalId) {
-        console.error('Missing principalId');
+        logger.error('Missing principalId');
         return;
       }
       const principalName = deleteTargetPrincipal.name;
@@ -433,7 +434,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       setDeleteTargetPrincipal(null);
       fetchPrincipals(page);
     } catch (error) {
-      console.error('Delete principal failed:', error);
+      logger.error('Delete principal failed:', error);
     } finally {
       setIsDeleting(false);
     }

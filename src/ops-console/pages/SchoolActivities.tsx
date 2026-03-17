@@ -28,6 +28,7 @@ import SelectedFilters from '../components/SelectedFilters';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 import ActivityDetailsPanel from './ActivityDetailsPanel';
 import { FcActivity } from '../../interface/modelInterfaces';
+import logger from '../../utility/logger';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -163,7 +164,7 @@ const SchoolActivities: React.FC = () => {
           }),
         );
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       } finally {
         setLoadingData(false);
       }

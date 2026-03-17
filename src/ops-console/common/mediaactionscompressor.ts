@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { runMediaCompressionTask } from '../../workers/mediaCompressionWorkerClient';
 import { VideoQuality } from '../../workers/mediaCompression.worker.types';
+import logger from '../../utility/logger';
 
 type CompressProgressCb = (progress: number) => void;
 
@@ -109,7 +110,7 @@ export async function compressMediaForUpload(
         videoQuality: options.videoQuality ?? 'medium',
       });
       if (compressed.size >= file.size) {
-        console.info(
+        logger.info(
           `[${logTag}] kept original (compressed larger): ${file.name} (${formatBytes(
             file.size,
           )} -> ${formatBytes(compressed.size)})`,
@@ -123,7 +124,7 @@ export async function compressMediaForUpload(
       if ((error as Error).name === 'AbortError') {
         throw error;
       }
-      console.error(`[${logTag}] video compression failed:`, error);
+      logger.error(`[${logTag}] video compression failed:`, error);
       onProgress?.(1);
       return file;
     }
@@ -145,7 +146,7 @@ export async function compressMediaForUpload(
         imageQuality: options.imageQuality ?? 0.72,
       });
       if (compressed.size >= file.size) {
-        console.info(
+        logger.info(
           `[${logTag}] compression skipped (no size reduction): ${file.name} (${formatBytes(
             file.size,
           )} -> ${formatBytes(compressed.size)})`,
@@ -159,7 +160,7 @@ export async function compressMediaForUpload(
       if ((error as Error).name === 'AbortError') {
         throw error;
       }
-      console.error(`[${logTag}] image compression failed:`, error);
+      logger.error(`[${logTag}] image compression failed:`, error);
       onProgress?.(1);
       return file;
     }

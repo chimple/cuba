@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
 import SearchAndFilter from '../components/SearchAndFilter';
+import logger from '../../utility/logger';
 
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,7 @@ const StudentPendingRequestDetails = () => {
         );
         setStudentDetails(studentData);
       } else {
-        console.warn(
+        logger.warn(
           'requestData.requested_by was undefined when fetching student details.',
         );
       }
@@ -120,7 +121,7 @@ const StudentPendingRequestDetails = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching request data:', error);
+        logger.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }
@@ -159,7 +160,7 @@ const StudentPendingRequestDetails = () => {
     const respondedBy = user?.id;
 
     if (!currentRequestId) {
-      console.error(t('Missing request row ID for approval.'));
+      logger.error(t('Missing request row ID for approval.'));
       return;
     }
 
@@ -182,7 +183,7 @@ const StudentPendingRequestDetails = () => {
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
       );
     } catch (error) {
-      console.error(t('Error approving/merging request:'), error);
+      logger.error(t('Error approving/merging request:'), error);
     } finally {
       setLoading(false);
     }

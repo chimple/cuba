@@ -20,6 +20,7 @@ import SkeltonLoading from '../components/SkeltonLoading';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import logger from '../utility/logger';
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -81,7 +82,7 @@ const DisplayStudents: FC<{}> = () => {
       const currClass = await api.getClassById(firstClass.id);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
-      console.warn('No classes found for the student.');
+      logger.warn('No classes found for the student.');
       await schoolUtil.setCurrentClass(undefined);
     }
     if (!student.language_id) {

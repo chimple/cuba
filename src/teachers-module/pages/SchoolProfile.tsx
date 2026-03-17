@@ -6,6 +6,7 @@ import SchoolProfileContent from '../components/schoolComponent/SchoolProfileCon
 import './SchoolProfile.css';
 import { useHistory, useLocation } from 'react-router-dom';
 import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 const SchoolProfile: React.FC = () => {
   const history = useHistory();
@@ -30,7 +31,7 @@ const SchoolProfile: React.FC = () => {
       if (!user) return;
       if (school) setCurrentSchool(school);
     } catch (error) {
-      console.error('Error initializing data:', error);
+      logger.error('Error initializing data:', error);
     }
   };
 

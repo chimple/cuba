@@ -48,6 +48,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
+import logger from '../../utility/logger';
 
 export class ApiHandler implements ServiceApi {
   createAtSchoolUser(
@@ -71,12 +72,12 @@ export class ApiHandler implements ServiceApi {
 
   private constructor(service: ServiceApi) {
     this.s = service;
-    console.log('ApiHandler constructor called with service:', service);
+    logger.info('ApiHandler constructor called with service:', service);
   }
 
   public static getInstance(service: ServiceApi): ApiHandler {
     if (!service) {
-      console.error(
+      logger.error(
         'ApiHandler.getInstance was called with an undefined service. This will cause errors.',
       );
     }

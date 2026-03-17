@@ -9,6 +9,7 @@ import { Util } from '../../utility/util';
 import { SVGScene } from '../coloring/SVGScene';
 import { ParsedSvg, parseSvg } from '../common/SvgHelpers';
 import './StickerBookPreviewModal.css';
+import logger from '../../utility/logger';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -21,7 +22,8 @@ export interface StickerBookModalData {
   nextStickerImage?: string;
   totalStickerCount?: number;
 }
-
+const fallbackStickerBookLayoutUrl =
+  'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
 interface StickerBookPreviewModalProps {
   data: StickerBookModalData;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
@@ -108,8 +110,8 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         }
       } catch (error) {
         // Keep the preview usable even if the configured book SVG fails to load.
-        console.warn('Failed to load sticker book SVG. Falling back.', error);
-        const fallbackResponse = await fetch(fallbackStickerBookLayout);
+        logger.warn('Failed to load sticker book SVG. Falling back.', error);
+        const fallbackResponse = await fetch(fallbackStickerBookLayoutUrl);
         const fallbackText = await fallbackResponse.text();
         if (mounted) {
           setSvgMarkup(fallbackText);
@@ -163,7 +165,7 @@ const StickerBookPreviewModal: React.FC<StickerBookPreviewModalProps> = ({
         [file],
       );
     } catch (error) {
-      console.error(
+      logger.error(
         '[StickerBook] Failed to share sticker book snapshot:',
         error,
       );

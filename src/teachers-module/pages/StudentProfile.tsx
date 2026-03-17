@@ -9,6 +9,7 @@ import { t } from 'i18next';
 import { Util } from '../../utility/util';
 import { subDays } from 'date-fns';
 import { useHistory } from 'react-router-dom';
+import logger from '../../utility/logger';
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
@@ -94,7 +95,7 @@ const StudentProfile: React.FC = () => {
         setStudent(updatedStudent);
         setIsEditing(false);
       } catch (error) {
-        console.error('Failed to update student:', error);
+        logger.error('Failed to update student:', error);
       }
     }
   };

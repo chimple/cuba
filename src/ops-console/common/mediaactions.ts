@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { compressMediaForUpload } from './mediaactionscompressor';
+import logger from '../../utility/logger';
 
 export type MediaUploadItem = {
   id: string;
@@ -336,7 +337,7 @@ export function useMediaActions(
         });
       } catch (e) {
         if ((e as any)?.name === 'AbortError') return;
-        console.error('Failed to compress media:', e);
+        logger.error('Failed to compress media:', e);
       } finally {
         stopCompressionTimer(id);
         compressionAbortRef.current.delete(id);
@@ -589,7 +590,7 @@ export function useMediaActions(
         setCameraUiMode('desktop');
         setCameraStream(stream);
       } catch (err2) {
-        console.error('Failed to access camera:', err2);
+        logger.error('Failed to access camera:', err2);
         setCameraError(
           translate(
             'Camera access was blocked. Please allow permission or upload media.',
@@ -732,7 +733,7 @@ export function useMediaActions(
         }
       }, 1000);
     } catch (e) {
-      console.error('Failed to start recording:', e);
+      logger.error('Failed to start recording:', e);
       closeCamera();
       captureVideoInputRef.current?.click();
     }
@@ -751,7 +752,7 @@ export function useMediaActions(
       }
       recorder.stop();
     } catch (e) {
-      console.error('Failed to stop recording:', e);
+      logger.error('Failed to stop recording:', e);
       setIsRecording(false);
     }
   };

@@ -12,6 +12,7 @@ import {
   RewardBoxState,
   SHOULD_SHOW_REMOTE_ASSETS,
 } from '../../common/constants';
+import logger from '../../utility/logger';
 
 interface RewardRiveProps {
   rewardRiveState:
@@ -80,7 +81,7 @@ export default function RewardRive({ rewardRiveState }: RewardRiveProps) {
         }
         // If no data or error, keep default local path
       } catch (error) {
-        console.log(
+        logger.error(
           'Error reading remote reward file, keeping local path:',
           error,
         );

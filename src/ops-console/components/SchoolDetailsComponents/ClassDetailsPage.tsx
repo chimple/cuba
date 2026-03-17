@@ -12,6 +12,7 @@ import { ClassRow, SchoolDetailsData } from './SchoolClass';
 import AddNoteModal from '../SchoolDetailsComponents/AddNoteModal'; // <<-- imported
 import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import WhatsAppInfoCard from './WhatsAppInfoCard';
+import logger from '../../../utility/logger';
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -109,7 +110,7 @@ const ClassDetailsPage: React.FC<Props> = ({
         const active = await api.getActiveStudentsCountByClass(classId);
         setActiveStudentCount(Number(active) || 0);
       } catch (e) {
-        console.error('Failed to load class details:', e);
+        logger.error('Failed to load class details:', e);
         setActiveStudentCount(0);
       }
     })();
@@ -128,7 +129,7 @@ const ClassDetailsPage: React.FC<Props> = ({
     try {
       const api = ServiceConfig.getI().apiHandler;
       if (!api || !api.createNoteForSchool) {
-        console.error('Notes API not available');
+        logger.error('Notes API not available');
         setShowAddModal(false);
         return;
       }
@@ -153,9 +154,9 @@ const ClassDetailsPage: React.FC<Props> = ({
       setShowAddModal(false);
 
       // Optional: you can show a toast/notification here
-      console.log('Note created:', created);
+      logger.info('Note created:', created);
     } catch (err) {
-      console.error('Failed to create class note:', err);
+      logger.error('Failed to create class note:', err);
       // close modal anyway, or keep open if you want user to retry — here we close
       setShowAddModal(false);
     }

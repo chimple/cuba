@@ -19,6 +19,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Capacitor } from '@capacitor/core';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
+import logger from '../../utility/logger';
 interface LocationState {
   school?: SchoolWithRole['school'];
   role?: RoleType;
@@ -158,7 +159,7 @@ const ReqEditSchool: React.FC = () => {
       );
       setIsRequestSent(true);
     } catch (error) {
-      console.error('Failed to send request:', error);
+      logger.error('Failed to send request:', error);
     } finally {
       setIsSaving(false);
     }

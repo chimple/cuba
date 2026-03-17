@@ -30,6 +30,7 @@ import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 const filterConfigsForRequests = [
   { key: 'school', label: t('Select School') },
@@ -216,7 +217,7 @@ const RequestList: React.FC = () => {
           setSchoolNameToIdMap(nameToIdMap);
         }
       } catch (error) {
-        console.error('Failed to fetch filter options', error);
+        logger.error('Failed to fetch filter options', error);
       } finally {
         setIsFilterLoading(false);
       }
@@ -270,7 +271,7 @@ const RequestList: React.FC = () => {
 
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
-        // console.log("🚀 MAKING API CALL WITH:", {
+        // logger.info("🚀 MAKING API CALL WITH:", {
         //   status: tempTab,
         //   page: page,
         //   pageSize: pageSize,
@@ -359,7 +360,7 @@ const RequestList: React.FC = () => {
         setRequestData(mappedData);
         setTotal(total || 0);
       } catch (error) {
-        console.error('Failed to fetch requests:', error);
+        logger.error('Failed to fetch requests:', error);
         setRequestData([]);
         setTotal(0);
       } finally {
@@ -624,7 +625,7 @@ const RequestList: React.FC = () => {
     ];
     const matchedType = validTypes.find((t) => type.includes(t));
     if (!matchedType) {
-      console.warn('Unhandled request type:', row.request_type);
+      logger.warn('Unhandled request type:', row.request_type);
       return;
     }
 
@@ -633,7 +634,7 @@ const RequestList: React.FC = () => {
       (r) => r.request_id === row.request_id,
     );
     if (!fullRequestData) {
-      console.error('Could not find full request data for ID:', row.request_id);
+      logger.error('Could not find full request data for ID:', row.request_id);
       return;
     }
 
@@ -669,7 +670,7 @@ const RequestList: React.FC = () => {
       : '';
 
     if (!pathToNavigate) {
-      console.warn(
+      logger.warn(
         `Unhandled request tab for ${matchedType} request:`,
         selectedTab,
       );

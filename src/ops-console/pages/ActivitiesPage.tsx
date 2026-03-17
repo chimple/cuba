@@ -14,6 +14,7 @@ import {
 import './ActivitiesPage.css';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
+import logger from '../../utility/logger';
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -75,7 +76,7 @@ const ActivitiesPage: React.FC = () => {
               .filter((id: any) => id !== null),
           );
           const visitIdsArray = Array.from(visitIds);
-          console.log('Unique visit IDs for date', key, ':', visitIds);
+          logger.info('Unique visit IDs for date', key, ':', visitIds);
           const visitDetailsList = await api.getSchoolVisitById(
             visitIdsArray as string[],
           );
@@ -138,7 +139,7 @@ const ActivitiesPage: React.FC = () => {
         setAllActivities(finalData);
         setTotal(finalData.length);
       } catch (error) {
-        console.error('Error loading activities:', error);
+        logger.error('Error loading activities:', error);
       } finally {
         setLoadingData(false);
       }

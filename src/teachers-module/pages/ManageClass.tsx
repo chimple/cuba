@@ -19,6 +19,7 @@ import DetailListHeader from '../components/schoolComponent/DetailListHeader';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 const ManageClass: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -59,7 +60,7 @@ const ManageClass: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error initializing data:', error);
+      logger.error('Error initializing data:', error);
     }
   };
 

@@ -14,6 +14,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import { RoleType } from '../../interface/modelInterfaces';
 import CommonDialogBox from '../../common/CommonDialogBox';
+import logger from '../../utility/logger';
 
 const AddSchoolUser: React.FC = () => {
   const history = useHistory();
@@ -87,7 +88,7 @@ const AddSchoolUser: React.FC = () => {
         setUser(undefined);
       }
     } catch (error) {
-      console.error('Failed to fetch user', error);
+      logger.error('Failed to fetch user', error);
       setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
@@ -96,7 +97,7 @@ const AddSchoolUser: React.FC = () => {
 
   const handleAddSchoolUser = async () => {
     if (!school || !user) {
-      console.error('Cannot add user: school or user is missing.');
+      logger.error('Cannot add user: school or user is missing.');
       return;
     }
 
@@ -111,7 +112,7 @@ const AddSchoolUser: React.FC = () => {
         role: role,
       });
     } catch (error) {
-      console.error('Failed to add user to school', error);
+      logger.error('Failed to add user to school', error);
     } finally {
       setIsLoading(false);
     }

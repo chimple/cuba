@@ -10,6 +10,7 @@ import { toPng } from 'html-to-image';
 import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const DebugPage: React.FC = () => {
   const history = useHistory();
@@ -212,7 +213,7 @@ const DebugPage: React.FC = () => {
       await init();
       return true;
     } catch (error) {
-      console.error('Error deleting all lessons:', error);
+      logger.error('Error deleting all lessons:', error);
       return false;
     }
   };
@@ -274,7 +275,7 @@ const DebugPage: React.FC = () => {
         },
       });
     } catch (err) {
-      console.error('Failed to capture or save screenshot:', err);
+      logger.error('Failed to capture or save screenshot:', err);
     }
   };
   async function getHotUpdateChannel() {

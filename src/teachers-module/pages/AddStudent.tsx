@@ -8,6 +8,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import ProfileDetails from '../components/library/ProfileDetails';
 import Loading from '../../components/Loading';
+import logger from '../../utility/logger';
 
 const AddStudent: React.FC = () => {
   const history = useHistory();
@@ -55,7 +56,7 @@ const AddStudent: React.FC = () => {
 
       setLanguages(sanitizedLanguages);
     } catch (error) {
-      console.error('Error fetching languages:', error);
+      logger.error('Error fetching languages:', error);
     }
   };
 
@@ -67,11 +68,11 @@ const AddStudent: React.FC = () => {
       if (school) setCurrentSchool(school);
       if (classDoc) setCurrentClass(classDoc);
     } catch (error) {
-      console.error('Failed to load class details', error);
+      logger.error('Failed to load class details', error);
     }
   };
   if (!currentClass?.id) {
-    console.error('No current class selected.');
+    logger.error('No current class selected.');
     return null;
   }
   const getRandomAvatar = () => {
@@ -120,7 +121,7 @@ const AddStudent: React.FC = () => {
 
       handleBack();
     } catch (error) {
-      console.error('Error adding student:', error);
+      logger.error('Error adding student:', error);
     } finally {
       setLoading(false);
     }
@@ -172,7 +173,7 @@ const AddStudent: React.FC = () => {
     };
 
     reader.onerror = (error) => {
-      console.error('Error resizing image:', error);
+      logger.error('Error resizing image:', error);
     };
   };
   const handleProfilePicChange = (

@@ -24,6 +24,7 @@ import { AvatarObj } from '../../components/animation/Avatar';
 import LiveQuizRoomObject from '../../models/liveQuizRoom';
 import { DocumentData } from 'firebase/firestore';
 import { RoleType } from '../../interface/modelInterfaces';
+import logger from '../../utility/logger';
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -569,7 +570,7 @@ export class OneRosterApi implements ServiceApi {
         const endpointUrl = new URL(Auth.i.endpointUrl);
         ipcHost = endpointUrl.host + endpointUrl.pathname;
       } catch (error) {
-        console.error(
+        logger.error(
           '🚀 ~ file: OneRosterApi.ts:53 ~ OneRosterApi ~ getHeaders ~ error:',
           JSON.stringify(error),
         );

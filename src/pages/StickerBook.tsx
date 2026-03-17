@@ -1,13 +1,15 @@
 import { IonContent, IonPage } from '@ionic/react';
 import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router';
-import { PAGES } from '../common/constants';
+import { ENABLE_PAINT_MODE, EVENTS, PAGES } from '../common/constants';
 import { StickerBook as StickerBookType } from '../interface/modelInterfaces';
 import StickerBookBoard from '../components/stickerBook/StickerBookBoard';
 import Loading from '../components/Loading';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import './StickerBook.css';
+import logger from '../utility/logger';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 
 type CurrentProgress = {
   bookId: string;
@@ -24,13 +26,16 @@ function resolveSvgUrl(url: string): string {
 const StickerBook: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
-
+  const isPaintModeEnabled = useFeatureIsOn(ENABLE_PAINT_MODE);
   const [isLoading, setIsLoading] = useState(true);
   const [books, setBooks] = useState<StickerBookType[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [currentProgress, setCurrentProgress] =
     useState<CurrentProgress | null>(null);
   const [svgCache, setSvgCache] = useState<Record<string, string>>({});
+  const [completedBookIds, setCompletedBookIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   useEffect(() => {
     init();
@@ -55,15 +60,19 @@ const StickerBook: React.FC = () => {
     }
 
     try {
-      const [allBooks, currentBookResult] = await Promise.all([
+      const [allBooks, currentBookResult, completedBooks] = await Promise.all([
         api.getAllStickerBooks(),
         api.getCurrentStickerBookWithProgress(currentStudent.id),
+        api.getUserWonStickerBooks(currentStudent.id),
       ]);
 
       const sortedBooks = [...(allBooks ?? [])].sort(
         (a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0),
       );
       setBooks(sortedBooks);
+      setCompletedBookIds(
+        new Set((completedBooks ?? []).map((book) => book.id)),
+      );
 
       if (currentBookResult?.book) {
         setCurrentProgress({
@@ -79,7 +88,7 @@ const StickerBook: React.FC = () => {
         setSelectedIndex(0);
       }
     } catch (e) {
-      console.error('Failed to load sticker book data:', e);
+      logger.error('Failed to load sticker book data:', e);
     } finally {
       setIsLoading(false);
     }
@@ -92,33 +101,61 @@ const StickerBook: React.FC = () => {
       const svgText = await response.text();
       setSvgCache((prev) => ({ ...prev, [book.id]: svgText }));
     } catch (e) {
-      console.error('Failed to load sticker book svg:', e);
+      logger.error('Failed to load sticker book svg:', e);
     }
   };
 
   const selectedBook = books[selectedIndex] ?? null;
-  const isLocked = useMemo(() => {
-    if (!selectedBook) return true;
-    return currentProgress?.bookId !== selectedBook.id;
-  }, [selectedBook, currentProgress]);
+  const allStickerIds = useMemo(() => {
+    if (!selectedBook) return [];
+    return (selectedBook.stickers_metadata ?? [])
+      .map((s) => s.id)
+      .filter(Boolean);
+  }, [selectedBook]);
 
-  const collectedStickers = useMemo(() => {
-    if (!selectedBook || isLocked) return [];
+  const collectedFromProgress = useMemo(() => {
+    if (!selectedBook) return [];
     if (currentProgress?.bookId === selectedBook.id) {
       return currentProgress.stickers ?? [];
     }
     return [];
-  }, [selectedBook, isLocked, currentProgress]);
+  }, [selectedBook, currentProgress]);
+
+  const isBookCompleted = useMemo(() => {
+    if (!selectedBook) return false;
+    if (completedBookIds.has(selectedBook.id)) return true;
+    if (allStickerIds.length === 0) return false;
+    return collectedFromProgress.length >= allStickerIds.length;
+  }, [selectedBook, completedBookIds, allStickerIds, collectedFromProgress]);
+
+  const isLocked = useMemo(() => {
+    if (!selectedBook) return true;
+    if (isBookCompleted) return false;
+    return currentProgress?.bookId !== selectedBook.id;
+  }, [selectedBook, currentProgress, isBookCompleted]);
+
+  const collectedStickers = useMemo(() => {
+    if (!selectedBook) return [];
+    if (isBookCompleted) return allStickerIds;
+    if (isLocked) return [];
+    return collectedFromProgress;
+  }, [
+    selectedBook,
+    isLocked,
+    isBookCompleted,
+    allStickerIds,
+    collectedFromProgress,
+  ]);
 
   const nextStickerId = useMemo(() => {
-    if (!selectedBook || isLocked) return undefined;
-    const collectedSet = new Set(collectedStickers);
+    if (!selectedBook || isLocked || isBookCompleted) return undefined;
+    const collectedSet = new Set(collectedFromProgress);
     const sorted = [...(selectedBook.stickers_metadata ?? [])].sort(
       (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0),
     );
     const next = sorted.find((s) => !collectedSet.has(s.id));
     return next?.id;
-  }, [selectedBook, isLocked, collectedStickers]);
+  }, [selectedBook, isLocked, isBookCompleted, collectedFromProgress]);
 
   const svgRaw = selectedBook ? (svgCache[selectedBook.id] ?? null) : null;
 
@@ -133,6 +170,36 @@ const StickerBook: React.FC = () => {
   const onNext = () => {
     setSelectedIndex((prev) => Math.min(prev + 1, books.length - 1));
   };
+
+  const onPaint = () => {
+    if (!selectedBook) return;
+    const svgUrl = resolveSvgUrl(selectedBook.svg_url ?? '');
+    history.push(PAGES.COLORING_BOARD, {
+      svgRaw: svgRaw ?? undefined,
+      svgUrl,
+      returnTo: PAGES.STICKER_BOOK,
+    });
+  };
+
+  const onSave = () => {
+    logger.info('save');
+  };
+
+  useEffect(() => {
+    if (!selectedBook) return;
+    const total = allStickerIds.length;
+    const colored = collectedStickers.length;
+    const uncolored = Math.max(0, total - colored);
+    Util.logEvent(EVENTS.STICKER_BOOK_PROGRESS_COUNTS, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_id: selectedBook.id,
+      book_title: selectedBook.title ?? null,
+      total_elements: total,
+      colored_elements: colored,
+      uncolored_elements: uncolored,
+      page_path: window.location.pathname,
+    });
+  }, [selectedBook, allStickerIds, collectedStickers]);
 
   return (
     <IonPage>
@@ -153,11 +220,14 @@ const StickerBook: React.FC = () => {
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}
                 isLocked={isLocked}
+                canPaint={isBookCompleted && isPaintModeEnabled}
                 canGoPrev={selectedIndex > 0}
                 canGoNext={selectedIndex < books.length - 1}
                 onPrev={onPrev}
                 onNext={onNext}
                 onBack={onBack}
+                onPaint={onPaint}
+                onSave={onSave}
               />
             )}
           </div>

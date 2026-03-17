@@ -1,4 +1,7 @@
+import logger from '../../utility/logger';
+
 // Parsed SVG payload for inline rendering.
+// Changes: added stricter visibility, sizing, and sanitization utilities.
 export type ParsedSvg = {
   inner: string;
   attrs: Record<string, string>;
@@ -19,7 +22,7 @@ export function parseSvg(raw: string): ParsedSvg | null {
 
     return { inner: svg.innerHTML, attrs };
   } catch (e) {
-    console.error('Failed to parse sticker book svg:', e);
+    logger.error('Failed to parse sticker book svg:', e);
     return null;
   }
 }
@@ -229,20 +232,59 @@ export function applyColorMode(
   );
 
   shapes.forEach((el) => {
+    if (el.getAttribute('data-colored') === 'true') {
+      return;
+    }
+
+    if (uncolouredStyle === 'outline') {
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', uncolouredColor);
+      (el as SVGElement).style.fill = 'none';
+      (el as SVGElement).style.stroke = uncolouredColor;
+      if (!el.getAttribute('stroke-width')) {
+        el.setAttribute('stroke-width', '1');
+      }
+      el.removeAttribute('fill-opacity');
+      el.removeAttribute('stroke-opacity');
+      return;
+    }
+
     const isUncoloured = el.getAttribute('uncoloured') === 'true';
+    const isHighlight = el.getAttribute('mode') === 'color';
     const isSpecial = el.getAttribute('special') === 'true';
     const hasColorId = el.hasAttribute('color-id');
     const hasMarkId = el.hasAttribute('mark-id');
-    const isHighlight = el.getAttribute('mode') === 'color';
+
+    if (isSpecial) {
+      if (isHighlight) {
+        el.setAttribute('fill', '#FFFFFF4D');
+        el.setAttribute('stroke', 'none');
+        el.removeAttribute('stroke-width');
+        el.removeAttribute('opacity');
+      } else {
+        el.setAttribute('stroke', '#FFFFFF4D');
+      }
+      return;
+    }
+    if (isHighlight) {
+      const hasFill =
+        el.hasAttribute('fill') && el.getAttribute('fill') !== 'none';
+      const hasStroke =
+        el.hasAttribute('stroke') && el.getAttribute('stroke') !== 'none';
+      if (hasFill) {
+        el.setAttribute('fill', '#FFFFFF4D');
+        el.removeAttribute('fill-opacity');
+      }
+      if (hasStroke) {
+        el.setAttribute('stroke', '#FFFFFF4D');
+        el.removeAttribute('stroke-opacity');
+      }
+      return;
+    }
 
     if (isUncoloured) {
-      if (uncolouredStyle === 'outline') {
-        el.setAttribute('fill', 'none');
-        el.setAttribute('stroke', uncolouredColor);
-      } else {
-        el.setAttribute('fill', uncolouredColor);
-        el.setAttribute('stroke', uncolouredColor);
-      }
+      el.setAttribute('fill', uncolouredColor);
+      el.setAttribute('stroke', uncolouredColor);
       el.removeAttribute('fill-opacity');
       el.removeAttribute('stroke-opacity');
       return;
@@ -265,26 +307,18 @@ export function applyColorMode(
       return;
     }
 
-    if (isSpecial) {
-      el.setAttribute('stroke', '#FFFFFF');
-
-      if (isHighlight) {
-        el.setAttribute('stroke-opacity', '0.3');
-      } else {
-        el.removeAttribute('stroke-opacity');
-      }
-      return;
-    }
-
     if (hasColorId) {
       el.setAttribute('fill', '#FFFFFF');
       el.removeAttribute('fill-opacity');
       return;
     }
 
-    if (isHighlight) {
-      el.setAttribute('fill', '#FFFFFF');
-      el.setAttribute('fill-opacity', '0.3');
+    // Default non-colorable shapes to black stroke in color mode.
+    const hasStroke =
+      el.hasAttribute('stroke') && el.getAttribute('stroke') !== 'none';
+    if (hasStroke) {
+      el.setAttribute('stroke', '#000000');
+      el.removeAttribute('stroke-opacity');
     }
   });
 }
@@ -355,6 +389,14 @@ export function ensureNavImage(
   img.setAttribute('y', String(y));
   img.setAttribute('width', String(width));
   img.setAttribute('height', String(height));
+  const label = id.includes('left')
+    ? 'Previous page'
+    : id.includes('right')
+      ? 'Next page'
+      : 'Navigate';
+  img.setAttribute('role', 'button');
+  img.setAttribute('aria-label', label);
+  img.setAttribute('tabindex', enabled ? '0' : '-1');
   img.style.cursor = enabled ? 'pointer' : 'default';
   img.style.opacity = enabled ? '1' : '0.5';
   img.style.pointerEvents = enabled ? 'all' : 'none';
@@ -367,6 +409,8 @@ export function sanitizeSvg(svg: string): string {
     svg
       // remove script tags
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+      // remove style tags (avoid inline SVG CSS overriding paint fills)
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
       // remove event handlers like onclick, onload
       .replace(/\son\w+="[^"]*"/gi, '')
       .replace(/\son\w+='[^']*'/gi, '')
