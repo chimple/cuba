@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 // Changes: coordinated SVG mode/visibility helpers and locked-state styling.
 import {
   applyColorMode,
@@ -48,10 +48,6 @@ export function SVGScene({
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-
-    // IMPORTANT: wait until SVG slots exist
-    const slots = svg.querySelectorAll('[data-slot-id]');
-    if (!slots.length) return;
 
     /* ---------------- COLOR MODE ---------------- */
     if (mode === 'color' && !colorModeApplied.current) {

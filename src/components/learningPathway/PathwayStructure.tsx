@@ -27,9 +27,6 @@ const PathwayStructure: React.FC = () => {
     React.useState<StickerBookModalData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
     React.useState<boolean>(false);
-  const [stickerPreviewTrigger, setStickerPreviewTrigger] = React.useState<
-    'sticker_click' | 'pathway_completion_auto'
-  >('sticker_click');
   const [stickerCompletionData, setStickerCompletionData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
@@ -129,23 +126,15 @@ const PathwayStructure: React.FC = () => {
     setIsRewardPathLoaded,
     isRewardPathLoaded,
     checkAndUpdateReward,
-    onStickerPreviewReady: (data, trigger) => {
+    onStickerPreviewReady: (data) => {
       setStickerPreviewData(data);
-      setStickerPreviewTrigger(trigger);
       setIsStickerPreviewOpen(true);
-      const isDragPopup = trigger === 'pathway_completion_auto';
-      Util.logEvent(
-        isDragPopup
-          ? EVENTS.STICKER_DRAG_POPUP_SHOWN
-          : EVENTS.STICKER_PREVIEW_POPUP_SHOWN,
-        {
-          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
-          sticker_book_id: data.stickerBookId,
-          sticker_id: data.nextStickerId,
-          source: data.source,
-          trigger,
-        },
-      );
+      Util.logEvent(EVENTS.STICKER_PREVIEW_POPUP_SHOWN, {
+        user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+        sticker_book_id: data.stickerBookId,
+        sticker_id: data.nextStickerId,
+        source: data.source,
+      });
     },
     onStickerCompletionReady: (data) => {
       openStickerCompletion(data);
@@ -155,23 +144,16 @@ const PathwayStructure: React.FC = () => {
   const closeStickerPreview = React.useCallback(
     (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
       if (!stickerPreviewData) return;
-      const isDragPopup = stickerPreviewTrigger === 'pathway_completion_auto';
-      Util.logEvent(
-        isDragPopup
-          ? EVENTS.STICKER_DRAG_POPUP_CLOSED
-          : EVENTS.STICKER_PREVIEW_POPUP_CLOSED,
-        {
-          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
-          sticker_book_id: stickerPreviewData.stickerBookId,
-          sticker_id: stickerPreviewData.nextStickerId,
-          source: stickerPreviewData.source,
-          close_reason: reason,
-          trigger: stickerPreviewTrigger,
-        },
-      );
+      Util.logEvent(EVENTS.STICKER_PREVIEW_POPUP_CLOSED, {
+        user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+        sticker_book_id: stickerPreviewData.stickerBookId,
+        sticker_id: stickerPreviewData.nextStickerId,
+        source: stickerPreviewData.source,
+        close_reason: reason,
+      });
       setIsStickerPreviewOpen(false);
     },
-    [stickerPreviewData, stickerPreviewTrigger],
+    [stickerPreviewData],
   );
 
   const closeStickerCompletion = React.useCallback(
@@ -266,11 +248,6 @@ const PathwayStructure: React.FC = () => {
       {isStickerPreviewOpen && stickerPreviewData && (
         <StickerBookPreviewModal
           data={stickerPreviewData}
-          variant={
-            stickerPreviewTrigger === 'pathway_completion_auto'
-              ? 'drag_collect'
-              : 'preview'
-          }
           onClose={closeStickerPreview}
         />
       )}
