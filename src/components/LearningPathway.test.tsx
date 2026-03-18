@@ -56,7 +56,7 @@ describe('LearningPathway', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     originalConsoleError = logger.error;
-    jest.spyOn(console, 'error').mockImplementation((...args: any[]) => {
+    jest.spyOn(logger, 'error').mockImplementation((...args: any[]) => {
       const msg = String(args[0] ?? '');
       if (msg.includes('AggregateError')) return;
       originalConsoleError(...args);
@@ -167,7 +167,7 @@ describe('LearningPathway', () => {
   });
 
   test('handles init errors and recovers UI', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.getCoursesForPathway.mockRejectedValue(new Error('api-failed'));
     render(<LearningPathway />);
 
@@ -318,7 +318,7 @@ describe('LearningPathway', () => {
   });
 
   test('always renders structural components even when init errors', async () => {
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.isStudentLinked.mockRejectedValueOnce(
       new Error('link-check-failed'),
     );
