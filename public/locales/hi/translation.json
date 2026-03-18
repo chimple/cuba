@@ -1545,5 +1545,14 @@
   "Partially merged": "आंशिक रूप से विलय किया गया",
   "Student merged, but pathway merge did not complete.": "छात्र का विलय हो गया, लेकिन पाथवे का विलय पूरा नहीं हुआ।",
   "Failed to merge student profile.": "छात्र प्रोफ़ाइल का विलय करने में विफल।",
-  "Unexpected error while merging.": "विलय के दौरान अप्रत्याशित त्रुटि हुई।"
+  "Unexpected error while merging.": "विलय के दौरान अप्रत्याशित त्रुटि हुई।",
+  "Close": "बंद करना",
+  "Exit": "बाहर निकलना",
+  "Leave paint mode": "पेंट मोड छोड़ें",
+  "Loading...": "लोड हो रहा है..।",
+  "No paint artwork selected.": "कोई पेंटिंग नहीं चुनी गई।",
+  "Paint": "रँगना",
+  "Stay": "रहना",
+  "Uh-oh! Do you want to leave paint mode?": "अरे नहीं! क्या आप पेंट मोड से बाहर निकलना चाहते हैं?",
+  "{{fromName}}\nhas been merged into {{toName}}'s profile": "{{fromName}}\nको {{toName}} की प्रोफ़ाइल में मिला दिया गया है।"
 }
