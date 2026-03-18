@@ -371,156 +371,157 @@
 
 .StickerBookPreviewModal-celebration-icon {
   margin: 0 6px;
-  .StickerBookPreviewModal-action {
-    min-width: clamp(6.6rem, 20vw, 7.4rem);
-    min-height: clamp(2.95rem, 7vw, 3.35rem);
-    border: none;
-    border-radius: 0.72rem;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.22rem;
-    font-size: clamp(0.9rem, 2.4vw, 1rem);
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
+}
+
+.StickerBookPreviewModal-action {
+  min-width: clamp(6.6rem, 20vw, 7.4rem);
+  min-height: clamp(2.95rem, 7vw, 3.35rem);
+  border: none;
+  border-radius: 0.72rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  font-size: clamp(0.9rem, 2.4vw, 1rem);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.StickerBookPreviewModal-action img,
+.StickerBookPreviewModal-action svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.StickerBookPreviewModal-action--save {
+  color: #2d1644;
+  background: #c094ef;
+  box-shadow: 0 0.36rem 0 #300d37;
+}
+
+.StickerBookPreviewModal-action--paint {
+  color: #ffffff;
+  background: #f34d08;
+  box-shadow: 0 0.36rem 0 #8d2900;
+}
+
+.StickerBookPreviewModal-action:active:not(:disabled) {
+  transform: translateY(0.24rem);
+  box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+}
+
+.StickerBookPreviewModal-action:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+@media (max-width: 1024px) {
+  .StickerBookPreviewModal-modal {
+    width: min(94vw, 36.5rem);
+    --close-size: clamp(2.7rem, 5.6vw, 3.15rem);
   }
 
-  .StickerBookPreviewModal-action img,
-  .StickerBookPreviewModal-action svg {
-    width: 1.1rem;
-    height: 1.1rem;
+  .StickerBookPreviewModal-modal::after {
+    border-radius: 0 999px 999px 0;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  .StickerBookPreviewModal-overlay {
+    padding: 0.55rem;
   }
 
-  .StickerBookPreviewModal-action--save {
-    color: #2d1644;
-    background: #c094ef;
-    box-shadow: 0 0.36rem 0 #300d37;
+  .StickerBookPreviewModal-modal {
+    width: min(90vw, 34rem);
+    border-radius: 0.95rem;
+    --close-size: 2.58rem;
   }
 
-  .StickerBookPreviewModal-action--paint {
-    color: #ffffff;
-    background: #f34d08;
-    box-shadow: 0 0.36rem 0 #8d2900;
+  .StickerBookPreviewModal-book-frame {
+    border-radius: 0.95rem 0.95rem 0 0;
   }
 
-  .StickerBookPreviewModal-action:active:not(:disabled) {
-    transform: translateY(0.24rem);
-    box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+  .StickerBookPreviewModal-modal::after {
+    border-radius: 0 999px 999px 0;
+    left: auto;
   }
 
-  .StickerBookPreviewModal-action:disabled {
-    opacity: 0.7;
-    cursor: default;
+  .StickerBookPreviewModal-bottom-strip {
+    min-height: 3.8rem;
+    padding: 0.4rem 0.7rem;
   }
 
-  @media (max-width: 1024px) {
-    .StickerBookPreviewModal-modal {
-      width: min(94vw, 36.5rem);
-      --close-size: clamp(2.7rem, 5.6vw, 3.15rem);
-    }
+  .StickerBookPreviewModal-helper-text,
+  .StickerBookPreviewModal-next-name {
+    font-size: clamp(0.9rem, 1.9vw, 1.18rem);
+  }
+}
 
-    .StickerBookPreviewModal-modal::after {
-      border-radius: 0 999px 999px 0;
-    }
+@media (max-width: 480px) {
+  .StickerBookPreviewModal-modal {
+    width: 94vw;
+    border-radius: 0.875rem;
+    --close-size: clamp(2.5rem, 9vw, 3.05rem);
   }
 
-  @media (max-width: 1024px) and (orientation: landscape) {
-    .StickerBookPreviewModal-overlay {
-      padding: 0.55rem;
-    }
-
-    .StickerBookPreviewModal-modal {
-      width: min(90vw, 34rem);
-      border-radius: 0.95rem;
-      --close-size: 2.58rem;
-    }
-
-    .StickerBookPreviewModal-book-frame {
-      border-radius: 0.95rem 0.95rem 0 0;
-    }
-
-    .StickerBookPreviewModal-modal::after {
-      border-radius: 0 999px 999px 0;
-      left: auto;
-    }
-
-    .StickerBookPreviewModal-bottom-strip {
-      min-height: 3.8rem;
-      padding: 0.4rem 0.7rem;
-    }
-
-    .StickerBookPreviewModal-helper-text,
-    .StickerBookPreviewModal-next-name {
-      font-size: clamp(0.9rem, 1.9vw, 1.18rem);
-    }
+  .StickerBookPreviewModal-book-frame {
+    border-radius: 0.875rem 0.875rem 0 0;
   }
 
-  @media (max-width: 480px) {
-    .StickerBookPreviewModal-modal {
-      width: 94vw;
-      border-radius: 0.875rem;
-      --close-size: clamp(2.5rem, 9vw, 3.05rem);
-    }
-
-    .StickerBookPreviewModal-book-frame {
-      border-radius: 0.875rem 0.875rem 0 0;
-    }
-
-    .StickerBookPreviewModal-modal::after {
-      top: -0.12rem;
-      border-radius: 0 999px 999px 0;
-      background: rgba(243, 241, 234, 0.92);
-      left: auto;
-    }
-
-    .StickerBookPreviewModal-bottom-strip {
-      min-height: 4.15rem;
-      gap: 0.45rem;
-      padding: 0.5rem 0.65rem;
-    }
-
-    .StickerBookPreviewModal-bottom-strip--completion {
-      gap: 0.45rem;
-    }
-
-    .StickerBookPreviewModal-helper-text,
-    .StickerBookPreviewModal-next-name {
-      font-size: clamp(0.82rem, 3.8vw, 1.08rem);
-      white-space: normal;
-    }
+  .StickerBookPreviewModal-modal::after {
+    top: -0.12rem;
+    border-radius: 0 999px 999px 0;
+    background: rgba(243, 241, 234, 0.92);
+    left: auto;
   }
 
-  @media (max-height: 520px) and (orientation: landscape) {
-    .StickerBookPreviewModal-overlay {
-      padding: 0.45rem;
-    }
+  .StickerBookPreviewModal-bottom-strip {
+    min-height: 4.15rem;
+    gap: 0.45rem;
+    padding: 0.5rem 0.65rem;
+  }
 
-    .StickerBookPreviewModal-modal {
-      width: min(88vw, 31.5rem);
-      border-radius: 0.75rem;
-      --close-size: 2.3rem;
-    }
+  .StickerBookPreviewModal-bottom-strip--completion {
+    gap: 0.45rem;
+  }
 
-    .StickerBookPreviewModal-book-frame {
-      border-radius: 0.75rem 0.75rem 0 0;
-    }
+  .StickerBookPreviewModal-helper-text,
+  .StickerBookPreviewModal-next-name {
+    font-size: clamp(0.82rem, 3.8vw, 1.08rem);
+    white-space: normal;
+  }
+}
 
-    .StickerBookPreviewModal-modal::after {
-      border-radius: 0 999px 999px 0;
-    }
+@media (max-height: 520px) and (orientation: landscape) {
+  .StickerBookPreviewModal-overlay {
+    padding: 0.45rem;
+  }
 
-    .StickerBookPreviewModal-bottom-strip {
-      min-height: 3.25rem;
-      padding: 0.35rem 0.55rem;
-    }
+  .StickerBookPreviewModal-modal {
+    width: min(88vw, 31.5rem);
+    border-radius: 0.75rem;
+    --close-size: 2.3rem;
+  }
 
-    .StickerBookPreviewModal-next-image,
-    .StickerBookPreviewModal-next-placeholder {
-      width: 1.95rem;
-      height: 1.95rem;
-      border-radius: 0.65rem;
-    }
+  .StickerBookPreviewModal-book-frame {
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+
+  .StickerBookPreviewModal-modal::after {
+    border-radius: 0 999px 999px 0;
+  }
+
+  .StickerBookPreviewModal-bottom-strip {
+    min-height: 3.25rem;
+    padding: 0.35rem 0.55rem;
+  }
+
+  .StickerBookPreviewModal-next-image,
+  .StickerBookPreviewModal-next-placeholder {
+    width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 0.65rem;
   }
 }

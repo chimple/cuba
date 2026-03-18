@@ -16,6 +16,10 @@ import { EVENTS, PAGES } from '../../common/constants';
 const originalFetch = global.fetch;
 const mockPush = jest.fn();
 
+jest.mock('i18next', () => ({
+  t: (value: string) => value,
+}));
+
 jest.mock('react-router', () => ({
   useHistory: () => ({
     push: mockPush,
@@ -293,6 +297,7 @@ describe('StickerBookPreviewModal', () => {
 
     render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
 
+    await screen.findByTestId('StickerBookPreviewModal-book');
     expect(
       screen.getByTestId('StickerBookPreviewModal-overlay'),
     ).toBeInTheDocument();
@@ -686,6 +691,27 @@ describe('StickerBookPreviewModal', () => {
     expect(
       screen.queryByTestId('StickerBookPreviewModal-helper-text'),
     ).not.toBeInTheDocument();
+  });
+
+  test('uses Close aria-label for completion mode close button', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    expect(screen.getByTestId('StickerBookPreviewModal-close')).toHaveAttribute(
+      'aria-label',
+      'Close',
+    );
   });
 
   test('completion mode save and paint keep existing behavior', async () => {
