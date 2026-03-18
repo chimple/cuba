@@ -287,11 +287,11 @@ export const useMigrateSchoolsPageLogic = () => {
   const isLoading = isFilterLoading || isDataLoading;
   const currentAcademicYear = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    return `${currentYear - 1}-${String(currentYear).slice(-2)}`;
+    return `${currentYear - 1}-${currentYear}`;
   }, []);
   const migratedAcademicYear = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    return `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+    return `${currentYear}-${currentYear + 1}`;
   }, []);
   const academicYears = useMemo(
     () => [currentAcademicYear],

@@ -192,7 +192,7 @@ describe('useMigrateSchoolsPageLogic', () => {
     const request = mockApiHandler.getSchoolsWithProgramAccess.mock.calls[0][0];
     expect(Array.isArray(request.academicYears)).toBe(true);
     expect(request.academicYears).toHaveLength(1);
-    expect(request.academicYears[0]).toMatch(/^\d{4}-\d{2}$/);
+    expect(request.academicYears[0]).toMatch(/^\d{4}-\d{4}$/);
     expect(request.page).toBe(1);
     expect(request.includeMigratedCounts).toBe(false);
   });
@@ -304,7 +304,7 @@ describe('useMigrateSchoolsPageLogic', () => {
     await waitForInitialLoad();
 
     const currentYear = new Date().getFullYear();
-    const expectedMigratedYear = `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+    const expectedMigratedYear = `${currentYear}-${currentYear + 1}`;
     const request =
       mockApiHandler.getSchoolsWithProgramAccess.mock.calls[
         mockApiHandler.getSchoolsWithProgramAccess.mock.calls.length - 1
