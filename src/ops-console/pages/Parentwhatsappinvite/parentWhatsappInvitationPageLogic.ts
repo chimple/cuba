@@ -91,8 +91,10 @@ export const getWhatsappMediaType = (
 
   return {
     mediaType: null,
-    error: t(
+    error: String(
+      t(
       'Only PNG/JPEG up to 5 MB or MP4/3GP up to 16 MB are allowed for WhatsApp media.',
+      ),
     ),
   };
 };

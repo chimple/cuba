@@ -101,7 +101,7 @@ const createFileList = (files: File[]): FileList =>
   ({
     length: files.length,
     item: (index: number) => files[index] ?? null,
-    ...files,
+    ...Object.fromEntries(files.map((file, index) => [index, file])),
   }) as unknown as FileList;
 
 const createLogicState = (overrides: Partial<any> = {}) => ({

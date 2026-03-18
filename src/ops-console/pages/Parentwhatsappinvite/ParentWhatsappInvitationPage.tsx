@@ -75,7 +75,7 @@ const InlineToggle: React.FC<{
 };
 
 const DataFrameCard: React.FC<{
-  title?: string;
+  title?: React.ReactNode;
   rows: Record<string, unknown>[];
   columns?: TableColumn[];
   showWhenEmpty?: boolean;
@@ -332,7 +332,7 @@ const ParentWhatsappInvitationPage: React.FC = () => {
                     type="button"
                     id="parent-whatsapp-page-upload-file-remove" className="parent-whatsapp-page-upload-file-remove"
                     onClick={() => setUploadedMedia(null)}
-                    aria-label={t('Remove uploaded file')}
+                    aria-label={String(t('Remove uploaded file'))}
                   >
                     <CloseRounded fontSize="small" />
                   </button>
