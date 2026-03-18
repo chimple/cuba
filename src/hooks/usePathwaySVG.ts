@@ -46,10 +46,7 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
-  onStickerPreviewReady: (
-    data: StickerBookModalData,
-    trigger: 'sticker_click' | 'pathway_completion_auto',
-  ) => void;
+  onStickerPreviewReady: (data: StickerBookModalData) => void;
   onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
 
@@ -290,7 +287,7 @@ export function usePathwaySVG({
       }
 
       // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
-      if (isStickerBookPreviewOn) {
+      if (isStickerBookPreviewOn && stickerPreviewPayload) {
         const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         if (raw) {
           try {
@@ -299,24 +296,8 @@ export function usePathwaySVG({
               parsed?.studentId && parsed.studentId === currentStudent.id;
             if (shouldOpenForStudent) {
               sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-              const autoPopupPayload =
-                (await getStickerPreviewPayload(
-                  parsed?.awardedStickerId,
-                  Array.isArray(parsed?.preAwardCollectedStickerIds)
-                    ? parsed.preAwardCollectedStickerIds
-                    : undefined,
-                )) ?? stickerPreviewPayload;
               // Defer so the rest of the pathway UI can mount first.
-              if (autoPopupPayload) {
-                setTimeout(
-                  () =>
-                    onStickerPreviewReady(
-                      autoPopupPayload,
-                      'pathway_completion_auto',
-                    ),
-                  0,
-                );
-              }
+              setTimeout(() => onStickerPreviewReady(stickerPreviewPayload), 0);
             }
           } catch {
             // Ignore malformed storage value
@@ -708,7 +689,7 @@ export function usePathwaySVG({
               });
 
               if (isStickerBookPreviewOn && stickerPreviewPayload) {
-                onStickerPreviewReady(stickerPreviewPayload, 'sticker_click');
+                onStickerPreviewReady(stickerPreviewPayload);
               } else {
                 setModalText(t('Complete these 5 lessons to earn rewards'));
                 setModalOpen(true);
@@ -841,10 +822,7 @@ export function usePathwaySVG({
 
   // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
   // This is the single place where we resolve next sticker image fallback.
-  async function getStickerPreviewPayload(
-    forcedStickerId?: string,
-    preAwardCollectedStickerIds?: string[],
-  ): Promise<StickerBookModalData | null> {
+  async function getStickerPreviewPayload(): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
@@ -855,19 +833,13 @@ export function usePathwaySVG({
       if (!currentBookWithProgress?.book) return null;
 
       const { book, progress } = currentBookWithProgress;
-      const collectedStickerIds = Array.isArray(preAwardCollectedStickerIds)
-        ? preAwardCollectedStickerIds
-        : (progress?.stickers_collected ?? []);
-      // For auto-completion popup, use the just-awarded sticker when available.
-      // For normal sticker-box preview, use the next winnable sticker.
-      const nextStickerId =
-        forcedStickerId ??
-        (await api.getNextWinnableSticker(book.id, currentStudent.id));
+      const collectedStickerIds = progress?.stickers_collected ?? [];
+      // The preview always centers around the next sticker the user can win.
+      const nextStickerId = await api.getNextWinnableSticker(
+        book.id,
+        currentStudent.id,
+      );
       if (!nextStickerId) return null;
-
-      const visibleCollectedStickerIds = forcedStickerId
-        ? collectedStickerIds.filter((id: string) => id !== forcedStickerId)
-        : collectedStickerIds;
 
       const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
       const nextSticker = nextStickerDetails?.[0];
@@ -894,7 +866,7 @@ export function usePathwaySVG({
         stickerBookId: book.id,
         stickerBookTitle: book.title || 'Sticker Book',
         stickerBookSvgUrl: book.svg_url || '',
-        collectedStickerIds: visibleCollectedStickerIds,
+        collectedStickerIds,
         nextStickerId,
         nextStickerName: nextSticker?.name || 'Sticker',
         nextStickerImage,
