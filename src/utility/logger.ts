@@ -63,40 +63,39 @@ if (HAS_WINDOW) {
  * Parse args
  */
 const parseArgs = (args: unknown[]) => {
-  let message = 'Log';
+  let message: string | undefined;
   const context: unknown[] = [];
-  let hasContext = false;
   let error: LogPayload['error'] | undefined;
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
 
-    if (message === 'Log') {
-      if (typeof a === 'string') {
-        message = a;
-        continue;
-      }
-      if (a instanceof Error) {
-        message = a.message;
-        // Note: intentionally no `continue` here — the second instanceof
-        // check below must still run to populate `error`. Do not "fix" this.
-      }
-    }
-
-    if (!error && a instanceof Error) {
-      error = { message: a.message, stack: a.stack };
+    // first string → message
+    if (!message && typeof a === 'string') {
+      message = a;
       continue;
     }
 
-    if (typeof a !== 'string' && typeof a !== 'undefined') {
+    // error handling
+    if (!error && a instanceof Error) {
+      error = { message: a.message, stack: a.stack };
+
+      // if no message yet → use error message
+      if (!message) {
+        message = a.message;
+      }
+      continue;
+    }
+
+    // EVERYTHING else → context (including strings)
+    if (typeof a !== 'undefined') {
       context.push(a);
-      hasContext = true;
     }
   }
 
   return {
-    message,
-    context: hasContext ? context : undefined,
+    message: message || 'Log',
+    context: context.length ? context : undefined,
     error,
   };
 };
