@@ -657,12 +657,14 @@ describe('StickerBook page', () => {
     expect(toBlobOptions.filter(overlay)).toBe(false);
     expect(toBlobOptions.filter(document.createElement('div'))).toBe(true);
     expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledWith(
-      'STICKER BOOK',
-      'My Book!!',
+      'Sticker Book',
+      sharedFile.name,
       undefined,
       [expect.any(File)],
     );
-    expect(sharedFile.name).toBe('My_Book.png');
+    expect(sharedFile.name).toMatch(
+      /^Sticker_Book_My_Book_\d{2}_[A-Za-z]{3}_\d{2}:\d{2}\.png$/,
+    );
     expect(Util.saveFileToDownloads).toHaveBeenCalledWith(sharedFile);
   });
 
