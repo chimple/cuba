@@ -1,6 +1,14 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
+import logger from '../utility/logger';
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -14,28 +22,27 @@ export const updateLocalAttributes = (data: any) => {
   const parsedData = existingData ? JSON.parse(existingData) : {};
   const updatedData = {
     ...parsedData,
-    ...data
-  }
+    ...data,
+  };
   localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
-}
+};
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
   const [gbUpdated, setGbUpdated] = useState(true);
 
   useEffect(() => {
-    if (gbUpdated) {
-      const storedAttributes = localStorage.getItem(GrowthBookAttributes);
-      if (storedAttributes) {
-        const attributes = JSON.parse(storedAttributes);
-        setGrowthbookAttributes(attributes);
-      } else {
-        setGbUpdated(false);
-      }
+    if (!gbUpdated) return;
+    const storedAttributes = localStorage.getItem(GrowthBookAttributes);
+    if (!storedAttributes) {
+      setGbUpdated(false);
+      return;
     }
-  }, [gbUpdated])
+    const attributes = JSON.parse(storedAttributes);
+    setGrowthbookAttributes(attributes);
+  }, [gbUpdated]);
 
-  const setGrowthbookAttributes = (attributes: any) => {
+  const buildAttributesOnMainThread = (attributes: any) => {
     const {
       studentDetails,
       schools,
@@ -74,7 +81,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
 
     const totalAssignments = count_of_assignment_played + assignmentCount;
 
-    growthbook.setAttributes({
+    return {
       id: studentDetails?.id,
       age: studentDetails?.age,
       curriculum_id: studentDetails?.curriculum_id,
@@ -89,7 +96,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       school_ids: schools,
       school_name,
       class_ids: classes,
-      language: localStorage.getItem(LANGUAGE) || "en",
+      language: localStorage.getItem(LANGUAGE) || 'en',
       pending_live_quiz: liveQuizCount,
       pending_assignments: assignmentCount,
       last_assignment_played_at: last_assignment_played_at,
@@ -99,7 +106,8 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       leaderboard_position_all: leaderboard_position_all,
       count_of_assignment_played: count_of_assignment_played,
       count_of_lessons_played: count_of_lessons_played,
-      percentage_of_assignment_played: (count_of_assignment_played / totalAssignments) * 100,
+      percentage_of_assignment_played:
+        (count_of_assignment_played / totalAssignments) * 100,
       ...pending_course_counts,
       ...pending_subject_counts,
       ...learning_path_completed,
@@ -120,7 +128,22 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       teacher_class_ids,
       ...roleMap,
       ...courseCounts,
+    };
+  };
+
+  const setGrowthbookAttributes = async (attributes: any) => {
+    const language = localStorage.getItem(LANGUAGE) || 'en';
+    const preparedAttributes = await runBackgroundWorkerTask(
+      'PREPARE_GROWTHBOOK_ATTRIBUTES',
+      { attributes, language },
+    ).catch((error) => {
+      logger.error(
+        'GrowthBook worker attribute prep failed, falling back to main thread.',
+        error,
+      );
+      return buildAttributesOnMainThread(attributes);
     });
+    growthbook.setAttributes(preparedAttributes);
     setGbUpdated(false);
   };
 

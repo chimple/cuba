@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Typography,
   Paper,
@@ -11,19 +11,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Radio,
   TablePagination,
-} from "@mui/material";
-import { IonCheckbox } from "@ionic/react";
-import { useHistory, useParams, useLocation } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
-import "./StudentPendingRequest.css";
-import { Constants } from "../../services/database";
-import { useTranslation } from "react-i18next";
-import { OpsUtil } from "../OpsUtility/OpsUtil";
-import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
-import SearchAndFilter from "../components/SearchAndFilter";
+} from '@mui/material';
+import { IonCheckbox } from '@ionic/react';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGES,
+  REQUEST_TABS,
+  TableTypes,
+} from '../../common/constants';
+import './StudentPendingRequest.css';
+import { Constants } from '../../services/database';
+import { useTranslation } from 'react-i18next';
+import { OpsUtil } from '../OpsUtility/OpsUtil';
+import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
+import SearchAndFilter from '../components/SearchAndFilter';
+import logger from '../../utility/logger';
 
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,7 +45,7 @@ const StudentPendingRequestDetails = () => {
   const [pageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [studentDetails, setStudentDetails] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchStudents = useCallback(
     async (classId: string, page: number, size: number) => {
@@ -48,23 +53,23 @@ const StudentPendingRequestDetails = () => {
       const response = await api.getStudentsAndParentsByClassId(
         classId,
         page,
-        size
+        size,
       );
       if (requestData?.requested_by) {
         const studentData = await api.getStudentAndParentByStudentId(
-          requestData.requested_by
+          requestData.requested_by,
         );
         setStudentDetails(studentData);
       } else {
-        console.warn(
-          "requestData.requested_by was undefined when fetching student details."
+        logger.warn(
+          'requestData.requested_by was undefined when fetching student details.',
         );
       }
       setStudents(response?.data || []);
       setTotalStudents(response?.total || 0);
       setLoading(false);
     },
-    [api, requestData]
+    [api, requestData],
   );
 
   useEffect(() => {
@@ -85,26 +90,29 @@ const StudentPendingRequestDetails = () => {
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[0],
                 1,
-                DEFAULT_PAGE_SIZE
+                DEFAULT_PAGE_SIZE,
               ),
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[2],
                 1,
-                DEFAULT_PAGE_SIZE
+                DEFAULT_PAGE_SIZE,
               ),
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[1],
                 1,
-                DEFAULT_PAGE_SIZE
+                DEFAULT_PAGE_SIZE,
               ),
             ]);
 
           const allRequests = [
-            ...(pendingRequests || []),
-            ...(approvedRequests || []),
-            ...(rejectedRequests || []),
+            ...(pendingRequests?.data || []),
+            ...(approvedRequests?.data || []),
+            ...(rejectedRequests?.data || []),
           ];
-          const req = allRequests.find((r: any) => r.request_id === id);
+          const req = allRequests.find(
+            (r: TableTypes<'ops_requests'> | Record<string, unknown>) =>
+              'request_id' in r && r.request_id === id,
+          );
 
           if (req) {
             setRequestData(req);
@@ -113,7 +121,7 @@ const StudentPendingRequestDetails = () => {
           }
         }
       } catch (error) {
-        console.error("Error fetching request data:", error);
+        logger.error('Error fetching request data:', error);
       } finally {
         setLoading(false);
       }
@@ -147,12 +155,12 @@ const StudentPendingRequestDetails = () => {
     const auth = ServiceConfig.getI().authHandler;
     const user = await auth.getCurrentUser();
     if (!user?.id) {
-      throw new Error("No logged-in user found. Cannot approve request.");
+      throw new Error('No logged-in user found. Cannot approve request.');
     }
     const respondedBy = user?.id;
 
     if (!currentRequestId) {
-      console.error(t("Missing request row ID for approval."));
+      logger.error(t('Missing request row ID for approval.'));
       return;
     }
 
@@ -161,10 +169,10 @@ const StudentPendingRequestDetails = () => {
       if (currentSelectedStudent && newStudentUserId) {
         // MERGE & APPROVE logic
         await api.mergeStudentRequest(
-          currentRequestId,
           currentSelectedStudent,
           newStudentUserId,
-          respondedBy
+          currentRequestId,
+          respondedBy,
         );
       } else {
         const requestRole = requestData?.request_type; // e.g., 'student'
@@ -172,10 +180,10 @@ const StudentPendingRequestDetails = () => {
       }
 
       history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`
+        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
       );
     } catch (error) {
-      console.error(t("Error approving/merging request:"), error);
+      logger.error(t('Error approving/merging request:'), error);
     } finally {
       setLoading(false);
     }
@@ -187,21 +195,21 @@ const StudentPendingRequestDetails = () => {
   };
 
   const formatFirstLetterUpper = (value?: string) => {
-    const trimmed = (value ?? "").toString().trim();
-    if (!trimmed) return t("N/A");
+    const trimmed = (value ?? '').toString().trim();
+    if (!trimmed) return t('N/A');
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
   };
 
   if (loading || !requestData)
     return (
       <div className="student-pending-request-details-centered">
-        <Typography>{t("Loading...")}</Typography>
+        <Typography>{t('Loading...')}</Typography>
       </div>
     );
 
   const { school = {}, requestedBy = {}, request_type } = requestData;
   const fullRequestClassName =
-    requestData.classInfo?.name || `${requestData.classInfo?.standard || ""}`;
+    requestData.classInfo?.name || `${requestData.classInfo?.standard || ''}`;
 
   const { grade: parsedGrade, section: parsedSection } =
     OpsUtil.parseClassName(fullRequestClassName);
@@ -210,11 +218,11 @@ const StudentPendingRequestDetails = () => {
     <div className="student-pending-request-details-breadcrumbs">
       <span
         onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-        className="student-pending-request-details-link"
+        className="student-pending-request-details-link icon-button"
       >
-        {t("Pending")}
+        {t('Pending')}
+        <span> &gt; </span>
       </span>
-      <span> &gt; </span>
       <span className="student-pending-request-details-active">
         {t(`Request ID - ${id}`)}
       </span>
@@ -223,7 +231,7 @@ const StudentPendingRequestDetails = () => {
 
   // Filter out the requesting student from the students list
   const filteredStudents = students.filter(
-    (stu) => stu.user.id !== requestData?.requested_by
+    (stu) => stu.user.id !== requestData?.requested_by,
   );
   // Also update the total students count for display
   const filteredTotalStudents =
@@ -231,9 +239,9 @@ const StudentPendingRequestDetails = () => {
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
   const displayedStudents = filteredStudents.filter((stu) => {
     if (!normalizedSearchTerm) return true;
-    const studentName = (stu.user?.name ?? "").toString().toLowerCase();
-    const studentId = (stu.user?.student_id ?? "").toString().toLowerCase();
-    const phoneNumber = (stu.parent?.phone ?? "").toString().toLowerCase();
+    const studentName = (stu.user?.name ?? '').toString().toLowerCase();
+    const studentId = (stu.user?.student_id ?? '').toString().toLowerCase();
+    const phoneNumber = (stu.parent?.phone ?? '').toString().toLowerCase();
     return (
       studentName.includes(normalizedSearchTerm) ||
       studentId.includes(normalizedSearchTerm) ||
@@ -268,24 +276,24 @@ const StudentPendingRequestDetails = () => {
                 variant="subtitle1"
                 className="student-pending-request-details-section-title"
               >
-                {t("Request From")}
+                {t('Request From')}
               </Typography>
               <Divider />
               <div className="student-pending-request-details-row">
-                <span>{t("Name")}</span>{" "}
-                <span>{requestedBy.name || t("N/A")}</span>
+                <span>{t('Name')}</span>{' '}
+                <span>{requestedBy.name || t('N/A')}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("Gender")}</span>{" "}
+                <span>{t('Gender')}</span>{' '}
                 <span>{formatFirstLetterUpper(requestedBy.gender)}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("Phone Number")}</span>{" "}
-                <span>{studentDetails?.parents?.[0]?.phone || t("N/A")}</span>
+                <span>{t('Phone Number')}</span>{' '}
+                <span>{studentDetails?.parents?.[0]?.phone || t('N/A')}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("Email ID")}</span>{" "}
-                <span>{studentDetails?.parents?.[0]?.email || t("N/A")}</span>
+                <span>{t('Email ID')}</span>{' '}
+                <span>{studentDetails?.parents?.[0]?.email || t('N/A')}</span>
               </div>
             </Paper>
 
@@ -297,20 +305,20 @@ const StudentPendingRequestDetails = () => {
                 variant="subtitle1"
                 className="student-pending-request-details-section-title"
               >
-                {t("Request Details")}
+                {t('Request Details')}
               </Typography>
               <Divider />
               <div className="student-pending-request-details-row">
-                <span>{t("Role")}</span>{" "}
+                <span>{t('Role')}</span>{' '}
                 <span>{formatFirstLetterUpper(request_type)}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("Grade")}</span>{" "}
-                <span>{parsedGrade > 0 ? parsedGrade : t("N/A")}</span>
+                <span>{t('Grade')}</span>{' '}
+                <span>{parsedGrade > 0 ? parsedGrade : t('N/A')}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("Class Section")}</span>{" "}
-                <span>{parsedSection || t("N/A")}</span>
+                <span>{t('Class Section')}</span>{' '}
+                <span>{parsedSection || t('N/A')}</span>
               </div>
             </Paper>
 
@@ -322,37 +330,37 @@ const StudentPendingRequestDetails = () => {
                 variant="subtitle1"
                 className="student-pending-request-details-section-title"
               >
-                {t("School Details")}
+                {t('School Details')}
               </Typography>
               <Divider className="student-pending-request-details-divider-margin" />
               <div className="student-pending-request-details-row">
-                <span>{t("School Name")}</span>{" "}
-                <span>{school.name || t("N/A")}</span>
+                <span>{t('School Name')}</span>{' '}
+                <span>{school.name || t('N/A')}</span>
               </div>
               <div className="student-pending-request-details-row">
-                <span>{t("School ID (UDISE)")}</span>{" "}
-                <span>{school.udise || t("N/A")}</span>
+                <span>{t('School ID (UDISE)')}</span>{' '}
+                <span>{school.udise || t('N/A')}</span>
               </div>
               <Divider className="student-pending-request-details-divider-margin student-pending-request-details-divider-spacing" />
               <div className="student-pending-request-details-field-row">
                 <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin student-pending-request-details-divider-spacing">
                   <div className="student-pending-request-details-label">
-                    {t("Block")}
+                    {t('Block')}
                   </div>
-                  <div>{school.group3 || t("N/A")}</div>
+                  <div>{school.group3 || t('N/A')}</div>
                 </div>
                 <div className="student-pending-request-details-field-stack student-pending-request-details-divider-spacing">
                   <div className="student-pending-request-details-label">
-                    {t("State")}
+                    {t('State')}
                   </div>
-                  <div>{school.group1 || t("N/A")}</div>
+                  <div>{school.group1 || t('N/A')}</div>
                 </div>
               </div>
               <div className="student-pending-request-details-field-stack">
                 <div className="student-pending-request-details-label">
-                  {t("District")}
+                  {t('District')}
                 </div>
-                <div>{school.group2 || t("N/A")}</div>
+                <div>{school.group2 || t('N/A')}</div>
               </div>
             </Paper>
             <div className="student-pending-request-details-action-buttons-row">
@@ -363,7 +371,7 @@ const StudentPendingRequestDetails = () => {
                 className="student-pending-request-details-remove-button"
                 onClick={handleRemoveClick}
               >
-                {t("Remove")}
+                {t('Remove')}
               </Button>
               <Button
                 variant="contained"
@@ -373,7 +381,7 @@ const StudentPendingRequestDetails = () => {
                 onClick={handleConfirmApprove}
                 disabled={loading || !requestData?.id}
               >
-                {selectedStudent ? t("Merge & Approve") : t("Approve")}
+                {selectedStudent ? t('Merge & Approve') : t('Approve')}
               </Button>
             </div>
           </Grid>
@@ -391,8 +399,8 @@ const StudentPendingRequestDetails = () => {
                 >
                   {t(
                     `Students in Grade ${
-                      parsedGrade > 0 ? parsedGrade : "N/A"
-                    } - ${parsedSection || "N/A"}`
+                      parsedGrade > 0 ? parsedGrade : 'N/A'
+                    } - ${parsedSection || 'N/A'}`,
                   )}
                 </Typography>
                 <div className="student-pending-request-details-table-search">
@@ -413,26 +421,26 @@ const StudentPendingRequestDetails = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell className="student-pending-request-details-table-header-cell">
-                        {t("Student ID")}
+                        {t('Student ID')}
                       </TableCell>
                       <TableCell className="student-pending-request-details-table-header-cell">
-                        {t("Student Name")}
+                        {t('Student Name')}
                       </TableCell>
                       <TableCell className="student-pending-request-details-table-header-cell">
-                        {t("Gender")}
+                        {t('Gender')}
                       </TableCell>
                       {/* <TableCell className="student-pending-request-details-table-header-cell">
                         {t("Grade")}
                       </TableCell> */}
                       <TableCell className="student-pending-request-details-table-header-cell">
-                        {t("Phone Number")}
+                        {t('Phone Number')}
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {displayedStudents.map((stu) => {
-                      const fullStudentClassName = `${stu.grade || ""}${
-                        stu.classSection || ""
+                      const fullStudentClassName = `${stu.grade || ''}${
+                        stu.classSection || ''
                       }`;
                       const {
                         grade: studentParsedGrade,
@@ -451,12 +459,12 @@ const StudentPendingRequestDetails = () => {
                               value={stu.user.id}
                               color="primary"
                             />
-                            {stu.user.student_id || t("N/A")}
+                            {stu.user.student_id || t('N/A')}
                           </TableCell>
-                          <TableCell>{stu.user.name || t("N/A")}</TableCell>
+                          <TableCell>{stu.user.name || t('N/A')}</TableCell>
                           <TableCell>
                             {formatFirstLetterUpper(stu.user.gender) ||
-                              t("N/A")}
+                              t('N/A')}
                           </TableCell>
                           {/* <TableCell>
                             {t(
@@ -467,7 +475,7 @@ const StudentPendingRequestDetails = () => {
                               } - ${studentParsedSection || "N/A"}`
                             )}
                           </TableCell> */}
-                          <TableCell>{stu.parent?.phone || t("N/A")}</TableCell>
+                          <TableCell>{stu.parent?.phone || t('N/A')}</TableCell>
                         </TableRow>
                       );
                     })}

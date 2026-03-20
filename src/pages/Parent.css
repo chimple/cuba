@@ -1,20 +1,7 @@
 #parent-page {
-  /* background-color: white; */
-  /* color: black; */
-  /* border-radius: 4vh; */
-  /* display: flex;
-    padding: 0% 5% 0% 5%;
-    justify-content: space-around; */
   align-items: center;
 }
 
-/* #ParentHeader{
-  margin: var(--margin);
-  margin-bottom: 0;
-}
-#ParentHeader-1{
-  padding: 0;
-} */
 #faq-page {
   display: flex;
   justify-content: space-evenly;
@@ -42,25 +29,15 @@
 }
 
 #parent-page-setting {
-  /* background-color: white; */
   display: flex;
   margin: 6% 19% 0% 19%;
   justify-content: space-between;
   align-items: center;
   font-size: var(--text-size);
   color: black;
-  /* gap: 10px;
-    column-gap: 10px; */
-  /* justify-content: left;
-    flex-wrap: wrap;
-    gap: 2vw; */
 }
 
 #parent-page-setting-lang-text {
-  /* display: flex;
-    margin: 6% 5% 0% 5%;
-    justify-content: space-evenly;
-    align-items: center; */
   margin-bottom: 2vh;
   font-size: var(--text-size);
   color: black;
@@ -91,7 +68,7 @@
   font-weight: bolder;
   text-align: center;
   font-size: var(--text-size);
-  font-family: "Balooregular";
+  font-family: 'Balooregular';
   color: #182a4f;
   margin: 1% 0% 0.5% 0%;
 }
@@ -187,7 +164,7 @@
   font-size: 1.5vw;
   font-weight: bold;
   width: 19vw;
-  font-family: "BalooRegular";
+  font-family: 'BalooRegular';
   justify-content: space-between;
   white-space: nowrap;
 }
@@ -224,7 +201,7 @@
   width: 20vw;
   height: 10vh;
   background-color: white;
-  border-radius: min(20px,5vh);
+  border-radius: min(20px, 5vh);
   display: flex;
   padding: 0% min(20px, 2%);
   justify-content: space-evenly;

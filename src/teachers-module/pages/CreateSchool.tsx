@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./CreateSchool.css";
-import { useHistory, useLocation } from "react-router-dom";
-import { t } from "i18next";
-import Header from "../components/homePage/Header";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, RequestTypes } from "../../common/constants";
-import SelectField from "../components/SelectField";
+import React, { useState, useEffect, useRef } from 'react';
+import './CreateSchool.css';
+import { useHistory, useLocation } from 'react-router-dom';
+import { t } from 'i18next';
+import Header from '../components/homePage/Header';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { PAGES, RequestTypes } from '../../common/constants';
+import SelectField from '../components/SelectField';
+import logger from '../../utility/logger';
 
 interface CreateSchoolLocationState {
   country?: string;
@@ -22,12 +23,12 @@ const CreateSchool: React.FC = () => {
   const prefilledData = location.state || {};
   const isInitialLoad = useRef(true);
 
-  const [country, setCountry] = useState(prefilledData.country || "");
-  const [state, setState] = useState(prefilledData.state || "");
-  const [district, setDistrict] = useState(prefilledData.district || "");
-  const [block, setBlock] = useState(prefilledData.block || "");
-  const [schoolName, setSchoolName] = useState("");
-  const [udise, setUdise] = useState("");
+  const [country, setCountry] = useState(prefilledData.country || '');
+  const [state, setState] = useState(prefilledData.state || '');
+  const [district, setDistrict] = useState(prefilledData.district || '');
+  const [block, setBlock] = useState(prefilledData.block || '');
+  const [schoolName, setSchoolName] = useState('');
+  const [udise, setUdise] = useState('');
   const [sending, setSending] = useState(false);
 
   const [countries, setCountries] = useState<string[]>([]);
@@ -55,9 +56,9 @@ const CreateSchool: React.FC = () => {
   useEffect(() => {
     // On user interaction (not initial load), clear dependent fields
     if (!isInitialLoad.current) {
-      setState("");
-      setDistrict("");
-      setBlock("");
+      setState('');
+      setDistrict('');
+      setBlock('');
       setStates([]);
       setDistricts([]);
       setBlocks([]);
@@ -77,8 +78,8 @@ const CreateSchool: React.FC = () => {
   useEffect(() => {
     // On user interaction (not initial load), clear dependent fields
     if (!isInitialLoad.current) {
-      setDistrict("");
-      setBlock("");
+      setDistrict('');
+      setBlock('');
       setDistricts([]);
       setBlocks([]);
     }
@@ -100,7 +101,7 @@ const CreateSchool: React.FC = () => {
   useEffect(() => {
     // On user interaction (not initial load), clear dependent fields
     if (!isInitialLoad.current) {
-      setBlock("");
+      setBlock('');
       setBlocks([]);
     }
     if (state && district) {
@@ -145,7 +146,7 @@ const CreateSchool: React.FC = () => {
       await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
-      console.error("Error creating school:", error);
+      logger.error('Error creating school:', error);
     } finally {
       setSending(false);
     }
@@ -159,7 +160,7 @@ const CreateSchool: React.FC = () => {
 
       <div className="create-school-container">
         <div className="create-school-box">
-          <h2 className="create-school-title">{t("Create School")}</h2>
+          <h2 className="create-school-title">{t('Create School')}</h2>
 
           <div className="create-school-icon">
             <img src="/assets/icons/School_image.svg" alt="School" />
@@ -167,41 +168,41 @@ const CreateSchool: React.FC = () => {
 
           <div className="create-school-card">
             <SelectField
-              label={t("Country")}
+              label={t('Country')}
               value={country}
               options={countries}
-              placeholder={t("Select Country") || ""}
+              placeholder={t('Select Country') || ''}
               disabled={isCountriesLoading}
               onChange={setCountry}
             />
             <SelectField
-              label={t("State")}
+              label={t('State')}
               value={state}
               options={states}
-              placeholder={t("Select State") || ""}
+              placeholder={t('Select State') || ''}
               disabled={!country || isStatesLoading}
               onChange={setState}
             />
             <SelectField
-              label={t("District")}
+              label={t('District')}
               value={district}
               options={districts}
-              placeholder={t("Select District") || ""}
+              placeholder={t('Select District') || ''}
               disabled={!state || isDistrictsLoading}
               onChange={setDistrict}
             />
             <SelectField
-              label={t("Block")}
+              label={t('Block')}
               value={block}
               options={blocks}
-              placeholder={t("Select Block") || ""}
+              placeholder={t('Select Block') || ''}
               disabled={!district || isBlocksLoading}
               onChange={setBlock}
             />
 
             {/* School Name */}
             <div className="create-school-row">
-              <span className="create-school-label">{t("School Name")}</span>
+              <span className="create-school-label">{t('School Name')}</span>
               <input
                 className="create-school-input"
                 value={schoolName}
@@ -233,7 +234,7 @@ const CreateSchool: React.FC = () => {
             }
             onClick={handleSendRequest}
           >
-            {sending ? t("Sending...") : t("Send Request")}
+            {sending ? t('Sending...') : t('Send Request')}
           </button>
         </div>
       </div>

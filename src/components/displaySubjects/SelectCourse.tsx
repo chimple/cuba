@@ -1,26 +1,25 @@
-import { FC, useState, useEffect } from "react";
-import Course from "../../models/course";
-import "./SelectCourse.css";
-import { t } from "i18next";
-import SelectIconImage from "./SelectIconImage";
-import { IoAddCircleSharp } from "react-icons/io5";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
+import { FC, useState, useEffect } from 'react';
+import './SelectCourse.css';
+import { t } from 'i18next';
+import SelectIconImage from './SelectIconImage';
+import { IoAddCircleSharp } from 'react-icons/io5';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
 import {
   DEFUALT_SUBJECT_CARD_COLOUR,
   PAGES,
   TableTypes,
-} from "../../common/constants";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '../../common/constants';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
 interface CourseDetails {
-  course: TableTypes<"course">;
-  grade?: TableTypes<"grade"> | null;
-  curriculum?: TableTypes<"curriculum"> | null;
+  course: TableTypes<'course'>;
+  grade?: TableTypes<'grade'> | null;
+  curriculum?: TableTypes<'curriculum'> | null;
 }
 const SelectCourse: FC<{
-  courses: TableTypes<"course">[];
+  courses: TableTypes<'course'>[];
   modeParent: boolean;
-  onCourseChange: (course: TableTypes<"course">) => void;
+  onCourseChange: (course: TableTypes<'course'>) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const api = ServiceConfig.getI().apiHandler;
@@ -33,14 +32,14 @@ const SelectCourse: FC<{
       courses.map(async (course) => {
         const gradeDoc = await api.getGradeById(course.grade_id!);
         const curriculumDoc = await api.getCurriculumById(
-          course.curriculum_id!
+          course.curriculum_id!,
         );
         return {
           course,
           grade: gradeDoc,
           curriculum: curriculumDoc,
         };
-      })
+      }),
     );
     setCourseDetails(detailedCourses);
   };
@@ -55,7 +54,7 @@ const SelectCourse: FC<{
         arrows: false,
         wheel: true,
         lazyLoad: true,
-        direction: "ltr",
+        direction: 'ltr',
         pagination: false,
       }}
     >
@@ -82,10 +81,10 @@ const SelectCourse: FC<{
               >
                 <SelectIconImage
                   localSrc={`courses/chapter_icons/${course.code}.webp`}
-                  defaultSrc={"assets/icons/DefaultIcon.png"}
-                  webSrc={course.image || "assets/icons/DefaultIcon.png"}
-                  imageWidth={"80%"}
-                  imageHeight={"auto"}
+                  defaultSrc={'assets/icons/DefaultIcon.png'}
+                  webSrc={course.image || 'assets/icons/DefaultIcon.png'}
+                  imageWidth={'80%'}
+                  imageHeight={'auto'}
                 />
               </div>
               <div className="course-title">{t(course.name)}</div>
@@ -100,7 +99,7 @@ const SelectCourse: FC<{
         <SplideSlide className="slide">
           <div
             onClick={() => {
-              history.replace(PAGES.ADD_SUBJECTS);
+              history.push(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
             key={courses[0].id}
@@ -108,12 +107,12 @@ const SelectCourse: FC<{
             <div
               className="course-icon"
               style={{
-                backgroundColor: "#8F5AA5",
+                backgroundColor: '#8F5AA5',
               }}
             >
               <IoAddCircleSharp color="white" size="20vh" onClick={() => {}} />
             </div>
-            {t("Add Subject")}
+            {t('Add Subject')}
           </div>
         </SplideSlide>
       ) : (

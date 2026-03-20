@@ -1,5 +1,5 @@
 .debug-debug-page {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -11,6 +11,9 @@
 .debug-scroll-wrapper {
   max-height: 80vh; /* or any desired height */
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .debug-title {
   font-size: 28px;
@@ -26,6 +29,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
   transition: box-shadow 0.3s ease-in-out;
+  width: 90vw;
 }
 
 .debug-card:hover {
@@ -49,6 +53,7 @@
   margin-top: 4px;
   font-size: 14px;
   color: #555;
+  text-align: left;
 }
 
 .debug-button-group {
@@ -149,8 +154,8 @@
 }
 
 .debug-student-class-entry {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   padding: 16px;
   margin-bottom: 12px;
@@ -173,6 +178,11 @@
 .debugmode-debug-hotupdate-btn {
   background-color: #ff9800;
   color: white;
+}
+
+.debugmode-debug-hotupdate-btn:disabled {
+  background-color: #ffcc80;
+  cursor: not-allowed;
 }
 
 .debugmode-progress-bar-container {

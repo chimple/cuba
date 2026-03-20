@@ -1,0 +1,289 @@
+.qrAssignments-assignments-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #ffffff;
+}
+
+/* ───────────────── Header ───────────────── */
+
+.qrAssignments-assignments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2vh 4vw;
+  background-color: #7c5db0;
+}
+
+.qrAssignments-title {
+  font-size: clamp(1rem, 2.2vh, 1.4rem);
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ───────────────── Count ───────────────── */
+
+.qrAssignments-count {
+  font-size: clamp(0.8rem, 1.8vh, 1rem);
+  font-weight: 500;
+  color: #666;
+  padding: 1.2vh 4vw;
+}
+
+/* ───────────────── Lesson List ───────────────── */
+
+.qrAssignments-lesson-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 15vh;
+}
+
+/* Lesson Row */
+.qrAssignments-lesson-row {
+  display: flex;
+  align-items: center;
+  padding: 1.6vh 8vw;
+  border-bottom: 0.1rem solid #eee;
+  gap: 2vw;
+}
+
+/* Lesson name */
+.qrAssignments-lesson-name {
+  flex: 0.9 1;
+  font-size: clamp(0.9rem, 2vh, 1.1rem);
+  font-weight: 500;
+  color: #333;
+}
+
+/* Checkbox icons */
+.qrAssignments-icon {
+  font-size: clamp(1.2rem, 3vh, 1.6rem);
+  color: #bdbdbd;
+}
+
+/* Selected lesson */
+.qrAssignments-icon.selected {
+  color: #4caf50;
+}
+
+/* Assigned lesson */
+.qrAssignments-icon.assigned {
+  color: #4caf50;
+}
+
+/* Prevent interaction look on assigned */
+.qrAssignments-icon.assigned {
+  pointer-events: none;
+}
+
+/* ───────────────── Scrollbar ───────────────── */
+
+.qrAssignments-lesson-list::-webkit-scrollbar {
+  width: 0.3rem;
+}
+
+.qrAssignments-lesson-list::-webkit-scrollbar-thumb {
+  background-color: #d1c4e9;
+  border-radius: 0.5rem;
+}
+
+/* ───────── Subject Row ───────── */
+
+.qrAssignments-subject-count-row {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+
+  margin: 0 3vw;
+  padding: 1.2vh 3vw;
+
+  background-color: #f3eefb;
+  border-radius: 0.6rem;
+}
+
+.qrAssignments-subject-name {
+  font-size: clamp(1rem, 2.7vh, 1.5rem);
+  font-weight: 700;
+  color: #6b6b6b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Toggle button with icon */
+
+.qrAssignments-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  background: #ffffff;
+  color: #7c5db0;
+  font-size: clamp(0.8rem, 1.8vh, 1rem);
+  font-weight: 600;
+  border: 0.1rem solid #d1c4e9;
+  border-radius: 0.6rem;
+  padding: 0.8vh 2vw;
+  position: relative;
+}
+
+/* ───────── Toggle Row ───────── */
+
+.qrAssignments-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1vw;
+  padding: 1.4vh 4vw;
+  color: #7c5db0;
+  font-size: clamp(0.9rem, 2vh, 1.1rem);
+  font-weight: 600;
+  cursor: pointer;
+  padding-right: 9vw;
+}
+
+.qrAssignments-toggle-icon {
+  width: clamp(1.7rem, 3vw, 1.6rem);
+  height: clamp(1.7rem, 3vw, 1.6rem);
+}
+
+.qrAssignments-toggle-text {
+  user-select: none;
+  font-size: clamp(1rem, 3.6vw, 1.4rem);
+  font-weight: 600;
+  color: #707070;
+}
+
+/* ───────── Count badge ───────── */
+
+.qrAssignments-count-inline {
+  min-width: clamp(2.5rem, 6vw, 3rem);
+  height: clamp(1.5rem, 3vh, 2rem);
+  background: #db8f99;
+  border-radius: 0.6rem;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 2.1vh, 1.2rem);
+  padding: 0 1vw;
+}
+
+.qrAssignments-lesson-image-wrapper {
+  position: relative;
+  width: clamp(4rem, 10vw, 5.5rem);
+  height: clamp(4rem, 10vw, 5.5rem);
+
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px; /* space inside */
+}
+
+/* Assigned badge */
+.qrAssignments-assigned-badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  width: clamp(1.5rem, 3vw, 1.4rem);
+  height: clamp(1.5rem, 3vw, 1.4rem);
+}
+
+.qrAssignments-assignments-page .header-custom-text {
+  transform: translateX(-2vw);
+  font-size: var(--text-sizeXL);
+  padding: 4vh;
+  line-height: 1.1;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  max-width: calc(100vw - 6.5rem);
+}
+
+/* Toggle circle */
+.qrAssignments-toggle-circle {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Unselected */
+.qrAssignments-toggle-circle.is-unselected {
+  border: 2px solid rgba(112, 112, 112, 1);
+  background-color: rgba(217, 217, 217, 1);
+}
+
+/* Selected */
+.qrAssignments-toggle-circle.is-selected {
+  background-color: #fff;
+  padding: 0;
+}
+
+/* Tick image */
+.qrAssignments-toggle-check {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.55);
+  transform-origin: center;
+  border-radius: 50%;
+  display: block;
+}
+
+.qrAssignments-lesson-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  min-width: 0;
+
+  max-width: 60%;
+  margin: 0 auto;
+}
+
+/* Lesson title */
+.qrAssignments-lesson-title {
+  color: #666666;
+  font-size: clamp(16px, 2.2vh, 22px);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chapter subtitle */
+.qrAssignments-lesson-subtitle {
+  color: #707070;
+  font-size: clamp(13px, 1.8vh, 18px);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1024px) {
+  .qrAssignments-lesson-copy {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    min-width: 0;
+  }
+}

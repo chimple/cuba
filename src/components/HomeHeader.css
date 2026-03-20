@@ -1,92 +1,88 @@
 #home-header-icons {
-    display: flex;
-    margin: 2.5vh 0vw 0 0.5vw;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  margin: 2.5vh 0vw 0 0.5vw;
+  justify-content: space-between;
+  align-items: center;
 }
 
 #home-header-middle-icons {
-    display: flex;
-    justify-content: space-between;
-    /* width: 90vh; */
-    /* width: 30vw; */
-    /* margin: 0 auto */
-    gap: 3.2vw;
+  display: flex;
+  justify-content: space-between;
+
+  gap: 3.2vw;
 }
 
 #home-header-middle-icons div {
-    /* padding-right: 5px */
 }
 
 #home-header-puzzle-icon {
-    margin-left: -10px;
+  margin-left: -10px;
 }
 
 .home-header-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    text-align: center;
-    line-height: 1;
-    /* margin-right: 1vw; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  text-align: center;
+  line-height: 1;
 }
 
 .home-header-indicator > p {
-    color: #F34D08 !important;
+  color: #f34d08 !important;
 }
 
-.home-header-outer-icon{
-    width: 10vw;
-    border: 0 none;
+.home-header-outer-icon {
+  width: 10vw;
+  border: 0 none;
 }
 
-.home-header-menu-overlay{
+.home-header-menu-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4); 
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  justify-content: flex-end; 
-  z-index: 999; 
+  justify-content: flex-end;
+  z-index: 999;
 }
 /* StarsCounter */
-.home-header-stars-counter{
-    position: fixed;
-    top: 2.5vh;
-    right: 12%;
+.home-header-stars-counter {
+  position: fixed;
+  top: 2.5vh;
+  right: 12%;
 }
 
-.home-header-stars-counter .home-header-star-icon{
-    display: block;
-    width: 10vw;;
+.home-header-stars-counter .home-header-star-icon {
+  display: block;
+  width: 10vw;
 }
 
-.home-header-stars-counter > span{
-    position: absolute;
-    left: 32%; /* roughly over the white badge area on the left */
-    top: 49%;
-    transform: translate(-50%, -50%);
-    color: var(--text-color);
-    font-weight: 400;
-    font-size: 2vw;
+.home-header-stars-counter > span {
+  position: absolute;
+  left: 32%; /* roughly over the white badge area on the left */
+  top: 49%;
+  transform: translate(-50%, -50%);
+  color: var(--text-color);
+  font-weight: 400;
+  font-size: 2vw;
 }
 
- .headericon-bell-notification {
+.headericon-bell-notification {
   background-color: green;
   border-radius: 50%;
   height: 3.5vh;
   width: 3.5vh;
-  padding: 0.4vh;        /* Increase this value to make the Bell smaller */
+  padding: 0.4vh; /* Increase this value to make the Bell smaller */
   box-sizing: border-box; /* Important! Keeps the total width at 3vh even with padding */
-  object-fit: contain;    /* Ensures the bell icon scales nicely inside the padding */
+  object-fit: contain; /* Ensures the bell icon scales nicely inside the padding */
   margin-left: 7vh;
   margin-bottom: -3vh;
   margin-top: -1vh;
   z-index: 10;
-  display: flex; 
+  display: flex;
   align-items: center;
   justify-content: center;
 }

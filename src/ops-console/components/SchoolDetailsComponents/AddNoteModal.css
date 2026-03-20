@@ -34,7 +34,6 @@
   text-align: left;
 }
 
-
 .add-note-modal-close {
   background: none;
   border: none;
@@ -368,7 +367,6 @@
   border: none;
   cursor: pointer;
 }
-
 
 .add-note-modal-textarea {
   width: 100%;

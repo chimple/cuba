@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
-import "./OtpVerification.css";
-import { t } from "i18next";
+import './OtpVerification.css';
+import { t } from 'i18next';
 
 const OTP_LENGTH = 6;
 
@@ -22,13 +22,13 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
   verificationCode,
   setVerificationCode,
 }) => {
-  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   // Update OTP when verificationCode changes (for auto OTP reading)
   useEffect(() => {
     if (verificationCode && verificationCode.length === OTP_LENGTH) {
-      const newOtp = verificationCode.split("");
+      const newOtp = verificationCode.split('');
       setOtp(newOtp);
       // Auto verify when OTP is received
       onVerify(verificationCode);
@@ -37,15 +37,15 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    idx: number
+    idx: number,
   ) => {
-    const val = e.target.value.replace(/\D/g, "");
+    const val = e.target.value.replace(/\D/g, '');
     if (!val) return;
     const newOtp = [...otp];
     newOtp[idx] = val[0];
     setOtp(newOtp);
     if (setVerificationCode) {
-      setVerificationCode(newOtp.join(""));
+      setVerificationCode(newOtp.join(''));
     }
 
     if (idx < OTP_LENGTH - 1) {
@@ -55,33 +55,33 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
     }
 
     // Check if all inputs are filled
-    if (newOtp.every((digit) => digit !== "")) {
-      const enteredOtp = newOtp.join("");
+    if (newOtp.every((digit) => digit !== '')) {
+      const enteredOtp = newOtp.join('');
       onVerify(enteredOtp);
     }
   };
 
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    idx: number
+    idx: number,
   ) => {
-    if (e.key === "Backspace" || e.key === "Delete") {
+    if (e.key === 'Backspace' || e.key === 'Delete') {
       if (otp[idx]) {
         const newOtp = [...otp];
-        newOtp[idx] = "";
+        newOtp[idx] = '';
         setOtp(newOtp);
         if (setVerificationCode) {
-          setVerificationCode(newOtp.join(""));
+          setVerificationCode(newOtp.join(''));
         }
       } else if (idx > 0) {
         if (inputsRef.current[idx - 1]) {
           inputsRef.current[idx - 1]!.focus();
         }
         const newOtp = [...otp];
-        newOtp[idx - 1] = "";
+        newOtp[idx - 1] = '';
         setOtp(newOtp);
         if (setVerificationCode) {
-          setVerificationCode(newOtp.join(""));
+          setVerificationCode(newOtp.join(''));
         }
       }
       e.preventDefault();
@@ -89,15 +89,15 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const paste = e.clipboardData.getData("text").replace(/\D/g, "");
+    const paste = e.clipboardData.getData('text').replace(/\D/g, '');
     if (!paste) return;
     const newOtp = [...otp];
     for (let i = 0; i < OTP_LENGTH; i++) {
-      newOtp[i] = paste[i] || "";
+      newOtp[i] = paste[i] || '';
     }
     setOtp(newOtp);
     if (setVerificationCode) {
-      setVerificationCode(newOtp.join(""));
+      setVerificationCode(newOtp.join(''));
     }
 
     // Focus last filled
@@ -115,8 +115,8 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
     e.preventDefault();
 
     // Check if all inputs are filled
-    if (newOtp.every((digit) => digit !== "")) {
-      const enteredOtp = newOtp.join("");
+    if (newOtp.every((digit) => digit !== '')) {
+      const enteredOtp = newOtp.join('');
       onVerify(enteredOtp);
     }
   };
@@ -124,14 +124,14 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
   return (
     <div className="OtpVerification-method">
       <div className="OtpVerification-title">
-        {phoneNumber && t("Enter the OTP sent to +91", { phoneNumber })}
+        {phoneNumber && t('Enter the OTP sent to +91', { phoneNumber })}
       </div>
       <div className="OtpVerification-inputs">
         {[...Array(OTP_LENGTH)].map((_, i) => (
           <input
             key={i}
             maxLength={1}
-            className={`OtpVerification-box ${errorMessage ? "error" : ""}`}
+            className={`OtpVerification-box ${errorMessage ? 'error' : ''}`}
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"

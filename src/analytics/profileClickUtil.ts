@@ -1,8 +1,7 @@
-import { Util } from "../utility/util";
-import { EVENTS } from "../common/constants";
-import { RoleType } from "../interface/modelInterfaces";
-import { SupabaseAuth } from "../services/auth/SupabaseAuth";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from '../utility/util';
+import { EVENTS } from '../common/constants';
+import { RoleType } from '../interface/modelInterfaces';
+import { ServiceConfig } from '../services/ServiceConfig';
 
 const storedStudent: {
   id?: string;
@@ -15,26 +14,26 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
   const authHandler = ServiceConfig.getI()?.authHandler;
   const student = await authHandler.getCurrentUser();
 
-  storedStudent.id = student?.id || storedStudent.id || "null";
-  storedStudent.name = student?.name || storedStudent.name || "null";
-  storedStudent.gender = student?.gender || storedStudent.gender || "null";
-  storedStudent.type = RoleType.STUDENT || "null";
+  storedStudent.id = student?.id || storedStudent.id || 'null';
+  storedStudent.name = student?.name || storedStudent.name || 'null';
+  storedStudent.gender = student?.gender || storedStudent.gender || 'null';
+  storedStudent.type = RoleType.STUDENT || 'null';
 
   let target = event.target as HTMLElement;
 
   const findRelevantParent = (
-    element: HTMLElement | null
+    element: HTMLElement | null,
   ): { id?: string; className?: string } => {
     while (element) {
       if (element.id) return { id: element.id };
       const frameworkClassPattern =
         /^(menu-|ion-|css-|Mui|chakra|ant-|tailwind|random-|class-|\d)/i;
       const filteredClasses = Array.from(element.classList).filter(
-        (cls) => !frameworkClassPattern.test(cls)
+        (cls) => !frameworkClassPattern.test(cls),
       );
 
       if (filteredClasses.length > 0)
-        return { className: filteredClasses.join(" ") };
+        return { className: filteredClasses.join(' ') };
       element = element.parentElement;
     }
     return {};
@@ -42,7 +41,9 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
 
   const { id, className } = findRelevantParent(target);
 
-  const getTextContent = (element: HTMLElement | null): string | undefined => {
+  const getTextContent = (
+    element: HTMLElement | null,
+  ): string | null | undefined => {
     if (!element) return undefined;
     //Handle Checkboxes
     if (target?.matches('input[type="checkbox"]')) {
@@ -62,10 +63,10 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
     let textContent;
     if (element) {
       const textIn =
-        element.innerText?.trim() || element.getAttribute("aria-label")?.trim();
+        element.innerText?.trim() || element.getAttribute('aria-label')?.trim();
       textContent = textIn;
     } else {
-      textContent = target.getAttribute("aria-label")?.trim();
+      textContent = target.getAttribute('aria-label')?.trim();
     }
     if (!textContent) {
       let currentElement: HTMLElement | null = element;
@@ -75,12 +76,11 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
         currentElement !== document.body
       ) {
         textContent =
-          target.innerText?.replace(/\s+/g, " ").trim() ||
-          target.getAttribute("aria-label");
+          target.innerText?.replace(/\s+/g, ' ').trim() ||
+          target.getAttribute('aria-label');
         if (textContent) break;
         target = target.parentElement as HTMLElement;
       }
-      
     }
     return textContent;
   };
@@ -91,13 +91,13 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
     user_name: storedStudent.name,
     user_gender: storedStudent.gender,
     user_type: storedStudent.type,
-    click_identifier: id || className || "null",
-    page_name: window.location.pathname.replace("/", ""),
+    click_identifier: id || className || 'null',
+    page_name: window.location.pathname.replace('/', ''),
     page_path: window.location.pathname,
     complete_path: window.location.href,
     action_type: event.type,
     click_value: textContent,
-    input_value: (event.target as HTMLInputElement).value || "null",
+    input_value: (event.target as HTMLInputElement).value || 'null',
   };
   Util.logEvent(EVENTS.PROFILE_CLICKS_ANALYTICS, eventData);
 };

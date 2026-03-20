@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Box, Card, CardContent, Typography, Modal } from "@mui/material";
-import "./WhatsAppInfoCard.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { TableTypes } from "../../../common/constants";
-import { t } from "i18next";
-import { ErrorOutlineOutlined } from "@mui/icons-material";
-import WhatsAppInviteLinkInput from "./WhatsAppInviteLinkInput";
+import React, { useEffect, useState } from 'react';
+import { Box, Card, CardContent, Typography, Modal } from '@mui/material';
+import './WhatsAppInfoCard.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { TableTypes } from '../../../common/constants';
+import { t } from 'i18next';
+import { ErrorOutlineOutlined } from '@mui/icons-material';
+import WhatsAppInviteLinkInput from './WhatsAppInviteLinkInput';
+import logger from '../../../utility/logger';
 
 type WhatsAppInfoCardProps = {
-  classData?: TableTypes<"class">;
-  schoolData?: TableTypes<"school">;
+  classData?: TableTypes<'class'>;
+  schoolData?: TableTypes<'school'>;
 };
 
 const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
@@ -20,51 +21,67 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const groupId = classData?.group_id;
   const bot = schoolData?.whatsapp_bot_number;
   const [groupName, setGroupName] = useState<string | null>(null);
-  const [editedGroupName, setEditedGroupName] = useState("");
+  const [editedGroupName, setEditedGroupName] = useState('');
   const [members, setMembers] = useState<number | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [openChangePopup, setOpenChangePopup] = useState(false);
-  const [step, setStep] = useState<"confirm" | "input">("confirm");
-  const [inviteInput, setInviteInput] = useState("");
+  const [step, setStep] = useState<'confirm' | 'input'>('confirm');
+  const [inviteInput, setInviteInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [classDoc, setClassDoc] = useState<TableTypes<"class">>();
+  const [classDoc, setClassDoc] = useState<TableTypes<'class'>>();
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   useEffect(() => {
-    if (!groupId || !bot) {
-      resetPopup();
-      setIsChangingGroup(true);
-      return;
-    }
-    const getGroup = async () => {
+    if (!classData?.id) return;
+
+    const init = async () => {
       try {
-        const updatedClass = await api.getClassById(classData?.id!);
+        const updatedClass = await api.getClassById(classData.id);
         if (updatedClass) setClassDoc(updatedClass);
+
+        if (!updatedClass?.group_id || !bot) {
+          resetPopup();
+          setIsChangingGroup(true);
+          return;
+        }
+
         const group = await api.getWhatsappGroupDetails(
-          updatedClass?.group_id!,
-          bot!
+          updatedClass.group_id,
+          bot,
         );
-        setGroupName(group.name);
-        setEditedGroupName(group.name);
-        setMembers(group.members.length);
-        setInviteLink(group.inviteLink);
+        const parsedGroup =
+          typeof group === 'object' && group !== null && !Array.isArray(group)
+            ? (group as {
+                name?: string;
+                members?: string[];
+                inviteLink?: string;
+              })
+            : null;
+        const parsedMembers = Array.isArray(parsedGroup?.members)
+          ? (parsedGroup?.members ?? [])
+          : [];
+
+        setGroupName(parsedGroup?.name ?? null);
+        setEditedGroupName(parsedGroup?.name ?? '');
+        setMembers(parsedMembers.length);
+        setInviteLink(parsedGroup?.inviteLink ?? null);
       } catch (err) {
-        console.error("Failed to fetch WhatsApp group:", err);
+        logger.error('Failed to fetch data:', err);
       }
     };
 
-    getGroup();
-  }, [groupId, bot, api, classData?.id]);
+    init();
+  }, [classData?.id, bot]);
 
   const handleEdit = () => {
-    setEditedGroupName(groupName ?? "");
+    setEditedGroupName(groupName ?? '');
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    setEditedGroupName(groupName ?? "");
+    setEditedGroupName(groupName ?? '');
     setIsEditing(false);
   };
 
@@ -72,11 +89,10 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     if (!groupId || !bot) return;
 
     setIsSaving(true);
-
     const success = await api.updateWhatsAppGroupSettings(
-      groupId,
+      classDoc?.group_id ?? '',
       bot,
-      editedGroupName
+      editedGroupName,
     );
     setIsSaving(false);
 
@@ -89,7 +105,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const normalizeInviteLink = (input: string): string | null => {
     const trimmed = input.trim();
     const regex =
-      /^https:\/\/chat\.whatsapp\.com\/(invite\/)?([A-Za-z0-9]{10,})$/;
+      /^https:\/\/chat\.whatsapp\.com\/(invite\/)?([A-Za-z0-9]{10,})(\?.*)?$/;
 
     const match = trimmed.match(regex);
     if (!match) return null;
@@ -99,8 +115,8 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
   const resetPopup = () => {
     setOpenChangePopup(false);
-    setStep("confirm");
-    setInviteInput("");
+    setStep('confirm');
+    setInviteInput('');
     setError(null);
     setLoading(false);
   };
@@ -108,7 +124,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const handleInviteSubmit = async () => {
     const normalized = normalizeInviteLink(inviteInput);
     if (!normalized) {
-      setError(t("Please enter a valid WhatsApp invite link"));
+      setError(t('Please enter a valid WhatsApp invite link'));
       return;
     }
     if (!bot) return;
@@ -119,26 +135,30 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       const result = await api.getWhatsAppGroupByInviteLink(
         normalized,
         bot,
-        classDoc?.id!
+        classDoc?.id!,
       );
-      if (!result) {
-        setError(t("No WhatsApp group found for this invite link"));
+      if (result) {
+        setGroupName(result.group_name);
+        setMembers(result.members);
+        setInviteLink(normalized);
+        setClassDoc((prev) =>
+          prev ? { ...prev, group_id: result.group_id } : prev,
+        );
+        setIsChangingGroup(false);
+      } else {
+        setError(t('No WhatsApp group found for this invite link'));
         return;
       }
-      setGroupName(result.group_name);
-      setMembers(result.members);
-      setInviteLink(normalized);
-      setIsChangingGroup(false);
     } catch (err) {
-      console.error(err);
-      setError(t("Something went wrong. Please try again."));
+      logger.error(err);
+      setError(t('Something went wrong. Please try again.'));
     } finally {
       setLoading(false);
     }
   };
   const openChangeGroupPopup = () => {
-    setStep("confirm");
-    setInviteInput("");
+    setStep('confirm');
+    setInviteInput('');
     setError(null);
     setOpenChangePopup(true);
   };
@@ -148,7 +168,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       <Card variant="outlined" className="wa-info-card">
         <CardContent className="wa-info-card-content">
           <Typography variant="h6" fontWeight={700} gutterBottom>
-            {t("WhatsApp Information")}
+            {t('WhatsApp Information')}
           </Typography>
 
           <Box className="wa-status">
@@ -159,21 +179,21 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
               >
                 <ErrorOutlineOutlined></ErrorOutlineOutlined>
                 <div id="wa-info-not-connected-text">
-                  {t("WhatsApp Group Not Connected")}
+                  {t('WhatsApp Group Not Connected')}
                 </div>
               </div>
             ) : (
               <>
                 <img src="/assets/icons/SignCircleIcon.svg" alt="Connected" />
                 <Typography variant="body2" color="green">
-                  {t("WhatsApp Group Connected")}
+                  {t('WhatsApp Group Connected')}
                 </Typography>
               </>
             )}
           </Box>
           <Box className="wa-section">
             <Typography variant="caption" color="text.secondary">
-              {isChangingGroup ? t("Add an Invite Link") : t("Group Name")}
+              {isChangingGroup ? t('Add an Invite Link') : t('Group Name')}
             </Typography>
 
             <Box className="wa-input-row">
@@ -183,10 +203,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   setInviteInput={setInviteInput}
                   error={error}
                   loading={loading}
+                  groupId={groupId || classDoc?.group_id}
                   onSubmit={handleInviteSubmit}
                   onCancel={() => {
                     setIsChangingGroup(false);
-                    setInviteInput("");
+                    setInviteInput('');
                     setError(null);
                   }}
                 />
@@ -212,7 +233,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                       onClick={handleSave}
                       disabled={isSaving || !editedGroupName.trim()}
                     >
-                      {isSaving ? t("Saving...") : t("Save")}
+                      {isSaving ? t('Saving...') : t('Save')}
                     </button>
 
                     <button
@@ -220,7 +241,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                       onClick={handleCancel}
                       disabled={isSaving}
                     >
-                      {t("Cancel")}
+                      {t('Cancel')}
                     </button>
                   </Box>
                 </div>
@@ -231,7 +252,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   <Box className="wa-input-wrapper">
                     <input
                       className="wa-input"
-                      value={groupName ?? ""}
+                      value={groupName ?? ''}
                       disabled
                     />
 
@@ -247,7 +268,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                     className="wa-change-btn"
                     onClick={openChangeGroupPopup}
                   >
-                    {t("Change")}
+                    {t('Change')}
                   </button>
                 </>
               )}
@@ -258,10 +279,14 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
             <>
               <Box className="wa-section">
                 <Typography variant="caption" color="text.secondary">
-                  {t("Members Count")}
+                  {t('Members Count')}
                 </Typography>
-                <Typography variant="body1" fontWeight={700}>
-                  {members ? members - 1 : 0} {t("Members")}
+                <Typography
+                  variant="body1"
+                  className="wa-value"
+                  fontWeight={700}
+                >
+                  {members ? members - 1 : 0} {t('Members')}
                 </Typography>
               </Box>
 
@@ -272,7 +297,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   rel="noopener noreferrer"
                   className="wa-open-btn"
                 >
-                  {t("Open WhatsApp Group")}
+                  {t('Open WhatsApp Group')}
                   <img src="/assets/icons/SendIcon.svg" alt="Open" />
                 </a>
               )}
@@ -282,10 +307,10 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       </Card>
       <Modal open={openChangePopup} onClose={resetPopup}>
         <Box className="wa-popup">
-          {step === "confirm" ? (
+          {step === 'confirm' ? (
             <>
               <Typography fontWeight={700}>
-                {t("Do you want to change the WhatsApp group for this class?")}
+                {t('Do you want to change the WhatsApp group for this class?')}
               </Typography>
 
               <Box display="flex" gap={4} mt={3}>
@@ -296,18 +321,18 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                     setIsChangingGroup(true);
                   }}
                 >
-                  {t("Yes")}
+                  {t('Yes')}
                 </button>
 
                 <button className="wa-info-cancel-btn" onClick={resetPopup}>
-                  {t("Cancel")}
+                  {t('Cancel')}
                 </button>
               </Box>
             </>
           ) : (
             <>
               <Typography variant="caption" color="text.secondary">
-                {t("WhatsApp Invite Link")}
+                {t('WhatsApp Invite Link')}
               </Typography>
 
               <input
@@ -330,7 +355,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   onClick={handleInviteSubmit}
                   disabled={loading || !inviteInput.trim()}
                 >
-                  {loading ? t("Checking...") : t("Submit")}
+                  {loading ? t('Checking...') : t('Submit')}
                 </button>
                 {!groupId && (
                   <button
@@ -338,7 +363,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                     onClick={resetPopup}
                     disabled={!groupId || loading}
                   >
-                    {t("Cancel")}
+                    {t('Cancel')}
                   </button>
                 )}
               </Box>

@@ -1,14 +1,13 @@
-import React from "react";
+import React from 'react';
 import {
   IconButton,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Button as MuiButton,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { useHistory } from "react-router-dom";
+} from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useHistory } from 'react-router-dom';
 
 export type ActionItem = {
   name: string;
@@ -22,7 +21,7 @@ type Props = {
   items: ActionItem[];
   renderTrigger?: (
     open: (e: React.MouseEvent<HTMLElement>) => void,
-    isOpen: boolean
+    isOpen: boolean,
   ) => React.ReactNode;
   menuMinWidth?: number;
 };
@@ -60,8 +59,8 @@ const ActionMenu: React.FC<Props> = ({
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         PaperProps={{
           elevation: 3,
           sx: { mt: 1, borderRadius: 2, minWidth: menuMinWidth },

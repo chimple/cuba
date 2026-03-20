@@ -1,8 +1,10 @@
-import { RefObject, useEffect } from "react";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Capacitor } from "@capacitor/core";
+import { RefObject, useEffect } from 'react';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
+import { t } from 'i18next';
 
-import { ServiceConfig } from "../services/ServiceConfig";
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
   COCOS,
@@ -13,8 +15,18 @@ import {
   RewardBoxState,
   IS_REWARD_FEATURE_ON,
   LIDO_ASSESSMENT,
-} from "../common/constants";
-import { Util } from "../utility/util";
+  EVENTS,
+  STICKER_BOOK_PREVIEW_ENABLED,
+  STICKER_BOOK_COMPLETION_POPUP,
+  PATHWAY_END_REWARD_BOX_VARIANT,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+} from '../common/constants';
+import { Util } from '../utility/util';
+import { LessonNode } from './useLearningPath';
+import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { extractStickerSvg } from '../components/common/SvgHelpers';
+import logger from '../utility/logger';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -34,14 +46,21 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
+  onStickerPreviewReady: (
+    data: StickerBookModalData,
+    trigger: 'sticker_click' | 'pathway_completion_auto',
+  ) => void;
+  onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
 
 // CACHES
 const svgGroupCache: Record<string, SVGGElement | SVGSVGElement> = {};
 const svgStringCache: Record<string, string> = {};
 let pathwayTemplateCache: string | null = null;
+const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const PATH_SIZE = 5;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -52,26 +71,59 @@ const fetchLocalFile = async (path: string): Promise<string> => {
 };
 
 const fetchLocalGroup = async (
-  path: string
+  path: string,
 ): Promise<SVGGElement | SVGSVGElement> => {
   const text = await fetchLocalFile(path);
-  const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   wrapper.innerHTML = text;
-  const svgNode = wrapper.querySelector("svg");
+  const svgNode = wrapper.querySelector('svg');
   if (svgNode) return svgNode as SVGSVGElement;
   return wrapper as SVGGElement;
 };
 
 const fetchRemoteSVGGroup = async (
-  url: string
+  url: string,
 ): Promise<SVGGElement | SVGSVGElement> => {
   const res = await fetch(url);
   const text = await res.text();
-  const wrapper = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   wrapper.innerHTML = text;
-  const svgNode = wrapper.querySelector("svg");
+  const svgNode = wrapper.querySelector('svg');
   if (svgNode) return svgNode as SVGSVGElement;
   return wrapper as SVGGElement;
+};
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Builds a display-ready data URL for a single sticker by extracting it from
+// the full sticker-book SVG. Used as a fallback when sticker.image is missing.
+const getStickerImageFallbackFromBookSvg = async (
+  stickerBookSvgUrl: string,
+  stickerId: string,
+): Promise<string | null> => {
+  const cacheKey = `${stickerBookSvgUrl}::${stickerId}`;
+  const cached = stickerDataUrlCache[cacheKey];
+  if (cached) return cached;
+
+  let stickerSvg: string | null = null;
+  try {
+    // Extract the requested sticker from the full book SVG and reuse it as an image.
+    const res = await fetch(stickerBookSvgUrl);
+    const text = await res.text();
+    const wrapper = document.createElementNS(SVG_NS, 'g');
+    wrapper.innerHTML = text;
+    const svgNode = wrapper.querySelector('svg') as SVGSVGElement | null;
+    if (!svgNode) return null;
+    stickerSvg = extractStickerSvg(svgNode, stickerId);
+  } catch {
+    stickerSvg = null;
+  }
+
+  if (!stickerSvg) return null;
+
+  const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(stickerSvg)}`;
+  stickerDataUrlCache[cacheKey] = dataUrl;
+  return dataUrl;
 };
 
 const createSVGImage = (
@@ -80,18 +132,18 @@ const createSVGImage = (
   height?: number,
   x?: number,
   y?: number,
-  className?: string
+  className?: string,
 ) => {
-  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  img.setAttribute("href", href);
+  const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+  img.setAttribute('href', href);
 
-  if (width != null) img.setAttribute("width", String(width));
-  if (height != null) img.setAttribute("height", String(height));
-  if (x != null) img.setAttribute("x", String(x));
-  if (y != null) img.setAttribute("y", String(y));
-  if (className != null) img.setAttribute("class", className);
+  if (width != null) img.setAttribute('width', String(width));
+  if (height != null) img.setAttribute('height', String(height));
+  if (x != null) img.setAttribute('x', String(x));
+  if (y != null) img.setAttribute('y', String(y));
+  if (className != null) img.setAttribute('class', className);
 
-  img.onerror = () => img.setAttribute("href", "assets/icons/DefaultIcon.png");
+  img.onerror = () => img.setAttribute('href', 'assets/icons/DefaultIcon.png');
 
   return img;
 };
@@ -114,8 +166,19 @@ export function usePathwaySVG({
   setCurrentChapter,
   setIsRewardPathLoaded,
   isRewardPathLoaded,
+  onStickerPreviewReady,
+  onStickerCompletionReady,
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
+  const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
+  const isStickerBookCompletionPopupOn = useFeatureIsOn(
+    STICKER_BOOK_COMPLETION_POPUP,
+  );
+  // Default to sticker rewards when the experiment value is missing.
+  const rewardBoxVariant = useFeatureValue(
+    PATHWAY_END_REWARD_BOX_VARIANT,
+    'sticker',
+  );
 
   useEffect(() => {
     (window as any).__triggerPathwayReload__ = loadSVG;
@@ -124,7 +187,12 @@ export function usePathwaySVG({
     return () => {
       delete (window as any).__triggerPathwayReload__;
     };
-  }, [isRewardPathLoaded]);
+  }, [
+    isRewardPathLoaded,
+    isStickerBookPreviewOn,
+    isStickerBookCompletionPopupOn,
+    rewardBoxVariant,
+  ]);
 
   async function loadSVG() {
     if (!containerRef.current) return;
@@ -141,36 +209,125 @@ export function usePathwaySVG({
       if (rewardLearningPath) {
         learningPath = JSON.parse(rewardLearningPath);
       } else if (currentStudent.learning_path) {
-        learningPath = JSON.parse(currentStudent.learning_path);
+        const pathToParse =
+          Util.getLatestLearningPathByUpdatedAt(currentStudent);
+        learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
-        console.warn("No learning path found for current student");
+        logger.warn('No learning path found for current student');
         return;
       }
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
-      const courseCurrentIndex = course.currentIndex;
-      const pathItem = course.path[courseCurrentIndex];
+      if (!course) return;
+      const pathItem = course.path.find(
+        (p: LessonNode) => p && p.isPlayed === false,
+      );
+      if (!pathItem) return;
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
-      if (!course) return;
+      const activeIndex = course.path.findIndex(
+        (p: LessonNode) => p.isPlayed === false,
+      );
+      const currentIndex =
+        activeIndex === -1 ? course.path.length - 1 : activeIndex;
 
-      const { startIndex, currentIndex, pathEndIndex } = course;
+      const startIndex = Math.max(0, currentIndex - (PATH_SIZE - 1));
+      const pathEndIndex = Math.min(
+        Math.max(course.path.length - 1, 4),
+        startIndex + PATH_SIZE - 1,
+      );
 
-      const [courseData, chapterData] = await Promise.all([
-        api.getCourse(course.id),
-        api.getChapterById(course.path[currentIndex].chapter_id),
-      ]);
+      let courseData: any = null;
+      let chapterData: any = null;
+      try {
+        [courseData, chapterData] = await Promise.all([
+          api.getCourse(course.id),
+          api.getChapterById(pathItem.chapter_id),
+        ]);
+      } catch (err) {
+        logger.warn(
+          'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
+          err,
+        );
+        courseData = { id: course.id, name: 'Course' };
+        chapterData = { id: pathItem.chapter_id, name: 'Chapter' };
+      }
 
+      const stickerPreviewPayload = isStickerBookPreviewOn
+        ? await getStickerPreviewPayload()
+        : null;
+      const stickerCompletionPayload = isStickerBookCompletionPopupOn
+        ? await getStickerCompletionPayload()
+        : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
 
+      const rawCompletionPopup = sessionStorage.getItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      );
+      if (rawCompletionPopup) {
+        try {
+          const parsed = JSON.parse(rawCompletionPopup);
+          const shouldOpenForStudent =
+            parsed?.studentId && parsed.studentId === currentStudent.id;
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          if (
+            shouldOpenForStudent &&
+            isStickerBookCompletionPopupOn &&
+            stickerCompletionPayload
+          ) {
+            setTimeout(
+              () => onStickerCompletionReady(stickerCompletionPayload),
+              0,
+            );
+          }
+        } catch {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        }
+      }
+
+      // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
+      if (isStickerBookPreviewOn) {
+        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            const shouldOpenForStudent =
+              parsed?.studentId && parsed.studentId === currentStudent.id;
+            if (shouldOpenForStudent) {
+              sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+              const autoPopupPayload =
+                (await getStickerPreviewPayload(
+                  parsed?.awardedStickerId,
+                  Array.isArray(parsed?.preAwardCollectedStickerIds)
+                    ? parsed.preAwardCollectedStickerIds
+                    : undefined,
+                )) ?? stickerPreviewPayload;
+              // Defer so the rest of the pathway UI can mount first.
+              if (autoPopupPayload) {
+                setTimeout(
+                  () =>
+                    onStickerPreviewReady(
+                      autoPopupPayload,
+                      'pathway_completion_auto',
+                    ),
+                  0,
+                );
+              }
+            }
+          } catch {
+            // Ignore malformed storage value
+          }
+        }
+      }
+
       const lessons = await Promise.all(
         course.path
           .slice(startIndex, pathEndIndex + 1)
-          .map((p: any) => getCachedLesson(p.lesson_id))
+          .map((p: LessonNode) => getCachedLesson(p.lesson_id)),
       );
 
       // Preload icons/images for lessons (to reduce flicker)
@@ -181,41 +338,41 @@ export function usePathwaySVG({
         flowerActive,
         flowerInactive,
         playedLessonSVG,
-        gift1,
-        gift2,
-        gift3,
+        mysteryBox1,
+        mysteryBox2,
+        mysteryBox3,
         halo,
       ] = await Promise.all([
         loadPathwayTemplate(),
         loadGroupAsset(
-          "flowerActive",
-          "remoteAsset/FlowerActive.svg",
-          "/pathwayAssets/English/FlowerActive.svg"
+          'flowerActive',
+          'remoteAsset/FlowerActive.svg',
+          '/pathwayAssets/English/FlowerActive.svg',
         ),
         loadGroupAsset(
-          "flowerInactive",
-          "remoteAsset/FlowerInactive.svg",
-          "/pathwayAssets/FlowerInactive.svg"
+          'flowerInactive',
+          'remoteAsset/FlowerInactive.svg',
+          '/pathwayAssets/FlowerInactive.svg',
         ),
         loadGroupAsset(
-          "playedLessonSVG",
-          "remoteAsset/PlayedLesson.svg",
-          "/pathwayAssets/English/PlayedLesson.svg"
+          'playedLessonSVG',
+          'remoteAsset/PlayedLesson.svg',
+          '/pathwayAssets/English/PlayedLesson.svg',
         ),
         loadGroupAsset(
-          "giftSVG",
-          "remoteAsset/pathGift1.svg",
-          "/pathwayAssets/English/pathGift1.svg"
+          'mysteryBox1',
+          'remoteAsset/mysteryBox1.svg',
+          '/pathwayAssets/English/mysteryBox1.svg',
         ),
         loadGroupAsset(
-          "giftSVG2",
-          "remoteAsset/pathGift2.svg",
-          "/pathwayAssets/English/pathGift2.svg"
+          'mysteryBox2',
+          'remoteAsset/mysteryBox2.svg',
+          '/pathwayAssets/English/mysteryBox2.svg',
         ),
         loadGroupAsset(
-          "giftSVG3",
-          "remoteAsset/pathGift3.svg",
-          "/pathwayAssets/English/pathGift3.svg"
+          'mysteryBox3',
+          'remoteAsset/mysteryBox3.svg',
+          '/pathwayAssets/English/mysteryBox3.svg',
         ),
         loadHalo(),
       ]);
@@ -225,12 +382,12 @@ export function usePathwaySVG({
         if (!containerRef.current) return;
 
         containerRef.current.innerHTML = pathwaySVG;
-        const svg = containerRef.current.querySelector("svg") as SVGSVGElement;
+        const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
         if (!svg) return;
-        svg.style.overflow = "visible";
+        svg.style.overflow = 'visible';
 
         const paths = Array.from(
-          svg.querySelectorAll("g > path")
+          svg.querySelectorAll('g > path'),
         ) as SVGPathElement[];
         if (!paths.length) return;
 
@@ -241,12 +398,12 @@ export function usePathwaySVG({
 
         // chimple foreignObject
         const chimple = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "foreignObject"
+          'http://www.w3.org/2000/svg',
+          'foreignObject',
         );
-        chimple.setAttribute("width", "32.5%");
-        chimple.setAttribute("height", "100%");
-
+        chimple.setAttribute('width', '32.5%');
+        chimple.setAttribute('height', '100%');
+        let lastIndex = -1;
         // Build lesson nodes
         lessons.forEach((lesson: any, idx: number) => {
           const path = paths[idx];
@@ -258,15 +415,15 @@ export function usePathwaySVG({
           const isActive = startIndex + idx === currentIndex;
 
           const isValidUrl =
-            typeof lesson.image === "string" &&
+            typeof lesson.image === 'string' &&
             /^(https?:\/\/|\/)/.test(lesson.image);
 
           const lessonImageUrl =
             isPlayed || isActive
               ? isValidUrl
                 ? lesson.image
-                : "assets/icons/DefaultIcon.png"
-              : "assets/icons/NextNodeIcon.svg";
+                : 'assets/icons/DefaultIcon.png'
+              : 'assets/icons/NextNodeIcon.svg';
 
           const positionMappings = {
             playedLesson: {
@@ -277,6 +434,96 @@ export function usePathwaySVG({
               x: [flowerX - 20, flowerX - 20, 260, flowerX - 10, flowerX - 15],
               y: [flowerY - 23, 5, 10, 5, 10],
             },
+          };
+
+          if (startIndex + idx < currentIndex) {
+            // Played lesson
+            const playedLesson = document.createElementNS(
+              'http://www.w3.org/2000/svg',
+              'g',
+            );
+            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 28, 30);
+            playedLesson.appendChild(
+              playedLessonSVG.cloneNode(true) as SVGGElement,
+            );
+            playedLesson.appendChild(lessonImage);
+            placeElement(
+              playedLesson as SVGGElement,
+              positionMappings.playedLesson.x[idx] ?? flowerX - 20,
+              positionMappings.playedLesson.y[idx] ?? flowerY - 20,
+            );
+            fragment.appendChild(playedLesson);
+          } else if (startIndex + idx === currentIndex) {
+            // Active lesson
+            const activeGroup = document.createElementNS(
+              'http://www.w3.org/2000/svg',
+              'g',
+            );
+            activeGroup.setAttribute(
+              'transform',
+              `translate(${
+                positionMappings.activeGroup.x[idx] ?? flowerX - 20
+              }, ${positionMappings.activeGroup.y[idx] ?? flowerY - 20})`,
+            );
+
+            // halo
+            if (typeof halo === 'string') {
+              const haloImg = createSVGImage(halo, 140, 140, -15, -12);
+              activeGroup.appendChild(haloImg);
+            } else {
+              const haloNode = halo.cloneNode(true) as
+                | SVGSVGElement
+                | SVGGElement;
+              haloNode.setAttribute('x', '-15');
+              haloNode.setAttribute('y', '-12');
+              haloNode.setAttribute('width', '140');
+              haloNode.setAttribute('height', '140');
+              activeGroup.appendChild(haloNode);
+            }
+
+            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 40, 40);
+            activeGroup.appendChild(
+              flowerActive.cloneNode(true) as SVGGElement,
+            );
+            activeGroup.appendChild(lessonImage);
+
+            const pointer = createSVGImage(
+              '/pathwayAssets/touchpointer.svg',
+              35,
+              35,
+              85,
+              80,
+              'PathwayStructure-animated-pointer',
+            );
+            activeGroup.appendChild(pointer);
+
+            activeGroup.style.cursor = 'pointer';
+            activeGroup.addEventListener('click', () => {
+              handleLessonClick(
+                lesson,
+                course,
+                pathItem?.skill_id,
+                isAssessment,
+                assessmentId,
+              );
+            });
+
+            fragment.appendChild(activeGroup);
+          }
+          lastIndex = idx;
+        });
+
+        for (let i = lastIndex + 1; i < PATH_SIZE; i++) {
+          const path = paths[i];
+          const point = path.getPointAtLength(0);
+          const flowerX = point.x - 40;
+          const flowerY = point.y - 40;
+          // Locked lesson
+          const flower_Inactive = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'g',
+          );
+          const positionMappings = {
             flowerInactive: {
               x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
               y: [
@@ -288,167 +535,254 @@ export function usePathwaySVG({
               ],
             },
           };
-
-          if (startIndex + idx < currentIndex) {
-            // Played lesson
-            const playedLesson = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
+          const lessonImage = createSVGImage(
+            'assets/icons/NextNodeIcon.svg',
+            30,
+            30,
+            21,
+            23,
+          );
+          flower_Inactive.appendChild(
+            flowerInactive.cloneNode(true) as SVGGElement,
+          );
+          flower_Inactive.appendChild(lessonImage);
+          flower_Inactive.addEventListener('click', () => {
+            setModalOpen(true);
+            setModalText(
+              'This lesson is locked. Play the current active lesson.',
             );
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 28, 30);
-            playedLesson.appendChild(
-              playedLessonSVG.cloneNode(true) as SVGGElement
-            );
-            playedLesson.appendChild(lessonImage);
-            placeElement(
-              playedLesson as SVGGElement,
-              positionMappings.playedLesson.x[idx] ?? flowerX - 20,
-              positionMappings.playedLesson.y[idx] ?? flowerY - 20
-            );
-            fragment.appendChild(playedLesson);
-          } else if (startIndex + idx === currentIndex) {
-            // Active lesson
-            const activeGroup = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
-            activeGroup.setAttribute(
-              "transform",
-              `translate(${
-                positionMappings.activeGroup.x[idx] ?? flowerX - 20
-              }, ${positionMappings.activeGroup.y[idx] ?? flowerY - 20})`
-            );
-
-            // halo
-            if (typeof halo === "string") {
-              const haloImg = createSVGImage(halo, 140, 140, -15, -12);
-              activeGroup.appendChild(haloImg);
-            } else {
-              const haloNode = halo.cloneNode(true) as
-                | SVGSVGElement
-                | SVGGElement;
-              haloNode.setAttribute("x", "-15");
-              haloNode.setAttribute("y", "-12");
-              haloNode.setAttribute("width", "140");
-              haloNode.setAttribute("height", "140");
-              activeGroup.appendChild(haloNode);
-            }
-
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 40, 40);
-            activeGroup.appendChild(
-              flowerActive.cloneNode(true) as SVGGElement
-            );
-            activeGroup.appendChild(lessonImage);
-
-            const pointer = createSVGImage(
-              "/pathwayAssets/touchpointer.svg",
-              35,
-              35,
-              85,
-              80,
-              "pathway-structure-animated-pointer"
-            );
-            activeGroup.appendChild(pointer);
-
-            activeGroup.style.cursor = "pointer";
-            activeGroup.addEventListener("click", () => {
-              const pathEntry = course.path[startIndex + idx];
-              handleLessonClick(
-                lesson,
-                course,
-                pathEntry?.skill_id,
-                isAssessment,
-                assessmentId
-              );
-            });
-
-            fragment.appendChild(activeGroup);
-          } else {
-            // Locked lesson
-            const flower_Inactive = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 21, 23);
-            flower_Inactive.appendChild(
-              flowerInactive.cloneNode(true) as SVGGElement
-            );
-            flower_Inactive.appendChild(lessonImage);
-            flower_Inactive.addEventListener("click", () => {
-              setModalOpen(true);
-              setModalText(
-                "This lesson is locked. Play the current active lesson."
-              );
-            });
-            flower_Inactive.setAttribute(
-              "style",
-              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
-            );
-            placeElement(
-              flower_Inactive as SVGGElement,
-              positionMappings.flowerInactive.x[idx] ?? flowerX - 20,
-              positionMappings.flowerInactive.y[idx] ?? flowerY - 20
-            );
-            fragment.appendChild(flower_Inactive);
-          }
-        });
-
-        // Gift node
-        const endPath = paths[paths.length - 1];
-        const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-        const Gift_Svg = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "g"
-        );
-        Gift_Svg.setAttribute(
-          "style",
-          "cursor: pointer; transform-origin: center;"
-        );
-        Gift_Svg.appendChild(gift1.cloneNode(true));
-        placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 30);
-
-        const isRewardFeatureOn =
-          localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
-
-        if (currentIndex < pathEndIndex + 1) {
-          Gift_Svg.addEventListener("click", () => {
-            const replaceGiftContent = (newContent: SVGElement) => {
-              while (Gift_Svg.firstChild) {
-                Gift_Svg.removeChild(Gift_Svg.firstChild);
-              }
-              Gift_Svg.appendChild(newContent.cloneNode(true));
-            };
-
-            const animationSequence = [
-              { content: gift2, delay: 300 },
-              { content: gift3, delay: 500 },
-              { content: gift2, delay: 700 },
-              { content: gift3, delay: 900 },
-              {
-                callback: () => {
-                  setModalText("Complete these 5 lessons to earn rewards");
-                  setModalOpen(true);
-                  replaceGiftContent(gift1);
-                },
-                delay: 1100,
-              },
-            ];
-
-            animationSequence.forEach(({ content, callback, delay }) => {
-              setTimeout(() => {
-                if (content) replaceGiftContent(content);
-                if (callback) callback();
-              }, delay);
-            });
           });
+          flower_Inactive.setAttribute(
+            'style',
+            'cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);',
+          );
+          placeElement(
+            flower_Inactive as SVGGElement,
+            positionMappings.flowerInactive.x[i] ?? flowerX - 20,
+            positionMappings.flowerInactive.y[i] ?? flowerY - 20,
+          );
+          fragment.appendChild(flower_Inactive);
         }
 
-        fragment.appendChild(Gift_Svg);
+        // Path-end reward node (Sticker or Mystery box)
+        const endPath = paths[paths.length - 1];
+        const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
+        const rewardWrapper = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'g',
+        ) as SVGGElement;
+        rewardWrapper.setAttribute('style', 'cursor: pointer;');
+
+        // Wrap the reward visuals in an inner <g> so CSS transform animations don't
+        // clobber the outer translate() from placeElement (SVG transform attribute).
+        const rewardGroup = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'g',
+        ) as SVGGElement;
+        (rewardGroup.style as any).transformBox = 'fill-box';
+        rewardGroup.style.transformOrigin = 'center';
+        rewardWrapper.appendChild(rewardGroup);
+
+        const isRewardFeatureOn =
+          localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+
+        const isOffline = !navigator.onLine;
+        const normalizedVariant = String(rewardBoxVariant ?? '')
+          .trim()
+          .toLowerCase();
+        const gbWantsMystery =
+          normalizedVariant === 'mystery_3d' ||
+          normalizedVariant === 'mystery' ||
+          normalizedVariant === 'mysterybox' ||
+          normalizedVariant === 'mystery_box';
+
+        const hasNextSticker = Boolean(stickerPreviewPayload?.nextStickerId);
+        // `getStickerPreviewPayload` already resolves image fallback via book SVG.
+        const nextStickerImageSrc = stickerPreviewPayload?.nextStickerImage;
+        const hasRenderableSticker = Boolean(nextStickerImageSrc);
+        // Show the sticker reward only when a real sticker can be rendered.
+        const rewardMode: 'sticker' | 'mystery_box' =
+          isOffline ||
+          !hasNextSticker ||
+          !hasRenderableSticker ||
+          gbWantsMystery
+            ? 'mystery_box'
+            : 'sticker';
+
+        rewardWrapper.setAttribute('data-reward-mode', rewardMode);
+        rewardWrapper.setAttribute(
+          'aria-label',
+          rewardMode === 'sticker' ? 'Sticker reward' : 'Mystery box reward',
+        );
+
+        const playRewardClickAnimation = (
+          mode: 'sticker' | 'mystery_box',
+        ): Promise<void> => {
+          const animationClass =
+            mode === 'sticker'
+              ? 'PathwayStructure-end-reward-box--sticker-clicked'
+              : 'PathwayStructure-end-reward-box--clicked';
+
+          rewardGroup.classList.remove(
+            'PathwayStructure-end-reward-box--sticker-clicked',
+            'PathwayStructure-end-reward-box--clicked',
+          );
+
+          // force reflow so the animation can restart
+          void rewardGroup.getBoundingClientRect();
+          rewardGroup.classList.add(animationClass);
+
+          return new Promise((resolve) => {
+            let resolved = false;
+            const finish = () => {
+              if (resolved) return;
+              resolved = true;
+              rewardGroup.classList.remove(animationClass);
+              resolve();
+            };
+
+            const onEnd = (event: AnimationEvent) => {
+              if (event.target === rewardGroup) finish();
+            };
+
+            rewardGroup.addEventListener('animationend', onEnd, { once: true });
+            window.setTimeout(finish, 1100);
+          });
+        };
+
+        if (rewardMode === 'sticker') {
+          rewardGroup.classList.add(
+            'PathwayStructure-end-reward-box',
+            'PathwayStructure-end-reward-box--sticker',
+          );
+
+          const size =
+            window.innerWidth >= 1024 ? 78 : window.innerWidth >= 768 ? 72 : 64;
+
+          const bg = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'rect',
+          );
+          bg.setAttribute('width', String(size));
+          bg.setAttribute('height', String(size));
+          bg.setAttribute('rx', String(Math.round(size * 0.2)));
+          bg.setAttribute('ry', String(Math.round(size * 0.2)));
+          bg.setAttribute('fill', '#FFFDEE');
+          bg.setAttribute('stroke', '#F55376');
+          bg.setAttribute('stroke-width', '4');
+
+          const padding = Math.round(size * 0.14);
+          const contentSize = size - padding * 2;
+
+          rewardGroup.appendChild(bg);
+          // Reuse the same resolved sticker image that powers the preview modal.
+          if (nextStickerImageSrc) {
+            rewardGroup.appendChild(
+              createSVGImage(
+                nextStickerImageSrc,
+                contentSize,
+                contentSize,
+                padding,
+                padding,
+                'PathwayStructure-end-reward-sticker-image',
+              ),
+            );
+          }
+          placeElement(
+            rewardWrapper,
+            endPoint.x - size / 2,
+            endPoint.y - size / 2,
+          );
+
+          if (currentIndex < pathEndIndex + 1) {
+            rewardWrapper.addEventListener('click', async () => {
+              await playRewardClickAnimation(rewardMode);
+
+              void Util.logEvent(EVENTS.PATHWAY_STICKER_BOX_TAPPED, {
+                user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+                source: 'learning_pathway',
+                sticker_book_id:
+                  stickerPreviewPayload?.stickerBookId ?? 'unknown',
+                sticker_id: stickerPreviewPayload?.nextStickerId ?? 'unknown',
+                gb_variant: normalizedVariant || 'sticker',
+              });
+
+              if (isStickerBookPreviewOn && stickerPreviewPayload) {
+                onStickerPreviewReady(stickerPreviewPayload, 'sticker_click');
+              } else {
+                setModalText(t('Complete these 5 lessons to earn rewards'));
+                setModalOpen(true);
+              }
+            });
+          }
+        } else {
+          rewardGroup.classList.add(
+            'PathwayStructure-end-reward-box',
+            'PathwayStructure-end-reward-box--mystery',
+          );
+          rewardGroup.appendChild(mysteryBox1.cloneNode(true));
+          placeElement(rewardWrapper, endPoint.x - 25, endPoint.y - 40 + 15);
+
+          if (currentIndex < pathEndIndex + 1) {
+            rewardWrapper.addEventListener('click', async () => {
+              await playRewardClickAnimation(rewardMode);
+
+              const reason = isOffline
+                ? 'offline'
+                : hasNextSticker
+                  ? 'experiment'
+                  : 'stickers_exhausted';
+
+              void Util.logEvent(EVENTS.PATHWAY_MYSTERY_BOX_TAPPED, {
+                user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+                source: 'learning_pathway',
+                reason,
+                sticker_book_id:
+                  stickerPreviewPayload?.stickerBookId ?? 'unknown',
+                sticker_id: stickerPreviewPayload?.nextStickerId ?? 'none',
+                gb_variant: normalizedVariant || 'mystery_box',
+              });
+
+              const replaceContent = (newContent: SVGElement) => {
+                while (rewardGroup.firstChild) {
+                  rewardGroup.removeChild(rewardGroup.firstChild);
+                }
+                rewardGroup.appendChild(newContent.cloneNode(true));
+              };
+
+              const animationSequence = [
+                { content: mysteryBox2, delay: 300 },
+                { content: mysteryBox3, delay: 500 },
+                { content: mysteryBox2, delay: 700 },
+                { content: mysteryBox3, delay: 900 },
+                {
+                  callback: () => {
+                    setModalText(
+                      t('Complete these 5 lessons to earn 10 stars'),
+                    );
+                    setModalOpen(true);
+                    replaceContent(mysteryBox1);
+                  },
+                  delay: 1100,
+                },
+              ];
+
+              animationSequence.forEach(({ content, callback, delay }) => {
+                setTimeout(() => {
+                  if (content) replaceContent(content);
+                  if (callback) callback();
+                }, delay);
+              });
+            });
+          }
+        }
+
+        fragment.appendChild(rewardWrapper);
         svg.appendChild(fragment);
 
         // Setup chimple mascot initial position
         const idx = lessons.findIndex(
-          (_: any, index: number) => startIndex + index === currentIndex - 1
+          (_: any, index: number) => startIndex + index === currentIndex - 1,
         );
         const xValuesForChimple = [-60, 66, 180, 295, 412];
 
@@ -456,7 +790,7 @@ export function usePathwaySVG({
 
         const isStringReward =
           newRewardIdFromCheck !== null &&
-          typeof newRewardIdFromCheck === "string";
+          typeof newRewardIdFromCheck === 'string';
 
         // If there is a reward, run full reward animation flow
         if (isStringReward && isRewardFeatureOn) {
@@ -469,7 +803,7 @@ export function usePathwaySVG({
             startPoint,
             xValues,
             chimple,
-            pathEndIndex
+            pathEndIndex,
           );
         }
 
@@ -479,18 +813,18 @@ export function usePathwaySVG({
           if (idx < 0 || !isStringReward || !isRewardFeatureOn) {
             // default logic – same as original: next active lesson
             baseX = xValues[idx + 1] ?? xValues[0];
-            chimple.setAttribute("x", `${baseX - 87}`);
+            chimple.setAttribute('x', `${baseX - 87}`);
           } else {
             baseX = xValuesForChimple[idx] ?? xValues[0];
-            chimple.setAttribute("x", `${baseX}`);
+            chimple.setAttribute('x', `${baseX}`);
           }
 
-          chimple.setAttribute("y", `${startPoint.y - 15}`);
-          chimple.style.pointerEvents = "none";
+          chimple.setAttribute('y', `${startPoint.y - 15}`);
+          chimple.style.pointerEvents = 'none';
 
-          const riveDiv = document.createElement("div");
-          riveDiv.style.width = "100%";
-          riveDiv.style.height = "100%";
+          const riveDiv = document.createElement('div');
+          riveDiv.style.width = '100%';
+          riveDiv.style.height = '100%';
           chimple.appendChild(riveDiv);
           svg.appendChild(chimple);
 
@@ -498,18 +832,117 @@ export function usePathwaySVG({
         }
 
         const endTime = performance.now();
-        console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
       });
     } catch (error) {
-      console.error("Failed to load SVG:", error);
+      logger.error('Failed to load SVG:', error);
     }
   }
 
+  // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
+  // This is the single place where we resolve next sticker image fallback.
+  async function getStickerPreviewPayload(
+    forcedStickerId?: string,
+    preAwardCollectedStickerIds?: string[],
+  ): Promise<StickerBookModalData | null> {
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.id) return null;
+
+      // Start from the active sticker book and the user's current progress.
+      const currentBookWithProgress =
+        await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      if (!currentBookWithProgress?.book) return null;
+
+      const { book, progress } = currentBookWithProgress;
+      const collectedStickerIds = Array.isArray(preAwardCollectedStickerIds)
+        ? preAwardCollectedStickerIds
+        : (progress?.stickers_collected ?? []);
+      // For auto-completion popup, use the just-awarded sticker when available.
+      // For normal sticker-box preview, use the next winnable sticker.
+      const nextStickerId =
+        forcedStickerId ??
+        (await api.getNextWinnableSticker(book.id, currentStudent.id));
+      if (!nextStickerId) return null;
+
+      const visibleCollectedStickerIds = forcedStickerId
+        ? collectedStickerIds.filter((id: string) => id !== forcedStickerId)
+        : collectedStickerIds;
+
+      const nextStickerDetails = await api.getStickersByIds([nextStickerId]);
+      const nextSticker = nextStickerDetails?.[0];
+      let nextStickerImage = nextSticker?.image || undefined;
+
+      // Some stickers do not have a standalone image, so derive one from the book SVG.
+      if (!nextStickerImage && book.svg_url) {
+        try {
+          const dataUrl = await getStickerImageFallbackFromBookSvg(
+            book.svg_url,
+            nextStickerId,
+          );
+          if (dataUrl) nextStickerImage = dataUrl;
+        } catch (err) {
+          logger.warn(
+            '[StickerBook] Failed to build sticker preview image from book SVG',
+            err,
+          );
+        }
+      }
+
+      return {
+        source: 'learning_pathway',
+        stickerBookId: book.id,
+        stickerBookTitle: book.title || 'Sticker Book',
+        stickerBookSvgUrl: book.svg_url || '',
+        collectedStickerIds: visibleCollectedStickerIds,
+        nextStickerId,
+        nextStickerName: nextSticker?.name || 'Sticker',
+        nextStickerImage,
+      };
+    } catch (error) {
+      logger.error('Failed to build sticker preview payload:', error);
+      return null;
+    }
+  }
+
+  async function getStickerCompletionPayload(): Promise<StickerBookModalData | null> {
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.id) return null;
+
+      const currentBookWithProgress =
+        await api.getCurrentStickerBookWithProgress(currentStudent.id);
+      if (!currentBookWithProgress?.book) return null;
+
+      const { book, progress } = currentBookWithProgress;
+      const collectedStickerIds = progress?.stickers_collected ?? [];
+      const totalStickerCount =
+        book.total_stickers || book.stickers_metadata?.length || 0;
+      const isCompleted =
+        progress?.status === 'completed' ||
+        (totalStickerCount > 0 &&
+          collectedStickerIds.length >= totalStickerCount);
+
+      if (!isCompleted) return null;
+
+      return {
+        source: 'learning_pathway',
+        stickerBookId: book.id,
+        stickerBookTitle: book.title || 'Sticker Book',
+        stickerBookSvgUrl: book.svg_url || '',
+        collectedStickerIds,
+        totalStickerCount,
+      };
+    } catch (error) {
+      logger.error('Failed to build sticker completion payload:', error);
+      return null;
+    }
+  }
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
-    const local = "/pathwayAssets/English/Pathway.svg";
-    const remote = "remoteAsset/Pathway.svg";
+    const local = '/pathwayAssets/English/Pathway.svg';
+    const remote = 'remoteAsset/Pathway.svg';
 
     if (Capacitor.isNativePlatform()) {
       try {
@@ -517,7 +950,7 @@ export function usePathwaySVG({
         pathwayTemplateCache = text;
         return text;
       } catch (err) {
-        console.error("Error in loading pathway template ", err);
+        logger.error('Error in loading pathway template ', err);
       }
     }
 
@@ -530,7 +963,7 @@ export function usePathwaySVG({
   async function loadGroupAsset(
     name: string,
     remotePath: string,
-    localPath: string
+    localPath: string,
   ): Promise<SVGGElement | SVGSVGElement> {
     const cached = svgGroupCache[name];
     if (cached) {
@@ -553,13 +986,13 @@ export function usePathwaySVG({
   }
 
   async function loadHalo(): Promise<SVGGElement | SVGSVGElement | string> {
-    const cached = svgGroupCache["halo"];
+    const cached = svgGroupCache['halo'];
     if (cached) {
       return cached.cloneNode(true) as SVGGElement | SVGSVGElement;
     }
 
-    const local = "/pathwayAssets/English/halo.svg";
-    const remote = "remoteAsset/halo.svg";
+    const local = '/pathwayAssets/English/halo.svg';
+    const remote = 'remoteAsset/halo.svg';
     let group: SVGGElement | SVGSVGElement | null = null;
 
     try {
@@ -567,33 +1000,33 @@ export function usePathwaySVG({
         try {
           group = await fetchLocalGroup(remote);
         } catch (err) {
-          console.warn("Failed to load local halo.svg, fetching remote", err);
+          logger.warn('Failed to load local halo.svg, fetching remote', err);
         }
       }
       if (!group) {
         group = await fetchRemoteSVGGroup(local);
       }
-      svgGroupCache["halo"] = group;
+      svgGroupCache['halo'] = group;
       return group.cloneNode(true) as SVGGElement | SVGSVGElement;
     } catch {
-      svgStringCache["halo"] = local;
+      svgStringCache['halo'] = local;
       return local;
     }
   }
 
   const placeElement = (element: SVGGElement, x: number, y: number) => {
-    element.setAttribute("transform", `translate(${x}, ${y})`);
+    element.setAttribute('transform', `translate(${x}, ${y})`);
   };
 
   async function preloadAllLessonImages(lessons: any[]) {
     Promise.all(
       lessons.map((lesson) => {
         const isValidUrl =
-          typeof lesson.image === "string" &&
+          typeof lesson.image === 'string' &&
           /^(https?:\/\/|\/)/.test(lesson.image);
-        const src = isValidUrl ? lesson.image : "assets/icons/DefaultIcon.png";
+        const src = isValidUrl ? lesson.image : 'assets/icons/DefaultIcon.png';
         return preloadImage(src);
-      })
+      }),
     );
   }
 
@@ -615,36 +1048,35 @@ export function usePathwaySVG({
     startPoint: DOMPoint,
     xValues: number[],
     chimple: SVGForeignObjectElement,
-    pathEndIndex: number
+    pathEndIndex: number,
   ) {
-    const rewardRecord = await ServiceConfig.getI().apiHandler.getRewardById(
-      newRewardId
-    );
+    const rewardRecord =
+      await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
     if (!rewardRecord) return;
 
     setHasTodayReward(false);
 
     // The reward flies to the completed lesson's position (currentIndex - 1)
     const completedLessonIndex = lessons.findIndex(
-      (_: any, idx: number) => startIndex + idx === currentIndex - 1
+      (_: any, idx: number) => startIndex + idx === currentIndex - 1,
     );
     const destinationX =
       xValues[completedLessonIndex >= 0 ? completedLessonIndex : 0] ?? 0;
 
     const rewardForeignObject = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "foreignObject"
+      'http://www.w3.org/2000/svg',
+      'foreignObject',
     );
-    rewardForeignObject.setAttribute("width", "140");
-    rewardForeignObject.setAttribute("height", "140");
-    rewardForeignObject.setAttribute("x", "0");
-    rewardForeignObject.setAttribute("y", "0");
-    rewardForeignObject.style.display = "block";
-    (rewardForeignObject.style as any).transformBox = "fill-box";
-    rewardForeignObject.style.transformOrigin = "0 0";
-    rewardForeignObject.style.willChange = "transform";
-    rewardForeignObject.style.backfaceVisibility = "hidden";
-    (rewardForeignObject.style as any).contain = "layout paint style";
+    rewardForeignObject.setAttribute('width', '140');
+    rewardForeignObject.setAttribute('height', '140');
+    rewardForeignObject.setAttribute('x', '0');
+    rewardForeignObject.setAttribute('y', '0');
+    rewardForeignObject.style.display = 'block';
+    (rewardForeignObject.style as any).transformBox = 'fill-box';
+    rewardForeignObject.style.transformOrigin = '0 0';
+    rewardForeignObject.style.willChange = 'transform';
+    rewardForeignObject.style.backfaceVisibility = 'hidden';
+    (rewardForeignObject.style as any).contain = 'layout paint style';
 
     const fromX = 570,
       fromY = 110;
@@ -686,7 +1118,7 @@ export function usePathwaySVG({
       await invokeMascotCelebration(rewardRecord.state_number_input || 1);
 
       await delay(500);
-      rewardForeignObject.style.display = "none";
+      rewardForeignObject.style.display = 'none';
       await delay(1000);
 
       // Step 2: revert to new normal state
@@ -702,15 +1134,15 @@ export function usePathwaySVG({
         currentIndex,
         xValues,
         startPoint,
-        pathEndIndex
+        pathEndIndex,
       );
 
       await Util.updateUserReward();
     };
 
-    const rewardDiv = document.createElement("div");
-    rewardDiv.style.width = "100%";
-    rewardDiv.style.height = "100%";
+    const rewardDiv = document.createElement('div');
+    rewardDiv.style.width = '100%';
+    rewardDiv.style.height = '100%';
     rewardForeignObject.appendChild(rewardDiv);
     svg.appendChild(rewardForeignObject);
     setRewardRiveContainer(rewardDiv);
@@ -725,7 +1157,7 @@ export function usePathwaySVG({
     currentIndex: number,
     xValues: number[],
     startPoint: DOMPoint,
-    pathEndIndex: number
+    pathEndIndex: number,
   ) {
     if (!chimple) return;
 
@@ -736,7 +1168,7 @@ export function usePathwaySVG({
     }
 
     const currentLessonIndex = lessons.findIndex(
-      (_: any, idx: number) => startIndex + idx === currentIndex
+      (_: any, idx: number) => startIndex + idx === currentIndex,
     );
     if (currentLessonIndex < 0) return;
 
@@ -746,24 +1178,24 @@ export function usePathwaySVG({
     const fromX = xValues[previousLessonIndex] ?? 0;
     const toX = xValues[currentLessonIndex] ?? 0;
 
-    chimple.setAttribute("x", `${toX - 87}`);
-    chimple.setAttribute("y", `${startPoint.y - 15}`);
+    chimple.setAttribute('x', `${toX - 87}`);
+    chimple.setAttribute('y', `${startPoint.y - 15}`);
 
-    chimple.style.display = "block";
-    (chimple.style as any).transformBox = "fill-box";
-    chimple.style.transformOrigin = "0 0";
-    chimple.style.willChange = "transform";
+    chimple.style.display = 'block';
+    (chimple.style as any).transformBox = 'fill-box';
+    chimple.style.transformOrigin = '0 0';
+    chimple.style.willChange = 'transform';
 
     const fromTranslateX = fromX - 97 - (toX - 87);
 
-    chimple.style.transition = "none";
+    chimple.style.transition = 'none';
     chimple.style.transform = `translate(${fromTranslateX}px, 0px)`;
     void chimple.getBoundingClientRect();
 
     requestAnimationFrame(() => {
       chimple.style.transition =
-        "transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)";
-      chimple.style.transform = "translate(0px, 0px)";
+        'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
+      chimple.style.transform = 'translate(0px, 0px)';
     });
   }
 
@@ -772,7 +1204,7 @@ export function usePathwaySVG({
     course: any,
     skillId?: string,
     is_assessment?: boolean,
-    assessmentId?: string
+    assessmentId?: string,
   ) {
     if (!history) return;
 
@@ -782,7 +1214,7 @@ export function usePathwaySVG({
     if (lesson.plugin_type === COCOS) {
       const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.replace(PAGES.GAME + params, {
-        url: "chimple-lib/index.html" + params,
+        url: 'chimple-lib/index.html' + params,
         lessonId: lesson.cocos_lesson_id,
         courseDocId: course.course_id,
         course: JSON.stringify(currentCourse),
@@ -803,7 +1235,7 @@ export function usePathwaySVG({
           learning_path: true,
           skillId: skillId,
           is_assessment: is_assessment,
-        }
+        },
       );
     } else if (
       lesson.plugin_type === LIDO ||

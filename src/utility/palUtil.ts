@@ -6,11 +6,11 @@ import {
   recommendNextSkill,
   updateAbilities,
   OutcomeEvent,
-} from "@chimple/palau-recommendation";
-import { TableTypes } from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
+} from '@chimple/palau-recommendation';
+import { TableTypes } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
 
-type AbilityKeys = "skill" | "outcome" | "competency" | "domain" | "subject";
+type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
 
 type ResultAbilityMap = {
   [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
@@ -24,7 +24,7 @@ export class palUtil {
 
   public static async getAbilityStateAndGraph(
     studentId: string,
-    courseId: string
+    courseId: string,
   ): Promise<{
     abilityState: AbilityState;
     graph: DependencyGraph | undefined;
@@ -35,7 +35,7 @@ export class palUtil {
 
     const built = await this.buildAbilityStateAndGraphForCourse(
       studentId,
-      courseId
+      courseId,
     );
     this.abilityGraphCache.set(cacheKey, built);
     return built;
@@ -43,7 +43,7 @@ export class palUtil {
 
   public static async buildAbilityStateAndGraphForCourse(
     studentId: string,
-    courseId: string
+    courseId: string,
   ): Promise<{
     abilityState: AbilityState;
     graph: DependencyGraph | undefined;
@@ -58,33 +58,33 @@ export class palUtil {
 
     const domains = await api.getDomainsBySubjectAndFramework(
       course.subject_id,
-      course.framework_id
+      course.framework_id,
     );
     if (!domains.length) return { abilityState: emptyState, graph: undefined };
 
     const competencies = await api.getCompetenciesByDomainIds(
-      domains.map((domain) => domain.id)
+      domains.map((domain) => domain.id),
     );
     if (!competencies.length) {
       return { abilityState: emptyState, graph: undefined };
     }
 
     const outcomes = await api.getOutcomesByCompetencyIds(
-      competencies.map((competency) => competency.id)
+      competencies.map((competency) => competency.id),
     );
     if (!outcomes.length) {
       return { abilityState: emptyState, graph: undefined };
     }
 
     const skills = await api.getSkillsByOutcomeIds(
-      outcomes.map((outcome) => outcome.id)
+      outcomes.map((outcome) => outcome.id),
     );
     if (!skills.length) {
       return { abilityState: emptyState, graph: undefined };
     }
 
     const skillRelations = await api.getSkillRelationsByTargetIds(
-      skills.map((skill) => skill.id)
+      skills.map((skill) => skill.id),
     );
 
     const graph = this.composeGraph(
@@ -93,12 +93,12 @@ export class palUtil {
       competencies,
       outcomes,
       skills,
-      skillRelations
+      skillRelations,
     );
 
     const results = await api.getResultsBySkillIds(
       studentId,
-      skills.map((skill) => skill.id)
+      skills.map((skill) => skill.id),
     );
 
     return {
@@ -109,7 +109,7 @@ export class palUtil {
 
   private static composeAbilityState(
     fallbackSubjectId: string,
-    results: TableTypes<"result">[]
+    results: TableTypes<'result'>[],
   ): AbilityState {
     const state = createEmptyAbilityState();
     if (!results || results.length === 0) return state;
@@ -128,31 +128,31 @@ export class palUtil {
         abilityMaps.skill,
         result.skill_id,
         result.skill_ability,
-        timestamp
+        timestamp,
       );
       this.upsertAbility(
         abilityMaps.outcome,
         result.outcome_id,
         result.outcome_ability,
-        timestamp
+        timestamp,
       );
       this.upsertAbility(
         abilityMaps.competency,
         result.competency_id,
         result.competency_ability,
-        timestamp
+        timestamp,
       );
       this.upsertAbility(
         abilityMaps.domain,
         result.domain_id,
         result.domain_ability,
-        timestamp
+        timestamp,
       );
       this.upsertAbility(
         abilityMaps.subject,
         result.subject_id ?? fallbackSubjectId,
         result.subject_ability,
-        timestamp
+        timestamp,
       );
     }
 
@@ -167,11 +167,11 @@ export class palUtil {
 
   private static composeGraph(
     subjectId: string,
-    domains: TableTypes<"domain">[],
-    competencies: TableTypes<"competency">[],
-    outcomes: TableTypes<"outcome">[],
-    skills: TableTypes<"skill">[],
-    relations: TableTypes<"skill_relation">[]
+    domains: TableTypes<'domain'>[],
+    competencies: TableTypes<'competency'>[],
+    outcomes: TableTypes<'outcome'>[],
+    skills: TableTypes<'skill'>[],
+    relations: TableTypes<'skill_relation'>[],
   ): DependencyGraph {
     const domainMap = new Map(
       domains.map((domain) => [
@@ -181,7 +181,7 @@ export class palUtil {
           label: domain.name,
           subjectId: domain.subject_id ?? subjectId,
         },
-      ])
+      ]),
     );
 
     const competencyMap = new Map(
@@ -193,10 +193,10 @@ export class palUtil {
             id: competency.id,
             label: competency.name,
             subjectId: domain?.subjectId ?? subjectId,
-            domainId: domain?.id ?? "",
+            domainId: domain?.id ?? '',
           },
         ];
-      })
+      }),
     );
 
     const outcomeMap = new Map(
@@ -207,12 +207,12 @@ export class palUtil {
           {
             id: outcome.id,
             label: outcome.name,
-            competencyId: competency?.id ?? "",
-            domainId: competency?.domainId ?? "",
+            competencyId: competency?.id ?? '',
+            domainId: competency?.domainId ?? '',
             subjectId,
           },
         ];
-      })
+      }),
     );
 
     const prerequisitesBySkill: Record<string, string[]> = {};
@@ -237,9 +237,9 @@ export class palUtil {
       return {
         id: skill.id,
         label: skill.name,
-        outcomeId: outcome?.id ?? "",
-        competencyId: competency?.id ?? "",
-        domainId: domain?.id ?? "",
+        outcomeId: outcome?.id ?? '',
+        competencyId: competency?.id ?? '',
+        domainId: domain?.id ?? '',
         subjectId: domain?.subjectId ?? subjectId,
         difficulty: skill.difficulty ?? 0,
         prerequisites: prerequisitesBySkill[skill.id] ?? [],
@@ -252,15 +252,15 @@ export class palUtil {
       competencies: Array.from(competencyMap.values()),
       domains: Array.from(domainMap.values()),
       subjects: [{ id: subjectId, label: subjectId }],
-      startSkillId: skillList[0]?.id ?? "",
+      startSkillId: skillList[0]?.id ?? '',
     };
   }
 
   public static async getRecommendedLessonForCourse(
     studentId: string,
-    courseId: string
+    courseId: string,
   ): Promise<{
-    lesson: TableTypes<"lesson"> | undefined;
+    lesson: TableTypes<'lesson'> | undefined;
     skillId?: string;
     chapterId?: string;
     recommendation?: RecommendationContext;
@@ -268,11 +268,11 @@ export class palUtil {
     const api = ServiceConfig.getI().apiHandler;
     const { abilityState, graph } = await this.getAbilityStateAndGraph(
       studentId,
-      courseId
+      courseId,
     );
     if (!graph) return { lesson: undefined, chapterId: undefined };
 
-    const subjectId = graph.subjects[0]?.id ?? "";
+    const subjectId = graph.subjects[0]?.id ?? '';
     const recommendation = recommendNextSkill({
       graph,
       abilities: abilityState,
@@ -306,10 +306,13 @@ export class palUtil {
 
     const lessonResultsMap = await api.getStudentResultInMap(studentId);
     const lessonsData =
-      (await api.getLessonsBylessonIds(lessonIds))?.reduce((acc, lesson) => {
-        if (lesson?.id) acc[lesson.id] = lesson;
-        return acc;
-      }, {} as Record<string, TableTypes<"lesson">>) ?? {};
+      (await api.getLessonsBylessonIds(lessonIds))?.reduce(
+        (acc, lesson) => {
+          if (lesson?.id) acc[lesson.id] = lesson;
+          return acc;
+        },
+        {} as Record<string, TableTypes<'lesson'>>,
+      ) ?? {};
 
     let nextLessonId: string | undefined;
     for (const sl of sortedSkillLessons) {
@@ -350,13 +353,13 @@ export class palUtil {
 
   public static async getPalLessonPathForCourse(
     courseId: string,
-    studentId: string
+    studentId: string,
   ): Promise<
-    { lesson_id: string; skill_id?: string; chapter_id?: string }[] | undefined
+    { lesson_id: string; skill_id?: string; chapter_id?: string } | undefined
   > {
     const recommended = await this.getRecommendedLessonForCourse(
       studentId,
-      courseId
+      courseId,
     );
     if (!recommended?.lesson?.id) return undefined;
 
@@ -366,12 +369,12 @@ export class palUtil {
       chapter_id: recommended.chapterId,
     };
 
-    return Array.from({ length: 5 }, () => ({ ...entry }));
+    return entry;
   }
 
   private static async getChapterIdForLessonInCourse(
     courseId: string,
-    lessonId: string
+    lessonId: string,
   ): Promise<string | undefined> {
     const api = ServiceConfig.getI().apiHandler;
     const chapters = await api.getChaptersForCourse(courseId);
@@ -391,7 +394,7 @@ export class palUtil {
     abilityMap: Map<string, { ability: number; timestamp: number }>,
     id: string | null,
     ability: number | null,
-    timestamp: number
+    timestamp: number,
   ) {
     if (!id || ability === null || ability === undefined) return;
     const existing = abilityMap.get(id);
@@ -400,15 +403,15 @@ export class palUtil {
     }
   }
 
-  private static getTimestamp(result: TableTypes<"result">): number {
-    const candidate = result.updated_at ?? result.created_at ?? "";
+  private static getTimestamp(result: TableTypes<'result'>): number {
+    const candidate = result.updated_at ?? result.created_at ?? '';
     const parsed = Date.parse(candidate);
     if (Number.isFinite(parsed)) return parsed;
     return 0;
   }
 
   private static mapToRecord(
-    map: Map<string, { ability: number }>
+    map: Map<string, { ability: number }>,
   ): Record<string, number> {
     const record: Record<string, number> = {};
     map.forEach((value, key) => {
@@ -438,14 +441,14 @@ export class palUtil {
     const cacheKey = `${studentId}:${courseId}`;
     const { abilityState, graph } = await this.getAbilityStateAndGraph(
       studentId,
-      courseId
+      courseId,
     );
 
     if (!graph) {
       return {};
     }
 
-    const subjectId = graph.subjects[0]?.id ?? "";
+    const subjectId = graph.subjects[0]?.id ?? '';
     let newAbilityState = abilityState;
 
     if (outcomes && outcomes.length > 0) {
@@ -490,31 +493,41 @@ export class palUtil {
         : undefined,
     };
   }
-/**
+  /**
    * Section 1: Assessment Selection Logic (Cold Start)
    * Triggered when a user has no history for a course.
    */
-  public static async getInitialAssessmentLessons(subjectId: string): Promise<any[]> {
+  public static async getInitialAssessmentLessons(
+    subjectId: string,
+  ): Promise<any[]> {
     const api = ServiceConfig.getI().apiHandler;
-    
+
     // 1. Query subject_lesson for the subject_id
     const allSubjectLessons = await api.getSubjectLessonsBySubjectId(subjectId);
-    
+
     // Safety check
-    if (!allSubjectLessons || !Array.isArray(allSubjectLessons) || allSubjectLessons.length === 0) {
+    if (
+      !allSubjectLessons ||
+      !Array.isArray(allSubjectLessons) ||
+      allSubjectLessons.length === 0
+    ) {
       return [];
     }
 
     // 2. Identify all distinct set_number values
-    const distinctSets = [...new Set(allSubjectLessons
-      .map((l: any) => l.set_number)
-      .filter((n: any) => n !== null))  
+    const distinctSets = [
+      ...new Set(
+        allSubjectLessons
+          .map((l: any) => l.set_number)
+          .filter((n: any) => n !== null),
+      ),
     ];
 
     if (distinctSets.length === 0) return [];
 
     // 3. Randomly select one set_number
-    const selectedSet = distinctSets[Math.floor(Math.random() * distinctSets.length)];
+    const selectedSet =
+      distinctSets[Math.floor(Math.random() * distinctSets.length)];
 
     // 4. Fetch and return lessons matching that set_number (approx 5 lessons)
     return allSubjectLessons
@@ -523,6 +536,5 @@ export class palUtil {
       .map((l: any) => ({
         lesson_id: l.lesson_id,
       }));
-  }  
-
+  }
 }

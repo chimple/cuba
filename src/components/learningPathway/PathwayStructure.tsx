@@ -1,19 +1,40 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "./PathwayStructure.css";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './PathwayStructure.css';
 
-import PathwayModal from "./PathwayModal";
-import ChimpleRiveMascot from "./ChimpleRiveMascot";
-import RewardBox from "./RewardBox";
-import DailyRewardModal from "./DailyRewardModal";
-import RewardRive from "./RewardRive";
+import PathwayModal from './PathwayModal';
+import ChimpleRiveMascot from './ChimpleRiveMascot';
+import RewardBox from './RewardBox';
+import DailyRewardModal from './DailyRewardModal';
+import RewardRive from './RewardRive';
+import StickerBookPreviewModal, {
+  StickerBookModalData,
+} from './StickerBookPreviewModal';
 
-import { useHistory } from "react-router";
-import { usePathwayData } from "../../hooks/usePathwayData";
-import { usePathwaySVG } from "../../hooks/usePathwaySVG";
+import { useHistory } from 'react-router';
+import { usePathwayData } from '../../hooks/usePathwayData';
+import { usePathwaySVG } from '../../hooks/usePathwaySVG';
+import { Util } from '../../utility/util';
+import {
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  EVENTS,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+} from '../../common/constants';
 
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
+  const [stickerPreviewData, setStickerPreviewData] =
+    React.useState<StickerBookModalData | null>(null);
+  const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
+    React.useState<boolean>(false);
+  const [stickerPreviewTrigger, setStickerPreviewTrigger] = React.useState<
+    'sticker_click' | 'pathway_completion_auto'
+  >('sticker_click');
+  const [stickerCompletionData, setStickerCompletionData] =
+    React.useState<StickerBookModalData | null>(null);
+  const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
+    React.useState<boolean>(false);
+  const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
 
   const {
     // refs
@@ -61,6 +82,34 @@ const PathwayStructure: React.FC = () => {
     checkAndUpdateReward,
   } = usePathwayData();
 
+  const openStickerCompletion = React.useCallback(
+    (data: StickerBookModalData) => {
+      const completionKey = [
+        data.source,
+        data.stickerBookId,
+        data.collectedStickerIds.length,
+        data.totalStickerCount,
+      ].join(':');
+
+      if (lastStickerCompletionOpenKeyRef.current === completionKey) {
+        return;
+      }
+
+      lastStickerCompletionOpenKeyRef.current = completionKey;
+      setStickerCompletionData(data);
+      setIsStickerCompletionOpen(true);
+      Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED, {
+        user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+        source: data.source,
+        sticker_book_id: data.stickerBookId,
+        sticker_book_title: data.stickerBookTitle,
+        collected_count: data.collectedStickerIds.length,
+        total_stickers: data.totalStickerCount,
+      });
+    },
+    [],
+  );
+
   // Mounts SVG with everything needed
   usePathwaySVG({
     containerRef,
@@ -80,7 +129,90 @@ const PathwayStructure: React.FC = () => {
     setIsRewardPathLoaded,
     isRewardPathLoaded,
     checkAndUpdateReward,
+    onStickerPreviewReady: (data, trigger) => {
+      setStickerPreviewData(data);
+      setStickerPreviewTrigger(trigger);
+      setIsStickerPreviewOpen(true);
+      const isDragPopup = trigger === 'pathway_completion_auto';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_SHOWN
+          : EVENTS.STICKER_PREVIEW_POPUP_SHOWN,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: data.stickerBookId,
+          sticker_id: data.nextStickerId,
+          source: data.source,
+          trigger,
+        },
+      );
+    },
+    onStickerCompletionReady: (data) => {
+      openStickerCompletion(data);
+    },
   });
+
+  const closeStickerPreview = React.useCallback(
+    (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
+      if (!stickerPreviewData) return;
+      const isDragPopup = stickerPreviewTrigger === 'pathway_completion_auto';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_CLOSED
+          : EVENTS.STICKER_PREVIEW_POPUP_CLOSED,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: stickerPreviewData.stickerBookId,
+          sticker_id: stickerPreviewData.nextStickerId,
+          source: stickerPreviewData.source,
+          close_reason: reason,
+          trigger: stickerPreviewTrigger,
+        },
+      );
+      setIsStickerPreviewOpen(false);
+    },
+    [stickerPreviewData, stickerPreviewTrigger],
+  );
+
+  const closeStickerCompletion = React.useCallback(
+    (reason: 'backdrop' | 'close_button') => {
+      if (stickerCompletionData && reason === 'close_button') {
+        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED, {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          source: stickerCompletionData.source,
+          sticker_book_id: stickerCompletionData.stickerBookId,
+          sticker_book_title: stickerCompletionData.stickerBookTitle,
+          collected_count: stickerCompletionData.collectedStickerIds.length,
+          total_stickers: stickerCompletionData.totalStickerCount,
+        });
+      }
+      setIsStickerCompletionOpen(false);
+    },
+    [stickerCompletionData],
+  );
+
+  React.useEffect(() => {
+    const handleStickerCompletionReady = (event: Event) => {
+      const customEvent = event as CustomEvent<StickerBookModalData>;
+      const data = customEvent.detail;
+      if (!data?.stickerBookId) return;
+
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      openStickerCompletion(data);
+    };
+
+    window.addEventListener(
+      STICKER_BOOK_COMPLETION_READY_EVENT,
+      handleStickerCompletionReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        STICKER_BOOK_COMPLETION_READY_EVENT,
+        handleStickerCompletionReady as EventListener,
+      );
+    };
+  }, [openStickerCompletion]);
 
   return (
     <>
@@ -95,7 +227,7 @@ const PathwayStructure: React.FC = () => {
       )}
 
       {/* SVG Root Container */}
-      <div className="pathway-structure-div" ref={containerRef} />
+      <div className="PathwayStructure-div" ref={containerRef} />
 
       {/* Chimple Mascot */}
       {riveContainer &&
@@ -107,14 +239,14 @@ const PathwayStructure: React.FC = () => {
             stateValue={mascotProps.stateValue}
             animationName={mascotProps.animationName}
           />,
-          riveContainer
+          riveContainer,
         )}
 
       {/* Reward Box Rive */}
       {rewardRiveContainer &&
         ReactDOM.createPortal(
           <RewardRive rewardRiveState={rewardRiveState} />,
-          rewardRiveContainer
+          rewardRiveContainer,
         )}
 
       {/* Daily reward icon */}
@@ -123,11 +255,35 @@ const PathwayStructure: React.FC = () => {
       )}
 
       {/* Daily Reward modal */}
-      {rewardModalOpen && isRewardFeatureOn  && (
+      {rewardModalOpen && isRewardFeatureOn && (
         <DailyRewardModal
-          text={"Play one lesson and collect your daily reward!"}
+          text={'Play one lesson and collect your daily reward!'}
           onClose={handleRewardModalClose}
           onPlay={handleRewardModalPlay}
+        />
+      )}
+
+      {isStickerPreviewOpen && stickerPreviewData && (
+        <StickerBookPreviewModal
+          data={stickerPreviewData}
+          variant={
+            stickerPreviewTrigger === 'pathway_completion_auto'
+              ? 'drag_collect'
+              : 'preview'
+          }
+          onClose={closeStickerPreview}
+        />
+      )}
+
+      {isStickerCompletionOpen && stickerCompletionData && (
+        <StickerBookPreviewModal
+          data={stickerCompletionData}
+          mode="completion"
+          onClose={
+            closeStickerCompletion as (
+              reason: 'close_button' | 'backdrop' | 'acknowledge_button',
+            ) => void
+          }
         />
       )}
     </>

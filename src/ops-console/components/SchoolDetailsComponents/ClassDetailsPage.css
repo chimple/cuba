@@ -1,3 +1,5 @@
+/* ================= EXISTING (UNCHANGED STRUCTURE) ================= */
+
 .classdetailspage-students-sticky {
   height: calc(100vh - 125px);
   position: relative;
@@ -36,7 +38,7 @@
 /* Root container */
 .classdetailspage-root {
   padding: 24px;
-  background-color: #f9fafb; /* grey.50 */
+  background-color: #f9fafb;
   min-height: 100vh;
 }
 
@@ -46,7 +48,7 @@
   }
 }
 
-/* Header row */
+/* Header */
 .classdetailspage-header {
   display: flex;
   align-items: center;
@@ -82,8 +84,6 @@
 
 .classdetailspage-addnote-btn:hover {
   background: rgba(79, 70, 229, 0.06) !important;
-  border-color: #2563eb !important;
-  box-shadow: none !important;
 }
 
 .classdetailspage-addnote-btn:focus-visible {
@@ -91,7 +91,7 @@
   outline-offset: 2px;
 }
 
-/* Info card grid */
+/* Info Grid */
 .classdetailspage-info-grid {
   display: grid;
   gap: 24px;
@@ -105,7 +105,7 @@
   }
 }
 
-/* Students card wrapper */
+/* Students card */
 .classdetailspage-students-card {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;

@@ -1,2 +1,2 @@
 // Mock core stylesheet import
-export default "";
+export default '';

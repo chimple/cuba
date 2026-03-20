@@ -1,6 +1,6 @@
 export const Capacitor = {
-  isNativePlatform: () => false,
-  getPlatform: () => "web",
+  isNativePlatform: jest.fn(() => false),
+  getPlatform: jest.fn(() => 'web'),
 };
 
 export const registerPlugin = jest.fn(() => ({}));

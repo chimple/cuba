@@ -1,24 +1,23 @@
-import React, { useState } from "react";
-import { IonButton, IonText, IonAlert } from "@ionic/react";
-import InputField from "../../common/InputField";
-import { Util } from "../../utility/util";
-import { PAGES, TableTypes } from "../../common/constants";
-import Header from "../components/homePage/Header";
-import { useHistory, useLocation } from "react-router-dom";
-import "./AddTeacher.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { RoleType } from "../../interface/modelInterfaces";
+import React, { useState } from 'react';
+import { IonAlert } from '@ionic/react';
+import InputField from '../../common/InputField';
+import { PAGES, TableTypes } from '../../common/constants';
+import Header from '../components/homePage/Header';
+import { useHistory, useLocation } from 'react-router-dom';
+import './AddTeacher.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const AddTeacher: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
-    classDoc: TableTypes<"class">;
-    school: TableTypes<"school">;
+    classDoc: TableTypes<'class'>;
+    school: TableTypes<'school'>;
   }>();
   const [useEmail, setUseEmail] = useState(true);
-  const [inputValue, setInputValue] = useState("");
-  const [user, setUser] = useState<TableTypes<"user"> | undefined>();
+  const [inputValue, setInputValue] = useState('');
+  const [user, setUser] = useState<TableTypes<'user'> | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [showUserNotFoundAlert, setShowUserNotFoundAlert] = useState(false);
   const api = ServiceConfig.getI()?.apiHandler;
@@ -31,7 +30,7 @@ const AddTeacher: React.FC = () => {
 
   const toggleInputMethod = () => {
     setUseEmail((prevUseEmail) => !prevUseEmail);
-    setInputValue("");
+    setInputValue('');
     setUser(undefined);
   };
 
@@ -56,7 +55,7 @@ const AddTeacher: React.FC = () => {
         const userInClass = await api?.checkTeacherExistInClass(
           school.id,
           classDoc.id,
-          fetchedUser.id
+          fetchedUser.id,
         );
         if (userInClass) {
           setShowAlert(true);
@@ -69,7 +68,7 @@ const AddTeacher: React.FC = () => {
         setUser(undefined);
       }
     } catch (error) {
-      console.error("Failed to fetch user", error);
+      logger.error('Failed to fetch user', error);
       setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
@@ -81,13 +80,13 @@ const AddTeacher: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await api.addTeacherToClass(school.id,classDoc.id, user);
+      await api.addTeacherToClass(school.id, classDoc.id, user);
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
       await api.updateUserLastModified(user.id);
       history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
     } catch (error) {
-      console.error("Failed to add teacher", error);
+      logger.error('Failed to add teacher', error);
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +103,7 @@ const AddTeacher: React.FC = () => {
         schoolName={school?.name}
       />
       <div className="ion-padding">
-        <div className="add-teacher-div">{t("Add Teacher")}</div>
+        <div className="add-teacher-div">{t('Add Teacher')}</div>
 
         <InputField
           useEmail={useEmail}
@@ -121,11 +120,11 @@ const AddTeacher: React.FC = () => {
 
             <div className="add-teacher-container">
               <img
-                src={user.image ? user.image : "assets/icons/userIcon.png"}
+                src={user.image ? user.image : 'assets/icons/userIcon.png'}
                 className="user-image"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
-                    "assets/icons/userIcon.png";
+                    'assets/icons/userIcon.png';
                 }}
               />
               <p>{user.name}</p>
@@ -134,7 +133,7 @@ const AddTeacher: React.FC = () => {
                 disabled={isLoading}
                 className="add-teacher-btn"
               >
-                {isLoading ? t("Adding") + "..." : t("Add")}
+                {isLoading ? t('Adding') + '...' : t('Add')}
               </button>
             </div>
           </div>
@@ -144,9 +143,9 @@ const AddTeacher: React.FC = () => {
       <IonAlert
         isOpen={showAlert}
         onDidDismiss={() => setShowAlert(false)}
-        header={"User Already in Class"}
-        message={"This user is already added to the class."}
-        buttons={["OK"]}
+        header={'User Already in Class'}
+        message={'This user is already added to the class.'}
+        buttons={['OK']}
       />
 
       {showUserNotFoundAlert && (

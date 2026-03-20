@@ -70,7 +70,7 @@
 }
 
 .search-school-field-wrapper.required::before {
-  content: "*";
+  content: '*';
   color: red;
   position: absolute;
   top: 0.6rem;
