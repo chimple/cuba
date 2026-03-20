@@ -2113,6 +2113,47 @@ export class Util {
     }
   }
 
+  public static async saveFileToDownloads(file: File) {
+    // Native builds write through Capacitor Filesystem, while web falls back to
+    // a temporary download link because browsers cannot write directly to Downloads.
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const base64Data = await Util.blobToString(file);
+        try {
+          // Attempt to save in public Downloads folder
+          await Filesystem.writeFile({
+            path: `Download/${file.name}`,
+            data: base64Data,
+            directory: Directory.ExternalStorage,
+          });
+        } catch (e) {
+          // Fallback to Documents folder which works on MediaStore safely
+          await Filesystem.writeFile({
+            path: file.name,
+            data: base64Data,
+            directory: Directory.Documents,
+          });
+        }
+      } catch (error) {
+        logger.error('Error saving file natively:', error);
+        await Toast.show({ text: t('Failed to save image') });
+      }
+    } else {
+      try {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      } catch (error) {
+        logger.error('Error saving file in web:', error);
+      }
+    }
+  }
+
   public static setCurrentCourse = async (
     classId: string | undefined,
     courseDoc: TableTypes<'course'> | null,

@@ -22,6 +22,8 @@ const renderActions = (props: any = {}) => {
     onPaint: jest.fn(),
     saveDisabled: false,
     paintDisabled: false,
+    isStickerBookSaveEnabled: true,
+    isBookCompleted: true,
   };
 
   const merged = { ...defaultProps, ...props };
@@ -119,6 +121,24 @@ describe('StickerBookActions', () => {
     const btn = document.getElementById('sticker-book-actions-save');
 
     expect(btn).not.toBeDisabled();
+  });
+
+  test('save button hidden when sticker book save feature is disabled', () => {
+    renderActions({ isStickerBookSaveEnabled: false });
+
+    expect(
+      document.getElementById('sticker-book-actions-save'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
+  });
+
+  test('save button hidden when book is not completed', () => {
+    renderActions({ isBookCompleted: false });
+
+    expect(
+      document.getElementById('sticker-book-actions-save'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
 
   /* ---------- SAVE ICON ---------- */
@@ -282,6 +302,8 @@ describe('StickerBookActions', () => {
         showPaint={false}
         onSave={() => {}}
         onPaint={() => {}}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={true}
       />,
     );
 
@@ -290,6 +312,8 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={true}
       />,
     );
 
@@ -302,6 +326,8 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={true}
       />,
     );
 
@@ -310,6 +336,8 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={true}
       />,
     );
 
