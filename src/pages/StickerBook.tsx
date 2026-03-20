@@ -56,6 +56,9 @@ const StickerBook: React.FC = () => {
     }
 
     try {
+      if (currentStudent?.id) {
+        await api.updateRewardAsSeen(currentStudent.id);
+      }
       const [allBooks, currentBookResult, completedBooks] = await Promise.all([
         api.getAllStickerBooks(),
         api.getCurrentStickerBookWithProgress(currentStudent.id),

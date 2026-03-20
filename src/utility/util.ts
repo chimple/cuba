@@ -2894,6 +2894,19 @@ export class Util {
 
       /* 5️⃣ Move course index if path completed */
       if (pathCompleted) {
+        let preAwardCollectedStickerIds: string[] = [];
+        if (typeof navigator !== 'undefined' && navigator.onLine) {
+          try {
+            const currentBookWithProgress =
+              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                currentStudent.id,
+              );
+            preAwardCollectedStickerIds =
+              currentBookWithProgress?.progress?.stickers_collected ?? [];
+          } catch {
+            preAwardCollectedStickerIds = [];
+          }
+        }
         if (isRewardLesson) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
