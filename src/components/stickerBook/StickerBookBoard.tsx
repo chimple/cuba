@@ -21,6 +21,7 @@ type Props = {
   nextStickerId?: string;
   isLocked: boolean;
   canPaint?: boolean;
+  isStickerBookSaveEnabled: boolean;
   onSave?: () => void;
   canGoPrev: boolean;
   canGoNext: boolean;
@@ -28,6 +29,7 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
   onPaint?: () => void;
+  isBookCompleted: boolean;
 };
 
 // Renders raw SVG markup inline so we can manipulate the DOM later.
@@ -67,6 +69,7 @@ const StickerBookBoard: React.FC<Props> = ({
   nextStickerId,
   isLocked,
   canPaint = false,
+  isStickerBookSaveEnabled,
   onSave,
   canGoPrev,
   canGoNext,
@@ -74,6 +77,7 @@ const StickerBookBoard: React.FC<Props> = ({
   onNext,
   onBack,
   onPaint,
+  isBookCompleted,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
@@ -199,6 +203,8 @@ const StickerBookBoard: React.FC<Props> = ({
             onPaint={handlePaint}
             saveDisabled={!onSave}
             paintDisabled={!svgRaw || !onPaint}
+            isStickerBookSaveEnabled={isStickerBookSaveEnabled}
+            isBookCompleted={isBookCompleted}
           />
           {parsedBoardSvg && (
             <InlineSvg

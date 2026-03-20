@@ -922,6 +922,9 @@ export enum EVENTS {
   STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED = 'sticker_book_completion_popup_close_clicked',
   STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED = 'sticker_book_completion_popup_save_clicked',
   STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED = 'sticker_book_completion_popup_paint_clicked',
+  STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
+  STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
+  STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
 }
 
 export const FCM_TOKENS = 'fcmTokens';
@@ -1346,3 +1349,5 @@ export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
 export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
+export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
+  'enable_save_and_share_sticker_book';
