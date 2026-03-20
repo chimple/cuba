@@ -2238,6 +2238,15 @@ export class Util {
       return;
     }
 
+    const currentClass = this.getCurrentClass();
+    const validCurrentClass = currentClass
+      ? fetchedClasses.find((classItem) => classItem.id === currentClass.id)
+      : undefined;
+
+    if (!validCurrentClass) {
+      await this.setCurrentClass(fetchedClasses[0]);
+    }
+
     const classCoursesData = await Promise.all(
       fetchedClasses.map((classItem) =>
         api.getCoursesByClassId(classItem.id).then((courses) => ({
