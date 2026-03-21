@@ -1,55 +1,67 @@
 const path = require('path');
 
-// Allowed logger methods that this plugin will process
 const LOG_METHODS = new Set(['debug', 'info', 'warn', 'error']);
-
-// Metadata keys that may be injected into the logger call
 const METADATA_KEYS = new Set(['file_name', 'line_number', 'function_name']);
 
-// Determine if source location metadata should be injected
-// (skip files inside src/utility)
+/**
+ * Skip metadata injection for files inside src/utility.
+ * (logger.ts itself lives there — avoids self-injection)
+ */
 const shouldInjectSourceLocation = (filePath) =>
   !/[/\\]src[/\\]utility[/\\]/.test(filePath);
 
-// Check if an object property already contains a metadata key
-// This prevents duplicate metadata insertion
+/**
+ * Check if an object property already has a metadata key.
+ * Prevents duplicate injection on re-runs.
+ */
 const hasMetadataKey = (node, t) =>
   t.isObjectProperty(node) &&
   ((t.isIdentifier(node.key) && METADATA_KEYS.has(node.key.name)) ||
     (t.isStringLiteral(node.key) && METADATA_KEYS.has(node.key.value)));
 
-// Extract the function name where the logger call is located
-// Supports multiple function types
+/**
+ * Extract the key name from an object property node.
+ * Returns undefined if the key is not an identifier or string literal.
+ */
+const getPropertyKeyName = (property, t) => {
+  if (!t.isObjectProperty(property)) return undefined;
+  if (t.isIdentifier(property.key)) return property.key.name;
+  if (t.isStringLiteral(property.key)) return property.key.value;
+  return undefined;
+};
+
+/**
+ * Walk up the AST to find the nearest enclosing function name.
+ * Supports: function declarations, function expressions,
+ * arrow functions, variable declarators, object methods, class methods.
+ */
 const getFunctionName = (pathRef, t) => {
   const fn = pathRef.getFunctionParent();
   if (!fn) return undefined;
 
-  // Handle function declarations
-  if (fn.isFunctionDeclaration() && fn.node.id?.name) {
-    return fn.node.id.name;
-  }
+  // Named function declaration: function foo() {}
+  if (fn.isFunctionDeclaration() && fn.node.id?.name) return fn.node.id.name;
 
-  // Handle named function expressions and arrow functions
+  // Named function expression: const x = function foo() {}
   if (
     (fn.isFunctionExpression() || fn.isArrowFunctionExpression()) &&
     fn.node.id?.name
-  ) {
+  )
     return fn.node.id.name;
-  }
 
-  // Handle functions assigned to variables
   const parent = fn.parentPath;
-  if (parent?.isVariableDeclarator() && t.isIdentifier(parent.node.id)) {
-    return parent.node.id.name;
-  }
 
-  // Handle functions inside objects
+  // Arrow or anonymous function assigned to variable: const foo = () => {}
+  if (parent?.isVariableDeclarator() && t.isIdentifier(parent.node.id))
+    return parent.node.id.name;
+
+  // Function as object property: { foo: () => {} }
   if (parent?.isObjectProperty()) {
     if (t.isIdentifier(parent.node.key)) return parent.node.key.name;
     if (t.isStringLiteral(parent.node.key)) return parent.node.key.value;
   }
 
-  // Handle class methods and object methods
+  // Class method or object method: class A { foo() {} }
   if (parent?.isClassMethod() || parent?.isObjectMethod()) {
     if (t.isIdentifier(parent.node.key)) return parent.node.key.name;
     if (t.isStringLiteral(parent.node.key)) return parent.node.key.value;
@@ -58,63 +70,62 @@ const getFunctionName = (pathRef, t) => {
   return undefined;
 };
 
-// Check if the call expression is a logger call
-// Example: logger.debug(), logger.info(), logger.warn(), logger.error()
+/**
+ * Returns true if the call expression is a logger.* call
+ * where the method is one of: debug, info, warn, error.
+ */
 const isTargetLoggerCall = (node, t) =>
   t.isMemberExpression(node.callee) &&
   t.isIdentifier(node.callee.object, { name: 'logger' }) &&
   t.isIdentifier(node.callee.property) &&
   LOG_METHODS.has(node.callee.property.name);
 
-// Babel plugin definition
+/**
+ * Babel plugin that automatically injects source metadata
+ * (file_name, line_number, function_name) into every logger call.
+ *
+ * If the last argument is already an object, metadata is merged in.
+ * If not, a new metadata object is appended as the last argument.
+ * Existing metadata keys are never overwritten.
+ * Files inside src/utility are skipped to avoid self-injection.
+ */
 module.exports = function loggerMetadataPlugin({ types: t }) {
   return {
     name: 'logger-metadata-plugin',
 
     visitor: {
-      // Visit every CallExpression in the AST
       CallExpression(pathRef, state) {
-        // Ignore calls that are not logger.* methods
         if (!isTargetLoggerCall(pathRef.node, t)) return;
 
-        // Get the current file path
         const filePath = state.file.opts.filename || '';
+        const injectSource = shouldInjectSourceLocation(filePath);
 
-        // Extract only the file name
-        const fileName = path.basename(filePath);
-
-        // Get the line number of the logger call
-        const lineNumber = pathRef.node.loc?.start?.line;
-
-        // Determine the function name where the logger call exists
-        const functionName = getFunctionName(pathRef, t);
-
+        // Build metadata properties only when needed
         const metadataProperties = [];
 
-        // Inject file_name metadata (unless file is inside src/utility)
-        if (shouldInjectSourceLocation(filePath)) {
+        if (injectSource) {
+          // Cache basename — avoid repeated path.basename calls
+          const fileName = path.basename(filePath);
+          const lineNumber = pathRef.node.loc?.start?.line;
+
           metadataProperties.push(
             t.objectProperty(
               t.identifier('file_name'),
               t.stringLiteral(fileName),
             ),
           );
+
+          if (typeof lineNumber === 'number') {
+            metadataProperties.push(
+              t.objectProperty(
+                t.identifier('line_number'),
+                t.numericLiteral(lineNumber),
+              ),
+            );
+          }
         }
 
-        // Inject line_number metadata
-        if (
-          shouldInjectSourceLocation(filePath) &&
-          typeof lineNumber === 'number'
-        ) {
-          metadataProperties.push(
-            t.objectProperty(
-              t.identifier('line_number'),
-              t.numericLiteral(lineNumber),
-            ),
-          );
-        }
-
-        // Inject function_name metadata if available
+        const functionName = getFunctionName(pathRef, t);
         if (functionName) {
           metadataProperties.push(
             t.objectProperty(
@@ -124,47 +135,35 @@ module.exports = function loggerMetadataPlugin({ types: t }) {
           );
         }
 
+        // Nothing to inject — exit early
+        if (metadataProperties.length === 0) return;
+
         const args = pathRef.node.arguments;
         const lastArg = args.at(-1);
 
-        // If the last argument is already an object,
-        // append metadata without overwriting existing values
         if (lastArg && t.isObjectExpression(lastArg)) {
+          // Collect existing metadata keys in one pass
           const existingKeys = new Set(
             lastArg.properties
-              .filter((property) => hasMetadataKey(property, t))
-              .map((property) => {
-                if (
-                  t.isObjectProperty(property) &&
-                  t.isIdentifier(property.key)
-                ) {
-                  return property.key.name;
-                }
-                if (
-                  t.isObjectProperty(property) &&
-                  t.isStringLiteral(property.key)
-                ) {
-                  return property.key.value;
-                }
-                return undefined;
-              })
+              .map((p) =>
+                hasMetadataKey(p, t) ? getPropertyKeyName(p, t) : undefined,
+              )
               .filter(Boolean),
           );
 
-          // Add only missing metadata properties
-          metadataProperties.forEach((property) => {
+          // Merge only missing metadata keys
+          for (const property of metadataProperties) {
             if (
               t.isIdentifier(property.key) &&
               !existingKeys.has(property.key.name)
             ) {
               lastArg.properties.push(property);
             }
-          });
+          }
           return;
         }
 
-        // If no metadata object exists,
-        // create a new object and append it as the last argument
+        // No existing object — append new metadata object as last arg
         args.push(t.objectExpression(metadataProperties));
       },
     },

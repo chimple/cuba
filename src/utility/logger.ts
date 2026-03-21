@@ -1,229 +1,285 @@
-import pino, { LevelWithSilent, Logger } from 'pino';
+/* eslint-disable no-console */
 
-/**
- * Log levels supported
- */
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
-
-/**
- * Context object attached to logs
- */
 type LogContext = Record<string, unknown>;
 
-export type StructuredLogPayload = {
+export type LogPayload = {
+  timestamp?: string;
+  level: string;
   message: string;
-  error?: unknown;
   context?: LogContext;
-  service?: string;
-  environment?: string;
-  correlation_id?: string;
-  page_name?: string;
-  page_url?: string;
-  file_name?: string;
-  component_name?: string;
-  function_name?: string;
-  line_number?: number;
+  meta?: {
+    file_name?: string;
+    line_number?: number;
+    function_name?: string;
+  };
+  error?: {
+    message: string;
+    stack?: string;
+  };
+  page?: string;
 };
 
-/**
- * Default environment
- */
-const ENV = process.env.REACT_APP_ENV || process.env.NODE_ENV || 'development';
+const LEVEL_ORDER: Record<LogLevel, number> = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  silent: 4,
+};
 
-/**
- * Validate string
- */
-const isString = (v: unknown): v is string =>
-  typeof v === 'string' && v.trim().length > 0;
+const getEnvLogLevel = (): LogLevel => {
+  const envLevel = process.env.REACT_APP_LOG_LEVEL as LogLevel;
 
-/**
- * Check if plain object
- */
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
-
-/**
- * Detect log level from environment
- */
-const getInitialLevel = (): LogLevel => {
-  const level = (
-    process.env.REACT_APP_LOG_LEVEL || ''
-  ).toLowerCase() as LogLevel;
-  if (['debug', 'info', 'warn', 'error', 'silent'].includes(level)) {
-    return level;
+  if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
+    return envLevel;
   }
 
   return process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
 };
 
-let currentLevel: LogLevel = getInitialLevel();
+let currentLevel: LogLevel = getEnvLogLevel();
+
+// Opt 1: cache the window guard once instead of repeating typeof checks
+const HAS_WINDOW = typeof window !== 'undefined';
+
+const IS_NATIVE =
+  HAS_WINDOW &&
+  !!(window as any).Capacitor &&
+  (window as any).Capacitor.getPlatform() !== 'web';
+
+let cachedPage: string | undefined = HAS_WINDOW
+  ? window.location.pathname
+  : undefined;
+
+if (HAS_WINDOW) {
+  window.addEventListener('popstate', () => {
+    cachedPage = window.location.pathname;
+  });
+}
 
 /**
- * Base pino logger
+ * Parse args
  */
-const baseLogger: Logger = pino({
-  level: currentLevel,
-  base: undefined,
-  timestamp: false,
-  formatters: {
-    level: () => ({}),
-  },
-  browser: { asObject: true },
-});
+const parseArgs = (args: unknown[]) => {
+  let message: string | undefined;
+  const context: unknown[] = [];
+  let error: LogPayload['error'] | undefined;
 
-/**
- * Safe serializer
- */
-const sanitize = (value: unknown): unknown => {
-  if (
-    value === undefined ||
-    value === null ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  ) {
-    return value;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+
+    // first string → message
+    if (!message && typeof a === 'string') {
+      message = a;
+      continue;
+    }
+
+    // error handling
+    if (!error && a instanceof Error) {
+      error = { message: a.message, stack: a.stack };
+
+      // if no message yet → use error message
+      if (!message) {
+        message = a.message;
+      }
+      continue;
+    }
+
+    // EVERYTHING else → context (including strings)
+    if (typeof a !== 'undefined') {
+      context.push(a);
+    }
   }
 
-  try {
-    return JSON.parse(
-      JSON.stringify(value, (_k, v) => {
-        if (typeof v === 'bigint') return v.toString();
+  return {
+    message: message || 'Log',
+    context: context.length ? context : undefined,
+    error,
+  };
+};
 
-        if (v instanceof Error) {
-          return {
-            name: v.name,
-            message: v.message,
-            stack: v.stack,
-          };
+/**
+ * Extract meta
+ * Opt 4: skip spread + deletes when no meta keys are present on the object
+ */
+const extractMetaFromArray = (arr: unknown[]) => {
+  let file_name: string | undefined;
+  let line_number: number | undefined;
+  let function_name: string | undefined;
+
+  const cleanData: unknown[] = [];
+
+  for (let i = 0; i < arr.length; i++) {
+    const item: any = arr[i];
+
+    if (item && typeof item === 'object' && !Array.isArray(item)) {
+      const hasMeta = item.file_name || item.line_number || item.function_name;
+
+      if (hasMeta) {
+        if (!file_name && item.file_name) file_name = item.file_name;
+        if (!line_number && item.line_number) line_number = item.line_number;
+        if (!function_name && item.function_name)
+          function_name = item.function_name;
+
+        const rest = { ...item };
+        delete rest.file_name;
+        delete rest.line_number;
+        delete rest.function_name;
+
+        if (Object.keys(rest).length > 0) {
+          cleanData.push(rest);
         }
-
-        return v;
-      }),
-    );
-  } catch {
-    return String(value);
+      } else {
+        cleanData.push(item);
+      }
+    } else {
+      cleanData.push(item);
+    }
   }
+
+  return {
+    meta:
+      file_name || line_number || function_name
+        ? { file_name, line_number, function_name }
+        : undefined,
+    cleanData,
+  };
 };
 
 /**
- * Detect page name
+ * Build payload
  */
-const getPageName = () => {
-  if (typeof window === 'undefined') return;
-  const path = window.location.pathname.replace(/\/+$/, '');
-  if (!path || path === '/') return 'root';
-  return path.split('/').pop();
-};
+const buildPayload = (level: LogMethod, args: unknown[]): LogPayload => {
+  const isDetailedLog = level === 'warn' || level === 'error';
 
-/**
- * Detect page url
- */
-const getPageUrl = () => {
-  if (typeof window === 'undefined') return;
+  const { message, context, error } = parseArgs(args);
 
-  return window.location.href;
-};
+  let meta: LogPayload['meta'] | undefined;
+  let cleanContext: LogContext | undefined;
 
-/**
- * Extract error object
- */
-const findError = (args: unknown[]) => {
-  return args.find((a) => a instanceof Error) as Error | undefined;
-};
+  if (context) {
+    const { meta: extractedMeta, cleanData } = extractMetaFromArray(context);
 
-/**
- * Normalize message
- */
-const getMessage = (first: unknown, second: unknown) => {
-  if (isString(first)) return first;
-  if (first instanceof Error) return first.message;
-  if (isString(second)) return second;
+    if (isDetailedLog && extractedMeta) {
+      meta = extractedMeta;
+    }
 
-  return 'Log event';
-};
+    if (cleanData.length > 0) {
+      cleanContext = { data: cleanData };
+    }
+  }
 
-/**
- * Build base log payload
- */
-const buildPayload = (level: LogMethod, args: unknown[]) => {
-  const [first, second] = args;
-
-  const message = getMessage(first, second);
-  const error = findError(args);
-
-  const payload: StructuredLogPayload & {
-    timestamp: string;
-    level: string;
-  } = {
-    timestamp: new Date().toISOString(),
+  const payload: LogPayload = {
     level: level.toUpperCase(),
     message,
   };
 
-  if (ENV !== 'development') payload.environment = ENV;
-
-  const page = getPageName();
-  const url = getPageUrl();
-
-  if (page) payload.page_name = page;
-  if (url) payload.page_url = url;
-
-  if (error) {
-    payload.error = {
-      message: error.message,
-      stack_trace: error.stack,
-    };
+  if (isDetailedLog) {
+    payload.timestamp = new Date().toISOString();
+    payload.page = cachedPage;
   }
 
-  const contextArgs = args.filter(
-    (a) => !(a instanceof Error) && a !== message,
-  );
-
-  if (contextArgs.length === 1)
-    payload.context = sanitize(contextArgs[0]) as LogContext;
-  else if (contextArgs.length > 1)
-    payload.context = { args: sanitize(contextArgs) };
+  if (meta) payload.meta = meta;
+  if (cleanContext) payload.context = cleanContext;
+  if (error) payload.error = error;
 
   return payload;
 };
 
-/**
- * Emit log
- */
-const emit = (level: LogMethod, args: unknown[]) => {
-  const payload = buildPayload(level, args);
-  const writer = baseLogger[level] as (...args: unknown[]) => void;
-
-  writer.call(baseLogger, payload);
+const formatForNative = (obj: unknown): string => {
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return '[Object]';
+  }
 };
 
 /**
- * Create log method
+ * Emit
  */
-const createMethod =
-  (level: LogMethod) =>
-  (...args: unknown[]) =>
-    emit(level, args);
+const emit = (level: LogMethod, args: unknown[]) => {
+  // Opt 2: cache currentLevel rank to avoid double hash lookup
+  const currentRank = LEVEL_ORDER[currentLevel];
+  if (LEVEL_ORDER[level] < currentRank) return;
 
-/**
- * Public logger
- */
+  // SIMPLE MODE — debug / info
+  if (level === 'debug' || level === 'info') {
+    const [first, ...rest] = args;
+
+    const message =
+      typeof first === 'string'
+        ? first
+        : first instanceof Error
+          ? first.message
+          : 'Log';
+
+    const rawArgs = typeof first === 'string' ? rest : args;
+
+    // Opt 5: single reduce pass instead of map + filter (also preserves 0 / false values)
+    const cleanedArgs = rawArgs.reduce<unknown[]>((acc, arg) => {
+      if (arg && typeof arg === 'object' && !Array.isArray(arg)) {
+        const obj = { ...(arg as any) };
+        delete obj.file_name;
+        delete obj.line_number;
+        delete obj.function_name;
+        if (Object.keys(obj).length) acc.push(obj);
+      } else if (arg != null) {
+        acc.push(arg);
+      }
+      return acc;
+    }, []);
+
+    if (IS_NATIVE) {
+      const serialized = cleanedArgs.map((a) =>
+        a && typeof a === 'object' ? formatForNative(a) : a,
+      );
+      return console.log(`[${level.toUpperCase()}] ${message}`, ...serialized);
+    }
+
+    return console.log(
+      `#### [${level.toUpperCase()}] ${message}`,
+      ...cleanedArgs,
+    );
+  }
+
+  // DETAILED MODE — warn / error
+  const payload = buildPayload(level, args);
+  const message = `[${payload.level}] ${payload.message}`;
+
+  if (IS_NATIVE) {
+    const log = `${message}\n${formatForNative(payload)}`;
+
+    if (level === 'error') return console.error(log);
+    if (level === 'warn') return console.warn(log);
+  }
+
+  const prefix = `#### ${message}`;
+
+  if (level === 'error') return console.error(prefix, payload);
+  if (level === 'warn') return console.warn(prefix, payload);
+};
+
+// Opt 6: named inner function for better devtools stack traces
+const create = (level: LogMethod) =>
+  function log(...args: unknown[]) {
+    return emit(level, args);
+  };
+
 export const logger = {
   setLevel(level: LogLevel) {
     currentLevel = level;
-    baseLogger.level = level as LevelWithSilent;
   },
 
   getLevel() {
     return currentLevel;
   },
 
-  debug: createMethod('debug'),
-  info: createMethod('info'),
-  warn: createMethod('warn'),
-  error: createMethod('error'),
+  debug: create('debug'),
+  info: create('info'),
+  warn: create('warn'),
+  error: create('error'),
 };
 
 export default logger;

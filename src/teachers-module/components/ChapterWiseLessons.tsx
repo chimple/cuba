@@ -24,7 +24,6 @@ type CourseGroup = {
 
 interface Props {
   courseGroups: CourseGroup[];
-  otherLessons: TableTypes<'lesson'>[];
   isLessonSelected: (chapterId: string, lessonId: string) => boolean;
   toggleLessonSelection: (chapterId: string, lessonId: string) => void;
   selectedLesson: Map<string, string>;
@@ -40,11 +39,8 @@ interface Props {
   ) => void;
 }
 
-const OTHER_KEY = 'other';
-
 const ChapterWiseLessons: React.FC<Props> = ({
   courseGroups,
-  otherLessons,
   isLessonSelected,
   toggleLessonSelection,
   selectedLesson,
@@ -226,83 +222,6 @@ const ChapterWiseLessons: React.FC<Props> = ({
           ))}
         </div>
       ))}
-
-      {otherLessons.length > 0 && (
-        <div id="chapter-wise-other" className="chapter-wise-group">
-          <div id="chapter-wise-other-title" className="chapter-wise-title">
-            {t('Other Lessons')}
-          </div>
-
-          <div id="chapter-wise-other-grid" className="chapter-wise-grid">
-            {otherLessons.map((lesson) => (
-              <div
-                id="chapter-wise-other-card"
-                key={lesson.id}
-                className="chapter-wise-card"
-                onClick={() => {
-                  openLessonDetails(lesson, OTHER_KEY, '', '', undefined);
-                }}
-              >
-                <div id="chapter-wise-other-img" className="chapter-wise-img">
-                  <div
-                    id="chapter-wise-media-frame"
-                    className="chapter-wise-media-frame"
-                  >
-                    <SelectIconImage
-                      localSrc=""
-                      defaultSrc="assets/icons/DefaultIcon.png"
-                      webSrc={lesson.image ?? ''}
-                      imageHeight="100%"
-                      webImageHeight="0px"
-                    />
-                  </div>
-                  {isAssignedLesson(lesson.id) ? (
-                    <span
-                      id="chapter-wise-other-assigned-badge"
-                      className="chapter-wise-assigned-badge"
-                    >
-                      <img
-                        src="assets/hideassigned.png"
-                        alt=""
-                        onError={(event) => {
-                          if (!event.currentTarget.dataset.retryAbsolute) {
-                            event.currentTarget.dataset.retryAbsolute = '1';
-                            event.currentTarget.src =
-                              '/assets/hideassigned.png';
-                            return;
-                          }
-                          event.currentTarget.src =
-                            'assets/icons/assignmentSelect.svg';
-                        }}
-                      />
-                    </span>
-                  ) : null}
-                </div>
-
-                <div id="chapter-wise-other-name" className="chapter-wise-name">
-                  {lesson.name}
-                </div>
-
-                <div
-                  id="chapter-wise-other-btn"
-                  className="chapter-wise-btn"
-                  onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <SelectIcon
-                    isSelected={isLessonSelected(OTHER_KEY, lesson.id)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleLessonSelection(OTHER_KEY, lesson.id);
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </>
   );
 };

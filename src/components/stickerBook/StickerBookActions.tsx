@@ -9,6 +9,8 @@ type Props = {
   onPaint: () => void;
   saveDisabled?: boolean;
   paintDisabled?: boolean;
+  isStickerBookSaveEnabled: boolean;
+  isBookCompleted: boolean;
 };
 
 export default function StickerBookActions({
@@ -17,19 +19,23 @@ export default function StickerBookActions({
   onPaint,
   saveDisabled = false,
   paintDisabled = false,
+  isStickerBookSaveEnabled,
+  isBookCompleted,
 }: Props) {
   return (
     <div id="sticker-book-actions-root" className="StickerBookActions-root">
-      <button
-        id="sticker-book-actions-save"
-        type="button"
-        className="StickerBookActions-save"
-        onClick={onSave}
-        disabled={saveDisabled}
-      >
-        <img src={cameraIcon} alt={t('Save') || ''} />
-        {t('Save')}
-      </button>
+      {isStickerBookSaveEnabled && isBookCompleted && (
+        <button
+          id="sticker-book-actions-save"
+          type="button"
+          className="StickerBookActions-save"
+          onClick={onSave}
+          disabled={saveDisabled}
+        >
+          <img src={cameraIcon} alt={t('Save') || ''} />
+          {t('Save')}
+        </button>
+      )}
 
       {showPaint && (
         <button

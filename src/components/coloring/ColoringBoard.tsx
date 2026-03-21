@@ -199,6 +199,8 @@ const ColoringBoard: React.FC = () => {
           onSave={handleSave}
           onPaint={() => {}}
           paintDisabled={true}
+          isStickerBookSaveEnabled={true}
+          isBookCompleted={true}
         />
 
         <div id="coloring-board-tray" className="coloring-board-tray">

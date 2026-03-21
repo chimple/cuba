@@ -908,10 +908,23 @@ export enum EVENTS {
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
+  STICKER_DRAG_POPUP_SHOWN = 'sticker_drag_popup_shown',
+  STICKER_DRAG_POPUP_EXPANDED = 'sticker_drag_popup_expanded',
+  STICKER_DRAG_POPUP_CLOSED = 'sticker_drag_popup_closed',
+  STICKER_DRAG_STARTED = 'sticker_drag_started',
+  STICKER_DRAG_DROPPED_SUCCESS = 'sticker_drag_dropped_success',
+  STICKER_DRAG_DROPPED_MISS = 'sticker_drag_dropped_miss',
+  STICKER_DRAG_STICKER_SHOWN = 'sticker_drag_sticker_shown',
+  STICKER_DRAG_POINTER_SHOWN = 'sticker_drag_pointer_shown',
+  STICKER_DRAG_CONFETTI_SHOWN = 'sticker_drag_confetti_shown',
+  STICKER_DRAG_POPUP_TO_PROFILE = 'sticker_drag_popup_to_profile',
   STICKER_BOOK_COMPLETION_POPUP_OPENED = 'sticker_book_completion_popup_opened',
   STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED = 'sticker_book_completion_popup_close_clicked',
   STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED = 'sticker_book_completion_popup_save_clicked',
   STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED = 'sticker_book_completion_popup_paint_clicked',
+  STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
+  STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
+  STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
 }
 
 export const FCM_TOKENS = 'fcmTokens';
@@ -1334,3 +1347,7 @@ export enum RESULT_STATUS {
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
+export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
+  'sticker-book-notification-dot-enabled';
+export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
+  'enable_save_and_share_sticker_book';
