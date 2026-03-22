@@ -1,6 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import StickerBookBoard from './StickerBookBoard';
 
+jest.mock('i18next', () => ({
+  t: (key: string) => key,
+}));
+
+jest.mock('../../utility/util', () => ({
+  Util: {
+    getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+    logEvent: jest.fn(),
+  },
+}));
+
 const baseProps = {
   title: 'STICKER BOOK : ANIMALS',
   canGoPrev: true,
@@ -8,6 +19,8 @@ const baseProps = {
   isLocked: false,
   collectedStickers: [],
   svgRaw: null,
+  isStickerBookSaveEnabled: true,
+  isBookCompleted: true,
   onBack: jest.fn(),
   onPrev: jest.fn(),
   onNext: jest.fn(),
@@ -169,6 +182,32 @@ describe('StickerBookBoard', () => {
     await waitFor(() => {
       expect(document.querySelector('svg')).toBeInTheDocument();
     });
+  });
+
+  test('save button hidden when sticker book save feature is disabled', () => {
+    render(
+      <StickerBookBoard
+        {...baseProps}
+        isStickerBookSaveEnabled={false}
+        isBookCompleted={true}
+        collectedStickers={[]}
+      />,
+    );
+
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
+  });
+
+  test('save button hidden when book is not completed', () => {
+    render(
+      <StickerBookBoard
+        {...baseProps}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={false}
+        collectedStickers={[]}
+      />,
+    );
+
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
   /* ---------------- ADDITIONAL TEST CASES ---------------- */
 
@@ -338,6 +377,8 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
         svgRaw={null}
         isLocked={false}
+        isStickerBookSaveEnabled={true}
+        isBookCompleted={true}
       />,
     );
   });

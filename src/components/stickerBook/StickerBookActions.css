@@ -32,6 +32,10 @@
   color: #2a004a;
 }
 
+.StickerBookActions-save:active {
+  border-bottom-width: clamp(1.5px, 0.3vw, 2px);
+}
+
 .StickerBookActions-paint {
   display: flex;
   flex-direction: column;
