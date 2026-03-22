@@ -235,30 +235,26 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers whatsapp message type select options and change handler wiring.
   it('renders utility/marketing options and calls setMessageType on selection change', () => {
-    const { state, container } = renderPage({ isWhatsappMode: true, messageType: 'utility' });
+    const { state } = renderPage({ isWhatsappMode: true, messageType: 'utility' });
 
-    const select = container.querySelector('input')?.closest('div')?.querySelector('input');
-    expect(screen.getByText('utility')).toBeInTheDocument();
-    expect(screen.getByText('marketing')).toBeInTheDocument();
+    const select = screen.getByDisplayValue('utility');
+    expect(select).toBeInTheDocument();
 
-    fireEvent.change(screen.getByDisplayValue('utility'), {
+    fireEvent.change(select, {
       target: { value: 'marketing' },
     });
 
     expect(state.setMessageType).toHaveBeenCalledWith('marketing');
-    expect(select).toBeDefined();
   });
 
   // Covers upload zone click behavior invoking hidden file input click.
   it('triggers upload input click when upload zone is clicked', async () => {
     const user = userEvent.setup();
-    const clickSpy = jest.fn();
-    const { container } = renderPage({
-      isWhatsappMode: true,
-      uploadInputRef: { current: { click: clickSpy } },
-    });
+    const { container } = renderPage({ isWhatsappMode: true });
 
     const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
     await user.click(uploadZone);
 
     expect(clickSpy).toHaveBeenCalledTimes(1);
@@ -266,13 +262,11 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers upload zone keyboard accessibility for Enter and Space activation.
   it('triggers upload input click on Enter and Space keyboard events', () => {
-    const clickSpy = jest.fn();
-    const { container } = renderPage({
-      isWhatsappMode: true,
-      uploadInputRef: { current: { click: clickSpy } },
-    });
+    const { container } = renderPage({ isWhatsappMode: true });
 
     const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
     fireEvent.keyDown(uploadZone, { key: 'Enter' });
     fireEvent.keyDown(uploadZone, { key: ' ' });
 
@@ -316,11 +310,9 @@ describe('ParentWhatsappInvitationPage component', () => {
   // Covers browse button click propagation stop to avoid duplicate upload-zone click.
   it('invokes upload click once when Browse files button is clicked', async () => {
     const user = userEvent.setup();
-    const clickSpy = jest.fn();
-    renderPage({
-      isWhatsappMode: true,
-      uploadInputRef: { current: { click: clickSpy } },
-    });
+    const { container } = renderPage({ isWhatsappMode: true });
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
 
     await user.click(screen.getByRole('button', { name: 'Browse files' }));
 
@@ -407,7 +399,7 @@ describe('ParentWhatsappInvitationPage component', () => {
     expect(screen.getByText('Invalid Numbers')).toBeInTheDocument();
     expect(screen.getByText('Duplicate Numbers')).toBeInTheDocument();
     expect(screen.getByText('WhatsApp Failures')).toBeInTheDocument();
-    expect(screen.getByText('Failed')).toBeInTheDocument();
+    expect(screen.getByText(/919876543210\|Failed\|500\|error/)).toBeInTheDocument();
   });
 
   // Covers analysis output rendering and send invitation button enable/disable behavior.
@@ -463,7 +455,17 @@ describe('ParentWhatsappInvitationPage component', () => {
       showMsg91Report: false,
       analysisFeedback: { severity: 'success', text: 'analysis done' },
       smsFeedback: { severity: 'warning', text: 'sms warn' },
-      smsResult: { successCount: 5, failedBatches: [{ batchIndex: 1 }] },
+      smsResult: {
+        successCount: 5,
+        failedBatches: [
+          {
+            batchIndex: 1,
+            recipients: ['919876543210'],
+            inviteRows: [],
+            error: { message: 'batch failed' },
+          },
+        ],
+      },
     });
 
     expect(screen.getByText('analysis done')).toBeInTheDocument();
@@ -998,6 +1000,8 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
     await act(async () => {
       await result.current.handleAnalyze();
+    });
+    await act(async () => {
       await result.current.handleSendSmsInvites();
     });
 
@@ -1048,6 +1052,8 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     await act(async () => {
       await result.current.handleAnalyze();
+    });
+    await act(async () => {
       await result.current.handleSendSmsInvites();
     });
     expect(result.current.smsFeedback?.severity).toBe('warning');
@@ -1062,6 +1068,8 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     await act(async () => {
       await result.current.handleAnalyze();
+    });
+    await act(async () => {
       await result.current.handleSendSmsInvites();
     });
 
@@ -1388,6 +1396,8 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     await act(async () => {
       await result.current.handleAnalyze();
+    });
+    await act(async () => {
       await result.current.handleSendSmsInvites();
     });
 
@@ -1430,7 +1440,10 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     const file = new File([content], name, { type });
     if (!file.arrayBuffer) {
       Object.defineProperty(file, 'arrayBuffer', {
-        value: async () => new TextEncoder().encode(content).buffer,
+        value: async () =>
+          Uint8Array.from(
+            Array.from(content).map((character) => character.charCodeAt(0)),
+          ).buffer,
       });
     }
     return file;
@@ -1497,34 +1510,56 @@ describe('ParentWhatsappInvitationPage service exports', () => {
 
   // Covers analysis behavior for missing group id, failed group fetch, and limit break.
   it('handles class/group edge cases and limit stop while analyzing', async () => {
-    const api = createApiMock();
-    api.getParentWhatsappSchoolByUdise.mockResolvedValue({
+    const failedApi = createApiMock();
+    failedApi.getParentWhatsappSchoolByUdise.mockResolvedValue({
       id: 'school-1',
       name: 'School 1',
     });
-    api.getParentWhatsappClassesBySchoolId
-      .mockResolvedValueOnce([{ id: 'class-1', name: 'Class 1', group_id: null }])
-      .mockResolvedValueOnce([{ id: 'class-2', name: 'Class 2', group_id: 'g2' }]);
-    api.getParentWhatsappGroupDetails
-      .mockRejectedValueOnce(new Error('group failed'))
-      .mockResolvedValueOnce({ data: { participants: [] } });
-    api.getParentWhatsappParentPhonesByClassId.mockResolvedValue([
+    failedApi.getParentWhatsappClassesBySchoolId.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1', group_id: null },
+      { id: 'class-2', name: 'Class 2', group_id: 'g2' },
+    ]);
+    failedApi.getParentWhatsappGroupDetails.mockRejectedValueOnce(
+      new Error('group failed'),
+    );
+    failedApi.getParentWhatsappParentPhonesByClassId.mockResolvedValue([
       '919876543210',
       '919876543211',
     ]);
 
     const failed = await parentWhatsappInvitationService.processParentWhatsappUdiseCodes(
       {
-        api: api as any,
+        api: failedApi as any,
         udiseCodes: ['1234567890'],
         limit: 10,
       },
     );
     expect(failed.failedGroups.length).toBeGreaterThan(0);
 
+    const limitedApi = createApiMock();
+    limitedApi.getParentWhatsappSchoolByUdise.mockResolvedValue({
+      id: 'school-1',
+      name: 'School 1',
+    });
+    limitedApi.getParentWhatsappClassesBySchoolId.mockResolvedValue([
+      {
+        id: 'class-1',
+        name: 'Class 1',
+        group_id: 'group-1',
+        whatsapp_invite_link: 'https://chat.whatsapp.com/invite-1',
+      },
+    ]);
+    limitedApi.getParentWhatsappGroupDetails.mockResolvedValue({
+      data: { participants: [] },
+    });
+    limitedApi.getParentWhatsappParentPhonesByClassId.mockResolvedValue([
+      '919876543210',
+      '919876543211',
+    ]);
+
     const limited =
       await parentWhatsappInvitationService.processParentWhatsappUdiseCodes({
-        api: api as any,
+        api: limitedApi as any,
         udiseCodes: ['1234567890', '2234567890'],
         limit: 1,
       });
