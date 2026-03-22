@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import { t } from 'i18next';
+import { useEffect, useRef, useState } from 'react';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { ApiHandler } from '../../../services/api/ApiHandler';
 import {
@@ -16,7 +16,7 @@ import {
   sendParentWhatsappMsg91Invites,
   sendParentWhatsappTemplateMessage,
   uploadParentWhatsappMedia,
-} from './parentWhatsappInvitationService';
+} from './ParentWhatsappInvitationPageService';
 
 // Standard alert payload used across this page.
 export type Feedback = {
@@ -93,7 +93,7 @@ export const getWhatsappMediaType = (
     mediaType: null,
     error: String(
       t(
-      'Only PNG/JPEG up to 5 MB or MP4/3GP up to 16 MB are allowed for WhatsApp media.',
+        'Only PNG/JPEG up to 5 MB or MP4/3GP up to 16 MB are allowed for WhatsApp media.',
       ),
     ),
   };

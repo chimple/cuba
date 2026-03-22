@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   act,
   fireEvent,
@@ -8,6 +7,8 @@ import {
   waitFor,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import * as phoneNormalization from '../../utils/phoneNormalization';
 import ParentWhatsappInvitationPage from './ParentWhatsappInvitationPage';
 import {
   formatCellValue,
@@ -18,10 +19,8 @@ import {
   getWhatsappMediaType,
   toApiError,
   useParentWhatsappInvitationPageLogic,
-} from './parentWhatsappInvitationPageLogic';
-import * as parentWhatsappInvitationService from './parentWhatsappInvitationService';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import * as phoneNormalization from '../../utils/phoneNormalization';
+} from './ParentWhatsappInvitationPageLogic';
+import * as parentWhatsappInvitationService from './ParentWhatsappInvitationPageService';
 
 jest.mock('i18next', () => ({
   t: (key: string, options?: Record<string, unknown>) => {
@@ -82,7 +81,7 @@ const mockUseParentWhatsappInvitationPageLogic =
 
 const actualPageLogicModule = jest.requireActual(
   './parentWhatsappInvitationPageLogic',
-) as typeof import('./parentWhatsappInvitationPageLogic');
+) as typeof import('./ParentWhatsappInvitationPageLogic');
 
 const useParentWhatsappInvitationPageLogicActual =
   actualPageLogicModule.useParentWhatsappInvitationPageLogic;
@@ -174,7 +173,9 @@ describe('ParentWhatsappInvitationPage component', () => {
 
     expect(screen.getByText('Enter UDISE codes')).toBeInTheDocument();
     expect(screen.getByText('Message Limit')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Run Analysis' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Run Analysis' }),
+    ).toBeInTheDocument();
   });
 
   // Covers switch accessibility attributes for toggle controls.
@@ -200,7 +201,9 @@ describe('ParentWhatsappInvitationPage component', () => {
     const user = userEvent.setup();
     const { state } = renderPage({ showMsg91Report: false });
 
-    await user.click(screen.getByRole('switch', { name: /View MSG91 Report/i }));
+    await user.click(
+      screen.getByRole('switch', { name: /View MSG91 Report/i }),
+    );
     expect(state.setShowMsg91Report).toHaveBeenCalledWith(true);
   });
 
@@ -223,19 +226,28 @@ describe('ParentWhatsappInvitationPage component', () => {
 
     expect(screen.getByText('Start Date')).toBeInTheDocument();
     expect(screen.getByText('End Date')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Report' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Report' }),
+    ).toBeInTheDocument();
   });
 
   // Covers report button disabled state while report request is loading.
   it('disables Get Report button when isLoadingReport is true', () => {
-    renderPage({ isWhatsappMode: false, showMsg91Report: true, isLoadingReport: true });
+    renderPage({
+      isWhatsappMode: false,
+      showMsg91Report: true,
+      isLoadingReport: true,
+    });
 
     expect(screen.getByRole('button', { name: 'Get Report' })).toBeDisabled();
   });
 
   // Covers whatsapp message type select options and change handler wiring.
   it('renders utility/marketing options and calls setMessageType on selection change', () => {
-    const { state } = renderPage({ isWhatsappMode: true, messageType: 'utility' });
+    const { state } = renderPage({
+      isWhatsappMode: true,
+      messageType: 'utility',
+    });
 
     const select = screen.getByDisplayValue('utility');
     expect(select).toBeInTheDocument();
@@ -252,8 +264,12 @@ describe('ParentWhatsappInvitationPage component', () => {
     const user = userEvent.setup();
     const { container } = renderPage({ isWhatsappMode: true });
 
-    const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const uploadZone = container.querySelector(
+      '[role="button"][tabindex="0"]',
+    ) as HTMLElement;
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
     await user.click(uploadZone);
 
@@ -264,8 +280,12 @@ describe('ParentWhatsappInvitationPage component', () => {
   it('triggers upload input click on Enter and Space keyboard events', () => {
     const { container } = renderPage({ isWhatsappMode: true });
 
-    const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const uploadZone = container.querySelector(
+      '[role="button"][tabindex="0"]',
+    ) as HTMLElement;
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
     fireEvent.keyDown(uploadZone, { key: 'Enter' });
     fireEvent.keyDown(uploadZone, { key: ' ' });
@@ -277,7 +297,9 @@ describe('ParentWhatsappInvitationPage component', () => {
   it('calls dragging state handlers on drag over and drag leave', () => {
     const { state, container } = renderPage({ isWhatsappMode: true });
 
-    const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
+    const uploadZone = container.querySelector(
+      '[role="button"][tabindex="0"]',
+    ) as HTMLElement;
     fireEvent.dragOver(uploadZone);
     fireEvent.dragLeave(uploadZone);
 
@@ -290,7 +312,9 @@ describe('ParentWhatsappInvitationPage component', () => {
     const file = new File(['a'], 'drop.png', { type: 'image/png' });
     const { state, container } = renderPage({ isWhatsappMode: true });
 
-    const uploadZone = container.querySelector('[role="button"][tabindex="0"]') as HTMLElement;
+    const uploadZone = container.querySelector(
+      '[role="button"][tabindex="0"]',
+    ) as HTMLElement;
     fireEvent.drop(uploadZone, { dataTransfer: { files: [file] } });
 
     expect(state.handleFileSelect).toHaveBeenCalledWith([file]);
@@ -301,7 +325,9 @@ describe('ParentWhatsappInvitationPage component', () => {
     const file = new File(['a'], 'input.png', { type: 'image/png' });
     const { state, container } = renderPage({ isWhatsappMode: true });
 
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
 
     expect(state.handleFileSelect).toHaveBeenCalledWith([file]);
@@ -311,7 +337,9 @@ describe('ParentWhatsappInvitationPage component', () => {
   it('invokes upload click once when Browse files button is clicked', async () => {
     const user = userEvent.setup();
     const { container } = renderPage({ isWhatsappMode: true });
-    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
 
     await user.click(screen.getByRole('button', { name: 'Browse files' }));
@@ -334,12 +362,20 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers progress visibility for active send or non-zero progress values.
   it('shows whatsapp progress when sending or progress is greater than zero', () => {
-    const { rerender } = renderPage({ isWhatsappMode: true, isSendingWhatsapp: true, whatsappProgress: 0 });
+    const { rerender } = renderPage({
+      isWhatsappMode: true,
+      isSendingWhatsapp: true,
+      whatsappProgress: 0,
+    });
 
     expect(screen.getByText('0% complete')).toBeInTheDocument();
 
     mockUseParentWhatsappInvitationPageLogic.mockReturnValue(
-      createLogicState({ isWhatsappMode: true, isSendingWhatsapp: false, whatsappProgress: 55 }) as any,
+      createLogicState({
+        isWhatsappMode: true,
+        isSendingWhatsapp: false,
+        whatsappProgress: 55,
+      }) as any,
     );
     rerender(<ParentWhatsappInvitationPage />);
 
@@ -348,7 +384,11 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers progress hidden state when not sending and progress is zero.
   it('hides whatsapp progress when not sending and progress is zero', () => {
-    renderPage({ isWhatsappMode: true, isSendingWhatsapp: false, whatsappProgress: 0 });
+    renderPage({
+      isWhatsappMode: true,
+      isSendingWhatsapp: false,
+      whatsappProgress: 0,
+    });
 
     expect(screen.queryByText('0% complete')).not.toBeInTheDocument();
   });
@@ -399,7 +439,9 @@ describe('ParentWhatsappInvitationPage component', () => {
     expect(screen.getByText('Invalid Numbers')).toBeInTheDocument();
     expect(screen.getByText('Duplicate Numbers')).toBeInTheDocument();
     expect(screen.getByText('WhatsApp Failures')).toBeInTheDocument();
-    expect(screen.getByText(/919876543210\|Failed\|500\|error/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/919876543210\|Failed\|500\|error/),
+    ).toBeInTheDocument();
   });
 
   // Covers analysis output rendering and send invitation button enable/disable behavior.
@@ -545,7 +587,10 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers toggle checked modifier CSS class for checked and unchecked states.
   it('applies checked CSS modifier class only when toggle is checked', () => {
-    const { rerender } = renderPage({ isWhatsappMode: false, showMsg91Report: false });
+    const { rerender } = renderPage({
+      isWhatsappMode: false,
+      showMsg91Report: false,
+    });
     expect(
       document.querySelector('.parent-whatsapp-page-toggle-control--checked'),
     ).not.toBeInTheDocument();
@@ -569,13 +614,19 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers WhatsApp send button enabled and disabled states.
   it('toggles Send WhatsApp Message button disabled state using isSendingWhatsapp', () => {
-    const { rerender } = renderPage({ isWhatsappMode: true, isSendingWhatsapp: true });
+    const { rerender } = renderPage({
+      isWhatsappMode: true,
+      isSendingWhatsapp: true,
+    });
     expect(
       screen.getByRole('button', { name: 'Send WhatsApp Message' }),
     ).toBeDisabled();
 
     mockUseParentWhatsappInvitationPageLogic.mockReturnValue(
-      createLogicState({ isWhatsappMode: true, isSendingWhatsapp: false }) as any,
+      createLogicState({
+        isWhatsappMode: true,
+        isSendingWhatsapp: false,
+      }) as any,
     );
     rerender(<ParentWhatsappInvitationPage />);
     expect(
@@ -586,7 +637,9 @@ describe('ParentWhatsappInvitationPage component', () => {
   // Covers absence of uploaded file info card when no file is selected.
   it('does not render uploaded file card when uploadedMedia is null', () => {
     renderPage({ isWhatsappMode: true, uploadedMedia: null });
-    expect(screen.queryByRole('button', { name: 'Remove uploaded file' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Remove uploaded file' }),
+    ).toBeNull();
   });
 
   // Covers hidden state for feedback and summary when both are null.
@@ -620,13 +673,19 @@ describe('ParentWhatsappInvitationPage component', () => {
     fireEvent.click(screen.getByRole('button', { name: '-' }));
     expect(state.setLimit).toHaveBeenCalledWith(expect.any(Function));
 
-    fireEvent.change(screen.getByDisplayValue('300'), { target: { value: '0' } });
+    fireEvent.change(screen.getByDisplayValue('300'), {
+      target: { value: '0' },
+    });
     expect(state.setLimit).toHaveBeenCalledWith(1);
   });
 
   // Covers hidden analysis output when analysisResult is null.
   it('does not render analysis section when analysisResult is null', () => {
-    renderPage({ isWhatsappMode: false, showMsg91Report: false, analysisResult: null });
+    renderPage({
+      isWhatsappMode: false,
+      showMsg91Report: false,
+      analysisResult: null,
+    });
     expect(screen.queryByText('Processed UDISE')).toBeNull();
   });
 
@@ -643,7 +702,10 @@ describe('ParentWhatsappInvitationPage component', () => {
 
   // Covers FieldBlock structure by ensuring labels and corresponding inputs are rendered together.
   it('renders FieldBlock labels with their input controls in the same block', () => {
-    const { container } = renderPage({ isWhatsappMode: false, showMsg91Report: false });
+    const { container } = renderPage({
+      isWhatsappMode: false,
+      showMsg91Report: false,
+    });
     const udiseLabel = screen.getByText('Enter UDISE codes');
     const fieldBlock = udiseLabel.closest('#parent-whatsapp-page-field-block');
     expect(fieldBlock).toBeInTheDocument();
@@ -654,9 +716,13 @@ describe('ParentWhatsappInvitationPage component', () => {
       showMsg91Report: true,
     });
     mockUseParentWhatsappInvitationPageLogic.mockReturnValue(reportView as any);
-    const { container: reportContainer } = render(<ParentWhatsappInvitationPage />);
+    const { container: reportContainer } = render(
+      <ParentWhatsappInvitationPage />,
+    );
     expect(screen.getByText('Start Date')).toBeInTheDocument();
-    expect(reportContainer.querySelector('input[type="date"]')).toBeInTheDocument();
+    expect(
+      reportContainer.querySelector('input[type="date"]'),
+    ).toBeInTheDocument();
   });
 });
 
@@ -857,7 +923,10 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
       .spyOn(parentWhatsappInvitationService, 'uploadParentWhatsappMedia')
       .mockResolvedValue('media-1');
     jest
-      .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappTemplateMessage')
+      .spyOn(
+        parentWhatsappInvitationService,
+        'sendParentWhatsappTemplateMessage',
+      )
       .mockResolvedValue(undefined);
   });
 
@@ -867,8 +936,12 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers warning feedback when analysis is triggered without configured API.
   it('sets analysis error feedback when api is missing', async () => {
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: null } as any);
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: null } as any);
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     await act(async () => {
       await result.current.handleAnalyze();
@@ -882,7 +955,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers warning feedback for empty or whitespace-only UDISE input.
   it('sets warning feedback for empty and whitespace-only UDISE input', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     await act(async () => {
       await result.current.handleAnalyze();
@@ -904,7 +979,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
       parentWhatsappInvitationService,
       'processParentWhatsappUdiseCodes',
     );
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111,01111111111\n02222222222');
@@ -924,7 +1001,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers successful analysis state updates and success feedback.
   it('sets analysis result and success feedback after successful analysis', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -946,7 +1025,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     jest
       .spyOn(parentWhatsappInvitationService, 'processParentWhatsappUdiseCodes')
       .mockRejectedValueOnce(new Error('Analyze failed'));
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -969,7 +1050,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
       .spyOn(parentWhatsappInvitationService, 'processParentWhatsappUdiseCodes')
       .mockReturnValueOnce(deferred.promise as any);
 
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -992,7 +1075,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers SMS feedback and summary reset when analysis starts again.
   it('clears previous smsResult and smsFeedback at analyze start', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -1018,7 +1103,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers SMS invite warning and error paths for missing API or analysis data.
   it('sets sms feedback for missing api and missing analysis result', async () => {
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: null } as any);
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: null } as any);
     const { result: missingApi } = renderHook(() =>
       useParentWhatsappInvitationPageLogicActual(),
     );
@@ -1027,8 +1114,12 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     expect(missingApi.current.smsFeedback?.severity).toBe('error');
 
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: mockApi } as any);
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: mockApi } as any);
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     await act(async () => {
       await result.current.handleSendSmsInvites();
     });
@@ -1046,7 +1137,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
         totalMissing: 0,
       } as any);
 
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setUdiseInput('01111111111');
     });
@@ -1061,7 +1154,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers SMS invite success and warning variants based on failed batches.
   it('sets success or warning sms feedback based on failed batch count', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -1098,7 +1193,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers report fetch warning and error paths for missing API and dates.
   it('sets report feedback for missing api and missing dates', async () => {
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: null } as any);
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: null } as any);
     const { result: missingApi } = renderHook(() =>
       useParentWhatsappInvitationPageLogicActual(),
     );
@@ -1107,8 +1204,12 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     expect(missingApi.current.reportFeedback?.severity).toBe('error');
 
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: mockApi } as any);
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: mockApi } as any);
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setStartDate('');
     });
@@ -1120,7 +1221,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers report fetch success updates and error handling with loading reset.
   it('sets report rows on success and error feedback on failure', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setStartDate('2025-01-01');
@@ -1165,7 +1268,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers file selection handling for null, empty, single-file, and multi-file input.
   it('sets uploaded media correctly for null, empty, single, and multiple file lists', () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     const one = new File(['a'], 'one.png', { type: 'image/png' });
     const two = new File(['a'], 'two.png', { type: 'image/png' });
 
@@ -1192,7 +1297,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers manual validation updates when phone input changes.
   it('updates manual phone validation when phone input changes', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setPhoneInput('9876543210\n9876543210\n12345');
@@ -1202,14 +1309,18 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
       expect(result.current.manualValidation.normalizedPhones).toEqual([
         '9876543210',
       ]);
-      expect(result.current.manualValidation.duplicates).toEqual(['9876543210']);
+      expect(result.current.manualValidation.duplicates).toEqual([
+        '9876543210',
+      ]);
       expect(result.current.manualValidation.invalid).toEqual(['12345']);
     });
   });
 
   // Covers WhatsApp send guard, validation checks, success path, and failure path.
   it('runs whatsapp send validations and updates summary for success and partial failure', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     await act(async () => {
       await result.current.handleSendWhatsapp();
@@ -1234,7 +1345,10 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
 
     jest
-      .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappTemplateMessage')
+      .spyOn(
+        parentWhatsappInvitationService,
+        'sendParentWhatsappTemplateMessage',
+      )
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error('template failed'));
 
@@ -1248,7 +1362,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers WhatsApp send API-missing and template-language validation branches.
   it('returns manual feedback errors for missing api and missing template fields', async () => {
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: null } as any);
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: null } as any);
     const { result: noApi } = renderHook(() =>
       useParentWhatsappInvitationPageLogicActual(),
     );
@@ -1257,8 +1373,12 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
     expect(noApi.current.manualFeedback?.severity).toBe('error');
 
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({ apiHandler: mockApi } as any);
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    jest
+      .spyOn(ServiceConfig, 'getI')
+      .mockReturnValue({ apiHandler: mockApi } as any);
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setTemplateName('welcome_template');
       result.current.setTemplateLang('');
@@ -1274,11 +1394,16 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
   it('does not re-enter whatsapp send loop when a send is already in progress', async () => {
     const deferred = createDeferred<void>();
     jest
-      .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappTemplateMessage')
+      .spyOn(
+        parentWhatsappInvitationService,
+        'sendParentWhatsappTemplateMessage',
+      )
       .mockReturnValueOnce(deferred.promise)
       .mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setTemplateName('welcome_template');
       result.current.setTemplateLang('en');
@@ -1310,7 +1435,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers WhatsApp send warning branch for over-1000 unique phone inputs.
   it('shows warning when more than 1000 unique phone numbers are provided', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     const phones = Array.from({ length: 1001 }, (_, index) => {
       const suffix = String(100000000 + index).padStart(9, '0');
       return `9${suffix}`;
@@ -1332,7 +1459,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers WhatsApp send warning when no valid phone numbers are present.
   it('shows warning when no valid Indian mobile numbers are provided', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setTemplateName('welcome_template');
       result.current.setTemplateLang('en');
@@ -1346,7 +1475,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers invalid-media, upload-failure, and no-media-upload branches for WhatsApp send.
   it('handles invalid media, media upload failure, and no-media send branches', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setTemplateName('welcome_template');
@@ -1363,7 +1494,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
       .spyOn(parentWhatsappInvitationService, 'uploadParentWhatsappMedia')
       .mockRejectedValueOnce(new Error('upload failed'));
     act(() => {
-      result.current.setUploadedMedia(new File(['a'], 'ok.png', { type: 'image/png' }));
+      result.current.setUploadedMedia(
+        new File(['a'], 'ok.png', { type: 'image/png' }),
+      );
     });
     await act(async () => {
       await result.current.handleSendWhatsapp();
@@ -1389,7 +1522,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     jest
       .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappMsg91Invites')
       .mockRejectedValueOnce(new Error('sms send failed'));
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
 
     act(() => {
       result.current.setUdiseInput('01111111111');
@@ -1408,7 +1543,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   // Covers report warning branch for missing end date specifically.
   it('sets warning report feedback when endDate is empty', async () => {
-    const { result } = renderHook(() => useParentWhatsappInvitationPageLogicActual());
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
     act(() => {
       result.current.setStartDate('2025-01-01');
       result.current.setEndDate('');
@@ -1455,14 +1592,14 @@ describe('ParentWhatsappInvitationPage service exports', () => {
 
   // Covers static config status payload with all feature flags enabled.
   it('returns all parent whatsapp config flags as true', () => {
-    expect(parentWhatsappInvitationService.getParentWhatsappConfigStatus()).toEqual(
-      {
-        hasMsg91Send: true,
-        hasMsg91Report: true,
-        hasWhatsappMediaUpload: true,
-        hasWhatsappTemplateSend: true,
-      },
-    );
+    expect(
+      parentWhatsappInvitationService.getParentWhatsappConfigStatus(),
+    ).toEqual({
+      hasMsg91Send: true,
+      hasMsg91Report: true,
+      hasWhatsappMediaUpload: true,
+      hasWhatsappTemplateSend: true,
+    });
   });
 
   // Covers UDISE processing skip and success paths for analysis output.
@@ -1496,13 +1633,12 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       '919876543211',
     ]);
 
-    const result = await parentWhatsappInvitationService.processParentWhatsappUdiseCodes(
-      {
+    const result =
+      await parentWhatsappInvitationService.processParentWhatsappUdiseCodes({
         api: api as any,
         udiseCodes: ['1234567890'],
         limit: 10,
-      },
-    );
+      });
 
     expect(result.inviteList).toHaveLength(1);
     expect(result.inviteList[0].mobile).toBe('919876543211');
@@ -1527,13 +1663,12 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       '919876543211',
     ]);
 
-    const failed = await parentWhatsappInvitationService.processParentWhatsappUdiseCodes(
-      {
+    const failed =
+      await parentWhatsappInvitationService.processParentWhatsappUdiseCodes({
         api: failedApi as any,
         udiseCodes: ['1234567890'],
         limit: 10,
-      },
-    );
+      });
     expect(failed.failedGroups.length).toBeGreaterThan(0);
 
     const limitedApi = createApiMock();
@@ -1611,7 +1746,9 @@ describe('ParentWhatsappInvitationPage service exports', () => {
   // Covers remaining report response shapes: raw array, no shape fallback, and missing success flag.
   it('handles raw-array and fallback report payload shapes', async () => {
     const api = createApiMock();
-    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ raw: [{ id: 9 }] });
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({
+      raw: [{ id: 9 }],
+    });
     expect(
       await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
         api: api as any,
@@ -1620,7 +1757,9 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       }),
     ).toEqual([{ id: 9 }]);
 
-    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ success: true });
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({
+      success: true,
+    });
     expect(
       await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
         api: api as any,
@@ -1629,7 +1768,9 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       }),
     ).toEqual([]);
 
-    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({ data: [{ id: 3 }] });
+    api.getParentWhatsappMsg91ReportRows.mockResolvedValueOnce({
+      data: [{ id: 3 }],
+    });
     expect(
       await parentWhatsappInvitationService.fetchParentWhatsappMsg91Report({
         api: api as any,
@@ -1663,10 +1804,11 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       failedBatches: [{ batchIndex: 'invalid' }],
     });
 
-    const mapped = await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
-      api as any,
-      inviteRows,
-    );
+    const mapped =
+      await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
+        api as any,
+        inviteRows,
+      );
     expect(mapped.successCount).toBe(0);
     expect(mapped.failedBatches[0].batchIndex).toBe(1);
     expect(mapped.failedBatches[0].recipients).toEqual(['919876543210']);
@@ -1695,7 +1837,11 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     api.getParentWhatsappMsg91SendResult.mockResolvedValueOnce({
       successCount: 2,
       failedBatches: [
-        { batchIndex: 1, recipients: ['919000000000'], error: { message: 'x' } },
+        {
+          batchIndex: 1,
+          recipients: ['919000000000'],
+          error: { message: 'x' },
+        },
       ],
     });
 
@@ -1704,9 +1850,13 @@ describe('ParentWhatsappInvitationPage service exports', () => {
         api as any,
         inviteRows,
       );
-    expect(withRecipients.failedBatches[0].recipients).toEqual(['919000000000']);
+    expect(withRecipients.failedBatches[0].recipients).toEqual([
+      '919000000000',
+    ]);
 
-    api.getParentWhatsappMsg91SendResult.mockResolvedValueOnce({ successCount: 2 });
+    api.getParentWhatsappMsg91SendResult.mockResolvedValueOnce({
+      successCount: 2,
+    });
     const noFailures =
       await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
         api as any,
@@ -1730,7 +1880,10 @@ describe('ParentWhatsappInvitationPage service exports', () => {
         createMockFile('a.png'),
       ),
     ).rejects.toEqual(
-      expect.objectContaining({ statusCode: 500, responseText: 'upload-failed' }),
+      expect.objectContaining({
+        statusCode: 500,
+        responseText: 'upload-failed',
+      }),
     );
 
     api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ id: 'id-1' });
@@ -1749,7 +1902,9 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       ),
     ).resolves.toBe('id-2');
 
-    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ raw: { id: 'id-3' } });
+    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({
+      raw: { id: 'id-3' },
+    });
     await expect(
       parentWhatsappInvitationService.uploadParentWhatsappMedia(
         api as any,
@@ -1757,7 +1912,10 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       ),
     ).resolves.toBe('id-3');
 
-    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ success: true, raw: {} });
+    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({
+      success: true,
+      raw: {},
+    });
     await expect(
       parentWhatsappInvitationService.uploadParentWhatsappMedia(
         api as any,
@@ -1770,9 +1928,14 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       }),
     );
 
-    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({ id: 'fallback-id' });
+    api.uploadParentWhatsappMediaRpc.mockResolvedValueOnce({
+      id: 'fallback-id',
+    });
     const file = createMockFile('no-type.bin', '', 'abc');
-    await parentWhatsappInvitationService.uploadParentWhatsappMedia(api as any, file);
+    await parentWhatsappInvitationService.uploadParentWhatsappMedia(
+      api as any,
+      file,
+    );
     expect(api.uploadParentWhatsappMediaRpc).toHaveBeenCalledWith(
       expect.any(String),
       'no-type.bin',
@@ -1787,14 +1950,17 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       success: true,
     });
     await expect(
-      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(api as any, {
-        to: '919876543210',
-        templateName: 'welcome',
-        templateLang: 'en',
-        messageType: 'utility',
-        mediaId: 'media-1',
-        mediaType: 'image',
-      }),
+      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(
+        api as any,
+        {
+          to: '919876543210',
+          templateName: 'welcome',
+          templateLang: 'en',
+          messageType: 'utility',
+          mediaId: 'media-1',
+          mediaType: 'image',
+        },
+      ),
     ).resolves.toBeUndefined();
 
     api.sendParentWhatsappTemplateMessageRpc.mockResolvedValueOnce({
@@ -1804,26 +1970,32 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       raw: { error: 'invalid' },
     });
     await expect(
-      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(api as any, {
-        to: '919876543211',
-        templateName: 'welcome',
-        templateLang: 'en',
-        messageType: 'utility',
-      }),
+      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(
+        api as any,
+        {
+          to: '919876543211',
+          templateName: 'welcome',
+          templateLang: 'en',
+          messageType: 'utility',
+        },
+      ),
     ).rejects.toEqual(
       expect.objectContaining({ statusCode: 400, responseText: 'bad request' }),
     );
 
     api.sendParentWhatsappTemplateMessageRpc.mockResolvedValueOnce({});
     await expect(
-      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(api as any, {
-        to: '919876543212',
-        templateName: 'welcome',
-        templateLang: 'en',
-        messageType: 'marketing',
-        mediaId: null,
-        mediaType: null,
-      }),
+      parentWhatsappInvitationService.sendParentWhatsappTemplateMessage(
+        api as any,
+        {
+          to: '919876543212',
+          templateName: 'welcome',
+          templateLang: 'en',
+          messageType: 'marketing',
+          mediaId: null,
+          mediaType: null,
+        },
+      ),
     ).resolves.toBeUndefined();
     expect(api.sendParentWhatsappTemplateMessageRpc).toHaveBeenCalledWith(
       expect.objectContaining({ mediaId: null, mediaType: null }),

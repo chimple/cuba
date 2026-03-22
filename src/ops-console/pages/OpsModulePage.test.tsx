@@ -1,15 +1,14 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ModulePage from './ModulePage';
-import { RoleType } from '../../interface/modelInterfaces';
 import { PAGES } from '../../common/constants';
+import { RoleType } from '../../interface/modelInterfaces';
+import ModulePage from './OpsModulePage';
 import {
   MODULE_CARD_DEFINITIONS,
   getModuleCardInitials,
   getModuleCardRoute,
   getModulePointDescription,
-} from './modulePageLogic';
+} from './OpsModulePageLogic';
 
 const mockPush = jest.fn();
 const mockUseAppSelector = jest.fn();
@@ -43,7 +42,9 @@ const { t: mockT } = jest.requireMock('i18next') as {
   t: jest.Mock;
 };
 
-const originalDefinitions = MODULE_CARD_DEFINITIONS.map((item) => ({ ...item }));
+const originalDefinitions = MODULE_CARD_DEFINITIONS.map((item) => ({
+  ...item,
+}));
 
 const resetDefinitions = () => {
   MODULE_CARD_DEFINITIONS.splice(
@@ -55,8 +56,8 @@ const resetDefinitions = () => {
 
 describe('ModulePage component', () => {
   const setRoles = (roles: string[] | null | undefined) => {
-    mockUseAppSelector.mockImplementation((selector: (state: unknown) => unknown) =>
-      selector({ auth: { roles } }),
+    mockUseAppSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => selector({ auth: { roles } }),
     );
   };
 
@@ -194,9 +195,15 @@ describe('ModulePage component', () => {
     expect(
       screen.getByText(MODULE_CARD_DEFINITIONS[0].title),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Navigate/i })).toBeInTheDocument();
-    expect(container.querySelector('#module-page-cta-icon')).toBeInTheDocument();
-    expect(container.querySelector('#module-page-card-initials')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Navigate/i }),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('#module-page-cta-icon'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('#module-page-card-initials'),
+    ).toBeInTheDocument();
   });
 
   // Covers navigate click routing for cards without explicit route.
@@ -222,7 +229,9 @@ describe('ModulePage component', () => {
     render(<ModulePage />);
     await user.click(screen.getByRole('button', { name: /Navigate/i }));
 
-    expect(mockPush).toHaveBeenCalledWith('/admin-home-page/module-page/explicit');
+    expect(mockPush).toHaveBeenCalledWith(
+      '/admin-home-page/module-page/explicit',
+    );
   });
 
   // Covers per-card route mapping when multiple cards are rendered.
@@ -280,7 +289,8 @@ describe('ModulePage component', () => {
     mockT.mockImplementation((key: string) => {
       if (key === 'Module') return 'Módulo';
       if (key === 'Navigate') return 'Navegar';
-      if (key === MODULE_CARD_DEFINITIONS[0].title) return 'Invitación WhatsApp';
+      if (key === MODULE_CARD_DEFINITIONS[0].title)
+        return 'Invitación WhatsApp';
       return key;
     });
 
@@ -309,9 +319,9 @@ describe('ModulePage logic helpers', () => {
 
   // Covers explicit route override behavior for module navigation.
   it('returns explicit route when route is provided', () => {
-    expect(getModuleCardRoute('Parent WhatsApp Invitation', '/custom-path')).toBe(
-      '/custom-path',
-    );
+    expect(
+      getModuleCardRoute('Parent WhatsApp Invitation', '/custom-path'),
+    ).toBe('/custom-path');
   });
 
   // Covers single-word title route generation with lowercased first character.

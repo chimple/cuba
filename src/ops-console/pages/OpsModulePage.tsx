@@ -1,18 +1,18 @@
-import React from 'react';
 import { LaunchRounded } from '@mui/icons-material';
-import { Redirect, useHistory } from 'react-router-dom';
 import { t } from 'i18next';
+import React from 'react';
+import { Redirect, useHistory } from 'react-router-dom';
+import { PAGES } from '../../common/constants';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import './ModulePage.css';
 import {
   MODULE_CARD_DEFINITIONS,
   getModuleCardInitials,
   getModuleCardRoute,
-} from './modulePageLogic';
-import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
-import { AuthState } from '../../redux/slices/auth/authSlice';
-import { RoleType } from '../../interface/modelInterfaces';
-import { PAGES } from '../../common/constants';
-import './ModulePage.css';
+} from './OpsModulePageLogic';
 
 const ModulePage: React.FC = () => {
   const history = useHistory();
@@ -22,8 +22,7 @@ const ModulePage: React.FC = () => {
   const userRoles = roles || [];
   const hasModuleAccess = userRoles.some(
     (role) =>
-      role === RoleType.SUPER_ADMIN ||
-      role === RoleType.OPERATIONAL_DIRECTOR,
+      role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR,
   );
 
   if (!hasModuleAccess) {
