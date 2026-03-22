@@ -45,7 +45,7 @@ export const getModuleCardRoute = (title: string, route?: string): string => {
     })
     .join('');
 
-  return `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/${pathSegment}`;
+  return `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/${pathSegment}`;
 };
 
 export const getModuleCardInitials = (title: string): string =>

@@ -7,7 +7,7 @@ import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
-import './ModulePage.css';
+import './OpsModulePage.css';
 import {
   MODULE_CARD_DEFINITIONS,
   getModuleCardInitials,
