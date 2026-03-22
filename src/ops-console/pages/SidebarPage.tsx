@@ -14,7 +14,7 @@ import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
 import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
 import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
-import ModulePage from './OpsModulePage';
+import OpsModulePage from './OpsModulePage';
 import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
 import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
@@ -101,11 +101,11 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
             </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.MODULE_PAGE}`} exact={true}>
-              <ModulePage />
+            <ProtectedRoute path={`${path}${PAGES.OPS_MODULE_PAGE}`} exact={true}>
+              <OpsModulePage />
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
+              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
               exact={true}
             >
               <ParentWhatsappInvitationPage />

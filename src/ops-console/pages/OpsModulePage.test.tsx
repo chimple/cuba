@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
-import ModulePage from './OpsModulePage';
+import OpsModulePage from './OpsModulePage';
 import {
   MODULE_CARD_DEFINITIONS,
   getModuleCardInitials,
@@ -54,7 +54,7 @@ const resetDefinitions = () => {
   );
 };
 
-describe('ModulePage component', () => {
+describe('OpsModulePage component', () => {
   const setRoles = (roles: string[] | null | undefined) => {
     mockUseAppSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => selector({ auth: { roles } }),
@@ -74,10 +74,10 @@ describe('ModulePage component', () => {
   // Covers access control for super admin role.
   it('renders module cards for SUPER_ADMIN users', () => {
     setRoles([RoleType.SUPER_ADMIN]);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Module')).toBeInTheDocument();
-    expect(document.querySelectorAll('#module-page-card')).toHaveLength(
+    expect(screen.getByText('Ops Module')).toBeInTheDocument();
+    expect(document.querySelectorAll('#ops-module-page-card')).toHaveLength(
       MODULE_CARD_DEFINITIONS.length,
     );
   });
@@ -85,10 +85,10 @@ describe('ModulePage component', () => {
   // Covers access control for operational director role.
   it('renders module cards for OPERATIONAL_DIRECTOR users', () => {
     setRoles([RoleType.OPERATIONAL_DIRECTOR]);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Module')).toBeInTheDocument();
-    expect(document.querySelectorAll('#module-page-card')).toHaveLength(
+    expect(screen.getByText('Ops Module')).toBeInTheDocument();
+    expect(document.querySelectorAll('#ops-module-page-card')).toHaveLength(
       MODULE_CARD_DEFINITIONS.length,
     );
   });
@@ -96,10 +96,10 @@ describe('ModulePage component', () => {
   // Covers access control for users with both allowed roles.
   it('renders module cards for users with both SUPER_ADMIN and OPERATIONAL_DIRECTOR roles', () => {
     setRoles([RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR]);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Module')).toBeInTheDocument();
-    expect(document.querySelectorAll('#module-page-card')).toHaveLength(
+    expect(screen.getByText('Ops Module')).toBeInTheDocument();
+    expect(document.querySelectorAll('#ops-module-page-card')).toHaveLength(
       MODULE_CARD_DEFINITIONS.length,
     );
   });
@@ -107,7 +107,7 @@ describe('ModulePage component', () => {
   // Covers redirect for unauthorized role.
   it('redirects users with unrelated roles', () => {
     setRoles([RoleType.TEACHER]);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     expect(screen.getByTestId('redirect')).toHaveAttribute(
       'data-to',
@@ -118,7 +118,7 @@ describe('ModulePage component', () => {
   // Covers redirect for empty role list.
   it('redirects users when role list is empty', () => {
     setRoles([]);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     expect(screen.getByTestId('redirect')).toHaveAttribute(
       'data-to',
@@ -129,14 +129,14 @@ describe('ModulePage component', () => {
   // Covers redirect behavior when roles are null or undefined.
   it('redirects users when roles are null or undefined', () => {
     setRoles(undefined);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
     expect(screen.getByTestId('redirect')).toHaveAttribute(
       'data-to',
       `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}`,
     );
 
     setRoles(null);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
     expect(screen.getAllByTestId('redirect')[1]).toHaveAttribute(
       'data-to',
       `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}`,
@@ -145,31 +145,31 @@ describe('ModulePage component', () => {
 
   // Covers page title and launcher description rendering.
   it('renders page title and description copy', () => {
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Module')).toBeInTheDocument();
+    expect(screen.getByText('Ops Module')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Module is the launcher area for grouped ops workflows. Open a card below to move into a dedicated module page and continue the next task.',
+        'Ops Module is the launcher area for grouped ops workflows. Open a card below to move into a dedicated module page and continue the next task.',
       ),
     ).toBeInTheDocument();
   });
 
   // Covers bullet count and card count matching module definitions.
   it('renders one bullet and one card per module definition', () => {
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(document.querySelectorAll('#module-page-point')).toHaveLength(
+    expect(document.querySelectorAll('#ops-module-page-point')).toHaveLength(
       MODULE_CARD_DEFINITIONS.length,
     );
-    expect(document.querySelectorAll('#module-page-card')).toHaveLength(
+    expect(document.querySelectorAll('#ops-module-page-card')).toHaveLength(
       MODULE_CARD_DEFINITIONS.length,
     );
   });
 
   // Covers custom module description text rendering.
   it('renders custom module description when description exists', () => {
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     expect(
       screen.getByText(MODULE_CARD_DEFINITIONS[0].description as string),
@@ -179,7 +179,7 @@ describe('ModulePage component', () => {
   // Covers fallback bullet description when a module has no custom description.
   it('renders fallback module description when module description is missing', () => {
     MODULE_CARD_DEFINITIONS.push({ title: 'Dummy Module Without Description' });
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     expect(
       screen.getByText(
@@ -190,7 +190,7 @@ describe('ModulePage component', () => {
 
   // Covers card title, navigate CTA, icon, and initials rendering.
   it('renders card internals including title, Navigate button, icon, and initials', () => {
-    const { container } = render(<ModulePage />);
+    const { container } = render(<OpsModulePage />);
 
     expect(
       screen.getByText(MODULE_CARD_DEFINITIONS[0].title),
@@ -199,22 +199,22 @@ describe('ModulePage component', () => {
       screen.getByRole('button', { name: /Navigate/i }),
     ).toBeInTheDocument();
     expect(
-      container.querySelector('#module-page-cta-icon'),
+      container.querySelector('#ops-module-page-cta-icon'),
     ).toBeInTheDocument();
     expect(
-      container.querySelector('#module-page-card-initials'),
+      container.querySelector('#ops-module-page-card-initials'),
     ).toBeInTheDocument();
   });
 
   // Covers navigate click routing for cards without explicit route.
   it('pushes auto-generated route when clicking Navigate on module without explicit route', async () => {
     const user = userEvent.setup();
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     await user.click(screen.getByRole('button', { name: /Navigate/i }));
 
     expect(mockPush).toHaveBeenCalledWith(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/parentWhatsappInvitation`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/parentWhatsappInvitation`,
     );
   });
 
@@ -223,14 +223,14 @@ describe('ModulePage component', () => {
     const user = userEvent.setup();
     MODULE_CARD_DEFINITIONS.splice(0, MODULE_CARD_DEFINITIONS.length, {
       title: 'Explicit Module',
-      route: '/admin-home-page/module-page/explicit',
+      route: '/admin-home-page/ops-module-page/explicit',
     });
 
-    render(<ModulePage />);
+    render(<OpsModulePage />);
     await user.click(screen.getByRole('button', { name: /Navigate/i }));
 
     expect(mockPush).toHaveBeenCalledWith(
-      '/admin-home-page/module-page/explicit',
+      '/admin-home-page/ops-module-page/explicit',
     );
   });
 
@@ -245,11 +245,11 @@ describe('ModulePage component', () => {
       },
       {
         title: 'Card Two',
-        route: '/admin-home-page/module-page/cardTwoFixed',
+        route: '/admin-home-page/ops-module-page/cardTwoFixed',
       },
     );
 
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
     const buttons = screen.getAllByRole('button', { name: /Navigate/i });
     await user.click(buttons[0]);
@@ -257,29 +257,29 @@ describe('ModulePage component', () => {
 
     expect(mockPush).toHaveBeenNthCalledWith(
       1,
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/cardOne`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/cardOne`,
     );
     expect(mockPush).toHaveBeenNthCalledWith(
       2,
-      '/admin-home-page/module-page/cardTwoFixed',
+      '/admin-home-page/ops-module-page/cardTwoFixed',
     );
   });
 
   // Covers stable mounting behavior when no module definitions are present.
   it('renders no bullets and no cards when module definitions are empty', () => {
     MODULE_CARD_DEFINITIONS.splice(0, MODULE_CARD_DEFINITIONS.length);
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Module')).toBeInTheDocument();
-    expect(document.querySelectorAll('#module-page-point')).toHaveLength(0);
-    expect(document.querySelectorAll('#module-page-card')).toHaveLength(0);
+    expect(screen.getByText('Ops Module')).toBeInTheDocument();
+    expect(document.querySelectorAll('#ops-module-page-point')).toHaveLength(0);
+    expect(document.querySelectorAll('#ops-module-page-card')).toHaveLength(0);
   });
 
   // Covers translation function usage for translatable Module page labels.
   it('calls i18n t() for key labels instead of hardcoded rendering', () => {
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(mockT).toHaveBeenCalledWith('Module');
+    expect(mockT).toHaveBeenCalledWith('Ops Module');
     expect(mockT).toHaveBeenCalledWith('Navigate');
     expect(mockT).toHaveBeenCalledWith(MODULE_CARD_DEFINITIONS[0].title);
   });
@@ -287,22 +287,22 @@ describe('ModulePage component', () => {
   // Covers rendering behavior when translation output is non-English text.
   it('renders translated non-English labels when t() returns localized strings', () => {
     mockT.mockImplementation((key: string) => {
-      if (key === 'Module') return 'Módulo';
+      if (key === 'Ops Module') return 'Módulo de Operaciones';
       if (key === 'Navigate') return 'Navegar';
       if (key === MODULE_CARD_DEFINITIONS[0].title)
         return 'Invitación WhatsApp';
       return key;
     });
 
-    render(<ModulePage />);
+    render(<OpsModulePage />);
 
-    expect(screen.getByText('Módulo')).toBeInTheDocument();
+    expect(screen.getByText('Módulo de Operaciones')).toBeInTheDocument();
     expect(screen.getByText('Navegar')).toBeInTheDocument();
     expect(screen.getByText('Invitación WhatsApp')).toBeInTheDocument();
   });
 });
 
-describe('ModulePage logic helpers', () => {
+describe('OpsModulePage logic helpers', () => {
   beforeEach(() => {
     resetDefinitions();
   });
@@ -326,36 +326,36 @@ describe('ModulePage logic helpers', () => {
 
   // Covers single-word title route generation with lowercased first character.
   it('generates a route for single-word titles', () => {
-    expect(getModuleCardRoute('Module')).toBe(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/module`,
+    expect(getModuleCardRoute('Ops Module')).toBe(
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/module`,
     );
   });
 
   // Covers multi-word title route generation into camelCase path segment.
   it('generates a camelCase route for multi-word titles', () => {
     expect(getModuleCardRoute('Parent WhatsApp Invitation')).toBe(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/parentWhatsappInvitation`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/parentWhatsappInvitation`,
     );
   });
 
   // Covers camelCase title splitting and normalization for route generation.
   it('handles existing camelCase titles while generating route', () => {
     expect(getModuleCardRoute('parentWhatsApp')).toBe(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/parentWhatsApp`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/parentWhatsApp`,
     );
   });
 
   // Covers hyphen and underscore separators in route generation.
   it('treats hyphen and underscore as title word separators', () => {
     expect(getModuleCardRoute('Parent-WhatsApp_invitation')).toBe(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/parentWhatsappInvitation`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/parentWhatsappInvitation`,
     );
   });
 
   // Covers special-character cleanup before route segment generation.
   it('ignores special characters while generating route', () => {
     expect(getModuleCardRoute('Parent @ WhatsApp! Invitation#')).toBe(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.MODULE_PAGE}/parentWhatsappInvitation`,
+      `${PAGES.SIDEBAR_PAGE}${PAGES.OPS_MODULE_PAGE}/parentWhatsappInvitation`,
     );
   });
 

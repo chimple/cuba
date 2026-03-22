@@ -14,7 +14,7 @@ import {
   getModuleCardRoute,
 } from './OpsModulePageLogic';
 
-const ModulePage: React.FC = () => {
+const OpsModulePage: React.FC = () => {
   const history = useHistory();
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -30,39 +30,45 @@ const ModulePage: React.FC = () => {
   }
 
   return (
-    <div id="module-page" className="module-page">
-      <div id="module-page-inner" className="module-page-inner">
-        <div id="module-page-title-row" className="module-page-title-row">
-          <span id="module-page-title" className="module-page-title">
-            {t('Module')}
+    <div id="ops-module-page" className="ops-module-page">
+      <div id="ops-module-page-inner" className="ops-module-page-inner">
+        <div
+          id="ops-module-page-title-row"
+          className="ops-module-page-title-row"
+        >
+          <span id="ops-module-page-title" className="ops-module-page-title">
+            {t('Ops Module')}
           </span>
         </div>
 
         <div
-          id="module-page-description-box"
-          className="module-page-description-box"
+          id="ops-module-page-description-box"
+          className="ops-module-page-description-box"
         >
-          <p id="module-page-description" className="module-page-description">
+          <p
+            id="ops-module-page-description"
+            className="ops-module-page-description"
+          >
             {t(
               'Module is the launcher area for grouped ops workflows. Open a card below to move into a dedicated module page and continue the next task.',
             )}
           </p>
-          <div id="module-page-points" className="module-page-points">
+          <div id="ops-module-page-points" className="ops-module-page-points">
             {MODULE_CARD_DEFINITIONS.map((module) => (
               <p
                 key={module.title}
-                id="module-page-point"
-                className="module-page-point"
+                id="ops-module-page-point"
+                className="ops-module-page-point"
               >
                 <span
-                  id="module-page-point-title"
-                  className="module-page-point-title"
+                  id="ops-module-page-point-title"
+                  className="ops-module-page-point-title"
                 >
                   {t(module.title)}:
                 </span>{' '}
                 <span
-                  id="module-page-point-text"
-                  className="module-page-point-text"
+                  id="ops-module-page-point-text"
+                  className="ops-module-page-point-text"
                 >
                   {module.description
                     ? t(module.description)
@@ -76,52 +82,52 @@ const ModulePage: React.FC = () => {
           </div>
         </div>
 
-        <div id="module-page-cards" className="module-page-cards">
+        <div id="ops-module-page-cards" className="ops-module-page-cards">
           {MODULE_CARD_DEFINITIONS.map((button) => {
             const route = getModuleCardRoute(button.title, button.route);
 
             return (
               <article
                 key={route}
-                id="module-page-card"
-                className="module-page-card"
+                id="ops-module-page-card"
+                className="ops-module-page-card"
               >
                 <div
-                  id="module-page-card-media"
-                  className="module-page-card-media"
+                  id="ops-module-page-card-media"
+                  className="ops-module-page-card-media"
                 >
                   <span
-                    id="module-page-card-initials"
-                    className="module-page-card-initials"
+                    id="ops-module-page-card-initials"
+                    className="ops-module-page-card-initials"
                   >
                     {getModuleCardInitials(button.title)}
                   </span>
                 </div>
                 <div
-                  id="module-page-card-content"
-                  className="module-page-card-content"
+                  id="ops-module-page-card-content"
+                  className="ops-module-page-card-content"
                 >
                   <h2
-                    id="module-page-button-title"
-                    className="module-page-button-title"
+                    id="ops-module-page-button-title"
+                    className="ops-module-page-button-title"
                   >
                     {t(button.title)}
                   </h2>
                   <button
                     type="button"
-                    id="module-page-cta"
-                    className="module-page-cta"
+                    id="ops-module-page-cta"
+                    className="ops-module-page-cta"
                     onClick={() => history.push(route)}
                   >
                     <span
-                      id="module-page-cta-label"
-                      className="module-page-cta-label"
+                      id="ops-module-page-cta-label"
+                      className="ops-module-page-cta-label"
                     >
                       {t('Navigate')}
                     </span>
                     <LaunchRounded
-                      id="module-page-cta-icon"
-                      className="module-page-cta-icon"
+                      id="ops-module-page-cta-icon"
+                      className="ops-module-page-cta-icon"
                       fontSize="inherit"
                     />
                   </button>
@@ -135,4 +141,4 @@ const ModulePage: React.FC = () => {
   );
 };
 
-export default ModulePage;
+export default OpsModulePage;

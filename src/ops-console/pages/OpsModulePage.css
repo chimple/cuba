@@ -1,18 +1,18 @@
-.module-page {
+.ops-module-page {
   min-height: 100vh;
   background: #f3f3f3;
   box-sizing: border-box;
   text-align: left;
 }
 
-.module-page-inner {
+.ops-module-page-inner {
   width: 100%;
   margin: 0;
   padding: 18px 20px 40px;
   box-sizing: border-box;
 }
 
-.module-page-title-row {
+.ops-module-page-title-row {
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -20,7 +20,7 @@
   text-align: left;
 }
 
-.module-page-title {
+.ops-module-page-title {
   margin: 0;
   color: #1f1f1f;
   font-size: 30px;
@@ -28,7 +28,7 @@
   line-height: 1.2;
 }
 
-.module-page-description-box {
+.ops-module-page-description-box {
   margin-bottom: 24px;
   width: 100%;
   padding: 16px 20px;
@@ -40,7 +40,7 @@
   text-align: left;
 }
 
-.module-page-description {
+.ops-module-page-description {
   margin: 0;
   color: #4f4f4f;
   font-size: 15px;
@@ -53,7 +53,7 @@
   overflow: hidden;
 }
 
-.module-page-points {
+.ops-module-page-points {
   margin-top: 10px;
   max-height: 94px;
   overflow-y: auto;
@@ -61,7 +61,7 @@
   text-align: left;
 }
 
-.module-page-point {
+.ops-module-page-point {
   margin: 0 0 8px;
   color: #4f4f4f;
   font-size: 14px;
@@ -72,11 +72,11 @@
   padding-left: 14px;
 }
 
-.module-page-point:last-child {
+.ops-module-page-point:last-child {
   margin-bottom: 0;
 }
 
-.module-page-point::before {
+.ops-module-page-point::before {
   content: '';
   position: absolute;
   left: 0;
@@ -87,33 +87,33 @@
   background: #5a5a5a;
 }
 
-.module-page-point-title {
+.ops-module-page-point-title {
   color: #1f1f1f;
   font-weight: 700;
   text-align: left;
 }
 
-.module-page-point-text {
+.ops-module-page-point-text {
   color: #5a5a5a;
   text-align: left;
 }
 
-.module-page-points::-webkit-scrollbar {
+.ops-module-page-points::-webkit-scrollbar {
   width: 6px;
 }
 
-.module-page-points::-webkit-scrollbar-thumb {
+.ops-module-page-points::-webkit-scrollbar-thumb {
   background: #c9c9c9;
   border-radius: 999px;
 }
 
-.module-page-cards {
+.ops-module-page-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 14px;
 }
 
-.module-page-card {
+.ops-module-page-card {
   background: #ffffff;
   border: 1px solid #e3e3e3;
   border-radius: 10px;
@@ -125,7 +125,7 @@
   height: 100%;
 }
 
-.module-page-card-media {
+.ops-module-page-card-media {
   width: 100%;
   height: 120px;
   background: #eaefef;
@@ -135,7 +135,7 @@
   justify-content: center;
 }
 
-.module-page-card-initials {
+.ops-module-page-card-initials {
   color: #bfc9d1;
   font-size: 80px;
   font-weight: 700;
@@ -143,7 +143,7 @@
   text-transform: uppercase;
 }
 
-.module-page-card-content {
+.ops-module-page-card-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,7 +152,7 @@
   flex: 1;
 }
 
-.module-page-button-title {
+.ops-module-page-button-title {
   margin: 0 0 8px;
   color: #1f1f1f;
   font-size: 17px;
@@ -167,7 +167,7 @@
   overflow: hidden;
 }
 
-.module-page-button-description {
+.ops-module-page-button-description {
   margin: 0;
   color: #5a5a5a;
   font-size: 13px;
@@ -175,7 +175,7 @@
   width: 100%;
 }
 
-.module-page-cta {
+.ops-module-page-cta {
   margin-top: auto;
   padding: 10px 20px;
   border: none;
@@ -195,11 +195,11 @@
   white-space: nowrap;
 }
 
-.module-page-cta:hover {
+.ops-module-page-cta:hover {
   background: #1565c0;
 }
 
-.module-page-cta-label {
+.ops-module-page-cta-label {
   display: inline-flex;
   align-items: center;
   font-size: 1em;
@@ -207,7 +207,7 @@
   line-height: 1;
 }
 
-.module-page-cta-icon {
+.ops-module-page-cta-icon {
   display: block;
   width: 1em;
   height: 1em;
@@ -216,33 +216,33 @@
 }
 
 @media (max-width: 960px) {
-  .module-page-inner {
+  .ops-module-page-inner {
     padding: 18px 20px 32px;
   }
 }
 
 @media (max-width: 600px) and (orientation: portrait) {
-  .module-page-inner {
+  .ops-module-page-inner {
     padding: 16px 14px 28px;
   }
 
-  .module-page-title {
+  .ops-module-page-title {
     font-size: 24px;
   }
 
-  .module-page-description-box {
+  .ops-module-page-description-box {
     padding: 16px;
   }
 
-  .module-page-card {
+  .ops-module-page-card {
     padding: 10px;
   }
 
-  .module-page-card-media {
+  .ops-module-page-card-media {
     height: 116px;
   }
 
-  .module-page-button-title {
+  .ops-module-page-button-title {
     font-size: 16px;
   }
 }

@@ -66,8 +66,8 @@ const navItems = [
     icon: <IoGitPullRequestSharp />,
   },
   {
-    label: NavItems.MODULE,
-    route: PAGES.SIDEBAR_PAGE + PAGES.MODULE_PAGE,
+    label: NavItems.OpsMODULE,
+    route: PAGES.SIDEBAR_PAGE + PAGES.OPS_MODULE_PAGE,
     icon: <ViewModuleIcon />,
   },
   {
@@ -215,7 +215,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             );
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
-            if (item.label === NavItems.MODULE && !canAccessModulePage)
+            if (item.label === NavItems.OpsMODULE && !canAccessModulePage)
               return null;
 
             return (
