@@ -337,10 +337,14 @@ function applyShapePaint(
 
 function clearShapeOpacity(shape: Element) {
   const svgShape = shape as SVGElement;
+  shape.removeAttribute('opacity');
   shape.removeAttribute('fill-opacity');
   shape.removeAttribute('stroke-opacity');
-  svgShape.style?.setProperty('fill-opacity', '1', 'important');
-  svgShape.style?.setProperty('stroke-opacity', '1', 'important');
+  if (svgShape.style) {
+    svgShape.style.setProperty('opacity', '1', 'important');
+    svgShape.style.setProperty('fill-opacity', '1', 'important');
+    svgShape.style.setProperty('stroke-opacity', '1', 'important');
+  }
 }
 
 // Outlines all stickers for locked state.

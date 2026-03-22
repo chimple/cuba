@@ -72,6 +72,18 @@ const setRect = (el: Element, rect: Partial<DOMRect>) => {
         toJSON: () => {},
       }) as DOMRect,
   );
+  if (rect.width !== undefined) {
+    Object.defineProperty(el, 'clientWidth', {
+      value: rect.width,
+      configurable: true,
+    });
+  }
+  if (rect.height !== undefined) {
+    Object.defineProperty(el, 'clientHeight', {
+      value: rect.height,
+      configurable: true,
+    });
+  }
 };
 
 const buildSlotSvg = () => {
