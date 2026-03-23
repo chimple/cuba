@@ -2295,6 +2295,15 @@ export class Util {
       return;
     }
 
+    const currentClass = this.getCurrentClass();
+    const validCurrentClass = currentClass
+      ? fetchedClasses.find((classItem) => classItem.id === currentClass.id)
+      : undefined;
+
+    if (!validCurrentClass) {
+      await this.setCurrentClass(fetchedClasses[0]);
+    }
+
     const classCoursesData = await Promise.all(
       fetchedClasses.map((classItem) =>
         api.getCoursesByClassId(classItem.id).then((courses) => ({
@@ -3090,31 +3099,36 @@ export class Util {
         };
       }
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
-      const updated = await api.getCurrentStickerBookWithProgress(studentId);
+      const currentCollectedStickerIds =
+        current.progress?.stickers_collected ?? [];
       const totalStickerCount =
-        updated?.book?.total_stickers ||
-        updated?.book?.stickers_metadata?.length ||
+        current.book?.total_stickers ||
+        current.book?.stickers_metadata?.length ||
         0;
-      const collectedCount = updated?.progress?.stickers_collected?.length || 0;
+      const nextCollectedStickerIds = currentCollectedStickerIds.includes(
+        nextStickerId,
+      )
+        ? currentCollectedStickerIds
+        : [...currentCollectedStickerIds, nextStickerId];
       const completed =
-        updated?.progress?.status === 'completed' ||
-        (totalStickerCount > 0 && collectedCount >= totalStickerCount);
+        totalStickerCount > 0 &&
+        nextCollectedStickerIds.length >= totalStickerCount;
+
+      await api.updateStickerWon(current.book.id, nextStickerId);
 
       return {
         completed,
-        stickerBookId: updated?.book?.id || current.book.id,
-        payload:
-          completed && updated?.book?.id
-            ? {
-                source: 'learning_pathway',
-                stickerBookId: updated.book.id,
-                stickerBookTitle: updated.book.title || 'Sticker Book',
-                stickerBookSvgUrl: updated.book.svg_url || '',
-                collectedStickerIds: updated.progress?.stickers_collected ?? [],
-                totalStickerCount,
-              }
-            : null,
+        stickerBookId: current.book.id,
+        payload: completed
+          ? {
+              source: 'learning_pathway',
+              stickerBookId: current.book.id,
+              stickerBookTitle: current.book.title || 'Sticker Book',
+              stickerBookSvgUrl: current.book.svg_url || '',
+              collectedStickerIds: nextCollectedStickerIds,
+              totalStickerCount,
+            }
+          : null,
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
@@ -3701,5 +3715,38 @@ export class Util {
       device_language: device_language.value,
     };
     return device;
+  }
+
+  public static migrateSupabaseSession() {
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+
+      if (!supabaseUrl) {
+        logger.warn('Supabase URL missing, skipping session migration');
+        return;
+      }
+
+      const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      if (!projectRef) {
+        logger.warn('Invalid Supabase URL format, skipping session migration');
+        return;
+      }
+
+      const newKey = `sb-${projectRef}-auth-token`;
+      const oldKey = Object.keys(localStorage).find(
+        (key) => key.endsWith('auth-token') && key !== newKey,
+      );
+
+      if (oldKey) {
+        const oldSession = localStorage.getItem(oldKey);
+
+        if (oldSession && !localStorage.getItem(newKey)) {
+          localStorage.setItem(newKey, oldSession);
+          localStorage.removeItem(oldKey);
+        }
+      }
+    } catch (error) {
+      logger.error('Session migration failed', error);
+    }
   }
 }

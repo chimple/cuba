@@ -757,6 +757,29 @@ export class SqliteApi implements ServiceApi {
             user_id: _currentUser?.id,
             ...mutate?.error,
           });
+          const mutateStatus = Number(mutate?.status ?? 0);
+          const mutateCode = String(mutate?.error?.code ?? '').toLowerCase();
+          const mutateMessage = String(
+            mutate?.error?.message ?? mutate?.error?.details ?? '',
+          ).toLowerCase();
+          const isPermissionDenied =
+            mutateStatus === 401 ||
+            mutateStatus === 403 ||
+            mutateCode === '42501' ||
+            mutateMessage.includes('permission denied') ||
+            mutateMessage.includes('not permitted') ||
+            mutateMessage.includes('row-level security') ||
+            mutateMessage.includes('violates row-level security') ||
+            mutateMessage.includes('unauthorized') ||
+            mutateMessage.includes('forbidden');
+
+          if (isPermissionDenied) {
+            await this.executeQuery(
+              `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
+              [data.id, data.table_name],
+            );
+            continue;
+          }
           if (mutate?.error?.code === '23505' || mutate?.status === 409) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
@@ -3119,6 +3142,20 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
+  }
+
+  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null> {
+    if (!this._serverApi.getParentWhatsappSchoolByUdise) {
+      throw new Error(
+        'Parent WhatsApp school lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappSchoolByUdise(udiseCode);
   }
   public async getUserRoleForSchool(
     userId: string,
@@ -5524,6 +5561,37 @@ order by
     const res = await this._db?.query(query, [schoolId]);
 
     return res?.values ?? [];
+  }
+
+  // Parent WhatsApp Invitation: class lookup with group/invite fields.
+  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  > {
+    if (!this._serverApi.getParentWhatsappClassesBySchoolId) {
+      throw new Error(
+        'Parent WhatsApp class lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolId);
+  }
+
+  // Parent WhatsApp Invitation: parent phones from class_user -> user join.
+  async getParentWhatsappParentPhonesByClassId(
+    classId: string,
+  ): Promise<string[]> {
+    if (!this._serverApi.getParentWhatsappParentPhonesByClassId) {
+      throw new Error(
+        'Parent WhatsApp parent phone lookup is not implemented in Supabase API.',
+      );
+    }
+    return await this._serverApi.getParentWhatsappParentPhonesByClassId(
+      classId,
+    );
   }
   async getCoordinatorsForSchool(
     schoolId: string,
@@ -8193,6 +8261,68 @@ order by
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     return this._serverApi.getWhatsappGroupDetails(groupId, bot);
+  }
+  async getParentWhatsappGroupDetails(groupId: string) {
+    return this._serverApi.getParentWhatsappGroupDetails
+      ? await this._serverApi.getParentWhatsappGroupDetails(groupId)
+      : [];
+  }
+  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+    return this._serverApi.getParentWhatsappMsg91SendResult
+      ? await this._serverApi.getParentWhatsappMsg91SendResult(
+          inviteRows,
+          batchSize,
+        )
+      : {
+          successCount: 0,
+          failedBatches: [],
+        };
+  }
+  async getParentWhatsappMsg91ReportRows(startDate: string, endDate: string) {
+    return this._serverApi.getParentWhatsappMsg91ReportRows
+      ? await this._serverApi.getParentWhatsappMsg91ReportRows(
+          startDate,
+          endDate,
+        )
+      : {
+          success: true,
+          statusCode: 200,
+          data: [],
+          raw: [],
+        };
+  }
+  async uploadParentWhatsappMediaRpc(
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    return this._serverApi.uploadParentWhatsappMediaRpc
+      ? await this._serverApi.uploadParentWhatsappMediaRpc(
+          fileB64,
+          fileName,
+          mimeType,
+        )
+      : {
+          success: false,
+          statusCode: 500,
+          responseText: 'Parent WhatsApp media upload RPC not implemented.',
+        };
+  }
+  async sendParentWhatsappTemplateMessageRpc(params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) {
+    return this._serverApi.sendParentWhatsappTemplateMessageRpc
+      ? await this._serverApi.sendParentWhatsappTemplateMessageRpc(params)
+      : {
+          success: false,
+          statusCode: 500,
+          responseText: 'Parent WhatsApp template send RPC not implemented.',
+        };
   }
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);

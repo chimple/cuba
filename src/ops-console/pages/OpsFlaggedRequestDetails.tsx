@@ -5,6 +5,7 @@ import {
   DEFAULT_PAGE_SIZE,
   REQUEST_TABS,
   RequestTypes,
+  STATUS,
   TableTypes,
 } from '../../common/constants';
 import { useTranslation } from 'react-i18next';
@@ -346,6 +347,7 @@ const OpsFlaggedRequestDetails = () => {
     }
 
     setIsApproving(true);
+    let currentUserId = '';
     try {
       const currentUser =
         await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -353,6 +355,7 @@ const OpsFlaggedRequestDetails = () => {
         setError(t('User not authenticated'));
         return;
       }
+      currentUserId = currentUser.id;
 
       if (!requestDetails?.id) {
         setError(t('Request ID not found'));
@@ -392,6 +395,33 @@ const OpsFlaggedRequestDetails = () => {
         search: `?tab=${REQUEST_TABS.APPROVED}`,
       });
     } catch (e) {
+      const errorMessage =
+        e instanceof Error ? e.message : String(e ?? '');
+      const isRoleConflictError =
+        errorMessage.includes(
+          'cannot be made Principal for the same school.',
+        ) ||
+        errorMessage.includes(
+          'cannot be added as Teacher for the same school.',
+        );
+
+      if (isRoleConflictError && requestDetails?.id && currentUserId) {
+        const rejectedRequest = await api.respondToSchoolRequest(
+          requestDetails.id,
+          currentUserId,
+          STATUS.REJECTED,
+          String(t('Verification Failed')),
+          errorMessage,
+        );
+        if (rejectedRequest) {
+          history.push({
+            pathname: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+            search: `?tab=${REQUEST_TABS.REJECTED}`,
+          });
+          return;
+        }
+      }
+
       logger.error('Error approving request:', e);
       setError(t('Failed to approve request. Please try again.'));
     } finally {

@@ -795,6 +795,13 @@ export interface ServiceApi {
    */
   getSchoolById(id: string): Promise<TableTypes<'school'> | undefined>;
 
+  // Parent WhatsApp Invitation: lightweight school lookup by exact UDISE.
+  getParentWhatsappSchoolByUdise?: (udiseCode: string) => Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null>;
+
   /**
    * Gives `boolean` whether the student is connected to any class, for given a Student firebase doc Id
    * @param {string} studentId - Student firebase doc id
@@ -2168,6 +2175,21 @@ export interface ServiceApi {
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]>;
 
+  // Parent WhatsApp Invitation: lightweight class lookup for invite workflow.
+  getParentWhatsappClassesBySchoolId?: (schoolId: string) => Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  >;
+
+  // Parent WhatsApp Invitation: parent phone lookup from class_user -> user join.
+  getParentWhatsappParentPhonesByClassId?: (
+    classId: string,
+  ) => Promise<string[]>;
+
   /**
    * Creates a auto student profile for a parent and returns the student object
    * @param {string} languageDocId -  languageDocId is `Language` doc id
@@ -2733,6 +2755,38 @@ export interface ServiceApi {
    *          group name, members list, and invite link.
    */
   getWhatsappGroupDetails(groupId: string, bot: string): Promise<Json>;
+
+  // Parent WhatsApp Invitation: fetch group details via dedicated Supabase RPC.
+  getParentWhatsappGroupDetails?: (groupId: string) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: send MSG91 invites via dedicated Supabase RPC.
+  getParentWhatsappMsg91SendResult?: (
+    inviteRows: Json,
+    batchSize: number,
+  ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: fetch MSG91 report via dedicated Supabase RPC.
+  getParentWhatsappMsg91ReportRows?: (
+    startDate: string,
+    endDate: string,
+  ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: upload media via Supabase Edge Function invoke.
+  uploadParentWhatsappMediaRpc?: (
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) => Promise<Json>;
+
+  // Parent WhatsApp Invitation: send one template message via dedicated Supabase RPC.
+  sendParentWhatsappTemplateMessageRpc?: (params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) => Promise<Json>;
 
   /**
    * Fetch WhatsApp group Id from Periskope for a given groupLink and bot number.

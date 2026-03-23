@@ -3,6 +3,8 @@ import React from 'react';
 import '@testing-library/jest-dom';
 import { render, waitFor, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 import {
   MODES,
   PAGES,
@@ -25,6 +27,19 @@ afterAll(() => {
 
 jest.mock('@ionic/react', () => ({
   IonPage: ({ children }: any) => <div data-testid="ion-page">{children}</div>,
+}));
+
+jest.mock('@capacitor/core', () => ({
+  Capacitor: {
+    isNativePlatform: jest.fn(),
+  },
+}));
+
+jest.mock('@capacitor/screen-orientation', () => ({
+  ScreenOrientation: {
+    lock: jest.fn(),
+    unlock: jest.fn(),
+  },
 }));
 
 jest.mock('i18next', () => ({
@@ -189,6 +204,7 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
     mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
   });
 
   it('redirects to HOME when mode is parent and current student exists', async () => {
@@ -205,32 +221,42 @@ describe('SelectMode page', () => {
   it('redirects to DISPLAY_STUDENT when mode is parent and there is no current student', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.PARENT);
     mockGetCurrentStudent.mockReturnValue(null);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT);
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'landscape',
+      });
+    });
   });
 
   it('redirects to DISPLAY_SCHOOLS when mode is teacher', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'portrait',
+      });
+    });
   });
 
   it('redirects to SIDEBAR_PAGE when mode is ops console', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.OPS_CONSOLE);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SIDEBAR_PAGE),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SIDEBAR_PAGE);
+      expect(ScreenOrientation.unlock).toHaveBeenCalled();
+    });
   });
 
   it('navigates to CREATE_STUDENT when user has no schools and no students', async () => {
@@ -790,6 +816,24 @@ describe('SelectMode page', () => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT),
     );
     expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.PARENT);
+  });
+
+  it('locks landscape when mode is school on native', async () => {
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(
+      CURRENT_CLASS_NAME,
+      JSON.stringify({ id: 'class-1', name: 'Class 1' }),
+    );
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+
+    render(<SelectMode />);
+
+    await waitFor(() =>
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'landscape',
+      }),
+    );
   });
 
   it('shows school dropdown when multiple schools', async () => {
