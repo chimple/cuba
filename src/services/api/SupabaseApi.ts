@@ -3063,7 +3063,6 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error in parent WhatsApp school lookup by UDISE:', error);
       throw error;
     }
 
@@ -3393,10 +3392,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error(
-        'Error in parent WhatsApp class lookup by school ID:',
-        error,
-      );
       throw error;
     }
 
@@ -3422,10 +3417,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error(
-        'Error in parent WhatsApp parent phone lookup by class ID:',
-        error,
-      );
       throw error;
     }
 

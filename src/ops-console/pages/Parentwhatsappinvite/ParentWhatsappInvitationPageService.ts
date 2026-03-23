@@ -149,9 +149,7 @@ const fileToBase64 = async (file: File): Promise<string> => {
 const logParentWhatsappEvent = (
   event: string,
   details: Record<string, unknown>,
-): void => {
-  console.info(`[ParentWhatsappInvitation] ${event}`, details);
-};
+): void => {};
 
 // Normalizes UDISE input into expected 11-digit code format.
 const normalizeUdiseCode = (raw: string): string | null => {
