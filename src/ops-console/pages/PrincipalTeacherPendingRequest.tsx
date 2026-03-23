@@ -13,6 +13,7 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
+  STATUS,
   TableTypes,
 } from '../../common/constants';
 import './PrincipalTeacherPendingRequest.css';
@@ -141,9 +142,14 @@ const PrincipalTeacherPendingRequest = () => {
       return;
     }
 
+    let requestRowId: string | undefined;
+    let requestPrimaryId: string | undefined;
+    let respondedBy = '';
+
     try {
       // Use edited values if in edit mode
-      const requestRowId = requestData?.id || requestData?.request_id;
+      requestRowId = requestData?.id || requestData?.request_id;
+      requestPrimaryId = requestData?.id;
       const role = (
         isEditing && editableRequestType
           ? editableRequestType
@@ -168,7 +174,7 @@ const PrincipalTeacherPendingRequest = () => {
       if (!user?.id) {
         throw new Error('No logged-in user found. Cannot approve request.');
       }
-      const respondedBy = user?.id;
+      respondedBy = user?.id;
 
       if (!requestRowId) {
         throw new Error('Request row id is missing. Cannot approve request.');
@@ -185,21 +191,13 @@ const PrincipalTeacherPendingRequest = () => {
 
       if (schoolId) {
         if (role === RequestTypes.PRINCIPAL) {
-          try {
-            await api.addUserToSchool(
-              schoolId,
-              requestedByUser,
-              RoleType.PRINCIPAL,
-            );
-          } catch (err) {
-            logger.error('Error adding user to school:', err);
-          }
+          await api.addUserToSchool(
+            schoolId,
+            requestedByUser,
+            RoleType.PRINCIPAL,
+          );
         } else if (role === RequestTypes.TEACHER) {
-          try {
-            await api.addTeacherToClass(schoolId, classId, requestedByUser);
-          } catch (err) {
-            logger.error('Error adding teacher to class:', err);
-          }
+          await api.addTeacherToClass(schoolId, classId, requestedByUser);
         }
       }
 
@@ -218,6 +216,40 @@ const PrincipalTeacherPendingRequest = () => {
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
       );
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error ?? '');
+      const isRoleConflictError =
+        errorMessage.includes(
+          'cannot be made Principal for the same school.',
+        ) ||
+        errorMessage.includes(
+          'cannot be added as Teacher for the same school.',
+        );
+
+      if (isRoleConflictError && respondedBy && (requestPrimaryId || requestRowId)) {
+        const rejectRequestId = requestPrimaryId || requestRowId;
+        if (!rejectRequestId) {
+          logger.error(
+            'Request id missing while auto-rejecting a role conflict error.',
+          );
+          logger.error('Error approving request:', error);
+          return;
+        }
+        const rejectedRequest = await api.respondToSchoolRequest(
+          rejectRequestId,
+          respondedBy,
+          STATUS.REJECTED,
+          String(t('Verification Failed')),
+          errorMessage,
+        );
+        if (rejectedRequest) {
+          history.push(
+            `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`,
+          );
+          return;
+        }
+      }
+
       logger.error('Error approving request:', error);
     }
   };

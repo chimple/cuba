@@ -6063,6 +6063,25 @@ export class SupabaseApi implements ServiceApi {
     user: TableTypes<'user'>,
   ): Promise<void> {
     if (!this.supabase) return;
+    const { data: principalRows, error: principalError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('user_id', user.id)
+      .eq('is_deleted', false)
+      .in('role', [RoleType.PRINCIPAL, 'principal'])
+      .limit(1);
+
+    if (principalError) {
+      logger.error('Error checking principal role in school_user:', principalError);
+      throw principalError;
+    }
+
+    if (principalRows && principalRows.length > 0) {
+      throw new Error(
+        'This user is already Principal in this school and cannot be added as Teacher for the same school.',
+      );
+    }
 
     const classUserId = uuidv4();
     const now = new Date().toISOString();
@@ -6739,6 +6758,48 @@ export class SupabaseApi implements ServiceApi {
 
     const schoolUserId = uuidv4();
     const timestamp = new Date().toISOString();
+
+    if (role === RoleType.PRINCIPAL) {
+      const { data: teacherRows, error: teacherRowsError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select('class_id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .in('role', [RoleType.TEACHER, 'teacher']);
+
+      if (teacherRowsError) {
+        logger.error('Error checking teacher role in class_user:', teacherRowsError);
+        return;
+      }
+
+      const teacherClassIds = Array.from(
+        new Set((teacherRows ?? []).map((row: any) => row.class_id).filter(Boolean)),
+      );
+
+      if (teacherClassIds.length > 0) {
+        const { data: schoolClassMatch, error: classMatchError } = await this.supabase
+          .from(TABLES.Class)
+          .select('id')
+          .eq('school_id', schoolId)
+          .eq('is_deleted', false)
+          .in('id', teacherClassIds)
+          .limit(1);
+
+        if (classMatchError) {
+          logger.error(
+            'Error checking teacher class membership against school:',
+            classMatchError,
+          );
+          return;
+        }
+
+        if (schoolClassMatch && schoolClassMatch.length > 0) {
+          throw new Error(
+            'This user is already a Teacher in this school and cannot be made Principal for the same school.',
+          );
+        }
+      }
+    }
 
     const { data: existing, error: selectError } = await this.supabase
       .from(TABLES.SchoolUser)
