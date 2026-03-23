@@ -452,9 +452,7 @@ export function applyColorMode(
       const strokeWidthStyle = svgEl.style?.strokeWidth;
       const isStrokeWidthTwo =
         strokeWidthAttr === '2' || strokeWidthStyle === '2';
-      if (isStrokeWidthTwo && !isFillableFalse) {
-        el.setAttribute('fill', 'none');
-      } else if (isFillableFalse) {
+      if (isFillableFalse) {
         el.setAttribute('fill', '#202020');
       } else if (hasStrokeWidthAttr || hasStrokeWidthStyle) {
         el.setAttribute('fill', 'none');

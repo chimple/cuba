@@ -34,7 +34,29 @@ export const useSvgColoring = (
       const regionId = colorable.getAttribute('color-id');
       if (!regionId) return;
 
-      colorable.setAttribute('fill', selectedColor);
+      const paintShape = (shape: Element) => {
+        shape.setAttribute('fill', selectedColor);
+        (shape as SVGElement).style.setProperty(
+          'fill',
+          selectedColor,
+          'important',
+        );
+        shape.setAttribute('data-colored', 'true');
+      };
+
+      const tag = colorable.tagName.toLowerCase();
+      if (tag === 'g') {
+        const shapes = colorable.querySelectorAll(
+          'path,circle,ellipse,rect,polygon,polyline',
+        );
+        if (shapes.length) {
+          shapes.forEach((shape) => paintShape(shape));
+        } else {
+          paintShape(colorable);
+        }
+      } else {
+        paintShape(colorable);
+      }
 
       setColoredRegions((prev) => {
         const next = {
