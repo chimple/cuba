@@ -150,9 +150,19 @@ const LoginScreen: React.FC = () => {
           await i18n.changeLanguage(appLang);
         }
 
-        // if already logged in, jump straight to select‐mode
         const authHandler = ServiceConfig.getI().authHandler;
-        if (await authHandler.isUserLoggedIn()) {
+        let isLoggedIn = await authHandler.isUserLoggedIn();
+
+        if (!isLoggedIn) {
+          Util.migrateSupabaseSession();
+          isLoggedIn = await authHandler.isUserLoggedIn();
+        }
+
+        if (isLoggedIn) {
+          if (Capacitor.isNativePlatform()) {
+            await ScreenOrientation.lock({ orientation: 'landscape' });
+          }
+
           history.replace(PAGES.SELECT_MODE);
           return;
         }

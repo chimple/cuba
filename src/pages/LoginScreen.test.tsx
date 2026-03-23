@@ -18,6 +18,7 @@ const mockSetGbUpdated = jest.fn();
 const mockUpdateLocalAttributes = jest.fn();
 const mockSetCurrMode = jest.fn();
 const mockLogEvent = jest.fn();
+const mockMigrateSupabaseSession = jest.fn();
 let mockCurrentLanguage = 'en';
 const mockTranslations: Record<string, Record<string, string>> = {
   en: {
@@ -100,6 +101,7 @@ jest.mock('../utility/util', () => ({
   Util: {
     logEvent: (eventName: unknown, payload: unknown) =>
       mockLogEvent(eventName, payload),
+    migrateSupabaseSession: () => mockMigrateSupabaseSession(),
   },
 }));
 
@@ -382,6 +384,7 @@ describe('LoginScreen', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
+    mockMigrateSupabaseSession.mockReset();
     mockCurrentLanguage = 'en';
 
     window.matchMedia = jest.fn().mockImplementation((query) => ({
@@ -460,6 +463,19 @@ describe('LoginScreen', () => {
       (mockAuthHandler.isUserLoggedIn as jest.Mock).mockResolvedValue(true);
       await renderReady();
       await eventually(() => {
+        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+      });
+    });
+
+    it('tries session migration before giving up on an existing login', async () => {
+      (mockAuthHandler.isUserLoggedIn as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+
+      await renderReady();
+
+      await eventually(() => {
+        expect(mockMigrateSupabaseSession).toHaveBeenCalledTimes(1);
         expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
       });
     });
