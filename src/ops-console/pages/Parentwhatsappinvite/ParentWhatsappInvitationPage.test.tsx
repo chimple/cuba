@@ -19,7 +19,7 @@ import {
   getWhatsappMediaType,
   toApiError,
   useParentWhatsappInvitationPageLogic,
-} from './parentWhatsappInvitationPageLogic';
+} from './ParentWhatsappInvitationPageLogic';
 import * as parentWhatsappInvitationService from './ParentWhatsappInvitationPageService';
 
 jest.mock('i18next', () => ({
@@ -80,8 +80,8 @@ const mockUseParentWhatsappInvitationPageLogic =
   >;
 
 const actualPageLogicModule = jest.requireActual(
-  './parentWhatsappInvitationPageLogic',
-) as typeof import('./parentWhatsappInvitationPageLogic');
+  './ParentWhatsappInvitationPageLogic',
+) as typeof import('./ParentWhatsappInvitationPageLogic');
 
 const useParentWhatsappInvitationPageLogicActual =
   actualPageLogicModule.useParentWhatsappInvitationPageLogic;

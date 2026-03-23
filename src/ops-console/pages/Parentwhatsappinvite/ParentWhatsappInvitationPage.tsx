@@ -26,7 +26,7 @@ import {
   formatHeaderLabel,
   formatProcessedUdiseRows,
   useParentWhatsappInvitationPageLogic,
-} from './parentWhatsappInvitationPageLogic';
+} from './ParentWhatsappInvitationPageLogic';
 
 type TableColumn = {
   key: string;
