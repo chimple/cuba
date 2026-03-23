@@ -226,7 +226,11 @@ const PrincipalTeacherPendingRequest = () => {
           'cannot be added as Teacher for the same school.',
         );
 
-      if (isRoleConflictError && respondedBy && (requestPrimaryId || requestRowId)) {
+      if (
+        isRoleConflictError &&
+        respondedBy &&
+        (requestPrimaryId || requestRowId)
+      ) {
         const rejectRequestId = requestPrimaryId || requestRowId;
         if (!rejectRequestId) {
           logger.error(

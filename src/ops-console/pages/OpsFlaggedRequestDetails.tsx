@@ -395,8 +395,7 @@ const OpsFlaggedRequestDetails = () => {
         search: `?tab=${REQUEST_TABS.APPROVED}`,
       });
     } catch (e) {
-      const errorMessage =
-        e instanceof Error ? e.message : String(e ?? '');
+      const errorMessage = e instanceof Error ? e.message : String(e ?? '');
       const isRoleConflictError =
         errorMessage.includes(
           'cannot be made Principal for the same school.',
