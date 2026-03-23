@@ -183,6 +183,17 @@ const StickerBook: React.FC = () => {
   }, [selectedBook, isLocked, isBookCompleted, collectedFromProgress]);
 
   const svgRaw = selectedBook ? (svgCache[selectedBook.id] ?? null) : null;
+  const saveAnalyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_id: selectedBook?.id ?? null,
+      book_title: selectedBook?.title ?? null,
+      collected_count: collectedStickers.length,
+      total_elements: allStickerIds.length,
+      page_path: window.location.pathname,
+    }),
+    [selectedBook, collectedStickers.length, allStickerIds.length],
+  );
 
   const onBack = () => {
     Util.setPathToBackButton(PAGES.HOME, history);
@@ -207,6 +218,7 @@ const StickerBook: React.FC = () => {
   };
 
   const onSave = () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
     logger.info('save');
     const svgEl = document.querySelector('.sticker-book-svg');
     if (svgEl) {
@@ -269,7 +281,15 @@ const StickerBook: React.FC = () => {
         undefined,
         [file],
       );
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
       await Util.saveFileToDownloads(file);
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
     } catch (error) {
       logger.error('Failed to share sticker book snapshot:', error);
     } finally {
@@ -336,7 +356,7 @@ const StickerBook: React.FC = () => {
           isOpen={showSaveToast}
           text={toastText}
           image="/assets/icons/Confirmation.svg"
-          duration={3000}
+          duration={4000}
           onClose={() => setShowSaveToast(false)}
         />
 
