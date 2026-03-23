@@ -69,8 +69,8 @@ jest.mock('../../components/DataTableBody', () => (props: any) => (
   </div>
 ));
 
-jest.mock('./parentWhatsappInvitationPageLogic', () => ({
-  ...jest.requireActual('./parentWhatsappInvitationPageLogic'),
+jest.mock('./ParentWhatsappInvitationPageLogic', () => ({
+  ...jest.requireActual('./ParentWhatsappInvitationPageLogic'),
   useParentWhatsappInvitationPageLogic: jest.fn(),
 }));
 
@@ -80,7 +80,7 @@ const mockUseParentWhatsappInvitationPageLogic =
   >;
 
 const actualPageLogicModule = jest.requireActual(
-  './parentWhatsappInvitationPageLogic',
+  './ParentWhatsappInvitationPageLogic',
 ) as typeof import('./ParentWhatsappInvitationPageLogic');
 
 const useParentWhatsappInvitationPageLogicActual =
