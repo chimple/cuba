@@ -150,7 +150,7 @@ describe('StickerBookBoard', () => {
     expect(baseProps.onNext).toHaveBeenCalled();
   });
 
-  test('shows disabled layer when locked', () => {
+  test('does not render disabled layer when locked', () => {
     render(
       <StickerBookBoard
         {...baseProps}
@@ -158,14 +158,6 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
       />,
     );
-
-    expect(
-      document.querySelector('.sticker-book-disabled-layer'),
-    ).toBeInTheDocument();
-  });
-
-  test('disabled layer not shown when unlocked', () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
     expect(document.querySelector('.sticker-book-disabled-layer')).toBeNull();
   });

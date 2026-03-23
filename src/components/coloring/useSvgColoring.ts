@@ -26,48 +26,35 @@ export const useSvgColoring = (
       const colorable = target.closest('[color-id]') as Element | null;
       if (!colorable) return;
 
+      const modeColor =
+        colorable.getAttribute('mode') === 'color' ||
+        !!colorable.closest('[mode="color"]');
+      if (modeColor) return;
+
       const regionId = colorable.getAttribute('color-id');
       if (!regionId) return;
 
-      const paintShape = (shape: Element) => {
-        shape.setAttribute('fill', selectedColor);
-        (shape as SVGElement).style.setProperty(
-          'fill',
-          selectedColor,
-          'important',
-        );
-        shape.setAttribute('data-colored', 'true');
-      };
+      colorable.setAttribute('fill', selectedColor);
 
-      const tag = colorable.tagName.toLowerCase();
-      if (tag === 'g') {
-        const shapes = colorable.querySelectorAll(
-          'path,circle,ellipse,rect,polygon,polyline',
-        );
-        if (shapes.length) {
-          shapes.forEach((shape) => paintShape(shape));
-        } else {
-          paintShape(colorable);
-        }
-      } else {
-        paintShape(colorable);
-      }
+      setColoredRegions((prev) => {
+        const next = {
+          ...prev,
+          [regionId]: selectedColor,
+        };
 
-      setColoredRegions((prev) => ({
-        ...prev,
-        [regionId]: selectedColor,
-      }));
+        // Change: track paint interactions for analytics.
+        Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
+          user_id: Util.getCurrentStudent()?.id ?? null,
+          region_id: regionId,
+          color: selectedColor,
+          colored_count: Object.keys(next).length,
+          page_path: window.location.pathname,
+        });
 
-      // Change: track paint interactions for analytics.
-      Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
-        user_id: Util.getCurrentStudent()?.id ?? null,
-        region_id: regionId,
-        color: selectedColor,
-        colored_count: Object.keys(coloredRegions).length + 1,
-        page_path: window.location.pathname,
+        return next;
       });
     },
-    [selectedColor, coloredRegions],
+    [selectedColor],
   );
 
   useEffect(() => {

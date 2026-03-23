@@ -191,12 +191,11 @@ const StickerBookBoard: React.FC<Props> = ({
 
   return (
     <div id="sb-board-root" className="sticker-book-board-root">
-      <div id="sb-top-row" className="sticker-book-top-row">
-        <NewBackButton onClick={handleBack} />
-      </div>
-
-      <div id="sb-frame" className="sticker-book-frame">
-        <div id="sb-board" className="sticker-book-board">
+      <div id="sb-top-row" className="sticker-book-header">
+        <div className="sticker-book-header-left">
+          <NewBackButton onClick={handleBack} />
+        </div>
+        <div className="sticker-book-header-right">
           <StickerBookActions
             showPaint={canPaint}
             onSave={handleSave}
@@ -206,6 +205,11 @@ const StickerBookBoard: React.FC<Props> = ({
             isStickerBookSaveEnabled={isStickerBookSaveEnabled}
             isBookCompleted={isBookCompleted}
           />
+        </div>
+      </div>
+
+      <div id="sb-frame" className="sticker-book-frame">
+        <div id="sb-board" className="sticker-book-board">
           {parsedBoardSvg && (
             <InlineSvg
               svg={parsedBoardSvg}

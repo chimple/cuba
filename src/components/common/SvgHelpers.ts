@@ -109,9 +109,7 @@ export function applyStickerVisibilityStrict(
     if (isCollected) {
       setSlotState(el as SVGElement, '1');
 
-      const shapes = el.querySelectorAll(
-        'g,path,circle,ellipse,rect,polygon,polyline,line',
-      );
+      const shapes = getSlotShapes(el as SVGElement);
 
       shapes.forEach((shape) => {
         ensureOriginalShapeState(shape);
@@ -120,47 +118,39 @@ export function applyStickerVisibilityStrict(
     } else if (isNext) {
       setSlotState(el as SVGElement, '1', `url(#${greyFilterId})`);
 
-      const shapes = el.querySelectorAll(
-        'g,path,circle,ellipse,rect,polygon,polyline,line',
-      );
+      const shapes = getSlotShapes(el as SVGElement);
 
       shapes.forEach((shape) => {
         ensureOriginalShapeState(shape);
 
-        const originalFill = getOriginalState(shape, 'fill');
-        const originalStroke = getOriginalState(shape, 'stroke');
-
-        if (originalFill !== 'none') {
-          applyShapePaint(shape, 'fill', '#D1D2D4');
-        }
-
-        if (originalStroke !== 'none') {
-          applyShapePaint(shape, 'stroke', '#D1D2D4');
-        }
-
+        applyShapePaint(shape, 'fill', '#D1D2D4');
+        applyShapePaint(shape, 'stroke', '#D1D2D4');
+        applyShapeColor(shape, '#D1D2D4');
         clearShapeOpacity(shape);
       });
     } else if (showUncollectedStickers) {
       setSlotState(el as SVGElement, '1', `url(#${whiteFilterId})`);
-      const shapes = el.querySelectorAll(
-        'g,path,circle,ellipse,rect,polygon,polyline,line',
-      );
+      const shapes = getSlotShapes(el as SVGElement);
       shapes.forEach((shape) => {
         ensureOriginalShapeState(shape);
-        const originalFill = getOriginalState(shape, 'fill');
-        const originalStroke = getOriginalState(shape, 'stroke');
-        if (originalFill !== 'none') {
-          applyShapePaint(shape, 'fill', '#FFFFFF');
-        }
-        if (originalStroke !== 'none') {
-          applyShapePaint(shape, 'stroke', '#FFFFFF');
-        }
+        applyShapePaint(shape, 'fill', '#FFFFFF');
+        applyShapePaint(shape, 'stroke', '#FFFFFF');
+        applyShapeColor(shape, '#FFFFFF');
         clearShapeOpacity(shape);
       });
     } else {
       setSlotState(el as SVGElement, '0');
     }
   });
+}
+
+function getSlotShapes(slot: SVGElement): Element[] {
+  const selector = 'g,path,circle,ellipse,rect,polygon,polyline,line,use,image';
+  const shapes = Array.from(slot.querySelectorAll(selector));
+  if (slot.matches(selector)) {
+    shapes.unshift(slot);
+  }
+  return shapes;
 }
 
 // Ensures a white filter exists for whitening uncollected stickers.
@@ -315,8 +305,12 @@ function resetSlotState(slot: SVGElement) {
 
 function setSlotState(slot: SVGElement, opacity: string, filter?: string) {
   if (slot.style) {
-    slot.style.opacity = opacity;
-    slot.style.filter = filter || '';
+    slot.style.setProperty('opacity', opacity, 'important');
+    if (filter) {
+      slot.style.setProperty('filter', filter, 'important');
+    } else {
+      slot.style.removeProperty('filter');
+    }
   }
 
   if (filter) {
@@ -333,6 +327,11 @@ function applyShapePaint(
 ) {
   shape.setAttribute(key, value);
   (shape as SVGElement).style?.setProperty(key, value, 'important');
+}
+
+function applyShapeColor(shape: Element, value: string) {
+  shape.setAttribute('color', value);
+  (shape as SVGElement).style?.setProperty('color', value, 'important');
 }
 
 function clearShapeOpacity(shape: Element) {
@@ -402,13 +401,20 @@ export function applyColorMode(
     const hasMarkId = el.hasAttribute('mark-id');
 
     if (isSpecial) {
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', '#FFFFFF');
+      el.setAttribute('stroke-opacity', '0.3');
+      el.removeAttribute('fill-opacity');
       if (isHighlight) {
-        el.setAttribute('fill', '#FFFFFF4D');
-        el.setAttribute('stroke', 'none');
-        el.removeAttribute('stroke-width');
-        el.removeAttribute('opacity');
-      } else {
-        el.setAttribute('stroke', '#FFFFFF4D');
+        const svgEl = el as SVGElement;
+        const hasStrokeWidthAttr = el.hasAttribute('stroke-width');
+        const hasStrokeWidthStyle =
+          !!svgEl.style?.strokeWidth && svgEl.style.strokeWidth !== '0';
+        if (!hasStrokeWidthAttr && !hasStrokeWidthStyle) {
+          el.setAttribute('fill', '#FFFFFF');
+          el.setAttribute('fill-opacity', '0.3');
+          el.setAttribute('stroke', 'none');
+        }
       }
       return;
     }
@@ -417,19 +423,44 @@ export function applyColorMode(
         el.hasAttribute('fill') && el.getAttribute('fill') !== 'none';
       const hasStroke =
         el.hasAttribute('stroke') && el.getAttribute('stroke') !== 'none';
+      const svgEl = el as SVGElement;
+      const hasStrokeWidthAttr = el.hasAttribute('stroke-width');
+      const hasStrokeWidthStyle =
+        !!svgEl.style?.strokeWidth && svgEl.style.strokeWidth !== '0';
       if (hasFill) {
-        el.setAttribute('fill', '#FFFFFF4D');
-        el.removeAttribute('fill-opacity');
+        el.setAttribute('fill', '#FFFFFF');
+        el.setAttribute('fill-opacity', '0.3');
       }
       if (hasStroke) {
-        el.setAttribute('stroke', '#FFFFFF4D');
-        el.removeAttribute('stroke-opacity');
+        el.setAttribute('stroke', '#FFFFFF');
+        el.setAttribute('stroke-opacity', '0.3');
+      }
+      if (!hasStrokeWidthAttr && !hasStrokeWidthStyle) {
+        el.setAttribute('fill', '#FFFFFF');
+        el.setAttribute('fill-opacity', '0.3');
       }
       return;
     }
 
     if (isUncoloured) {
-      el.setAttribute('fill', uncolouredColor);
+      const svgEl = el as SVGElement;
+      const isFillableFalse = el.getAttribute('data-fillable') === 'false';
+      const hasStrokeWidthAttr = el.hasAttribute('stroke-width');
+      const hasStrokeWidthStyle =
+        !!svgEl.style?.strokeWidth && svgEl.style.strokeWidth !== '0';
+      const strokeWidthAttr = el.getAttribute('stroke-width');
+      const strokeWidthStyle = svgEl.style?.strokeWidth;
+      const isStrokeWidthTwo =
+        strokeWidthAttr === '2' || strokeWidthStyle === '2';
+      if (isStrokeWidthTwo && !isFillableFalse) {
+        el.setAttribute('fill', 'none');
+      } else if (isFillableFalse) {
+        el.setAttribute('fill', '#202020');
+      } else if (hasStrokeWidthAttr || hasStrokeWidthStyle) {
+        el.setAttribute('fill', 'none');
+      } else {
+        el.setAttribute('fill', '#202020');
+      }
       el.setAttribute('stroke', uncolouredColor);
       el.removeAttribute('fill-opacity');
       el.removeAttribute('stroke-opacity');
@@ -463,7 +494,7 @@ export function applyColorMode(
     const hasStroke =
       el.hasAttribute('stroke') && el.getAttribute('stroke') !== 'none';
     if (hasStroke) {
-      el.setAttribute('stroke', '#000000');
+      el.setAttribute('stroke', '#202020');
       el.removeAttribute('stroke-opacity');
     }
   });
@@ -482,7 +513,6 @@ export function applyDragMode(svg: SVGSVGElement) {
     const hasMarkId = el.hasAttribute('mark-id');
 
     if (isUncoloured) {
-      el.setAttribute('fill', '#202020');
       el.setAttribute('stroke', '#202020');
       return;
     }

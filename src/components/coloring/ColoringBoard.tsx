@@ -38,7 +38,7 @@ const InlineSvg = React.forwardRef<
     });
     el.setAttribute('width', '100%');
     el.setAttribute('height', '100%');
-    el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    el.setAttribute('preserveAspectRatio', 'none');
   }, [svg, className]);
 
   const safeSvg = sanitizeSvg(svg.inner);
@@ -176,7 +176,7 @@ const ColoringBoard: React.FC = () => {
               mode="color"
               svgRefExternal={svgRef}
               colorModeUncolouredStyle="fill"
-              colorModeUncolouredColor="#000000"
+              colorModeUncolouredColor="#202020"
               sceneWidth="100%"
             >
               <InlineSvg svg={parsedSvg} />
