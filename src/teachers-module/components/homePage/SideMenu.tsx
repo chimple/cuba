@@ -5,7 +5,6 @@ import { Util } from '../../../utility/util';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  IS_OPS_USER,
   MODES,
   OPS_ROLES,
   PAGES,
@@ -68,9 +67,7 @@ const SideMenu: React.FC<{
   );
   const isAuthorizedForOpsMode = useMemo(() => {
     const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
-    return (
-      isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === 'true'
-    );
+    return isOpsUser || hasOpsRole;
   }, [isOpsUser, roles]);
 
   useEffect(() => {

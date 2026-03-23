@@ -18,7 +18,6 @@ import {
   USER_SELECTION_STAGE,
   STAGES,
   CURRENT_CLASS,
-  IS_OPS_USER,
 } from '../common/constants';
 import SelectModeButton from '../components/selectMode/SelectModeButton';
 import { IoMdPeople } from 'react-icons/io';
@@ -82,6 +81,7 @@ const SelectMode: FC = () => {
   const {
     authUser,
     user: reduxUser,
+    isOpsUser,
     roles,
   } = useAppSelector((state: RootState) => state.auth as AuthState);
   useEffect(() => {
@@ -180,7 +180,6 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id),
     );
 
-    const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
     // If user is ops or program user
     if (isOpsUser) {
       await applyOrientationForMode(MODES.OPS_CONSOLE);
