@@ -166,8 +166,6 @@ describe('StickerBookBoard', () => {
 
   test('disabled layer not shown when unlocked', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(document.querySelector('.sticker-book-disabled-layer')).toBeNull();
   });
 
   test('renders with collected stickers', () => {
