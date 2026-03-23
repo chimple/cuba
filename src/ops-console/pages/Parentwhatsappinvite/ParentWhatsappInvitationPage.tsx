@@ -1,4 +1,4 @@
-import {
+﻿import {
   AssessmentOutlined,
   CloseRounded,
   CloudUploadOutlined,
@@ -26,7 +26,7 @@ import {
   formatHeaderLabel,
   formatProcessedUdiseRows,
   useParentWhatsappInvitationPageLogic,
-} from './ParentWhatsappInvitationPageLogic';
+} from './parentWhatsappInvitationPageLogic';
 
 type TableColumn = {
   key: string;
@@ -845,3 +845,4 @@ const ParentWhatsappInvitationPage: React.FC = () => {
 };
 
 export default ParentWhatsappInvitationPage;
+

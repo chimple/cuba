@@ -1,4 +1,4 @@
-import {
+﻿import {
   act,
   fireEvent,
   render,
@@ -19,7 +19,7 @@ import {
   getWhatsappMediaType,
   toApiError,
   useParentWhatsappInvitationPageLogic,
-} from './ParentWhatsappInvitationPageLogic';
+} from './parentWhatsappInvitationPageLogic';
 import * as parentWhatsappInvitationService from './ParentWhatsappInvitationPageService';
 
 jest.mock('i18next', () => ({
@@ -69,8 +69,8 @@ jest.mock('../../components/DataTableBody', () => (props: any) => (
   </div>
 ));
 
-jest.mock('./ParentWhatsappInvitationPageLogic', () => ({
-  ...jest.requireActual('./ParentWhatsappInvitationPageLogic'),
+jest.mock('./parentWhatsappInvitationPageLogic', () => ({
+  ...jest.requireActual('./parentWhatsappInvitationPageLogic'),
   useParentWhatsappInvitationPageLogic: jest.fn(),
 }));
 
@@ -80,8 +80,8 @@ const mockUseParentWhatsappInvitationPageLogic =
   >;
 
 const actualPageLogicModule = jest.requireActual(
-  './ParentWhatsappInvitationPageLogic',
-) as typeof import('./ParentWhatsappInvitationPageLogic');
+  './parentWhatsappInvitationPageLogic',
+) as typeof import('./parentWhatsappInvitationPageLogic');
 
 const useParentWhatsappInvitationPageLogicActual =
   actualPageLogicModule.useParentWhatsappInvitationPageLogic;
@@ -2038,3 +2038,4 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     expect(result.inviteList).toEqual([]);
   });
 });
+
