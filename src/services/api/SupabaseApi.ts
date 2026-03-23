@@ -3692,12 +3692,19 @@ export class SupabaseApi implements ServiceApi {
         .maybeSingle();
 
       if (!existingLink) {
-        await this.supabase.from('parent_user').insert({
-          student_id: newStudentId,
-          parent_id: parent.id,
-          is_deleted: false,
-          updated_at: now,
-        });
+        const { error: parentInsertError } = await this.supabase
+          .from('parent_user')
+          .insert({
+            student_id: newStudentId,
+            parent_id: parent.id,
+            is_deleted: false,
+            updated_at: now,
+          });
+        if (parentInsertError) {
+          throw new Error(
+            `Failed to merge parent link: ${parentInsertError.message}`,
+          );
+        }
       }
     }
 
@@ -3714,7 +3721,6 @@ export class SupabaseApi implements ServiceApi {
 
     // 7. Merge stars from users table
 
-    // Get OLD student stars
     const { data: oldUser, error: oldError } = await this.supabase
       .from('user')
       .select('stars')
@@ -3722,7 +3728,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .single();
 
-    // Get NEW student stars
     const { data: newUser, error: newError } = await this.supabase
       .from('user')
       .select('stars')
@@ -3734,13 +3739,10 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Failed to fetch student stars.');
     }
 
-    // Safely handle null values
     const oldStars = oldUser?.stars ?? 0;
     const newStars = newUser?.stars ?? 0;
-
     const totalStars = oldStars + newStars;
 
-    // Update NEW student with merged stars
     const { error: starUpdateError } = await this.supabase
       .from('user')
       .update({
@@ -3755,21 +3757,49 @@ export class SupabaseApi implements ServiceApi {
       );
     }
 
+    // 🔥 FIX: Force class_user update so other devices sync it
+    const { error: classUserSyncError } = await this.supabase
+      .from('class_user')
+      .update({ updated_at: now })
+      .eq('user_id', newStudentId)
+      .eq('is_deleted', false);
+    if (classUserSyncError) {
+      logger.warn(
+        'class_user sync touch failed after merge:',
+        classUserSyncError,
+      );
+    }
+
     // 8. Soft delete source student records
-    await this.supabase
+    const { error: classUserDeleteError } = await this.supabase
       .from('class_user')
       .update({ is_deleted: true, updated_at: now })
       .eq('user_id', existingStudentId);
+    if (classUserDeleteError) {
+      throw new Error(
+        `Failed to soft delete source class_user rows: ${classUserDeleteError.message}`,
+      );
+    }
 
-    await this.supabase
+    const { error: parentUserDeleteError } = await this.supabase
       .from('parent_user')
       .update({ is_deleted: true, updated_at: now })
       .eq('student_id', existingStudentId);
+    if (parentUserDeleteError) {
+      throw new Error(
+        `Failed to soft delete source parent_user rows: ${parentUserDeleteError.message}`,
+      );
+    }
 
-    await this.supabase
+    const { error: sourceUserDeleteError } = await this.supabase
       .from('user')
       .update({ is_deleted: true, updated_at: now })
       .eq('id', existingStudentId);
+    if (sourceUserDeleteError) {
+      throw new Error(
+        `Failed to soft delete source user: ${sourceUserDeleteError.message}`,
+      );
+    }
 
     // 9. Update request
     if (requestId && respondedBy) {
@@ -3867,22 +3897,44 @@ export class SupabaseApi implements ServiceApi {
       const getRemainingCount = (course: any): number =>
         getPath(course).filter((l: any) => l?.isPlayed === false).length;
 
+      const hasAssignedAssessment = (course: any): boolean =>
+        getPath(course).some(
+          (lesson: any) =>
+            lesson?.is_assessment === true && lesson?.isPlayed === false,
+        );
+
+      const hasCompletedAssessment = (course: any): boolean =>
+        getPath(course).some(
+          (lesson: any) =>
+            lesson?.is_assessment === true && lesson?.isPlayed === true,
+        );
+
       /**
        * Fetch both students learning_path
        */
-      const { data: oldUser } = await this.supabase
+      const { data: oldUser, error: oldUserError } = await this.supabase
         .from(TABLES.User)
         .select('learning_path')
         .eq('id', existingStudentId)
         .eq('is_deleted', false)
         .single();
+      if (oldUserError) {
+        throw new Error(
+          `Failed to fetch source learning_path: ${oldUserError.message}`,
+        );
+      }
 
-      const { data: newUser } = await this.supabase
+      const { data: newUser, error: newUserError } = await this.supabase
         .from(TABLES.User)
         .select('learning_path')
         .eq('id', newStudentId)
         .eq('is_deleted', false)
         .single();
+      if (newUserError) {
+        throw new Error(
+          `Failed to fetch destination learning_path: ${newUserError.message}`,
+        );
+      }
 
       const oldPathway = parseLearningPath(oldUser?.learning_path);
       const newPathway = parseLearningPath(newUser?.learning_path);
@@ -3960,10 +4012,15 @@ export class SupabaseApi implements ServiceApi {
       const chapterSortMap = new Map<string, number>();
 
       if (chapterIds.length) {
-        const { data: chapters } = await this.supabase
+        const { data: chapters, error: chaptersError } = await this.supabase
           .from(TABLES.Chapter)
           .select('id, sort_index')
           .in('id', chapterIds);
+        if (chaptersError) {
+          throw new Error(
+            `Failed to fetch chapter sort indexes: ${chaptersError.message}`,
+          );
+        }
 
         for (const c of chapters ?? []) {
           chapterSortMap.set(String(c.id), c.sort_index ?? -1);
@@ -3998,15 +4055,6 @@ export class SupabaseApi implements ServiceApi {
         const oldChapterSort = getActiveSortIndex(oldCourse);
         const newChapterSort = getActiveSortIndex(newCourse);
 
-        const oldLesson = getActiveLesson(oldCourse);
-        const newLesson = getActiveLesson(newCourse);
-
-        const oldAssessmentCompleted = oldLesson?.assessment_completed === true;
-        const newAssessmentCompleted = newLesson?.assessment_completed === true;
-
-        const oldHasAssessment = oldLesson?.is_assessment === true;
-        const newHasAssessment = newLesson?.is_assessment === true;
-
         /**
          * PAL
          */
@@ -4018,6 +4066,23 @@ export class SupabaseApi implements ServiceApi {
          * AssessmentOnly rules
          */
         if (mergedPathMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY) {
+          const chooseByProgress = (): any => {
+            if (oldPlayed !== newPlayed) {
+              return oldPlayed > newPlayed ? oldCourse : newCourse;
+            }
+
+            if (oldRemaining !== newRemaining) {
+              return oldRemaining < newRemaining ? oldCourse : newCourse;
+            }
+
+            return newCourse;
+          };
+
+          const oldAssessmentCompleted = hasCompletedAssessment(oldCourse);
+          const newAssessmentCompleted = hasCompletedAssessment(newCourse);
+          const oldHasAssignedAssessment = hasAssignedAssessment(oldCourse);
+          const newHasAssignedAssessment = hasAssignedAssessment(newCourse);
+
           /**
            * If assessment completed → prefer that student
            */
@@ -4026,30 +4091,35 @@ export class SupabaseApi implements ServiceApi {
           }
 
           /**
-           * Assigned assessment scenario
+           * If both have assigned assessment → choose more progress.
            */
-          if (oldHasAssessment !== newHasAssessment) {
-            const oldStarted = oldPlayed > 0;
-            const newStarted = newPlayed > 0;
-
-            if (oldStarted && !newStarted) return oldCourse;
-            if (newStarted && !oldStarted) return newCourse;
-
-            return oldHasAssessment ? oldCourse : newCourse;
+          if (oldHasAssignedAssessment && newHasAssignedAssessment) {
+            return chooseByProgress();
           }
 
           /**
-           * Choose more progress
+           * If only one has assigned assessment:
+           * - if student without assessment already started lessons, keep them
+           * - else choose the assigned-assessment pathway
            */
-          if (oldPlayed !== newPlayed) {
-            return oldPlayed > newPlayed ? oldCourse : newCourse;
+          if (oldHasAssignedAssessment !== newHasAssignedAssessment) {
+            const studentWithoutAssessmentCourse = oldHasAssignedAssessment
+              ? newCourse
+              : oldCourse;
+            const hasStartedWithoutAssessment =
+              getPlayedCount(studentWithoutAssessmentCourse) > 0;
+
+            if (hasStartedWithoutAssessment) {
+              return studentWithoutAssessmentCourse;
+            }
+
+            return oldHasAssignedAssessment ? oldCourse : newCourse;
           }
 
-          if (oldRemaining !== newRemaining) {
-            return oldRemaining < newRemaining ? oldCourse : newCourse;
-          }
-
-          return newCourse;
+          /**
+           * Fallback for AssessmentOnly: choose more progress.
+           */
+          return chooseByProgress();
         }
 
         /**
@@ -4129,13 +4199,18 @@ export class SupabaseApi implements ServiceApi {
        * Update destination student
        */
 
-      await this.supabase
+      const { error: pathwayUpdateError } = await this.supabase
         .from(TABLES.User)
         .update({
           learning_path: JSON.stringify(updatedPathway),
           updated_at: now,
         })
         .eq('id', newStudentId);
+      if (pathwayUpdateError) {
+        throw new Error(
+          `Failed to update merged learning_path: ${pathwayUpdateError.message}`,
+        );
+      }
 
       return {
         success: true,
