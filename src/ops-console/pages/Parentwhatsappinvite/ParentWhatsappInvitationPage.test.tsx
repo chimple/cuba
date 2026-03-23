@@ -69,8 +69,8 @@ jest.mock('../../components/DataTableBody', () => (props: any) => (
   </div>
 ));
 
-jest.mock('./parentWhatsappInvitationPageLogic', () => ({
-  ...jest.requireActual('./parentWhatsappInvitationPageLogic'),
+jest.mock('./ParentWhatsappInvitationPageLogic', () => ({
+  ...jest.requireActual('./ParentWhatsappInvitationPageLogic'),
   useParentWhatsappInvitationPageLogic: jest.fn(),
 }));
 
@@ -2038,4 +2038,5 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     expect(result.inviteList).toEqual([]);
   });
 });
+
 
