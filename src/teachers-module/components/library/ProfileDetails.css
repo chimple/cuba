@@ -20,17 +20,13 @@
   border-radius: 50%;
   width: 80px;
   height: 80px;
-  background-color: #C4C4C4;
+  background-color: #c4c4c4;
 }
 .profile-container:hover {
   transition: ease-out 0.2s;
   border: 2vw solid rgba(0, 0, 0, 0.2);
   -webkit-transition: ease-out 0.2s;
 }
-
-/* .profile-details-container {
-  margin-top: 20px; 
-} */
 
 .profile-details {
   cursor: pointer;
@@ -51,8 +47,8 @@
 }
 
 .profile-details-data {
-  position: relative;      /* ← new */
-  display: inline-block;   /* so it wraps tightly around the img */
+  position: relative; /* ← new */
+  display: inline-block; /* so it wraps tightly around the img */
 }
 
 .profile-details-data .overlay {
@@ -60,16 +56,15 @@
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-  display: flex;          
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;             
-  height: 80px;           
-  border-radius: 50%;     
-  pointer-events: none;   
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .profile-details-data:hover .overlay {
   opacity: 1;
 }
-

@@ -1,4 +1,4 @@
-import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
+import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 
 export class RemoteConfig {
   private constructor() {}
@@ -46,19 +46,19 @@ export class RemoteConfig {
 }
 
 export enum REMOTE_CONFIG_KEYS {
-  CAN_HOT_UPDATE = "can_hot_update",
-  BUNDLE_ZIP_URLS = "bundle_zip_urls",
-  CAN_SHOW_AVATAR = "can_show_avatar",
-  CAN_UPDATED_AVATAR_SUGGESTION_URL = "can_updated_avatar_suggestion_url",
+  CAN_HOT_UPDATE = 'can_hot_update',
+  BUNDLE_ZIP_URLS = 'bundle_zip_urls',
+  CAN_SHOW_AVATAR = 'can_show_avatar',
+  CAN_UPDATED_AVATAR_SUGGESTION_URL = 'can_updated_avatar_suggestion_url',
   // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: false,
   [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
-    "https://cuba-stage-zip-bundle.web.app/",
-    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
-    "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
+    'https://cuba-stage-zip-bundle.web.app/',
+    'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
+    'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
   ],
   // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
   //   "https://www.chimple.org/privacy-policy"

@@ -1,32 +1,26 @@
-import { useEffect, useState } from "react";
-import "../LearningPathway.css";
-import "./HomeworkPathway.css";
-import { v4 as uuidv4 } from "uuid";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { useEffect, useState } from 'react';
+import '../LearningPathway.css';
+import './HomeworkPathway.css';
+import { v4 as uuidv4 } from 'uuid';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
-  LATEST_STARS,
-  STARS_COUNT,
   TableTypes,
   LIVE_QUIZ,
-} from "../../common/constants";
-import { Util } from "../../utility/util";
-import { schoolUtil } from "../../utility/schoolUtil";
-import {
-  updateLocalAttributes,
-  useGbContext,
-} from "../../growthbook/Growthbook";
-import Loading from "../Loading";
-import DropdownMenu from "../Home/DropdownMenu";
-import ChapterLessonBox from "../learningPathway/chapterLessonBox";
-import HomeworkPathwayStructure from "./HomeworkPathwayStructure";
-import PathwayModal from "../learningPathway/PathwayModal";
-import { t } from "i18next";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import HomeworkCompleteModal from "./HomeworkCompleteModal";
-
+} from '../../common/constants';
+import { Util } from '../../utility/util';
+import { useGbContext } from '../../growthbook/Growthbook';
+import Loading from '../Loading';
+import DropdownMenu from '../Home/DropdownMenu';
+import ChapterLessonBox from '../learningPathway/chapterLessonBox';
+import HomeworkPathwayStructure from './HomeworkPathwayStructure';
+import PathwayModal from '../learningPathway/PathwayModal';
+import { t } from 'i18next';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import HomeworkCompleteModal from './HomeworkCompleteModal';
+import logger from '../../utility/logger';
 // Make sure this interface is defined at the top of your component file
 interface HomeworkPath {
   path_id: string;
@@ -73,7 +67,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStudent?.id, isDropdownAlwaysEnabled]);
 
-  const updateStarCount = async (currentStudent: TableTypes<"user">) => {
+  const updateStarCount = async (currentStudent: TableTypes<'user'>) => {
     if (!currentStudent?.id) return;
 
     const studentId = currentStudent.id;
@@ -108,13 +102,13 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     // This keeps DB in sync but UI never waits on it.
     try {
       if (
-        typeof navigator === "undefined" ||
+        typeof navigator === 'undefined' ||
         (navigator && navigator.onLine && localStars > dbStars)
       ) {
         await api.updateStudentStars(studentId, localStars);
       }
     } catch (err) {
-      console.warn("[Stars sync] Failed to sync stars with backend", err);
+      logger.error('[Stars sync] Failed to sync stars with backend', err);
     }
   };
 
@@ -132,24 +126,24 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   };
 
   async function awardStarsForPathCompletion(
-    student: TableTypes<"user">,
-    starsToAdd: number
+    student: TableTypes<'user'>,
+    starsToAdd: number,
   ) {
     if (!student?.id) return;
     // 1) Local-first bump (this will also fire "starsUpdated")
     const newLocalStars = Util.bumpLocalStarsForStudent(
       student.id,
       starsToAdd,
-      student.stars || 0
+      student.stars || 0,
     );
 
     // 2) Best-effort sync DB
     try {
       await api.updateStudentStars(student.id, newLocalStars);
     } catch (err) {
-      console.warn(
-        "[awardStarsForPathCompletion] failed to sync with backend",
-        err
+      logger.error(
+        '[awardStarsForPathCompletion] failed to sync with backend',
+        err,
       );
     }
 
@@ -173,9 +167,9 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   };
 
   const fetchHomeworkPathway = async (
-    student: TableTypes<"user">,
-    subjectId?: string
-  ) => {
+    student: TableTypes<'user'>,
+    subjectId?: string,
+  ): Promise<void> => {
     setLoading(true);
 
     // 0️⃣ Read existing path from localStorage (if any)
@@ -189,7 +183,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         const hasLessons =
           Array.isArray(parsed.lessons) && parsed.lessons.length > 0;
         const notFinished =
-          typeof parsed.currentIndex === "number" &&
+          typeof parsed.currentIndex === 'number' &&
           parsed.currentIndex < parsed.lessons.length;
 
         if (hasLessons && notFinished) {
@@ -200,7 +194,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
-        console.warn("Invalid HOMEWORK_PATHWAY in localStorage:", err);
+        logger.error('Invalid HOMEWORK_PATHWAY in localStorage:', err);
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
     }
@@ -226,7 +220,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         // 2a. Subject filter, if any
         if (subjectId) {
           allPendingAssignments = allPendingAssignments.filter(
-            (assignment) => String(assignment.course_id) === String(subjectId)
+            (assignment) => String(assignment.course_id) === String(subjectId),
           );
 
           if (!allPendingAssignments.length) {
@@ -237,7 +231,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
               pathData = existingPath;
             } else {
               // No path yet, try global recompute
-              return fetchHomeworkPathway(student);
+              await fetchHomeworkPathway(student);
+              return;
             }
           }
         }
@@ -303,26 +298,26 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                   const completedCounts =
                     await api.getCompletedAssignmentsCountForSubjects(
                       student.id,
-                      subjectsWithMaxPending
+                      subjectsWithMaxPending,
                     );
                   completedCountBySubject = completedCounts.reduce(
                     (acc, { subject_id, completed_count }) => {
                       acc[subject_id] = completed_count;
                       return acc;
                     },
-                    {} as { [key: string]: number }
+                    {} as { [key: string]: number },
                   );
                 }
 
                 const selectedAssignments = Util.pickFiveHomeworkLessons(
                   assignmentsWithSubject,
-                  completedCountBySubject
+                  completedCountBySubject,
                 );
 
                 const lessonsWithDetails = await Promise.all(
                   selectedAssignments.map(async (assignment) => {
                     return await normalizeAssignment(assignment);
-                  })
+                  }),
                 );
 
                 const newHomeworkPath: HomeworkPath = {
@@ -346,18 +341,18 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                     total_lessons_in_path: newHomeworkPath.lessons?.length || 0,
                     changed_at: new Date().toISOString(),
                     reason: subjectId
-                      ? "subject_changed"
-                      : "path_completed_rebuild",
+                      ? 'subject_changed'
+                      : 'path_completed_rebuild',
                     subject_id: subjectId || null,
                   };
                   Util.logEvent(
                     EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED,
-                    changedEvent
+                    changedEvent,
                   );
                 } catch (err) {
-                  console.warn(
-                    "[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event",
-                    err
+                  logger.error(
+                    '[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event',
+                    err,
                   );
                 }
 
@@ -369,7 +364,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
             pathData = await buildAndSaveInitialHomeworkPath(
               student,
               allPendingAssignments,
-              subjectId
+              subjectId,
             );
           }
         }
@@ -409,14 +404,14 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       if (pathData.lessons && pathData.lessons.length > 0) {
         const idx = Math.min(
           pathData.currentIndex || 0,
-          pathData.lessons.length - 1
+          pathData.lessons.length - 1,
         );
         const currentObj = pathData.lessons[idx];
 
         if (!currentObj) return;
 
-        const lessonName = currentObj.lesson?.name || "Lesson";
-        let chapterName = "Chapter";
+        const lessonName = currentObj.lesson?.name || 'Lesson';
+        let chapterName = 'Chapter';
 
         try {
           if (currentObj.chapter_id) {
@@ -424,7 +419,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
             chapterName = chapter?.name || chapterName;
           }
         } catch (error) {
-          console.warn("Failed fetching chapter details", error);
+          logger.error('Failed fetching chapter details', error);
         }
 
         setBoxDetails({
@@ -436,7 +431,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       // 8️⃣ Notify structure to re-render
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
-      console.error("Error in fetchHomeworkPathway:", error);
+      logger.error('Error in fetchHomeworkPathway:', error);
     } finally {
       setLoading(false);
     }
@@ -446,9 +441,9 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
    * SUBJECT-SPECIFIC path builder, used when dropdown subject is chosen.
    */
   const buildAndSaveInitialHomeworkPath = async (
-    student: TableTypes<"user">,
+    student: TableTypes<'user'>,
     pendingAssignments: any[],
-    subjectId?: string
+    subjectId?: string,
   ) => {
     if (!pendingAssignments || pendingAssignments.length === 0) {
       const emptyPath: HomeworkPath = {
@@ -487,8 +482,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     const assignmentsForSubject = pendingBySubject[bestSubject] || [];
 
     assignmentsForSubject.sort((a, b) => {
-      const isAManual = a.source === "manual";
-      const isBManual = b.source === "manual";
+      const isAManual = a.source === 'manual';
+      const isBManual = b.source === 'manual';
 
       if (isAManual && !isBManual) return -1;
       if (!isAManual && isBManual) return 1;
@@ -502,7 +497,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       selectedAssignments.map(async (assignment) => {
         // use normalizeAssignment which ensures lesson is present
         return await normalizeAssignment(assignment);
-      })
+      }),
     );
 
     const newHomeworkPath: HomeworkPath = {
@@ -524,19 +519,19 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         assignment_id: newHomeworkPath.lessons?.[0]?.assignment_id ?? null,
         total_lessons_in_path: newHomeworkPath.lessons?.length ?? 0,
         lesson_ids: newHomeworkPath.lessons.map(
-          (l: any) => l.lesson_id ?? null
+          (l: any) => l.lesson_id ?? null,
         ),
         assignment_ids: newHomeworkPath.lessons.map(
-          (l: any) => l.assignment_id ?? null
+          (l: any) => l.assignment_id ?? null,
         ),
         changed_at: new Date().toISOString(),
-        reason: subjectId ? "subject_changed" : "default_pathway",
+        reason: subjectId ? 'subject_changed' : 'default_pathway',
       };
       Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
     } catch (err) {
-      console.warn(
-        "[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event",
-        err
+      logger.error(
+        '[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event',
+        err,
       );
     }
 
@@ -544,8 +539,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   };
 
   const saveHomeworkPath = async (
-    student: TableTypes<"user">,
-    path: HomeworkPath
+    student: TableTypes<'user'>,
+    path: HomeworkPath,
   ) => {
     localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(path));
 
@@ -554,7 +549,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
 
     const assignmentIds = (path.lessons || []).map(
-      (l: any) => l.assignment_id ?? null
+      (l: any) => l.assignment_id ?? null,
     );
 
     // Build compact list of up to 5 assignment ids with explicit keys (assignment_id_1 .. 5)
@@ -605,7 +600,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           await fetchHomeworkPathway(student, selectedSubject || undefined); // Refetch to update UI
         }
       } catch (e) {
-        console.error("Failed to update homework progress", e);
+        logger.error('Failed to update homework progress', e);
         setIsHomeworkComplete(true); // Failsafe
       }
     } else {
@@ -619,7 +614,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     return (
       <div className="pending-assignment">
         <HomeworkCompleteModal
-          text={t("Yay!! You have completed all the Homework!!")}
+          text={t('Yay!! You have completed all the Homework!!')}
           borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
           onClose={() => setIsHomeworkComplete(false)}
           onPlayMore={() => {
@@ -663,10 +658,10 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
       <div className="homeworkpathway-chapter-egg-container">
         <ChapterLessonBox
-          chapterName={boxDetails?.cName || "Loading"}
-          lessonName={boxDetails?.lName || "..."}
+          chapterName={boxDetails?.cName || 'Loading'}
+          lessonName={boxDetails?.lName || '...'}
           containerStyle={{
-            width: "35vw",
+            width: '35vw',
           }}
         />
       </div>
@@ -674,7 +669,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       {/* ✅ Render the modal when its state is true */}
       {showDisabledDropdownModal && (
         <PathwayModal
-          text={t("Keep going!\nFinish these lesson to change the subject")}
+          text={t('Keep going!\nFinish these lesson to change the subject')}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}
         />

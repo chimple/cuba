@@ -1,29 +1,35 @@
-import { useEffect, useState } from "react";
-import "./ProfileMenu.css";
+import { useEffect, useState } from 'react';
+import './ProfileMenu.css';
 import {
   AVATARS,
   CURRENT_MODE,
   CURRENT_PATHWAY_MODE,
-  HOMEHEADERLIST,
+  ENABLE_STICKER_BOOK,
+  EVENTS,
   HOMEWORK_PATHWAY,
   LEADERBOARDHEADERLIST,
   MODES,
   PAGES,
+  STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   TableTypes,
-  USER_DATA,
-} from "../../common/constants";
-import { useHistory } from "react-router";
-import { Util } from "../../utility/util";
-import { AvatarObj } from "../animation/Avatar";
-import ParentalLock from "../parent/ParentalLock";
-import { t } from "i18next";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '../../common/constants';
+import { useHistory } from 'react-router';
+import { Util } from '../../utility/util';
+import { AvatarObj } from '../animation/Avatar';
+import ParentalLock from '../parent/ParentalLock';
+import { t } from 'i18next';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   updateLocalAttributes,
   useGbContext,
-} from "../../growthbook/Growthbook";
-import { schoolUtil } from "../../utility/schoolUtil";
-import i18n from "../../i18n";
+} from '../../growthbook/Growthbook';
+import { schoolUtil } from '../../utility/schoolUtil';
+import i18n from '../../i18n';
+import { useAppSelector } from '../../redux/hooks';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import logger from '../../utility/logger';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -31,24 +37,46 @@ type ProfileMenuProps = {
 
 const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const history = useHistory();
-  const [student, setStudent] = useState<TableTypes<"user">>();
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
+  const [student, setStudent] = useState<TableTypes<'user'>>();
+  const [className, setClassName] = useState<string>('');
+  const [schoolName, setSchoolName] = useState<string>('');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [hasUnseenStickers, setHasUnseenStickers] = useState<boolean>(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
+  const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
+  const isStickerBookNotificationDotEnabled = useFeatureIsOn(
+    STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
+  );
+
+  const { user: reduxUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
+  const shouldShowStickerBookNotification =
+    hasUnseenStickers && isStickerBookNotificationDotEnabled;
 
   useEffect(() => {
     loadProfileData();
   }, []);
   const loadProfileData = async () => {
-    setStudent(Util.getCurrentStudent());
-    const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
-    setClassName(className);
-    setSchoolName(schoolName);
+    try {
+      const currentStudent = Util.getCurrentStudent();
+      setStudent(currentStudent);
+      const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
+      setClassName(className);
+      setSchoolName(schoolName);
+
+      if (currentStudent?.id) {
+        const userStickers = await api.getUserSticker(currentStudent.id);
+        const hasUnseen = userStickers.some((s) => !s.is_seen);
+        setHasUnseenStickers(hasUnseen);
+      }
+    } catch (error) {
+      logger.error('Failed to load profile data:', error);
+    }
   };
   // Handles Edit action:
   // 1. Fetches all available languages
@@ -58,10 +86,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   // 5. Navigates to the Edit Student page
   const onEdit = async () => {
     const languages = await api.getAllLanguages();
-    const userData = localStorage.getItem(USER_DATA);
-    if (!userData) return;
-    const user = JSON.parse(userData) as TableTypes<"user">;
-
+    const user = reduxUser;
+    if (!user) return;
     const userLang = languages.find((lang) => lang.id === user.language_id);
     if (userLang?.code && i18n.language !== userLang.code) {
       i18n.changeLanguage(userLang.code);
@@ -71,6 +97,17 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onLeaderboard = () => {
     history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
+  };
+
+  const onStickerBook = async () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_MENU_TAP, {
+      user_id: student?.id,
+      source: 'profile_menu',
+    });
+    if (hasUnseenStickers) {
+      setHasUnseenStickers(false);
+    }
+    history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };
 
   const onReward = () => {
@@ -98,41 +135,49 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const allMenuItems = [
     {
-      icon: "/assets/icons/Ranking.svg",
-      label: "Leaderboard",
+      icon: '/assets/icons/StickerBook.svg',
+      label: 'Sticker Book',
+      onClick: onStickerBook,
+    },
+    {
+      icon: '/assets/icons/Ranking.svg',
+      label: 'Leaderboard',
       onClick: onLeaderboard,
     },
     {
-      icon: "/assets/icons/TreasureChest.svg",
-      label: "Rewards",
+      icon: '/assets/icons/TreasureChest.svg',
+      label: 'Rewards',
       onClick: onReward,
     },
     {
-      icon: "/assets/icons/Pencil.svg",
-      label: "Edit Profile",
+      icon: '/assets/icons/Pencil.svg',
+      label: 'Edit Profile',
       onClick: onEdit,
     },
     {
-      icon: "/assets/icons/Account.svg",
-      label: "Parents Section",
+      icon: '/assets/icons/Account.svg',
+      label: 'Parents Section',
       onClick: () => setShowDialogBox(true),
     },
     {
-      icon: "/assets/icons/UserSwitch1.svg",
-      label: "Switch Profile",
+      icon: '/assets/icons/UserSwitch1.svg',
+      label: 'Switch Profile',
       onClick: onSwichUser,
     },
   ];
 
-  const HIDE_IN_SCHOOL = new Set(["Parents Section", "Edit Profile"]);
+  const HIDE_IN_SCHOOL = new Set(['Parents Section', 'Edit Profile']);
 
   const menuItems = allMenuItems
+    .filter((item) =>
+      item.label === 'Sticker Book' ? isStickerBookEnabled : true,
+    )
     .filter(
       (item) =>
         !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label)),
     )
     .map((item) =>
-      currentMode === MODES.SCHOOL && item.label === "Switch Profile"
+      currentMode === MODES.SCHOOL && item.label === 'Switch Profile'
         ? {
             ...item,
             onClick: () =>
@@ -147,7 +192,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   return (
     <div
       className={`profile-menu ${
-        isClosing ? "slide-out-right" : "slide-in-right"
+        isClosing ? 'slide-out-right' : 'slide-in-right'
       }`}
       onAnimationEnd={() => {
         if (isClosing) onClose();
@@ -158,7 +203,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         style={{
           background:
             'url("/pathwayAssets/pathwayBackground.svg") no-repeat center/cover',
-          borderRadius: "20px 0 0 0",
+          borderRadius: '20px 0 0 0',
         }}
       >
         <div
@@ -183,9 +228,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           <div className="profile-details">
             <span
               className="profile-header-name text-truncate"
-              style={{ marginBottom: hasDetails ? "8px" : "60px" }}
+              style={{ marginBottom: hasDetails ? '8px' : '60px' }}
             >
-              {student?.name ?? "Profile"}
+              {student?.name ?? 'Profile'}
             </span>
 
             {className && (
@@ -194,7 +239,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                   src="/assets/icons/classIcon.svg"
                   alt="class"
                   className="info-icon"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
                 <span className="sub-text text-truncate">{className}</span>
               </div>
@@ -206,7 +251,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                   src="/assets/icons/schoolIcon.svg"
                   alt="school"
                   className="info-icon"
-                  onError={(e) => (e.currentTarget.style.display = "none")}
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
                 <span className="sub-text text-truncate">{schoolName}</span>
               </div>
@@ -231,7 +276,16 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
                 alt={item.label}
                 className="profile-menu-icon"
               />
-              <span className="profile-menu-label">{t(item.label)}</span>
+              <div className="profile-menu-label-with-dot">
+                <span className="profile-menu-label">{t(item.label)}</span>
+                {item.label === 'Sticker Book' &&
+                  shouldShowStickerBookNotification && (
+                    <span
+                      className="profile-menu-notification-dot"
+                      data-testid="sticker-book-notification-dot"
+                    />
+                  )}
+              </div>
             </div>
             <hr className="profile-menu-horizontal-line" />
           </div>

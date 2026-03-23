@@ -1,28 +1,25 @@
-import React, { useState, useEffect, useCallback } from "react";
-import "./Header.css";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
-import MenuIcon from "@mui/icons-material/Menu";
-import { useHistory } from "react-router";
-import { DrawerOptions, PAGES } from "../../../common/constants";
-import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
-import List from "@mui/material/List";
-import Divider from "@mui/material/Divider";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import SchoolIcon from "@mui/icons-material/School";
-import Groups3Icon from "@mui/icons-material/Groups3";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle"; // New icon for user profile
-import { SvgIconComponent } from "@mui/icons-material";
-import { Util } from "../../../utility/util";
-import SideMenu from "./SideMenu";
-import { t } from "i18next";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import { IoShareSocialSharp } from "react-icons/io5";
-import { registerBackButtonHandler } from "../../../common/backButtonRegistry";
+import React, { useState, useEffect, useCallback } from 'react';
+import './Header.css';
+import { useHistory } from 'react-router';
+import { DrawerOptions, PAGES } from '../../../common/constants';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import SchoolIcon from '@mui/icons-material/School';
+import Groups3Icon from '@mui/icons-material/Groups3';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // New icon for user profile
+import { SvgIconComponent } from '@mui/icons-material';
+import { Util } from '../../../utility/util';
+import SideMenu from './SideMenu';
+import { t } from 'i18next';
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import { IoShareSocialSharp } from 'react-icons/io5';
+import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -53,14 +50,14 @@ const Header: React.FC<HeaderProps> = ({
   isBackButton,
   showClass = false,
   showSchool = false,
-  className = "",
-  schoolName = "",
+  className = '',
+  schoolName = '',
   onButtonClick,
   onBackButtonClick,
   disableBackButton = false,
   showSideMenu = false,
-  customText = "",
-  customTextClassName = "",
+  customText = '',
+  customTextClassName = '',
   onSearchChange,
   showSearchIcon = false,
   onSearchIconClick,
@@ -140,18 +137,18 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="header-container">
       <div className="header">
-        <div aria-label={String(t("Menu"))} id="header-menu-element">
+        <div aria-label={String(t('Menu'))} id="header-menu-element">
           {isBackButton ? (
             <img
               src="assets/icons/HeaderBackBtn.svg"
-              alt={String(t("Back"))}
+              alt={String(t('Back'))}
               onClick={handleBackButtonClick}
-              className={disableBackButton ? "disabled-back-button" : ""}
+              className={disableBackButton ? 'disabled-back-button' : ''}
               id="header-back-button"
             />
           ) : showSideMenu ? (
             <SideMenu
-              aria-label={t("Menu")}
+              aria-label={t('Menu')}
               handleManageSchoolClick={() =>
                 history.replace(PAGES.MANAGE_SCHOOL)
               }
@@ -159,7 +156,7 @@ const Header: React.FC<HeaderProps> = ({
             />
           ) : null}
           {customText ? (
-            <div className={customTextClassName || "header-custom-text"}>
+            <div className={customTextClassName || 'header-custom-text'}>
               {t(customText)}
             </div>
           ) : (
@@ -207,7 +204,7 @@ const Header: React.FC<HeaderProps> = ({
                 id="header-share-icon-button"
                 className="header-share-icon-button"
                 type="button"
-                aria-label={String(t("Share"))}
+                aria-label={String(t('Share'))}
               >
                 <IoShareSocialSharp size={28} color="white" />
               </button>
@@ -216,7 +213,7 @@ const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 className="header-search-icon-button"
-                aria-label={String(t("Search"))}
+                aria-label={String(t('Search'))}
                 onClick={onSearchIconClick}
               >
                 <SearchOutlinedIcon className="header-search-action-icon" />
@@ -231,7 +228,7 @@ const Header: React.FC<HeaderProps> = ({
                 <input
                   type="text"
                   className="header-search-input"
-                  placeholder={String(t("Search School"))}
+                  placeholder={String(t('Search School'))}
                   onChange={(e) => onSearchChange(e.target.value)}
                 />
               </div>
@@ -240,7 +237,7 @@ const Header: React.FC<HeaderProps> = ({
           <div className="help-icon-container">
             <img
               src="assets/icons/helpIcon.svg"
-              alt={String(t("Menu"))}
+              alt={String(t('Menu'))}
               className="help-icon"
             />
           </div>

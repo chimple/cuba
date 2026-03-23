@@ -1,18 +1,18 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import FabList from "../../components/malta/school/AddEditDeleteFab";
-import { fn } from "@storybook/test";
+import type { Meta, StoryObj } from '@storybook/react';
+import FabList from '../../components/malta/school/AddEditDeleteFab';
+import { fn } from '@storybook/test';
 
 const meta = {
-  title: "Component/malta/school/FabButtons",
+  title: 'Component/malta/school/FabButtons',
   component: FabList,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     onAddClick: fn(),
-    onEditClick: fn()
+    onEditClick: fn(),
   },
   args: {},
 } satisfies Meta<typeof FabList>;
@@ -24,6 +24,6 @@ export const fabButtons: Story = {
   args: {
     disabled: false,
     onAddClick: fn(),
-    onEditClick: fn()
+    onEditClick: fn(),
   },
 };

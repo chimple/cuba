@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import DataTableBody, { Column } from "../DataTableBody";
-import DataTablePagination from "../DataTablePagination";
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import DataTableBody, { Column } from '../DataTableBody';
+import DataTablePagination from '../DataTablePagination';
 import {
   Typography,
   Box,
@@ -11,22 +11,25 @@ import {
   DialogContent,
   DialogActions,
   Button,
-} from "@mui/material";
-import { t } from "i18next";
-import "./SchoolPrincipals.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { ContactTarget, PrincipalInfo } from "../../../common/constants";
-import { Button as MuiButton } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
-import { RoleType } from "../../../interface/modelInterfaces";
-import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
-import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
-import ActionMenu from "./ActionMenu";
-import { MoreHoriz } from "@mui/icons-material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import CloseIcon from "@mui/icons-material/Close";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+} from '@mui/material';
+import { t } from 'i18next';
+import './SchoolPrincipals.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { ContactTarget, PrincipalInfo } from '../../../common/constants';
+import { Button as MuiButton } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import FormCard, { FieldConfig, MessageConfig } from './FormCard';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { emailRegex, normalizePhone10 } from '../../pages/NewUserPageOps';
+import FcInteractPopUp from '../fcInteractComponents/FcInteractPopUp';
+import ActionMenu from './ActionMenu';
+import { MoreHoriz } from '@mui/icons-material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import OpsGenericPopup from '../../common/OpsGenericPopup';
+import DeleteIcon from '../../assets/icons/deleteicon.svg';
+import logger from '../../../utility/logger';
 
 interface DisplayPrincipal {
   id: string;
@@ -35,7 +38,7 @@ interface DisplayPrincipal {
   phoneNumber: string;
   emailDisplay: string;
   phoneEmailDisplay: string;
-  interact: "";
+  interact: '';
   interactPayload: PrincipalInfo;
   principal_actions?: string;
 }
@@ -64,8 +67,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState<string>("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<string>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [isAddPrincipalModalOpen, setIsAddPrincipalModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const [openPopup, setOpenPopup] = useState(false);
@@ -76,6 +79,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     useState<PrincipalInfo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+  const [popup, setPopup] = useState({
+    open: false,
+    image: '',
+    heading: '',
+    text: '',
+    autoCloseSeconds: 0,
+  });
 
   const fetchPrincipals = useCallback(
     async (currentPage: number, silent = false) => {
@@ -92,7 +102,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         setPrincipals(response.data);
         setTotalCount(response.total);
       } catch (error) {
-        console.error("Failed to fetch principals:", error);
+        logger.error('Failed to fetch principals:', error);
       } finally {
         setIsLoading(false);
       }
@@ -113,8 +123,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = useCallback(
     (key: string) => {
-      const isAsc = orderBy === key && order === "asc";
-      setOrder(isAsc ? "desc" : "asc");
+      const isAsc = orderBy === key && order === 'asc';
+      setOrder(isAsc ? 'desc' : 'asc');
       setOrderBy(key);
     },
     [order, orderBy],
@@ -130,28 +140,28 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     let sorted = [...principals].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
-        case "name":
-          aValue = a.name || "";
-          bValue = b.name || "";
-          return order === "asc"
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "gender":
-          aValue = a.gender || "";
-          bValue = b.gender || "";
-          return order === "asc"
+        case 'gender':
+          aValue = a.gender || '';
+          bValue = b.gender || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "phoneNumber":
-          aValue = a.phone || "";
-          bValue = b.phone || "";
-          return order === "asc"
+        case 'phoneNumber':
+          aValue = a.phone || '';
+          bValue = b.phone || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "emailDisplay":
-          aValue = a.email || "";
-          bValue = b.email || "";
-          return order === "asc"
+        case 'emailDisplay':
+          aValue = a.email || '';
+          bValue = b.email || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         default:
@@ -160,12 +170,12 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     });
     return sorted.map((p) => ({
       id: p.id,
-      name: p.name || "N/A",
-      gender: p.gender || "N/A",
-      phoneNumber: p.phone || "-",
-      emailDisplay: p.email || "—",
-      phoneEmailDisplay: `${p.phone?.trim() || "-"} / ${p.email?.trim() || "-"}`,
-      interact: "",
+      name: p.name || 'N/A',
+      gender: p.gender || 'N/A',
+      phoneNumber: p.phone || '-',
+      emailDisplay: p.email || '—',
+      phoneEmailDisplay: `${p.phone?.trim() || '-'} / ${p.email?.trim() || '-'}`,
+      interact: '',
       interactPayload: p,
     }));
   }, [principals, order, orderBy]);
@@ -190,14 +200,14 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const handlePrincipalSubmit = useCallback(
     async (values: Record<string, string>) => {
       try {
-        const name = (values.name ?? "").toString().trim();
-        const rawEmail = (values.email ?? "").toString().trim();
-        const rawPhone = (values.phoneNumber ?? "").toString();
+        const name = (values.name ?? '').toString().trim();
+        const rawEmail = (values.email ?? '').toString().trim();
+        const rawPhone = (values.phoneNumber ?? '').toString();
 
         if (!name) {
           setErrorMessage({
-            text: "Principal name is required.",
-            type: "error",
+            text: 'Principal name is required.',
+            type: 'error',
           });
           return;
         }
@@ -209,20 +219,20 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
         if (!hasEmail && !hasPhone) {
           setErrorMessage({
-            text: "Please provide either an email or a phone number.",
-            type: "error",
+            text: 'Please provide either an email or a phone number.',
+            type: 'error',
           });
           return;
         }
 
-        let finalEmail = "";
-        let finalPhone = "";
+        let finalEmail = '';
+        let finalPhone = '';
 
         if (hasEmail) {
           if (!emailRegex.test(email)) {
             setErrorMessage({
-              text: "Please enter a valid email address.",
-              type: "error",
+              text: 'Please enter a valid email address.',
+              type: 'error',
             });
             return;
           }
@@ -232,8 +242,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         if (hasPhone) {
           if (normalizedPhone.length !== 10) {
             setErrorMessage({
-              text: "Phone number must be 10 digits.",
-              type: "error",
+              text: 'Phone number must be 10 digits.',
+              type: 'error',
             });
             return;
           }
@@ -253,8 +263,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
         // Show success message for 2 seconds
         setErrorMessage({
-          text: "Principal added successfully",
-          type: "success",
+          text: 'Principal added successfully',
+          type: 'success',
         });
         setTimeout(() => {
           setIsAddPrincipalModalOpen(false); // close modal
@@ -263,8 +273,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         }, 2000);
       } catch (e: any) {
         const message = e instanceof Error ? e.message : String(e);
-        setErrorMessage({ text: message, type: "error" });
-        console.error("Failed to add principal:", e);
+        setErrorMessage({ text: message, type: 'error' });
+        logger.error('Failed to add principal:', e);
       } finally {
         setIsSubmitting(false);
       }
@@ -275,26 +285,26 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
       {
-        name: "name",
-        label: "Principal Name",
-        kind: "text",
+        name: 'name',
+        label: 'Principal Name',
+        kind: 'text',
         required: true,
-        placeholder: "Enter Principal name",
+        placeholder: 'Enter Principal name',
         column: 2,
       },
       {
-        name: "phoneNumber",
-        label: "Phone Number",
-        kind: "phone",
+        name: 'phoneNumber',
+        label: 'Phone Number',
+        kind: 'phone',
         required: true,
-        placeholder: "Enter phone number",
+        placeholder: 'Enter phone number',
         column: 2,
       },
       {
-        name: "email",
-        label: "Email",
-        kind: "email",
-        placeholder: "Enter email address",
+        name: 'email',
+        label: 'Email',
+        kind: 'email',
+        placeholder: 'Enter email address',
         column: 2,
       },
     ],
@@ -303,18 +313,18 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   const columns: Column<DisplayPrincipal>[] = [
     {
-      key: "name",
-      label: t("Principal Name"),
-      renderCell: (p) => (
+      key: 'name',
+      label: t('Principal Name'),
+      renderCell: (p: DisplayPrincipal) => (
         <Typography variant="body2" className="principal-name-data">
           {p.name}
         </Typography>
       ),
     },
     {
-      key: "interactPayload",
-      label: t("Interact"),
-      align: "center",
+      key: 'interactPayload',
+      label: t('Interact'),
+      align: 'center',
       width: 60,
       sortable: false,
       render: (row) => (
@@ -340,24 +350,24 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     },
 
     {
-      key: "phoneEmailDisplay", // 🔹 use merged column
-      label: t("Phone / Email"),
-      renderCell: (row) => (
+      key: 'phoneEmailDisplay', // 🔹 use merged column
+      label: t('Phone / Email'),
+      renderCell: (row: DisplayPrincipal) => (
         <Typography variant="body2" className="truncate-text">
           {row.phoneEmailDisplay}
         </Typography>
       ),
     },
     {
-      key: "principal_actions",
-      label: "",
+      key: 'principal_actions',
+      label: '',
       sortable: false,
       render: (row) => (
         <Box className="school-principals-actionsCell">
           <ActionMenu
             items={[
               {
-                name: t("Delete"),
+                name: t('Delete'),
                 icon: (
                   <DeleteOutlineIcon
                     fontSize="small"
@@ -398,31 +408,61 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       const principalId = deleteTargetPrincipal.id;
 
       if (!principalId) {
-        console.error("Missing principalId");
+        logger.error('Missing principalId');
         return;
       }
-
-      await api.deleteUserFromSchool(schoolId, principalId, RoleType.PRINCIPAL);
+      const principalName = deleteTargetPrincipal.name;
+      const res = await api.deleteUserFromSchool(
+        schoolId,
+        principalId,
+        RoleType.PRINCIPAL,
+      );
+      if (res.success) {
+        const message = t(
+          "{{principalName}}'s profile has been deleted and is no longer available.",
+          { principalName: principalName ?? '' },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: 'Profile Deleted Successfully',
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
+      }
       setIsDeleteModalOpen(false);
       setDeleteTargetPrincipal(null);
       fetchPrincipals(page);
     } catch (error) {
-      console.error("Delete principal failed:", error);
+      logger.error('Delete principal failed:', error);
     } finally {
       setIsDeleting(false);
     }
   };
 
   // Principals are linked at school-level in this view.
-  const deleteClassDisplay = t("N/A");
+  const deleteClassDisplay = t('N/A');
   const deleteContactDisplay = deleteTargetPrincipal
     ? deleteTargetPrincipal.phone?.trim() ||
       deleteTargetPrincipal.email?.trim() ||
-      "N/A"
-    : "N/A";
+      'N/A'
+    : 'N/A';
 
   return (
     <div className="school-principals-page-container">
+      <OpsGenericPopup
+        isOpen={popup.open}
+        imageSrc={popup.image}
+        heading={popup.heading}
+        text={popup.text}
+        autoCloseSeconds={5}
+        onClose={() =>
+          setPopup((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
       <Dialog
         open={isDeleteModalOpen}
         onClose={() => {
@@ -432,12 +472,12 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         disableEscapeKeyDown={isDeleting}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ className: "school-principals-deleteDialogPaper" }}
+        PaperProps={{ className: 'school-principals-deleteDialogPaper' }}
       >
         <DialogTitle className="school-principals-deleteDialogTitle">
           <Box className="school-principals-deleteDialogTitleLeft">
             <ErrorOutlineIcon className="school-principals-deleteDialogAlertIcon" />
-            {t("Delete Principal?")}
+            {t('Delete Principal?')}
           </Box>
 
           <IconButton
@@ -456,21 +496,21 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           >
             {t(
               "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
-              { name: deleteTargetPrincipal?.name ?? "" },
+              { name: deleteTargetPrincipal?.name ?? '' },
             )}
           </Typography>
 
           {deleteTargetPrincipal && (
             <Box className="school-principals-deleteDetails">
               <Typography className="school-principals-deleteName">
-                {deleteTargetPrincipal.name ?? "N/A"}
+                {deleteTargetPrincipal.name ?? 'N/A'}
               </Typography>
               <Typography>{deleteContactDisplay}</Typography>
             </Box>
           )}
 
           <Box className="school-principals-deleteWarning">
-            {t("This cannot be reversed. Please be certain.")}
+            {t('This cannot be reversed. Please be certain.')}
           </Box>
         </DialogContent>
 
@@ -481,7 +521,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             disabled={isDeleting}
             className="school-principals-deleteCancelButton"
           >
-            {t("Cancel")}
+            {t('Cancel')}
           </Button>
 
           <Button
@@ -491,7 +531,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             disabled={isDeleting}
             className="school-principals-deleteConfirmButton"
           >
-            {isDeleting ? t("Deleting...") : t("Delete Principal")}
+            {isDeleting ? t('Deleting...') : t('Delete Principal')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -499,10 +539,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       <Box className="school-principals-headerActionsRow">
         <Box className="school-principals-titleArea">
           <Typography variant="h5" className="school-principals-titleHeading">
-            {t("Principals")}
+            {t('Principals')}
           </Typography>
           <Typography variant="body2" className="school-principals-totalText">
-            {t("Total")}: {totalCount} {t("principals")}
+            {t('Total')}: {totalCount} {t('principals')}
           </Typography>
         </Box>
         <Box className="school-principals-actionsGroup">
@@ -513,7 +553,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
               className="school-principals-newTeacherButton-outlined"
             >
               <AddIcon className="school-principals-newTeacherButton-outlined-icon" />
-              {!isMobile && t("New Principal")}
+              {!isMobile && t('New Principal')}
             </MuiButton>
           )}
         </Box>
@@ -563,10 +603,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             variant="h6"
             className="school-principals-empty-state-title"
           >
-            {t("Principals")}
+            {t('Principals')}
           </Typography>
           <Typography className="school-principals-empty-state-message">
-            {t("No principals data found for the selected school")}
+            {t('No principals data found for the selected school')}
           </Typography>
           <MuiButton
             variant="text"
@@ -576,15 +616,15 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
               <AddIcon className="school-principals-emptyStateAddButton-icon" />
             }
           >
-            {t("Add Principal")}
+            {t('Add Principal')}
           </MuiButton>
         </Box>
       )}
 
       <FormCard
         open={isAddPrincipalModalOpen}
-        title={t("Add New Principal")}
-        submitLabel={isSubmitting ? t("Adding...") : t("Add Principal")}
+        title={t('Add New Principal')}
+        submitLabel={isSubmitting ? t('Adding...') : t('Add Principal')}
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handlePrincipalSubmit}

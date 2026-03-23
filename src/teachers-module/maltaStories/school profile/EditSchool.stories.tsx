@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import EditSchool from "../../pages/EditSchool";
+import type { Meta, StoryObj } from '@storybook/react';
+import EditSchool from '../../pages/EditSchool';
 
 const meta: Meta = {
-  title: "teachers-module/pages/EditSchool",
+  title: 'teachers-module/pages/EditSchool',
   component: EditSchool,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 };
 

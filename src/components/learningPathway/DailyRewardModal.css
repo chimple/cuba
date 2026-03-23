@@ -38,7 +38,7 @@
   font-weight: 600;
   z-index: 1;
   font-size: 18px;
-  color: #182A4F;
+  color: #182a4f;
   text-align: center;
 }
 
@@ -73,24 +73,24 @@
 }
 
 .RewardModal-OK-button {
-    width: 30vw;
-    max-width: 173px;
-    height: 56px;
-    flex-shrink: 0;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    border-bottom: 5px solid #8a2901;
-    background: #f34d08;
-    color: #fff;
-    font-size: 26px;
-    font-weight: 600;
-    transition: transform 0.1s ease;
-    transform: translateY(2px);
-    position: absolute;
-    bottom: 25px;
-    left: 50%;
-    transform: translateX(-50%) translateY(2px); 
+  width: 30vw;
+  max-width: 173px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  border-bottom: 5px solid #8a2901;
+  background: #f34d08;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 600;
+  transition: transform 0.1s ease;
+  transform: translateY(2px);
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%) translateY(2px);
 }
 .RewardModal-OK-button:active {
   border-bottom: 2px solid #8a2901 !important;
@@ -102,7 +102,7 @@
   line-height: 30px;
   display: inline-block;
 }
-.RewardModal-reward-box-container{
+.RewardModal-reward-box-container {
   width: 163px;
   height: 148px;
   min-width: 160px;

@@ -1,7 +1,7 @@
-import React from "react";
-import { Box, TextField } from "@mui/material";
-import { t } from "i18next";
-import "./EditSchoolSection.css";
+import React from 'react';
+import { TextField } from '@mui/material';
+import { t } from 'i18next';
+import './EditSchoolSection.css';
 
 interface EditSchoolSectionProps {
   name: string;
@@ -26,12 +26,12 @@ const EditSchoolSection: React.FC<EditSchoolSectionProps> = ({
   onStateChange,
   onDistrictChange,
   onCityChange,
-  onUDISE_IDChange
+  onUDISE_IDChange,
 }) => {
   return (
     <div className="profile-card-div">
-      <div className={"edit-profile-card"}>
-        <div className="school-div-3">{t("School Address")}</div>
+      <div className={'edit-profile-card'}>
+        <div className="school-div-3">{t('School Address')}</div>
         <TextField
           label="Name"
           value={name}
@@ -66,8 +66,10 @@ const EditSchoolSection: React.FC<EditSchoolSectionProps> = ({
         />
         <TextField
           label="UDISE ID (optional)"
-          value={UDISE_ID||""}
-          onChange={(e) =>{ if (onUDISE_IDChange) onUDISE_IDChange(e.target.value); }}
+          value={UDISE_ID || ''}
+          onChange={(e) => {
+            if (onUDISE_IDChange) onUDISE_IDChange(e.target.value);
+          }}
           fullWidth
           margin="normal"
           variant="standard"

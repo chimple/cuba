@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import "./Dashboard.css";
-import Sidebar from "../../components/malta/Dashboard/Sidebar";
-import Dropdowns from "../../components/malta/Dropdowns";
-import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
-import { t } from "i18next";
-import DashboardTable from "../../components/DashboardTable/DashboardTable";
+import React, { useEffect, useState } from 'react';
+import './Dashboard.css';
+import Sidebar from '../../components/malta/Dashboard/Sidebar';
+import Dropdowns from '../../components/malta/Dropdowns';
+import DashboardStats from '../../components/malta/Dashboard/DashboardStats';
+import { t } from 'i18next';
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -12,13 +11,11 @@ const Dashboard: React.FC = () => {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleMenuItems = () => setAreMenuItemsOpen(!areMenuItemsOpen);
- 
-
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      const sidebar = document.querySelector(".sidebar") as HTMLElement;
-      const menuButton = document.querySelector(".menu-button") as HTMLElement;
+      const sidebar = document.querySelector('.sidebar') as HTMLElement;
+      const menuButton = document.querySelector('.menu-button') as HTMLElement;
 
       if (
         isSidebarOpen &&
@@ -31,8 +28,8 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isSidebarOpen]);
 
   return (
@@ -46,13 +43,18 @@ const Dashboard: React.FC = () => {
               <div></div>
             </div>
           </div>
-          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} name={""} email={""} />
+          <Sidebar
+            isOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+            name={''}
+            email={''}
+          />
           <Dropdowns />
-          <button className="sending-report">{t("Send Report")}</button>
+          <button className="sending-report">{t('Send Report')}</button>
         </div>
         <DashboardStats />
       </div>
-      {/* <DashboardTable studentsData={{}} headerData={[]}/> */}
+
       <button className="floating-button">+</button>
     </>
   );

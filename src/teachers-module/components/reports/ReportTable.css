@@ -64,13 +64,13 @@ tbody {
 }
 
 .table-container-body::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 1px;          
+  width: 1px;
   height: 100%;
-  background-color: #EFF2F4;
+  background-color: #eff2f4;
   z-index: 5;
   pointer-events: none;
 }
@@ -91,7 +91,7 @@ td:first-child {
   background-color: white;
   z-index: 2;
   font-weight: 400;
-  color:#4A4949;
+  color: #4a4949;
 }
 
 table {
@@ -133,7 +133,7 @@ td {
 }
 .type-dropdown ion-select::part(placeholder),
 .type-dropdown ion-select::part(text) {
-  color: #7B7676;
+  color: #7b7676;
   flex: 0 0 auto;
   padding-right: 0;
   font-size: clamp(16px, 3vw, 18px);

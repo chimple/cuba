@@ -1,5 +1,5 @@
 .debug-debug-page {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -178,6 +178,11 @@
 .debugmode-debug-hotupdate-btn {
   background-color: #ff9800;
   color: white;
+}
+
+.debugmode-debug-hotupdate-btn:disabled {
+  background-color: #ffcc80;
+  cursor: not-allowed;
 }
 
 .debugmode-progress-bar-container {

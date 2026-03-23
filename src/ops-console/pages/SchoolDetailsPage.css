@@ -1,14 +1,14 @@
 .schooldetailspage.school-detail-container {
   background: white;
   width: 100%;
-  height: 100vh;          /* FIXED HEIGHT */
+  height: 100vh; /* FIXED HEIGHT */
   display: flex;
   flex-direction: column;
-  overflow: hidden;      /* ❗IMPORTANT */
+  overflow: hidden; /* ❗IMPORTANT */
 }
 .schooldetailspage .school-detail-tertiary-header {
-  flex: 1;               /* takes remaining space */
-  min-height: 0;         /* CRITICAL for scroll */
+  flex: 1; /* takes remaining space */
+  min-height: 0; /* CRITICAL for scroll */
 }
 
 .schooldetailspage .school-detail-gap {
@@ -66,7 +66,7 @@
 .schooldetailspage.check-in-menu-paper {
   border-radius: 12px !important;
   border: 1px solid #e0e0e0 !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .schooldetailspage .check-in-menu-divider {

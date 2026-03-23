@@ -1,8 +1,8 @@
-import React from "react";
-import Card from "@mui/material/Card";
-import DetailItem, { DetailItemProps } from "./DetailItem";
-import { Box, CardContent, Divider, Typography } from "@mui/material";
-import "./InfoCard.css";
+import React from 'react';
+import Card from '@mui/material/Card';
+import DetailItem, { DetailItemProps } from './DetailItem';
+import { Box, CardContent, Divider, Typography } from '@mui/material';
+import './InfoCard.css';
 
 interface InfoCardProps {
   title: string;
@@ -27,7 +27,7 @@ const InfoCard = ({
 }: InfoCardProps) => (
   <Card
     variant="outlined"
-    className={`info-card${className ? " " + className : ""}`}
+    className={`info-card${className ? ' ' + className : ''}`}
   >
     <CardContent className="info-card-content">
       <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -39,8 +39,8 @@ const InfoCard = ({
           sx={{
             flex: 1,
             minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
             fontWeight: 600,
           }}
         >

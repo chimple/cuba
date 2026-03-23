@@ -1,46 +1,54 @@
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { Keyboard } from "@capacitor/keyboard";
-import { Toast } from "@capacitor/toast";
-import { Capacitor, registerPlugin } from "@capacitor/core";
-import { IonText } from "@ionic/react";
-import { t } from "i18next";
-import React, { useEffect, useRef, useState } from "react";
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { Keyboard } from '@capacitor/keyboard';
+import { Toast } from '@capacitor/toast';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { IonText } from '@ionic/react';
+import { t } from 'i18next';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import LoginWithStudentID from "../components/signup/LoginWithStudentID";
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import LoginWithStudentID from '../components/signup/LoginWithStudentID';
 import LanguageDropdown, {
   LanguageOption,
-} from "../components/signup/LanguageDropdown";
-import OtpVerification from "../components/signup/OtpVerification";
-import LoginWithEmail from "../components/signup/LoginWithEmail";
-import LoginWithPhone from "../components/signup/LoginWithPhone";
-import LoginSwitch from "../components/signup/LoginSwitch";
-import ForgotPass from "../components/signup/ForgotPass";
-import { RoleType } from "../interface/modelInterfaces";
-import { APIMode, ServiceConfig } from "../services/ServiceConfig";
-import Loading from "../components/Loading";
-import { schoolUtil } from "../utility/schoolUtil";
+} from '../components/signup/LanguageDropdown';
+import OtpVerification from '../components/signup/OtpVerification';
+import LoginWithEmail from '../components/signup/LoginWithEmail';
+import LoginWithPhone from '../components/signup/LoginWithPhone';
+import LoginSwitch from '../components/signup/LoginSwitch';
+import ForgotPass from '../components/signup/ForgotPass';
+import { RoleType } from '../interface/modelInterfaces';
+import { ServiceConfig } from '../services/ServiceConfig';
+import Loading from '../components/Loading';
+import { schoolUtil } from '../utility/schoolUtil';
 import {
   ACTION,
   DOMAIN,
   EVENTS,
-  IS_OPS_USER,
   LANGUAGE,
   MODES,
   PAGES,
-  USER_DATA,
-  USER_ROLE,
-  CURRENT_USER,
   LOGIN_TYPES,
-} from "../common/constants";
-import { APP_LANGUAGES } from "../common/constants";
-import "./LoginScreen.css";
-import { Util } from "../utility/util";
-import i18n from "../i18n";
-import { FaArrowLeftLong } from "react-icons/fa6";
-import { SqliteApi } from "../services/api/SqliteApi";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { useHistory } from "react-router-dom";
+} from '../common/constants';
+import { APP_LANGUAGES } from '../common/constants';
+import './LoginScreen.css';
+import { Util } from '../utility/util';
+import i18n from '../i18n';
+import { FaArrowLeftLong } from 'react-icons/fa6';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import { useHistory } from 'react-router-dom';
+// redux store, slice, hook imports
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { RootState } from '../redux/store';
+import {
+  AuthState,
+  setAuthError,
+  setAuthLoading,
+  setAuthUser,
+  setIsOpsUser,
+  setRoles,
+  setUser,
+} from '../redux/slices/auth/authSlice';
+import logger from '../utility/logger';
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -54,36 +62,30 @@ const LoginScreen: React.FC = () => {
     | LOGIN_TYPES.OTP
     | LOGIN_TYPES.FORGET_PASS
   >(LOGIN_TYPES.PHONE);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  // Separate error states for each login component
-  const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(
-    null,
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+
+  const { error: authErrors, loading: isLoading } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
   );
-  const [studentErrorMessage, setStudentErrorMessage] = useState<string | null>(
-    null,
-  );
-  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(
-    null,
-  );
-  const [otpErrorMessage, setOtpErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useAppDispatch();
+
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState(false);
   const [showResendOtp, setShowResendOtp] = useState(false);
   const [sentOtpLoading, setSentOtpLoading] = useState(false);
   const [checkbox, setCheckbox] = useState(true);
   const [showTandC, setShowTandC] = useState(false);
-  const [schoolCode, setSchoolCode] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
-  const [studentPassword, setStudentPassword] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [schoolCode, setSchoolCode] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
+  const [studentPassword, setStudentPassword] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [currentLang, setCurrentLang] = useState<string>(
     Object.keys(APP_LANGUAGES)[0],
   );
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
-  const PortPlugin = registerPlugin<any>("Port");
+  const PortPlugin = registerPlugin<any>('Port');
   const phoneNumberErrorRef = useRef<any>(null);
 
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
@@ -93,7 +95,7 @@ const LoginScreen: React.FC = () => {
   const [allowSubmittingOtpCounter, setAllowSubmittingOtpCounter] =
     useState<number>(0);
   const [currentPhone, setCurrentPhone] = useState<any>();
-  const [title, setTitle] = React.useState("");
+  const [title, setTitle] = React.useState('');
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [otpExpiryCounter, setOtpExpiryCounter] = useState(15);
   const [animatedLoading, setAnimatedLoading] = useState<boolean>(false);
@@ -102,16 +104,16 @@ const LoginScreen: React.FC = () => {
     useState<boolean>(false);
 
   const loadingMessages = [
-    t("Track your learning progress."),
-    t("Preparing 400+ fun lessons."),
-    t("Customize your profiles."),
-    t("Assign or get regular homework."),
+    t('Track your learning progress.'),
+    t('Preparing 400+ fun lessons.'),
+    t('Customize your profiles.'),
+    t('Assign or get regular homework.'),
   ];
   const loadingAnimations = [
-    "/assets/home.gif",
-    "/assets/hw-book.gif",
-    "/assets/profiles-grid.gif",
-    "/assets/subjects-book.gif",
+    '/assets/home.gif',
+    '/assets/hw-book.gif',
+    '/assets/profiles-grid.gif',
+    '/assets/subjects-book.gif',
   ];
   const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
@@ -134,15 +136,15 @@ const LoginScreen: React.FC = () => {
       try {
         // lock orientation if native
         if (Capacitor.isNativePlatform()) {
-          await ScreenOrientation.lock({ orientation: "portrait" });
+          await ScreenOrientation.lock({ orientation: 'portrait' });
         }
 
         // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
-          localStorage.setItem(LANGUAGE, "en");
-          setCurrentLang("en");
-          await i18n.changeLanguage("en");
+          localStorage.setItem(LANGUAGE, 'en');
+          setCurrentLang('en');
+          await i18n.changeLanguage('en');
         } else {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);
@@ -159,7 +161,7 @@ const LoginScreen: React.FC = () => {
 
         if (isLoggedIn) {
           if (Capacitor.isNativePlatform()) {
-            await ScreenOrientation.lock({ orientation: "landscape" });
+            await ScreenOrientation.lock({ orientation: 'landscape' });
           }
           history.replace(PAGES.SELECT_MODE);
           return;
@@ -173,7 +175,7 @@ const LoginScreen: React.FC = () => {
     return () => {
       if (Capacitor.isNativePlatform()) {
         document.removeEventListener(
-          "visibilitychange",
+          'visibilitychange',
           handleVisibilityChange,
         );
       }
@@ -182,7 +184,7 @@ const LoginScreen: React.FC = () => {
 
   // Handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
+    if (document.visibilityState === 'visible') {
       // App came to foreground
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
@@ -194,7 +196,7 @@ const LoginScreen: React.FC = () => {
   };
 
   const authInstance = ServiceConfig.getI().authHandler;
-  const countryCode = "";
+  const countryCode = '';
 
   // Timer effect for OTP resend
   useEffect(() => {
@@ -231,6 +233,17 @@ const LoginScreen: React.FC = () => {
     }
   }, [loginType]);
 
+  const setUserRoles = async (userId: string) => {
+    try {
+      const userRoles = await api.getUserSpecialRoles(userId);
+      if (userRoles.length > 0) {
+        dispatch(setRoles(userRoles));
+      }
+    } catch (e) {
+      logger.error('Error fetching user roles:', e);
+    }
+  };
+
   // Handler for switching login types
   const handleSwitch = (type: string) => {
     if (
@@ -248,7 +261,7 @@ const LoginScreen: React.FC = () => {
         if (allowSubmittingOtpCounter > 0) {
           await Toast.show({
             text: title,
-            duration: "long",
+            duration: 'long',
           });
           return;
         }
@@ -258,7 +271,12 @@ const LoginScreen: React.FC = () => {
       }
 
       if (phoneNumber.length !== 10) {
-        setPhoneErrorMessage(t("Please Enter 10 digit Mobile Number"));
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.PHONE,
+            message: t('Please Enter 10 digit Mobile Number'),
+          }),
+        );
         return;
       }
 
@@ -268,7 +286,7 @@ const LoginScreen: React.FC = () => {
       initSmsListner();
       let result = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
-        "Chimple",
+        'Chimple',
       );
 
       if (result.success) {
@@ -277,7 +295,12 @@ const LoginScreen: React.FC = () => {
         setCounter(59);
         setShowTimer(true);
         setLoginType(LOGIN_TYPES.OTP);
-        setPhoneErrorMessage(null);
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.PHONE,
+            message: null,
+          }),
+        );
         setCurrentPhone(phoneNumber);
         setDisableOtpButtonIfSameNumber(true);
         setAllowSubmittingOtpCounter(counter);
@@ -286,12 +309,20 @@ const LoginScreen: React.FC = () => {
         setSpinnerLoading(false);
         const errorMessage = result.error;
         if (errorMessage) {
-          setPhoneErrorMessage(
-            t("Kindly wait for 1 minute and then try logging in again."),
+          dispatch(
+            setAuthError({
+              key: LOGIN_TYPES.PHONE,
+              message: t(
+                'Kindly wait for 1 minute and then try logging in again.',
+              ),
+            }),
           );
         } else {
-          setPhoneErrorMessage(
-            t("Phone Number signin Failed. Please try again later."),
+          dispatch(
+            setAuthError({
+              key: LOGIN_TYPES.PHONE,
+              message: t('Phone Number signin Failed. Please try again later.'),
+            }),
           );
         }
       }
@@ -300,14 +331,19 @@ const LoginScreen: React.FC = () => {
       setSpinnerLoading(false);
       // This catch block handles unexpected exceptions from generateOtp, not errors returned in the 'result' object.
       let displayErrorMessage = t(
-        "Phone Number signin Failed. Please try again later.",
+        'Phone Number signin Failed. Please try again later.',
       );
-      if (error && typeof error === "string") {
+      if (error && typeof error === 'string') {
         displayErrorMessage = error;
       } else if (error && error.message) {
         displayErrorMessage = error.message;
       }
-      setPhoneErrorMessage(displayErrorMessage);
+      dispatch(
+        setAuthError({
+          key: LOGIN_TYPES.PHONE,
+          message: displayErrorMessage,
+        }),
+      );
     }
   };
 
@@ -315,15 +351,15 @@ const LoginScreen: React.FC = () => {
   const handleOtpBack = () => {
     if (loginType === LOGIN_TYPES.OTP) {
       setLoginType(LOGIN_TYPES.PHONE);
-      setVerificationCode("");
-      setPhoneNumber("");
+      setVerificationCode('');
+      setPhoneNumber('');
       setShowResendOtp(false);
       setShowTimer(false);
-      setOtpErrorMessage(null);
+      dispatch(setAuthError({ key: LOGIN_TYPES.OTP, message: null }));
       setOtpExpiryCounter(15); // Reset the expiry counter
     } else if (loginType === LOGIN_TYPES.FORGET_PASS) {
       setLoginType(LOGIN_TYPES.EMAIL);
-      setEmailErrorMessage("");
+      dispatch(setAuthError({ key: LOGIN_TYPES.EMAIL, message: '' }));
     }
   };
 
@@ -331,8 +367,8 @@ const LoginScreen: React.FC = () => {
   const handleOtpVerification = async (otp: string) => {
     try {
       setAnimatedLoading(true);
-      setIsLoading(true);
-      setOtpErrorMessage(null); // Clear any previous errors
+      dispatch(setAuthLoading(true));
+      dispatch(setAuthError({ key: LOGIN_TYPES.OTP, message: null })); // Clear any previous errors
 
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
 
@@ -341,50 +377,63 @@ const LoginScreen: React.FC = () => {
         otp.trim(),
       );
 
-      if (!res?.user) {
+      if (!res?.user || !res?.userData) {
         // Handle the case where verification succeeded but no user was returned
-        throw new Error("Verification failed - no user data");
+        throw new Error('Verification failed - no user data');
       }
       // Store user data and proceed with navigation
       const user = res.user;
-      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-      localStorage.setItem(USER_DATA, JSON.stringify(user));
-      let studentDetails = user?.user;
-      studentDetails.parent_id = user?.user.id;
-      studentDetails.last_sign_in_at = user.last_login_at;
-      studentDetails.login_method = "phone-number";
+      dispatch(setAuthUser(user));
+      dispatch(setUser(res.userData));
+      dispatch(setIsOpsUser(res.isSpl));
+      await setUserRoles(user.id);
+      const studentDetails = {
+        ...res.userData,
+        parent_id: user.id,
+        last_sign_in_at: user.last_sign_in_at,
+        login_method: 'phone-number',
+      };
       updateLocalAttributes({
         studentDetails,
       });
       setGbUpdated(true);
       Util.logEvent(EVENTS.USER_PROFILE, {
-        user_id: user.uid,
-        user_name: user.name,
-        user_username: user.username,
-        phone_number: user.username,
+        user_id: user.id,
+        user_name: res.userData.name,
+        phone_number: user.phone,
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
-        login_type: "phone-number",
+        login_type: 'phone-number',
       });
 
-      const userSchools = await getSchoolsForUser(user.user.id);
+      const userSchools = await getSchoolsForUser(user.id);
       await redirectUser(userSchools, res.isSpl);
 
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
+      logger.info('Error in OTP verification', error);
       const updates = () => {
         setAnimatedLoading(false);
-        setIsLoading(false);
-        setVerificationCode("");
+        dispatch(setAuthLoading(false));
+        setVerificationCode('');
 
         // Set appropriate error message
-        if (typeof error === "string" && error.includes("code-expired")) {
-          setOtpErrorMessage(
-            "Verification code has expired. Please request a new one.",
+        if (typeof error === 'string' && error.includes('code-expired')) {
+          dispatch(
+            setAuthError({
+              key: LOGIN_TYPES.OTP,
+              message:
+                'Verification code has expired. Please request a new one.',
+            }),
           );
         } else {
-          setOtpErrorMessage("Incorrect OTP - Please check & try again!");
+          dispatch(
+            setAuthError({
+              key: LOGIN_TYPES.OTP,
+              message: 'Incorrect OTP - Please check & try again!',
+            }),
+          );
         }
 
         // Enable resend OTP option
@@ -414,16 +463,24 @@ const LoginScreen: React.FC = () => {
         setSentOtpLoading(false);
         setShowResendOtp(false);
         setCounter(59);
-        setVerificationCode("");
-        setOtpErrorMessage(null);
+        setVerificationCode('');
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.OTP,
+            message: null,
+          }),
+        );
         setOtpExpiryCounter(15); // Reset the expiry counter
       } else {
         setSentOtpLoading(false);
       }
     } catch (error) {
       setSentOtpLoading(false);
-      setOtpErrorMessage(
-        "Resend Otp Failed!! Please try again after some time.",
+      dispatch(
+        setAuthError({
+          key: LOGIN_TYPES.OTP,
+          message: 'Resend Otp Failed!! Please try again after some time.',
+        }),
       );
     }
   };
@@ -432,30 +489,34 @@ const LoginScreen: React.FC = () => {
   const handleGoogleSignIn = async () => {
     if (!online) {
       return presentToast({
-        message: t("Device is offline. Login requires an internet connection"),
-        color: "danger",
+        message: t('Device is offline. Login requires an internet connection'),
+        color: 'danger',
         duration: 3000,
-        position: "bottom",
-        buttons: [{ text: "Dismiss", role: "cancel" }],
+        position: 'bottom',
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
       });
     }
     setAnimatedLoading(true);
     try {
       const ok = await authInstance.googleSign();
-      if (!ok.success) throw new Error("Google sign in failed");
+      if (!ok.success) throw new Error('Google sign in failed');
       if (!Capacitor.isNativePlatform()) {
         return;
       }
 
-      const user: any = await authInstance.getCurrentUser();
-      if (!user) throw new Error("No user returned from auth handler");
+      if (!ok.user || !ok.userData)
+        throw new Error('No user returned from auth handler');
 
-      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-      localStorage.setItem(USER_DATA, JSON.stringify(user));
-      let studentDetails: any = user;
-      studentDetails.parent_id = user.id;
-      studentDetails.last_sign_in_at = user.last_login_at;
-      studentDetails.login_method = "google-signin";
+      dispatch(setAuthUser(ok.user));
+      dispatch(setUser(ok.userData));
+      dispatch(setIsOpsUser(ok.isSpl));
+      await setUserRoles(ok.user.id);
+      const studentDetails = {
+        ...ok.userData,
+        parent_id: ok.user.id,
+        last_sign_in_at: ok.user.last_sign_in_at,
+        login_method: 'google-signin',
+      };
       updateLocalAttributes({
         studentDetails,
       });
@@ -463,19 +524,19 @@ const LoginScreen: React.FC = () => {
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
-        login_type: "google-signin",
+        login_type: 'google-signin',
       });
 
       // now safe to use user.id
-      const schools = await getSchoolsForUser(user.id);
+      const schools = await getSchoolsForUser(ok.user.id);
       await redirectUser(schools, ok.isSpl);
     } catch (e) {
       presentToast({
-        message: t("Google sign in failed. Please try again."),
-        color: "danger",
+        message: t('Google sign in failed. Please try again.'),
+        color: 'danger',
         duration: 3000,
-        position: "bottom",
-        buttons: [{ text: "Dismiss", role: "cancel" }],
+        position: 'bottom',
+        buttons: [{ text: 'Dismiss', role: 'cancel' }],
       });
       setLoginType(LOGIN_TYPES.PHONE);
     } finally {
@@ -492,7 +553,6 @@ const LoginScreen: React.FC = () => {
     isOpsUser: boolean,
   ) => {
     if (isOpsUser) {
-      localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       return history.replace(PAGES.SIDEBAR_PAGE);
@@ -506,7 +566,7 @@ const LoginScreen: React.FC = () => {
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
         if (Capacitor.isNativePlatform()) {
-          await ScreenOrientation.lock({ orientation: "landscape" });
+          await ScreenOrientation.lock({ orientation: 'landscape' });
           schoolUtil.setCurrMode(MODES.SCHOOL);
           return history.replace(PAGES.SELECT_MODE);
         } else {
@@ -519,7 +579,7 @@ const LoginScreen: React.FC = () => {
 
       // else teacher
       schoolUtil.setCurrMode(MODES.TEACHER);
-      if (!currentUser?.name || currentUser.name.trim() === "") {
+      if (!currentUser?.name || currentUser.name.trim() === '') {
         return history.replace(PAGES.ADD_TEACHER_NAME);
       }
       return history.replace(PAGES.DISPLAY_SCHOOLS);
@@ -546,19 +606,20 @@ const LoginScreen: React.FC = () => {
       if (!online) {
         presentToast({
           message: t(
-            "Device is offline. Login requires an internet connection",
+            'Device is offline. Login requires an internet connection',
           ),
-          color: "danger",
+          color: 'danger',
           duration: 3000,
-          position: "bottom",
-          buttons: [{ text: "Dismiss", role: "cancel" }],
+          position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
         });
         return;
       }
 
       setAnimatedLoading(true);
-      setIsLoading(true);
+      dispatch(setAuthLoading(true));
       const {
+        user: authUser,
         success: result,
         isSpl: isOps,
         userData,
@@ -566,47 +627,58 @@ const LoginScreen: React.FC = () => {
         schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
         studentPassword.trimEnd(),
       );
-      if (!result) {
+      if (!authUser || !result || !userData || !userData.id) {
         setStudentCredentialLogin(true);
         setAnimatedLoading(false);
-        setIsLoading(false);
-        setStudentErrorMessage(
-          "Incorrect credentials - Please check & try again!",
+        dispatch(setAuthLoading(false));
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.STUDENT,
+            message: 'Incorrect credentials - Please check & try again!',
+          }),
         );
+        return;
       }
       setAnimatedLoading(false);
-      setIsLoading(false);
-      localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
-      const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-      const userSchools = await getSchoolsForUser(user.id);
+      dispatch(setAuthLoading(false));
+      dispatch(setAuthUser(authUser));
+      dispatch(setUser(userData));
+      dispatch(setIsOpsUser(isOps));
+      await setUserRoles(userData.id);
+      const userSchools = await getSchoolsForUser(userData.id);
       await redirectUser(userSchools, isOps);
-      localStorage.setItem(USER_DATA, JSON.stringify(user));
-      let studentDetails: any = user;
-      studentDetails.parent_id = user.uid;
-      studentDetails.last_sign_in_at = user.last_login_at;
-      studentDetails.login_method = "student-credentials";
+      const studentDetails = {
+        ...userData,
+        parent_id: userData.id,
+        last_sign_in_at: authUser.last_sign_in_at,
+        login_method: 'student-credentials',
+      };
       updateLocalAttributes({
         studentDetails,
       });
       setGbUpdated(true);
       // Log the login event
       Util.logEvent(EVENTS.USER_PROFILE, {
-        user_id: user.uid,
-        user_name: user.name,
-        user_username: user.username,
+        user_id: userData.id,
+        user_name: userData.name,
         user_type: RoleType.STUDENT,
         action_type: ACTION.LOGIN,
-        login_type: "student-credentials",
+        login_type: 'student-credentials',
       });
     } catch (error) {
       setStudentCredentialLogin(true);
       setAnimatedLoading(false);
-      setIsLoading(false);
-      setStudentErrorMessage("Login unsuccessful. Please try again later.");
+      dispatch(setAuthLoading(false));
+      dispatch(
+        setAuthError({
+          key: LOGIN_TYPES.STUDENT,
+          message: 'Login unsuccessful. Please try again later.',
+        }),
+      );
       // Abort the student login process
-      setSchoolCode("");
-      setStudentId("");
-      setStudentPassword("");
+      setSchoolCode('');
+      setStudentId('');
+      setStudentPassword('');
     }
   };
 
@@ -616,12 +688,12 @@ const LoginScreen: React.FC = () => {
       if (!online) {
         presentToast({
           message: t(
-            "Device is offline. Login requires an internet connection",
+            'Device is offline. Login requires an internet connection',
           ),
-          color: "danger",
+          color: 'danger',
           duration: 3000,
-          position: "bottom",
-          buttons: [{ text: "Dismiss", role: "cancel" }],
+          position: 'bottom',
+          buttons: [{ text: 'Dismiss', role: 'cancel' }],
         });
         return;
       }
@@ -629,69 +701,89 @@ const LoginScreen: React.FC = () => {
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        setEmailErrorMessage("Please enter a valid email address");
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.EMAIL,
+            message: 'Please enter a valid email address',
+          }),
+        );
         return;
       }
 
       // Password validation
       if (password.length < 6 || /\s/.test(password)) {
-        setEmailErrorMessage("Password must be at least 6 characters");
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.EMAIL,
+            message: 'Password must be at least 6 characters',
+          }),
+        );
         return;
       }
 
       setAnimatedLoading(true);
-      setIsLoading(true);
+      dispatch(setAuthLoading(true));
       const {
+        user: authUser,
         success: result,
         isSpl: isOpsUser,
         userData,
       } = await authInstance.signInWithEmail(email, password);
 
-      if (result) {
-        localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
-        localStorage.setItem(USER_DATA, JSON.stringify(userData));
-        setIsLoading(false);
-        const user: any =
-          await ServiceConfig.getI().authHandler.getCurrentUser();
-        if (user) {
-          const userSchools = await getSchoolsForUser(user.id);
-          await redirectUser(userSchools, isOpsUser);
-        }
+      if (authUser && result && userData && userData.id) {
+        dispatch(setAuthLoading(false));
+        dispatch(setAuthUser(authUser));
+        dispatch(setUser(userData));
+        dispatch(setIsOpsUser(isOpsUser));
+        await setUserRoles(userData.id);
+
+        const userSchools = await getSchoolsForUser(userData.id);
+        await redirectUser(userSchools, isOpsUser);
+
         setAnimatedLoading(false);
-        let studentDetails: any = user;
-        studentDetails.parent_id = user.uid;
-        studentDetails.last_sign_in_at = user.last_login_at;
-        studentDetails.login_method = "email-password";
+        const studentDetails = {
+          ...userData,
+          parent_id: userData.id,
+          last_sign_in_at: authUser.last_sign_in_at,
+          login_method: 'email-password',
+        };
         updateLocalAttributes({
           studentDetails,
         });
         setGbUpdated(true);
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: user.uid,
-          user_name: user.name,
-          user_username: user.username,
+          user_id: userData.id,
+          user_name: userData.name,
           user_type: RoleType.PARENT,
           action_type: ACTION.LOGIN,
           login_type: LOGIN_TYPES.EMAIL,
         });
       } else {
         setAnimatedLoading(false);
-        setIsLoading(false);
-        setEmailErrorMessage(
-          "Incorrect credentials - Please check & try again!",
+        dispatch(setAuthLoading(false));
+        dispatch(
+          setAuthError({
+            key: LOGIN_TYPES.EMAIL,
+            message: 'Incorrect credentials - Please check & try again!',
+          }),
         );
         // Abort the email login process
-        setEmail("");
-        setPassword("");
+        setEmail('');
+        setPassword('');
       }
     } catch (error) {
       setAnimatedLoading(false);
-      setIsLoading(false);
-      setEmailErrorMessage("Login unsuccessful. Please try again later.");
+      dispatch(setAuthLoading(false));
+      dispatch(
+        setAuthError({
+          key: LOGIN_TYPES.EMAIL,
+          message: 'Login unsuccessful. Please try again later.',
+        }),
+      );
       // Abort the email login process
-      setEmail("");
-      setPassword("");
+      setEmail('');
+      setPassword('');
     }
   };
 
@@ -704,7 +796,7 @@ const LoginScreen: React.FC = () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
       if (phoneNumberErrorRef.current) {
-        phoneNumberErrorRef.current.style.display = "none";
+        phoneNumberErrorRef.current.style.display = 'none';
       }
       setPhoneNumber(phoneNumber.number.toString());
     }
@@ -717,20 +809,20 @@ const LoginScreen: React.FC = () => {
       // Auto verify when OTP is received
       handleOtpVerification(data.otp.toString());
     }
-    document.removeEventListener("otpReceived", otpEventListener);
+    document.removeEventListener('otpReceived', otpEventListener);
   };
 
   const isPhoneNumberEventListener = async (event: Event) => {
     await retriewPhoneNumber();
     document.removeEventListener(
-      "isPhoneNumberSelected",
+      'isPhoneNumberSelected',
       isPhoneNumberEventListener,
     );
   };
 
   const initNumberSelectedListner = async () => {
     document.addEventListener(
-      "isPhoneNumberSelected",
+      'isPhoneNumberSelected',
       isPhoneNumberEventListener,
       {
         once: true,
@@ -739,22 +831,22 @@ const LoginScreen: React.FC = () => {
   };
 
   const initSmsListner = async () => {
-    document.addEventListener("otpReceived", otpEventListener, { once: true });
+    document.addEventListener('otpReceived', otpEventListener, { once: true });
   };
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", (info) => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
         setIsInputFocus(true);
         setTimeout(() => {
           scollToRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
-            inline: "nearest",
+            behavior: 'smooth',
+            block: 'end',
+            inline: 'nearest',
           });
         }, 50);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -801,7 +893,7 @@ const LoginScreen: React.FC = () => {
         <>
           <div
             className="Loginscreen-tc-popup"
-            style={{ display: showTandC ? "block" : "none" }}
+            style={{ display: showTandC ? 'block' : 'none' }}
           >
             <div className="Loginscreen-tc-header">
               <button
@@ -819,7 +911,7 @@ const LoginScreen: React.FC = () => {
                 src="assets/termsandconditions/TermsandConditionsofChimple.html"
                 title="Terms and Conditions"
                 allowFullScreen={true}
-                style={{ height: "80vh", width: "100%", border: "none" }}
+                style={{ height: '80vh', width: '100%', border: 'none' }}
               />
             </div>
           </div>
@@ -833,7 +925,7 @@ const LoginScreen: React.FC = () => {
                 type="button"
               >
                 <FaArrowLeftLong
-                  style={{ color: "#f34d08" }}
+                  style={{ color: '#f34d08' }}
                   className="Loginscreen-otp-back-arrow-img"
                 />
               </button>
@@ -848,25 +940,25 @@ const LoginScreen: React.FC = () => {
           </div>
           {loginType !== LOGIN_TYPES.OTP ? (
             <img
-              src={"/assets/loginAssets/ChimpleLogo.svg"}
+              src={'/assets/loginAssets/ChimpleLogo.svg'}
               alt="Chimple Logo"
               className="Loginscreen-chimple-login-logo"
               style={
                 (loginType as string) !== LOGIN_TYPES.PHONE
                   ? {
-                      maxWidth: window.matchMedia("(orientation: landscape)")
+                      maxWidth: window.matchMedia('(orientation: landscape)')
                         .matches
-                        ? "120px"
-                        : "138px",
+                        ? '120px'
+                        : '138px',
                     }
                   : undefined
               }
             />
           ) : (
             <div className="Loginscreen-chimple-login-logo-otp-container">
-              <p>{t("Verify Your Number")}</p>
+              <p>{t('Verify Your Number')}</p>
               <img
-                src={"/assets/loginAssets/MascotForOTP.svg"}
+                src={'/assets/loginAssets/MascotForOTP.svg'}
                 alt="Chimple Logo"
                 className="Loginscreen-chimple-login-logo-otp"
               />
@@ -879,11 +971,11 @@ const LoginScreen: React.FC = () => {
                 onNext={handlePhoneNext}
                 phoneNumber={phoneNumber}
                 setPhoneNumber={setPhoneNumber}
-                errorMessage={phoneErrorMessage && t(phoneErrorMessage)}
+                errorMessage={authErrors.phone && t(authErrors.phone)}
                 checkbox={checkbox}
                 onFocus={async () => {
                   if (
-                    Capacitor.getPlatform() === "android" &&
+                    Capacitor.getPlatform() === 'android' &&
                     !isPromptNumbers
                   ) {
                     const data = await PortPlugin.requestPermission();
@@ -901,7 +993,7 @@ const LoginScreen: React.FC = () => {
                 setStudentId={setStudentId}
                 studentPassword={studentPassword}
                 setStudentPassword={setStudentPassword}
-                errorMessage={studentErrorMessage && t(studentErrorMessage)}
+                errorMessage={authErrors.student && t(authErrors.student)}
                 checkbox={checkbox}
               />
             )}
@@ -915,7 +1007,7 @@ const LoginScreen: React.FC = () => {
                 setEmail={setEmail}
                 password={password}
                 setPassword={setPassword}
-                errorMessage={emailErrorMessage && t(emailErrorMessage)}
+                errorMessage={authErrors.email && t(authErrors.email)}
                 checkbox={checkbox}
               />
             )}
@@ -923,7 +1015,7 @@ const LoginScreen: React.FC = () => {
               <OtpVerification
                 phoneNumber={phoneNumber}
                 onVerify={handleOtpVerification}
-                errorMessage={otpErrorMessage && t(otpErrorMessage)}
+                errorMessage={authErrors.otp && t(authErrors.otp)}
                 isLoading={isLoading}
                 verificationCode={verificationCode}
                 setVerificationCode={setVerificationCode}

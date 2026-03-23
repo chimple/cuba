@@ -43,9 +43,9 @@
 
 .post-success-create-school-whatsapp-support {
   position: relative;
-  border: 1.5px solid #67D449;
+  border: 1.5px solid #67d449;
   border-radius: 10px;
-  padding: 0px; 
+  padding: 0px;
   display: flex;
   align-items: center;
   background: #fff;
@@ -57,7 +57,7 @@
 
 .post-success-create-school-whatsapp-support-text {
   text-align: center;
-  margin: auto; 
+  margin: auto;
 }
 
 .post-success-create-school-whatsapp-support-text p {
@@ -72,7 +72,7 @@
   left: -15px;
   top: 50%;
   transform: translateY(-50%);
-  background: #25D366;
+  background: #25d366;
   border-radius: 50%;
   padding: 5px;
   display: flex;
@@ -82,7 +82,7 @@
 
 .post-success-create-school-whatsapp-support-text {
   text-align: center;
-  margin: auto; 
+  margin: auto;
 }
 
 .post-success-create-school-whatsapp-support-text p {
@@ -92,7 +92,7 @@
   margin: auto;
 }
 
-.post-success-span-text-whatsapp{
+.post-success-span-text-whatsapp {
   font-size: 18px !important;
   font-weight: bold !important;
 }
@@ -127,14 +127,15 @@
   margin-left: 5%;
 }
 
-.post-success-create-school-confirm-subtext p{
+.post-success-create-school-confirm-subtext p {
   font-size: 16px;
   margin-top: 10px;
   font-weight: 600;
   color: #808080;
 }
 
-.post-success-app-links, .post-success-create-school-app-links {
+.post-success-app-links,
+.post-success-create-school-app-links {
   display: flex;
   justify-content: center;
   gap: 15px;
@@ -142,7 +143,7 @@
 }
 
 .post-success-app-card {
-  background-color: #F4EEFE;
+  background-color: #f4eefe;
   padding: 10px;
   border-radius: 8px;
   text-align: center;

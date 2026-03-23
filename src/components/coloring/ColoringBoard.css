@@ -1,0 +1,158 @@
+/* MAIN LAYOUT WRAPPER */
+.coloring-board-paint-layout {
+  position: relative;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+  background: #e0f7fa;
+}
+
+/* 1) EXIT BUTTON */
+.coloring-board-top {
+  flex: 0 0 48px;
+  margin-top: 4px;
+}
+
+.paint-topbar .exit-btn {
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.paint-topbar .exit-btn:active {
+  transform: scale(0.95);
+}
+
+/* 2) SVG FRAME */
+.coloring-board-frame-row {
+  flex: 1 1 auto;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px; /* Slight padding to keep it away from edges */
+  box-sizing: border-box;
+}
+
+.coloring-board-svg-frame {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  border: 2px solid #57dbe0;
+  border-radius: 5px 5px 2px 2px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.coloring-board-svg-frame > * {
+  width: 100%;
+  height: 100%;
+}
+
+.coloring-board-svg-frame svg {
+  display: block;
+}
+
+/* 3) RIGHT CONTROLS (Save + Tray) */
+.coloring-board-controls {
+  flex: 0 0 auto;
+  width: clamp(80px, 15vw, 151px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.coloring-board-controls .StickerBookActions-root {
+  position: static;
+  flex: 0 0 calc(20% - 5px); /* 20% for save button container */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.coloring-board-tray {
+  flex: 1 1 auto; /* Use remaining space */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  min-height: 0;
+}
+
+/* Override ColorPalette size to fill tray */
+.coloring-board-controls .color-palette {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* RESPONSIVE DOWN-SCALING */
+@media (max-width: 800px) {
+  .coloring-board-paint-layout {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .coloring-board-controls {
+    width: clamp(70px, 18vw, 120px);
+  }
+
+  .coloring-board-top {
+    flex: 0 0 35px;
+  }
+
+  /* Make exit button dynamically scale within smaller topbar if needed */
+  .paint-topbar .exit-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .coloring-board-paint-layout {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .coloring-board-controls {
+    width: clamp(65px, 20vw, 100px);
+  }
+
+  .coloring-board-top {
+    flex: 0 0 30px;
+  }
+
+  .paint-topbar .exit-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+}

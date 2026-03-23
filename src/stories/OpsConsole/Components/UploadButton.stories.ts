@@ -1,16 +1,16 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import UploadButton from "../../../ops-console/components/UploadButton";
+import type { Meta, StoryObj } from '@storybook/react';
+import UploadButton from '../../../ops-console/components/UploadButton';
 
 const meta = {
-  title: "OpsConsole/Component/UploadButton",
+  title: 'OpsConsole/Component/UploadButton',
   component: UploadButton,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   args: {
-    onClick: () => alert("Upload button clicked!"),
+    onClick: () => alert('Upload button clicked!'),
   },
 } satisfies Meta<typeof UploadButton>;
 

@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
+import { Util } from '../../utility/util';
+import { EVENTS } from '../../common/constants';
 
 export type ColoredRegions = Record<string, string>;
 
@@ -9,9 +11,9 @@ export interface UseSvgColoringReturn {
 }
 
 export const useSvgColoring = (
-  svgRef: React.RefObject<SVGSVGElement | null>
+  svgRef: React.RefObject<SVGSVGElement | null>,
 ): UseSvgColoringReturn => {
-  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>('');
   const [coloredRegions, setColoredRegions] = useState<ColoredRegions>({});
 
   const handleClick = useCallback(
@@ -21,30 +23,70 @@ export const useSvgColoring = (
       const target = event.target as Element;
       if (!target) return;
 
-      const colorable = target.closest("[color-id]") as Element | null;
+      const colorable = target.closest('[color-id]') as Element | null;
       if (!colorable) return;
 
-      const regionId = colorable.getAttribute("color-id");
+      const modeColor =
+        colorable.getAttribute('mode') === 'color' ||
+        !!colorable.closest('[mode="color"]');
+      if (modeColor) return;
+
+      const regionId = colorable.getAttribute('color-id');
       if (!regionId) return;
 
-      colorable.setAttribute("fill", selectedColor);
+      const paintShape = (shape: Element) => {
+        shape.setAttribute('fill', selectedColor);
+        (shape as SVGElement).style.setProperty(
+          'fill',
+          selectedColor,
+          'important',
+        );
+        shape.setAttribute('data-colored', 'true');
+      };
 
-      setColoredRegions((prev) => ({
-        ...prev,
-        [regionId]: selectedColor,
-      }));
+      const tag = colorable.tagName.toLowerCase();
+      if (tag === 'g') {
+        const shapes = colorable.querySelectorAll(
+          'path,circle,ellipse,rect,polygon,polyline',
+        );
+        if (shapes.length) {
+          shapes.forEach((shape) => paintShape(shape));
+        } else {
+          paintShape(colorable);
+        }
+      } else {
+        paintShape(colorable);
+      }
+
+      setColoredRegions((prev) => {
+        const next = {
+          ...prev,
+          [regionId]: selectedColor,
+        };
+
+        // Change: track paint interactions for analytics.
+        Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
+          user_id: Util.getCurrentStudent()?.id ?? null,
+          region_id: regionId,
+          color: selectedColor,
+          colored_count: Object.keys(next).length,
+          page_path: window.location.pathname,
+        });
+
+        return next;
+      });
     },
-    [selectedColor]
+    [selectedColor],
   );
 
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
-    svg.addEventListener("click", handleClick);
+    svg.addEventListener('click', handleClick);
 
     return () => {
-      svg.removeEventListener("click", handleClick);
+      svg.removeEventListener('click', handleClick);
     };
   }, [svgRef, handleClick]);
 

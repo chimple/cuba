@@ -5,6 +5,6 @@ export const Filesystem = {
 };
 
 export const Directory = {
-  Cache: "CACHE",
-  External: "EXTERNAL",
+  Cache: 'CACHE',
+  External: 'EXTERNAL',
 };

@@ -1,28 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Redirect, Route, useHistory } from "react-router";
-import { PAGES } from "../common/constants";
-import { t } from "i18next";
-import "../pages/TermsAndConditions.css";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import React, { useEffect } from 'react';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory } from 'react-router';
+import { PAGES } from '../common/constants';
+import { t } from 'i18next';
+import '../pages/TermsAndConditions.css';
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
-  // const [iframeSrc, setIframeSrc] = useState('');
-  // const setIframeSrcAsync = async () => {
-  //   try {
-  //     const tcUrl = await RemoteConfig.getString(
-  //       REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL
-  //     );
-  //     setIframeSrc(tcUrl);
-  //   } catch (error) {
-  //     console.error('Error fetching URL:', error);
-  //   }
-  // };
 
   useEffect(() => {
     checkAuth();
-    // setIframeSrcAsync();
   }, []);
   const checkAuth = async () => {
     try {
@@ -35,8 +22,7 @@ const TermsAndConditions: React.FC = () => {
       } else {
         history.replace(PAGES.LOGIN);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleAgreeButtonClick = async () => {
@@ -54,12 +40,12 @@ const TermsAndConditions: React.FC = () => {
           src="assets/termsandconditions/TermsandConditionsofChimple.html"
           title="Web Page"
           allowFullScreen={true}
-          style={{ height: "80vh", width: "100%", border: "none" }}
+          style={{ height: '80vh', width: '100%', border: 'none' }}
         />
       </div>
       <div className="button-content">
         <div className="tc-agree-button" onClick={handleAgreeButtonClick}>
-          <p className="agree-text">{t("Agree")}</p>
+          <p className="agree-text">{t('Agree')}</p>
         </div>
       </div>
     </div>

@@ -1,0 +1,185 @@
+.sticker-book-board-root {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.sticker-book-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  box-sizing: border-box;
+  z-index: 20;
+}
+
+.sticker-book-header-left,
+.sticker-book-header-right {
+  display: flex;
+  align-items: flex-start;
+}
+
+.sticker-book-frame {
+  position: relative;
+  width: 120%;
+  height: 120%;
+  max-height: 120%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  align-self: center;
+  transform: translateY(-25px);
+}
+
+.sticker-book-board {
+  position: relative;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.sticker-book-board-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sticker-book-board-bg svg {
+  width: 100%;
+  height: 100%;
+}
+
+.sticker-book-board-title {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 500;
+  font-style: normal;
+  color: #182a4f;
+  font-size: 22px;
+  line-height: normal;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  z-index: 2;
+  text-align: center;
+  width: 70%;
+}
+
+.sticker-book-board-content {
+  position: absolute;
+  width: 73.5%;
+  height: 82.5%;
+  left: 50.15%;
+  top: 57%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.sticker-book-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sticker-book-board-content-disabled svg {
+  pointer-events: none;
+}
+
+.sticker-book-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.sticker-book-disabled-layer {
+  position: absolute;
+  inset: 0;
+  background: #d9d6c9;
+  z-index: 1;
+  pointer-events: all;
+  border-radius: 2%; /* slightly curved corners */
+}
+
+.sticker-book-board-content > svg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.sticker-book-board-content-disabled {
+  pointer-events: none;
+  filter: brightness(0.9);
+}
+
+.sticker-book-lock-card {
+  background: #fffdf2;
+  border-radius: 20px;
+  padding: clamp(12px, 2vw, 20px) clamp(20px, 3vw, 30px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: max(250px, 40%);
+  max-width: 420px;
+  pointer-events: all;
+}
+
+.sticker-book-lock-card img {
+  width: clamp(40px, 5vw, 60px);
+  height: auto;
+}
+
+.sticker-book-lock-text {
+  color: #182a4f;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .sticker-book-frame {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 130%;
+    height: 130%;
+    max-height: 130%;
+    transform: translateY(-25px);
+  }
+}
+
+@media (orientation: portrait) {
+  .sticker-book-frame {
+    width: 95%;
+  }
+}

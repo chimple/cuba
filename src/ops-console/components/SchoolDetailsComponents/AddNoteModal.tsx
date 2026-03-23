@@ -1,10 +1,11 @@
 // AddNoteModal.tsx
-import React, { useEffect, useState } from "react";
-import { t } from "i18next";
-import "./AddNoteModal.css";
-import { useMediaActions } from "../../common/mediaactions";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import AttachMedia from "../../common/AttachMedia";
+import React, { useEffect, useState } from 'react';
+import { t } from 'i18next';
+import './AddNoteModal.css';
+import { useMediaActions } from '../../common/mediaactions';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import AttachMedia from '../../common/AttachMedia';
+import logger from '../../../utility/logger';
 
 interface AddNoteModalProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ interface AddNoteModalProps {
     text: string;
     mediaLinks?: string[] | null;
   }) => void | Promise<void>;
-  source: "school" | "class";
+  source: 'school' | 'class';
   schoolId?: string;
 }
 
@@ -24,19 +25,19 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   source,
   schoolId,
 }) => {
-  const [text, setText] = useState("");
-  const [error, setError] = useState("");
+  const [text, setText] = useState('');
+  const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const translate = (key: string) => t(key).toString();
   const media = useMediaActions({ t: translate, schoolId });
   const hasProcessingMedia = media.mediaUploads.some(
-    (m) => m.status !== "done"
+    (m) => m.status !== 'done',
   );
 
   useEffect(() => {
     if (isOpen) return;
-    setText("");
-    setError("");
+    setText('');
+    setError('');
     setIsSaving(false);
     media.resetMedia();
     media.cancelCamera();
@@ -47,21 +48,21 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
   const handleSave = async () => {
     if (isSaving) return;
     if (!text.trim()) {
-      setError(t("please_enter_note").toString());
+      setError(t('please_enter_note').toString());
       return;
     }
     if (media.mediaUploads.length > 0 && hasProcessingMedia) {
-      setError(t("Please wait for media processing to finish.").toString());
+      setError(t('Please wait for media processing to finish.').toString());
       return;
     }
 
     if (!schoolId && media.mediaUploads.length > 0) {
-      setError(t("School ID is required to upload media.").toString());
+      setError(t('School ID is required to upload media.').toString());
       return;
     }
 
     setIsSaving(true);
-    setError("");
+    setError('');
     onClose();
 
     try {
@@ -69,7 +70,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
       const mediaLinks =
         schoolId && media.mediaUploads.length > 0
           ? await media.uploadAllMedia((file) =>
-              api.uploadSchoolVisitMediaFile({ schoolId, file })
+              api.uploadSchoolVisitMediaFile({ schoolId, file }),
             )
           : [];
 
@@ -78,8 +79,8 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
       });
     } catch (err) {
-      console.error("Failed to save note:", err);
-      setError(t("Failed to save note. Please try again.").toString());
+      logger.error('Failed to save note:', err);
+      setError(t('Failed to save note. Please try again.').toString());
     } finally {
       setIsSaving(false);
     }
@@ -87,8 +88,8 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
 
   const handleCancel = () => {
     if (isSaving) return;
-    setText("");
-    setError("");
+    setText('');
+    setError('');
     media.resetMedia();
     media.cancelCamera();
     onClose();
@@ -100,7 +101,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         {/* Header */}
         <div className="add-note-modal-header" id="add-note-modal-header">
           <h3 className="add-note-modal-title" id="add-note-modal-title">
-            {source === "school" ? t("Add School Note") : t("Add Class Note")}
+            {source === 'school' ? t('Add School Note') : t('Add Class Note')}
           </h3>
 
           <button
@@ -118,13 +119,12 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
         <textarea
           className="add-note-modal-textarea"
           id="add-note-modal-textarea"
-          placeholder={t("Type your note here...").toString()}
+          placeholder={t('Type your note here...').toString()}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
-            if (error) setError("");
+            if (error) setError('');
           }}
-
           rows={6}
         />
 
@@ -148,7 +148,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
             onClick={handleCancel}
             disabled={isSaving}
           >
-            {t("Cancel")}
+            {t('Cancel')}
           </button>
 
           <button
@@ -159,7 +159,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
               isSaving || (media.mediaUploads.length > 0 && hasProcessingMedia)
             }
           >
-            {isSaving ? t("Saving...") : t("Save")}
+            {isSaving ? t('Saving...') : t('Save')}
           </button>
         </div>
       </div>
@@ -183,13 +183,13 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
                 className="add-note-modal-camera-title"
                 id="add-note-modal-camera-title"
               >
-                {t("Capture") || "Capture"}
+                {t('Capture') || 'Capture'}
               </div>
               <button
                 type="button"
                 className="add-note-modal-camera-close"
                 id="add-note-modal-camera-close"
-                aria-label={t("Close") || "Close"}
+                aria-label={t('Close') || 'Close'}
                 onClick={media.cancelCamera}
               >
                 ×
@@ -205,7 +205,7 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
               </div>
             )}
 
-            {media.cameraUiMode === "desktop" && media.cameraStream && (
+            {media.cameraUiMode === 'desktop' && media.cameraStream && (
               <>
                 <div
                   className="add-note-modal-camera-preview"
@@ -232,12 +232,12 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
                 <canvas
                   ref={media.canvasRef}
                   id="add-note-modal-camera-canvas"
-                  style={{ display: "none" }}
+                  style={{ display: 'none' }}
                 />
               </>
             )}
 
-            {media.cameraUiMode === "mobile" && (
+            {media.cameraUiMode === 'mobile' && (
               <div
                 className="add-note-modal-camera-hint"
                 id="add-note-modal-camera-hint"
@@ -257,10 +257,10 @@ const AddNoteModal: React.FC<AddNoteModalProps> = ({
                   id="add-note-modal-camera-shutter"
                   className={`add-note-modal-camera-shutter ${
                     media.isRecording
-                      ? "add-note-modal-camera-shutter-recording"
-                      : ""
+                      ? 'add-note-modal-camera-shutter-recording'
+                      : ''
                   }`}
-                  aria-label={t("Shutter") || "Shutter"}
+                  aria-label={t('Shutter') || 'Shutter'}
                   onPointerDown={(e) => {
                     e.preventDefault();
                     try {

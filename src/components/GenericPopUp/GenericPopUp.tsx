@@ -1,5 +1,5 @@
-import React from "react";
-import "./GenericPopup.css";
+import React from 'react';
+import './GenericPopup.css';
 
 interface Props {
   thumbnailImageUrl: string;
@@ -23,14 +23,8 @@ const GenericPopup: React.FC<Props> = ({
   onAction,
 }) => {
   return (
-    <div
-      id="generic-popup-overlay"
-      className="generic-popup-overlay"
-    >
-      <div
-        id="generic-popup-card"
-        className="generic-popup-card"
-      >
+    <div id="generic-popup-overlay" className="generic-popup-overlay">
+      <div id="generic-popup-card" className="generic-popup-card">
         {/* Close */}
         <button
           id="generic-popup-close"
@@ -54,73 +48,69 @@ const GenericPopup: React.FC<Props> = ({
         />
 
         <div id="generic-popup-content" className="generic-popup-content">
-  {/* Top row: thumb + text */}
-  <div className="generic-popup-main">
-    {/* Left thumbnail */}
-    <div
-      id="generic-popup-thumb-wrapper"
-      className="generic-popup-thumb-wrapper"
-    >
-      <img
-        id="generic-popup-thumb"
-        className="generic-popup-thumb"
-        src={thumbnailImageUrl}
-        alt=""
-      />
-    </div>
-
-    {/* Text content */}
-    <div
-      id="generic-popup-text-wrapper"
-      className="generic-popup-text-wrapper"
-    >
-      <h2
-        id="generic-popup-heading"
-        className="generic-popup-heading"
-      >
-        {heading}
-      </h2>
-
-      {subHeading && (
-        <p
-          id="generic-popup-subheading"
-          className="generic-popup-subheading"
-        >
-          {subHeading}
-        </p>
-      )}
-
-      {details.length > 0 && (
-        <ul
-          id="generic-popup-details"
-          className="generic-popup-details"
-        >
-          {details.map((item, idx) => (
-            <li
-              id={`generic-popup-detail-${idx}`}
-              className="generic-popup-detail-item"
-              key={idx}
+          {/* Top row: thumb + text */}
+          <div className="generic-popup-main">
+            {/* Left thumbnail */}
+            <div
+              id="generic-popup-thumb-wrapper"
+              className="generic-popup-thumb-wrapper"
             >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  </div>
+              <img
+                id="generic-popup-thumb"
+                className="generic-popup-thumb"
+                src={thumbnailImageUrl}
+                alt=""
+              />
+            </div>
 
-  {/* Bottom row: CTA (full width) */}
-  <div className="generic-popup-footer">
-    <button
-      id="generic-popup-cta"
-      className="generic-popup-cta"
-      onClick={onAction}
-    >
-      {buttonText}
-    </button>
-  </div>
-</div>
+            {/* Text content */}
+            <div
+              id="generic-popup-text-wrapper"
+              className="generic-popup-text-wrapper"
+            >
+              <h2 id="generic-popup-heading" className="generic-popup-heading">
+                {heading}
+              </h2>
 
+              {subHeading && (
+                <p
+                  id="generic-popup-subheading"
+                  className="generic-popup-subheading"
+                >
+                  {subHeading}
+                </p>
+              )}
+
+              {details.length > 0 && (
+                <ul
+                  id="generic-popup-details"
+                  className="generic-popup-details"
+                >
+                  {details.map((item, idx) => (
+                    <li
+                      id={`generic-popup-detail-${idx}`}
+                      className="generic-popup-detail-item"
+                      key={idx}
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom row: CTA (full width) */}
+          <div className="generic-popup-footer">
+            <button
+              id="generic-popup-cta"
+              className="generic-popup-cta"
+              onClick={onAction}
+            >
+              {buttonText}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

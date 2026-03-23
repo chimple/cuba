@@ -1,40 +1,46 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
-  CLASS,
   CLASSES,
   IconType,
   PAGES,
-  SCHOOL,
   TableTypes,
-  USER_ROLE,
-  OPS_ROLES
-} from "../../common/constants";
-import { useHistory } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
-import { t } from "i18next";
-import DetailList from "../components/schoolComponent/DetailList";
-import { RoleType } from "../../interface/modelInterfaces";
-import "./ManageClass.css";
-import { Util } from "../../utility/util";
-import DetailListHeader from "../components/schoolComponent/DetailListHeader";
+  OPS_ROLES,
+} from '../../common/constants';
+import { useHistory } from 'react-router-dom';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import Header from '../components/homePage/Header';
+import AddButton from '../../common/AddButton';
+import { t } from 'i18next';
+import DetailList from '../components/schoolComponent/DetailList';
+import { RoleType } from '../../interface/modelInterfaces';
+import './ManageClass.css';
+import { Util } from '../../utility/util';
+import DetailListHeader from '../components/schoolComponent/DetailListHeader';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
 
 const ManageClass: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
   const [currentSchool, setCurrentSchool] = useState<
-    TableTypes<"school"> | undefined
+    TableTypes<'school'> | undefined
   >();
 
-  const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
+  const [allClasses, setAllClasses] = useState<TableTypes<'class'>[]>([]);
   const [userRole, setUserRole] = useState<RoleType>();
 
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const tempClass = Util.getCurrentClass();
+
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const storedRoles = roles || [];
 
   const init = async () => {
     try {
@@ -46,7 +52,7 @@ const ManageClass: React.FC = () => {
         setCurrentSchool(tempSchool);
         const fetchedClasses = await api.getClassesForSchool(
           tempSchool.id,
-          user.id
+          user.id,
         );
         if (fetchedClasses) {
           setAllClasses(fetchedClasses);
@@ -54,16 +60,13 @@ const ManageClass: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("Error initializing data:", error);
+      logger.error('Error initializing data:', error);
     }
   };
-  const storedRoles: string[] = JSON.parse(
-    localStorage.getItem(USER_ROLE) ?? "[]"
-  );
 
   const canCreate = useMemo(
     () => OPS_ROLES.some((role) => storedRoles.includes(role)),
-    [storedRoles]
+    [storedRoles],
   );
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
@@ -82,7 +85,7 @@ const ManageClass: React.FC = () => {
       const updated = Util.getCurrentClass();
       if (updated) {
         setAllClasses((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c))
+          prev.map((c) => (c.id === updated.id ? updated : c)),
         );
       }
     })();
@@ -98,7 +101,7 @@ const ManageClass: React.FC = () => {
           schoolName={currentSchool?.name}
         />
       </div>
-      <div className="school-div">{t("Classes")}</div>
+      <div className="school-div">{t('Classes')}</div>
       {!(allClasses.length === 0) && <DetailListHeader />}
 
       <div className="school-list">

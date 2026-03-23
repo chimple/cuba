@@ -1,25 +1,26 @@
 // ClassDetailsPage.tsx
-import React, { useEffect, useMemo, useState } from "react";
-import { Box, Button, useMediaQuery } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
-import ClassInfoCard from "./ClassInfoCard";
-import SchoolStudents from "./SchoolStudents";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import "./ClassDetailsPage.css";
-import { t } from "i18next";
-import { StudentInfo, TableTypes } from "../../../common/constants";
-import { ClassRow, SchoolDetailsData } from "./SchoolClass";
-import AddNoteModal from "../SchoolDetailsComponents/AddNoteModal"; // <<-- imported
-import { NOTES_UPDATED_EVENT } from "../../../common/constants";
-import WhatsAppInfoCard from "./WhatsAppInfoCard";
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Button, useMediaQuery } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import ClassInfoCard from './ClassInfoCard';
+import SchoolStudents from './SchoolStudents';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import './ClassDetailsPage.css';
+import { t } from 'i18next';
+import { StudentInfo, TableTypes } from '../../../common/constants';
+import { ClassRow, SchoolDetailsData } from './SchoolClass';
+import AddNoteModal from '../SchoolDetailsComponents/AddNoteModal'; // <<-- imported
+import { NOTES_UPDATED_EVENT } from '../../../common/constants';
+import WhatsAppInfoCard from './WhatsAppInfoCard';
+import logger from '../../../utility/logger';
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
 
 type Props = {
   data?: SchoolDetailsData;
-  schoolId: TableTypes<"school">["id"];
-  classId: TableTypes<"class">["id"];
+  schoolId: TableTypes<'school'>['id'];
+  classId: TableTypes<'class'>['id'];
   classRow: ClassRow | null;
   classCodeOverride?: string;
   totalStudentsOverride?: number;
@@ -27,16 +28,16 @@ type Props = {
 };
 
 function toCommaString(x: unknown): string {
-  if (!x) return "";
-  if (Array.isArray(x)) return x.filter(Boolean).join(", ") || "";
-  if (typeof x === "string") return x.trim() || "";
+  if (!x) return '';
+  if (Array.isArray(x)) return x.filter(Boolean).join(', ') || '';
+  if (typeof x === 'string') return x.trim() || '';
   return String(x);
 }
 
 function parseGradeSection(
   name?: string,
   fallbackGrade?: number | string,
-  fallbackSection?: string
+  fallbackSection?: string,
 ): { grade?: number | string; section?: string } {
   if (!name) return { grade: fallbackGrade, section: fallbackSection };
   const s = name.trim();
@@ -45,7 +46,7 @@ function parseGradeSection(
     const gradeNum = parseInt(match[1], 10);
     let sectionRaw = match[2];
     if (gradeNum >= 0 && gradeNum <= 10) {
-      let sectionClean = sectionRaw.trim().replace(/^[-]\s*/, "");
+      let sectionClean = sectionRaw.trim().replace(/^[-]\s*/, '');
       return {
         grade: gradeNum,
         section: sectionClean || fallbackSection,
@@ -64,7 +65,7 @@ const ClassDetailsPage: React.FC<Props> = ({
   totalStudentsOverride,
   onBack,
 }) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const classDataArray = (data?.classData ?? []) as ClassRow[];
   const onlyClassRow =
     classDataArray.find((r) => r?.id === classId) ?? classRow ?? null;
@@ -75,14 +76,14 @@ const ClassDetailsPage: React.FC<Props> = ({
 
   const [showAddModal, setShowAddModal] = useState(false); // <<-- modal state
 
-  const classNameSt = (classRow?.name ?? "").toString().trim() || "";
+  const classNameSt = (classRow?.name ?? '').toString().trim() || '';
   const subjectsSt = useMemo(
     () => toCommaString(classRow?.subjectsNames),
-    [classRow]
+    [classRow],
   );
   const curriculumSt = useMemo(
     () => toCommaString(classRow?.curriculumNames),
-    [classRow]
+    [classRow],
   );
 
   const { grade: parsedGrade, section: parsedSection } = useMemo(
@@ -90,9 +91,9 @@ const ClassDetailsPage: React.FC<Props> = ({
       parseGradeSection(
         classRow?.name,
         classRow?.grade,
-        classRow?.section ?? ""
+        classRow?.section ?? '',
       ),
-    [classRow]
+    [classRow],
   );
 
   useEffect(() => {
@@ -102,21 +103,21 @@ const ClassDetailsPage: React.FC<Props> = ({
         const res = await api.getStudentInfoBySchoolId(
           schoolId,
           1,
-          ROWS_PER_PAGE
+          ROWS_PER_PAGE,
         );
         setInitialStudents(res?.data || []);
         setInitialTotal(res?.total || 0);
         const active = await api.getActiveStudentsCountByClass(classId);
         setActiveStudentCount(Number(active) || 0);
       } catch (e) {
-        console.error("Failed to load class details:", e);
+        logger.error('Failed to load class details:', e);
         setActiveStudentCount(0);
       }
     })();
   }, [schoolId, classId]);
 
   const finalClassCode =
-    (classCodeOverride ?? "").toString().trim() || t("Not Generated");
+    (classCodeOverride ?? '').toString().trim() || t('Not Generated');
   const finalTotalStudentsSt = String(totalStudentsOverride);
   const finalActiveStudentsSt = String(activeStudentCount);
 
@@ -128,7 +129,7 @@ const ClassDetailsPage: React.FC<Props> = ({
     try {
       const api = ServiceConfig.getI().apiHandler;
       if (!api || !api.createNoteForSchool) {
-        console.error("Notes API not available");
+        logger.error('Notes API not available');
         setShowAddModal(false);
         return;
       }
@@ -145,15 +146,17 @@ const ClassDetailsPage: React.FC<Props> = ({
       // e.g. { id, visitId, schoolId, classId, className, content, createdAt, createdBy: { userId, name, role } }
 
       // Inform Notes tab (SchoolNotes listens to this)
-      window.dispatchEvent(new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }));
+      window.dispatchEvent(
+        new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }),
+      );
 
       // close modal
       setShowAddModal(false);
 
       // Optional: you can show a toast/notification here
-      console.log("Note created:", created);
+      logger.info('Note created:', created);
     } catch (err) {
-      console.error("Failed to create class note:", err);
+      logger.error('Failed to create class note:', err);
       // close modal anyway, or keep open if you want user to retry — here we close
       setShowAddModal(false);
     }
@@ -164,73 +167,76 @@ const ClassDetailsPage: React.FC<Props> = ({
   };
 
   return (
-  <Box className="classdetailspage-root">
-    {/* Header row: Back button (left) and Add Notes (right) */}
-    <Box className="classdetailspage-header">
-      <Button
-        variant="text"
-        startIcon={<ArrowBack />}
-        onClick={onBack}
-        className="classdetailspage-back-btn"
-      >
-        {t("Back to Classes")}
-      </Button>
+    <Box className="classdetailspage-root">
+      {/* Header row: Back button (left) and Add Notes (right) */}
+      <Box className="classdetailspage-header">
+        <Button
+          variant="text"
+          startIcon={<ArrowBack />}
+          onClick={onBack}
+          className="classdetailspage-back-btn"
+        >
+          {t('Back to Classes')}
+        </Button>
 
-      {/* + Add Notes button on the right */}
-      <Button
-        variant="outlined"
-        onClick={() => setShowAddModal(true)}
-        className="classdetailspage-addnote-btn"
-        aria-label="+ Add Notes"
-      >
-        + {t("Add Notes")}
-      </Button>
-    </Box>
+        {/* + Add Notes button on the right */}
+        <Button
+          variant="outlined"
+          onClick={() => setShowAddModal(true)}
+          className="classdetailspage-addnote-btn"
+          aria-label="+ Add Notes"
+        >
+          + {t('Add Notes')}
+        </Button>
+      </Box>
 
-    {/* AddNoteModal */}
-    <AddNoteModal
-      isOpen={showAddModal}
-      onClose={handleAddNoteCancel}
-      onSave={handleAddNoteSave}
-      source="class"
-      schoolId={schoolId}
-    />
-
-    <Box className="classdetailspage-info-grid">
-      <ClassInfoCard
-        classRow={onlyClassRow}
-        subjects={subjectsSt}
-        curriculum={curriculumSt}
-        totalStudents={finalTotalStudentsSt}
-        activeStudents={finalActiveStudentsSt}
-        classCode={finalClassCode}
-      />
-      {classRow && (  <WhatsAppInfoCard  classData = {classRow} schoolData = {data?.schoolData} />
-      )}
-    </Box>
-
-    <Box className="classdetailspage-students-sticky classdetailspage-students-card">
-      <SchoolStudents
-        data={{
-          schoolData: data?.schoolData,
-          students: initialStudents,
-          totalStudentCount: initialTotal,
-          classData: classRow ? [classRow] : undefined,
-        }}
+      {/* AddNoteModal */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={handleAddNoteCancel}
+        onSave={handleAddNoteSave}
+        source="class"
         schoolId={schoolId}
-        isMobile={isMobile}
-        isTotal={false}
-        isFilter={false}
-        customTitle={
-          classNameSt ? `Students in ${classNameSt}` : "Students in Class"
-        }
-        optionalGrade={parsedGrade}
-        optionalSection={parsedSection}
       />
-    </Box>
-  </Box>
-);
 
+      <Box className="classdetailspage-info-grid">
+        <ClassInfoCard
+          classRow={onlyClassRow}
+          subjects={subjectsSt}
+          curriculum={curriculumSt}
+          totalStudents={finalTotalStudentsSt}
+          activeStudents={finalActiveStudentsSt}
+          classCode={finalClassCode}
+        />
+        {classRow && (
+          <WhatsAppInfoCard
+            classData={classRow}
+            schoolData={data?.schoolData}
+          />
+        )}
+      </Box>
+
+      <Box className="classdetailspage-students-sticky classdetailspage-students-card">
+        <SchoolStudents
+          data={{
+            schoolData: data?.schoolData,
+            students: initialStudents,
+            totalStudentCount: initialTotal,
+            classData: classRow ? [classRow] : undefined,
+          }}
+          schoolId={schoolId}
+          isMobile={isMobile}
+          isTotal={false}
+          isFilter={false}
+          customTitle={
+            classNameSt ? `Students in ${classNameSt}` : 'Students in Class'
+          }
+          optionalGrade={parsedGrade}
+          optionalSection={parsedSection}
+        />
+      </Box>
+    </Box>
+  );
 };
 
 export default ClassDetailsPage;
