@@ -16,7 +16,6 @@ import Library from '../components/library/Library';
 import ReportTable from '../components/reports/ReportsTable';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
-  IS_OPS_USER,
   LANGUAGE,
   PAGES,
   STATUS,
@@ -35,6 +34,9 @@ import {
 } from '../../growthbook/Growthbook';
 import { toPng } from 'html-to-image';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 const HomePage: React.FC = () => {
   const history = useHistory();
@@ -61,7 +63,9 @@ const HomePage: React.FC = () => {
   const [renderKey, setRenderKey] = useState(0);
   const PortPlugin = registerPlugin<any>('Port');
   const { setGbUpdated } = useGbContext();
-  const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
+  const { isOpsUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   useEffect(() => {
     init();
 

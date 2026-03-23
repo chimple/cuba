@@ -5,7 +5,6 @@ import {
   TableTypes,
   MODES,
   USER_SELECTION_STAGE,
-  IS_OPS_USER,
   LANGUAGE,
   OPS_ROLES,
   STATUS,
@@ -52,9 +51,7 @@ const DisplaySchools: FC = () => {
   );
   const isAuthorizedForOpsMode = useMemo(() => {
     const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
-    return (
-      isOpsUser || hasOpsRole || localStorage.getItem(IS_OPS_USER) === 'true'
-    );
+    return isOpsUser || hasOpsRole;
   }, [isOpsUser, roles]);
 
   const checkSchoolRequest = async () => {
