@@ -8,6 +8,7 @@ import { Util } from '../utility/util';
 import {
   ENABLE_PAINT_MODE,
   ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
+  EVENTS,
   PAGES,
 } from '../common/constants';
 import { useHistory } from 'react-router';
@@ -163,6 +164,7 @@ describe('StickerBook page', () => {
     replaceMock.mockClear();
     pushMock.mockClear();
     goBackMock.mockClear();
+    (Util.logEvent as jest.Mock).mockClear();
 
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
     (Util.sendContentToAndroidOrWebShare as jest.Mock).mockResolvedValue(
@@ -637,6 +639,16 @@ describe('StickerBook page', () => {
 
     await waitFor(() => expect(getLastModalProps()?.open).toBe(true));
 
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_SAVE_CLICKED,
+      expect.objectContaining({
+        user_id: 'student-1',
+        book_id: book.id,
+        book_title: book.title,
+        page_path: window.location.pathname,
+      }),
+    );
+
     await act(async () => {
       await getLastModalProps()?.onAnimationComplete();
     });
@@ -666,6 +678,24 @@ describe('StickerBook page', () => {
       /^Sticker_Book_My_Book_\d{2}_[A-Za-z]{3}_\d{2}:\d{2}\.png$/,
     );
     expect(Util.saveFileToDownloads).toHaveBeenCalledWith(sharedFile);
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_IMAGE_SHARED,
+      expect.objectContaining({
+        user_id: 'student-1',
+        book_id: book.id,
+        book_title: book.title,
+        file_name: sharedFile.name,
+      }),
+    );
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_IMAGE_SAVED,
+      expect.objectContaining({
+        user_id: 'student-1',
+        book_id: book.id,
+        book_title: book.title,
+        file_name: sharedFile.name,
+      }),
+    );
   });
 
   test('shows the confirmation toast after the save modal closes', async () => {
@@ -734,11 +764,28 @@ describe('StickerBook page', () => {
 
     await waitFor(() => expect(getLastModalProps()?.open).toBe(true));
 
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_SAVE_CLICKED,
+      expect.objectContaining({
+        user_id: 'student-1',
+        book_id: book.id,
+        book_title: book.title,
+      }),
+    );
+
     await act(async () => {
       await getLastModalProps()?.onAnimationComplete();
     });
 
     expect(Util.sendContentToAndroidOrWebShare).not.toHaveBeenCalled();
     expect(Util.saveFileToDownloads).not.toHaveBeenCalled();
+    expect(Util.logEvent).not.toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_IMAGE_SHARED,
+      expect.anything(),
+    );
+    expect(Util.logEvent).not.toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_IMAGE_SAVED,
+      expect.anything(),
+    );
   });
 });

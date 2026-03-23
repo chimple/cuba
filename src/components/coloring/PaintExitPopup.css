@@ -70,6 +70,7 @@
   cursor: pointer;
   font-weight: 700;
   color: #2a004a;
+  transition: transform 0.1s ease;
 }
 
 .PaintExitPopup-stay {
@@ -81,6 +82,11 @@
   border-bottom: 5px solid #8a2901;
   background: #f34d08;
   color: #fff;
+}
+
+.PaintExitPopup-stay:active,
+.PaintExitPopup-exit:active {
+  transform: scale(0.95);
 }
 
 @media (max-width: 600px) {
