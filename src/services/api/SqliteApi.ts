@@ -757,6 +757,29 @@ export class SqliteApi implements ServiceApi {
             user_id: _currentUser?.id,
             ...mutate?.error,
           });
+          const mutateStatus = Number(mutate?.status ?? 0);
+          const mutateCode = String(mutate?.error?.code ?? '').toLowerCase();
+          const mutateMessage = String(
+            mutate?.error?.message ?? mutate?.error?.details ?? '',
+          ).toLowerCase();
+          const isPermissionDenied =
+            mutateStatus === 401 ||
+            mutateStatus === 403 ||
+            mutateCode === '42501' ||
+            mutateMessage.includes('permission denied') ||
+            mutateMessage.includes('not permitted') ||
+            mutateMessage.includes('row-level security') ||
+            mutateMessage.includes('violates row-level security') ||
+            mutateMessage.includes('unauthorized') ||
+            mutateMessage.includes('forbidden');
+
+          if (isPermissionDenied) {
+            await this.executeQuery(
+              `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
+              [data.id, data.table_name],
+            );
+            continue;
+          }
           if (mutate?.error?.code === '23505' || mutate?.status === 409) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
