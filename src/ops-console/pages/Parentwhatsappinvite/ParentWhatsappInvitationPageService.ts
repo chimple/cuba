@@ -724,8 +724,8 @@ export const sendParentWhatsappMsg91Invites = async (
       : 0;
 
   const chunkedInviteRows = chunkInviteRows(inviteRows, MSG91_BATCH_SIZE);
-  const rawFailedBatches = Array.isArray(payload?.failedBatches)
-    ? payload?.failedBatches
+  const rawFailedBatches: unknown[] = Array.isArray(payload?.failedBatches)
+    ? payload.failedBatches
     : [];
   const failedBatches: ParentWhatsappSmsBatchFailure[] = [];
 
