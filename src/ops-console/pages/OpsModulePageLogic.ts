@@ -8,9 +8,14 @@ export type ModuleCardDefinition = {
 
 const getModuleTitleWords = (title: string): string[] =>
   title
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/[^a-zA-Z0-9\s_-]+/g, ' ')
     .split(/[\s_-]+/)
+    .filter(Boolean)
+    .flatMap((word) =>
+      /^[a-z]/.test(word)
+        ? word.replace(/([a-z0-9])([A-Z])/g, '$1 $2').split(/\s+/)
+        : [word],
+    )
     .filter(Boolean);
 
 const getModuleInitialWords = (title: string): string[] =>
@@ -34,7 +39,13 @@ export const getModuleCardRoute = (title: string, route?: string): string => {
   }
 
   const words = getModuleTitleWords(title);
-  const pathSegment = words
+  const effectiveWords =
+    words.length > 1 && words[0].toLowerCase() === 'ops'
+      ? words.slice(1)
+      : words;
+  const wordsForSlug = effectiveWords.length ? effectiveWords : ['module'];
+
+  const pathSegment = wordsForSlug
     .map((word, index) => {
       const normalizedWord =
         word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
