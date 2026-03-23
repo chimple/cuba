@@ -9665,10 +9665,17 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<'ops_requests'> | undefined> {
     if (!this.supabase) return undefined;
 
+    const normalizedRole = (role ?? '').toString().toLowerCase();
+    const resolvedRole =
+      normalizedRole === RequestTypes.PRINCIPAL && classId
+        ? RequestTypes.TEACHER
+        : normalizedRole;
+
     // Build update payload dynamically
     const updatePayload: any = {
       request_status: 'approved',
       responded_by: respondedBy,
+      request_type: resolvedRole,
       updated_at: new Date().toISOString(),
     };
 
@@ -9678,11 +9685,13 @@ export class SupabaseApi implements ServiceApi {
 
     if (classId) {
       updatePayload.class_id = classId;
+    } else if (resolvedRole === RequestTypes.PRINCIPAL) {
+      updatePayload.class_id = null;
     }
     const { data, error } = await this.supabase
       .from('ops_requests')
       .update(updatePayload)
-      .eq('id', requestId)
+      .or(`id.eq.${requestId},request_id.eq.${requestId}`)
       .eq('is_deleted', false)
       .select('*')
       .maybeSingle();
