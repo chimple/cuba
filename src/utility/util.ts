@@ -3074,31 +3074,36 @@ export class Util {
         };
       }
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
-      const updated = await api.getCurrentStickerBookWithProgress(studentId);
+      const currentCollectedStickerIds =
+        current.progress?.stickers_collected ?? [];
       const totalStickerCount =
-        updated?.book?.total_stickers ||
-        updated?.book?.stickers_metadata?.length ||
+        current.book?.total_stickers ||
+        current.book?.stickers_metadata?.length ||
         0;
-      const collectedCount = updated?.progress?.stickers_collected?.length || 0;
+      const nextCollectedStickerIds = currentCollectedStickerIds.includes(
+        nextStickerId,
+      )
+        ? currentCollectedStickerIds
+        : [...currentCollectedStickerIds, nextStickerId];
       const completed =
-        updated?.progress?.status === 'completed' ||
-        (totalStickerCount > 0 && collectedCount >= totalStickerCount);
+        totalStickerCount > 0 &&
+        nextCollectedStickerIds.length >= totalStickerCount;
+
+      await api.updateStickerWon(current.book.id, nextStickerId);
 
       return {
         completed,
-        stickerBookId: updated?.book?.id || current.book.id,
-        payload:
-          completed && updated?.book?.id
-            ? {
-                source: 'learning_pathway',
-                stickerBookId: updated.book.id,
-                stickerBookTitle: updated.book.title || 'Sticker Book',
-                stickerBookSvgUrl: updated.book.svg_url || '',
-                collectedStickerIds: updated.progress?.stickers_collected ?? [],
-                totalStickerCount,
-              }
-            : null,
+        stickerBookId: current.book.id,
+        payload: completed
+          ? {
+              source: 'learning_pathway',
+              stickerBookId: current.book.id,
+              stickerBookTitle: current.book.title || 'Sticker Book',
+              stickerBookSvgUrl: current.book.svg_url || '',
+              collectedStickerIds: nextCollectedStickerIds,
+              totalStickerCount,
+            }
+          : null,
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);

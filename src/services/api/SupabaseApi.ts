@@ -12038,21 +12038,49 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    // 3️⃣ Fallback → first sticker book
-    const { data: firstBook } = await this.supabase
+    // 3️⃣ No active row → pick the first unfinished book by sort_index.
+    const { data: completedRows } = await this.supabase
+      .from('user_sticker_book')
+      .select('sticker_book_id')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .eq('is_deleted', false);
+
+    const completedBookIds = Array.from(
+      new Set(
+        (completedRows ?? [])
+          .map((row: any) => row.sticker_book_id)
+          .filter(Boolean),
+      ),
+    );
+
+    let nextBookQuery = this.supabase
       .from('sticker_book')
       .select('*')
       .eq('is_deleted', false)
       .order('sort_index', { ascending: true })
-      .limit(1)
-      .single();
+      .limit(1);
 
-    if (!firstBook) return null;
+    if (completedBookIds.length > 0) {
+      nextBookQuery = nextBookQuery.not(
+        'id',
+        'in',
+        `(${completedBookIds.map((id) => `"${id}"`).join(',')})`,
+      );
+    }
 
-    return {
-      book: firstBook as StickerBook,
-      progress: null,
-    };
+    const { data: nextBooks } = await nextBookQuery;
+    const nextBook = nextBooks?.[0];
+
+    if (nextBook) {
+      return {
+        book: nextBook as StickerBook,
+        progress: null,
+      };
+    }
+
+    // 4️⃣ All books are completed → no active sticker book remains.
+    return null;
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {

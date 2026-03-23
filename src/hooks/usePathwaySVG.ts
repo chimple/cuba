@@ -656,23 +656,28 @@ export function usePathwaySVG({
             'PathwayStructure-end-reward-box--sticker',
           );
 
-          const size =
+          const width =
             window.innerWidth >= 1024 ? 78 : window.innerWidth >= 768 ? 72 : 64;
+          const height = Math.round(width * 0.82);
 
           const bg = document.createElementNS(
             'http://www.w3.org/2000/svg',
             'rect',
           );
-          bg.setAttribute('width', String(size));
-          bg.setAttribute('height', String(size));
-          bg.setAttribute('rx', String(Math.round(size * 0.2)));
-          bg.setAttribute('ry', String(Math.round(size * 0.2)));
+          bg.setAttribute('width', String(width));
+          bg.setAttribute('height', String(height));
+          bg.setAttribute('rx', String(Math.round(height * 0.24)));
+          bg.setAttribute('ry', String(Math.round(height * 0.24)));
           bg.setAttribute('fill', '#FFFDEE');
           bg.setAttribute('stroke', '#F55376');
           bg.setAttribute('stroke-width', '4');
 
-          const padding = Math.round(size * 0.14);
-          const contentSize = size - padding * 2;
+          const horizontalPadding = Math.round(width * 0.1);
+          const verticalPadding = Math.round(height * 0.06);
+          const contentSize = Math.min(
+            width - horizontalPadding * 2,
+            height - verticalPadding * 2,
+          );
 
           rewardGroup.appendChild(bg);
           // Reuse the same resolved sticker image that powers the preview modal.
@@ -682,16 +687,16 @@ export function usePathwaySVG({
                 nextStickerImageSrc,
                 contentSize,
                 contentSize,
-                padding,
-                padding,
+                (width - contentSize) / 2,
+                (height - contentSize) / 2,
                 'PathwayStructure-end-reward-sticker-image',
               ),
             );
           }
           placeElement(
             rewardWrapper,
-            endPoint.x - size / 2,
-            endPoint.y - size / 2,
+            endPoint.x - width / 2,
+            endPoint.y - height / 2,
           );
 
           if (currentIndex < pathEndIndex + 1) {

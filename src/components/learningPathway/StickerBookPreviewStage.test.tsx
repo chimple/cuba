@@ -78,7 +78,7 @@ describe('StickerBookPreviewStage', () => {
     expect(bookSvgRef.current?.getAttribute('width')).toBe('100%');
     expect(bookSvgRef.current?.getAttribute('height')).toBe('100%');
     expect(bookSvgRef.current?.getAttribute('preserveAspectRatio')).toBe(
-      'xMidYMid meet',
+      'xMidYMid slice',
     );
   });
 

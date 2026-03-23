@@ -20,7 +20,7 @@ const InlineSvg = React.forwardRef<
     });
     el.setAttribute('width', '100%');
     el.setAttribute('height', '100%');
-    el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    el.setAttribute('preserveAspectRatio', 'xMidYMid slice');
     onReady?.();
   }, [svg, className, onReady]);
 
