@@ -672,8 +672,9 @@ export const fetchParentWhatsappMsg91Report = async (params: {
     });
   }
 
-  if (Array.isArray(payload?.data)) {
-    return payload.data as Record<string, unknown>[];
+  const payloadData = payload?.data;
+  if (Array.isArray(payloadData)) {
+    return payloadData as Record<string, unknown>[];
   }
 
   if (
