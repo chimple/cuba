@@ -391,10 +391,10 @@ const parseWhatsappGroupDetails = (raw: unknown): ParsedWhatsappGroup => {
       ? (raw as MaytapiGroupPayload)
       : null;
 
-  const container =
+  const container: MaytapiGroupPayload['data'] | MaytapiGroupPayload =
     parsedGroup?.data && typeof parsedGroup.data === 'object'
       ? parsedGroup.data
-      : parsedGroup;
+      : (parsedGroup ?? {});
   const members = Array.isArray(container?.participants)
     ? container.participants
     : Array.isArray(container?.members)
