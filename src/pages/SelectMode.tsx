@@ -1,4 +1,6 @@
 import { IonPage } from '@ionic/react';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { FC, useEffect, useState } from 'react';
 import Loading from '../components/Loading';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -87,10 +89,28 @@ const SelectMode: FC = () => {
       displayStudents(currClass);
     }
   }, [currClass, stage]);
+  const applyOrientationForMode = async (mode?: string) => {
+    if (!mode || !Capacitor.isNativePlatform()) return;
+
+    if (mode === MODES.PARENT || mode === MODES.SCHOOL) {
+      await ScreenOrientation.lock({ orientation: 'landscape' });
+      return;
+    }
+
+    if (mode === MODES.TEACHER) {
+      await ScreenOrientation.lock({ orientation: 'portrait' });
+      return;
+    }
+
+    if (mode === MODES.OPS_CONSOLE) {
+      await ScreenOrientation.unlock();
+    }
+  };
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get('tab');
     const currentMode = await schoolUtil.getCurrMode();
+    await applyOrientationForMode(currentMode);
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
@@ -163,6 +183,7 @@ const SelectMode: FC = () => {
     const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
     // If user is ops or program user
     if (isOpsUser) {
+      await applyOrientationForMode(MODES.OPS_CONSOLE);
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
@@ -170,6 +191,7 @@ const SelectMode: FC = () => {
       const students = await api.getParentStudentProfiles();
 
       if (!allSchool || allSchool.length < 1) {
+        await applyOrientationForMode(MODES.PARENT);
         api.currentMode = MODES.PARENT;
         schoolUtil.setCurrMode(MODES.PARENT);
         if (!!students && students.length == 0) {
@@ -208,6 +230,7 @@ const SelectMode: FC = () => {
         onParentSelect();
       } else {
         // Teacher logic
+        await applyOrientationForMode(MODES.TEACHER);
         schoolUtil.setCurrMode(MODES.TEACHER);
         history.replace(PAGES.DISPLAY_SCHOOLS);
         return;
@@ -249,9 +272,11 @@ const SelectMode: FC = () => {
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
   const onSchoolSelect = async () => {
+    await applyOrientationForMode(MODES.TEACHER);
     history.replace(PAGES.DISPLAY_SCHOOLS);
   };
   const onParentSelect = async () => {
+    await applyOrientationForMode(MODES.PARENT);
     api.currentMode = MODES.PARENT;
     const students = await api.getParentStudentProfiles();
     if (!!students && students.length == 0) {
@@ -261,7 +286,8 @@ const SelectMode: FC = () => {
     // setStage(STAGES.MODE);
   };
 
-  const onTeacherSelect = () => {
+  const onTeacherSelect = async () => {
+    await applyOrientationForMode(MODES.SCHOOL);
     api.currentMode = MODES.SCHOOL;
     // history.replace(PAGES.SELECT_SCHOOL);
     // localStorage.setItem(CURRENT_MODE,JSON.stringify(MODES.SCHOOL));

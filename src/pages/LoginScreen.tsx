@@ -159,10 +159,6 @@ const LoginScreen: React.FC = () => {
         }
 
         if (isLoggedIn) {
-          if (Capacitor.isNativePlatform()) {
-            await ScreenOrientation.lock({ orientation: 'landscape' });
-          }
-
           history.replace(PAGES.SELECT_MODE);
           return;
         }
