@@ -750,8 +750,9 @@ export const sendParentWhatsappMsg91Invites = async (
         : index + 1;
 
     const inviteBatch = chunkedInviteRows[batchIndex - 1] ?? [];
-    const recipients = Array.isArray(failure?.recipients)
-      ? failure.recipients.map((recipient) => String(recipient))
+    const failureRecipients = failure?.recipients;
+    const recipients = Array.isArray(failureRecipients)
+      ? failureRecipients.map((recipient) => String(recipient))
       : inviteBatch.map((row) => row.mobile);
 
     const statusCode =
