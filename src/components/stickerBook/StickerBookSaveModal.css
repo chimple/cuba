@@ -1,0 +1,155 @@
+.stickerBook-save-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.stickerBook-save-modal-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: stickerBook-save-pop-in 0.3s ease-out;
+}
+
+.stickerBook-save-modal-frame {
+  position: relative;
+  display: inline-block;
+}
+
+.stickerBook-save-modal-img {
+  position: relative;
+  display: grid;
+  grid-template-rows: 264fr 81fr;
+  width: min(580px, 92vw, calc(95vh * 469 / 345));
+  aspect-ratio: 469 / 345;
+  max-height: 426px;
+  background: #fffdee;
+  border-radius: 4.694px;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  overflow: hidden;
+}
+
+.stickerBook-save-modal-artboard {
+  position: relative;
+  min-height: 0;
+}
+
+.stickerBook-save-modal-footer {
+  position: relative;
+  background: #fffdee;
+}
+
+.stickerBook-save-modal-logo {
+  position: absolute;
+  top: 14.2%;
+  left: 50%;
+  width: 66.54%;
+  height: 60.49%;
+  transform: translateX(-50%);
+}
+
+.stickerBook-save-modal-svg-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stickerBook-save-modal-svg-overlay svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ===== Blink overlay ===== */
+.stickerBook-save-blink-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in;
+}
+
+.stickerBook-save-blink-overlay.active {
+  animation: stickerBook-blink-flash 1s ease-in-out;
+}
+
+@keyframes stickerBook-blink-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ===== Decorative stars ===== */
+.stickerBook-save-star {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0) rotate(var(--star-rotate, 0deg));
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.4s ease-out;
+}
+
+.stickerBook-save-star.visible {
+  opacity: 1;
+  transform: scale(1) rotate(var(--star-rotate, 0deg));
+  transition:
+    opacity 0.35s ease-in,
+    transform 0.35s ease-in;
+}
+
+/* Left star – smaller, rotated, top-left area */
+.stickerBook-save-star-left {
+  width: 62px;
+  height: 54px;
+  top: 18px;
+  left: -58px;
+}
+
+/* Right star – larger, rotated, right side */
+.stickerBook-save-star-right {
+  width: 88px;
+  height: 76px;
+  top: 35%;
+  right: -80px;
+}
+
+.stickerBook-save-star-right {
+  --star-rotate: 60deg;
+}
+
+@keyframes stickerBook-save-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

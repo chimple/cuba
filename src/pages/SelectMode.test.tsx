@@ -3,10 +3,11 @@ import React from 'react';
 import '@testing-library/jest-dom';
 import { render, waitFor, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 import {
   MODES,
   PAGES,
-  IS_OPS_USER,
   USER_SELECTION_STAGE,
   SELECTED_CLASSES,
   SELECTED_STUDENTS,
@@ -26,6 +27,19 @@ afterAll(() => {
 
 jest.mock('@ionic/react', () => ({
   IonPage: ({ children }: any) => <div data-testid="ion-page">{children}</div>,
+}));
+
+jest.mock('@capacitor/core', () => ({
+  Capacitor: {
+    isNativePlatform: jest.fn(),
+  },
+}));
+
+jest.mock('@capacitor/screen-orientation', () => ({
+  ScreenOrientation: {
+    lock: jest.fn(),
+    unlock: jest.fn(),
+  },
 }));
 
 jest.mock('i18next', () => ({
@@ -117,12 +131,18 @@ jest.mock('../redux/hooks', () => ({
   useAppSelector: jest.fn(),
 }));
 
-jest.mock('../redux/slices/auth/authSlice', () => ({
-  setAuthUser: jest.fn(),
-  setIsOpsUser: jest.fn(),
-  setRoles: jest.fn(),
-  setUser: jest.fn(),
-}));
+jest.mock('../redux/slices/auth/authSlice', () => {
+  const actual = jest.requireActual('../redux/slices/auth/authSlice');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    setAuthUser: jest.fn(),
+    setIsOpsUser: jest.fn(),
+    setRoles: jest.fn(),
+    setUser: jest.fn(),
+  };
+});
 
 const mockApiHandler = {
   getSchoolsForUser: jest.fn(),
@@ -184,6 +204,7 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
     mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
   });
 
   it('redirects to HOME when mode is parent and current student exists', async () => {
@@ -200,32 +221,42 @@ describe('SelectMode page', () => {
   it('redirects to DISPLAY_STUDENT when mode is parent and there is no current student', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.PARENT);
     mockGetCurrentStudent.mockReturnValue(null);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT);
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'landscape',
+      });
+    });
   });
 
   it('redirects to DISPLAY_SCHOOLS when mode is teacher', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'portrait',
+      });
+    });
   });
 
   it('redirects to SIDEBAR_PAGE when mode is ops console', async () => {
     mockGetCurrMode.mockResolvedValue(MODES.OPS_CONSOLE);
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
 
     render(<SelectMode />);
 
-    await waitFor(() =>
-      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SIDEBAR_PAGE),
-    );
+    await waitFor(() => {
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SIDEBAR_PAGE);
+      expect(ScreenOrientation.unlock).toHaveBeenCalled();
+    });
   });
 
   it('navigates to CREATE_STUDENT when user has no schools and no students', async () => {
@@ -271,13 +302,22 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'user-1',
     });
+    useAppSelector.mockImplementation((selector: any) =>
+      selector({
+        auth: {
+          authUser: null,
+          user: null,
+          roles: [],
+          isOpsUser: true,
+        },
+      }),
+    );
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: { id: 'school-1', name: 'School 1' }, role: 'OPS' },
     ]);
     mockApiHandler.getParentStudentProfiles.mockResolvedValue([
       { id: 'student-1' },
     ]);
-    localStorage.setItem(IS_OPS_USER, 'true');
 
     render(<SelectMode />);
 
@@ -776,6 +816,24 @@ describe('SelectMode page', () => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_STUDENT),
     );
     expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.PARENT);
+  });
+
+  it('locks landscape when mode is school on native', async () => {
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(
+      CURRENT_CLASS_NAME,
+      JSON.stringify({ id: 'class-1', name: 'Class 1' }),
+    );
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+
+    render(<SelectMode />);
+
+    await waitFor(() =>
+      expect(ScreenOrientation.lock).toHaveBeenCalledWith({
+        orientation: 'landscape',
+      }),
+    );
   });
 
   it('shows school dropdown when multiple schools', async () => {

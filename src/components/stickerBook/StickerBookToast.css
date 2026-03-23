@@ -1,0 +1,88 @@
+/* ===== Toast container ===== */
+.sticker-book-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 3.5vh;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  width: max-content;
+  max-width: min(calc(100% - 32px), 840px);
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 26px;
+
+  border-radius: 20px;
+  background: #fffdef;
+  box-shadow:
+    0 4px 4px 0 rgba(0, 0, 0, 0.25),
+    0 4px 4px 0 rgba(0, 0, 0, 0.25),
+    0 4px 4px 0 rgba(0, 0, 0, 0.25);
+
+  will-change: transform, opacity;
+}
+
+.sticker-book-toast--open {
+  animation: sticker-toast-enter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.sticker-book-toast--closing {
+  animation: sticker-toast-exit 0.32s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.sticker-book-toast-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sticker-book-toast-text {
+  color: #182a4f;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@keyframes sticker-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(calc(100% + 48px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes sticker-toast-exit {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(calc(100% + 48px));
+  }
+}
+
+@media (max-width: 768px) {
+  .sticker-book-toast {
+    padding: 16px 20px;
+    border-radius: 20px;
+  }
+
+  .sticker-book-toast-icon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sticker-book-toast-text {
+    font-size: 18px;
+    white-space: normal;
+  }
+}

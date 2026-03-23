@@ -13,6 +13,7 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
+  STATUS,
   TableTypes,
 } from '../../common/constants';
 import './PrincipalTeacherPendingRequest.css';
@@ -23,6 +24,7 @@ import { t } from 'i18next';
 import { BsFillBellFill } from 'react-icons/bs';
 import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
 import logger from '../../utility/logger';
+import { RoleType } from '../../interface/modelInterfaces';
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -46,6 +48,12 @@ const PrincipalTeacherPendingRequest = () => {
   const [showRejectPopup, setShowRejectPopup] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
+  const resetEditState = () => {
+    setIsEditing(false);
+    setEditableRequestType('');
+    setSelectedGradeId('');
+  };
+
   const editClicked = async () => {
     const options = Object.values(RequestTypes)
       .filter((t) => t === RequestTypes.TEACHER || t === RequestTypes.PRINCIPAL)
@@ -54,9 +62,16 @@ const PrincipalTeacherPendingRequest = () => {
         value: type,
       }));
     setRoleOptions(options);
-    if (requestData?.school?.id) {
+    const schoolId = requestData?.school?.id || requestData?.school_id;
+    const requestType = requestData?.request_type ?? '';
+    const classId = requestData?.class_id ?? '';
+
+    setEditableRequestType(requestType);
+    setSelectedGradeId(classId);
+
+    if (schoolId) {
       try {
-        const response = await api.getClassesBySchoolId(requestData.school.id);
+        const response = await api.getClassesBySchoolId(schoolId);
         const classes = Array.isArray(response) ? response : [response];
         const gradeOpts = classes.map((cls: any) => ({
           label: cls.name,
@@ -111,6 +126,7 @@ const PrincipalTeacherPendingRequest = () => {
 
           if (req) {
             setRequestData(req);
+          } else {
             setRequestData(null);
           }
         }
@@ -122,64 +138,118 @@ const PrincipalTeacherPendingRequest = () => {
   }, [id, api, location.state]);
 
   const handleApproveClick = async () => {
-    if (!requestData?.request_id) {
+    if (!requestData?.id && !requestData?.request_id) {
       return;
     }
 
+    let requestRowId: string | undefined;
+    let requestPrimaryId: string | undefined;
+    let respondedBy = '';
+
     try {
-      // ✅ Use edited values if in edit mode
-      const role =
+      // Use edited values if in edit mode
+      requestRowId = requestData?.id || requestData?.request_id;
+      requestPrimaryId = requestData?.id;
+      const role = (
         isEditing && editableRequestType
           ? editableRequestType
-          : requestData.request_type;
+          : requestData.request_type
+      )?.toLowerCase?.() as RequestTypes;
+      const requestedByUser =
+        requestData?.requestedBy ||
+        (requestData?.requested_by ? { id: requestData.requested_by } : null);
 
-      const schoolId = requestData?.school?.id || undefined;
+      const schoolId =
+        requestData?.school?.id || requestData?.school_id || undefined;
 
       const classId =
-        isEditing &&
-        (role === RequestTypes.TEACHER || role === RequestTypes.STUDENT)
-          ? selectedGradeId
-          : requestData?.class_id || undefined;
+        role === RequestTypes.TEACHER || role === RequestTypes.STUDENT
+          ? (isEditing ? selectedGradeId : requestData?.class_id) ||
+            requestData?.class_id ||
+            undefined
+          : undefined;
 
       const auth = ServiceConfig.getI().authHandler;
       const user = await auth.getCurrentUser();
       if (!user?.id) {
         throw new Error('No logged-in user found. Cannot approve request.');
       }
-      const respondedBy = user?.id;
+      respondedBy = user?.id;
 
-      if (schoolId && requestData) {
+      if (!requestRowId) {
+        throw new Error('Request row id is missing. Cannot approve request.');
+      }
+      if (!requestedByUser?.id) {
+        throw new Error('Requested user is missing. Cannot approve request.');
+      }
+      if (
+        (role === RequestTypes.TEACHER || role === RequestTypes.STUDENT) &&
+        !classId
+      ) {
+        throw new Error('Class is required for teacher/student approval.');
+      }
+
+      if (schoolId) {
         if (role === RequestTypes.PRINCIPAL) {
-          try {
-            await api.addUserToSchool(schoolId, requestData.requestedBy, role);
-          } catch (err) {
-            logger.error('Error adding user to school:', err);
-          }
+          await api.addUserToSchool(
+            schoolId,
+            requestedByUser,
+            RoleType.PRINCIPAL,
+          );
         } else if (role === RequestTypes.TEACHER) {
-          try {
-            await api.addTeacherToClass(
-              schoolId,
-              classId,
-              requestData.requestedBy,
-            );
-          } catch (err) {
-            logger.error('Error adding teacher to class:', err);
-          }
+          await api.addTeacherToClass(schoolId, classId, requestedByUser);
         }
       }
 
-      await api.approveOpsRequest(
-        requestData.id,
+      const approvedRequest = await api.approveOpsRequest(
+        requestRowId,
         respondedBy,
         role,
         schoolId,
         classId,
       );
+      if (!approvedRequest) {
+        throw new Error('Approve request update failed.');
+      }
 
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
       );
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error ?? '');
+      const isRoleConflictError =
+        errorMessage.includes(
+          'cannot be made Principal for the same school.',
+        ) ||
+        errorMessage.includes(
+          'cannot be added as Teacher for the same school.',
+        );
+
+      if (isRoleConflictError && respondedBy && (requestPrimaryId || requestRowId)) {
+        const rejectRequestId = requestPrimaryId || requestRowId;
+        if (!rejectRequestId) {
+          logger.error(
+            'Request id missing while auto-rejecting a role conflict error.',
+          );
+          logger.error('Error approving request:', error);
+          return;
+        }
+        const rejectedRequest = await api.respondToSchoolRequest(
+          rejectRequestId,
+          respondedBy,
+          STATUS.REJECTED,
+          String(t('Verification Failed')),
+          errorMessage,
+        );
+        if (rejectedRequest) {
+          history.push(
+            `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`,
+          );
+          return;
+        }
+      }
+
       logger.error('Error approving request:', error);
     }
   };
@@ -226,9 +296,7 @@ const PrincipalTeacherPendingRequest = () => {
       <span
         onClick={() => {
           if (isEditing) {
-            setIsEditing(false);
-            setEditableRequestType('');
-            setSelectedGradeId('');
+            resetEditState();
           }
         }}
         className={
@@ -324,10 +392,9 @@ const PrincipalTeacherPendingRequest = () => {
                       options={roleOptions}
                       onChange={(val) => {
                         setEditableRequestType(val as RequestTypes);
-                        setRequestData((prev: any) => ({
-                          ...prev,
-                          request_type: val,
-                        }));
+                        if (val === RequestTypes.PRINCIPAL) {
+                          setSelectedGradeId('');
+                        }
                       }}
                     />
                   </span>
@@ -346,10 +413,6 @@ const PrincipalTeacherPendingRequest = () => {
                         options={gradeOptions}
                         onChange={(val: string) => {
                           setSelectedGradeId(val);
-                          setRequestData((prev: any) => ({
-                            ...prev,
-                            class_id: val,
-                          }));
                         }}
                       />
                     </span>
@@ -448,11 +511,7 @@ const PrincipalTeacherPendingRequest = () => {
                     fontSize: '1.1rem',
                     textTransform: 'none',
                   }}
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditableRequestType('');
-                    setSelectedGradeId('');
-                  }}
+                  onClick={resetEditState}
                 >
                   {t('Cancel')}
                 </Button>
@@ -497,8 +556,11 @@ const PrincipalTeacherPendingRequest = () => {
               color="success"
               size="large"
               disabled={
-                (editableRequestType === RequestTypes.TEACHER ||
-                  editableRequestType === RequestTypes.STUDENT) &&
+                isEditing &&
+                ((editableRequestType || requestData?.request_type) ===
+                  RequestTypes.TEACHER ||
+                  (editableRequestType || requestData?.request_type) ===
+                    RequestTypes.STUDENT) &&
                 !selectedGradeId
               }
               style={{

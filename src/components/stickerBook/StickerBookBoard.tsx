@@ -21,6 +21,7 @@ type Props = {
   nextStickerId?: string;
   isLocked: boolean;
   canPaint?: boolean;
+  isStickerBookSaveEnabled: boolean;
   onSave?: () => void;
   canGoPrev: boolean;
   canGoNext: boolean;
@@ -28,6 +29,7 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
   onPaint?: () => void;
+  isBookCompleted: boolean;
 };
 
 // Renders raw SVG markup inline so we can manipulate the DOM later.
@@ -67,6 +69,7 @@ const StickerBookBoard: React.FC<Props> = ({
   nextStickerId,
   isLocked,
   canPaint = false,
+  isStickerBookSaveEnabled,
   onSave,
   canGoPrev,
   canGoNext,
@@ -74,6 +77,7 @@ const StickerBookBoard: React.FC<Props> = ({
   onNext,
   onBack,
   onPaint,
+  isBookCompleted,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
@@ -187,19 +191,25 @@ const StickerBookBoard: React.FC<Props> = ({
 
   return (
     <div id="sb-board-root" className="sticker-book-board-root">
-      <div id="sb-top-row" className="sticker-book-top-row">
-        <NewBackButton onClick={handleBack} />
-      </div>
-
-      <div id="sb-frame" className="sticker-book-frame">
-        <div id="sb-board" className="sticker-book-board">
+      <div id="sb-top-row" className="sticker-book-header">
+        <div className="sticker-book-header-left">
+          <NewBackButton onClick={handleBack} />
+        </div>
+        <div className="sticker-book-header-right">
           <StickerBookActions
             showPaint={canPaint}
             onSave={handleSave}
             onPaint={handlePaint}
             saveDisabled={!onSave}
             paintDisabled={!svgRaw || !onPaint}
+            isStickerBookSaveEnabled={isStickerBookSaveEnabled}
+            isBookCompleted={isBookCompleted}
           />
+        </div>
+      </div>
+
+      <div id="sb-frame" className="sticker-book-frame">
+        <div id="sb-board" className="sticker-book-board">
           {parsedBoardSvg && (
             <InlineSvg
               svg={parsedBoardSvg}
