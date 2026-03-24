@@ -1,4 +1,4 @@
-import { RefObject, useEffect } from 'react';
+import { RefObject, useCallback, useEffect } from 'react';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
@@ -180,21 +180,7 @@ export function usePathwaySVG({
     'sticker',
   );
 
-  useEffect(() => {
-    (window as any).__triggerPathwayReload__ = loadSVG;
-    loadSVG();
-
-    return () => {
-      delete (window as any).__triggerPathwayReload__;
-    };
-  }, [
-    isRewardPathLoaded,
-    isStickerBookPreviewOn,
-    isStickerBookCompletionPopupOn,
-    rewardBoxVariant,
-  ]);
-
-  async function loadSVG() {
+  const loadSVG = useCallback(async () => {
     if (!containerRef.current) return;
 
     try {
@@ -268,6 +254,7 @@ export function usePathwaySVG({
       const rawCompletionPopup = sessionStorage.getItem(
         AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
       );
+      let didScheduleStickerCompletionPopup = false;
       if (rawCompletionPopup) {
         try {
           const parsed = JSON.parse(rawCompletionPopup);
@@ -279,6 +266,7 @@ export function usePathwaySVG({
             isStickerBookCompletionPopupOn &&
             stickerCompletionPayload
           ) {
+            didScheduleStickerCompletionPopup = true;
             setTimeout(
               () => onStickerCompletionReady(stickerCompletionPayload),
               0,
@@ -307,7 +295,8 @@ export function usePathwaySVG({
                     : undefined,
                 )) ?? stickerPreviewPayload;
               // Defer so the rest of the pathway UI can mount first.
-              if (autoPopupPayload) {
+              if (autoPopupPayload && !didScheduleStickerCompletionPopup) {
+                sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
                 setTimeout(
                   () =>
                     onStickerPreviewReady(
@@ -842,7 +831,39 @@ export function usePathwaySVG({
     } catch (error) {
       logger.error('Failed to load SVG:', error);
     }
-  }
+  }, [
+    api,
+    checkAndUpdateReward,
+    containerRef,
+    getCachedLesson,
+    history,
+    invokeMascotCelebration,
+    isRewardPathLoaded,
+    isStickerBookCompletionPopupOn,
+    isStickerBookPreviewOn,
+    onStickerCompletionReady,
+    onStickerPreviewReady,
+    rewardBoxVariant,
+    setCurrentChapter,
+    setCurrentCourse,
+    setHasTodayReward,
+    setIsRewardPathLoaded,
+    setModalOpen,
+    setModalText,
+    setRewardRiveContainer,
+    setRewardRiveState,
+    setRiveContainer,
+    updateMascotToNormalState,
+  ]);
+
+  useEffect(() => {
+    (window as any).__triggerPathwayReload__ = loadSVG;
+    loadSVG();
+
+    return () => {
+      delete (window as any).__triggerPathwayReload__;
+    };
+  }, [loadSVG]);
 
   // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
   // This is the single place where we resolve next sticker image fallback.

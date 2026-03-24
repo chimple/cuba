@@ -2949,8 +2949,10 @@ export class Util {
 
       /* 4️⃣ Check path overflow */
       let pathCompleted = false;
+      let completedPathwaySnapshot: string | null = null;
 
       if (course.path.length > PATH_SIZE) {
+        completedPathwaySnapshot = JSON.stringify(learningPath);
         // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
         const active = course.path.find((l: any) => !l.isPlayed);
         course.path.length = 0;
@@ -2973,10 +2975,10 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (isRewardLesson) {
+        if (completedPathwaySnapshot) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath),
+            completedPathwaySnapshot,
           );
         }
         const newpathId = uuidv4();
@@ -2994,7 +2996,15 @@ export class Util {
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (stickerAwardResult.completed) {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.setItem(
+              AUTO_OPEN_STICKER_PREVIEW_KEY,
+              JSON.stringify({
+                studentId: currentStudent.id,
+                createdAt: new Date().toISOString(),
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
+              }),
+            );
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
               JSON.stringify({
@@ -3075,16 +3085,27 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
+    awardedStickerId: string | null;
     payload: StickerBookModalData | null;
   }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
 
       const nextStickerId = await api.getNextWinnableSticker(
@@ -3095,6 +3116,7 @@ export class Util {
         return {
           completed: false,
           stickerBookId: current.book.id,
+          awardedStickerId: null,
           payload: null,
         };
       }
@@ -3119,6 +3141,7 @@ export class Util {
       return {
         completed,
         stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
         payload: completed
           ? {
               source: 'learning_pathway',
@@ -3132,7 +3155,12 @@ export class Util {
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
-      return { completed: false, stickerBookId: null, payload: null };
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
     }
   }
 

@@ -12,7 +12,9 @@ import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
   EVENTS,
+  REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
@@ -483,6 +485,62 @@ describe('PathwayStructure', () => {
         collected_count: 6,
       }),
     );
+  });
+
+  test('closing auto drag popup clears reward snapshot and reloads pathway', async () => {
+    sessionStorage.setItem(
+      REWARD_LEARNING_PATH,
+      JSON.stringify({ courses: { currentCourseIndex: 0, courseList: [] } }),
+    );
+    (window as any).__triggerPathwayReload__ = jest.fn();
+
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerPreviewReady(
+        {
+          source: 'learning_pathway',
+          stickerBookId: 'book-6',
+          stickerBookTitle: 'Final Sticker Page',
+          stickerBookSvgUrl: 'https://example.com/final.svg',
+          collectedStickerIds: ['s1', 's2', 's3', 's4', 's5'],
+          nextStickerId: 's6',
+          nextStickerName: 'Star',
+        },
+        'pathway_completion_auto',
+      );
+    });
+
+    fireEvent.click(screen.getByTestId('sticker-book-preview-close'));
+
+    await waitFor(() => {
+      expect(sessionStorage.getItem(REWARD_LEARNING_PATH)).toBeNull();
+      expect((window as any).__triggerPathwayReload__).toHaveBeenCalled();
+    });
+    delete (window as any).__triggerPathwayReload__;
+  });
+
+  test('closing completion popup reloads pathway when deferred drag popup is pending', async () => {
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({ studentId: 'student-1', awardedStickerId: 's6' }),
+    );
+    (window as any).__triggerPathwayReload__ = jest.fn();
+
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerCompletionReady(buildCompletionData());
+    });
+
+    fireEvent.click(screen.getByTestId('sticker-book-completion-close'));
+
+    await waitFor(() => {
+      expect((window as any).__triggerPathwayReload__).toHaveBeenCalled();
+    });
+    delete (window as any).__triggerPathwayReload__;
   });
 
   test('opens sticker completion modal from completion-ready window event and clears session key', async () => {
