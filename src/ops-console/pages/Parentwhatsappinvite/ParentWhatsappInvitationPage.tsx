@@ -1,4 +1,4 @@
-﻿import {
+import {
   AssessmentOutlined,
   CloseRounded,
   CloudUploadOutlined,
@@ -845,4 +845,3 @@ const ParentWhatsappInvitationPage: React.FC = () => {
 };
 
 export default ParentWhatsappInvitationPage;
-
