@@ -37,6 +37,12 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
+const DRAG_STICKER_MIN_SIZE = 72;
+const DRAG_STICKER_WIDTH_RATIO = 0.24;
+const INTRO_CONFETTI_DURATION_MS = 2800;
+const DROP_CONFETTI_DURATION_MS = 2600;
+const DROP_FLYOUT_DELAY_MS = 2400;
+const DROP_CLOSE_DELAY_MS = 3200;
 
 function sanitizeFileName(value: string): string {
   return (
@@ -71,6 +77,10 @@ export const useStickerBookPreviewModalLogic = ({
   const [showDropConfetti, setShowDropConfetti] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isDropSuccessful, setIsDropSuccessful] = useState<boolean>(false);
+  const [pointerTargetPos, setPointerTargetPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const [isFlyingOut, setIsFlyingOut] = useState<boolean>(false);
   const frameRef = useRef<HTMLDivElement | null>(null);
   const bookSvgRef = useRef<SVGSVGElement | null>(null);
@@ -180,12 +190,31 @@ export const useStickerBookPreviewModalLogic = ({
     if (!frame) return;
 
     dragInitializedRef.current = true;
-    const size = Math.max(56, Math.min(100, frame.clientWidth * 0.19));
+    const size = Math.max(
+      DRAG_STICKER_MIN_SIZE,
+      frame.clientWidth * DRAG_STICKER_WIDTH_RATIO,
+    );
     const initialX = frame.clientWidth / 2 - size / 2;
     const initialY = Math.max(56, frame.clientHeight * 0.6);
 
-    setDragStickerSize(size);
+    // If we have a slot, use its size for the sticker
+    const slotRect = getSlotRectInFrame();
+    const finalSize = slotRect
+      ? Math.max(size, Math.min(slotRect.width, slotRect.height))
+      : size;
+
+    setDragStickerSize(finalSize);
     setDragStickerPos({ x: initialX, y: initialY });
+
+    if (slotRect) {
+      const targetX = slotRect.x + slotRect.width / 2 - finalSize / 2;
+      const targetY = slotRect.y + slotRect.height / 2 - finalSize / 2;
+      setPointerTargetPos({
+        x: targetX - initialX,
+        y: targetY - initialY,
+      });
+    }
+
     setShowPointerHint(true);
     setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
@@ -195,7 +224,7 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowIntroConfetti(false);
-    }, 1200);
+    }, INTRO_CONFETTI_DURATION_MS);
   }, [isDragVariant, isLoading, logDragEvent]);
 
   const getSlotRectInFrame = () => {
@@ -266,14 +295,14 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowDropConfetti(false);
-    }, 800);
+    }, DROP_CONFETTI_DURATION_MS);
     addTimer(() => {
       setIsFlyingOut(true);
       logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 350);
+    }, DROP_FLYOUT_DELAY_MS);
     addTimer(() => {
       onClose('acknowledge_button');
-    }, 900);
+    }, DROP_CLOSE_DELAY_MS);
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -464,6 +493,7 @@ export const useStickerBookPreviewModalLogic = ({
     isDropSuccessful,
     dragStickerPos,
     dragStickerSize,
+    pointerTargetPos,
     renderData,
     sceneSvg,
     bookSvgRef,

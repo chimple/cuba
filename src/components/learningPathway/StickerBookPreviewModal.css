@@ -136,11 +136,11 @@
   z-index: 3;
   overflow: hidden;
   opacity: 0.96;
-  animation: StickerBookPreviewModal-confetti-fade 1900ms ease-out forwards;
+  animation: StickerBookPreviewModal-confetti-fade 3000ms ease-out forwards;
 }
 
 .StickerBookPreviewModal-confetti--drop {
-  animation-duration: 1450ms;
+  animation-duration: 2800ms;
 }
 
 .StickerBookPreviewModal-confetti-piece,
@@ -159,8 +159,8 @@
   transform: rotate(var(--piece-rotate));
   box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.08);
   animation:
-    StickerBookPreviewModal-confetti-fall 1600ms ease-out forwards,
-    StickerBookPreviewModal-confetti-spin 980ms ease-in-out infinite;
+    StickerBookPreviewModal-confetti-fall 2400ms ease-out forwards,
+    StickerBookPreviewModal-confetti-spin 1200ms ease-in-out infinite;
   animation-delay: var(--piece-delay), var(--piece-delay);
 }
 
@@ -174,7 +174,7 @@
   filter: blur(0.1rem);
   opacity: 0.84;
   transform: rotate(var(--cloud-rotate));
-  animation: StickerBookPreviewModal-cloud-drift 1500ms ease-out forwards;
+  animation: StickerBookPreviewModal-cloud-drift 2600ms ease-out forwards;
 }
 
 .StickerBookPreviewModal-confetti-cloud::before,
@@ -203,7 +203,7 @@
   0% {
     opacity: 0.96;
   }
-  70% {
+  78% {
     opacity: 0.9;
   }
   100% {
@@ -220,8 +220,8 @@
     opacity: 1;
   }
   100% {
-    transform: translate3d(0.42rem, 4.5rem, 0)
-      rotate(calc(var(--piece-rotate) + 18deg)) scale(1);
+    transform: translate3d(0.75rem, 7rem, 0)
+      rotate(calc(var(--piece-rotate) + 28deg)) scale(1.04);
     opacity: 0;
   }
 }
@@ -247,7 +247,7 @@
     opacity: 0.88;
   }
   100% {
-    transform: translate3d(0, 1.8rem, 0) rotate(var(--cloud-rotate)) scale(1.08);
+    transform: translate3d(0, 2.8rem, 0) rotate(var(--cloud-rotate)) scale(1.1);
     opacity: 0;
   }
 }
@@ -277,25 +277,41 @@
 
 .StickerBookPreviewModal-pointer-hint {
   position: absolute;
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 3.8rem;
+  height: 3.8rem;
   pointer-events: none;
   z-index: 5;
-  animation: StickerBookPreviewModal-pointer-guide 900ms ease-in-out infinite;
+  animation: StickerBookPreviewModal-pointer-guide 2200ms ease-in-out infinite;
 }
 
 @keyframes StickerBookPreviewModal-pointer-guide {
   0% {
-    opacity: 0.95;
+    opacity: 0;
+    transform: translate(0, 0) scale(0.9);
+  }
+  15% {
+    opacity: 1;
     transform: translate(0, 0) scale(1);
   }
-  50% {
-    opacity: 0.9;
-    transform: translate(18px, 30px) scale(1.04);
+  65% {
+    opacity: 1;
+    transform: translate(
+        var(--pointer-target-x, 18px),
+        var(--pointer-target-y, 30px)
+      )
+      scale(1);
+  }
+  85% {
+    opacity: 0;
+    transform: translate(
+        var(--pointer-target-x, 18px),
+        var(--pointer-target-y, 30px)
+      )
+      scale(0.9);
   }
   100% {
-    opacity: 0.95;
-    transform: translate(0, 0) scale(1);
+    opacity: 0;
+    transform: translate(0, 0) scale(0.9);
   }
 }
 

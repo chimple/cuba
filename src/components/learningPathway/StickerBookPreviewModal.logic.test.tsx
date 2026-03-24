@@ -177,6 +177,7 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     await waitFor(() => expect(result.current.dragStickerPos).not.toBeNull());
 
+    expect(result.current.dragStickerSize).toBe(72);
     expect(result.current.showPointerHint).toBe(true);
     expect(result.current.showIntroConfetti).toBe(true);
 
@@ -198,7 +199,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(1200);
+      jest.advanceTimersByTime(2800);
     });
 
     await waitFor(() => expect(result.current.showIntroConfetti).toBe(false));
@@ -271,12 +272,12 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.showDropConfetti).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(350);
+      jest.advanceTimersByTime(2400);
     });
     expect(result.current.isFlyingOut).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(900);
+      jest.advanceTimersByTime(800);
     });
 
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');

@@ -48,6 +48,7 @@ interface StickerBookPreviewStageProps {
   onDragPointerMove: React.PointerEventHandler<HTMLDivElement>;
   onDragPointerUp: React.PointerEventHandler<HTMLDivElement>;
   onDragPointerCancel: React.PointerEventHandler<HTMLDivElement>;
+  pointerTargetPos?: { x: number; y: number } | null;
 }
 
 const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
@@ -69,6 +70,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
   onDragPointerMove,
   onDragPointerUp,
   onDragPointerCancel,
+  pointerTargetPos,
 }) => {
   return (
     <div
@@ -132,10 +134,14 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
           src="/pathwayAssets/touchpointer.svg"
           alt="drag-pointer"
           className="StickerBookPreviewModal-pointer-hint"
-          style={{
-            left: `${dragStickerPos.x + dragStickerSize * 0.58}px`,
-            top: `${dragStickerPos.y + dragStickerSize * 0.6}px`,
-          }}
+          style={
+            {
+              left: `${dragStickerPos.x + dragStickerSize * 0.58}px`,
+              top: `${dragStickerPos.y + dragStickerSize * 0.6}px`,
+              '--pointer-target-x': `${pointerTargetPos?.x || 0}px`,
+              '--pointer-target-y': `${pointerTargetPos?.y || 0}px`,
+            } as React.CSSProperties
+          }
           data-testid="StickerBookPreviewModal-pointer-hint"
         />
       )}

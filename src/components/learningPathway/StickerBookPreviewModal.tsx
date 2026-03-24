@@ -59,6 +59,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     isDropSuccessful,
     dragStickerPos,
     dragStickerSize,
+    pointerTargetPos,
     renderData,
     sceneSvg,
     bookSvgRef,
@@ -132,6 +133,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
             isDropSuccessful={isDropSuccessful}
             dragStickerPos={dragStickerPos}
             dragStickerSize={dragStickerSize}
+            pointerTargetPos={pointerTargetPos}
             nextStickerImage={renderData.nextStickerImage}
             nextStickerName={renderData.nextStickerName}
             sceneSvg={sceneSvg}
