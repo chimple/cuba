@@ -763,6 +763,8 @@ export class SqliteApi implements ServiceApi {
           const mutateMessage = String(
             mutate?.error?.message ?? mutate?.error?.details ?? '',
           ).toLowerCase();
+          const isDuplicateConflict =
+            mutateCode === '23505' || mutateStatus === 409;
           isPermissionDenied =
             mutateStatus === 401 ||
             mutateStatus === 403 ||
@@ -772,15 +774,11 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
 
-          if (!isPermissionDenied) {
-            if (mutate?.error?.code === '23505' || mutate?.status === 409) {
-              logger.info(
-                '🟢 Duplicate key ignored (already exists on server)',
-              );
-            } else {
-              logger.info('🔴 Real push error:', mutate?.error);
-              return false;
-            }
+          if (isDuplicateConflict || !isPermissionDenied) {
+            logger.info('🟢 Duplicate key ignored (already exists on server)');
+          } else {
+            logger.info('🔴 Real push error:', mutate?.error);
+            return false;
           }
         }
         await this.executeQuery(
