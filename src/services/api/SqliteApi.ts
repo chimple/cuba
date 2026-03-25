@@ -8409,8 +8409,13 @@ order by
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string,
   ): Promise<void> {
-    return await this._serverApi.updateStickerWon(stickerBookId, stickerId);
+    return await this._serverApi.updateStickerWon(
+      stickerBookId,
+      stickerId,
+      userId,
+    );
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

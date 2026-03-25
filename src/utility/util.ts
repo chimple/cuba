@@ -3114,7 +3114,7 @@ export class Util {
         totalStickerCount > 0 &&
         nextCollectedStickerIds.length >= totalStickerCount;
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
+      await api.updateStickerWon(current.book.id, nextStickerId, studentId);
 
       return {
         completed,
