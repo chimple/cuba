@@ -615,9 +615,19 @@ export function usePathwaySVG({
           rewardMode === 'sticker' ? 'Sticker reward' : 'Mystery box reward',
         );
 
+        // Base mobile width defaults to ~57px based on mockup
+        const width =
+          window.innerWidth >= 1024 ? 68 : window.innerWidth >= 768 ? 62 : 57;
+        // Mockup height is 44px for a 57.37px width (~0.767 ratio)
+        const height = Math.round(width * 0.767);
+
         const playRewardClickAnimation = (
           mode: 'sticker' | 'mystery_box',
         ): Promise<void> => {
+          if (mode === 'mystery_box') {
+            return Promise.resolve();
+          }
+
           const willOpenPreview =
             mode === 'sticker' &&
             isStickerBookPreviewOn &&
@@ -635,9 +645,7 @@ export function usePathwaySVG({
           }
 
           const animationClass =
-            mode === 'sticker'
-              ? 'PathwayStructure-end-reward-box--sticker-clicked'
-              : 'PathwayStructure-end-reward-box--clicked';
+            'PathwayStructure-end-reward-box--sticker-clicked';
 
           rewardGroup.classList.remove(
             'PathwayStructure-end-reward-box--sticker-clicked',
@@ -671,10 +679,6 @@ export function usePathwaySVG({
             'PathwayStructure-end-reward-box',
             'PathwayStructure-end-reward-box--sticker',
           );
-
-          const width =
-            window.innerWidth >= 1024 ? 78 : window.innerWidth >= 768 ? 72 : 64;
-          const height = Math.round(width * 0.82);
 
           const bg = document.createElementNS(
             'http://www.w3.org/2000/svg',
@@ -741,8 +745,18 @@ export function usePathwaySVG({
             'PathwayStructure-end-reward-box',
             'PathwayStructure-end-reward-box--mystery',
           );
-          rewardGroup.appendChild(mysteryBox1.cloneNode(true));
-          placeElement(rewardWrapper, endPoint.x - 25, endPoint.y - 40 + 15);
+          const mysteryBoxClone = mysteryBox1.cloneNode(true) as SVGElement;
+          mysteryBoxClone.setAttribute('width', String(width));
+          mysteryBoxClone.setAttribute('height', String(height));
+          mysteryBoxClone.style.width = `${width}px`;
+          mysteryBoxClone.style.height = `${height}px`;
+          rewardGroup.appendChild(mysteryBoxClone);
+
+          placeElement(
+            rewardWrapper,
+            endPoint.x - width / 2,
+            endPoint.y - height / 2,
+          );
 
           if (currentIndex < pathEndIndex + 1) {
             rewardWrapper.addEventListener('click', async () => {
@@ -753,6 +767,10 @@ export function usePathwaySVG({
                 : hasNextSticker
                   ? 'experiment'
                   : 'stickers_exhausted';
+              const mysteryBoxModalText =
+                reason === 'stickers_exhausted'
+                  ? t('Complete these 5 lessons to earn rewards')
+                  : t('Complete these 5 lessons to earn 10 stars');
 
               void Util.logEvent(EVENTS.PATHWAY_MYSTERY_BOX_TAPPED, {
                 user_id: Util.getCurrentStudent()?.id ?? 'unknown',
@@ -768,7 +786,12 @@ export function usePathwaySVG({
                 while (rewardGroup.firstChild) {
                   rewardGroup.removeChild(rewardGroup.firstChild);
                 }
-                rewardGroup.appendChild(newContent.cloneNode(true));
+                const clone = newContent.cloneNode(true) as SVGElement;
+                clone.setAttribute('width', String(width));
+                clone.setAttribute('height', String(height));
+                clone.style.width = `${width}px`;
+                clone.style.height = `${height}px`;
+                rewardGroup.appendChild(clone);
               };
 
               const animationSequence = [
@@ -778,9 +801,7 @@ export function usePathwaySVG({
                 { content: mysteryBox3, delay: 900 },
                 {
                   callback: () => {
-                    setModalText(
-                      t('Complete these 5 lessons to earn 10 stars'),
-                    );
+                    setModalText(mysteryBoxModalText);
                     setModalOpen(true);
                     replaceContent(mysteryBox1);
                   },
