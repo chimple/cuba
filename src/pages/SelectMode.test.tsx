@@ -8,7 +8,6 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import {
   MODES,
   PAGES,
-  IS_OPS_USER,
   USER_SELECTION_STAGE,
   SELECTED_CLASSES,
   SELECTED_STUDENTS,
@@ -132,12 +131,18 @@ jest.mock('../redux/hooks', () => ({
   useAppSelector: jest.fn(),
 }));
 
-jest.mock('../redux/slices/auth/authSlice', () => ({
-  setAuthUser: jest.fn(),
-  setIsOpsUser: jest.fn(),
-  setRoles: jest.fn(),
-  setUser: jest.fn(),
-}));
+jest.mock('../redux/slices/auth/authSlice', () => {
+  const actual = jest.requireActual('../redux/slices/auth/authSlice');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    setAuthUser: jest.fn(),
+    setIsOpsUser: jest.fn(),
+    setRoles: jest.fn(),
+    setUser: jest.fn(),
+  };
+});
 
 const mockApiHandler = {
   getSchoolsForUser: jest.fn(),
@@ -297,13 +302,22 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'user-1',
     });
+    useAppSelector.mockImplementation((selector: any) =>
+      selector({
+        auth: {
+          authUser: null,
+          user: null,
+          roles: [],
+          isOpsUser: true,
+        },
+      }),
+    );
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: { id: 'school-1', name: 'School 1' }, role: 'OPS' },
     ]);
     mockApiHandler.getParentStudentProfiles.mockResolvedValue([
       { id: 'student-1' },
     ]);
-    localStorage.setItem(IS_OPS_USER, 'true');
 
     render(<SelectMode />);
 

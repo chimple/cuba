@@ -49,7 +49,6 @@ import {
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
-  IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
@@ -104,6 +103,7 @@ import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
 import {
   addRole,
+  setIsOpsUser,
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
@@ -1279,7 +1279,7 @@ export class Util {
   }
 
   public static switchToOpsUser(history: any): void {
-    localStorage.setItem(IS_OPS_USER, 'true');
+    store.dispatch(setIsOpsUser(true));
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
@@ -1921,7 +1921,9 @@ export class Util {
 
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
       const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
       if (
+        isOpsUser ||
         [
           RoleType.SUPER_ADMIN,
           RoleType.FIELD_COORDINATOR,
@@ -2014,7 +2016,21 @@ export class Util {
     const currentSchool = JSON.parse(temp) as TableTypes<'school'>;
     api.currentSchool = currentSchool;
 
-    const classId = localStorage.getItem(CLASS) ?? undefined;
+    const storedClass = localStorage.getItem(CLASS);
+    let classId: string | undefined;
+
+    if (storedClass && storedClass !== 'undefined' && storedClass !== 'null') {
+      try {
+        classId =
+          (JSON.parse(storedClass) as TableTypes<'class'> | null)?.id ??
+          undefined;
+      } catch (error) {
+        logger.warn('Failed to parse stored class while validating school', {
+          storedClass,
+          error,
+        });
+      }
+    }
 
     // SCHOOL CHECK
     isSchoolConnected(currentSchool.id).then((res) => {
@@ -2277,6 +2293,15 @@ export class Util {
         origin: originPage,
       });
       return;
+    }
+
+    const currentClass = this.getCurrentClass();
+    const validCurrentClass = currentClass
+      ? fetchedClasses.find((classItem) => classItem.id === currentClass.id)
+      : undefined;
+
+    if (!validCurrentClass) {
+      await this.setCurrentClass(fetchedClasses[0]);
     }
 
     const classCoursesData = await Promise.all(

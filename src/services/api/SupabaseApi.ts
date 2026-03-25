@@ -3045,6 +3045,36 @@ export class SupabaseApi implements ServiceApi {
     }
     return data ?? undefined;
   }
+
+  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
+    id: string;
+    name: string;
+    whatsapp_bot_number?: string | null;
+  } | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select('id, name, whatsapp_bot_number')
+      .eq('udise', udiseCode)
+      .eq('is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error in parent WhatsApp school lookup by UDISE:', error);
+      throw error;
+    }
+
+    return data
+      ? {
+          id: data.id,
+          name: data.name,
+          whatsapp_bot_number: data.whatsapp_bot_number,
+        }
+      : null;
+  }
   async isStudentLinked(
     studentId: string,
     fromCache: boolean,
@@ -3343,6 +3373,71 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return classes || [];
+  }
+
+  // Parent WhatsApp Invitation: class lookup with group and invite fields.
+  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+    {
+      id: string;
+      name: string;
+      group_id?: string | null;
+      whatsapp_invite_link?: string | null;
+    }[]
+  > {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, name, group_id, whatsapp_invite_link')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error(
+        'Error in parent WhatsApp class lookup by school ID:',
+        error,
+      );
+      throw error;
+    }
+
+    return (data ?? []).map((classRow) => ({
+      id: classRow.id,
+      name: classRow.name,
+      group_id: classRow.group_id,
+      whatsapp_invite_link: classRow.whatsapp_invite_link,
+    }));
+  }
+
+  // Parent WhatsApp Invitation: parent phone lookup from class_user join.
+  async getParentWhatsappParentPhonesByClassId(
+    classId: string,
+  ): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select('user:user_id(phone)')
+      .eq('class_id', classId)
+      .eq('role', RoleType.PARENT)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error(
+        'Error in parent WhatsApp parent phone lookup by class ID:',
+        error,
+      );
+      throw error;
+    }
+
+    const phoneSet = new Set<string>();
+    (data ?? []).forEach((row: any) => {
+      const phone = String(row?.user?.phone ?? '').trim();
+      if (phone) {
+        phoneSet.add(phone);
+      }
+    });
+
+    return Array.from(phoneSet);
   }
 
   async getUsersByIds(userIds: string[]): Promise<TableTypes<'user'>[]> {
@@ -6063,6 +6158,28 @@ export class SupabaseApi implements ServiceApi {
     user: TableTypes<'user'>,
   ): Promise<void> {
     if (!this.supabase) return;
+    const { data: principalRows, error: principalError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select('id')
+      .eq('school_id', schoolId)
+      .eq('user_id', user.id)
+      .eq('is_deleted', false)
+      .in('role', [RoleType.PRINCIPAL, 'principal'])
+      .limit(1);
+
+    if (principalError) {
+      logger.error(
+        'Error checking principal role in school_user:',
+        principalError,
+      );
+      throw principalError;
+    }
+
+    if (principalRows && principalRows.length > 0) {
+      throw new Error(
+        'This user is already Principal in this school and cannot be added as Teacher for the same school.',
+      );
+    }
 
     const classUserId = uuidv4();
     const now = new Date().toISOString();
@@ -6739,6 +6856,54 @@ export class SupabaseApi implements ServiceApi {
 
     const schoolUserId = uuidv4();
     const timestamp = new Date().toISOString();
+
+    if (role === RoleType.PRINCIPAL) {
+      const { data: teacherRows, error: teacherRowsError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select('class_id')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .in('role', [RoleType.TEACHER, 'teacher']);
+
+      if (teacherRowsError) {
+        logger.error(
+          'Error checking teacher role in class_user:',
+          teacherRowsError,
+        );
+        return;
+      }
+
+      const teacherClassIds = Array.from(
+        new Set(
+          (teacherRows ?? []).map((row: any) => row.class_id).filter(Boolean),
+        ),
+      );
+
+      if (teacherClassIds.length > 0) {
+        const { data: schoolClassMatch, error: classMatchError } =
+          await this.supabase
+            .from(TABLES.Class)
+            .select('id')
+            .eq('school_id', schoolId)
+            .eq('is_deleted', false)
+            .in('id', teacherClassIds)
+            .limit(1);
+
+        if (classMatchError) {
+          logger.error(
+            'Error checking teacher class membership against school:',
+            classMatchError,
+          );
+          return;
+        }
+
+        if (schoolClassMatch && schoolClassMatch.length > 0) {
+          throw new Error(
+            'This user is already a Teacher in this school and cannot be made Principal for the same school.',
+          );
+        }
+      }
+    }
 
     const { data: existing, error: selectError } = await this.supabase
       .from(TABLES.SchoolUser)
@@ -11868,6 +12033,127 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data.data;
+  }
+
+  async getParentWhatsappGroupDetails(groupId: string) {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.rpc(
+      'parent_wa_get_group_details',
+      {
+        p_group_id: groupId,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+    if (!this.supabase)
+      return {
+        successCount: 0,
+        failedBatches: [],
+      };
+    const { data, error } = await this.supabase.rpc(
+      'send_parent_whatsapp_msg91_invites',
+      {
+        p_invite_rows: inviteRows,
+        p_batch_size: batchSize,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async getParentWhatsappMsg91ReportRows(startDate: string, endDate: string) {
+    if (!this.supabase) {
+      return {
+        success: true,
+        statusCode: 200,
+        data: [],
+        raw: [],
+      };
+    }
+    const { data, error } = await this.supabase.rpc(
+      'fetch_parent_whatsapp_msg91_report',
+      {
+        p_start_date: startDate,
+        p_end_date: endDate,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async uploadParentWhatsappMediaRpc(
+    fileB64: string,
+    fileName: string,
+    mimeType: string,
+  ) {
+    if (!this.supabase) {
+      return {
+        success: false,
+        statusCode: 500,
+        responseText: 'Supabase client is not initialized.',
+      };
+    }
+    const { data, error } = await this.supabase.functions.invoke(
+      'upload-parent-whatsapp-media',
+      {
+        body: {
+          fileB64,
+          fileName,
+          mimeType,
+        },
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+  async sendParentWhatsappTemplateMessageRpc(params: {
+    to: string;
+    templateName: string;
+    templateLang: string;
+    messageType: 'utility' | 'marketing';
+    mediaId?: string | null;
+    mediaType?: 'image' | 'video' | null;
+  }) {
+    if (!this.supabase) {
+      return {
+        success: false,
+        statusCode: 500,
+        responseText: 'Supabase client is not initialized.',
+      };
+    }
+    const { data, error } = await this.supabase.rpc(
+      'send_parent_whatsapp_template_message',
+      {
+        p_to: params.to,
+        p_template_name: params.templateName,
+        p_template_lang: params.templateLang,
+        p_message_type: params.messageType,
+        p_media_id: params.mediaId ?? undefined,
+        p_media_type: params.mediaType ?? undefined,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
   }
   async getGroupIdByInvite(invite_link: string, bot: string) {
     if (!this.supabase) return [];
