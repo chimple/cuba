@@ -220,9 +220,9 @@ export function usePathwaySVG({
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
       if (!course) return;
-      const pathItem = course.path.find(
-        (p: LessonNode) => p && p.isPlayed === false,
-      );
+      const pathItem =
+        course.path.find((p: LessonNode) => p && p.isPlayed === false) ??
+        course.path[course.path.length - 1];
       if (!pathItem) return;
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;

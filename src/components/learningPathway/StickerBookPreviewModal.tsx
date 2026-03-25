@@ -16,6 +16,11 @@ interface StickerBookPreviewModalProps {
   variant?: StickerBookPreviewVariant;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
   mode?: StickerBookPreviewMode;
+  launchMotion?: {
+    offsetX: number;
+    offsetY: number;
+    startScale: number;
+  } | null;
 }
 
 const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
@@ -23,6 +28,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
   variant = 'preview',
   onClose,
   mode = 'preview',
+  launchMotion = null,
 }) => {
   const [scale, setScale] = useState(1);
 
@@ -103,6 +109,15 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           className={`StickerBookPreviewModal-modal ${
             isDragVariant ? 'StickerBookPreviewModal-modal--drag' : ''
           } ${isFlyingOut ? 'StickerBookPreviewModal-modal--flyout' : ''}`}
+          style={
+            launchMotion
+              ? ({
+                  '--launch-offset-x': `${launchMotion.offsetX}px`,
+                  '--launch-offset-y': `${launchMotion.offsetY}px`,
+                  '--launch-start-scale': `${launchMotion.startScale}`,
+                } as React.CSSProperties)
+              : undefined
+          }
           role="dialog"
           aria-modal="true"
           data-testid="StickerBookPreviewModal-modal"

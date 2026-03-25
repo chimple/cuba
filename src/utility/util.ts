@@ -2930,6 +2930,8 @@ export class Util {
         isPlayed: true,
       };
 
+      const completedPathwaySnapshot = JSON.parse(JSON.stringify(learningPath));
+
       /* 3️⃣ Compute next active lesson */
       const nextLesson = await recommendNextLesson({
         student: currentStudent,
@@ -2976,7 +2978,7 @@ export class Util {
         if (isRewardLesson) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath),
+            JSON.stringify(completedPathwaySnapshot),
           );
         }
         const newpathId = uuidv4();
@@ -3015,6 +3017,8 @@ export class Util {
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
                 studentId: currentStudent.id,
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
                 createdAt: new Date().toISOString(),
               }),
             );
@@ -3075,16 +3079,27 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
+    awardedStickerId: string | null;
     payload: StickerBookModalData | null;
   }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
 
       const nextStickerId = await api.getNextWinnableSticker(
@@ -3095,6 +3110,7 @@ export class Util {
         return {
           completed: false,
           stickerBookId: current.book.id,
+          awardedStickerId: null,
           payload: null,
         };
       }
@@ -3119,6 +3135,7 @@ export class Util {
       return {
         completed,
         stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
         payload: completed
           ? {
               source: 'learning_pathway',
@@ -3132,7 +3149,12 @@ export class Util {
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
-      return { completed: false, stickerBookId: null, payload: null };
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
     }
   }
 
