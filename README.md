@@ -48,10 +48,22 @@ Open in localhost
 
 > Open http://localhost:3000/ in your browser
 
+Legacy CRA dev server:
+
+```sh
+$ npm run start:cra
+```
+
 ### Building the project
 
 ```sh
 $ npm run build
+```
+
+Legacy CRA build:
+
+```sh
+$ npm run build:cra
 ```
 
 ### Serve Build folder

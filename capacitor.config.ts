@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 const config: CapacitorConfig = {
   appId: "org.chimple.bahama",
   appName: "Chimple",
-  webDir: "build",
+  webDir: "dist",
   // bundledWebRuntime: false,
   plugins: {
     FirebaseAuthentication: {
@@ -30,7 +30,9 @@ const config: CapacitorConfig = {
       launchAutoHide: false,
     },
     LiveUpdate: {
-      appId: process.env.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID,
+      appId:
+        process.env.VITE_CAPACITOR_HOT_UPDATE_APP_ID ??
+        process.env.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID,
       autoDeleteBundles: true,
       readyTimeout: 50000,
       httpTimeout: 300000,

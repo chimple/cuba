@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import { t } from 'i18next';
-import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
+import assignScreenArrowIcon from '../../../assets/icons/assign-screen-arrow.svg';
 import './AssignScreen.css';
 import { useHistory } from 'react-router-dom';
 import {
@@ -113,11 +113,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <img
+                    src={assignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
+                    alt=""
                     aria-hidden="true"
-                    focusable="false"
                   />
                 </span>
               </div>
@@ -159,11 +160,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <img
+                    src={assignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
+                    alt=""
                     aria-hidden="true"
-                    focusable="false"
                   />
                 </span>
               </div>
@@ -203,11 +205,12 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <AssignScreenArrowIcon
+                  <img
+                    src={assignScreenArrowIcon}
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
+                    alt=""
                     aria-hidden="true"
-                    focusable="false"
                   />
                 </span>
               </div>

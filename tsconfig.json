@@ -16,7 +16,7 @@
     "noEmit": true,
     "noImplicitAny": true,
     "strictPropertyInitialization": false,
-    "types": ["jest","lido-standalone"],
+    "types": ["vite/client", "jest", "lido-standalone"],
     "jsx": "react-jsx"
   },
   "include": ["src"],

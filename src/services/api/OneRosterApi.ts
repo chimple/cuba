@@ -888,12 +888,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
-  getStudentAndParentByStudentId(
-    studentId: string,
-  ): Promise<{ user: any; parents: any[] }> {
-    throw new Error('Method not implemented.');
-  }
-
   mergeStudentRequest(
     existingStudentId: string,
     newStudentId: string,

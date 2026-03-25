@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReactComponent as VerifyIcon } from '../assets/icons/verifiedicon.svg';
+import verifyIcon from '../assets/icons/verifiedicon.svg';
 import './FileVerifiedComponent.css';
 
 interface VerifiedPageProps {
@@ -14,7 +14,7 @@ const VerifiedPage: React.FC<VerifiedPageProps> = ({ title, message }) => {
         <div className="verified-page-container">
           <div className="verified-icon-container">
             <div className="verified-image">
-              <VerifyIcon />
+              <img src={verifyIcon} alt="" aria-hidden="true" />
             </div>
             <div className="verified-text">
               <p>{title}</p>
