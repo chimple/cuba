@@ -376,6 +376,7 @@ export class Util {
   public static async downloadZipBundle(
     lessonIds: string[],
     chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -429,9 +430,8 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
                 );
               }
-              const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-              );
+              const bundleZipUrls: string[] =
+                await RemoteConfig.getJSON(bundleZipUrlsKey);
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
