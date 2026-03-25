@@ -34,6 +34,10 @@ import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
+import {
+  getLidoBundleBaseUrlForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -784,8 +788,9 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const pathBase = `https://chimple-bundles.web.app/${lessonId}/`;
-      const pathXml = `https://chimple-bundles.web.app/${lessonId}/index.xml`;
+      const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
+      const pathBase = `${lidoBaseUrl}${lessonId}/`;
+      const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
       setBasePath(pathBase);
       setXmlPath(pathXml);
     }
