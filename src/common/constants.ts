@@ -3,6 +3,11 @@ import Auth from '../models/auth';
 import { Constants, Database } from '../services/database';
 import { RoleType } from '../interface/modelInterfaces';
 import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png';
+import {
+  ALGOLIA_INDEX_NAME,
+  GITHUB_BASE,
+  HOT_UPDATE_SERVER as ENV_HOT_UPDATE_SERVER,
+} from '../env';
 
 export const DEFAULT_LOCALE_ID = '6854a7ef-dcd3-4362-8488-0e8de869aacf'; //this is the default locale id for india
 export const DEFAULT_LANGUAGE_ID_EN = '7eaf3509-e44e-460f-80a1-7f6a13a8a883'; //this is the default language id for english
@@ -698,7 +703,7 @@ export enum IconType {
   CLASS = 'class',
 }
 
-const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? '';
+const rawWebBaseName = GITHUB_BASE;
 const normalizedWebBaseName = rawWebBaseName
   .replace(/\/$/, '')
   .replace(/^\.$/, '')
@@ -839,8 +844,7 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
-export const INSTANT_SEARCH_INDEX_NAME =
-  process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? '';
+export const INSTANT_SEARCH_INDEX_NAME = ALGOLIA_INDEX_NAME;
 
 export enum MODES {
   PARENT = 'PARENT',
@@ -941,7 +945,7 @@ export const CACHE_IMAGE = 'cacheImage';
 
 export const IS_MIGRATION_CHECKED = 'isMigrationChecked';
 
-export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+export const HOT_UPDATE_SERVER = ENV_HOT_UPDATE_SERVER;
 
 export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 

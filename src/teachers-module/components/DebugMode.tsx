@@ -10,6 +10,7 @@ import { toPng } from 'html-to-image';
 import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { t } from 'i18next';
+import { getHotUpdateChannel as buildHotUpdateChannel } from '../../env';
 import logger from '../../utility/logger';
 
 const DebugPage: React.FC = () => {
@@ -281,7 +282,7 @@ const DebugPage: React.FC = () => {
   async function getHotUpdateChannel() {
     const { versionName } = await LiveUpdate.getVersionName();
     const majorVersion = versionName.split('.')[0];
-    return `${process.env.REACT_APP_ENV}-${majorVersion}`;
+    return buildHotUpdateChannel(majorVersion);
   }
 
   const handleManualHotUpdate = async () => {

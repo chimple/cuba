@@ -52,11 +52,17 @@ import { Provider } from 'react-redux';
 import { persistor, store } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { BrowserRouter } from 'react-router-dom';
+import {
+  CLIENT_ID,
+  getHotUpdateChannel,
+  GROWTHBOOK_ID,
+  SENTRY_DSN,
+} from './env';
 import logger from './utility/logger';
 
 Sentry.init(
   {
-    dsn: process.env.REACT_APP_SENTRY_DSN,
+    dsn: SENTRY_DSN,
 
     sendDefaultPii: true,
 
@@ -156,13 +162,13 @@ const root = createRoot(container!, {
 });
 await SocialLogin.initialize({
   google: {
-    webClientId: process.env.REACT_APP_CLIENT_ID,
+    webClientId: CLIENT_ID,
   },
 });
 
 const gb = new GrowthBook({
   apiHost: 'https://cdn.growthbook.io',
-  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  clientKey: GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
     try {
@@ -223,17 +229,18 @@ async function checkForUpdate() {
       logger.info('🚀 Checking for updates...');
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split('.')[0];
+      const channel = getHotUpdateChannel(majorVersion);
       Util.setHotUpdateState({
         status: 'Checking (Auto)',
         progress: 10,
-        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        channel,
         lastChecked: new Date().toLocaleString(),
         isAuto: true,
         error: '',
       });
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
       const result = await LiveUpdate.fetchLatestBundle({
-        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        channel,
       });
       let isUpdateAllowed = false;
       if (result.customProperties && result.customProperties.version) {
@@ -253,7 +260,7 @@ async function checkForUpdate() {
           current_bundle_id: currentBundleId,
           new_bundle_id: result.bundleId,
           timestamp: new Date().toISOString(),
-          channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+          channel_name: channel,
           app_version: versionName,
           update_type: result.artifactType,
         });
@@ -274,7 +281,7 @@ async function checkForUpdate() {
             });
 
             await LiveUpdate.sync({
-              channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+              channel,
             });
             Util.setHotUpdateState({
               status: 'Updated successfully (Auto)',
@@ -289,7 +296,7 @@ async function checkForUpdate() {
               new_bundle_id: result.bundleId,
               timestamp: new Date().toISOString(),
               time_taken_ms: (totalEnd - start).toFixed(2),
-              channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+              channel_name: channel,
               app_version: versionName,
               update_type: result.artifactType,
             });
@@ -316,7 +323,7 @@ async function checkForUpdate() {
               Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
-                channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+                channel_name: channel,
                 error:
                   msg || 'All attempts to apply update failed, Device offline',
                 retries: attempt,
@@ -346,7 +353,7 @@ async function checkForUpdate() {
     Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
       user_id: userId,
       timestamp: new Date().toISOString(),
-      channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+      channel_name: getHotUpdateChannel(majorVersion),
       error: msg || 'LiveUpdate failed unknown error',
     });
   }

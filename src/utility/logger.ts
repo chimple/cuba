@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { LOG_LEVEL } from '../env';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
@@ -30,13 +31,13 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
 };
 
 const getEnvLogLevel = (): LogLevel => {
-  const envLevel = process.env.REACT_APP_LOG_LEVEL as LogLevel;
+  const envLevel = LOG_LEVEL as LogLevel;
 
   if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
     return envLevel;
   }
 
-  return process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
+  return import.meta.env.PROD ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();

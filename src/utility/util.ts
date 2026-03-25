@@ -68,6 +68,7 @@ import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../common/constants';
+import { ENCRYPTION_KEY, SUPABASE_URL } from '../env';
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
@@ -2331,7 +2332,6 @@ export class Util {
   public static async encryptData(data: object): Promise<string | null> {
     try {
       const stringData = JSON.stringify(data);
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
 
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
@@ -2347,7 +2347,6 @@ export class Util {
     ciphertext: string,
   ): Promise<{ email: string; password: string } | null> {
     try {
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
       }
@@ -3719,14 +3718,12 @@ export class Util {
 
   public static migrateSupabaseSession() {
     try {
-      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-
-      if (!supabaseUrl) {
+      if (!SUPABASE_URL) {
         logger.warn('Supabase URL missing, skipping session migration');
         return;
       }
 
-      const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      const projectRef = SUPABASE_URL.split('//')[1]?.split('.')[0];
       if (!projectRef) {
         logger.warn('Invalid Supabase URL format, skipping session migration');
         return;

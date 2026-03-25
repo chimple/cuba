@@ -77,6 +77,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
+import { SUPABASE_KEY, SUPABASE_URL } from '../../env';
 import { Util } from '../../utility/util';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
@@ -331,8 +332,8 @@ export class SupabaseApi implements ServiceApi {
   }
 
   private init() {
-    this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? '';
-    this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? '';
+    this.supabaseUrl = SUPABASE_URL;
+    this.supabaseKey = SUPABASE_KEY;
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
   }
 
