@@ -618,6 +618,22 @@ export function usePathwaySVG({
         const playRewardClickAnimation = (
           mode: 'sticker' | 'mystery_box',
         ): Promise<void> => {
+          const willOpenPreview =
+            mode === 'sticker' &&
+            isStickerBookPreviewOn &&
+            stickerPreviewPayload;
+
+          if (willOpenPreview) {
+            rewardGroup.classList.remove(
+              'PathwayStructure-end-reward-box--sticker-close-anim',
+            );
+            void rewardGroup.getBoundingClientRect(); // force reflow
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box--sticker-open',
+            );
+            return new Promise((resolve) => setTimeout(resolve, 750));
+          }
+
           const animationClass =
             mode === 'sticker'
               ? 'PathwayStructure-end-reward-box--sticker-clicked'
@@ -672,8 +688,8 @@ export function usePathwaySVG({
           bg.setAttribute('stroke', '#F55376');
           bg.setAttribute('stroke-width', '4');
 
-          const horizontalPadding = Math.round(width * 0.1);
-          const verticalPadding = Math.round(height * 0.06);
+          const horizontalPadding = Math.round(width * 0.15);
+          const verticalPadding = Math.round(height * 0.12);
           const contentSize = Math.min(
             width - horizontalPadding * 2,
             height - verticalPadding * 2,

@@ -11,7 +11,7 @@
 
 .StickerBookPreviewModal-modal {
   position: relative;
-  width: 38.75rem;
+  width: 40rem;
   max-height: calc(100vh - 2.5rem);
   background: #fffdee;
   border-radius: 1.125rem;
@@ -74,7 +74,7 @@
 
 .StickerBookPreviewModal-close {
   position: absolute;
-  width: calc(var(--close-size) * 0.92);
+  width: var(--close-size);
   height: var(--close-size);
   top: calc(var(--close-size) * 0.175);
   left: calc(100% + var(--close-size) * 0.29);
@@ -344,7 +344,7 @@
   border-radius: 0.8rem;
   border: 0.2rem solid #f55376;
   background: #fffdee;
-  padding: 0;
+  padding: 0.4rem;
 }
 
 .StickerBookPreviewModal-next-placeholder {
@@ -415,4 +415,11 @@
 .StickerBookPreviewModal-action:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+@media (max-width: 768px) {
+  .StickerBookPreviewModal-helper-text,
+  .StickerBookPreviewModal-next-name {
+    font-size: 1.5rem;
+  }
 }
