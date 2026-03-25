@@ -66,6 +66,7 @@ export const useStickerBookPreviewModalLogic = ({
     y: number;
   } | null>(null);
   const [dragStickerSize, setDragStickerSize] = useState<number>(72);
+  const [showDragSticker, setShowDragSticker] = useState<boolean>(false);
   const [showPointerHint, setShowPointerHint] = useState<boolean>(false);
   const [showIntroConfetti, setShowIntroConfetti] = useState<boolean>(false);
   const [showDropConfetti, setShowDropConfetti] = useState<boolean>(false);
@@ -124,6 +125,7 @@ export const useStickerBookPreviewModalLogic = ({
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
     setDragStickerPos(null);
+    setShowDragSticker(false);
     setIsDropSuccessful(false);
     setIsDragging(false);
     setShowPointerHint(false);
@@ -180,18 +182,25 @@ export const useStickerBookPreviewModalLogic = ({
     if (!frame) return;
 
     dragInitializedRef.current = true;
-    const size = Math.max(56, Math.min(100, frame.clientWidth * 0.19));
+    const size = Math.max(120, Math.min(180, frame.clientWidth * 0.28));
     const initialX = frame.clientWidth / 2 - size / 2;
-    const initialY = Math.max(56, frame.clientHeight * 0.6);
+    const initialY = Math.max(120, frame.clientHeight * 0.5);
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
-    setShowPointerHint(true);
     setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
     logDragEvent(EVENTS.STICKER_DRAG_STICKER_SHOWN);
-    logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
     logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'intro' });
+
+    addTimer(() => {
+      setShowDragSticker(true);
+    }, 420);
+
+    addTimer(() => {
+      setShowPointerHint(true);
+      logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
+    }, 1520);
 
     addTimer(() => {
       setShowIntroConfetti(false);
@@ -454,6 +463,7 @@ export const useStickerBookPreviewModalLogic = ({
     showIntroConfetti,
     showDropConfetti,
     showPointerHint,
+    showDragSticker,
     isDragging,
     isDropSuccessful,
     dragStickerPos,
@@ -462,6 +472,7 @@ export const useStickerBookPreviewModalLogic = ({
     sceneSvg,
     bookSvgRef,
     setFrameElement,
+    getSlotRectInFrame,
     handleOverlayClick,
     handleDragPointerDown,
     handleDragPointerMove,
