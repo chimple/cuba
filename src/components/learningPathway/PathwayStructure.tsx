@@ -192,6 +192,38 @@ const PathwayStructure: React.FC = () => {
   );
 
   React.useEffect(() => {
+    const rewardBox = containerRef.current?.querySelector(
+      '.PathwayStructure-end-reward-box--sticker',
+    );
+    if (!rewardBox) return;
+
+    if (isStickerPreviewOpen) {
+      rewardBox.classList.remove(
+        'PathwayStructure-end-reward-box--sticker-close-anim',
+      );
+      rewardBox.classList.add('PathwayStructure-end-reward-box--sticker-open');
+    } else {
+      if (
+        rewardBox.classList.contains(
+          'PathwayStructure-end-reward-box--sticker-open',
+        )
+      ) {
+        rewardBox.classList.remove(
+          'PathwayStructure-end-reward-box--sticker-open',
+        );
+        rewardBox.classList.add(
+          'PathwayStructure-end-reward-box--sticker-close-anim',
+        );
+        setTimeout(() => {
+          rewardBox.classList.remove(
+            'PathwayStructure-end-reward-box--sticker-close-anim',
+          );
+        }, 500);
+      }
+    }
+  }, [isStickerPreviewOpen]);
+
+  React.useEffect(() => {
     const handleStickerCompletionReady = (event: Event) => {
       const customEvent = event as CustomEvent<StickerBookModalData>;
       const data = customEvent.detail;

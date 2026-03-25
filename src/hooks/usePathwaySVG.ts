@@ -618,6 +618,22 @@ export function usePathwaySVG({
         const playRewardClickAnimation = (
           mode: 'sticker' | 'mystery_box',
         ): Promise<void> => {
+          const willOpenPreview =
+            mode === 'sticker' &&
+            isStickerBookPreviewOn &&
+            stickerPreviewPayload;
+
+          if (willOpenPreview) {
+            rewardGroup.classList.remove(
+              'PathwayStructure-end-reward-box--sticker-close-anim',
+            );
+            void rewardGroup.getBoundingClientRect(); // force reflow
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box--sticker-open',
+            );
+            return new Promise((resolve) => setTimeout(resolve, 750));
+          }
+
           const animationClass =
             mode === 'sticker'
               ? 'PathwayStructure-end-reward-box--sticker-clicked'

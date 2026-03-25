@@ -74,7 +74,7 @@
 
 .StickerBookPreviewModal-close {
   position: absolute;
-  width: calc(var(--close-size) * 0.92);
+  width: var(--close-size);
   height: var(--close-size);
   top: calc(var(--close-size) * 0.175);
   left: calc(100% + var(--close-size) * 0.29);
