@@ -48,3 +48,30 @@
   align-items: center;
   color: var(--text-color);
 }
+
+.startup-splash {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2vh;
+  padding: 4vh 6vw;
+  background: #ffffff;
+  text-align: center;
+}
+
+.startup-splash__image {
+  width: min(38vw, 240px);
+  max-width: 70vw;
+  height: auto;
+}
+
+.startup-splash__text {
+  margin: 0;
+  max-width: 720px;
+  color: #05342f;
+  font-size: clamp(18px, 2.2vw, 28px);
+  line-height: 1.4;
+}

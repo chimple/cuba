@@ -26,7 +26,8 @@ const config: CapacitorConfig = {
       smallIcon: "chimple_monkey_icon",
     },
     SplashScreen: {
-      launchShowDuration: 5000,
+      launchShowDuration: 2000,
+      // Hidden manually in src/index.tsx so the in-app splash can show the message.
       launchAutoHide: false,
     },
   },
