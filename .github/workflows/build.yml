@@ -55,6 +55,7 @@ jobs:
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
           REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
           REACT_APP_LOG_LEVEL: ${{vars.REACT_APP_LOG_LEVEL}}
+          REACT_APP_ENVIRONMENT: ${{vars.REACT_APP_ENV_DEV}}
 
         run: npm run build
 

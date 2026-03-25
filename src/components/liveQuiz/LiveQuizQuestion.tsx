@@ -17,6 +17,7 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import LiveQuizNavigationDots from './LiveQuizNavigationDots';
 import { schoolUtil } from '../../utility/schoolUtil';
 import logger from '../../utility/logger';
+import { getBundleZipUrlsForEnv } from '../../services/RemoteConfig';
 
 let questionInterval: ReturnType<typeof setInterval> | undefined;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -340,10 +341,7 @@ const LiveQuizQuestion: FC<{
     /* =====================
      REMOTE FETCH (UNCHANGED)
      ===================== */
-    const remoteUrls = [
-      'https://cuba-stage-zip-bundle.web.app/',
-      'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
-    ];
+    const remoteUrls = getBundleZipUrlsForEnv();
 
     for (const baseUrl of remoteUrls) {
       try {

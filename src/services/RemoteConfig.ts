@@ -1,5 +1,50 @@
 import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 
+const getAppEnvironment = (): 'dev' | 'prod' => {
+  const env = (
+    process.env.REACT_APP_ENVIRONMENT ??
+    process.env.REACT_APP_ENV ??
+    'dev'
+  )
+    .trim()
+    .toLowerCase();
+  return env === 'prod' || env === 'production' ? 'prod' : 'dev';
+};
+
+export type AppEnvironment = 'dev' | 'prod';
+
+const APP_ENVIRONMENT: AppEnvironment = getAppEnvironment();
+
+const BUNDLE_ZIP_URLS_BY_ENV = {
+  dev: [
+    'https://cuba-zip-bundle-dev.web.app/',
+    'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
+    'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
+  ],
+  prod: [
+    'https://cuba-stage-zip-bundle.web.app/',
+    'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
+    'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
+  ],
+} as const;
+
+export const LIDO_BUNDLE_ZIP_URLS_BY_ENV = {
+  dev: ['https://chimple-zip-bundles-dev.web.app/'],
+  prod: ['https://chimple-bundles.web.app/'],
+} as const;
+
+export const getBundleZipUrlsForEnv = (
+  env: AppEnvironment = APP_ENVIRONMENT,
+) => [...BUNDLE_ZIP_URLS_BY_ENV[env]];
+
+export const getLidoBundleZipUrlsForEnv = (
+  env: AppEnvironment = APP_ENVIRONMENT,
+) => [...LIDO_BUNDLE_ZIP_URLS_BY_ENV[env]];
+
+export const getLidoBundleBaseUrlForEnv = (
+  env: AppEnvironment = APP_ENVIRONMENT,
+) => LIDO_BUNDLE_ZIP_URLS_BY_ENV[env][0];
+
 export class RemoteConfig {
   private constructor() {}
   public static async getString(key: REMOTE_CONFIG_KEYS): Promise<string> {
@@ -48,6 +93,7 @@ export class RemoteConfig {
 export enum REMOTE_CONFIG_KEYS {
   CAN_HOT_UPDATE = 'can_hot_update',
   BUNDLE_ZIP_URLS = 'bundle_zip_urls',
+  LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls',
   CAN_SHOW_AVATAR = 'can_show_avatar',
   CAN_UPDATED_AVATAR_SUGGESTION_URL = 'can_updated_avatar_suggestion_url',
   // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
@@ -55,11 +101,8 @@ export enum REMOTE_CONFIG_KEYS {
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: false,
-  [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
-    'https://cuba-stage-zip-bundle.web.app/',
-    'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
-    'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
-  ],
+  [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: getBundleZipUrlsForEnv(),
+  [REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS]: getLidoBundleZipUrlsForEnv(),
   // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
   //   "https://www.chimple.org/privacy-policy"
   // ],
