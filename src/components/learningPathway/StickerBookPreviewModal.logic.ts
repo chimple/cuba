@@ -32,6 +32,7 @@ interface StickerBookPreviewModalLogicParams {
   variant: StickerBookPreviewVariant;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
   mode: StickerBookPreviewMode;
+  scale?: number;
 }
 
 const fallbackStickerBookLayoutUrl =
@@ -49,6 +50,7 @@ export const useStickerBookPreviewModalLogic = ({
   variant,
   onClose,
   mode,
+  scale = 1,
 }: StickerBookPreviewModalLogicParams) => {
   const history = useHistory();
   const stableDataRef = useRef<StickerBookModalData>({
@@ -207,10 +209,10 @@ export const useStickerBookPreviewModalLogic = ({
     const frameRect = frame.getBoundingClientRect();
     const slotRect = slot.getBoundingClientRect();
     return {
-      x: slotRect.left - frameRect.left,
-      y: slotRect.top - frameRect.top,
-      width: slotRect.width,
-      height: slotRect.height,
+      x: (slotRect.left - frameRect.left) / scale,
+      y: (slotRect.top - frameRect.top) / scale,
+      width: slotRect.width / scale,
+      height: slotRect.height / scale,
     };
   };
 
@@ -218,10 +220,10 @@ export const useStickerBookPreviewModalLogic = ({
     const frame = frameRef.current;
     if (!frame) return null;
     const frameRect = frame.getBoundingClientRect();
-    const x = clientX - frameRect.left - dragOffsetRef.current.x;
-    const y = clientY - frameRect.top - dragOffsetRef.current.y;
-    const maxX = Math.max(0, frameRect.width - dragStickerSize);
-    const maxY = Math.max(0, frameRect.height - dragStickerSize);
+    const x = (clientX - frameRect.left) / scale - dragOffsetRef.current.x;
+    const y = (clientY - frameRect.top) / scale - dragOffsetRef.current.y;
+    const maxX = Math.max(0, frame.clientWidth - dragStickerSize);
+    const maxY = Math.max(0, frame.clientHeight - dragStickerSize);
     return {
       x: Math.min(Math.max(0, x), maxX),
       y: Math.min(Math.max(0, y), maxY),
@@ -280,8 +282,8 @@ export const useStickerBookPreviewModalLogic = ({
     const targetRect = target.getBoundingClientRect();
     dragPointerIdRef.current = event.pointerId;
     dragOffsetRef.current = {
-      x: event.clientX - targetRect.left,
-      y: event.clientY - targetRect.top,
+      x: (event.clientX - targetRect.left) / scale,
+      y: (event.clientY - targetRect.top) / scale,
     };
     target.setPointerCapture(event.pointerId);
     setIsDragging(true);

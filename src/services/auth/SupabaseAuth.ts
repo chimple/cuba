@@ -6,7 +6,6 @@ import {
   REFRESH_TABLES_ON_LOGIN,
   TABLES,
   TableTypes,
-  IS_OPS_USER,
 } from '../../common/constants';
 import {
   SupabaseClient,
@@ -21,7 +20,11 @@ import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Capacitor } from '@capacitor/core';
 import { store } from '../../redux/store';
-import { logout, setRoles } from '../../redux/slices/auth/authSlice';
+import {
+  logout,
+  setIsOpsUser,
+  setRoles,
+} from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 
 export class SupabaseAuth implements ServiceAuth {
@@ -650,11 +653,10 @@ export class SupabaseAuth implements ServiceAuth {
         return { data: !!data, error } as { data: boolean; error: any };
       });
 
+      store.dispatch(setIsOpsUser(isSplQuery));
       if (isSplQuery) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-        localStorage.setItem(IS_OPS_USER, 'true');
       } else {
-        localStorage.setItem(IS_OPS_USER, 'false');
         let isFirstSync = true;
         await api.syncDB(
           Object.values(TABLES),

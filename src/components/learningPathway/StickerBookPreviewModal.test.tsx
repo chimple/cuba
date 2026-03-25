@@ -422,8 +422,8 @@ describe('StickerBookPreviewModal', () => {
     const shape = container.querySelector(
       '[data-slot-id="slot-next"] rect',
     ) as SVGRectElement;
-    expect(shape.getAttribute('fill')).toBe('none');
-    expect(shape.getAttribute('stroke')).toBe('none');
+    expect(shape.getAttribute('fill')).toBe('#D1D2D4');
+    expect(shape.getAttribute('stroke')).toBe('#D1D2D4');
     expect(shape.getAttribute('fill-opacity')).toBeNull();
     expect(shape.getAttribute('stroke-opacity')).toBeNull();
   });

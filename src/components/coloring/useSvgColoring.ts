@@ -26,6 +26,11 @@ export const useSvgColoring = (
       const colorable = target.closest('[color-id]') as Element | null;
       if (!colorable) return;
 
+      const modeColor =
+        colorable.getAttribute('mode') === 'color' ||
+        !!colorable.closest('[mode="color"]');
+      if (modeColor) return;
+
       const regionId = colorable.getAttribute('color-id');
       if (!regionId) return;
 
@@ -53,21 +58,25 @@ export const useSvgColoring = (
         paintShape(colorable);
       }
 
-      setColoredRegions((prev) => ({
-        ...prev,
-        [regionId]: selectedColor,
-      }));
+      setColoredRegions((prev) => {
+        const next = {
+          ...prev,
+          [regionId]: selectedColor,
+        };
 
-      // Change: track paint interactions for analytics.
-      Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
-        user_id: Util.getCurrentStudent()?.id ?? null,
-        region_id: regionId,
-        color: selectedColor,
-        colored_count: Object.keys(coloredRegions).length + 1,
-        page_path: window.location.pathname,
+        // Change: track paint interactions for analytics.
+        Util.logEvent(EVENTS.PAINT_CANVAS_TAP, {
+          user_id: Util.getCurrentStudent()?.id ?? null,
+          region_id: regionId,
+          color: selectedColor,
+          colored_count: Object.keys(next).length,
+          page_path: window.location.pathname,
+        });
+
+        return next;
       });
     },
-    [selectedColor, coloredRegions],
+    [selectedColor],
   );
 
   useEffect(() => {

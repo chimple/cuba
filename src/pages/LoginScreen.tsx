@@ -150,9 +150,15 @@ const LoginScreen: React.FC = () => {
           await i18n.changeLanguage(appLang);
         }
 
-        // if already logged in, jump straight to select‐mode
         const authHandler = ServiceConfig.getI().authHandler;
-        if (await authHandler.isUserLoggedIn()) {
+        let isLoggedIn = await authHandler.isUserLoggedIn();
+
+        if (!isLoggedIn) {
+          Util.migrateSupabaseSession();
+          isLoggedIn = await authHandler.isUserLoggedIn();
+        }
+
+        if (isLoggedIn) {
           history.replace(PAGES.SELECT_MODE);
           return;
         }
