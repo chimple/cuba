@@ -9,3 +9,12 @@
   width: 100%;
   height: 100%;
 }
+
+@media (min-width: 1024px) {
+  .new-back-btn {
+    min-width: 80px;
+    min-height: 48px;
+    max-width: 80px;
+    max-height: 48px;
+  }
+}
