@@ -101,7 +101,10 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
             </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.OPS_MODULE_PAGE}`} exact={true}>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
+              exact={true}
+            >
               <OpsModulePage />
             </ProtectedRoute>
             <ProtectedRoute

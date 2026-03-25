@@ -3063,7 +3063,7 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (error) {
-      console.error('Error in parent WhatsApp school lookup by UDISE:', error);
+      logger.error('Error in parent WhatsApp school lookup by UDISE:', error);
       throw error;
     }
 
@@ -3393,7 +3393,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error(
+      logger.error(
         'Error in parent WhatsApp class lookup by school ID:',
         error,
       );
@@ -3422,7 +3422,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false);
 
     if (error) {
-      console.error(
+      logger.error(
         'Error in parent WhatsApp parent phone lookup by class ID:',
         error,
       );
@@ -6168,7 +6168,10 @@ export class SupabaseApi implements ServiceApi {
       .limit(1);
 
     if (principalError) {
-      logger.error('Error checking principal role in school_user:', principalError);
+      logger.error(
+        'Error checking principal role in school_user:',
+        principalError,
+      );
       throw principalError;
     }
 
@@ -6863,22 +6866,28 @@ export class SupabaseApi implements ServiceApi {
         .in('role', [RoleType.TEACHER, 'teacher']);
 
       if (teacherRowsError) {
-        logger.error('Error checking teacher role in class_user:', teacherRowsError);
+        logger.error(
+          'Error checking teacher role in class_user:',
+          teacherRowsError,
+        );
         return;
       }
 
       const teacherClassIds = Array.from(
-        new Set((teacherRows ?? []).map((row: any) => row.class_id).filter(Boolean)),
+        new Set(
+          (teacherRows ?? []).map((row: any) => row.class_id).filter(Boolean),
+        ),
       );
 
       if (teacherClassIds.length > 0) {
-        const { data: schoolClassMatch, error: classMatchError } = await this.supabase
-          .from(TABLES.Class)
-          .select('id')
-          .eq('school_id', schoolId)
-          .eq('is_deleted', false)
-          .in('id', teacherClassIds)
-          .limit(1);
+        const { data: schoolClassMatch, error: classMatchError } =
+          await this.supabase
+            .from(TABLES.Class)
+            .select('id')
+            .eq('school_id', schoolId)
+            .eq('is_deleted', false)
+            .in('id', teacherClassIds)
+            .limit(1);
 
         if (classMatchError) {
           logger.error(

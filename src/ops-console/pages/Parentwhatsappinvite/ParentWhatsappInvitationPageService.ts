@@ -149,9 +149,7 @@ const fileToBase64 = async (file: File): Promise<string> => {
 const logParentWhatsappEvent = (
   event: string,
   details: Record<string, unknown>,
-): void => {
-  console.info(`[ParentWhatsappInvitation] ${event}`, details);
-};
+): void => {};
 
 // Normalizes UDISE input into expected 11-digit code format.
 const normalizeUdiseCode = (raw: string): string | null => {
@@ -393,10 +391,10 @@ const parseWhatsappGroupDetails = (raw: unknown): ParsedWhatsappGroup => {
       ? (raw as MaytapiGroupPayload)
       : null;
 
-  const container =
+  const container: MaytapiGroupPayload['data'] | MaytapiGroupPayload =
     parsedGroup?.data && typeof parsedGroup.data === 'object'
       ? parsedGroup.data
-      : parsedGroup;
+      : (parsedGroup ?? {});
   const members = Array.isArray(container?.participants)
     ? container.participants
     : Array.isArray(container?.members)
@@ -674,8 +672,9 @@ export const fetchParentWhatsappMsg91Report = async (params: {
     });
   }
 
-  if (Array.isArray(payload?.data)) {
-    return payload.data as Record<string, unknown>[];
+  const payloadData = payload?.data;
+  if (Array.isArray(payloadData)) {
+    return payloadData as Record<string, unknown>[];
   }
 
   if (
@@ -725,8 +724,9 @@ export const sendParentWhatsappMsg91Invites = async (
       : 0;
 
   const chunkedInviteRows = chunkInviteRows(inviteRows, MSG91_BATCH_SIZE);
-  const rawFailedBatches = Array.isArray(payload?.failedBatches)
-    ? payload?.failedBatches
+  const payloadFailedBatches = payload?.failedBatches;
+  const rawFailedBatches: unknown[] = Array.isArray(payloadFailedBatches)
+    ? payloadFailedBatches
     : [];
   const failedBatches: ParentWhatsappSmsBatchFailure[] = [];
 
@@ -750,8 +750,9 @@ export const sendParentWhatsappMsg91Invites = async (
         : index + 1;
 
     const inviteBatch = chunkedInviteRows[batchIndex - 1] ?? [];
-    const recipients = Array.isArray(failure?.recipients)
-      ? failure.recipients.map((recipient) => String(recipient))
+    const failureRecipients = failure?.recipients;
+    const recipients = Array.isArray(failureRecipients)
+      ? failureRecipients.map((recipient) => String(recipient))
       : inviteBatch.map((row) => row.mobile);
 
     const statusCode =

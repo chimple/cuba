@@ -750,6 +750,7 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id,
         );
+        let isPermissionDenied = false;
         if (!mutate || mutate.error) {
           const _currentUser =
             await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -762,25 +763,18 @@ export class SqliteApi implements ServiceApi {
           const mutateMessage = String(
             mutate?.error?.message ?? mutate?.error?.details ?? '',
           ).toLowerCase();
-          const isPermissionDenied =
+          const isDuplicateConflict =
+            mutateCode === '23505' || mutateStatus === 409;
+          isPermissionDenied =
             mutateStatus === 401 ||
             mutateStatus === 403 ||
             mutateCode === '42501' ||
             mutateMessage.includes('permission denied') ||
-            mutateMessage.includes('not permitted') ||
             mutateMessage.includes('row-level security') ||
             mutateMessage.includes('violates row-level security') ||
-            mutateMessage.includes('unauthorized') ||
-            mutateMessage.includes('forbidden');
+            mutateMessage.includes('unauthorized');
 
-          if (isPermissionDenied) {
-            await this.executeQuery(
-              `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
-              [data.id, data.table_name],
-            );
-            continue;
-          }
-          if (mutate?.error?.code === '23505' || mutate?.status === 409) {
+          if (isDuplicateConflict || !isPermissionDenied) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
             logger.info('🔴 Real push error:', mutate?.error);
@@ -791,6 +785,9 @@ export class SqliteApi implements ServiceApi {
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [data.id, data.table_name],
         );
+        if (mutate?.error && isPermissionDenied) {
+          continue;
+        }
         await this.executeQuery(
           `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
           [data.table_name, new Date().toISOString()],
