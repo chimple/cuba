@@ -32,7 +32,6 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     requestType === RequestTypes.TEACHER ||
     requestType === RequestTypes.PRINCIPAL;
   const isSchoolRequest = requestType === RequestTypes.SCHOOL;
-  const shouldUpdateSchoolStatus = isSchoolRequest;
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -116,7 +115,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         isTeacherOrPrincipal ? selectedReason : undefined,
         finalReason,
       );
-      if (shouldUpdateSchoolStatus) {
+      if (isSchoolRequest) {
         await api.updateSchoolStatus(requestData.school.id, status);
       }
 
