@@ -14,6 +14,7 @@ import { EVENTS, PAGES } from '../../common/constants';
 import PaintExitPopup from './PaintExitPopup';
 import { t } from 'i18next';
 import StickerBookActions from '../stickerBook/StickerBookActions';
+import { getAppPathname } from '../../utility/routerLocation';
 
 type ColoringBoardRouteState = {
   svgUrl?: string;
@@ -105,7 +106,7 @@ const ColoringBoard: React.FC = () => {
   useEffect(() => {
     Util.logEvent(EVENTS.PAINT_MODE_PAGE_VIEW, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       return_to: location.state?.returnTo ?? null,
     });
   }, [location.state]);
@@ -122,12 +123,12 @@ const ColoringBoard: React.FC = () => {
   const handleSave = () => {
     Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
     });
     Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
     });
     logger.info('save');
@@ -148,7 +149,7 @@ const ColoringBoard: React.FC = () => {
           onExit={() => {
             Util.logEvent(EVENTS.PAINT_EXIT_TAP, {
               user_id: Util.getCurrentStudent()?.id ?? null,
-              page_path: window.location.pathname,
+              page_path: getAppPathname(),
             });
             setShowExitConfirm(true);
           }}
@@ -214,21 +215,21 @@ const ColoringBoard: React.FC = () => {
         onClose={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_CLOSE_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           setShowExitConfirm(false);
         }}
         onStay={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_STAY_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           setShowExitConfirm(false);
         }}
         onExit={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_CONFIRM_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           handleExit();
         }}

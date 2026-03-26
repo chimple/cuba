@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
+import { getAppPathname } from '../utility/routerLocation';
 
 export type BackButtonHandler = () => boolean | void | Promise<boolean | void>;
 
@@ -29,8 +30,7 @@ const normalizePath = (path: string) => {
 };
 
 const getCurrentPath = () => {
-  if (typeof window === 'undefined') return '/';
-  return normalizePath(window.location?.pathname || '/');
+  return normalizePath(getAppPathname());
 };
 
 const isActiveForPath = (record: BackButtonRecord, path: string) => {

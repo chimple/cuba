@@ -21,6 +21,7 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
+import { getAppSearch } from '../utility/routerLocation';
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -90,7 +91,7 @@ const DisplayStudents: FC<{}> = () => {
         from: history.location.pathname,
       });
     } else {
-      history.replace(PAGES.HOME + window.location.search);
+      history.replace(PAGES.HOME + getAppSearch());
     }
   };
   const onCreateNewStudent = () => {

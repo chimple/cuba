@@ -22,7 +22,7 @@ import {
   IonToast,
   setupIonicReact,
 } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
+import { IonReactHashRouter } from '@ionic/react-router';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -154,6 +154,7 @@ import PostSuccess from './teachers-module/pages/PostSuccess';
 import QRAssignments from './teachers-module/components/homePage/assignment/QRAssignments';
 import TeacherRecommendedAssignments from './teachers-module/components/homePage/assignment/TeacherRecommendedAssignments';
 import StickerBook from './pages/StickerBook';
+import { getAppSearchParams } from './utility/routerLocation';
 
 setupIonicReact();
 interface ExtraData {
@@ -231,6 +232,35 @@ const App: React.FC = () => {
     return null;
   };
 
+  const PopupRouteWatcher = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+      if (!growthbook) return;
+
+      const popupConfig = growthbook.getFeatureValue(
+        GENERIC_POP_UP,
+        null,
+      ) as any;
+
+      if (!popupConfig) return;
+
+      const params = getAppSearchParams();
+      const currentTab = params.get('tab');
+
+      if (
+        currentTab &&
+        popupConfig.screen_name &&
+        currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
+      ) {
+        PopupManager.onAppOpen(popupConfig);
+        PopupManager.onTimeElapsed(popupConfig);
+      }
+    }, [growthbook, location.pathname, location.search]);
+
+    return null;
+  };
+
   useEffect(() => {
     // this event listener is to remove the highlighted text(if exists) on a click
     const handleClick = () => {
@@ -246,26 +276,6 @@ const App: React.FC = () => {
       document.removeEventListener('click', handleClick);
     };
   }, []);
-
-  useEffect(() => {
-    if (!growthbook) return;
-
-    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
-
-    if (!popupConfig) return;
-
-    const params = new URLSearchParams(window.location.search);
-    const currentTab = params.get('tab');
-
-    if (
-      currentTab &&
-      popupConfig.screen_name &&
-      currentTab.toLowerCase() === popupConfig.screen_name.toLowerCase()
-    ) {
-      PopupManager.onAppOpen(popupConfig);
-      PopupManager.onTimeElapsed(popupConfig);
-    }
-  }, [growthbook, window.location.search]);
 
   useLayoutEffect(() => {
     const handler = (e: any) => {
@@ -534,8 +544,9 @@ const App: React.FC = () => {
   }
   return (
     <IonApp>
-      <IonReactRouter basename={BASE_NAME}>
+      <IonReactHashRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <PopupRouteWatcher />
         <HardwareBackButtonHandler
           popupDataRef={popupDataRef}
           setPopupData={setPopupData}
@@ -829,7 +840,7 @@ const App: React.FC = () => {
           message="You have resumed after exceeding the time limit."
           duration={3000}
         />
-      </IonReactRouter>
+      </IonReactHashRouter>
       {popupData && (
         <GenericPopup
           thumbnailImageUrl={popupData.localized.thumbnailImageUrl}

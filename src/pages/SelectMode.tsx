@@ -37,6 +37,7 @@ import {
   setUser,
 } from '../redux/slices/auth/authSlice';
 import logger from '../utility/logger';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -88,7 +89,7 @@ const SelectMode: FC = () => {
     }
   }, [currClass, stage]);
   const init = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const setTab = urlParams.get('tab');
     const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {

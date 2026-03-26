@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { getAppPathname } from './routerLocation';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
@@ -49,14 +50,15 @@ const IS_NATIVE =
   !!(window as any).Capacitor &&
   (window as any).Capacitor.getPlatform() !== 'web';
 
-let cachedPage: string | undefined = HAS_WINDOW
-  ? window.location.pathname
-  : undefined;
+let cachedPage: string | undefined = HAS_WINDOW ? getAppPathname() : undefined;
 
 if (HAS_WINDOW) {
-  window.addEventListener('popstate', () => {
-    cachedPage = window.location.pathname;
-  });
+  const updateCachedPage = () => {
+    cachedPage = getAppPathname();
+  };
+
+  window.addEventListener('popstate', updateCachedPage);
+  window.addEventListener('hashchange', updateCachedPage);
 }
 
 /**

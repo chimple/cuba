@@ -13,6 +13,7 @@ import NewBackButton from '../common/NewBackButton';
 import './StickerBookBoard.css';
 import logger from '../../utility/logger';
 import StickerBookActions from './StickerBookActions';
+import { getAppPathname } from '../../utility/routerLocation';
 
 type Props = {
   title: string;
@@ -105,7 +106,7 @@ const StickerBookBoard: React.FC<Props> = ({
     Util.logEvent(EVENTS.PAINT_MODE_BUTTON_TAP, {
       user_id: Util.getCurrentStudent()?.id ?? null,
       book_title: title,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: 'sticker_book',
     });
     if (onPaint) onPaint();
@@ -115,13 +116,13 @@ const StickerBookBoard: React.FC<Props> = ({
     Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
       user_id: Util.getCurrentStudent()?.id ?? null,
       book_title: title,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: 'sticker_book',
     });
     Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
       user_id: Util.getCurrentStudent()?.id ?? null,
       book_title: title,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: 'sticker_book',
     });
     if (onSave) onSave();

@@ -30,6 +30,11 @@ import { App } from '@capacitor/app';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
 import DebugMode from '../teachers-module/components/DebugMode';
+import {
+  buildAppRoute,
+  getAppSearchParams,
+  replaceAppHistory,
+} from '../utility/routerLocation';
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +54,7 @@ const Leaderboard: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = getAppSearchParams();
   const isRewardPage =
     urlParams.get('tab') === LEADERBOARDHEADERLIST.REWARDS.toLowerCase();
   const { setGbUpdated } = useGbContext();
@@ -86,7 +91,7 @@ const Leaderboard: React.FC = () => {
     setIsLoading(true);
     Util.loadBackgroundImage();
     inti();
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const rewardsTab = urlParams.get('tab');
     let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
     if (rewardsTab) {
@@ -98,11 +103,14 @@ const Leaderboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Update URL when tabIndex changes
     if (tabIndex) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('tab', tabIndex.toLowerCase());
-      window.history.replaceState({}, '', newUrl.toString());
+      const nextParams = getAppSearchParams();
+      const nextTab = tabIndex.toLowerCase();
+
+      if (nextParams.get('tab') !== nextTab) {
+        nextParams.set('tab', nextTab);
+        replaceAppHistory(buildAppRoute(PAGES.LEADERBOARD, nextParams));
+      }
     }
   }, [tabIndex]);
 

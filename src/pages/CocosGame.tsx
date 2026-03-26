@@ -33,6 +33,7 @@ import { App as CapApp } from '@capacitor/app';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -132,7 +133,7 @@ const CocosGame: React.FC = () => {
   };
 
   const push = () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
 
     if (Capacitor.isNativePlatform()) {

@@ -40,6 +40,11 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterCampaignPopupGating';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import {
+  buildAppRoute,
+  getAppSearchParams,
+  replaceAppHistory,
+} from '../utility/routerLocation';
 const localData: any = {};
 
 const Home: FC = () => {
@@ -96,11 +101,13 @@ const Home: FC = () => {
 
   useEffect(() => {
     if (currentHeader) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('tab', currentHeader);
-      window.history.replaceState({}, '', newUrl.toString());
+      const nextParams = new URLSearchParams(location.search);
+      if (nextParams.get('tab') !== currentHeader) {
+        nextParams.set('tab', currentHeader);
+        replaceAppHistory(buildAppRoute(location.pathname, nextParams));
+      }
     }
-  }, [currentHeader]);
+  }, [currentHeader, location.pathname, location.search]);
 
   const growthbook = useGrowthBook();
   useEffect(() => {
@@ -241,7 +248,7 @@ const Home: FC = () => {
     };
     updateAtb();
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     if (urlParams.get('page') === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       setTimeout(() => {

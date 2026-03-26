@@ -15,11 +15,12 @@ import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const paramLiveRoomId = urlSearchParams.get('liveRoomId');
   const [roomDoc, setRoomDoc] = useState<TableTypes<'live_quiz_room'>>();
   const [isTimeOut, setIsTimeOut] = useState(false);
@@ -110,7 +111,7 @@ const LiveQuizGame: FC = () => {
   };
 
   const push = () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
     if (Capacitor.isNativePlatform()) {
       history.replace(fromPath + '&isReload=false', state);

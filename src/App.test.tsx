@@ -1,6 +1,5 @@
 // Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
 import { act, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import { renderWithProviders } from './tests/test-utils';
 import App from './App';
 import PopupManager from './components/GenericPopUp/GenericPopUpManager';
@@ -35,7 +34,7 @@ describe('App Component', () => {
     onTimeElapsedSpy = jest
       .spyOn(PopupManager, 'onTimeElapsed')
       .mockImplementation(() => {});
-    window.history.replaceState({}, '', '/');
+    window.history.replaceState({}, '', '/#/login');
   });
 
   afterEach(() => {
@@ -49,11 +48,7 @@ describe('App Component', () => {
 
     act(() => {
       mockGrowthbook.getFeatureValue.mockReturnValue(null);
-      const result = renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      const result = renderWithProviders(<App />);
       unmount = result.unmount;
     });
 
@@ -117,13 +112,9 @@ describe('App Component', () => {
       };
 
       mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
-      window.history.replaceState({}, '', `/?tab=${tab}`);
+      window.history.replaceState({}, '', `/#/login?tab=${tab}`);
 
-      renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      renderWithProviders(<App />);
 
       await waitFor(() =>
         expect(PopupManager.onAppOpen).toHaveBeenCalledWith(popupConfig),
@@ -144,13 +135,9 @@ describe('App Component', () => {
     };
 
     mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
-    window.history.replaceState({}, '', '/?tab=home');
+    window.history.replaceState({}, '', '/#/login?tab=home');
 
-    renderWithProviders(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>,
-    );
+    renderWithProviders(<App />);
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
@@ -166,13 +153,9 @@ describe('App Component', () => {
     async ({ payload }) => {
       mockGrowthbook.getFeatureValue.mockReturnValue(payload);
 
-      window.history.replaceState({}, '', '/?tab=leaderboard');
+      window.history.replaceState({}, '', '/#/login?tab=leaderboard');
 
-      renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      renderWithProviders(<App />);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(PopupManager.onAppOpen).not.toHaveBeenCalled();

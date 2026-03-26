@@ -108,6 +108,13 @@ import {
   setUser,
 } from '../redux/slices/auth/authSlice';
 import logger from './logger';
+import {
+  buildAppRoute,
+  getAppPathname,
+  getAppSearchParams,
+  replaceAppHistory,
+  replaceAppLocation,
+} from './routerLocation';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 
 declare global {
@@ -1044,9 +1051,10 @@ export class Util {
         userId: params.user_id,
       });
 
+      const pagePath = getAppPathname();
       await FirebaseAnalytics.setScreenName({
-        screenName: window.location.pathname,
-        nameOverride: window.location.pathname,
+        screenName: pagePath,
+        nameOverride: pagePath,
       });
 
       await FirebaseAnalytics.logEvent({
@@ -1094,9 +1102,10 @@ export class Util {
     await Util.setUserProperties(user);
 
     //Setting Screen Name
+    const pagePath = getAppPathname();
     await FirebaseAnalytics.setScreenName({
-      screenName: window.location.pathname,
-      nameOverride: window.location.pathname,
+      screenName: pagePath,
+      nameOverride: pagePath,
     });
   }
 
@@ -1107,12 +1116,11 @@ export class Util {
     }
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
-    const url = new URL(window.location.toString());
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!!urlParams.get(CONTINUE)) {
-      urlParams.delete(CONTINUE);
-    }
-    if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
+    const pathname = getAppPathname();
+    const urlParams = getAppSearchParams();
+    const continueFlag = urlParams.get(CONTINUE);
+
+    if (!continueFlag && pathname !== PAGES.APP_UPDATE) {
       return;
     }
     urlParams.delete(CONTINUE);
@@ -1120,24 +1128,22 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get(CONTINUE) === 'true' &&
-        url.pathname !== PAGES.GAME &&
-        url.pathname !== PAGES.LOGIN &&
-        url.pathname !== PAGES.EDIT_STUDENT
+        continueFlag === 'true' &&
+        pathname !== PAGES.GAME &&
+        pathname !== PAGES.LOGIN &&
+        pathname !== PAGES.EDIT_STUDENT
       ) {
         if (
-          url.pathname === PAGES.DISPLAY_SUBJECTS ||
-          url.pathname === PAGES.DISPLAY_CHAPTERS
+          pathname === PAGES.DISPLAY_SUBJECTS ||
+          pathname === PAGES.DISPLAY_CHAPTERS
         ) {
-          url.searchParams.set('isReload', 'true');
+          urlParams.set('isReload', 'true');
         }
-        url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, '', url.toString());
+        replaceAppHistory(buildAppRoute(pathname, urlParams));
         window.location.reload();
       } else {
-        url.searchParams.set('isReload', 'true');
-        url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, '', url.toString());
+        urlParams.set('isReload', 'true');
+        replaceAppHistory(buildAppRoute(pathname, urlParams));
         Util.checkingIfGameCanvasAvailable();
       }
     }
@@ -1270,7 +1276,7 @@ export class Util {
   };
 
   public static setPathToBackButton(path: string, history: any) {
-    const url = new URLSearchParams(window.location.search);
+    const url = getAppSearchParams();
     if (url.get(CONTINUE)) {
       history.replace(`${path}?${CONTINUE}=true`);
     } else {
@@ -1496,7 +1502,7 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+          replaceAppLocation(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1504,7 +1510,7 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+            replaceAppLocation(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
           } else {
             return;
           }
@@ -1522,7 +1528,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            replaceAppLocation(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
             foundMatch = true;
@@ -1537,14 +1543,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            replaceAppLocation(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
-            PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
-          );
+          replaceAppLocation(PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT);
           return;
         }
       }
@@ -1560,7 +1564,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            replaceAppLocation(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1577,13 +1581,11 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
-              PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
-            );
+            replaceAppLocation(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
+        replaceAppLocation(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
         return;
       }
     }
@@ -1850,7 +1852,7 @@ export class Util {
     // Determine target page for logging
     let destinationPage = '';
     const newSearchParams = new URLSearchParams(url.search);
-    const currentParams = new URLSearchParams(window.location.search);
+    const currentParams = getAppSearchParams();
     currentParams.set('classCode', newSearchParams.get('classCode') ?? '');
     currentParams.set('page', PAGES.JOIN_CLASS);
     const currentStudent = Util.getCurrentStudent();
@@ -1871,9 +1873,9 @@ export class Util {
       destinationPage,
     );
     if (destinationPage && currentStudent) {
-      window.location.replace(destinationPage);
+      replaceAppLocation(destinationPage);
     } else {
-      window.location.replace(
+      replaceAppLocation(
         PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
     }

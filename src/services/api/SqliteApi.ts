@@ -27,7 +27,6 @@ import {
   CHIMPLE_DIGITAL_SKILLS,
   TabType,
   AVATARS,
-  BASE_NAME,
   DELETED_CLASSES,
   StudentInfo,
   StudentAPIResponse,
@@ -99,6 +98,7 @@ import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorker
 import { store } from '../../redux/store';
 import { Json } from '../database';
 import logger from '../../utility/logger';
+import { replaceAppLocation } from '../../utility/routerLocation';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -296,7 +296,7 @@ export class SqliteApi implements ServiceApi {
           );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
-          window.location.replace(BASE_NAME || '/');
+          replaceAppLocation('/');
           return;
         } catch (error) {
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);

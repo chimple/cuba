@@ -6,6 +6,12 @@ import LeaderboardBadges from './LeaderboardBadges';
 import LeaderboardBonus from './LeaderboardBonus';
 import './LeaderboardRewards.css';
 import LeaderboardSticker from './LeaderboardSticker';
+import {
+  buildAppRoute,
+  getAppPathname,
+  getAppSearchParams,
+  replaceAppHistory,
+} from '../../utility/routerLocation';
 
 const LeaderboardRewards: FC = () => {
   const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
@@ -16,7 +22,7 @@ const LeaderboardRewards: FC = () => {
     setTabIndex(newValue);
   };
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const rewardsTab = urlParams.get('rewards');
     let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
     if (rewardsTab) {
@@ -30,11 +36,14 @@ const LeaderboardRewards: FC = () => {
   }, []);
 
   useEffect(() => {
-    // Update URL when tabIndex changes
     if (tabIndex) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('rewards', tabIndex.toLowerCase());
-      window.history.replaceState({}, '', newUrl.toString());
+      const nextParams = getAppSearchParams();
+      const nextTab = tabIndex.toLowerCase();
+
+      if (nextParams.get('rewards') !== nextTab) {
+        nextParams.set('rewards', nextTab);
+        replaceAppHistory(buildAppRoute(getAppPathname(), nextParams));
+      }
     }
   }, [tabIndex]);
 

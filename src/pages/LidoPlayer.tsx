@@ -34,6 +34,7 @@ import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
+import { getAppPathname, getAppSearchParams } from '../utility/routerLocation';
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -41,7 +42,7 @@ const LidoPlayer: FC = () => {
 
   // State
   const state = history.location.state as any;
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
   const playedFrom = localStorage.getItem('currentHeader');
@@ -100,7 +101,7 @@ const LidoPlayer: FC = () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
     let targetPath = fromPath;
     if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
@@ -700,7 +701,7 @@ const LidoPlayer: FC = () => {
   useEffect(() => {
     const unregister = registerBackButtonHandler(
       () => {
-        if (window.location.pathname !== PAGES.LIDO_PLAYER) return false;
+        if (getAppPathname() !== PAGES.LIDO_PLAYER) return false;
         push();
         return true;
       },
@@ -736,7 +737,7 @@ const LidoPlayer: FC = () => {
     if (typeof window !== 'undefined') {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
-    const urlSearchParams = new URLSearchParams(window.location.search);
+    const urlSearchParams = getAppSearchParams();
     const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
     const dow = await Util.downloadZipBundle(lessonIds);

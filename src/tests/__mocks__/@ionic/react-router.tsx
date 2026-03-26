@@ -6,3 +6,5 @@ export const IonReactRouter: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   return <MemoryRouter>{children}</MemoryRouter>;
 };
+
+export const IonReactHashRouter = IonReactRouter;

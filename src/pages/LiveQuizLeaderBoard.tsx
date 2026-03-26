@@ -9,6 +9,7 @@ import { useHistory } from 'react-router';
 import NextButton from '../components/common/NextButton';
 import { Util } from '../utility/util';
 import logger from '../utility/logger';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 type ParticipantScore = {
   studentDocId: string;
@@ -29,7 +30,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
   const [students, setStudents] = useState(
     new Map<string, TableTypes<'user'>>(),
   );
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const paramLiveRoomId = urlSearchParams.get('liveRoomId') ?? '';
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();

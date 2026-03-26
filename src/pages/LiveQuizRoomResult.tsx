@@ -10,6 +10,7 @@ import { GiCrown } from 'react-icons/gi';
 import { t } from 'i18next';
 import { IonPage } from '@ionic/react';
 import logger from '../utility/logger';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<
@@ -29,7 +30,7 @@ const LiveQuizRoomResult: React.FC = () => {
     [],
   );
   const [isCongratsVisible, setCongratsVisible] = useState(true);
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const paramLiveRoomId = urlSearchParams.get('liveRoomId') ?? '';
   const api = ServiceConfig.getI().apiHandler;
 

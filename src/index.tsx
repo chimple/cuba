@@ -52,7 +52,6 @@ import { Preferences } from '@capacitor/preferences';
 import { Provider } from 'react-redux';
 import { persistor, store } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
-import { BrowserRouter } from 'react-router-dom';
 import logger from './utility/logger';
 
 Sentry.init(
@@ -338,13 +337,11 @@ if (isOpsUser) {
   root.render(
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <BrowserRouter>
-          <GrowthBookProvider growthbook={gb}>
-            <GbProvider>
-              <App />
-            </GbProvider>
-          </GrowthBookProvider>
-        </BrowserRouter>
+        <GrowthBookProvider growthbook={gb}>
+          <GbProvider>
+            <App />
+          </GbProvider>
+        </GrowthBookProvider>
       </PersistGate>
     </Provider>,
   );
@@ -361,13 +358,11 @@ if (isOpsUser) {
     root.render(
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <BrowserRouter>
-            <GrowthBookProvider growthbook={gb}>
-              <GbProvider>
-                <App />
-              </GbProvider>
-            </GrowthBookProvider>
-          </BrowserRouter>
+          <GrowthBookProvider growthbook={gb}>
+            <GbProvider>
+              <App />
+            </GbProvider>
+          </GrowthBookProvider>
         </PersistGate>
       </Provider>,
     );

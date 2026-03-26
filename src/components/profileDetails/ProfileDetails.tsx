@@ -32,6 +32,10 @@ import {
   reinitializeHardwareBackButton,
 } from '../../common/backButtonRegistry';
 import logger from '../../utility/logger';
+import {
+  getAppPathname,
+  getAppSearchParams,
+} from '../../utility/routerLocation';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -175,7 +179,7 @@ const ProfileDetails = () => {
   };
 
   const withContinueIfNeeded = (base: string) => {
-    const url = new URLSearchParams(window.location.search);
+    const url = getAppSearchParams();
     if (!url.has(CONTINUE)) return base;
     return base.includes('?')
       ? `${base}&${CONTINUE}=true`
@@ -191,7 +195,7 @@ const ProfileDetails = () => {
 
     try {
       // Determine Mode based on Live Pathname (Not State)
-      const currentPath = window.location.pathname;
+      const currentPath = getAppPathname();
       const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
 
       // EDIT MODE Logic
@@ -312,7 +316,7 @@ const ProfileDetails = () => {
           gender,
           language_id: languageId,
           variation,
-          page_path: window.location.pathname,
+          page_path: getAppPathname(),
           action_type: ACTION_TYPES.PROFILE_UPDATED,
         });
       } else {
@@ -335,7 +339,7 @@ const ProfileDetails = () => {
           gender,
           language_id: languageId,
           variation,
-          page_path: window.location.pathname,
+          page_path: getAppPathname(),
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
 
@@ -393,7 +397,7 @@ const ProfileDetails = () => {
         user_id: user?.id,
         name: fullName,
         variation,
-        page_path: window.location.pathname,
+        page_path: getAppPathname(),
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
 

@@ -10,6 +10,7 @@ import { Util } from '../utility/util';
 import './StickerBook.css';
 import logger from '../utility/logger';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { getAppPathname } from '../utility/routerLocation';
 
 type CurrentProgress = {
   bookId: string;
@@ -196,7 +197,7 @@ const StickerBook: React.FC = () => {
       total_elements: total,
       colored_elements: colored,
       uncolored_elements: uncolored,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     });
   }, [selectedBook, allStickerIds, collectedStickers]);
 
