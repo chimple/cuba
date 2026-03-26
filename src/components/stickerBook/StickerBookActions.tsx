@@ -24,18 +24,18 @@ export default function StickerBookActions({
 }: Props) {
   return (
     <div id="sticker-book-actions-root" className="StickerBookActions-root">
-      {/* {isStickerBookSaveEnabled && isBookCompleted && ( */}
-      <button
-        id="sticker-book-actions-save"
-        type="button"
-        className="StickerBookActions-save"
-        onClick={onSave}
-        disabled={saveDisabled}
-      >
-        <img src={cameraIcon} alt={t('Save') || ''} />
-        {t('Save')}
-      </button>
-      {/* )} */}
+      {isStickerBookSaveEnabled && isBookCompleted && (
+        <button
+          id="sticker-book-actions-save"
+          type="button"
+          className="StickerBookActions-save"
+          onClick={onSave}
+          disabled={saveDisabled}
+        >
+          <img src={cameraIcon} alt={t('Save') || ''} />
+          {t('Save')}
+        </button>
+      )}
 
       {showPaint && (
         <button
