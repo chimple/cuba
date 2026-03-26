@@ -5,30 +5,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(0.625rem, 2.2vw, 1.5rem);
+  padding: 1.5rem;
   background: rgba(0, 0, 0, 0.58);
 }
 
 .StickerBookPreviewModal-modal {
   position: relative;
-  width: min(92vw, 38.75rem);
-  max-height: calc(100vh - clamp(1.25rem, 4.2vw, 2.5rem));
-  background: #f3f1ea;
+  width: 46rem;
+  max-height: calc(100vh - 2.5rem);
+  background: #fffdee;
   border-radius: 1.125rem;
-  box-shadow: 0 0.875rem 1.875rem rgba(0, 0, 0, 0.3);
+  border: none !important;
+  outline: none !important;
   overflow: visible;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  --close-size: clamp(2.95rem, 5vw, 3.6rem);
+  --close-size: 3.6rem;
   --close-outset: calc(var(--close-size) * 0.82);
   --close-top: calc(var(--close-size) * 0.1);
   --close-pad: calc(var(--close-size) * 0.18);
-  margin-right: calc(var(--close-outset) + var(--close-pad));
+  margin-right: calc(var(--close-size) * 1.5);
 }
 
 .StickerBookPreviewModal-modal--drag {
-  animation: StickerBookPreviewModal-expand-in 300ms ease-out;
+  animation: StickerBookPreviewModal-expand-in 520ms
+    cubic-bezier(0.18, 0.88, 0.22, 1);
 }
 
 .StickerBookPreviewModal-modal--flyout {
@@ -38,11 +40,15 @@
 @keyframes StickerBookPreviewModal-expand-in {
   0% {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translate(
+        var(--launch-offset-x, 0px),
+        var(--launch-offset-y, 0px)
+      )
+      scale(var(--launch-start-scale, 0.16));
   }
   100% {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(0, 0) scale(1);
   }
 }
 
@@ -60,25 +66,22 @@
 .StickerBookPreviewModal-modal::after {
   content: '';
   position: absolute;
-  right: calc(-1.8 * var(--close-outset));
-  left: auto;
+  left: calc(100% - 20px);
   top: 0;
-  width: calc(
-    var(--close-size) + (var(--close-outset) * 0.76) + (var(--close-pad) * 0.6)
-  );
-  height: calc(var(--close-size) + var(--close-top) * 2);
-  border-radius: 0 999px 999px 0;
-  background: #f3f1ea;
-  z-index: 1;
+  width: calc(var(--close-size) * 1.5 + 20px);
+  height: calc(var(--close-size) * 1.35);
+  border-radius: 1.125rem 999px 999px 0;
+  background: #fffdee;
+  z-index: -1;
 }
 
 .StickerBookPreviewModal-close {
   position: absolute;
-  width: calc(var(--close-size) * 0.92);
+  width: var(--close-size);
   height: var(--close-size);
-  top: var(--close-top);
-  right: calc(-2 * (var(--close-size) * 0.58));
-  border: clamp(0.12rem, 0.35vw, 0.14rem) solid #f34d08;
+  top: calc(var(--close-size) * 0.175);
+  left: calc(100% + var(--close-size) * 0.29);
+  border: 0.12rem solid #f34d08;
   border-radius: 50%;
   background: #ffffff;
   display: grid;
@@ -86,7 +89,6 @@
   cursor: pointer;
   z-index: 2;
   padding: 0;
-  box-shadow: 0 0.4rem 0.9rem rgba(0, 0, 0, 0.18);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -97,7 +99,7 @@
   top: 50%;
   left: 50%;
   width: 52%;
-  height: clamp(0.12rem, 0.4vw, 0.18rem);
+  height: 0.18rem;
   background: #f34d08;
   border-radius: 999px;
 }
@@ -119,7 +121,7 @@
   width: 100%;
   aspect-ratio: 620 / 346;
   border-radius: 1.125rem 1.125rem 0 0;
-  background: #bee7de;
+  background: transparent;
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -152,8 +154,8 @@
 .StickerBookPreviewModal-confetti-piece {
   left: var(--piece-left);
   top: var(--piece-top);
-  width: clamp(0.3rem, 0.85vw, 0.42rem);
-  height: clamp(0.7rem, 1.7vw, 0.98rem);
+  width: 0.42rem;
+  height: 0.98rem;
   border-radius: 0.08rem;
   background: var(--piece-color);
   transform: rotate(var(--piece-rotate));
@@ -252,6 +254,38 @@
   }
 }
 
+.StickerBookPreviewModal-confetti-drop-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18rem;
+  height: 18rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.StickerBookPreviewModal-confetti-drop-explode {
+  transform-origin: center;
+  animation: StickerBookPreviewModal-confetti-drop-blast 1200ms
+    cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-blast {
+  0% {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
 .StickerBookPreviewModal-draggable-sticker {
   position: absolute;
   top: 0;
@@ -266,6 +300,46 @@
 .StickerBookPreviewModal-draggable-sticker--active {
   cursor: grabbing;
   transform-origin: center;
+  z-index: 10;
+}
+
+.StickerBookPreviewModal-draggable-sticker--active img {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+}
+
+.StickerBookPreviewModal-draggable-sticker--hinting img {
+  animation: StickerBookPreviewModal-sticker-hint 3000ms ease-in-out infinite !important;
+}
+
+@keyframes StickerBookPreviewModal-sticker-hint {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  10% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  40% {
+    transform: translate(
+        calc(var(--target-x, 0px) * 0.15),
+        calc(var(--target-y, -250px) * 0.15)
+      )
+      scale(1.05) rotate(2deg);
+  }
+  60% {
+    transform: translate(
+        calc(var(--target-x, 0px) * 0.15),
+        calc(var(--target-y, -250px) * 0.15)
+      )
+      scale(1.05) rotate(2deg);
+  }
+  90% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
 }
 
 .StickerBookPreviewModal-draggable-sticker img {
@@ -273,29 +347,62 @@
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  animation: StickerBookPreviewModal-sticker-drop 1100ms
+    cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes StickerBookPreviewModal-sticker-drop {
+  0% {
+    transform: translateY(calc(-1 * var(--sticker-drop-distance, 300px)))
+      scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .StickerBookPreviewModal-pointer-hint {
   position: absolute;
-  width: clamp(1.85rem, 5vw, 2.6rem);
-  height: clamp(1.85rem, 5vw, 2.6rem);
+  width: 2.6rem;
+  height: 2.6rem;
   pointer-events: none;
   z-index: 5;
-  animation: StickerBookPreviewModal-pointer-guide 900ms ease-in-out infinite;
+  opacity: 1;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  animation: StickerBookPreviewModal-pointer-guide-full 3000ms ease-in-out
+    infinite;
 }
 
-@keyframes StickerBookPreviewModal-pointer-guide {
+@keyframes StickerBookPreviewModal-pointer-guide-full {
   0% {
-    opacity: 0.95;
-    transform: translate(0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
   }
-  50% {
-    opacity: 0.9;
-    transform: translate(18px, 30px) scale(1.04);
+  10% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
+      scale(1.04);
+    opacity: 1;
+  }
+  60% {
+    transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
+      scale(1.04);
+    opacity: 1;
+  }
+  90% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
   }
   100% {
-    opacity: 0.95;
-    transform: translate(0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
   }
 }
 
@@ -310,25 +417,25 @@
 }
 
 .StickerBookPreviewModal-bottom-strip {
-  min-height: clamp(4.5rem, 8vw, 5.9rem);
+  min-height: 5.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.4rem, 1vw, 0.7rem);
-  padding: clamp(0.45rem, 1.2vw, 0.7rem) clamp(0.75rem, 1.8vw, 1.1rem);
+  gap: 0.7rem;
+  padding: 0.7rem 1.1rem;
   border-radius: 0 0 1.125rem 1.125rem;
-  background: #f3f1ea;
+  background: #fffdee;
   flex-shrink: 0;
 }
 
 .StickerBookPreviewModal-bottom-strip--completion {
-  gap: clamp(2rem, 5vw, 2.6rem);
+  gap: 2.6rem;
 }
 
 .StickerBookPreviewModal-helper-text {
   margin: 0;
   color: #182a4f;
-  font-size: clamp(0.875rem, 2.2vw, 1.375rem);
+  font-size: 1.675rem;
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -337,25 +444,25 @@
 
 .StickerBookPreviewModal-next-image,
 .StickerBookPreviewModal-next-placeholder {
-  width: clamp(2.1rem, 5vw, 3.2rem);
-  height: clamp(2.1rem, 5vw, 3.2rem);
+  width: 4.8rem;
+  height: 4.2rem;
   object-fit: contain;
   flex-shrink: 0;
-  border-radius: 0.875rem;
-  border: 0.18rem solid #ef5f88;
-  background: #fffded;
-  padding: 0.18rem;
+  border-radius: 0.8rem;
+  border: 0.2rem solid #f55376;
+  background: #fffdee;
+  padding: 0.4rem;
 }
 
 .StickerBookPreviewModal-next-placeholder {
-  background: #ffffff;
+  background: #d1d2d4;
   border-color: #ef5f88;
 }
 
 .StickerBookPreviewModal-next-name {
   margin: 0;
   color: #182a4f;
-  font-size: clamp(0.875rem, 2.2vw, 1.375rem);
+  font-size: 1.675rem;
   line-height: 1.15;
   font-weight: 700;
   white-space: nowrap;
@@ -364,7 +471,7 @@
 .StickerBookPreviewModal-drag-instruction {
   margin: 0;
   color: #182a4f;
-  font-size: clamp(0.82rem, 2.1vw, 1.2rem);
+  font-size: 1.2rem;
   line-height: 1.15;
   font-weight: 700;
 }
@@ -374,8 +481,8 @@
 }
 
 .StickerBookPreviewModal-action {
-  min-width: clamp(6.6rem, 20vw, 7.4rem);
-  min-height: clamp(2.95rem, 7vw, 3.35rem);
+  min-width: 7.4rem;
+  min-height: 3.35rem;
   border: none;
   border-radius: 0.72rem;
   display: inline-flex;
@@ -383,7 +490,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.22rem;
-  font-size: clamp(0.9rem, 2.4vw, 1rem);
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -417,111 +524,9 @@
   cursor: default;
 }
 
-@media (max-width: 1024px) {
-  .StickerBookPreviewModal-modal {
-    width: min(94vw, 36.5rem);
-    --close-size: clamp(2.7rem, 5.6vw, 3.15rem);
-  }
-
-  .StickerBookPreviewModal-modal::after {
-    border-radius: 0 999px 999px 0;
-  }
-}
-
-@media (max-width: 1024px) and (orientation: landscape) {
-  .StickerBookPreviewModal-overlay {
-    padding: 0.55rem;
-  }
-
-  .StickerBookPreviewModal-modal {
-    width: min(90vw, 34rem);
-    border-radius: 0.95rem;
-    --close-size: 2.58rem;
-  }
-
-  .StickerBookPreviewModal-book-frame {
-    border-radius: 0.95rem 0.95rem 0 0;
-  }
-
-  .StickerBookPreviewModal-modal::after {
-    border-radius: 0 999px 999px 0;
-    left: auto;
-  }
-
-  .StickerBookPreviewModal-bottom-strip {
-    min-height: 3.8rem;
-    padding: 0.4rem 0.7rem;
-  }
-
+@media (max-width: 768px) {
   .StickerBookPreviewModal-helper-text,
   .StickerBookPreviewModal-next-name {
-    font-size: clamp(0.9rem, 1.9vw, 1.18rem);
-  }
-}
-
-@media (max-width: 480px) {
-  .StickerBookPreviewModal-modal {
-    width: 94vw;
-    border-radius: 0.875rem;
-    --close-size: clamp(2.5rem, 9vw, 3.05rem);
-  }
-
-  .StickerBookPreviewModal-book-frame {
-    border-radius: 0.875rem 0.875rem 0 0;
-  }
-
-  .StickerBookPreviewModal-modal::after {
-    top: -0.12rem;
-    border-radius: 0 999px 999px 0;
-    background: rgba(243, 241, 234, 0.92);
-    left: auto;
-  }
-
-  .StickerBookPreviewModal-bottom-strip {
-    min-height: 4.15rem;
-    gap: 0.45rem;
-    padding: 0.5rem 0.65rem;
-  }
-
-  .StickerBookPreviewModal-bottom-strip--completion {
-    gap: 0.45rem;
-  }
-
-  .StickerBookPreviewModal-helper-text,
-  .StickerBookPreviewModal-next-name {
-    font-size: clamp(0.82rem, 3.8vw, 1.08rem);
-    white-space: normal;
-  }
-}
-
-@media (max-height: 520px) and (orientation: landscape) {
-  .StickerBookPreviewModal-overlay {
-    padding: 0.45rem;
-  }
-
-  .StickerBookPreviewModal-modal {
-    width: min(88vw, 31.5rem);
-    border-radius: 0.75rem;
-    --close-size: 2.3rem;
-  }
-
-  .StickerBookPreviewModal-book-frame {
-    border-radius: 0.75rem 0.75rem 0 0;
-  }
-
-  .StickerBookPreviewModal-modal::after {
-    border-radius: 0 999px 999px 0;
-  }
-
-  .StickerBookPreviewModal-bottom-strip {
-    min-height: 3.25rem;
-    padding: 0.35rem 0.55rem;
-  }
-
-  .StickerBookPreviewModal-next-image,
-  .StickerBookPreviewModal-next-placeholder {
-    width: 1.95rem;
-    height: 1.95rem;
-    border-radius: 0.65rem;
+    font-size: var(--text-sizeXL);
   }
 }

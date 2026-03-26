@@ -7,6 +7,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import BookIcon from '@mui/icons-material/Book';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import './Sidebar.css';
@@ -63,6 +64,11 @@ const navItems = [
     label: NavItems.REQUESTS,
     route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
     icon: <IoGitPullRequestSharp />,
+  },
+  {
+    label: NavItems.OpsMODULE,
+    route: PAGES.SIDEBAR_PAGE + PAGES.OPS_MODULE_PAGE,
+    icon: <ViewModuleIcon />,
   },
   {
     label: NavItems.USERS,
@@ -200,7 +206,16 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessUsersPage = userRoles.some((role) =>
               rolesWithAccess.includes(role as RoleType),
             );
+            const moduleRolesWithAccess = [
+              RoleType.SUPER_ADMIN,
+              RoleType.OPERATIONAL_DIRECTOR,
+            ];
+            const canAccessModulePage = userRoles.some((role) =>
+              moduleRolesWithAccess.includes(role as RoleType),
+            );
             if (item.label === NavItems.USERS && !canAccessUsersPage)
+              return null;
+            if (item.label === NavItems.OpsMODULE && !canAccessModulePage)
               return null;
 
             return (

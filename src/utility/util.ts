@@ -49,7 +49,6 @@ import {
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
-  IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
@@ -104,6 +103,7 @@ import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
 import {
   addRole,
+  setIsOpsUser,
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
@@ -376,6 +376,7 @@ export class Util {
   public static async downloadZipBundle(
     lessonIds: string[],
     chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -429,9 +430,8 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
                 );
               }
-              const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
-              );
+              const bundleZipUrls: string[] =
+                await RemoteConfig.getJSON(bundleZipUrlsKey);
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
@@ -1279,7 +1279,7 @@ export class Util {
   }
 
   public static switchToOpsUser(history: any): void {
-    localStorage.setItem(IS_OPS_USER, 'true');
+    store.dispatch(setIsOpsUser(true));
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
@@ -1921,7 +1921,9 @@ export class Util {
 
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
       const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
       if (
+        isOpsUser ||
         [
           RoleType.SUPER_ADMIN,
           RoleType.FIELD_COORDINATOR,
@@ -2014,7 +2016,21 @@ export class Util {
     const currentSchool = JSON.parse(temp) as TableTypes<'school'>;
     api.currentSchool = currentSchool;
 
-    const classId = localStorage.getItem(CLASS) ?? undefined;
+    const storedClass = localStorage.getItem(CLASS);
+    let classId: string | undefined;
+
+    if (storedClass && storedClass !== 'undefined' && storedClass !== 'null') {
+      try {
+        classId =
+          (JSON.parse(storedClass) as TableTypes<'class'> | null)?.id ??
+          undefined;
+      } catch (error) {
+        logger.warn('Failed to parse stored class while validating school', {
+          storedClass,
+          error,
+        });
+      }
+    }
 
     // SCHOOL CHECK
     isSchoolConnected(currentSchool.id).then((res) => {
@@ -2277,6 +2293,15 @@ export class Util {
         origin: originPage,
       });
       return;
+    }
+
+    const currentClass = this.getCurrentClass();
+    const validCurrentClass = currentClass
+      ? fetchedClasses.find((classItem) => classItem.id === currentClass.id)
+      : undefined;
+
+    if (!validCurrentClass) {
+      await this.setCurrentClass(fetchedClasses[0]);
     }
 
     const classCoursesData = await Promise.all(
@@ -2905,6 +2930,8 @@ export class Util {
         isPlayed: true,
       };
 
+      const completedPathwaySnapshot = JSON.stringify(learningPath);
+
       /* 3️⃣ Compute next active lesson */
       const nextLesson = await recommendNextLesson({
         student: currentStudent,
@@ -2948,10 +2975,10 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (isRewardLesson) {
+        if (completedPathwaySnapshot) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath),
+            completedPathwaySnapshot,
           );
         }
         const newpathId = uuidv4();
@@ -2969,7 +2996,15 @@ export class Util {
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (stickerAwardResult.completed) {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.setItem(
+              AUTO_OPEN_STICKER_PREVIEW_KEY,
+              JSON.stringify({
+                studentId: currentStudent.id,
+                createdAt: new Date().toISOString(),
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
+              }),
+            );
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
               JSON.stringify({
@@ -2990,6 +3025,8 @@ export class Util {
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
                 studentId: currentStudent.id,
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
                 createdAt: new Date().toISOString(),
               }),
             );
@@ -3050,16 +3087,27 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
+    awardedStickerId: string | null;
     payload: StickerBookModalData | null;
   }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
 
       const nextStickerId = await api.getNextWinnableSticker(
@@ -3070,39 +3118,51 @@ export class Util {
         return {
           completed: false,
           stickerBookId: current.book.id,
+          awardedStickerId: null,
           payload: null,
         };
       }
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
-      const updated = await api.getCurrentStickerBookWithProgress(studentId);
+      const currentCollectedStickerIds =
+        current.progress?.stickers_collected ?? [];
       const totalStickerCount =
-        updated?.book?.total_stickers ||
-        updated?.book?.stickers_metadata?.length ||
+        current.book?.total_stickers ||
+        current.book?.stickers_metadata?.length ||
         0;
-      const collectedCount = updated?.progress?.stickers_collected?.length || 0;
+      const nextCollectedStickerIds = currentCollectedStickerIds.includes(
+        nextStickerId,
+      )
+        ? currentCollectedStickerIds
+        : [...currentCollectedStickerIds, nextStickerId];
       const completed =
-        updated?.progress?.status === 'completed' ||
-        (totalStickerCount > 0 && collectedCount >= totalStickerCount);
+        totalStickerCount > 0 &&
+        nextCollectedStickerIds.length >= totalStickerCount;
+
+      await api.updateStickerWon(current.book.id, nextStickerId, studentId);
 
       return {
         completed,
-        stickerBookId: updated?.book?.id || current.book.id,
-        payload:
-          completed && updated?.book?.id
-            ? {
-                source: 'learning_pathway',
-                stickerBookId: updated.book.id,
-                stickerBookTitle: updated.book.title || 'Sticker Book',
-                stickerBookSvgUrl: updated.book.svg_url || '',
-                collectedStickerIds: updated.progress?.stickers_collected ?? [],
-                totalStickerCount,
-              }
-            : null,
+        stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
+        payload: completed
+          ? {
+              source: 'learning_pathway',
+              stickerBookId: current.book.id,
+              stickerBookTitle: current.book.title || 'Sticker Book',
+              stickerBookSvgUrl: current.book.svg_url || '',
+              collectedStickerIds: nextCollectedStickerIds,
+              totalStickerCount,
+            }
+          : null,
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
-      return { completed: false, stickerBookId: null, payload: null };
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
     }
   }
 
@@ -3113,6 +3173,11 @@ export class Util {
     student: TableTypes<'user'>,
   ): string | null {
     try {
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+      if (rewardLearningPath) {
+        return rewardLearningPath;
+      }
+
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
 
       // If nothing in session storage, return DB value
@@ -3685,5 +3750,38 @@ export class Util {
       device_language: device_language.value,
     };
     return device;
+  }
+
+  public static migrateSupabaseSession() {
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+
+      if (!supabaseUrl) {
+        logger.warn('Supabase URL missing, skipping session migration');
+        return;
+      }
+
+      const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      if (!projectRef) {
+        logger.warn('Invalid Supabase URL format, skipping session migration');
+        return;
+      }
+
+      const newKey = `sb-${projectRef}-auth-token`;
+      const oldKey = Object.keys(localStorage).find(
+        (key) => key.endsWith('auth-token') && key !== newKey,
+      );
+
+      if (oldKey) {
+        const oldSession = localStorage.getItem(oldKey);
+
+        if (oldSession && !localStorage.getItem(newKey)) {
+          localStorage.setItem(newKey, oldSession);
+          localStorage.removeItem(oldKey);
+        }
+      }
+    } catch (error) {
+      logger.error('Session migration failed', error);
+    }
   }
 }

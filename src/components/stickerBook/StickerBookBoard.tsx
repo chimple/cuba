@@ -17,6 +17,7 @@ import StickerBookActions from './StickerBookActions';
 type Props = {
   title: string;
   svgRaw: string | null;
+  svgUrl?: string;
   collectedStickers: string[];
   nextStickerId?: string;
   isLocked: boolean;
@@ -65,6 +66,7 @@ InlineSvg.displayName = 'InlineSvg';
 const StickerBookBoard: React.FC<Props> = ({
   title,
   svgRaw,
+  svgUrl,
   collectedStickers,
   nextStickerId,
   isLocked,
@@ -82,6 +84,7 @@ const StickerBookBoard: React.FC<Props> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
   const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
+  const [fallbackSvgRaw, setFallbackSvgRaw] = useState<string | null>(null);
 
   const logPayload = {
     user_id: Util.getCurrentStudent()?.id ?? null,
@@ -131,10 +134,11 @@ const StickerBookBoard: React.FC<Props> = ({
     if (onSave) onSave();
   };
 
+  const effectiveSvgRaw = svgRaw ?? fallbackSvgRaw;
   const parsedSvg = useMemo(() => {
-    if (!svgRaw) return null;
-    return parseSvg(svgRaw);
-  }, [svgRaw]);
+    if (!effectiveSvgRaw) return null;
+    return parseSvg(effectiveSvgRaw);
+  }, [effectiveSvgRaw]);
 
   const parsedBoardSvg = useMemo(() => {
     if (!boardSvgRaw) return null;
@@ -154,6 +158,21 @@ const StickerBookBoard: React.FC<Props> = ({
       isMounted = false;
     };
   }, []);
+
+  // Fallback: ensure we have an SVG for locked mode even if parent hasn't cached it yet.
+  useEffect(() => {
+    let isMounted = true;
+    if (svgRaw || !svgUrl) return;
+    fetch(svgUrl)
+      .then((res) => res.text())
+      .then((text) => {
+        if (isMounted) setFallbackSvgRaw(text);
+      })
+      .catch((e) => logger.error('Failed to load sticker book svg:', e));
+    return () => {
+      isMounted = false;
+    };
+  }, [svgRaw, svgUrl]);
 
   // Inject navigation arrows into the board SVG.
   useEffect(() => {
@@ -191,21 +210,12 @@ const StickerBookBoard: React.FC<Props> = ({
 
   return (
     <div id="sb-board-root" className="sticker-book-board-root">
-      <div id="sb-top-row" className="sticker-book-top-row">
+      <div className="sticker-book-col sticker-book-col-left">
         <NewBackButton onClick={handleBack} />
       </div>
 
-      <div id="sb-frame" className="sticker-book-frame">
+      <div id="sb-frame" className="sticker-book-frame sticker-book-col-middle">
         <div id="sb-board" className="sticker-book-board">
-          <StickerBookActions
-            showPaint={canPaint}
-            onSave={handleSave}
-            onPaint={handlePaint}
-            saveDisabled={!onSave}
-            paintDisabled={!svgRaw || !onPaint}
-            isStickerBookSaveEnabled={isStickerBookSaveEnabled}
-            isBookCompleted={isBookCompleted}
-          />
           {parsedBoardSvg && (
             <InlineSvg
               svg={parsedBoardSvg}
@@ -232,16 +242,11 @@ const StickerBookBoard: React.FC<Props> = ({
               <SVGScene
                 mode={isLocked ? 'color' : 'drag'}
                 svgRefExternal={svgRef}
-                collectedStickers={
-                  isLocked
-                    ? collectedStickers
-                    : [...collectedStickers, nextStickerId].filter(
-                        (id): id is string => Boolean(id),
-                      )
-                }
-                nextStickerId={isLocked ? nextStickerId : undefined}
+                collectedStickers={collectedStickers}
+                nextStickerId={nextStickerId}
                 isDragEnabled={false}
                 stickerVisibilityMode={isLocked ? 'legacy' : 'strict'}
+                stickerVisibilityUseFilters={false}
                 colorModeUncolouredColor="#FFFFFF"
                 colorModeUncolouredStyle="outline"
                 lockedStickerOutline={isLocked}
@@ -249,7 +254,7 @@ const StickerBookBoard: React.FC<Props> = ({
                 showUncollectedStickers={true}
               >
                 <InlineSvg
-                  key={`${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
+                  key={`${title}:${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
                   svg={parsedSvg}
                 />
               </SVGScene>
@@ -270,6 +275,18 @@ const StickerBookBoard: React.FC<Props> = ({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="sticker-book-col sticker-book-col-right">
+        <StickerBookActions
+          showPaint={canPaint}
+          onSave={handleSave}
+          onPaint={handlePaint}
+          saveDisabled={!onSave}
+          paintDisabled={!svgRaw || !onPaint}
+          isStickerBookSaveEnabled={isStickerBookSaveEnabled}
+          isBookCompleted={isBookCompleted}
+        />
       </div>
     </div>
   );

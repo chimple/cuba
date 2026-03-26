@@ -146,10 +146,12 @@ describe('StickerBookPreviewModal', () => {
       '[data-slot-id="slot-locked"] rect',
     ) as SVGRectElement;
 
-    expect(collected.getAttribute('fill')).toBe('#FFFFFF');
-    expect(collected.getAttribute('stroke')).toBe('#FFFFFF');
-    expect(collected.style.fill).toBe('#FFFFFF');
-    expect(collected.style.stroke).toBe('#FFFFFF');
+    expect(collected.getAttribute('fill')).toBe('#111111');
+    expect(collected.getAttribute('stroke')).toBe('#222222');
+    expect(collected.getAttribute('fill-opacity')).toBe('0.3');
+    expect(collected.getAttribute('stroke-opacity')).toBe('0.3');
+    expect(collected.style.fill).toBe('');
+    expect(collected.style.stroke).toBe('');
     expect(next.getAttribute('fill')).toBe('#D1D2D4');
     expect(next.getAttribute('stroke')).toBe('#D1D2D4');
     expect(next.style.fill).toBe('#D1D2D4');
@@ -422,8 +424,8 @@ describe('StickerBookPreviewModal', () => {
     const shape = container.querySelector(
       '[data-slot-id="slot-next"] rect',
     ) as SVGRectElement;
-    expect(shape.getAttribute('fill')).toBe('none');
-    expect(shape.getAttribute('stroke')).toBe('none');
+    expect(shape.getAttribute('fill')).toBe('#D1D2D4');
+    expect(shape.getAttribute('stroke')).toBe('#D1D2D4');
     expect(shape.getAttribute('fill-opacity')).toBeNull();
     expect(shape.getAttribute('stroke-opacity')).toBeNull();
   });
@@ -539,11 +541,47 @@ describe('StickerBookPreviewModal', () => {
       const updated = container.querySelector(
         '[data-slot-id="slot-collected"] rect',
       ) as SVGRectElement;
-      expect(updated.getAttribute('fill')).toBe('#FFFFFF');
-      expect(updated.getAttribute('stroke')).toBe('#FFFFFF');
-      expect(updated.style.fill).toBe('#FFFFFF');
-      expect(updated.style.stroke).toBe('#FFFFFF');
+      expect(updated.getAttribute('fill')).toBe('#111111');
+      expect(updated.getAttribute('stroke')).toBe('#222222');
+      expect(updated.getAttribute('fill-opacity')).toBe('0.3');
+      expect(updated.getAttribute('stroke-opacity')).toBe('0.3');
+      expect(updated.style.fill).toBe('');
+      expect(updated.style.stroke).toBe('');
     });
+  });
+
+  test('shows previously collected stickers in preview mode', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds: ['slot-collected'],
+          nextStickerId: 'slot-next',
+        })}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+
+    const collected = container.querySelector(
+      '[data-slot-id="slot-collected"] rect',
+    ) as SVGRectElement;
+    const next = container.querySelector(
+      '[data-slot-id="slot-next"] circle',
+    ) as SVGCircleElement;
+    const locked = container.querySelector(
+      '[data-slot-id="slot-locked"] rect',
+    ) as SVGRectElement;
+
+    expect(collected.getAttribute('fill')).toBe('#111111');
+    expect(collected.getAttribute('stroke')).toBe('#222222');
+    expect(next.getAttribute('fill')).toBe('#D1D2D4');
+    expect(locked.getAttribute('fill')).toBe('#FFFFFF');
   });
 
   test('keeps drag_collect slot state stable when collectedStickerIds mutates after open', async () => {

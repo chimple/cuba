@@ -6430,6 +6430,29 @@ export type Database = {
         };
         Returns: Json;
       };
+      parent_wa_get_group_details: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      send_parent_whatsapp_msg91_invites: {
+        Args: { p_batch_size?: number; p_invite_rows: Json };
+        Returns: Json;
+      };
+      fetch_parent_whatsapp_msg91_report: {
+        Args: { p_end_date: string; p_start_date: string };
+        Returns: Json;
+      };
+      send_parent_whatsapp_template_message: {
+        Args: {
+          p_media_id?: string;
+          p_media_type?: string;
+          p_message_type?: string;
+          p_template_lang: string;
+          p_template_name: string;
+          p_to: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       assignment_source: 'manual' | 'recommended' | 'qr_code' | 'chatbot';

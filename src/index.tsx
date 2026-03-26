@@ -40,7 +40,6 @@ import { Util } from './utility/util';
 import {
   CAN_HOT_UPDATE,
   EVENTS,
-  IS_OPS_USER,
   TableTypes,
   VERSION_KEY,
 } from './common/constants';
@@ -191,8 +190,28 @@ const gb = new GrowthBook({
 gb.init({
   streaming: true,
 });
-const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+const renderApp = () => {
+  root.render(
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <GrowthBookProvider growthbook={gb}>
+            <GbProvider>
+              <App />
+            </GbProvider>
+          </GrowthBookProvider>
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>,
+  );
+  SplashScreen.hide();
+  setTimeout(() => {
+    if (isNativePlatform && userData) {
+      checkForUpdate();
+    }
+  }, 60000);
+};
 
 async function checkForUpdate() {
   let majorVersion = '0';
@@ -333,50 +352,26 @@ async function checkForUpdate() {
   }
 }
 
-if (isOpsUser) {
-  serviceInstance.switchMode(APIMode.SUPABASE);
-  root.render(
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <BrowserRouter>
-          <GrowthBookProvider growthbook={gb}>
-            <GbProvider>
-              <App />
-            </GbProvider>
-          </GrowthBookProvider>
-        </BrowserRouter>
-      </PersistGate>
-    </Provider>,
-  );
-  SplashScreen.hide();
-  setTimeout(() => {
-    if (isNativePlatform && userData) {
-      checkForUpdate();
-    }
-  }, 60000);
+const bootstrapAndRender = async () => {
+  const isOpsUser = store.getState().auth.isOpsUser;
+  if (isOpsUser) {
+    serviceInstance.switchMode(APIMode.SUPABASE);
+    renderApp();
+    return;
+  }
+
+  await SqliteApi.getInstance();
+  serviceInstance.switchMode(APIMode.SQLITE);
+  renderApp();
+};
+
+if (persistor.getState().bootstrapped) {
+  void bootstrapAndRender();
 } else {
-  SplashScreen.hide();
-  SqliteApi.getInstance().then(() => {
-    serviceInstance.switchMode(APIMode.SQLITE);
-    root.render(
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <BrowserRouter>
-            <GrowthBookProvider growthbook={gb}>
-              <GbProvider>
-                <App />
-              </GbProvider>
-            </GrowthBookProvider>
-          </BrowserRouter>
-        </PersistGate>
-      </Provider>,
-    );
-    SplashScreen.hide();
-    setTimeout(() => {
-      if (isNativePlatform && userData) {
-        checkForUpdate();
-      }
-    }, 60000);
+  const unsubscribe = persistor.subscribe(() => {
+    if (!persistor.getState().bootstrapped) return;
+    unsubscribe();
+    void bootstrapAndRender();
   });
 }
 

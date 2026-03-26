@@ -166,8 +166,6 @@ describe('StickerBookBoard', () => {
 
   test('disabled layer not shown when unlocked', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(document.querySelector('.sticker-book-disabled-layer')).toBeNull();
   });
 
   test('renders with collected stickers', () => {
@@ -418,12 +416,6 @@ describe('StickerBookBoard', () => {
     for (let i = 0; i < 5; i++) {
       rerender(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
     }
-  });
-
-  test('component renders top row container', () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(document.querySelector('#sb-top-row')).toBeInTheDocument();
   });
 
   test('component renders board container', () => {

@@ -20,7 +20,7 @@ const InlineSvg = React.forwardRef<
     });
     el.setAttribute('width', '100%');
     el.setAttribute('height', '100%');
-    el.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    el.setAttribute('preserveAspectRatio', 'xMidYMid slice');
     onReady?.();
   }, [svg, className, onReady]);
 
@@ -35,6 +35,7 @@ interface StickerBookPreviewStageProps {
   showIntroConfetti: boolean;
   showDropConfetti: boolean;
   showPointerHint: boolean;
+  showDragSticker?: boolean;
   isDragging: boolean;
   isDropSuccessful: boolean;
   dragStickerPos: { x: number; y: number } | null;
@@ -44,6 +45,12 @@ interface StickerBookPreviewStageProps {
   sceneSvg: ParsedSvg | null;
   bookSvgRef: React.RefObject<SVGSVGElement | null>;
   setFrameElement: (element: HTMLDivElement | null) => void;
+  getSlotRectInFrame?: () => {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null;
   onDragPointerDown: React.PointerEventHandler<HTMLDivElement>;
   onDragPointerMove: React.PointerEventHandler<HTMLDivElement>;
   onDragPointerUp: React.PointerEventHandler<HTMLDivElement>;
@@ -56,6 +63,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
   showIntroConfetti,
   showDropConfetti,
   showPointerHint,
+  showDragSticker = true,
   isDragging,
   isDropSuccessful,
   dragStickerPos,
@@ -65,11 +73,29 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
   sceneSvg,
   bookSvgRef,
   setFrameElement,
+  getSlotRectInFrame = () => null,
   onDragPointerDown,
   onDragPointerMove,
   onDragPointerUp,
   onDragPointerCancel,
 }) => {
+  let hintStartX = 0;
+  let hintStartY = 0;
+  let hintDeltaX = 0;
+  let hintDeltaY = 0;
+
+  if (isDragVariant && showPointerHint && dragStickerPos) {
+    hintStartX = dragStickerPos.x + dragStickerSize * 0.58;
+    hintStartY = dragStickerPos.y + dragStickerSize * 0.6;
+    const slotRect = getSlotRectInFrame();
+    if (slotRect) {
+      const slotCenterX = slotRect.x + slotRect.width / 2;
+      const slotCenterY = slotRect.y + slotRect.height / 2;
+      hintDeltaX = slotCenterX - hintStartX;
+      hintDeltaY = slotCenterY - hintStartY;
+    }
+  }
+
   return (
     <div
       className="StickerBookPreviewModal-book-frame"
@@ -77,7 +103,18 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
       ref={setFrameElement}
     >
       {isDragVariant && (showIntroConfetti || showDropConfetti) && (
-        <StickerBookConfetti isDropConfetti={showDropConfetti} />
+        <StickerBookConfetti
+          isDropConfetti={showDropConfetti}
+          containerPos={
+            showDropConfetti && dragStickerPos
+              ? {
+                  x: dragStickerPos.x,
+                  y: dragStickerPos.y,
+                  size: dragStickerSize,
+                }
+              : undefined
+          }
+        />
       )}
 
       {isLoading ? (
@@ -102,43 +139,62 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
         </div>
       )}
 
-      {isDragVariant && dragStickerPos && !isDropSuccessful && (
-        <div
-          className={`StickerBookPreviewModal-draggable-sticker ${
-            isDragging
-              ? 'StickerBookPreviewModal-draggable-sticker--active'
-              : ''
-          }`}
-          style={{
-            width: `${dragStickerSize}px`,
-            height: `${dragStickerSize}px`,
-            transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)`,
-          }}
-          onPointerDown={onDragPointerDown}
-          onPointerMove={onDragPointerMove}
-          onPointerUp={onDragPointerUp}
-          onPointerCancel={onDragPointerCancel}
-          data-testid="StickerBookPreviewModal-draggable-sticker"
-        >
-          <img
-            src={nextStickerImage || 'assets/icons/DefaultIcon.png'}
-            alt={nextStickerName}
-          />
-        </div>
-      )}
+      {isDragVariant &&
+        showDragSticker &&
+        dragStickerPos &&
+        !isDropSuccessful && (
+          <div
+            className={`StickerBookPreviewModal-draggable-sticker ${
+              isDragging
+                ? 'StickerBookPreviewModal-draggable-sticker--active'
+                : showPointerHint
+                  ? 'StickerBookPreviewModal-draggable-sticker--hinting'
+                  : ''
+            }`}
+            style={
+              {
+                width: `${dragStickerSize}px`,
+                height: `${dragStickerSize}px`,
+                transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)${isDragging ? ' scale(1.06)' : ''}`,
+                '--sticker-drop-distance': `${dragStickerPos.y + dragStickerSize + 24}px`,
+                '--target-x': `${hintDeltaX}px`,
+                '--target-y': `${hintDeltaY}px`,
+              } as React.CSSProperties
+            }
+            onPointerDown={onDragPointerDown}
+            onPointerMove={onDragPointerMove}
+            onPointerUp={onDragPointerUp}
+            onPointerCancel={onDragPointerCancel}
+            data-testid="StickerBookPreviewModal-draggable-sticker"
+          >
+            <img
+              src={nextStickerImage || 'assets/icons/DefaultIcon.png'}
+              alt={nextStickerName}
+            />
+          </div>
+        )}
 
-      {isDragVariant && showPointerHint && dragStickerPos && (
-        <img
-          src="/pathwayAssets/touchpointer.svg"
-          alt="drag-pointer"
-          className="StickerBookPreviewModal-pointer-hint"
-          style={{
-            left: `${dragStickerPos.x + dragStickerSize * 0.58}px`,
-            top: `${dragStickerPos.y + dragStickerSize * 0.6}px`,
-          }}
-          data-testid="StickerBookPreviewModal-pointer-hint"
-        />
-      )}
+      {isDragVariant &&
+        showPointerHint &&
+        dragStickerPos &&
+        (() => {
+          return (
+            <img
+              src="/pathwayAssets/touchpointer.svg"
+              alt="drag-pointer"
+              className="StickerBookPreviewModal-pointer-hint"
+              style={
+                {
+                  left: `${hintStartX}px`,
+                  top: `${hintStartY}px`,
+                  '--target-x': `${hintDeltaX}px`,
+                  '--target-y': `${hintDeltaY}px`,
+                } as React.CSSProperties
+              }
+              data-testid="StickerBookPreviewModal-pointer-hint"
+            />
+          );
+        })()}
     </div>
   );
 };

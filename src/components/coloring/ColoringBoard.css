@@ -1,5 +1,4 @@
 /* MAIN LAYOUT WRAPPER */
-/* Changes: renamed svg frame class to match component naming. */
 .coloring-board-paint-layout {
   position: relative;
   z-index: 1;
@@ -10,39 +9,51 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px; /* Space between the items */
-  padding: 12px 16px 12px 12px;
+  gap: 12px;
+  padding: 10px;
   box-sizing: border-box;
-  background: #e0f7fa; /* Fallback background */
+  background: #e0f7fa;
 }
 
 /* 1) EXIT BUTTON */
 .coloring-board-top {
-  flex: 0 0 48px; /* Fixed width */
+  flex: 0 0 48px;
   margin-top: 4px;
 }
 
 .paint-topbar .exit-btn {
   width: 48px;
   height: 48px;
-  background: white; /* Matching the orange X style */
+  background: white;
   border-radius: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.paint-topbar .exit-btn:active {
+  transform: scale(0.95);
 }
 
 /* 2) SVG FRAME */
 .coloring-board-frame-row {
   flex: 1 1 auto;
+  height: 100%;
   display: flex;
   justify-content: center;
+  align-items: center;
+  padding: 0 5px; /* Slight padding to keep it away from edges */
+  box-sizing: border-box;
 }
 
 .coloring-board-svg-frame {
-  width: min(70vw, 700px);
-  height: min(40vw, 390px);
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
   border: 2px solid #57dbe0;
   border-radius: 5px 5px 2px 2px;
   background: #ffffff;
@@ -50,7 +61,6 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .coloring-board-svg-frame > * {
@@ -60,103 +70,100 @@
 
 .coloring-board-svg-frame svg {
   display: block;
+  width: 100%;
+  height: 100%;
+  transform: scale(1.02);
+  transform-origin: center;
 }
 
 /* 3) RIGHT CONTROLS (Save + Tray) */
 .coloring-board-controls {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  height: auto;
-}
-
-.coloring-board-tray {
-  margin-top: 0;
-  align-self: center;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.coloring-board-tray .color-palette {
+  flex: 0 0 auto;
+  width: clamp(80px, 15vw, 151px);
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  box-sizing: border-box;
 }
 
 .coloring-board-controls .StickerBookActions-root {
   position: static;
-  top: auto;
-  right: auto;
-  flex-direction: row;
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
 }
 
-@media (min-width: 801px) {
-  .coloring-board-frame-row {
-    margin-top: 50px;
+.coloring-board-tray {
+  flex: 1 1 auto; /* Use remaining space */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  min-height: 0;
+}
+
+/* Override ColorPalette size to fill tray */
+.coloring-board-controls .color-palette {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* RESPONSIVE DOWN-SCALING */
+@media (max-width: 800px) {
+  .coloring-board-paint-layout {
+    gap: 8px;
+    padding: 10px;
   }
 
   .coloring-board-controls {
-    margin-top: 50px;
-    gap: 6px;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .coloring-board-tray .color-palette {
-    width: 200px;
-    height: 300px;
-  }
-}
-
-/* SAVE BUTTON */
-.coloring-board-save-btn {
-  display: flex;
-  width: 83px;
-  height: 44px;
-  padding: 5px 0;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  border-radius: 10px;
-  border-bottom: 5px solid #300d37;
-  background: #c094ef;
-  cursor: pointer;
-  color: #2a004a;
-  font-weight: bold;
-}
-
-.coloring-board-save-btn img {
-  width: 18px;
-}
-
-/* RESPONSIVE SCALING */
-@media (max-width: 800px) {
-  .coloring-board-paint-layout {
-    flex-direction: row;
-    gap: 5px;
-    padding: 15px;
+    width: clamp(70px, 18vw, 120px);
   }
 
   .coloring-board-top {
-    margin-top: 0;
+    flex: 0 0 35px;
   }
 
-  .coloring-board-controls {
-    width: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-  }
-
-  .coloring-board-tray {
-    margin-top: 0;
+  /* Make exit button dynamically scale within smaller topbar if needed */
+  .paint-topbar .exit-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
   }
 }
 
 @media (max-width: 600px) {
-  .coloring-board-svg-frame {
-    width: min(53vw, 340px);
-    height: min(30vw, 220px);
+  .coloring-board-paint-layout {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .coloring-board-controls {
+    width: clamp(65px, 20vw, 100px);
+  }
+
+  .coloring-board-top {
+    flex: 0 0 30px;
+  }
+
+  .paint-topbar .exit-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+}
+
+@media (min-width: 801px) {
+  .coloring-board-controls {
+    align-self: center;
+    height: 60%;
+    gap: 15px;
   }
 }

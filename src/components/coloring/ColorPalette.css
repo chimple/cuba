@@ -1,83 +1,71 @@
 .color-palette {
-  width: clamp(120px, 20vw, 151px);
-  height: clamp(220px, 40vh, 291px);
+  width: clamp(120px, 15vw, 151px);
+  height: clamp(230px, 35vh, 291px);
   padding: clamp(8px, 1.5vw, 12px);
-  border-radius: 10px 10px 0 0;
+  border-radius: 10px;
   border-top: 2px solid #57dbe0;
   background: #fffdee;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: clamp(6px, 1.2vw, 10px);
   justify-items: center;
+  align-items: center;
 }
 
 @media (min-width: 801px) {
   .color-palette {
-    gap: 6px;
+    gap: 4px;
   }
 }
+
 .color-palette-swatch {
-  width: 52px;
-  height: 52px;
+  width: clamp(36px, 10vw, 48px);
+  height: clamp(36px, 10vw, 48px);
   border-radius: 5px;
   cursor: pointer;
   border: none;
+  border-bottom: 5px solid transparent;
   position: relative;
   overflow: hidden;
 
-  /* The "Foot" / Depth shadow below the button */
-  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+  /* The "Foot" / Depth shadow below the button (can be removed if no longer needed, but let's keep simple shadow or none based on prompt. Prompt didn't mention shadow, so I remove it as they wanted flat vector highlights) */
   transition: all 0.1s ease;
 }
 
-/* THE TOP GLOSS (Your first SVG path logic) */
-.color-palette-swatch::before {
-  content: '';
+/* THE TOP GLOSS (Vector style) */
+.vector-top-left {
   position: absolute;
-  top: 2px;
-  left: 6px;
-  width: 20px;
-  height: 25px;
-  background: rgba(255, 255, 255, 0.35);
-  filter: blur(8px);
+  top: 4%;
+  left: 4%;
+  width: 56.25%; /* 27/48 */
+  height: 33.33%; /* 16/48 */
+  filter: blur(3px);
   pointer-events: none;
   z-index: 2;
 }
 
-/* THE BOTTOM CORNER ACCENT (Your second SVG logic) */
-.color-palette-swatch::after {
-  content: '';
+/* THE BOTTOM CORNER ACCENT (Vector style) */
+.vector-bottom-right {
   position: absolute;
-  bottom: 4px;
-  right: 0px;
-  width: 21px;
-  height: 11px;
-  background: rgba(255, 255, 255, 0.3);
-  filter: blur(4px);
-  border-radius: 50%;
+  bottom: 8%;
+  right: 4%;
+  width: 23.7%; /* 11.38/48 */
+  height: 18.8%; /* 9.03/48 */
+  transform: rotate(178.9deg);
+  filter: blur(2px);
   pointer-events: none;
   z-index: 2;
-}
-
-/* THE DARK BEVEL BOTTOM (Inner shadow for 3D depth) */
-.color-palette-swatch .inner-bevel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 18%;
-  background: rgba(0, 0, 0, 0.18);
-  z-index: 1;
 }
 
 /* INTERACTION: Pressed state */
 .color-palette-swatch:active {
-  transform: translateY(3px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+  transform: scale(0.95);
+  border-bottom-width: 2px;
 }
 
 /* SELECTION RING */
 .color-palette-swatch.selected {
-  outline: 3px solid #36898c;
-  outline-offset: 3px;
+  border-bottom-width: 2px;
+  outline: 2px solid #36898c;
+  outline-offset: 2px;
 }

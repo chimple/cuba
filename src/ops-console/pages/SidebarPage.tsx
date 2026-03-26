@@ -1,35 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { PAGES, TableTypes } from '../../common/constants';
 import { IonPage } from '@ionic/react';
-import Sidebar from '../components/Sidebar';
-import { Switch, useRouteMatch, Redirect, useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Redirect, Switch, useParams, useRouteMatch } from 'react-router-dom';
+import { PAGES, TableTypes } from '../../common/constants';
 import ProtectedRoute from '../../ProtectedRoute';
-import './SidebarPage.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import ProgramsPage from './ProgramPage';
-import SchoolList from './SchoolList';
-import SchoolDetailsPage from './SchoolDetailsPage';
-import ProgramDetailsPage from './ProgramDetailsPage';
-import UsersPage from './UsersPage';
+import logger from '../../utility/logger';
 import NewProgram from '../components/NewProgram';
-import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import Sidebar from '../components/Sidebar';
+import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
+import ActivitiesPage from './ActivitiesPage';
+import AddSchoolPage from './AddSchoolPage';
+import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
-import UserDetailsPage from './UserDetailsPage';
-import RequestList from './RequestList';
-import StudentPendingRequest from './StudentPendingRequest';
-import SchoolPendingRequest from './SchoolPendingRequest';
-import SchoolApprovedRequest from './SchoolApprovedRequest';
-import SchoolRejectedRequest from './SchoolRejectedRequest';
-import SchoolFormPage from './SchoolFormPage';
-import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
-import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
 import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
 import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
-import AddSchoolPage from './AddSchoolPage';
-import ActivitiesPage from './ActivitiesPage';
+import OpsModulePage from './OpsModulePage';
+import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
+import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
+import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import ProgramDetailsPage from './ProgramDetailsPage';
+import ProgramsPage from './ProgramPage';
+import RequestList from './RequestList';
 import SchoolActivities from './SchoolActivities';
-import MigrateSchoolsPage from './MigrateSchoolsPage';
-import logger from '../../utility/logger';
+import SchoolApprovedRequest from './SchoolApprovedRequest';
+import SchoolDetailsPage from './SchoolDetailsPage';
+import SchoolFormPage from './SchoolFormPage';
+import SchoolList from './SchoolList';
+import SchoolPendingRequest from './SchoolPendingRequest';
+import SchoolRejectedRequest from './SchoolRejectedRequest';
+import './SidebarPage.css';
+import StudentPendingRequest from './StudentPendingRequest';
+import UserDetailsPage from './UserDetailsPage';
+import UsersPage from './UsersPage';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -98,6 +100,18 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
+              exact={true}
+            >
+              <OpsModulePage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
+              exact={true}
+            >
+              <ParentWhatsappInvitationPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}

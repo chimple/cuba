@@ -32,6 +32,7 @@ interface StickerBookPreviewModalLogicParams {
   variant: StickerBookPreviewVariant;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
   mode: StickerBookPreviewMode;
+  scale?: number;
 }
 
 const fallbackStickerBookLayoutUrl =
@@ -49,6 +50,7 @@ export const useStickerBookPreviewModalLogic = ({
   variant,
   onClose,
   mode,
+  scale = 1,
 }: StickerBookPreviewModalLogicParams) => {
   const history = useHistory();
   const stableDataRef = useRef<StickerBookModalData>({
@@ -64,6 +66,7 @@ export const useStickerBookPreviewModalLogic = ({
     y: number;
   } | null>(null);
   const [dragStickerSize, setDragStickerSize] = useState<number>(72);
+  const [showDragSticker, setShowDragSticker] = useState<boolean>(false);
   const [showPointerHint, setShowPointerHint] = useState<boolean>(false);
   const [showIntroConfetti, setShowIntroConfetti] = useState<boolean>(false);
   const [showDropConfetti, setShowDropConfetti] = useState<boolean>(false);
@@ -122,6 +125,7 @@ export const useStickerBookPreviewModalLogic = ({
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
     setDragStickerPos(null);
+    setShowDragSticker(false);
     setIsDropSuccessful(false);
     setIsDragging(false);
     setShowPointerHint(false);
@@ -178,12 +182,13 @@ export const useStickerBookPreviewModalLogic = ({
     if (!frame) return;
 
     dragInitializedRef.current = true;
-    const size = Math.max(56, Math.min(100, frame.clientWidth * 0.19));
+    const size = Math.max(72, Math.min(140, frame.clientWidth * 0.28));
     const initialX = frame.clientWidth / 2 - size / 2;
-    const initialY = Math.max(56, frame.clientHeight * 0.6);
+    const initialY = Math.max(120, frame.clientHeight * 0.5);
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
+    setShowDragSticker(true);
     setShowPointerHint(true);
     setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
@@ -207,10 +212,10 @@ export const useStickerBookPreviewModalLogic = ({
     const frameRect = frame.getBoundingClientRect();
     const slotRect = slot.getBoundingClientRect();
     return {
-      x: slotRect.left - frameRect.left,
-      y: slotRect.top - frameRect.top,
-      width: slotRect.width,
-      height: slotRect.height,
+      x: (slotRect.left - frameRect.left) / scale,
+      y: (slotRect.top - frameRect.top) / scale,
+      width: slotRect.width / scale,
+      height: slotRect.height / scale,
     };
   };
 
@@ -218,10 +223,10 @@ export const useStickerBookPreviewModalLogic = ({
     const frame = frameRef.current;
     if (!frame) return null;
     const frameRect = frame.getBoundingClientRect();
-    const x = clientX - frameRect.left - dragOffsetRef.current.x;
-    const y = clientY - frameRect.top - dragOffsetRef.current.y;
-    const maxX = Math.max(0, frameRect.width - dragStickerSize);
-    const maxY = Math.max(0, frameRect.height - dragStickerSize);
+    const x = (clientX - frameRect.left) / scale - dragOffsetRef.current.x;
+    const y = (clientY - frameRect.top) / scale - dragOffsetRef.current.y;
+    const maxX = Math.max(0, frame.clientWidth - dragStickerSize);
+    const maxY = Math.max(0, frame.clientHeight - dragStickerSize);
     return {
       x: Math.min(Math.max(0, x), maxX),
       y: Math.min(Math.max(0, y), maxY),
@@ -280,8 +285,8 @@ export const useStickerBookPreviewModalLogic = ({
     const targetRect = target.getBoundingClientRect();
     dragPointerIdRef.current = event.pointerId;
     dragOffsetRef.current = {
-      x: event.clientX - targetRect.left,
-      y: event.clientY - targetRect.top,
+      x: (event.clientX - targetRect.left) / scale,
+      y: (event.clientY - targetRect.top) / scale,
     };
     target.setPointerCapture(event.pointerId);
     setIsDragging(true);
@@ -338,15 +343,9 @@ export const useStickerBookPreviewModalLogic = ({
   };
 
   const sanitizedCollectedStickers = useMemo(() => {
-    if (isDragVariant) {
-      // Per user request, we now show all previously collected stickers in drag
-      // mode, instead of a clean board. The target sticker is still shown as
-      // grey until it's successfully placed.
-      return renderData.collectedStickerIds;
-    }
-
-    // In preview mode, we just show the next sticker on a clean board.
-    return [];
+    // Keep previously collected stickers visible in both preview and drag
+    // variants. The next sticker still renders as grey until collected.
+    return renderData.collectedStickerIds;
   }, [isDragVariant, renderData.collectedStickerIds]);
 
   const sceneCollectedStickers = useMemo(() => {
@@ -458,6 +457,7 @@ export const useStickerBookPreviewModalLogic = ({
     showIntroConfetti,
     showDropConfetti,
     showPointerHint,
+    showDragSticker,
     isDragging,
     isDropSuccessful,
     dragStickerPos,
@@ -466,6 +466,7 @@ export const useStickerBookPreviewModalLogic = ({
     sceneSvg,
     bookSvgRef,
     setFrameElement,
+    getSlotRectInFrame,
     handleOverlayClick,
     handleDragPointerDown,
     handleDragPointerMove,

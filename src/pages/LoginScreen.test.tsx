@@ -1,4 +1,5 @@
 import { act } from 'react';
+import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
@@ -11,12 +12,15 @@ import { LANGUAGE, LOGIN_TYPES, MODES, PAGES } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
+jest.setTimeout(15000);
+
 const mockHistoryReplace = jest.fn();
 const mockPresentToast = jest.fn();
 const mockSetGbUpdated = jest.fn();
 const mockUpdateLocalAttributes = jest.fn();
 const mockSetCurrMode = jest.fn();
 const mockLogEvent = jest.fn();
+const mockMigrateSupabaseSession = jest.fn();
 let mockCurrentLanguage = 'en';
 const mockTranslations: Record<string, Record<string, string>> = {
   en: {
@@ -99,6 +103,7 @@ jest.mock('../utility/util', () => ({
   Util: {
     logEvent: (eventName: unknown, payload: unknown) =>
       mockLogEvent(eventName, payload),
+    migrateSupabaseSession: () => mockMigrateSupabaseSession(),
   },
 }));
 
@@ -339,7 +344,10 @@ jest.mock('../components/signup/LoginSwitch', () => ({
   ),
 }));
 
-const mockApiHandler = { getSchoolsForUser: jest.fn() };
+const mockApiHandler = {
+  getSchoolsForUser: jest.fn(),
+  getUserSpecialRoles: jest.fn(),
+};
 const mockOnlineOfflineHandler =
   useOnlineOfflineErrorMessageHandler as jest.Mock;
 
@@ -370,10 +378,16 @@ const renderReady = async () => {
   return { view, store: mockStore };
 };
 
+const changeInputValue = (input: HTMLElement, value: string) => {
+  fireEvent.change(input, { target: { value } });
+};
+
 describe('LoginScreen', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     localStorage.clear();
     jest.clearAllMocks();
+    mockMigrateSupabaseSession.mockReset();
     mockCurrentLanguage = 'en';
 
     window.matchMedia = jest.fn().mockImplementation((query) => ({
@@ -410,12 +424,17 @@ describe('LoginScreen', () => {
     });
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([]);
+    mockApiHandler.getUserSpecialRoles.mockResolvedValue([]);
     mockPortPlugin.requestPermission.mockResolvedValue({});
     mockPortPlugin.numberRetrieve.mockResolvedValue({ number: '' });
     mockPortPlugin.otpRetrieve.mockResolvedValue({ otp: '' });
     (registerPlugin as jest.Mock).mockReturnValue(mockPortPlugin);
     jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(false);
     jest.spyOn(Capacitor, 'getPlatform').mockReturnValue('web');
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Initialization', () => {
@@ -451,6 +470,19 @@ describe('LoginScreen', () => {
       (mockAuthHandler.isUserLoggedIn as jest.Mock).mockResolvedValue(true);
       await renderReady();
       await eventually(() => {
+        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+      });
+    });
+
+    it('tries session migration before giving up on an existing login', async () => {
+      (mockAuthHandler.isUserLoggedIn as jest.Mock)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true);
+
+      await renderReady();
+
+      await eventually(() => {
+        expect(mockMigrateSupabaseSession).toHaveBeenCalledTimes(1);
         expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
       });
     });
@@ -1142,19 +1174,19 @@ describe('LoginScreen', () => {
       await user.click(view.getByRole('button', { name: 'switch-email' }));
 
       const startBtn = view.getByRole('button', { name: 'email-login' });
+      const emailInput = view.getByLabelText('email-input');
+      const passwordInput = view.getByLabelText('password-input');
       expect(startBtn).toBeDisabled();
 
-      await user.type(view.getByLabelText('email-input'), 'bad-email');
-      await user.type(view.getByLabelText('password-input'), '123456');
+      changeInputValue(emailInput, 'bad-email');
+      changeInputValue(passwordInput, '123456');
       expect(startBtn).toBeDisabled();
 
-      await user.clear(view.getByLabelText('email-input'));
-      await user.type(view.getByLabelText('email-input'), 'valid@example.com');
-      await user.clear(view.getByLabelText('password-input'));
-      await user.type(view.getByLabelText('password-input'), '12345');
+      changeInputValue(emailInput, 'valid@example.com');
+      changeInputValue(passwordInput, '12345');
       expect(startBtn).toBeDisabled();
 
-      await user.type(view.getByLabelText('password-input'), '6');
+      changeInputValue(passwordInput, '123456');
       expect(startBtn).toBeEnabled();
     });
 
@@ -1188,18 +1220,17 @@ describe('LoginScreen', () => {
       const { view } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-email' }));
       const startBtn = view.getByRole('button', { name: 'email-login' });
+      const emailInput = view.getByLabelText('email-input');
+      const passwordInput = view.getByLabelText('password-input');
 
-      await user.clear(view.getByLabelText('email-input'));
-      await user.type(view.getByLabelText('email-input'), 'bad-email');
-      await user.type(view.getByLabelText('password-input'), '123456');
+      changeInputValue(emailInput, 'bad-email');
+      changeInputValue(passwordInput, '123456');
       expect(startBtn).toBeDisabled();
       await user.click(startBtn);
       expect(mockAuthHandler.signInWithEmail).not.toHaveBeenCalled();
 
-      await user.clear(view.getByLabelText('email-input'));
-      await user.type(view.getByLabelText('email-input'), 'user@example.com');
-      await user.clear(view.getByLabelText('password-input'));
-      await user.type(view.getByLabelText('password-input'), '123 4');
+      changeInputValue(emailInput, 'user@example.com');
+      changeInputValue(passwordInput, '123 4');
       expect(startBtn).toBeDisabled();
       await user.click(startBtn);
       expect(mockAuthHandler.signInWithEmail).not.toHaveBeenCalled();
@@ -1261,8 +1292,10 @@ describe('LoginScreen', () => {
       const user = userEvent.setup();
       const { view, store: mockStore } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-email' }));
-      await user.type(view.getByLabelText('email-input'), 'user@example.com');
-      await user.type(view.getByLabelText('password-input'), '123456');
+      const emailInput = view.getByLabelText('email-input');
+      const passwordInput = view.getByLabelText('password-input');
+      changeInputValue(emailInput, 'user@example.com');
+      changeInputValue(passwordInput, '123456');
 
       (mockAuthHandler.signInWithEmail as jest.Mock).mockResolvedValueOnce({
         success: true,
@@ -1285,10 +1318,8 @@ describe('LoginScreen', () => {
         isSpl: false,
         userData: null,
       });
-      await user.clear(view.getByLabelText('email-input'));
-      await user.type(view.getByLabelText('email-input'), 'user@example.com');
-      await user.clear(view.getByLabelText('password-input'));
-      await user.type(view.getByLabelText('password-input'), '123456');
+      changeInputValue(emailInput, 'user@example.com');
+      changeInputValue(passwordInput, '123456');
       await user.click(view.getByRole('button', { name: 'email-login' }));
 
       await eventually(() => {

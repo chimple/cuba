@@ -1,92 +1,134 @@
 .sticker-book-board-root {
   width: 100%;
+  height: 100%;
+  position: relative;
   display: flex;
   flex-direction: row;
+  align-items: stretch;
+  background: transparent;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.sticker-book-frame {
-  position: absolute;
-  left: 55px;
+.sticker-book-col-left {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: max(16px, env(safe-area-inset-top)) 0 0
+    max(16px, env(safe-area-inset-left));
+  z-index: 10;
+}
+
+.sticker-book-col-middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: max(10px, env(safe-area-inset-top)) 0
+    max(10px, env(safe-area-inset-bottom)) 0;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.sticker-book-col-right {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right)) 0 0;
+  z-index: 10;
 }
 
 .sticker-book-board {
-  height: 351px;
-  min-width: 400px;
-  min-height: 332px;
-  max-width: 665px;
-  max-height: 305px;
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1280px) and (max-height: 800px) {
+  .sticker-book-board {
+    height: auto;
+    width: 100%;
+  }
+}
+
+.sticker-book-board-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sticker-book-board-bg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .sticker-book-board-title {
   position: absolute;
-  top: 6px;
+  top: 10.77%;
   left: 50%;
   transform: translateX(-50%);
-  font-weight: 500;
-  color: var(--text-color);
-  font-size: clamp(16px, 3vw, 22px);
-  letter-spacing: 0;
+  text-align: center;
+  color: #182a4f;
+  font-size: clamp(14px, 2.5vw, 22px);
+  font-weight: 600;
+  width: 80%;
   text-decoration: underline;
   text-underline-offset: 4px;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .sticker-book-board-content {
   position: absolute;
-  width: 550px;
-  height: 330px;
-  min-width: 117px;
-  min-height: 200.2px;
-  max-width: 496px;
-  max-height: 286.2px;
-  left: 51.5%;
-  top: 60%;
-  transform: translate(-50%, -50%);
+  top: 20.28%;
+  left: 13.34%;
+  width: 73.61%;
+  height: 73.82%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
+  background: transparent;
 }
 
 .sticker-book-svg {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sticker-book-board-content > svg {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.sticker-book-board-content-disabled {
+  pointer-events: none;
+  filter: brightness(1.2);
+  background: #c0c0c0;
 }
 
 .sticker-book-board-content-disabled svg {
   pointer-events: none;
-}
-
-.sticker-book-nav-disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.sticker-book-nav-left {
-  position: absolute;
-  width: 97px;
-  height: 96px;
-  min-width: 48px;
-  min-height: 48px;
-  max-width: 48px;
-  max-height: 48px;
-  top: 174px;
-  left: 28px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.sticker-book-nav-right {
-  position: absolute;
-  width: 96px;
-  height: 96px;
-  min-width: 48px;
-  min-height: 48px;
-  max-width: 48px;
-  max-height: 48px;
-  top: 173px;
-  left: 590px;
-  cursor: pointer;
-  z-index: 2;
 }
 
 .sticker-book-lock-overlay {
@@ -96,113 +138,41 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  z-index: 5;
 }
 
 .sticker-book-disabled-layer {
   position: absolute;
   inset: 0;
-  background: #d9d6c9;
+  background: transparent;
   z-index: 1;
-  pointer-events: all;
-}
-
-.sticker-book-board-content > svg {
-  position: relative;
-  z-index: 2;
-}
-
-.sticker-book-board-content-disabled {
   pointer-events: none;
-  filter: brightness(0.9);
+  border-radius: 2%;
 }
 
 .sticker-book-lock-card {
-  background: #fffdf2;
+  background: #fffdee;
   border-radius: 19px;
-  padding: 18px 20px;
+  padding: clamp(12px, 2vw, 20px) clamp(20px, 3vw, 30px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 6px 16px rgba(20, 40, 70, 0.12);
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   text-align: center;
-  width: 378px;
-  height: 150px;
+  width: max(250px, 40%);
+  max-width: 420px;
+  pointer-events: all;
 }
 
 .sticker-book-lock-card img {
-  width: 51px;
-  height: 51px;
+  width: clamp(40px, 5vw, 60px);
+  height: auto;
 }
 
 .sticker-book-lock-text {
   color: #182a4f;
-  font-size: 16px;
-  font-style: normal;
+  font-size: clamp(14px, 2vw, 18px);
   font-weight: 500;
-  line-height: normal;
-}
-
-@media (max-width: 900px) {
-  .sticker-book-frame {
-    left: 20px;
-    transform: scale(0.9);
-    transform-origin: top center;
-  }
-}
-
-/* Desktop screens */
-@media (min-width: 1200px) {
-  .sticker-book-board-root {
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
-
-  .sticker-book-top-row {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-  }
-
-  .sticker-book-frame {
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%) scale(1.2);
-    transform-origin: center;
-  }
-
-  .sticker-book-board {
-    height: 420px;
-    min-width: 600px;
-    max-width: 900px;
-  }
-
-  .sticker-book-board-title {
-    font-size: 26px;
-  }
-
-  .sticker-book-nav-left {
-    left: 40px;
-    top: 210px;
-    width: 60px;
-    height: 60px;
-  }
-
-  .sticker-book-nav-right {
-    left: 760px;
-    top: 210px;
-    width: 60px;
-    height: 60px;
-  }
-
-  .sticker-book-lock-card {
-    width: 420px;
-    height: 170px;
-  }
-
-  .sticker-book-lock-text {
-    font-size: 18px;
-  }
+  line-height: 1.4;
 }
