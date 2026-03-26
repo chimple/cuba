@@ -71,7 +71,6 @@ const PathwayStructure: React.FC = () => {
     hasTodayReward,
     isRewardFeatureOn,
     rewardModalOpen,
-    isCampaignFinished,
     handleRewardBoxOpen,
     handleRewardModalClose,
     handleRewardModalPlay,
@@ -119,26 +118,11 @@ const PathwayStructure: React.FC = () => {
     [],
   );
 
-  // Mounts SVG with everything needed
-  usePathwaySVG({
-    containerRef,
-    setModalOpen,
-    setModalText,
-
-    history,
-    getCachedLesson,
-    updateMascotToNormalState,
-    invokeMascotCelebration,
-    setRewardRiveState,
-    setRiveContainer,
-    setRewardRiveContainer,
-    setHasTodayReward,
-    setCurrentCourse,
-    setCurrentChapter,
-    setIsRewardPathLoaded,
-    isRewardPathLoaded,
-    checkAndUpdateReward,
-    onStickerPreviewReady: (data, trigger) => {
+  const handleStickerPreviewReady = React.useCallback(
+    (
+      data: StickerBookModalData,
+      trigger: 'sticker_click' | 'pathway_completion_auto',
+    ) => {
       const rewardBoxRect = containerRef.current
         ?.querySelector('.PathwayStructure-end-reward-box--sticker')
         ?.getBoundingClientRect();
@@ -174,9 +158,37 @@ const PathwayStructure: React.FC = () => {
         },
       );
     },
-    onStickerCompletionReady: (data) => {
+    [containerRef],
+  );
+
+  const handleStickerCompletionReadyInternal = React.useCallback(
+    (data: StickerBookModalData) => {
       openStickerCompletion(data);
     },
+    [openStickerCompletion],
+  );
+
+  // Mounts SVG with everything needed
+  usePathwaySVG({
+    containerRef,
+    setModalOpen,
+    setModalText,
+
+    history,
+    getCachedLesson,
+    updateMascotToNormalState,
+    invokeMascotCelebration,
+    setRewardRiveState,
+    setRiveContainer,
+    setRewardRiveContainer,
+    setHasTodayReward,
+    setCurrentCourse,
+    setCurrentChapter,
+    setIsRewardPathLoaded,
+    isRewardPathLoaded,
+    checkAndUpdateReward,
+    onStickerPreviewReady: handleStickerPreviewReady,
+    onStickerCompletionReady: handleStickerCompletionReadyInternal,
   });
 
   const closeStickerPreview = React.useCallback(
@@ -261,7 +273,7 @@ const PathwayStructure: React.FC = () => {
         }, 500);
       }
     }
-  }, [isStickerPreviewOpen]);
+  }, [isStickerPreviewOpen, containerRef]);
 
   React.useEffect(() => {
     const handleStickerCompletionReady = (event: Event) => {
