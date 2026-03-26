@@ -2930,7 +2930,7 @@ export class Util {
         isPlayed: true,
       };
 
-      const completedPathwaySnapshot = JSON.parse(JSON.stringify(learningPath));
+      const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
       const nextLesson = await recommendNextLesson({
@@ -2975,10 +2975,10 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (isRewardLesson) {
+        if (completedPathwaySnapshot) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
-            JSON.stringify(completedPathwaySnapshot),
+            completedPathwaySnapshot,
           );
         }
         const newpathId = uuidv4();
@@ -2996,7 +2996,15 @@ export class Util {
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (stickerAwardResult.completed) {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.setItem(
+              AUTO_OPEN_STICKER_PREVIEW_KEY,
+              JSON.stringify({
+                studentId: currentStudent.id,
+                createdAt: new Date().toISOString(),
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
+              }),
+            );
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
               JSON.stringify({
@@ -3165,6 +3173,11 @@ export class Util {
     student: TableTypes<'user'>,
   ): string | null {
     try {
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+      if (rewardLearningPath) {
+        return rewardLearningPath;
+      }
+
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
 
       // If nothing in session storage, return DB value

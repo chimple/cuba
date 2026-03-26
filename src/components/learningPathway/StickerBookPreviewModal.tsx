@@ -112,9 +112,9 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           style={
             launchMotion
               ? ({
-                  '--launch-offset-x': `${launchMotion.offsetX}px`,
-                  '--launch-offset-y': `${launchMotion.offsetY}px`,
-                  '--launch-start-scale': `${launchMotion.startScale}`,
+                  '--launch-offset-x': `${launchMotion.offsetX / scale}px`,
+                  '--launch-offset-y': `${launchMotion.offsetY / scale}px`,
+                  '--launch-start-scale': `${launchMotion.startScale / scale}`,
                 } as React.CSSProperties)
               : undefined
           }

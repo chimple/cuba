@@ -16,6 +16,7 @@ import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
 import {
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   EVENTS,
   REWARD_LEARNING_PATH,
@@ -197,6 +198,7 @@ const PathwayStructure: React.FC = () => {
       setIsStickerPreviewOpen(false);
       setStickerPreviewLaunchMotion(null);
       if (isDragPopup) {
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
         window.setTimeout(() => {
           (window as any).__triggerPathwayReload__?.();
@@ -219,6 +221,11 @@ const PathwayStructure: React.FC = () => {
         });
       }
       setIsStickerCompletionOpen(false);
+      if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
+        window.setTimeout(() => {
+          (window as any).__triggerPathwayReload__?.();
+        }, 0);
+      }
     },
     [stickerCompletionData],
   );
