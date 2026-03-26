@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import './RejectRequestPopup.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
-import { PAGES, REQUEST_TABS, STATUS } from '../../../common/constants';
+import {
+  PAGES,
+  REQUEST_TABS,
+  RequestTypes,
+  STATUS,
+} from '../../../common/constants';
 import { useHistory } from 'react-router-dom';
 import { t } from 'i18next';
 import { RoleType } from '../../../interface/modelInterfaces';
@@ -19,9 +24,14 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
   requestData,
   onClose,
 }) => {
-  const requestType = requestData?.type;
+  const requestType = String(
+    requestData?.type ?? requestData?.request_type ?? '',
+  ).toLowerCase();
+  const isStudentRequest = requestType === RequestTypes.STUDENT;
   const isTeacherOrPrincipal =
-    requestType === 'teacher' || requestType === 'principal';
+    requestType === RequestTypes.TEACHER ||
+    requestType === RequestTypes.PRINCIPAL;
+  const isSchoolRequest = requestType === RequestTypes.SCHOOL;
   const [selectedReason, setSelectedReason] = useState<string>('');
   const [customReason, setCustomReason] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,9 +53,13 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         return customReason;
       }
       return selectedReason;
-    } else {
+    }
+
+    if (isStudentRequest || isSchoolRequest) {
       return customReason;
     }
+
+    return customReason;
   }
 
   const ctaLabel =
@@ -57,9 +71,15 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     if (isTeacherOrPrincipal) {
       if (!selectedReason) return false;
       if (selectedReason === OTHER && !customReason.trim()) return false;
-    } else {
-      if (!customReason.trim()) return false;
+      return true;
     }
+
+    if (isStudentRequest || isSchoolRequest) {
+      if (!customReason.trim()) return false;
+      return true;
+    }
+
+    if (!customReason.trim()) return false;
     return true;
   }
 
@@ -95,7 +115,9 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         isTeacherOrPrincipal ? selectedReason : undefined,
         finalReason,
       );
-      await api.updateSchoolStatus(requestData.school.id, status);
+      if (isSchoolRequest) {
+        await api.updateSchoolStatus(requestData.school.id, status);
+      }
 
       const targetTab =
         status === STATUS.FLAGGED
