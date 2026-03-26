@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 // Changes: coordinated SVG mode/visibility helpers and locked-state styling.
 import {
   applyColorMode,
@@ -47,13 +47,49 @@ export function SVGScene({
   const svgRef = svgRefExternal ?? internalRef;
 
   const colorModeApplied = useRef(false);
+  const [svgReadyToken, setSvgReadyToken] = useState(0);
+  const [isStyled, setIsStyled] = useState(false);
+
+  // If SVG content is injected or replaced async, wait until slots exist before styling.
   useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const observer = new MutationObserver(() => {
+      const ready = svg.querySelectorAll('[data-slot-id]').length > 0;
+      if (ready) {
+        setSvgReadyToken((token) => token + 1);
+      }
+    });
+
+    observer.observe(svg, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [svgRef]);
+
+  const shouldHideUntilStyled =
+    stickerVisibilityMode === 'strict' && !lockedStickerOutline;
+
+  useEffect(() => {
+    colorModeApplied.current = false;
+    setIsStyled(false);
+  }, [mode, svgReadyToken, stickerVisibilityMode, lockedStickerOutline]);
+
+  useLayoutEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
     // IMPORTANT: wait until SVG slots exist
     const slots = svg.querySelectorAll('[data-slot-id]');
-    if (!slots.length) return;
+    if (!slots.length) {
+      if (shouldHideUntilStyled) {
+        svg.style.visibility = 'hidden';
+      }
+      return;
+    }
+
+    if (!isStyled && shouldHideUntilStyled) {
+      svg.style.visibility = 'hidden';
+    }
 
     /* ---------------- COLOR MODE ---------------- */
     if (mode === 'color' && !colorModeApplied.current) {
@@ -101,6 +137,13 @@ export function SVGScene({
     if (lockedBackgroundColor) {
       applyLockedBackground(svg, lockedBackgroundColor);
     }
+
+    if (!isStyled) {
+      setIsStyled(true);
+      if (shouldHideUntilStyled) {
+        svg.style.visibility = '';
+      }
+    }
   }, [
     mode,
     collectedStickers,
@@ -113,6 +156,9 @@ export function SVGScene({
     lockedBackgroundColor,
     showUncollectedStickers,
     stickerVisibilityUseFilters,
+    svgReadyToken,
+    isStyled,
+    shouldHideUntilStyled,
   ]);
 
   return React.cloneElement(children as React.ReactElement<any>, {

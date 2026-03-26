@@ -132,7 +132,6 @@ export function applyStickerVisibilityStrict(
 
         applyShapePaint(shape, 'fill', '#D1D2D4');
         applyShapePaint(shape, 'stroke', '#D1D2D4');
-        applyShapeStrokeWidth(shape, '2');
         applyShapeColor(shape, '#D1D2D4');
         clearShapeOpacity(shape);
       });
