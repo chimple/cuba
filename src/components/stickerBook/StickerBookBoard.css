@@ -123,7 +123,7 @@
 
 .sticker-book-board-content-disabled {
   pointer-events: none;
-  filter: grayscale(1);
+  filter: brightness(1.2);
   background: #c0c0c0;
 }
 
