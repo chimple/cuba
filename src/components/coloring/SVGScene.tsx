@@ -49,30 +49,41 @@ export function SVGScene({
   const colorModeApplied = useRef(false);
   const [svgReadyToken, setSvgReadyToken] = useState(0);
   const [isStyled, setIsStyled] = useState(false);
+  const lastChildCountRef = useRef<number>(0);
 
-  // If SVG content is injected or replaced async, wait until slots exist before styling.
+  // Reset when SVG content or mode changes (prevents stale styling).
+  const currentChildSvg = (children as any).props.svg;
+  useLayoutEffect(() => {
+    setIsStyled(false);
+    colorModeApplied.current = false;
+  }, [currentChildSvg, mode]);
+
+  // If SVG content is injected or replaced async, wait until content exists before styling.
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
     const observer = new MutationObserver(() => {
-      const ready = svg.querySelectorAll('[data-slot-id]').length > 0;
-      if (ready) {
+      const childCount = svg.childNodes.length;
+      if (childCount !== lastChildCountRef.current) {
+        lastChildCountRef.current = childCount;
         setSvgReadyToken((token) => token + 1);
       }
     });
 
     observer.observe(svg, { childList: true, subtree: true });
+    const initialCount = svg.childNodes.length;
+    if (initialCount !== lastChildCountRef.current) {
+      lastChildCountRef.current = initialCount;
+      setSvgReadyToken((token) => token + 1);
+    }
     return () => observer.disconnect();
   }, [svgRef]);
 
   const shouldHideUntilStyled =
-    stickerVisibilityMode === 'strict' && !lockedStickerOutline;
-
-  useEffect(() => {
-    colorModeApplied.current = false;
-    setIsStyled(false);
-  }, [mode, svgReadyToken, stickerVisibilityMode, lockedStickerOutline]);
+    stickerVisibilityMode === 'strict' ||
+    lockedStickerOutline ||
+    mode === 'color';
 
   useLayoutEffect(() => {
     const svg = svgRef.current;
@@ -161,8 +172,16 @@ export function SVGScene({
     shouldHideUntilStyled,
   ]);
 
-  return React.cloneElement(children as React.ReactElement<any>, {
+  const child = children as React.ReactElement<any>;
+  const mergedStyle = {
+    ...(child.props?.style || {}),
+    ...(shouldHideUntilStyled && !isStyled ? { visibility: 'hidden' } : {}),
+  };
+
+  return React.cloneElement(child, {
     ref: svgRef,
     width: sceneWidth,
+    style: mergedStyle,
+    hideUntilReady: shouldHideUntilStyled && !isStyled,
   });
 }
