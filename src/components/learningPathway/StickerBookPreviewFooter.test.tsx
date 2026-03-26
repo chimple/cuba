@@ -68,7 +68,7 @@ describe('StickerBookPreviewFooter', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByTestId('StickerBookPreviewModal-next-name'),
-    ).toBeInTheDocument();
+    ).toHaveTextContent('Rocket');
   });
 
   test('hides next sticker preview in drag variant', () => {

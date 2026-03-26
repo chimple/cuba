@@ -47,6 +47,22 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   }, []);
 
   useEffect(() => {
+    if (!syncWithLearningPath) return;
+
+    const syncLearningPathCourse = () => {
+      fetchLearningPathCourseDetails().catch((error) => {
+        logger.error('Error syncing learning path dropdown:', error);
+      });
+    };
+
+    window.addEventListener(COURSE_CHANGED, syncLearningPathCourse);
+
+    return () => {
+      window.removeEventListener(COURSE_CHANGED, syncLearningPathCourse);
+    };
+  }, [syncWithLearningPath]);
+
+  useEffect(() => {
     // For HomeworkPathway: keep internal "selected" in sync with selectedSubject
     if (!syncWithLearningPath && selectedSubject && courseDetails.length) {
       const matched = courseDetails.find(
@@ -194,24 +210,21 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       setCourseDetails(detailedCourses);
 
       // INITIAL SELECTION LOGIC
-      setSelected((prev) => {
-        if (prev) return prev;
-
-        // Homework: don't follow learning_path index, use selectedSubject if provided
-        if (!syncWithLearningPath) {
+      if (!syncWithLearningPath) {
+        setSelected((prev) => {
+          if (prev) return prev;
           if (selectedSubject) {
             const matched = detailedCourses.find(
               (detail) => String(detail.course.id) === String(selectedSubject),
             );
             if (matched) return matched;
           }
-          // fallback: first course
           return detailedCourses[0] || null;
-        }
+        });
+        return;
+      }
 
-        // LearningPathway: follow learning_path.currentCourseIndex as before
-        return detailedCourses[currentIndex] || detailedCourses[0] || null;
-      });
+      setSelected(detailedCourses[currentIndex] || detailedCourses[0] || null);
     } catch (error) {
       logger.error('Error in fetchLearningPathCourseDetails:', error);
     }

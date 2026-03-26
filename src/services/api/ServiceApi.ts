@@ -2942,10 +2942,15 @@ export interface ServiceApi {
    *
    * @param {string} stickerBookId - The ID of the sticker book.
    * @param {string} stickerId - The ID of the sticker won.
+   * @param {string} userId - The ID of the student whose sticker progress should be updated.
    * @returns {Promise<void>}
    * A promise resolving once the progress update is complete.
    */
-  updateStickerWon(stickerBookId: string, stickerId: string): Promise<void>;
+  updateStickerWon(
+    stickerBookId: string,
+    stickerId: string,
+    userId: string,
+  ): Promise<void>;
   /**
    * Checks whether a specific lesson assignment has already been assigned
    * to a given class within a school.
