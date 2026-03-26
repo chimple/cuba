@@ -115,6 +115,23 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         isTeacherOrPrincipal ? selectedReason : undefined,
         finalReason,
       );
+      if (isStudentRequest && status === STATUS.REJECTED) {
+        const studentId = requestData?.requested_by;
+        const classId = requestData?.class_id;
+
+        if (studentId && classId) {
+          const removed = await api.deleteUserFromClass(studentId, classId);
+          if (!removed) {
+            logger.error(
+              'Failed to remove student from class after request rejection.',
+            );
+          }
+        } else {
+          logger.error(
+            'Missing studentId or classId while rejecting student request.',
+          );
+        }
+      }
       if (isSchoolRequest) {
         await api.updateSchoolStatus(requestData.school.id, status);
       }
