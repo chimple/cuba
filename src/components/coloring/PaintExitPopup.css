@@ -45,8 +45,8 @@
 }
 
 .PaintExitPopup-icon {
-  width: 38.4px;
-  height: 38.4px;
+  width: clamp(34px, 5vw, 48px);
+  height: clamp(34px, 5vw, 48px);
   aspect-ratio: 1 / 1;
 }
 
@@ -76,17 +76,27 @@
 .PaintExitPopup-stay {
   border-bottom: 5px solid #300d37;
   background: #c094ef;
+  color: #300d37;
+  font-size: 26px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
 }
 
 .PaintExitPopup-exit {
   border-bottom: 5px solid #8a2901;
   background: #f34d08;
   color: #fff;
+  font-size: 26px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 120%;
 }
 
 .PaintExitPopup-stay:active,
 .PaintExitPopup-exit:active {
   transform: scale(0.95);
+  border-bottom-width: 0;
 }
 
 @media (max-width: 600px) {
@@ -106,6 +116,7 @@
   .PaintExitPopup-exit {
     width: min(42vw, 160px);
     height: 44px;
+    font-size: clamp(16px, 4vw, 26px);
   }
 }
 

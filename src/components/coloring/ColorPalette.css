@@ -14,7 +14,7 @@
 
 @media (min-width: 801px) {
   .color-palette {
-    gap: 8px;
+    gap: 4px;
   }
 }
 
@@ -24,6 +24,7 @@
   border-radius: 5px;
   cursor: pointer;
   border: none;
+  border-bottom: 5px solid transparent;
   position: relative;
   overflow: hidden;
 
@@ -59,10 +60,12 @@
 /* INTERACTION: Pressed state */
 .color-palette-swatch:active {
   transform: scale(0.95);
+  border-bottom-width: 2px;
 }
 
 /* SELECTION RING */
 .color-palette-swatch.selected {
+  border-bottom-width: 2px;
   outline: 2px solid #36898c;
   outline-offset: 2px;
 }

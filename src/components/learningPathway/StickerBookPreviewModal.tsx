@@ -16,6 +16,11 @@ interface StickerBookPreviewModalProps {
   variant?: StickerBookPreviewVariant;
   onClose: (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => void;
   mode?: StickerBookPreviewMode;
+  launchMotion?: {
+    offsetX: number;
+    offsetY: number;
+    startScale: number;
+  } | null;
 }
 
 const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
@@ -23,17 +28,18 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
   variant = 'preview',
   onClose,
   mode = 'preview',
+  launchMotion = null,
 }) => {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
     const calculateScale = () => {
-      // Desktop default values: 42.35rem width (~680px), 34rem height (~540px)
-      const baseWidth = 680;
-      const baseHeight = 540;
+      // Desktop default values: 46rem width (736px), 39rem height (~624px)
+      const baseWidth = 736;
+      const baseHeight = 624;
 
-      const maxWidth = window.innerWidth * 0.94;
-      const maxHeight = window.innerHeight * 0.9;
+      const maxWidth = window.innerWidth * 0.96;
+      const maxHeight = window.innerHeight * 0.92;
 
       const scaleX = maxWidth / baseWidth;
       const scaleY = maxHeight / baseHeight;
@@ -55,6 +61,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     showIntroConfetti,
     showDropConfetti,
     showPointerHint,
+    showDragSticker,
     isDragging,
     isDropSuccessful,
     dragStickerPos,
@@ -63,6 +70,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     sceneSvg,
     bookSvgRef,
     setFrameElement,
+    getSlotRectInFrame,
     handleOverlayClick,
     handleDragPointerDown,
     handleDragPointerMove,
@@ -101,6 +109,15 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           className={`StickerBookPreviewModal-modal ${
             isDragVariant ? 'StickerBookPreviewModal-modal--drag' : ''
           } ${isFlyingOut ? 'StickerBookPreviewModal-modal--flyout' : ''}`}
+          style={
+            launchMotion
+              ? ({
+                  '--launch-offset-x': `${launchMotion.offsetX / scale}px`,
+                  '--launch-offset-y': `${launchMotion.offsetY / scale}px`,
+                  '--launch-start-scale': `${launchMotion.startScale / scale}`,
+                } as React.CSSProperties)
+              : undefined
+          }
           role="dialog"
           aria-modal="true"
           data-testid="StickerBookPreviewModal-modal"
@@ -128,6 +145,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
             showIntroConfetti={showIntroConfetti}
             showDropConfetti={showDropConfetti}
             showPointerHint={showPointerHint}
+            showDragSticker={showDragSticker}
             isDragging={isDragging}
             isDropSuccessful={isDropSuccessful}
             dragStickerPos={dragStickerPos}
@@ -137,6 +155,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
             sceneSvg={sceneSvg}
             bookSvgRef={bookSvgRef}
             setFrameElement={setFrameElement}
+            getSlotRectInFrame={getSlotRectInFrame}
             onDragPointerDown={handleDragPointerDown}
             onDragPointerMove={handleDragPointerMove}
             onDragPointerUp={handleDragPointerUp}

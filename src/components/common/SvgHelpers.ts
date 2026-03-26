@@ -88,15 +88,18 @@ export function applyStickerVisibilityStrict(
   collectedStickers: string[],
   nextStickerId?: string,
   showUncollectedStickers: boolean = true,
+  useFilters: boolean = true,
 ) {
   const whiteFilterId = 'sticker-white-filter';
   const greyFilterId = 'sticker-grey-filter';
-  ensureWhiteFilter(svg, whiteFilterId);
-  ensureSolidColorFilter(svg, greyFilterId, {
-    r: 209 / 255,
-    g: 210 / 255,
-    b: 212 / 255,
-  });
+  if (useFilters) {
+    ensureWhiteFilter(svg, whiteFilterId);
+    ensureSolidColorFilter(svg, greyFilterId, {
+      r: 209 / 255,
+      g: 210 / 255,
+      b: 212 / 255,
+    });
+  }
   const slots = Array.from(svg.querySelectorAll('[data-slot-id]'));
   const collectedSet = new Set(collectedStickers);
 
@@ -116,7 +119,11 @@ export function applyStickerVisibilityStrict(
         restoreShapeState(shape);
       });
     } else if (isNext) {
-      setSlotState(el as SVGElement, '1', `url(#${greyFilterId})`);
+      setSlotState(
+        el as SVGElement,
+        '1',
+        useFilters ? `url(#${greyFilterId})` : undefined,
+      );
 
       const shapes = getSlotShapes(el as SVGElement);
 
@@ -129,7 +136,11 @@ export function applyStickerVisibilityStrict(
         clearShapeOpacity(shape);
       });
     } else if (showUncollectedStickers) {
-      setSlotState(el as SVGElement, '1', `url(#${whiteFilterId})`);
+      setSlotState(
+        el as SVGElement,
+        '1',
+        useFilters ? `url(#${whiteFilterId})` : undefined,
+      );
       const shapes = getSlotShapes(el as SVGElement);
       shapes.forEach((shape) => {
         ensureOriginalShapeState(shape);
@@ -329,6 +340,11 @@ function applyShapePaint(
   (shape as SVGElement).style?.setProperty(key, value, 'important');
 }
 
+function applyShapeStrokeWidth(shape: Element, value: string) {
+  shape.setAttribute('stroke-width', value);
+  (shape as SVGElement).style?.setProperty('stroke-width', value, 'important');
+}
+
 function applyShapeColor(shape: Element, value: string) {
   shape.setAttribute('color', value);
   (shape as SVGElement).style?.setProperty('color', value, 'important');
@@ -350,24 +366,45 @@ function clearShapeOpacity(shape: Element) {
 export function applyLockedStickerOutline(svg: SVGSVGElement) {
   const slots = Array.from(svg.querySelectorAll('[data-slot-id]'));
 
-  slots.forEach((el) => {
-    (el as SVGElement).style.opacity = '1';
-    const shapes = el.querySelectorAll(
-      'path,circle,ellipse,rect,polygon,polyline',
+  slots.forEach((slot) => {
+    const shapes = slot.querySelectorAll(
+      'path,circle,ellipse,rect,polygon,polyline,line',
     );
     shapes.forEach((shape) => {
-      shape.setAttribute('fill', 'none');
-      shape.setAttribute('stroke', '#FFFFFF');
+      // White stroke, no fill for stickers
+      shape.setAttribute('fill', '#C0C0C0');
+      (shape as SVGElement).style?.setProperty('fill', '#C0C0C0', 'important');
       shape.removeAttribute('fill-opacity');
-      shape.removeAttribute('stroke-opacity');
+
+      applyShapePaint(shape, 'stroke', '#FFFFFF');
+      (shape as SVGElement).style?.setProperty(
+        'stroke-opacity',
+        '1',
+        'important',
+      );
+
+      if (!shape.getAttribute('stroke-width')) {
+        shape.setAttribute('stroke-width', '1');
+      }
     });
   });
 }
 
-// Sets a solid background color on the SVG.
+// Sets a solid background color on the SVG and ensures background elements have no fill.
 export function applyLockedBackground(svg: SVGSVGElement, color: string) {
-  const svgEl = svg as SVGSVGElement;
-  svgEl.style.background = color;
+  svg.style.backgroundColor = color;
+  svg.style.background = color;
+
+  // Background elements (not inside slots) should have no fill
+  const shapes = svg.querySelectorAll(
+    'path,circle,ellipse,rect,polygon,polyline,line',
+  );
+  shapes.forEach((el) => {
+    if (!el.closest('[data-slot-id]')) {
+      el.setAttribute('fill', '#C0C0C0');
+      (el as SVGElement).style?.setProperty('fill', '#C0C0C0');
+    }
+  });
 }
 
 // Applies the color mode styling rules to the SVG.
@@ -381,19 +418,35 @@ export function applyColorMode(
   );
 
   shapes.forEach((el) => {
+    const strokeFillableFalse = el.getAttribute('stroke-fillable') === 'false';
+    const setFill = (value: string) => {
+      if (strokeFillableFalse) return;
+      el.setAttribute('fill', value);
+    };
+    const setFillOpacity = (value: string) => {
+      if (strokeFillableFalse) return;
+      el.setAttribute('fill-opacity', value);
+    };
+    const removeFillOpacity = () => {
+      if (strokeFillableFalse) return;
+      el.removeAttribute('fill-opacity');
+    };
+
     if (el.getAttribute('data-colored') === 'true') {
       return;
     }
 
     if (uncolouredStyle === 'outline') {
-      el.setAttribute('fill', 'none');
+      setFill('none');
       el.setAttribute('stroke', uncolouredColor);
-      (el as SVGElement).style.fill = 'none';
+      if (!strokeFillableFalse) {
+        (el as SVGElement).style.fill = 'none';
+      }
       (el as SVGElement).style.stroke = uncolouredColor;
       if (!el.getAttribute('stroke-width')) {
         el.setAttribute('stroke-width', '1');
       }
-      el.removeAttribute('fill-opacity');
+      removeFillOpacity();
       el.removeAttribute('stroke-opacity');
       return;
     }
@@ -405,19 +458,21 @@ export function applyColorMode(
     const hasMarkId = el.hasAttribute('mark-id');
 
     if (isSpecial) {
-      el.setAttribute('fill', 'none');
+      setFill('none');
       el.setAttribute('stroke', '#FFFFFF');
       el.setAttribute('stroke-opacity', '0.3');
-      el.removeAttribute('fill-opacity');
+      removeFillOpacity();
       if (isHighlight) {
         const svgEl = el as SVGElement;
         const hasStrokeWidthAttr = el.hasAttribute('stroke-width');
         const hasStrokeWidthStyle =
           !!svgEl.style?.strokeWidth && svgEl.style.strokeWidth !== '0';
         if (!hasStrokeWidthAttr && !hasStrokeWidthStyle) {
-          el.setAttribute('fill', '#FFFFFF');
-          el.setAttribute('fill-opacity', '0.3');
-          el.setAttribute('stroke', 'none');
+          setFill('#FFFFFF');
+          setFillOpacity('0.3');
+          if (!strokeFillableFalse) {
+            el.setAttribute('stroke', 'none');
+          }
         }
       }
       return;
@@ -432,16 +487,16 @@ export function applyColorMode(
       const hasStrokeWidthStyle =
         !!svgEl.style?.strokeWidth && svgEl.style.strokeWidth !== '0';
       if (hasFill) {
-        el.setAttribute('fill', '#FFFFFF');
-        el.setAttribute('fill-opacity', '0.3');
+        setFill('#FFFFFF');
+        setFillOpacity('0.3');
       }
       if (hasStroke) {
         el.setAttribute('stroke', '#FFFFFF');
         el.setAttribute('stroke-opacity', '0.3');
       }
       if (!hasStrokeWidthAttr && !hasStrokeWidthStyle) {
-        el.setAttribute('fill', '#FFFFFF');
-        el.setAttribute('fill-opacity', '0.3');
+        setFill('#FFFFFF');
+        setFillOpacity('0.3');
       }
       return;
     }
@@ -457,14 +512,14 @@ export function applyColorMode(
       const isStrokeWidthTwo =
         strokeWidthAttr === '2' || strokeWidthStyle === '2';
       if (isFillableFalse) {
-        el.setAttribute('fill', '#202020');
+        setFill('#202020');
       } else if (hasStrokeWidthAttr || hasStrokeWidthStyle) {
-        el.setAttribute('fill', 'none');
+        setFill('none');
       } else {
-        el.setAttribute('fill', '#202020');
+        setFill('#202020');
       }
       el.setAttribute('stroke', uncolouredColor);
-      el.removeAttribute('fill-opacity');
+      removeFillOpacity();
       el.removeAttribute('stroke-opacity');
       return;
     }
@@ -480,15 +535,20 @@ export function applyColorMode(
       }
 
       if (hasFill) {
-        el.setAttribute('fill', '#FFFFFF');
-        el.setAttribute('fill-opacity', '0.3');
+        setFill('#FFFFFF');
+        setFillOpacity('0.3');
       }
       return;
     }
 
     if (hasColorId) {
-      el.setAttribute('fill', '#FFFFFF');
-      el.removeAttribute('fill-opacity');
+      if (strokeFillableFalse) {
+        el.setAttribute('stroke', '#FFFFFF');
+        el.removeAttribute('stroke-opacity');
+      } else {
+        setFill('#FFFFFF');
+        removeFillOpacity();
+      }
       return;
     }
 
@@ -578,6 +638,9 @@ export function ensureNavImage(
   img.style.cursor = enabled ? 'pointer' : 'default';
   img.style.opacity = enabled ? '1' : '0.5';
   img.style.pointerEvents = enabled ? 'all' : 'none';
+  img.style.outline = 'none';
+  img.style.userSelect = 'none';
+  (img.style as any).webkitTapHighlightColor = 'transparent';
   img.onclick = enabled ? onClick : null;
 }
 export function sanitizeSvg(svg: string): string {

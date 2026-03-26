@@ -66,6 +66,7 @@ export const useStickerBookPreviewModalLogic = ({
     y: number;
   } | null>(null);
   const [dragStickerSize, setDragStickerSize] = useState<number>(72);
+  const [showDragSticker, setShowDragSticker] = useState<boolean>(false);
   const [showPointerHint, setShowPointerHint] = useState<boolean>(false);
   const [showIntroConfetti, setShowIntroConfetti] = useState<boolean>(false);
   const [showDropConfetti, setShowDropConfetti] = useState<boolean>(false);
@@ -124,6 +125,7 @@ export const useStickerBookPreviewModalLogic = ({
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
     setDragStickerPos(null);
+    setShowDragSticker(false);
     setIsDropSuccessful(false);
     setIsDragging(false);
     setShowPointerHint(false);
@@ -180,12 +182,13 @@ export const useStickerBookPreviewModalLogic = ({
     if (!frame) return;
 
     dragInitializedRef.current = true;
-    const size = Math.max(56, Math.min(100, frame.clientWidth * 0.19));
+    const size = Math.max(72, Math.min(140, frame.clientWidth * 0.28));
     const initialX = frame.clientWidth / 2 - size / 2;
-    const initialY = Math.max(56, frame.clientHeight * 0.6);
+    const initialY = Math.max(120, frame.clientHeight * 0.5);
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
+    setShowDragSticker(true);
     setShowPointerHint(true);
     setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
@@ -340,15 +343,9 @@ export const useStickerBookPreviewModalLogic = ({
   };
 
   const sanitizedCollectedStickers = useMemo(() => {
-    if (isDragVariant) {
-      // Per user request, we now show all previously collected stickers in drag
-      // mode, instead of a clean board. The target sticker is still shown as
-      // grey until it's successfully placed.
-      return renderData.collectedStickerIds;
-    }
-
-    // In preview mode, we just show the next sticker on a clean board.
-    return [];
+    // Keep previously collected stickers visible in both preview and drag
+    // variants. The next sticker still renders as grey until collected.
+    return renderData.collectedStickerIds;
   }, [isDragVariant, renderData.collectedStickerIds]);
 
   const sceneCollectedStickers = useMemo(() => {
@@ -460,6 +457,7 @@ export const useStickerBookPreviewModalLogic = ({
     showIntroConfetti,
     showDropConfetti,
     showPointerHint,
+    showDragSticker,
     isDragging,
     isDropSuccessful,
     dragStickerPos,
@@ -468,6 +466,7 @@ export const useStickerBookPreviewModalLogic = ({
     sceneSvg,
     bookSvgRef,
     setFrameElement,
+    getSlotRectInFrame,
     handleOverlayClick,
     handleDragPointerDown,
     handleDragPointerMove,

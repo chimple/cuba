@@ -16,8 +16,11 @@ import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
 import {
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  COURSE_CHANGED,
   EVENTS,
+  REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
@@ -30,6 +33,12 @@ const PathwayStructure: React.FC = () => {
   const [stickerPreviewTrigger, setStickerPreviewTrigger] = React.useState<
     'sticker_click' | 'pathway_completion_auto'
   >('sticker_click');
+  const [stickerPreviewLaunchMotion, setStickerPreviewLaunchMotion] =
+    React.useState<{
+      offsetX: number;
+      offsetY: number;
+      startScale: number;
+    } | null>(null);
   const [stickerCompletionData, setStickerCompletionData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
@@ -130,6 +139,24 @@ const PathwayStructure: React.FC = () => {
     isRewardPathLoaded,
     checkAndUpdateReward,
     onStickerPreviewReady: (data, trigger) => {
+      const rewardBoxRect = containerRef.current
+        ?.querySelector('.PathwayStructure-end-reward-box--sticker')
+        ?.getBoundingClientRect();
+      if (trigger === 'pathway_completion_auto' && rewardBoxRect) {
+        setStickerPreviewLaunchMotion({
+          offsetX:
+            rewardBoxRect.left +
+            rewardBoxRect.width / 2 -
+            window.innerWidth / 2,
+          offsetY:
+            rewardBoxRect.top +
+            rewardBoxRect.height / 2 -
+            window.innerHeight / 2,
+          startScale: Math.max(0.12, Math.min(0.28, rewardBoxRect.width / 736)),
+        });
+      } else {
+        setStickerPreviewLaunchMotion(null);
+      }
       setStickerPreviewData(data);
       setStickerPreviewTrigger(trigger);
       setIsStickerPreviewOpen(true);
@@ -170,6 +197,14 @@ const PathwayStructure: React.FC = () => {
         },
       );
       setIsStickerPreviewOpen(false);
+      setStickerPreviewLaunchMotion(null);
+      if (isDragPopup) {
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(REWARD_LEARNING_PATH);
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+        }, 0);
+      }
     },
     [stickerPreviewData, stickerPreviewTrigger],
   );
@@ -187,9 +222,46 @@ const PathwayStructure: React.FC = () => {
         });
       }
       setIsStickerCompletionOpen(false);
+      if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
+        window.setTimeout(() => {
+          (window as any).__triggerPathwayReload__?.();
+        }, 0);
+      }
     },
     [stickerCompletionData],
   );
+
+  React.useEffect(() => {
+    const rewardBox = containerRef.current?.querySelector(
+      '.PathwayStructure-end-reward-box--sticker',
+    );
+    if (!rewardBox) return;
+
+    if (isStickerPreviewOpen) {
+      rewardBox.classList.remove(
+        'PathwayStructure-end-reward-box--sticker-close-anim',
+      );
+      rewardBox.classList.add('PathwayStructure-end-reward-box--sticker-open');
+    } else {
+      if (
+        rewardBox.classList.contains(
+          'PathwayStructure-end-reward-box--sticker-open',
+        )
+      ) {
+        rewardBox.classList.remove(
+          'PathwayStructure-end-reward-box--sticker-open',
+        );
+        rewardBox.classList.add(
+          'PathwayStructure-end-reward-box--sticker-close-anim',
+        );
+        setTimeout(() => {
+          rewardBox.classList.remove(
+            'PathwayStructure-end-reward-box--sticker-close-anim',
+          );
+        }, 500);
+      }
+    }
+  }, [isStickerPreviewOpen]);
 
   React.useEffect(() => {
     const handleStickerCompletionReady = (event: Event) => {
@@ -271,6 +343,7 @@ const PathwayStructure: React.FC = () => {
               ? 'drag_collect'
               : 'preview'
           }
+          launchMotion={stickerPreviewLaunchMotion}
           onClose={closeStickerPreview}
         />
       )}

@@ -60,13 +60,30 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
           >
             {isDragVariant ? (
               <>
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
+                <img
+                  className="StickerBookPreviewModal-celebration-icon"
+                  src="assets/3starconfetti.svg"
+                  alt="celebrate"
+                  style={{
+                    width: '1.4em',
+                    height: '1.4em',
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                  }}
+                />
                 {t('Yay! You have earned a sticker!')}
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
+                <img
+                  className="StickerBookPreviewModal-celebration-icon"
+                  src="assets/3starconfetti.svg"
+                  alt="celebrate"
+                  style={{
+                    width: '1.4em',
+                    height: '1.4em',
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                    transform: 'scaleX(-1)',
+                  }}
+                />
               </>
             ) : (
               t('Finish the pathway & collect this')
@@ -85,7 +102,7 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
                 className="StickerBookPreviewModal-next-name"
                 data-testid="StickerBookPreviewModal-next-name"
               >
-                {t('sticker')}.
+                {nextStickerName || t('Sticker')}
               </p>
             </>
           )}
