@@ -28,12 +28,12 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
 
   useEffect(() => {
     const calculateScale = () => {
-      // Desktop default values: 42.35rem width (~680px), 34rem height (~540px)
-      const baseWidth = 680;
+      // Desktop default values: 40rem width (640px), 34rem height (~540px)
+      const baseWidth = 640;
       const baseHeight = 540;
 
-      const maxWidth = window.innerWidth * 0.94;
-      const maxHeight = window.innerHeight * 0.9;
+      const maxWidth = window.innerWidth * 0.96;
+      const maxHeight = window.innerHeight * 0.92;
 
       const scaleX = maxWidth / baseWidth;
       const scaleY = maxHeight / baseHeight;

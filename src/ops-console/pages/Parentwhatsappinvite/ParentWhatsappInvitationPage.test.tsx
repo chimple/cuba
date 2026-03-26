@@ -1,4 +1,4 @@
-﻿import {
+import {
   act,
   fireEvent,
   render,
@@ -2038,5 +2038,3 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     expect(result.inviteList).toEqual([]);
   });
 });
-
-

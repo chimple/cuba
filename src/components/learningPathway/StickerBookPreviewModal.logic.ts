@@ -340,15 +340,9 @@ export const useStickerBookPreviewModalLogic = ({
   };
 
   const sanitizedCollectedStickers = useMemo(() => {
-    if (isDragVariant) {
-      // Per user request, we now show all previously collected stickers in drag
-      // mode, instead of a clean board. The target sticker is still shown as
-      // grey until it's successfully placed.
-      return renderData.collectedStickerIds;
-    }
-
-    // In preview mode, we just show the next sticker on a clean board.
-    return [];
+    // Keep previously collected stickers visible in both preview and drag
+    // variants. The next sticker still renders as grey until collected.
+    return renderData.collectedStickerIds;
   }, [isDragVariant, renderData.collectedStickerIds]);
 
   const sceneCollectedStickers = useMemo(() => {

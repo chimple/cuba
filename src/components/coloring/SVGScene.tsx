@@ -23,6 +23,7 @@ type Props = {
   lockedStickerOutline?: boolean;
   lockedBackgroundColor?: string;
   showUncollectedStickers?: boolean;
+  stickerVisibilityUseFilters?: boolean;
   sceneWidth?: number | string;
 };
 
@@ -39,6 +40,7 @@ export function SVGScene({
   lockedStickerOutline = false,
   lockedBackgroundColor,
   showUncollectedStickers = true,
+  stickerVisibilityUseFilters = true,
   sceneWidth = 560,
 }: Props) {
   const internalRef = useRef<SVGSVGElement | null>(null);
@@ -87,6 +89,7 @@ export function SVGScene({
         collectedStickers,
         nextStickerId,
         showUncollectedStickers,
+        stickerVisibilityUseFilters,
       );
     }
 
@@ -109,6 +112,7 @@ export function SVGScene({
     lockedStickerOutline,
     lockedBackgroundColor,
     showUncollectedStickers,
+    stickerVisibilityUseFilters,
   ]);
 
   return React.cloneElement(children as React.ReactElement<any>, {

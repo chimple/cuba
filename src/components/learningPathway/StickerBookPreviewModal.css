@@ -11,13 +11,12 @@
 
 .StickerBookPreviewModal-modal {
   position: relative;
-  width: 38.75rem;
+  width: 40rem;
   max-height: calc(100vh - 2.5rem);
   background: #fffdee;
   border-radius: 1.125rem;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 0.875rem 1.875rem rgba(0, 0, 0, 0.2);
   overflow: visible;
   display: flex;
   flex-direction: column;
@@ -69,12 +68,11 @@
   border-radius: 1.125rem 999px 999px 0;
   background: #fffdee;
   z-index: -1;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
 }
 
 .StickerBookPreviewModal-close {
   position: absolute;
-  width: calc(var(--close-size) * 0.92);
+  width: var(--close-size);
   height: var(--close-size);
   top: calc(var(--close-size) * 0.175);
   left: calc(100% + var(--close-size) * 0.29);
@@ -86,7 +84,6 @@
   cursor: pointer;
   z-index: 2;
   padding: 0;
-  box-shadow: 0 0.4rem 0.9rem rgba(0, 0, 0, 0.18);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -328,7 +325,7 @@
 .StickerBookPreviewModal-helper-text {
   margin: 0;
   color: #182a4f;
-  font-size: 1.375rem;
+  font-size: 1.675rem;
   line-height: 1.15;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -344,7 +341,7 @@
   border-radius: 0.8rem;
   border: 0.2rem solid #f55376;
   background: #fffdee;
-  padding: 0;
+  padding: 0.4rem;
 }
 
 .StickerBookPreviewModal-next-placeholder {
@@ -355,7 +352,7 @@
 .StickerBookPreviewModal-next-name {
   margin: 0;
   color: #182a4f;
-  font-size: 1.375rem;
+  font-size: var(--text-sizeXL);
   line-height: 1.15;
   font-weight: 700;
   white-space: nowrap;
@@ -415,4 +412,11 @@
 .StickerBookPreviewModal-action:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+@media (max-width: 768px) {
+  .StickerBookPreviewModal-helper-text,
+  .StickerBookPreviewModal-next-name {
+    font-size: var(--text-sizeXL);
+  }
 }
