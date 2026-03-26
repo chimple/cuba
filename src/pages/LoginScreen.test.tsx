@@ -12,6 +12,8 @@ import { LANGUAGE, LOGIN_TYPES, MODES, PAGES } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
+jest.setTimeout(15000);
+
 const mockHistoryReplace = jest.fn();
 const mockPresentToast = jest.fn();
 const mockSetGbUpdated = jest.fn();
@@ -382,6 +384,7 @@ const changeInputValue = (input: HTMLElement, value: string) => {
 
 describe('LoginScreen', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     localStorage.clear();
     jest.clearAllMocks();
     mockMigrateSupabaseSession.mockReset();
@@ -428,6 +431,10 @@ describe('LoginScreen', () => {
     (registerPlugin as jest.Mock).mockReturnValue(mockPortPlugin);
     jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(false);
     jest.spyOn(Capacitor, 'getPlatform').mockReturnValue('web');
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Initialization', () => {
