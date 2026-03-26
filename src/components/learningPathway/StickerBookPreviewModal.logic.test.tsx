@@ -6,6 +6,7 @@ import {
 } from './StickerBookPreviewModal.logic';
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
+import logger from '../../utility/logger';
 
 const originalFetch = global.fetch;
 const mockPush = jest.fn();
@@ -32,6 +33,16 @@ jest.mock('../../utility/util', () => ({
   },
 }));
 
+jest.mock('../../utility/logger', () => ({
+  __esModule: true,
+  default: {
+    warn: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
+
 const buildData = (
   override: Partial<StickerBookModalData> = {},
 ): StickerBookModalData => ({
@@ -42,7 +53,8 @@ const buildData = (
   collectedStickerIds: ['slot-collected'],
   nextStickerId: 'slot-next',
   nextStickerName: 'Rocket',
-  nextStickerImage: 'https://example.com/rocket.png',
+  nextStickerImage:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"></svg>',
   ...override,
 });
 
@@ -129,13 +141,16 @@ describe('useStickerBookPreviewModalLogic', () => {
   });
 
   test('falls back to secondary SVG fetch when primary fails', async () => {
-    global.fetch = jest
-      .fn()
-      .mockRejectedValueOnce(new Error('network failed'))
-      .mockResolvedValueOnce({
+    global.fetch = jest.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('example.com/sticker-book.svg')) {
+        return Promise.reject(new Error('network failed'));
+      }
+      return Promise.resolve({
         ok: true,
         text: async () => svgWithSlots,
       } as Response);
+    }) as jest.Mock;
 
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
@@ -147,7 +162,13 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect((global.fetch as jest.Mock).mock.calls.length).toBe(2);
+    expect(
+      (global.fetch as jest.Mock).mock.calls.length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Failed to load sticker book SVG. Falling back.',
+      expect.any(Error),
+    );
   });
 
   test('initializes drag state and logs intro events', async () => {

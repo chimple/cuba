@@ -18,6 +18,7 @@ import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  COURSE_CHANGED,
   EVENTS,
   REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
@@ -201,7 +202,7 @@ const PathwayStructure: React.FC = () => {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
         window.setTimeout(() => {
-          (window as any).__triggerPathwayReload__?.();
+          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
         }, 0);
       }
     },

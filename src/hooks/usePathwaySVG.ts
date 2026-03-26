@@ -682,7 +682,7 @@ export function usePathwaySVG({
           bg.setAttribute('ry', String(Math.round(height * 0.24)));
           bg.setAttribute('fill', '#FFFDEE');
           bg.setAttribute('stroke', '#F55376');
-          bg.setAttribute('stroke-width', '4');
+          bg.setAttribute('stroke-width', '3');
 
           const horizontalPadding = Math.round(width * 0.15);
           const verticalPadding = Math.round(height * 0.12);

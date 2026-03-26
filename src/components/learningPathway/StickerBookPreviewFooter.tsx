@@ -102,7 +102,7 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
                 className="StickerBookPreviewModal-next-name"
                 data-testid="StickerBookPreviewModal-next-name"
               >
-                {t('sticker')}.
+                {nextStickerName || t('Sticker')}
               </p>
             </>
           )}
