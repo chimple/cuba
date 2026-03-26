@@ -18,18 +18,30 @@ const COLORS = [
   '#66D9E8',
 ];
 
+const BORDER_COLORS = [
+  '#9D354B',
+  '#29663B',
+  '#9B3205',
+  '#027B7B',
+  '#A38003',
+  '#7B5E99',
+  '#527B19',
+  '#5BA3A3',
+];
+
 export default function ColorPalette({ selected, onSelect }: Props) {
   return (
     <div className="color-palette">
-      {COLORS.map((c) => {
+      {COLORS.map((c, index) => {
         const isSelected = selected === c;
+        const borderColor = BORDER_COLORS[index] ?? '#000000';
 
         return (
           <button
             key={c}
             type="button"
             className={`color-palette-swatch ${isSelected ? 'selected' : ''}`}
-            style={{ background: c }}
+            style={{ background: c, borderColor }}
             onClick={() => {
               Util.logEvent(EVENTS.PAINT_COLOR_TAP, {
                 user_id: Util.getCurrentStudent()?.id ?? null,

@@ -329,6 +329,7 @@ const StickerBook: React.FC = () => {
               <StickerBookBoard
                 title={(selectedBook.title ?? '').toUpperCase()}
                 svgRaw={svgRaw}
+                svgUrl={resolveSvgUrl(selectedBook.svg_url ?? '')}
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}
                 isLocked={isLocked}

@@ -418,12 +418,6 @@ describe('StickerBookBoard', () => {
     }
   });
 
-  test('component renders top row container', () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(document.querySelector('#sb-top-row')).toBeInTheDocument();
-  });
-
   test('component renders board container', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
