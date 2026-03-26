@@ -462,7 +462,7 @@
 .StickerBookPreviewModal-next-name {
   margin: 0;
   color: #182a4f;
-  font-size: var(--text-sizeXL);
+  font-size: 1.675rem;
   line-height: 1.15;
   font-weight: 700;
   white-space: nowrap;
