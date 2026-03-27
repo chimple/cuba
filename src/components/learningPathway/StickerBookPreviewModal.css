@@ -25,7 +25,18 @@
   --close-outset: calc(var(--close-size) * 0.82);
   --close-top: calc(var(--close-size) * 0.1);
   --close-pad: calc(var(--close-size) * 0.18);
-  margin-right: calc(var(--close-size) * 1.5);
+}
+
+.StickerBookPreviewModal-scale-wrapper {
+  box-sizing: border-box;
+}
+
+.StickerBookPreviewModal-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: calc(var(--close-size, 3.6rem) * 1.5);
 }
 
 .StickerBookPreviewModal-modal--drag {

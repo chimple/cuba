@@ -34,8 +34,8 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
 
   useEffect(() => {
     const calculateScale = () => {
-      // Desktop default values: 46rem width (736px), 39rem height (~624px)
-      const baseWidth = 736;
+      // Include the close-button shell so the whole popup stays centered on narrow landscape screens.
+      const baseWidth = 736 + 86;
       const baseHeight = 624;
 
       const maxWidth = window.innerWidth * 0.96;
@@ -105,72 +105,74 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           height: '100%',
         }}
       >
-        <div
-          className={`StickerBookPreviewModal-modal ${
-            isDragVariant ? 'StickerBookPreviewModal-modal--drag' : ''
-          } ${isFlyingOut ? 'StickerBookPreviewModal-modal--flyout' : ''}`}
-          style={
-            launchMotion
-              ? ({
-                  '--launch-offset-x': `${launchMotion.offsetX / scale}px`,
-                  '--launch-offset-y': `${launchMotion.offsetY / scale}px`,
-                  '--launch-start-scale': `${launchMotion.startScale / scale}`,
-                } as React.CSSProperties)
-              : undefined
-          }
-          role="dialog"
-          aria-modal="true"
-          data-testid="StickerBookPreviewModal-modal"
-        >
-          <button
-            className="StickerBookPreviewModal-close"
-            onClick={() => onClose('close_button')}
-            aria-label={
-              isCompletionMode
-                ? String(t('Close'))
-                : 'close-sticker-book-preview'
+        <div className="StickerBookPreviewModal-shell">
+          <div
+            className={`StickerBookPreviewModal-modal ${
+              isDragVariant ? 'StickerBookPreviewModal-modal--drag' : ''
+            } ${isFlyingOut ? 'StickerBookPreviewModal-modal--flyout' : ''}`}
+            style={
+              launchMotion
+                ? ({
+                    '--launch-offset-x': `${launchMotion.offsetX / scale}px`,
+                    '--launch-offset-y': `${launchMotion.offsetY / scale}px`,
+                    '--launch-start-scale': `${launchMotion.startScale / scale}`,
+                  } as React.CSSProperties)
+                : undefined
             }
-            data-testid="StickerBookPreviewModal-close"
+            role="dialog"
+            aria-modal="true"
+            data-testid="StickerBookPreviewModal-modal"
           >
-            <img
-              src="pathwayAssets/menuCross.svg"
-              alt="close-icon"
-              data-testid="StickerBookPreviewModal-close-icon"
+            <button
+              className="StickerBookPreviewModal-close"
+              onClick={() => onClose('close_button')}
+              aria-label={
+                isCompletionMode
+                  ? String(t('Close'))
+                  : 'close-sticker-book-preview'
+              }
+              data-testid="StickerBookPreviewModal-close"
+            >
+              <img
+                src="pathwayAssets/menuCross.svg"
+                alt="close-icon"
+                data-testid="StickerBookPreviewModal-close-icon"
+              />
+            </button>
+
+            <StickerBookPreviewStage
+              isDragVariant={isDragVariant}
+              isLoading={isLoading}
+              showIntroConfetti={showIntroConfetti}
+              showDropConfetti={showDropConfetti}
+              showPointerHint={showPointerHint}
+              showDragSticker={showDragSticker}
+              isDragging={isDragging}
+              isDropSuccessful={isDropSuccessful}
+              dragStickerPos={dragStickerPos}
+              dragStickerSize={dragStickerSize}
+              nextStickerImage={renderData.nextStickerImage}
+              nextStickerName={renderData.nextStickerName}
+              sceneSvg={sceneSvg}
+              bookSvgRef={bookSvgRef}
+              setFrameElement={setFrameElement}
+              getSlotRectInFrame={getSlotRectInFrame}
+              onDragPointerDown={handleDragPointerDown}
+              onDragPointerMove={handleDragPointerMove}
+              onDragPointerUp={handleDragPointerUp}
+              onDragPointerCancel={handleDragPointerCancel}
             />
-          </button>
 
-          <StickerBookPreviewStage
-            isDragVariant={isDragVariant}
-            isLoading={isLoading}
-            showIntroConfetti={showIntroConfetti}
-            showDropConfetti={showDropConfetti}
-            showPointerHint={showPointerHint}
-            showDragSticker={showDragSticker}
-            isDragging={isDragging}
-            isDropSuccessful={isDropSuccessful}
-            dragStickerPos={dragStickerPos}
-            dragStickerSize={dragStickerSize}
-            nextStickerImage={renderData.nextStickerImage}
-            nextStickerName={renderData.nextStickerName}
-            sceneSvg={sceneSvg}
-            bookSvgRef={bookSvgRef}
-            setFrameElement={setFrameElement}
-            getSlotRectInFrame={getSlotRectInFrame}
-            onDragPointerDown={handleDragPointerDown}
-            onDragPointerMove={handleDragPointerMove}
-            onDragPointerUp={handleDragPointerUp}
-            onDragPointerCancel={handleDragPointerCancel}
-          />
-
-          <StickerBookPreviewFooter
-            isCompletionMode={isCompletionMode}
-            isDragVariant={isDragVariant}
-            isSaving={isSaving}
-            nextStickerImage={renderData.nextStickerImage}
-            nextStickerName={renderData.nextStickerName}
-            onSave={handleSave}
-            onPaint={handlePaint}
-          />
+            <StickerBookPreviewFooter
+              isCompletionMode={isCompletionMode}
+              isDragVariant={isDragVariant}
+              isSaving={isSaving}
+              nextStickerImage={renderData.nextStickerImage}
+              nextStickerName={renderData.nextStickerName}
+              onSave={handleSave}
+              onPaint={handlePaint}
+            />
+          </div>
         </div>
       </div>
     </div>

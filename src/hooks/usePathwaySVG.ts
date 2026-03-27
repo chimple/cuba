@@ -241,6 +241,7 @@ export function usePathwaySVG({
       }
 
       let overrideParsed: any = null;
+      let completionOverrideParsed: any = null;
       if (isStickerBookPreviewOn) {
         const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         if (raw) {
@@ -253,6 +254,18 @@ export function usePathwaySVG({
         }
       }
 
+      const rawCompletionPopup = sessionStorage.getItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      );
+      if (rawCompletionPopup) {
+        try {
+          const parsed = JSON.parse(rawCompletionPopup);
+          if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+            completionOverrideParsed = parsed;
+          }
+        } catch (e) {}
+      }
+
       const stickerPreviewPayload = isStickerBookPreviewOn
         ? overrideParsed
           ? await getStickerPreviewPayload(
@@ -260,32 +273,36 @@ export function usePathwaySVG({
               Array.isArray(overrideParsed.preAwardCollectedStickerIds)
                 ? overrideParsed.preAwardCollectedStickerIds
                 : undefined,
+              {
+                stickerBookId: overrideParsed.stickerBookId,
+                stickerBookTitle: overrideParsed.stickerBookTitle,
+                stickerBookSvgUrl: overrideParsed.stickerBookSvgUrl,
+              },
             )
           : await getStickerPreviewPayload()
         : null;
       const stickerCompletionPayload = isStickerBookCompletionPopupOn
-        ? await getStickerCompletionPayload()
+        ? (getPersistedStickerCompletionPayload(completionOverrideParsed) ??
+          (await getStickerCompletionPayload()))
         : null;
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
 
-      const rawCompletionPopup = sessionStorage.getItem(
-        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-      );
       let didScheduleStickerCompletionPopup = false;
       if (rawCompletionPopup) {
         try {
           const parsed = JSON.parse(rawCompletionPopup);
           const shouldOpenForStudent =
             parsed?.studentId && parsed.studentId === currentStudent.id;
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
           if (
             shouldOpenForStudent &&
+            !overrideParsed &&
             isStickerBookCompletionPopupOn &&
             stickerCompletionPayload
           ) {
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
             didScheduleStickerCompletionPopup = true;
             setTimeout(
               () => onStickerCompletionReady(stickerCompletionPayload),
@@ -910,17 +927,41 @@ export function usePathwaySVG({
   async function getStickerPreviewPayload(
     forcedStickerId?: string,
     preAwardCollectedStickerIds?: string[],
+    persistedBookContext?: {
+      stickerBookId?: string | null;
+      stickerBookTitle?: string | null;
+      stickerBookSvgUrl?: string | null;
+    } | null,
   ): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
 
-      // Start from the active sticker book and the user's current progress.
-      const currentBookWithProgress =
-        await api.getCurrentStickerBookWithProgress(currentStudent.id);
-      if (!currentBookWithProgress?.book) return null;
+      let book: {
+        id: string;
+        title?: string | null;
+        svg_url?: string | null;
+      } | null = null;
+      let progress: { stickers_collected?: string[] | null } | null = null;
 
-      const { book, progress } = currentBookWithProgress;
+      if (
+        persistedBookContext?.stickerBookId &&
+        persistedBookContext.stickerBookSvgUrl
+      ) {
+        book = {
+          id: persistedBookContext.stickerBookId,
+          title: persistedBookContext.stickerBookTitle ?? 'Sticker Book',
+          svg_url: persistedBookContext.stickerBookSvgUrl,
+        };
+      } else {
+        // Start from the active sticker book and the user's current progress.
+        const currentBookWithProgress =
+          await api.getCurrentStickerBookWithProgress(currentStudent.id);
+        if (!currentBookWithProgress?.book) return null;
+        book = currentBookWithProgress.book;
+        progress = currentBookWithProgress.progress;
+      }
+
       const collectedStickerIds = Array.isArray(preAwardCollectedStickerIds)
         ? preAwardCollectedStickerIds
         : (progress?.stickers_collected ?? []);
@@ -1003,6 +1044,32 @@ export function usePathwaySVG({
       logger.error('Failed to build sticker completion payload:', error);
       return null;
     }
+  }
+
+  function getPersistedStickerCompletionPayload(
+    parsed: any,
+  ): StickerBookModalData | null {
+    const payload = parsed?.payload;
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      !payload.stickerBookId ||
+      !Array.isArray(payload.collectedStickerIds)
+    ) {
+      return null;
+    }
+
+    return {
+      source: payload.source ?? 'learning_pathway',
+      stickerBookId: payload.stickerBookId,
+      stickerBookTitle: payload.stickerBookTitle || 'Sticker Book',
+      stickerBookSvgUrl: payload.stickerBookSvgUrl || '',
+      collectedStickerIds: payload.collectedStickerIds,
+      totalStickerCount:
+        typeof payload.totalStickerCount === 'number'
+          ? payload.totalStickerCount
+          : payload.collectedStickerIds.length,
+    };
   }
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
