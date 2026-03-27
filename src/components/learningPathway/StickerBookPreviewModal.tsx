@@ -34,8 +34,9 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
 
   useEffect(() => {
     const calculateScale = () => {
-      // Include the close-button shell so the whole popup stays centered on narrow landscape screens.
-      const baseWidth = 736 + 86;
+      //Desktop default values: 46rem width (736px), 39rem height (~624px)
+
+      const baseWidth = 736;
       const baseHeight = 624;
 
       const maxWidth = window.innerWidth * 0.96;

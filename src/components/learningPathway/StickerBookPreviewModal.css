@@ -12,7 +12,7 @@
 .StickerBookPreviewModal-modal {
   position: relative;
   width: 46rem;
-  max-height: calc(100vh - 2.5rem);
+  /* max-height: calc(100vh - 2.5rem); */
   background: #fffdee;
   border-radius: 1.125rem;
   border: none !important;
@@ -25,18 +25,7 @@
   --close-outset: calc(var(--close-size) * 0.82);
   --close-top: calc(var(--close-size) * 0.1);
   --close-pad: calc(var(--close-size) * 0.18);
-}
-
-.StickerBookPreviewModal-scale-wrapper {
-  box-sizing: border-box;
-}
-
-.StickerBookPreviewModal-shell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-right: calc(var(--close-size, 3.6rem) * 1.5);
+  margin-right: calc(var(--close-size) * 1.5);
 }
 
 .StickerBookPreviewModal-modal--drag {
