@@ -14,10 +14,15 @@ import { EVENTS, PAGES } from '../../common/constants';
 import PaintExitPopup from './PaintExitPopup';
 import { t } from 'i18next';
 import StickerBookActions from '../stickerBook/StickerBookActions';
+import StickerBookSaveModal from '../stickerBook/StickerBookSaveModal';
+import StickerBookToast from '../stickerBook/StickerBookToast';
+import { useStickerBookSave } from '../../hooks/useStickerBookSave';
 
 type ColoringBoardRouteState = {
   svgUrl?: string;
   svgRaw?: string;
+  artworkTitle?: string;
+  stickerBookTitle?: string;
   returnTo?: string;
 };
 
@@ -66,6 +71,40 @@ const ColoringBoard: React.FC = () => {
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
 
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
+  const toastText = t(
+    'Yay! Your creation is saved, share it with your family & friends!',
+  );
+  const artworkTitle =
+    location.state?.artworkTitle ?? location.state?.stickerBookTitle ?? null;
+  const saveAnalyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      page_path: window.location.pathname,
+      source: PAGES.COLORING_BOARD,
+      artwork_title: artworkTitle,
+      return_to: location.state?.returnTo ?? null,
+    }),
+    [artworkTitle, location.state],
+  );
+  const {
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
+    openSaveModal,
+    closeSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
+  } = useStickerBookSave({
+    fileBaseName: 'Colored Sticker Book',
+    shareText: 'Colored Sticker Book',
+    backgroundColor: '#fffdee',
+    onSaveSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -130,7 +169,18 @@ const ColoringBoard: React.FC = () => {
       page_path: window.location.pathname,
       source: PAGES.COLORING_BOARD,
     });
+    Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      page_path: window.location.pathname,
+      source: PAGES.COLORING_BOARD,
+    });
     logger.info('save');
+
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+
+    const coloringSvg = svgEl.cloneNode(true);
+    openSaveModal(new XMLSerializer().serializeToString(coloringSvg));
   };
 
   return (
@@ -199,8 +249,7 @@ const ColoringBoard: React.FC = () => {
           onSave={handleSave}
           onPaint={() => {}}
           paintDisabled={true}
-          isStickerBookSaveEnabled={true}
-          isBookCompleted={true}
+          canSave={true}
         />
 
         <div id="coloring-board-tray" className="coloring-board-tray">
@@ -234,6 +283,19 @@ const ColoringBoard: React.FC = () => {
           });
           handleExit();
         }}
+      />
+      <StickerBookSaveModal
+        open={showSaveModal}
+        svgMarkup={savedSvgMarkup}
+        onClose={closeSaveModal}
+        onAnimationComplete={handleSaveAndShare}
+      />
+      <StickerBookToast
+        isOpen={showSaveToast}
+        text={toastText}
+        image="/assets/icons/Confirmation.svg"
+        duration={4000}
+        onClose={closeSaveToast}
       />
     </div>
   );
