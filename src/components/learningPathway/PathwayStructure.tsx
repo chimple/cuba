@@ -44,6 +44,7 @@ const PathwayStructure: React.FC = () => {
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
     React.useState<boolean>(false);
   const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
+  const shouldRefreshPathAfterCompletionRef = React.useRef<boolean>(false);
 
   const {
     // refs
@@ -71,7 +72,6 @@ const PathwayStructure: React.FC = () => {
     hasTodayReward,
     isRewardFeatureOn,
     rewardModalOpen,
-    isCampaignFinished,
     handleRewardBoxOpen,
     handleRewardModalClose,
     handleRewardModalPlay,
@@ -119,26 +119,11 @@ const PathwayStructure: React.FC = () => {
     [],
   );
 
-  // Mounts SVG with everything needed
-  usePathwaySVG({
-    containerRef,
-    setModalOpen,
-    setModalText,
-
-    history,
-    getCachedLesson,
-    updateMascotToNormalState,
-    invokeMascotCelebration,
-    setRewardRiveState,
-    setRiveContainer,
-    setRewardRiveContainer,
-    setHasTodayReward,
-    setCurrentCourse,
-    setCurrentChapter,
-    setIsRewardPathLoaded,
-    isRewardPathLoaded,
-    checkAndUpdateReward,
-    onStickerPreviewReady: (data, trigger) => {
+  const handleStickerPreviewReady = React.useCallback(
+    (
+      data: StickerBookModalData,
+      trigger: 'sticker_click' | 'pathway_completion_auto',
+    ) => {
       const rewardBoxRect = containerRef.current
         ?.querySelector('.PathwayStructure-end-reward-box--sticker')
         ?.getBoundingClientRect();
@@ -174,9 +159,69 @@ const PathwayStructure: React.FC = () => {
         },
       );
     },
-    onStickerCompletionReady: (data) => {
+    [containerRef],
+  );
+
+  const handleStickerCompletionReadyInternal = React.useCallback(
+    (data: StickerBookModalData) => {
       openStickerCompletion(data);
     },
+    [openStickerCompletion],
+  );
+
+  const getDeferredStickerCompletionPayload = React.useCallback(() => {
+    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const payload = parsed?.payload;
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        !payload.stickerBookId ||
+        !Array.isArray(payload.collectedStickerIds)
+      ) {
+        return null;
+      }
+
+      return {
+        source: payload.source ?? 'learning_pathway',
+        stickerBookId: payload.stickerBookId,
+        stickerBookTitle: payload.stickerBookTitle || 'Sticker Book',
+        stickerBookSvgUrl: payload.stickerBookSvgUrl || '',
+        collectedStickerIds: payload.collectedStickerIds,
+        totalStickerCount:
+          typeof payload.totalStickerCount === 'number'
+            ? payload.totalStickerCount
+            : payload.collectedStickerIds.length,
+      } as StickerBookModalData;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Mounts SVG with everything needed
+  usePathwaySVG({
+    containerRef,
+    setModalOpen,
+    setModalText,
+
+    history,
+    getCachedLesson,
+    updateMascotToNormalState,
+    invokeMascotCelebration,
+    setRewardRiveState,
+    setRiveContainer,
+    setRewardRiveContainer,
+    setHasTodayReward,
+    setCurrentCourse,
+    setCurrentChapter,
+    setIsRewardPathLoaded,
+    isRewardPathLoaded,
+    checkAndUpdateReward,
+    onStickerPreviewReady: handleStickerPreviewReady,
+    onStickerCompletionReady: handleStickerCompletionReadyInternal,
   });
 
   const closeStickerPreview = React.useCallback(
@@ -201,12 +246,28 @@ const PathwayStructure: React.FC = () => {
       if (isDragPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
-        window.setTimeout(() => {
-          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
-        }, 0);
+        const deferredCompletionPayload = getDeferredStickerCompletionPayload();
+        if (deferredCompletionPayload) {
+          shouldRefreshPathAfterCompletionRef.current = true;
+          window.setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                detail: deferredCompletionPayload,
+              }),
+            );
+          }, 0);
+        } else {
+          window.setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
     },
-    [stickerPreviewData, stickerPreviewTrigger],
+    [
+      getDeferredStickerCompletionPayload,
+      stickerPreviewData,
+      stickerPreviewTrigger,
+    ],
   );
 
   const closeStickerCompletion = React.useCallback(
@@ -222,7 +283,12 @@ const PathwayStructure: React.FC = () => {
         });
       }
       setIsStickerCompletionOpen(false);
-      if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
+      if (shouldRefreshPathAfterCompletionRef.current) {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+        }, 0);
+      } else if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
         window.setTimeout(() => {
           (window as any).__triggerPathwayReload__?.();
         }, 0);
@@ -261,7 +327,7 @@ const PathwayStructure: React.FC = () => {
         }, 500);
       }
     }
-  }, [isStickerPreviewOpen]);
+  }, [isStickerPreviewOpen, containerRef]);
 
   React.useEffect(() => {
     const handleStickerCompletionReady = (event: Event) => {

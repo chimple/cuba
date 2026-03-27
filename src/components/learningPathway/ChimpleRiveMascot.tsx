@@ -21,24 +21,25 @@ interface ChimpleRiveMascotProps {
   inputName?: string;
 }
 
-export default function ChimpleRiveMascot({
+interface RiveMascotCanvasProps extends ChimpleRiveMascotProps {
+  src: string;
+}
+
+function RiveMascotCanvas({
+  src,
   stateMachine,
   animationName,
   stateValue,
   inputName,
-}: ChimpleRiveMascotProps) {
+}: RiveMascotCanvasProps) {
+  const chimple_rive_state_machine_max = localStorage.getItem(
+    CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  );
   const should_show_remote_asset =
     Capacitor.isNativePlatform() &&
     localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
       ? true
       : false;
-
-  const chimple_rive_state_machine_max = localStorage.getItem(
-    CHIMPLE_RIVE_STATE_MACHINE_MAX,
-  );
-  const [riveSrc, setRiveSrc] = useState<string>(
-    '/pathwayAssets/chimpleRive.riv',
-  );
 
   const CHIMPLE_RIVE_STATE_MIN = 1;
   const CHIMPLE_RIVE_STATE_MAX = should_show_remote_asset
@@ -48,7 +49,7 @@ export default function ChimpleRiveMascot({
     : 8;
 
   const { rive, RiveComponent } = useRive({
-    src: should_show_remote_asset ? riveSrc : '/pathwayAssets/chimpleRive.riv',
+    src,
     artboard: 'Artboard',
     stateMachines: animationName ? undefined : stateMachine,
     animations: animationName ? [animationName] : undefined,
@@ -69,37 +70,7 @@ export default function ChimpleRiveMascot({
   const today = new Date();
   const day = today.getDate();
   const mappedState = ((day - 1) % CHIMPLE_RIVE_STATE_MAX) + 1;
-  const [value, setValue] = useState<number>(
-    stateValue ? stateValue : mappedState,
-  );
-
-  useEffect(() => {
-    if (!should_show_remote_asset) return;
-
-    const getRemoteMascotUrl = async () => {
-      try {
-        // Read the file content and convert to base64 data URL
-        const fileContent = await Filesystem.readFile({
-          directory: Directory.External,
-          path: 'remoteAsset/chimpleRive.riv',
-        });
-
-        if (fileContent.data) {
-          // Convert to data URL that useRive can load
-          const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
-          setRiveSrc(dataUrl);
-        }
-        // If no data or error, keep default local path
-      } catch (error) {
-        logger.error(
-          'Error reading remote mascot file, keeping local path:',
-          error,
-        );
-      }
-    };
-
-    getRemoteMascotUrl();
-  }, [should_show_remote_asset]);
+  const [value] = useState<number>(stateValue ? stateValue : mappedState);
 
   useEffect(() => {
     if (animationName) return; // Don't set state machine input if using animation
@@ -119,7 +90,80 @@ export default function ChimpleRiveMascot({
     }
   }, [value, numberInput, animationName]);
 
+  return <RiveComponent style={{ width: '100%', height: '100%' }} />;
+}
+
+export default function ChimpleRiveMascot({
+  stateMachine,
+  animationName,
+  stateValue,
+  inputName,
+}: ChimpleRiveMascotProps) {
+  const should_show_remote_asset =
+    Capacitor.isNativePlatform() &&
+    localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
+      ? true
+      : false;
+  const defaultSrc = '/pathwayAssets/chimpleRive.riv';
+  const [riveSrc, setRiveSrc] = useState<string | null>(
+    should_show_remote_asset ? null : defaultSrc,
+  );
+
+  useEffect(() => {
+    if (!should_show_remote_asset) {
+      setRiveSrc(defaultSrc);
+      return;
+    }
+
+    let isMounted = true;
+
+    const getRemoteMascotUrl = async () => {
+      try {
+        // Read the file content and convert to base64 data URL
+        const fileContent = await Filesystem.readFile({
+          directory: Directory.External,
+          path: 'remoteAsset/chimpleRive.riv',
+        });
+
+        if (fileContent.data) {
+          // Convert to data URL that useRive can load
+          const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
+          if (isMounted) {
+            setRiveSrc(dataUrl);
+          }
+          return;
+        }
+        // If no data or error, keep default local path
+        if (isMounted) {
+          setRiveSrc(defaultSrc);
+        }
+      } catch (error) {
+        logger.error(
+          'Error reading remote mascot file, keeping local path:',
+          error,
+        );
+        if (isMounted) {
+          setRiveSrc(defaultSrc);
+        }
+      }
+    };
+
+    getRemoteMascotUrl();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [defaultSrc, should_show_remote_asset]);
+
+  if (!riveSrc) return null;
+
   return (
-    <RiveComponent key={riveSrc} style={{ width: '100%', height: '100%' }} />
+    <RiveMascotCanvas
+      src={riveSrc}
+      stateMachine={stateMachine}
+      inputName={inputName}
+      stateValue={stateValue}
+      animationName={animationName}
+    />
   );
 }

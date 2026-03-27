@@ -12,7 +12,7 @@
 .StickerBookPreviewModal-modal {
   position: relative;
   width: 46rem;
-  max-height: calc(100vh - 2.5rem);
+  /* max-height: calc(100vh - 2.5rem); */
   background: #fffdee;
   border-radius: 1.125rem;
   border: none !important;

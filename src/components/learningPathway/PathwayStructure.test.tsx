@@ -485,6 +485,44 @@ describe('PathwayStructure', () => {
     );
   });
 
+  test('shows drag popup before deferred sticker completion popup for final sticker flow', async () => {
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        payload: buildCompletionData(),
+      }),
+    );
+
+    render(<PathwayStructure />);
+
+    const args = (usePathwaySVG as jest.Mock).mock.calls[0][0];
+    act(() => {
+      args.onStickerPreviewReady(
+        {
+          source: 'learning_pathway',
+          stickerBookId: 'book-6',
+          stickerBookTitle: 'Final Sticker Page',
+          stickerBookSvgUrl: 'https://example.com/final.svg',
+          collectedStickerIds: ['s1', 's2', 's3', 's4', 's5'],
+          nextStickerId: 's6',
+          nextStickerName: 'Sticker 6',
+        },
+        'pathway_completion_auto',
+      );
+    });
+
+    expect(
+      screen.getByTestId('sticker-book-preview-modal'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('sticker-book-preview-close'));
+
+    expect(
+      await screen.findByTestId('sticker-book-completion-popup'),
+    ).toBeInTheDocument();
+  });
+
   test('opens sticker completion modal from completion-ready window event and clears session key', async () => {
     sessionStorage.setItem(
       AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
