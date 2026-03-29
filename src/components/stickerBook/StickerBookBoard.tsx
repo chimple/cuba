@@ -278,7 +278,7 @@ const StickerBookBoard: React.FC<Props> = ({
                     colorModeUncolouredStyle="outline"
                     lockedStickerOutline={isLocked}
                     // Match locked overlay tone with the board background.
-                    lockedBackgroundColor={isLocked ? '#ECEBE0' : undefined}
+                    lockedBackgroundColor={isLocked ? '#C0C0C0' : undefined}
                     showUncollectedStickers={true}
                   >
                     <InlineSvg
