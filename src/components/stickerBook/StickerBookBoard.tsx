@@ -254,7 +254,7 @@ const StickerBookBoard: React.FC<Props> = ({
                 showUncollectedStickers={true}
               >
                 <InlineSvg
-                  key={`${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
+                  key={`${title}:${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
                   svg={parsedSvg}
                 />
               </SVGScene>

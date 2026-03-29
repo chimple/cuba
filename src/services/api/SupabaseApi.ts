@@ -12313,7 +12313,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'in_progress')
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     // 2️⃣ If user already has active progress
@@ -12339,7 +12339,7 @@ export class SupabaseApi implements ServiceApi {
       .select('sticker_book_id')
       .eq('user_id', userId)
       .eq('status', 'completed')
-      .eq('is_deleted', false);
+      .or('is_deleted.is.false,is_deleted.is.null');
 
     const completedBookIds = Array.from(
       new Set(
@@ -12391,7 +12391,7 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq('user_id', userId)
       .eq('status', 'completed')
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .eq('sticker_book.is_deleted', false);
 
     if (error) {
@@ -12430,7 +12430,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', effectiveUserId)
       .eq('sticker_book_id', stickerBookId)
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     const collected = progress?.stickers_collected ?? [];
@@ -12447,13 +12447,10 @@ export class SupabaseApi implements ServiceApi {
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string,
   ): Promise<void> {
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-
-    if (!user?.id) return;
     if (!this.supabase) return;
-
-    const userId = user.id;
+    if (!userId?.trim()) return;
 
     // get book
     const { data: book } = await this.supabase
@@ -12472,7 +12469,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', userId)
       .eq('sticker_book_id', stickerBookId)
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     // create
@@ -12484,6 +12481,7 @@ export class SupabaseApi implements ServiceApi {
         sticker_book_id: stickerBookId,
         stickers_collected: [stickerId],
         status,
+        is_deleted: false,
       });
 
       return;
@@ -12506,9 +12504,10 @@ export class SupabaseApi implements ServiceApi {
       .update({
         stickers_collected: updated,
         status,
+        is_deleted: false,
       })
       .eq('id', progress.id)
-      .eq('is_deleted', false);
+      .or('is_deleted.is.false,is_deleted.is.null');
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

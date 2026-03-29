@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import { t } from 'i18next';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
@@ -94,52 +94,61 @@ export const usePathwayData = () => {
   // Lesson cache
   const lessonCacheRef = useRef<Map<string, any>>(new Map());
 
-  const getCachedLesson = async (lessonId: string): Promise<any> => {
-    const lessonCache = lessonCacheRef.current;
-    if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
+  const getCachedLesson = useCallback(
+    async (lessonId: string): Promise<any> => {
+      const lessonCache = lessonCacheRef.current;
+      if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
 
-    const key = `lesson_${lessonId}`;
-    const cached = sessionStorage.getItem(key);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      lessonCache.set(lessonId, parsed);
-      return parsed;
-    }
+      const key = `lesson_${lessonId}`;
+      const cached = sessionStorage.getItem(key);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        lessonCache.set(lessonId, parsed);
+        return parsed;
+      }
 
-    const lesson = await api.getLesson(lessonId);
-    lessonCache.set(lessonId, lesson);
-    sessionStorage.setItem(key, JSON.stringify(lesson));
-    return lesson;
-  };
+      const lesson = await api.getLesson(lessonId);
+      lessonCache.set(lessonId, lesson);
+      sessionStorage.setItem(key, JSON.stringify(lesson));
+      return lesson;
+    },
+    [api],
+  );
 
   //  MASCOT: NORMAL STATE (IDLE)
-  const updateMascotToNormalState = async (rewardId: string) => {
-    const rewardRecord = await api.getRewardById(rewardId);
-    if (rewardRecord && rewardRecord.type === 'normal') {
-      setChimpleRiveStateMachineName(
-        rewardRecord.state_machine || 'State Machine 3',
-      );
-      setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
-      setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
-      setChimpleRiveAnimationName(undefined);
-      setMascotKey((prev) => prev + 1);
-    } else {
-      setChimpleRiveAnimationName('id');
-      setMascotKey((prev) => prev + 1);
-    }
-  };
+  const updateMascotToNormalState = useCallback(
+    async (rewardId: string) => {
+      const rewardRecord = await api.getRewardById(rewardId);
+      if (rewardRecord && rewardRecord.type === 'normal') {
+        setChimpleRiveStateMachineName(
+          rewardRecord.state_machine || 'State Machine 3',
+        );
+        setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
+        setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
+        setChimpleRiveAnimationName(undefined);
+        setMascotKey((prev) => prev + 1);
+      } else {
+        setChimpleRiveAnimationName('id');
+        setMascotKey((prev) => prev + 1);
+      }
+    },
+    [api],
+  );
 
   //  MASCOT: CELEBRATION STATE
-  const invokeMascotCelebration = async (state_number_input: number) => {
-    setChimpleRiveStateMachineName('State Machine 2');
-    setChimpleRiveInputName('Number 1');
-    setChimpleRiveStateValue(state_number_input || 1);
-    setChimpleRiveAnimationName(undefined);
-    setMascotKey((prev) => prev + 1);
-  };
+  const invokeMascotCelebration = useCallback(
+    async (state_number_input: number) => {
+      setChimpleRiveStateMachineName('State Machine 2');
+      setChimpleRiveInputName('Number 1');
+      setChimpleRiveStateValue(state_number_input || 1);
+      setChimpleRiveAnimationName(undefined);
+      setMascotKey((prev) => prev + 1);
+    },
+    [],
+  );
 
   // INITIALIZE PATHWAY
-  const initializePathway = async () => {
+  const initializePathway = useCallback(async () => {
     try {
       const todaysReward = await Promise.all([
         checkAndUpdateReward(),
@@ -163,7 +172,7 @@ export const usePathwayData = () => {
     } catch (err) {
       logger.error('Error in initializePathway:', err);
     }
-  };
+  }, [checkAndUpdateReward, updateMascotToNormalState, setHasTodayReward]);
 
   // 🟡 Decide campaign applicability per student
   useEffect(() => {
@@ -209,7 +218,7 @@ export const usePathwayData = () => {
     if (isRewardFeatureOn) {
       initializePathway();
     }
-  }, [isRewardPathLoaded, isRewardFeatureOn]);
+  }, [isRewardPathLoaded, isRewardFeatureOn, initializePathway]);
 
   // DAILY REWARD MODAL
   const hasRunDailyCheckRef = useRef(false);
@@ -229,95 +238,99 @@ export const usePathwayData = () => {
     };
 
     showModalIfNeeded();
-  }, [isCampaignFinished, isRewardFeatureOn]);
+  }, [isCampaignFinished, isRewardFeatureOn, shouldShowDailyRewardModal]);
 
-  const handleRewardBoxOpen = (e?: React.MouseEvent) => {
+  const handleRewardBoxOpen = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const today = new Date().toISOString().split('T')[0];
     sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, today);
     setRewardModalOpen(true);
-  };
+  }, []);
 
-  const handleRewardModalClose = (e?: React.MouseEvent) => {
+  const handleRewardModalClose = useCallback((e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setRewardModalOpen(false);
     sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
-  };
+  }, []);
 
-  const handleRewardModalPlay = async (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setRewardModalOpen(false);
-    sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
+  const handleRewardModalPlay = useCallback(
+    async (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+      setRewardModalOpen(false);
+      sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
 
-    try {
-      const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent?.learning_path) return;
-      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
-      const currentCourseIndex = learningPath?.courses.currentCourseIndex;
-      const course = learningPath?.courses.courseList[currentCourseIndex];
-      const pathItem = course?.path.find(
-        (p: LessonNode) => p.isPlayed === false,
-      );
-      if (!course || !pathItem) return;
-      const isAssessment = pathItem?.is_assessment;
+      try {
+        const currentStudent = Util.getCurrentStudent();
+        if (!currentStudent?.learning_path) return;
+        const pathToParse =
+          Util.getLatestLearningPathByUpdatedAt(currentStudent);
+        let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+        const course = learningPath?.courses.courseList[currentCourseIndex];
+        const pathItem = course?.path.find(
+          (p: LessonNode) => p.isPlayed === false,
+        );
+        if (!course || !pathItem) return;
+        const isAssessment = pathItem?.is_assessment;
 
-      const lesson = await api.getLesson(
-        course.path.find((p: LessonNode) => p.isPlayed === false).lesson_id,
-      );
-      if (!lesson) return;
+        const lesson = await api.getLesson(
+          course.path.find((p: LessonNode) => p.isPlayed === false).lesson_id,
+        );
+        if (!lesson) return;
 
-      // Navigate based on plugin type
-      if (lesson.plugin_type === COCOS) {
-        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.GAME + params, {
-          url: 'chimple-lib/index.html' + params,
-          lessonId: lesson.cocos_lesson_id,
-          courseDocId: course.course_id,
-          course: JSON.stringify(currentCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(currentChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          learning_path: true,
-          reward: true,
-          skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-            ?.skill_id,
-          is_assessment: isAssessment,
-        });
-      } else if (lesson.plugin_type === LIVE_QUIZ) {
-        history.replace(
-          PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-          {
-            courseId: course.course_id,
+        // Navigate based on plugin type
+        if (lesson.plugin_type === COCOS) {
+          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+          history.replace(PAGES.GAME + params, {
+            url: 'chimple-lib/index.html' + params,
+            lessonId: lesson.cocos_lesson_id,
+            courseDocId: course.course_id,
+            course: JSON.stringify(currentCourse),
             lesson: JSON.stringify(lesson),
+            chapter: JSON.stringify(currentChapter),
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
             skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
               ?.skill_id,
             is_assessment: isAssessment,
-          },
-        );
-      } else if (lesson.plugin_type === LIDO) {
-        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.replace(PAGES.LIDO_PLAYER + params, {
-          lessonId: lesson.cocos_lesson_id,
-          courseDocId: course.course_id,
-          course: JSON.stringify(currentCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(currentChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          learning_path: true,
-          reward: true,
-          skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-            ?.skill_id,
-          is_assessment: isAssessment,
-        });
+          });
+        } else if (lesson.plugin_type === LIVE_QUIZ) {
+          history.replace(
+            PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+            {
+              courseId: course.course_id,
+              lesson: JSON.stringify(lesson),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+              learning_path: true,
+              reward: true,
+              skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
+                ?.skill_id,
+              is_assessment: isAssessment,
+            },
+          );
+        } else if (lesson.plugin_type === LIDO) {
+          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+          history.replace(PAGES.LIDO_PLAYER + params, {
+            lessonId: lesson.cocos_lesson_id,
+            courseDocId: course.course_id,
+            course: JSON.stringify(currentCourse),
+            lesson: JSON.stringify(lesson),
+            chapter: JSON.stringify(currentChapter),
+            from: history.location.pathname + `?${CONTINUE}=true`,
+            learning_path: true,
+            reward: true,
+            skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
+              ?.skill_id,
+            is_assessment: isAssessment,
+          });
+        }
+      } catch (error) {
+        logger.error('Error in playLesson:', error);
       }
-    } catch (error) {
-      logger.error('Error in playLesson:', error);
-    }
-  };
+    },
+    [api, currentChapter, currentCourse, history],
+  );
 
   const mascotProps: MascotProps = {
     stateMachine: chimpleRiveStateMachineName,

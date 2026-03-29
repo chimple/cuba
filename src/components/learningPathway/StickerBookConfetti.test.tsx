@@ -18,7 +18,7 @@ describe('StickerBookConfetti', () => {
       screen.getByTestId('StickerBookPreviewModal-confetti'),
     ).toBeInTheDocument();
     expect(clouds.length).toBe(5);
-    expect(pieces.length).toBe(26);
+    expect(pieces.length).toBe(52);
   });
 
   test('adds drop modifier class when isDropConfetti is true', () => {

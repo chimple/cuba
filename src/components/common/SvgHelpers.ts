@@ -132,7 +132,6 @@ export function applyStickerVisibilityStrict(
 
         applyShapePaint(shape, 'fill', '#D1D2D4');
         applyShapePaint(shape, 'stroke', '#D1D2D4');
-        applyShapeStrokeWidth(shape, '2');
         applyShapeColor(shape, '#D1D2D4');
         clearShapeOpacity(shape);
       });
@@ -372,16 +371,12 @@ export function applyLockedStickerOutline(svg: SVGSVGElement) {
       'path,circle,ellipse,rect,polygon,polyline,line',
     );
     shapes.forEach((shape) => {
-      // Make fills transparent without forcing a fill value.
-      shape.setAttribute('fill-opacity', '0');
-      (shape as SVGElement).style?.setProperty(
-        'fill-opacity',
-        '0',
-        'important',
-      );
+      // White stroke, no fill for stickers
+      shape.setAttribute('fill', '#C0C0C0');
+      (shape as SVGElement).style?.setProperty('fill', '#C0C0C0', 'important');
+      shape.removeAttribute('fill-opacity');
 
       applyShapePaint(shape, 'stroke', '#FFFFFF');
-      shape.removeAttribute('stroke-opacity');
       (shape as SVGElement).style?.setProperty(
         'stroke-opacity',
         '1',
@@ -395,11 +390,21 @@ export function applyLockedStickerOutline(svg: SVGSVGElement) {
   });
 }
 
-// Sets a solid background color on the SVG.
+// Sets a solid background color on the SVG and ensures background elements have no fill.
 export function applyLockedBackground(svg: SVGSVGElement, color: string) {
-  const svgEl = svg as SVGSVGElement;
-  svgEl.style.background = 'transparent';
-  svgEl.setAttribute('fill', 'transparent');
+  svg.style.backgroundColor = color;
+  svg.style.background = color;
+
+  // Background elements (not inside slots) should have no fill
+  const shapes = svg.querySelectorAll(
+    'path,circle,ellipse,rect,polygon,polyline,line',
+  );
+  shapes.forEach((el) => {
+    if (!el.closest('[data-slot-id]')) {
+      el.setAttribute('fill', '#C0C0C0');
+      (el as SVGElement).style?.setProperty('fill', '#C0C0C0');
+    }
+  });
 }
 
 // Applies the color mode styling rules to the SVG.

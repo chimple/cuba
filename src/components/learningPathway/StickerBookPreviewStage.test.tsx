@@ -115,7 +115,7 @@ describe('StickerBookPreviewStage', () => {
     expect(draggable).toHaveStyle({
       width: '50px',
       height: '50px',
-      transform: 'translate(10px, 20px)',
+      transform: 'translate(10px, 20px) scale(1.06)',
     });
 
     expect(

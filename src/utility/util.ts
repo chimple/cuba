@@ -2930,6 +2930,8 @@ export class Util {
         isPlayed: true,
       };
 
+      const completedPathwaySnapshot = JSON.stringify(learningPath);
+
       /* 3️⃣ Compute next active lesson */
       const nextLesson = await recommendNextLesson({
         student: currentStudent,
@@ -2973,10 +2975,10 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (isRewardLesson) {
+        if (completedPathwaySnapshot) {
           sessionStorage.setItem(
             REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath),
+            completedPathwaySnapshot,
           );
         }
         const newpathId = uuidv4();
@@ -2994,13 +2996,27 @@ export class Util {
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (stickerAwardResult.completed) {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.setItem(
+              AUTO_OPEN_STICKER_PREVIEW_KEY,
+              JSON.stringify({
+                studentId: currentStudent.id,
+                createdAt: new Date().toISOString(),
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
+                stickerBookId: stickerAwardResult.stickerBookId,
+                stickerBookTitle:
+                  stickerAwardResult.payload?.stickerBookTitle ?? null,
+                stickerBookSvgUrl:
+                  stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+              }),
+            );
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
               JSON.stringify({
                 studentId: currentStudent.id,
                 stickerBookId: stickerAwardResult.stickerBookId,
                 createdAt: new Date().toISOString(),
+                payload: stickerAwardResult.payload,
               }),
             );
             if (stickerAwardResult.payload) {
@@ -3015,6 +3031,8 @@ export class Util {
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
                 studentId: currentStudent.id,
+                awardedStickerId: stickerAwardResult.awardedStickerId,
+                preAwardCollectedStickerIds,
                 createdAt: new Date().toISOString(),
               }),
             );
@@ -3075,16 +3093,27 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
+    awardedStickerId: string | null;
     payload: StickerBookModalData | null;
   }> {
     try {
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
 
       const nextStickerId = await api.getNextWinnableSticker(
@@ -3095,6 +3124,7 @@ export class Util {
         return {
           completed: false,
           stickerBookId: current.book.id,
+          awardedStickerId: null,
           payload: null,
         };
       }
@@ -3114,11 +3144,12 @@ export class Util {
         totalStickerCount > 0 &&
         nextCollectedStickerIds.length >= totalStickerCount;
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
+      await api.updateStickerWon(current.book.id, nextStickerId, studentId);
 
       return {
         completed,
         stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
         payload: completed
           ? {
               source: 'learning_pathway',
@@ -3132,7 +3163,12 @@ export class Util {
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
-      return { completed: false, stickerBookId: null, payload: null };
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
     }
   }
 
@@ -3143,6 +3179,11 @@ export class Util {
     student: TableTypes<'user'>,
   ): string | null {
     try {
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+      if (rewardLearningPath) {
+        return rewardLearningPath;
+      }
+
       const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
 
       // If nothing in session storage, return DB value

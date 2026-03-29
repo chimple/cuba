@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Util } from '../utility/util';
 import { IDLE_REWARD_ID, REWARD_MODAL_SHOWN_DATE } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -6,7 +6,7 @@ import { ServiceConfig } from '../services/ServiceConfig';
 export const useReward = () => {
   const [hasTodayReward, setHasTodayReward] = useState(true);
 
-  const checkAndUpdateReward = async (): Promise<string | null> => {
+  const checkAndUpdateReward = useCallback(async (): Promise<string | null> => {
     const student = Util.getCurrentStudent();
     const currentReward = Util.retrieveUserReward();
     const todaysReward = await Util.fetchTodaysReward();
@@ -38,9 +38,9 @@ export const useReward = () => {
     }
 
     return null;
-  };
+  }, []);
 
-  const shouldShowDailyRewardModal = async () => {
+  const shouldShowDailyRewardModal = useCallback(async () => {
     const today = new Date().toISOString().split('T')[0];
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) return false;
@@ -67,7 +67,7 @@ export const useReward = () => {
       return true;
     }
     return false;
-  };
+  }, []);
 
   return {
     hasTodayReward,
