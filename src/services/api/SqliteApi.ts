@@ -88,6 +88,7 @@ import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import {
   PaginatedResponse,
   SchoolNote,
+  StickerMeta,
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
@@ -99,12 +100,13 @@ import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorker
 import { store } from '../../redux/store';
 import { Json } from '../database';
 import logger from '../../utility/logger';
+import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 12;
+  private DB_VERSION = 13;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -115,6 +117,8 @@ export class SqliteApi implements ServiceApi {
     | undefined;
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
+  private _stickerBookRefreshPromise: Promise<void> | null = null;
+  private STICKER_BOOKS_CACHE_KEY = 'stickerBook_all_books';
 
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
@@ -367,6 +371,18 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
+  private normalizeSqliteValue(value: unknown): unknown {
+    if (Array.isArray(value)) return JSON.stringify(value);
+    if (
+      value &&
+      typeof value === 'object' &&
+      Object.getPrototypeOf(value) === Object.prototype
+    ) {
+      return JSON.stringify(value);
+    }
+    return value;
+  }
+
   private async showToastWithRetry(
     message: string,
     actionLabel = 'Retry',
@@ -465,6 +481,150 @@ export class SqliteApi implements ServiceApi {
         timeoutId = window.setTimeout(() => finish(false), duration);
       }
     });
+  }
+
+  private async refreshStickerBookTablesIfOnline(): Promise<void> {
+    if (!this._db) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+    if (this._stickerBookRefreshPromise) {
+      await this._stickerBookRefreshPromise;
+      return;
+    }
+
+    this._stickerBookRefreshPromise = (async () => {
+      try {
+        await this.syncDbNow(
+          [TABLES.StickerBook, TABLES.UserStickerBook],
+          [TABLES.StickerBook, TABLES.UserStickerBook],
+          undefined,
+          false,
+        );
+      } catch (error) {
+        logger.warn(
+          '[StickerBook] Failed to refresh sticker book tables',
+          error,
+        );
+      } finally {
+        this._stickerBookRefreshPromise = null;
+      }
+    })();
+
+    await this._stickerBookRefreshPromise;
+  }
+
+  private shouldUseOfflineStickerBookData(): boolean {
+    if (!this._db) return false;
+    if (typeof navigator === 'undefined') return false;
+    return !navigator.onLine;
+  }
+
+  private async prefetchStickerBookAssetsInBackground(
+    books: StickerBook[],
+  ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+
+    try {
+      await Promise.all(
+        books
+          .filter((book) => !!book?.svg_url)
+          .map((book) => ensureLocalStickerBookSvgUri(book.svg_url)),
+      );
+    } catch (error) {
+      logger.warn(
+        '[StickerBook] Failed to prefetch sticker book assets',
+        error,
+      );
+    }
+  }
+
+  private getStickerBookCurrentCacheKey(userId: string): string {
+    return `stickerBook_current_${userId}`;
+  }
+
+  private getStickerBookWonCacheKey(userId: string): string {
+    return `stickerBook_won_${userId}`;
+  }
+
+  private readStickerBookCache<T>(key: string): T | null {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private writeStickerBookCache(key: string, value: unknown): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      logger.warn('[StickerBook] Failed to write sticker book cache', error);
+    }
+  }
+
+  private cacheOnlineStickerBooks(books: StickerBook[]): void {
+    this.writeStickerBookCache(this.STICKER_BOOKS_CACHE_KEY, books);
+  }
+
+  private readCachedStickerBooks(): StickerBook[] {
+    return (
+      this.readStickerBookCache<StickerBook[]>(this.STICKER_BOOKS_CACHE_KEY) ??
+      []
+    );
+  }
+
+  private cacheOnlineCurrentStickerBook(
+    userId: string,
+    value: { book: StickerBook; progress: UserStickerProgress | null } | null,
+  ): void {
+    this.writeStickerBookCache(
+      this.getStickerBookCurrentCacheKey(userId),
+      value,
+    );
+  }
+
+  private readCachedCurrentStickerBook(userId: string): {
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null {
+    return this.readStickerBookCache<{
+      book: StickerBook;
+      progress: UserStickerProgress | null;
+    }>(this.getStickerBookCurrentCacheKey(userId));
+  }
+
+  private cacheOnlineWonStickerBooks(
+    userId: string,
+    books: StickerBook[],
+  ): void {
+    this.writeStickerBookCache(this.getStickerBookWonCacheKey(userId), books);
+  }
+
+  private readCachedWonStickerBooks(userId: string): StickerBook[] {
+    return (
+      this.readStickerBookCache<StickerBook[]>(
+        this.getStickerBookWonCacheKey(userId),
+      ) ?? []
+    );
+  }
+
+  private async refreshStickerBookSnapshotCache(userId: string): Promise<void> {
+    try {
+      this.cacheOnlineStickerBooks(await this.getAllStickerBooksLocal());
+      this.cacheOnlineCurrentStickerBook(
+        userId,
+        await this.getCurrentStickerBookWithProgressLocal(userId),
+      );
+      this.cacheOnlineWonStickerBooks(
+        userId,
+        await this.getUserWonStickerBooksLocalRaw(userId),
+      );
+    } catch (error) {
+      logger.warn(
+        '[StickerBook] Failed to refresh sticker book snapshot cache',
+        error,
+      );
+    }
   }
 
   private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
@@ -616,7 +776,9 @@ export class SqliteApi implements ServiceApi {
             existingColumns.includes(f),
           );
           if (fieldNames.length === 0) continue;
-          const fieldValues = fieldNames.map((f) => row[f]);
+          const fieldValues = fieldNames.map((f) =>
+            this.normalizeSqliteValue(row[f]),
+          );
           const placeholders = fieldNames.map(() => '?').join(', ');
           const updateSetClause = fieldNames
             .filter((f) => f !== 'id')
@@ -832,6 +994,7 @@ export class SqliteApi implements ServiceApi {
       const diffMinutes = diffMs / (1000 * 60);
       if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
         await this.pullChanges(tableNames, isFirstSync);
+        await this.prefetchStickerBookAssetsAfterSync();
         const res = await this.pushChanges(Object.values(TABLES));
         const tables = "'" + tableNames.join("', '") + "'";
         // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -8385,25 +8548,139 @@ order by
   // ================================
 
   async getAllStickerBooks(): Promise<StickerBook[]> {
-    return await this._serverApi.getAllStickerBooks();
+    if (!this._db) return await this._serverApi.getAllStickerBooks();
+
+    if (!this.shouldUseOfflineStickerBookData()) {
+      const books = await this._serverApi.getAllStickerBooks();
+      this.cacheOnlineStickerBooks(books);
+      await this.refreshStickerBookTablesIfOnline();
+      void this.prefetchStickerBookAssetsInBackground(books);
+      return books;
+    }
+
+    try {
+      const cachedBooks = this.readCachedStickerBooks();
+      if (cachedBooks.length > 0) {
+        return await Promise.all(
+          cachedBooks.map((book) => this.resolveStickerBookAssets(book)),
+        );
+      }
+      const books = await this.getAllStickerBooksLocal();
+      return await Promise.all(
+        books.map((book) => this.resolveStickerBookAssets(book)),
+      );
+    } catch (error) {
+      logger.error('Error fetching sticker books from sqlite:', error);
+      return [];
+    }
   }
 
   async getCurrentStickerBookWithProgress(userId: string): Promise<{
     book: StickerBook;
     progress: UserStickerProgress | null;
   } | null> {
-    return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+    if (!this._db)
+      return await this._serverApi.getCurrentStickerBookWithProgress(userId);
+
+    if (!this.shouldUseOfflineStickerBookData()) {
+      const current =
+        await this._serverApi.getCurrentStickerBookWithProgress(userId);
+      this.cacheOnlineCurrentStickerBook(userId, current);
+      if (current?.book) {
+        await this.refreshStickerBookTablesIfOnline();
+        void this.prefetchStickerBookAssetsInBackground([current.book]);
+      }
+      return current;
+    }
+
+    try {
+      const cachedCurrent = this.readCachedCurrentStickerBook(userId);
+      if (cachedCurrent?.book) {
+        return {
+          book: await this.resolveStickerBookAssets(cachedCurrent.book),
+          progress: cachedCurrent.progress,
+        };
+      }
+      const current = await this.getCurrentStickerBookWithProgressLocal(userId);
+      if (!current?.book) return null;
+      return {
+        book: await this.resolveStickerBookAssets(current.book),
+        progress: current.progress,
+      };
+    } catch (error) {
+      logger.error('Error fetching active sticker book from sqlite:', error);
+      return null;
+    }
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
-    return await this._serverApi.getUserWonStickerBooks(userId);
+    if (!this._db) return await this._serverApi.getUserWonStickerBooks(userId);
+
+    if (!this.shouldUseOfflineStickerBookData()) {
+      const books = await this._serverApi.getUserWonStickerBooks(userId);
+      this.cacheOnlineWonStickerBooks(userId, books);
+      await this.refreshStickerBookTablesIfOnline();
+      void this.prefetchStickerBookAssetsInBackground(books);
+      return books;
+    }
+
+    try {
+      const cachedBooks = this.readCachedWonStickerBooks(userId);
+      if (cachedBooks.length > 0) {
+        return await Promise.all(
+          cachedBooks.map((book) => this.resolveStickerBookAssets(book)),
+        );
+      }
+      return await Promise.all(
+        (await this.getUserWonStickerBooksLocalRaw(userId)).map((book) =>
+          this.resolveStickerBookAssets(book),
+        ),
+      );
+    } catch (error) {
+      logger.error(
+        'Error fetching completed sticker books from sqlite:',
+        error,
+      );
+      return [];
+    }
   }
 
   async getNextWinnableSticker(
     stickerBookId: string,
     userId?: string,
   ): Promise<string | null> {
-    return await this._serverApi.getNextWinnableSticker(stickerBookId, userId);
+    if (!this._db || !this.shouldUseOfflineStickerBookData())
+      return await this._serverApi.getNextWinnableSticker(
+        stickerBookId,
+        userId,
+      );
+
+    const resolvedUserId = userId?.trim();
+    let effectiveUserId = resolvedUserId;
+    if (!effectiveUserId) {
+      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!user?.id) return null;
+      effectiveUserId = user.id;
+    }
+
+    try {
+      const book = await this.getStickerBookByIdLocal(stickerBookId);
+      if (!book) return null;
+
+      const progress = await this.getUserStickerBookProgressLocal(
+        effectiveUserId,
+        stickerBookId,
+      );
+      const collected = progress?.stickers_collected ?? [];
+      const sorted = [...(book.stickers_metadata ?? [])].sort(
+        (a: StickerMeta, b: StickerMeta) => a.sequence - b.sequence,
+      );
+      const next = sorted.find((sticker) => !collected.includes(sticker.id));
+      return next?.id ?? null;
+    } catch (error) {
+      logger.error('Error fetching next sticker from sqlite:', error);
+      return null;
+    }
   }
 
   async updateStickerWon(
@@ -8411,11 +8688,318 @@ order by
     stickerId: string,
     userId: string,
   ): Promise<void> {
-    return await this._serverApi.updateStickerWon(
-      stickerBookId,
-      stickerId,
-      userId,
+    if (!this._db || !this.shouldUseOfflineStickerBookData()) {
+      await this._serverApi.updateStickerWon(stickerBookId, stickerId, userId);
+      await this.refreshStickerBookTablesIfOnline();
+      if (userId) {
+        await this.refreshStickerBookSnapshotCache(userId);
+      }
+      return;
+    }
+
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!user?.id) return;
+
+    try {
+      const book = await this.getStickerBookByIdLocal(stickerBookId);
+      if (!book) return;
+
+      const total = book.total_stickers || book.stickers_metadata?.length || 0;
+      const progress = await this.getUserStickerBookProgressLocal(
+        user.id,
+        stickerBookId,
+      );
+
+      if (!progress) {
+        const id = uuidv4();
+        const stickersCollected = [stickerId];
+        const status = total === 1 ? 'completed' : 'in_progress';
+        const createdAt = new Date().toISOString();
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserStickerBook}
+            (id, user_id, sticker_book_id, stickers_collected, status, created_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, 0)`,
+          [
+            id,
+            user.id,
+            stickerBookId,
+            JSON.stringify(stickersCollected),
+            status,
+            createdAt,
+          ],
+        );
+
+        await this.updatePushChanges(
+          TABLES.UserStickerBook,
+          MUTATE_TYPES.INSERT,
+          {
+            id,
+            user_id: user.id,
+            sticker_book_id: stickerBookId,
+            stickers_collected: stickersCollected,
+            status,
+            created_at: createdAt,
+            is_deleted: false,
+          },
+        );
+        await this.refreshStickerBookSnapshotCache(user.id);
+        return;
+      }
+
+      const currentCollected = progress.stickers_collected ?? [];
+      const updated = currentCollected.includes(stickerId)
+        ? currentCollected
+        : [...currentCollected, stickerId];
+      const status =
+        total > 0 && updated.length >= total ? 'completed' : progress.status;
+
+      if (
+        updated.length === currentCollected.length &&
+        status === progress.status
+      ) {
+        return;
+      }
+
+      await this.executeQuery(
+        `UPDATE ${TABLES.UserStickerBook}
+         SET stickers_collected = ?, status = ?
+         WHERE id = ? AND is_deleted = 0`,
+        [JSON.stringify(updated), status, progress.id],
+      );
+
+      await this.updatePushChanges(
+        TABLES.UserStickerBook,
+        MUTATE_TYPES.UPDATE,
+        {
+          id: progress.id,
+          user_id: progress.user_id,
+          sticker_book_id: progress.sticker_book_id,
+          stickers_collected: updated,
+          status,
+        },
+      );
+      await this.refreshStickerBookSnapshotCache(user.id);
+    } catch (error) {
+      logger.error('Error updating sticker progress in sqlite:', error);
+    }
+  }
+
+  private parseSqliteJsonArray<T>(value: unknown): T[] {
+    if (Array.isArray(value)) return value as T[];
+    if (typeof value !== 'string') return [];
+
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed as T[];
+      if (typeof parsed === 'string' && parsed.trim() !== trimmed) {
+        return this.parseSqliteJsonArray<T>(parsed);
+      }
+    } catch {
+      // Fall back below for legacy/comma-separated rows.
+    }
+
+    const commaSeparated = trimmed
+      .split(',')
+      .map((item) => item.trim().replace(/^"(.*)"$/, '$1'))
+      .filter(Boolean);
+    return commaSeparated as T[];
+  }
+
+  private mapStickerBookRow(row: any): StickerBook {
+    return {
+      ...row,
+      sort_index: Number(row?.sort_index ?? 0),
+      total_stickers: Number(row?.total_stickers ?? 0),
+      stickers_metadata: this.parseSqliteJsonArray<StickerMeta>(
+        row?.stickers_metadata,
+      ),
+    };
+  }
+
+  private async resolveStickerBookAssets(
+    book: StickerBook,
+  ): Promise<StickerBook> {
+    if (!book?.svg_url) return book;
+
+    try {
+      const localSvgUri = await ensureLocalStickerBookSvgUri(book.svg_url);
+      return { ...book, svg_url: localSvgUri };
+    } catch (error) {
+      logger.warn(
+        '[StickerBook] Failed to resolve local sticker book svg uri',
+        {
+          bookId: book.id,
+          error,
+        },
+      );
+      return book;
+    }
+  }
+
+  private async getAllStickerBooksLocal(): Promise<StickerBook[]> {
+    if (!this._db) return [];
+
+    const res = await this._db.query(
+      `SELECT * FROM ${TABLES.StickerBook} WHERE is_deleted = 0 ORDER BY sort_index ASC`,
     );
+    return (res?.values ?? []).map((row: any) => this.mapStickerBookRow(row));
+  }
+
+  private async getUserWonStickerBooksLocalRaw(
+    userId: string,
+  ): Promise<StickerBook[]> {
+    if (!this._db) return [];
+
+    const res = await this._db.query(
+      `SELECT sb.*
+       FROM ${TABLES.StickerBook} sb
+       INNER JOIN ${TABLES.UserStickerBook} usb
+         ON sb.id = usb.sticker_book_id
+       WHERE usb.user_id = ?
+         AND usb.status = ?
+         AND usb.is_deleted = 0
+         AND sb.is_deleted = 0
+       ORDER BY sb.sort_index ASC`,
+      [userId, 'completed'],
+    );
+
+    return (res?.values ?? []).map((row: any) => this.mapStickerBookRow(row));
+  }
+
+  private async getCurrentStickerBookWithProgressLocal(
+    userId: string,
+  ): Promise<{
+    book: StickerBook;
+    progress: UserStickerProgress | null;
+  } | null> {
+    if (!this._db) return null;
+
+    const progressRes = await this._db.query(
+      `SELECT * FROM ${TABLES.UserStickerBook}
+       WHERE user_id = ? AND status = ? AND is_deleted = 0
+       LIMIT 1`,
+      [userId, 'in_progress'],
+    );
+
+    const activeProgress = progressRes?.values?.[0];
+    if (activeProgress) {
+      const progress = this.mapUserStickerBookRow(activeProgress);
+      const book = await this.getStickerBookByIdLocal(progress.sticker_book_id);
+      if (book) {
+        return { book, progress };
+      }
+    }
+
+    const completedRes = await this._db.query(
+      `SELECT sticker_book_id FROM ${TABLES.UserStickerBook}
+       WHERE user_id = ? AND status = ? AND is_deleted = 0`,
+      [userId, 'completed'],
+    );
+    const completedBookIds = Array.from(
+      new Set(
+        (completedRes?.values ?? [])
+          .map((row: any) => row.sticker_book_id)
+          .filter(Boolean),
+      ),
+    );
+
+    let query = `SELECT * FROM ${TABLES.StickerBook} WHERE is_deleted = 0`;
+    const params: string[] = [];
+    if (completedBookIds.length > 0) {
+      query += ` AND id NOT IN (${completedBookIds.map(() => '?').join(', ')})`;
+      params.push(...completedBookIds);
+    }
+    query += ` ORDER BY sort_index ASC LIMIT 1`;
+
+    const nextBookRes = await this._db.query(query, params);
+    const nextBookRow = nextBookRes?.values?.[0];
+    if (!nextBookRow) return null;
+
+    return {
+      book: this.mapStickerBookRow(nextBookRow),
+      progress: null,
+    };
+  }
+
+  private async prefetchStickerBookAssetsAfterSync(): Promise<void> {
+    if (!this._db || !Capacitor.isNativePlatform()) return;
+
+    try {
+      const booksToPrefetch: StickerBook[] = [];
+      const currentStudentId = this.currentStudent?.id;
+
+      if (currentStudentId) {
+        const current =
+          await this.getCurrentStickerBookWithProgressLocal(currentStudentId);
+        if (current?.book) {
+          booksToPrefetch.push(current.book);
+        }
+      }
+
+      const allBooks = await this.getAllStickerBooksLocal();
+      for (const book of allBooks) {
+        if (!booksToPrefetch.some((existing) => existing.id === book.id)) {
+          booksToPrefetch.push(book);
+        }
+      }
+
+      for (const book of booksToPrefetch) {
+        if (!book?.svg_url) continue;
+        await ensureLocalStickerBookSvgUri(book.svg_url);
+      }
+    } catch (error) {
+      logger.warn(
+        '[StickerBook] Failed to prefetch sticker book assets after sync',
+        error,
+      );
+    }
+  }
+
+  private mapUserStickerBookRow(row: any): UserStickerProgress {
+    return {
+      id: row.id,
+      user_id: row.user_id,
+      sticker_book_id: row.sticker_book_id,
+      stickers_collected: this.parseSqliteJsonArray<string>(
+        row?.stickers_collected,
+      ),
+      status: row.status,
+    };
+  }
+
+  private async getStickerBookByIdLocal(
+    stickerBookId: string,
+  ): Promise<StickerBook | null> {
+    if (!this._db) return null;
+
+    const res = await this._db.query(
+      `SELECT * FROM ${TABLES.StickerBook}
+       WHERE id = ? AND is_deleted = 0
+       LIMIT 1`,
+      [stickerBookId],
+    );
+    const row = res?.values?.[0];
+    return row ? this.mapStickerBookRow(row) : null;
+  }
+
+  private async getUserStickerBookProgressLocal(
+    userId: string,
+    stickerBookId: string,
+  ): Promise<UserStickerProgress | null> {
+    if (!this._db) return null;
+
+    const res = await this._db.query(
+      `SELECT * FROM ${TABLES.UserStickerBook}
+       WHERE user_id = ? AND sticker_book_id = ? AND is_deleted = 0
+       LIMIT 1`,
+      [userId, stickerBookId],
+    );
+    const row = res?.values?.[0];
+    return row ? this.mapUserStickerBookRow(row) : null;
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

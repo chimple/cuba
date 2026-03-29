@@ -23,6 +23,8 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   updateLocalAttributes,
   useGbContext,
+  getCachedGrowthBookFeatureValue,
+  setCachedGrowthBookFeatureValue,
 } from '../../growthbook/Growthbook';
 import { schoolUtil } from '../../utility/schoolUtil';
 import i18n from '../../i18n';
@@ -35,6 +37,17 @@ type ProfileMenuProps = {
   onClose: () => void;
 };
 
+const getCachedFeatureValue = <T,>(featureKey: string, fallback: T): T =>
+  typeof getCachedGrowthBookFeatureValue === 'function'
+    ? getCachedGrowthBookFeatureValue<T>(featureKey, fallback)
+    : fallback;
+
+const persistCachedFeatureValue = (featureKey: string, value: any) => {
+  if (typeof setCachedGrowthBookFeatureValue === 'function') {
+    setCachedGrowthBookFeatureValue(featureKey, value);
+  }
+};
+
 const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const history = useHistory();
   const [student, setStudent] = useState<TableTypes<'user'>>();
@@ -45,10 +58,23 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [hasUnseenStickers, setHasUnseenStickers] = useState<boolean>(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
-  const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
-  const isStickerBookNotificationDotEnabled = useFeatureIsOn(
+  const liveIsStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
+  const liveIsStickerBookNotificationDotEnabled = useFeatureIsOn(
     STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   );
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  const isStickerBookEnabled = isOffline
+    ? getCachedFeatureValue<boolean>(
+        ENABLE_STICKER_BOOK,
+        liveIsStickerBookEnabled,
+      )
+    : liveIsStickerBookEnabled;
+  const isStickerBookNotificationDotEnabled = isOffline
+    ? getCachedFeatureValue<boolean>(
+        STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
+        liveIsStickerBookNotificationDotEnabled,
+      )
+    : liveIsStickerBookNotificationDotEnabled;
 
   const { user: reduxUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -57,6 +83,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const currentMode = localStorage.getItem(CURRENT_MODE);
   const shouldShowStickerBookNotification =
     hasUnseenStickers && isStickerBookNotificationDotEnabled;
+
+  useEffect(() => {
+    persistCachedFeatureValue(ENABLE_STICKER_BOOK, liveIsStickerBookEnabled);
+    persistCachedFeatureValue(
+      STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
+      liveIsStickerBookNotificationDotEnabled,
+    );
+  }, [liveIsStickerBookEnabled, liveIsStickerBookNotificationDotEnabled]);
 
   useEffect(() => {
     loadProfileData();

@@ -10,6 +10,8 @@ import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
 
+const GROWTHBOOK_FEATURE_VALUES_KEY = '__featureValues';
+
 type GbContextType = {
   gbUpdated: boolean;
   setGbUpdated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,6 +27,41 @@ export const updateLocalAttributes = (data: any) => {
     ...data,
   };
   localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
+};
+
+export const setCachedGrowthBookFeatureValue = (
+  featureKey: string,
+  value: any,
+) => {
+  const existingData = localStorage.getItem(GrowthBookAttributes);
+  const parsedData = existingData ? JSON.parse(existingData) : {};
+  const existingFeatureValues =
+    parsedData?.[GROWTHBOOK_FEATURE_VALUES_KEY] ?? {};
+  const updatedData = {
+    ...parsedData,
+    [GROWTHBOOK_FEATURE_VALUES_KEY]: {
+      ...existingFeatureValues,
+      [featureKey]: value,
+    },
+  };
+  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
+};
+
+export const getCachedGrowthBookFeatureValue = <T,>(
+  featureKey: string,
+  fallback: T,
+): T => {
+  try {
+    const raw = localStorage.getItem(GrowthBookAttributes);
+    if (!raw) return fallback;
+    const parsedData = JSON.parse(raw);
+    const featureValues = parsedData?.[GROWTHBOOK_FEATURE_VALUES_KEY] ?? {};
+    return featureKey in featureValues
+      ? (featureValues[featureKey] as T)
+      : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
