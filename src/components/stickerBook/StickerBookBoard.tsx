@@ -63,7 +63,7 @@ const InlineSvg = React.forwardRef<
     Object.entries(overrideAttrs ?? {}).forEach(([name, value]) => {
       el.setAttribute(name, value);
     });
-  }, [svg]);
+  }, [svg, className, overrideAttrs]);
   const safeSvg = sanitizeSvg(svg.inner);
   // Allow the caller to temporarily hide the SVG until styling is applied.
   const mergedStyle: React.CSSProperties = hideUntilReady
@@ -104,7 +104,9 @@ const StickerBookBoard: React.FC<Props> = ({
   const clipPathId = useId();
   const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
   const [fallbackSvgRaw, setFallbackSvgRaw] = useState<string | null>(null);
-
+  const STICKER_BOOK_CLIP_PATH =
+    'M 587 57 C 590.314 57 593 59.6863 593 63 V 340.2 H 91 V 63 C 91 59.6863 93.6863 57 97 57 H 587 Z';
+  const TITLE_AREA_COORDS = { x: '68', y: '1', width: '547', height: '56' };
   const logPayload = {
     user_id: Util.getCurrentStudent()?.id ?? null,
     book_title: title,
@@ -252,12 +254,12 @@ const StickerBookBoard: React.FC<Props> = ({
               {/* Clip the sticker SVG to the board's inner window path. */}
               <defs>
                 <clipPath id={clipPathId}>
-                  <path d="M 587 57 C 590.314 57 593 59.6863 593 63 V 340.2 H 91 V 63 C 91 59.6863 93.6863 57 97 57 H 587 Z" />
+                  <path d={STICKER_BOOK_CLIP_PATH} />
                 </clipPath>
               </defs>
 
               {/* Header/Title Area */}
-              <foreignObject x="68" y="1" width="547" height="56">
+              <foreignObject {...TITLE_AREA_COORDS}>
                 <div id="sb-board-title" className="sticker-book-board-title">
                   {t('STICKER BOOK')}: {title}
                 </div>
