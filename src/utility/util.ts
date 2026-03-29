@@ -3003,6 +3003,11 @@ export class Util {
                 createdAt: new Date().toISOString(),
                 awardedStickerId: stickerAwardResult.awardedStickerId,
                 preAwardCollectedStickerIds,
+                stickerBookId: stickerAwardResult.stickerBookId,
+                stickerBookTitle:
+                  stickerAwardResult.payload?.stickerBookTitle ?? null,
+                stickerBookSvgUrl:
+                  stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
               }),
             );
             sessionStorage.setItem(
@@ -3011,6 +3016,7 @@ export class Util {
                 studentId: currentStudent.id,
                 stickerBookId: stickerAwardResult.stickerBookId,
                 createdAt: new Date().toISOString(),
+                payload: stickerAwardResult.payload,
               }),
             );
             if (stickerAwardResult.payload) {
