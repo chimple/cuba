@@ -50,6 +50,7 @@ export function SVGScene({
   const [svgReadyToken, setSvgReadyToken] = useState(0);
   const [isStyled, setIsStyled] = useState(false);
   const lastChildCountRef = useRef<number>(0);
+  const pendingMutationRef = useRef<number | null>(null);
 
   // Reset when SVG content or mode changes (prevents stale styling).
   const currentChildSvg = (children as any).props.svg;
@@ -63,23 +64,36 @@ export function SVGScene({
     const svg = svgRef.current;
     if (!svg) return;
 
+    // Watch for any subtree mutations; re-run styling even if node count stays the same.
     const observer = new MutationObserver(() => {
-      const childCount = svg.childNodes.length;
-      if (childCount !== lastChildCountRef.current) {
-        lastChildCountRef.current = childCount;
+      if (pendingMutationRef.current != null) return;
+      pendingMutationRef.current = window.requestAnimationFrame(() => {
+        pendingMutationRef.current = null;
+        const childCount = svg.childNodes.length;
+        if (childCount !== lastChildCountRef.current) {
+          lastChildCountRef.current = childCount;
+        }
         setSvgReadyToken((token) => token + 1);
-      }
+      });
     });
 
     observer.observe(svg, { childList: true, subtree: true });
+    // Ensure at least one styling pass when content is already present.
     const initialCount = svg.childNodes.length;
     if (initialCount !== lastChildCountRef.current) {
       lastChildCountRef.current = initialCount;
       setSvgReadyToken((token) => token + 1);
     }
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (pendingMutationRef.current != null) {
+        window.cancelAnimationFrame(pendingMutationRef.current);
+        pendingMutationRef.current = null;
+      }
+    };
   }, [svgRef]);
 
+  // Hide until styled to avoid first-paint flashes in sticker book and color mode.
   const shouldHideUntilStyled =
     stickerVisibilityMode === 'strict' ||
     lockedStickerOutline ||
@@ -89,7 +103,7 @@ export function SVGScene({
     const svg = svgRef.current;
     if (!svg) return;
 
-    // IMPORTANT: wait until SVG slots exist
+    // IMPORTANT: wait until SVG slots exist for slot-based rules.
     const slots = svg.querySelectorAll('[data-slot-id]');
     if (!slots.length) {
       if (shouldHideUntilStyled) {
@@ -178,9 +192,16 @@ export function SVGScene({
     ...(shouldHideUntilStyled && !isStyled ? { visibility: 'hidden' } : {}),
   };
 
+  // If child SVG already declares sizing, don't override with sceneWidth.
+  const childHasSizing =
+    child.props?.width ||
+    child.props?.height ||
+    child.props?.x ||
+    child.props?.y;
+
   return React.cloneElement(child, {
     ref: svgRef,
-    width: sceneWidth,
+    ...(childHasSizing ? {} : { width: sceneWidth }),
     style: mergedStyle,
     hideUntilReady: shouldHideUntilStyled && !isStyled,
   });
