@@ -163,7 +163,16 @@
 @media (min-width: 801px) {
   .coloring-board-controls {
     align-self: center;
-    height: 60%;
-    gap: 15px;
+    height: 75%;
+    gap: clamp(8px, 2vh, 15px);
+  }
+}
+
+/* Specific optimization for very short landscape screens */
+@media (min-width: 801px) and (max-height: 500px) {
+  .coloring-board-controls {
+    height: 95%;
+    gap: 4px;
+    padding-top: 4px;
   }
 }

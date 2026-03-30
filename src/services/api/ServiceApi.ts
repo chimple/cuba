@@ -2163,6 +2163,17 @@ export interface ServiceApi {
   ): Promise<{ success: boolean; message: string }>;
 
   /**
+   * Update fc_user_forms contact_user_id when a student is merged.
+   * @param {string} oldStudentId - The student ID being merged and deleted.
+   * @param {string} newStudentId - The student ID to retain.
+   * @returns Promise resolving to success status and message.
+   */
+  updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }>;
+
+  /**
    * Merge a stdeunt pathway based on chapter sort_index by comparing patway for old and new student record.
    * @param {string} existingStudentId - The student ID to merge into.
    * @param {string} newStudentId - The student ID being merged and marked as deleted.

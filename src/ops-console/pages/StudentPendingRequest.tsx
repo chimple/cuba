@@ -149,8 +149,10 @@ const StudentPendingRequestDetails = () => {
 
   const handleConfirmApprove = async () => {
     const currentRequestId = requestData?.id;
+    const currentRequest_Id = requestData?.request_id;
     const currentSelectedStudent = selectedStudent;
-    const newStudentUserId = requestData?.requestedBy?.id;
+    const newStudentUserId =
+      requestData?.requested_by || requestData?.requestedBy?.id;
     // RespondedBy: whoever is logged in
     const auth = ServiceConfig.getI().authHandler;
     const user = await auth.getCurrentUser();
@@ -171,7 +173,7 @@ const StudentPendingRequestDetails = () => {
         await api.mergeStudentRequest(
           currentSelectedStudent,
           newStudentUserId,
-          currentRequestId,
+          currentRequest_Id,
           respondedBy,
         );
       } else {

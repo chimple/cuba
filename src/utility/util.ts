@@ -2129,27 +2129,21 @@ export class Util {
     }
   }
 
-  public static async saveFileToDownloads(file: File) {
-    // Native builds write through Capacitor Filesystem, while web falls back to
-    // a temporary download link because browsers cannot write directly to Downloads.
+  public static async saveImage(file: File) {
+    // Native builds save images to the public gallery via MediaStore.
     if (Capacitor.isNativePlatform()) {
       try {
         const base64Data = await Util.blobToString(file);
-        try {
-          // Attempt to save in public Downloads folder
-          await Filesystem.writeFile({
-            path: `Download/${file.name}`,
-            data: base64Data,
-            directory: Directory.ExternalStorage,
-          });
-        } catch (e) {
-          // Fallback to Documents folder which works on MediaStore safely
-          await Filesystem.writeFile({
-            path: file.name,
-            data: base64Data,
-            directory: Directory.Documents,
-          });
+
+        if (!Util.port) {
+          Util.port = registerPlugin<PortPlugin>('Port');
         }
+
+        await Util.port.saveImageToGallery({
+          fileData: base64Data,
+          fileName: file.name,
+          mimeType: file.type || 'image/png',
+        });
       } catch (error) {
         logger.error('Error saving file natively:', error);
         await Toast.show({ text: t('Failed to save image') });

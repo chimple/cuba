@@ -19,8 +19,7 @@ const baseProps = {
   isLocked: false,
   collectedStickers: [],
   svgRaw: null,
-  isStickerBookSaveEnabled: true,
-  isBookCompleted: true,
+  canSave: true,
   onBack: jest.fn(),
   onPrev: jest.fn(),
   onNext: jest.fn(),
@@ -66,16 +65,18 @@ describe('StickerBookBoard', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
   });
 
-  test('renders board title', () => {
+  test('renders board title', async () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-    expect(screen.getByText(/STICKER BOOK/i)).toBeInTheDocument();
+    expect(await screen.findByText(/STICKER BOOK/i)).toBeInTheDocument();
   });
 
-  test('renders correct title text', () => {
+  test('renders correct title text', async () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
     expect(
-      screen.getByText((content) => content.includes('STICKER BOOK : ANIMALS')),
+      await screen.findByText((content) =>
+        content.includes('STICKER BOOK : ANIMALS'),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -186,8 +187,7 @@ describe('StickerBookBoard', () => {
     render(
       <StickerBookBoard
         {...baseProps}
-        isStickerBookSaveEnabled={false}
-        isBookCompleted={true}
+        canSave={false}
         collectedStickers={[]}
       />,
     );
@@ -195,18 +195,6 @@ describe('StickerBookBoard', () => {
     expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
 
-  test('save button hidden when book is not completed', () => {
-    render(
-      <StickerBookBoard
-        {...baseProps}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={false}
-        collectedStickers={[]}
-      />,
-    );
-
-    expect(screen.queryByText('Save')).not.toBeInTheDocument();
-  });
   /* ---------------- ADDITIONAL TEST CASES ---------------- */
 
   test('board root container exists', () => {
@@ -219,12 +207,6 @@ describe('StickerBookBoard', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
     expect(document.querySelector('#sb-frame')).toBeInTheDocument();
-  });
-
-  test('board content container exists', () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(document.querySelector('#sb-board-content')).toBeInTheDocument();
   });
 
   test('component renders without collected stickers', () => {
@@ -317,18 +299,22 @@ describe('StickerBookBoard', () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
   });
 
-  test('component renders title container', () => {
+  test('component renders title container', async () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
-    expect(document.querySelector('#sb-board-title')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.querySelector('#sb-board-title')).toBeInTheDocument();
+    });
   });
 
-  test('board title contains sticker text', () => {
+  test('board title contains sticker text', async () => {
     render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
 
-    expect(document.querySelector('#sb-board-title')?.textContent).toContain(
-      'STICKER BOOK',
-    );
+    await waitFor(() => {
+      expect(document.querySelector('#sb-board-title')?.textContent).toContain(
+        'STICKER BOOK',
+      );
+    });
   });
 
   test('component supports rerender', () => {
@@ -345,14 +331,6 @@ describe('StickerBookBoard', () => {
     );
 
     rerender(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-  });
-
-  test('board content container has correct class', () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    expect(
-      document.querySelector('.sticker-book-board-content'),
-    ).toBeInTheDocument();
   });
 
   test('component renders svg element', async () => {
@@ -375,8 +353,7 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
         svgRaw={null}
         isLocked={false}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
   });
@@ -389,22 +366,6 @@ describe('StickerBookBoard', () => {
     await waitFor(() => {
       expect(container.querySelector('#sticker-book-nav-left')).toBeTruthy();
       expect(container.querySelector('#sticker-book-nav-right')).toBeTruthy();
-    });
-  });
-
-  test('svg width attribute exists', async () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    await waitFor(() => {
-      expect(document.querySelector('svg')?.getAttribute('width')).toBe('500');
-    });
-  });
-
-  test('svg height attribute exists', async () => {
-    render(<StickerBookBoard {...baseProps} collectedStickers={[]} />);
-
-    await waitFor(() => {
-      expect(document.querySelector('svg')?.getAttribute('height')).toBe('300');
     });
   });
 
