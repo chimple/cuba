@@ -72,7 +72,6 @@ import {
   SEARCH_LESSON_HISTORY,
 } from './common/constants';
 import { Util } from './utility/util';
-import { ServiceConfig } from './services/ServiceConfig';
 import Parent from './pages/Parent';
 import DisplayStudents from './pages/DisplayStudents';
 // import Assignments from "./pages/Assignments";
@@ -524,16 +523,6 @@ const App: React.FC = () => {
   };
   const fetchData = async () => {
     await getNotificationData();
-    if (!Capacitor.isNativePlatform()) return;
-
-    try {
-      await ServiceConfig.getI().apiHandler.getAllStickerBooks();
-    } catch (error) {
-      logger.warn(
-        '[StickerBook] Failed to predownload sticker book assets on app open',
-        error,
-      );
-    }
   };
 
   async function updateAvatarSuggestionJson() {
