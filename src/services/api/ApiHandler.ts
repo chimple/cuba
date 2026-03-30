@@ -1914,6 +1914,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<UserSchoolClassResult> {
     return await this.s.getOrcreateschooluser(params);
   }
+
   public async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,
