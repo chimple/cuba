@@ -19,8 +19,7 @@ const baseProps = {
   isLocked: false,
   collectedStickers: [],
   svgRaw: null,
-  isStickerBookSaveEnabled: true,
-  isBookCompleted: true,
+  canSave: true,
   onBack: jest.fn(),
   onPrev: jest.fn(),
   onNext: jest.fn(),
@@ -188,8 +187,7 @@ describe('StickerBookBoard', () => {
     render(
       <StickerBookBoard
         {...baseProps}
-        isStickerBookSaveEnabled={false}
-        isBookCompleted={true}
+        canSave={false}
         collectedStickers={[]}
       />,
     );
@@ -197,18 +195,6 @@ describe('StickerBookBoard', () => {
     expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
 
-  test('save button hidden when book is not completed', () => {
-    render(
-      <StickerBookBoard
-        {...baseProps}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={false}
-        collectedStickers={[]}
-      />,
-    );
-
-    expect(screen.queryByText('Save')).not.toBeInTheDocument();
-  });
   /* ---------------- ADDITIONAL TEST CASES ---------------- */
 
   test('board root container exists', () => {
@@ -367,8 +353,7 @@ describe('StickerBookBoard', () => {
         collectedStickers={[]}
         svgRaw={null}
         isLocked={false}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
   });

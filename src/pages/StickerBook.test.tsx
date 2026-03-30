@@ -12,7 +12,6 @@ import {
   PAGES,
 } from '../common/constants';
 import { useHistory } from 'react-router';
-import { toBlob } from 'html-to-image';
 
 const replaceMock = jest.fn();
 const pushMock = jest.fn();
@@ -91,8 +90,24 @@ jest.mock('../components/stickerBook/StickerBookToast', () => ({
   },
 }));
 
-jest.mock('html-to-image', () => ({
-  toBlob: jest.fn(),
+const mockOpenSaveModal = jest.fn();
+const mockCloseSaveModal = jest.fn();
+const mockCloseSaveToast = jest.fn();
+const mockHandleSaveAndShare = jest.fn();
+
+let mockHookState = {
+  showSaveModal: false,
+  showSaveToast: false,
+  savedSvgMarkup: null as string | null,
+  isSaving: false,
+  openSaveModal: mockOpenSaveModal,
+  closeSaveModal: mockCloseSaveModal,
+  closeSaveToast: mockCloseSaveToast,
+  handleSaveAndShare: mockHandleSaveAndShare,
+};
+
+jest.mock('../hooks/useStickerBookSave', () => ({
+  useStickerBookSave: () => mockHookState,
 }));
 
 jest.mock('../utility/logger', () => ({
@@ -143,6 +158,7 @@ jest.mock('../utility/util', () => ({
     setPathToBackButton: jest.fn(),
     logEvent: jest.fn(),
     sendContentToAndroidOrWebShare: jest.fn(),
+    saveImage: jest.fn(),
     saveFileToDownloads: jest.fn(),
   },
 }));
@@ -170,15 +186,41 @@ describe('StickerBook page', () => {
     (Util.sendContentToAndroidOrWebShare as jest.Mock).mockResolvedValue(
       undefined,
     );
-    (Util.saveFileToDownloads as jest.Mock).mockResolvedValue(undefined);
+    (Util.saveImage as jest.Mock).mockResolvedValue(undefined);
     mockUseFeatureIsOn.mockImplementation((flag: string) => {
       if (flag === ENABLE_PAINT_MODE) return true;
       if (flag === ENABLE_SAVE_AND_SHARE_STICKER_BOOK) return true;
       return false;
     });
-    (toBlob as jest.Mock).mockResolvedValue(
-      new Blob(['png'], { type: 'image/png' }),
-    );
+
+    mockOpenSaveModal.mockImplementation((markup: string) => {
+      mockHookState = {
+        ...mockHookState,
+        showSaveModal: true,
+        savedSvgMarkup: markup,
+      };
+    });
+    mockCloseSaveModal.mockImplementation(() => {
+      mockHookState = {
+        ...mockHookState,
+        showSaveModal: false,
+        showSaveToast: true,
+      };
+    });
+    mockCloseSaveToast.mockImplementation(() => {
+      mockHookState = { ...mockHookState, showSaveToast: false };
+    });
+
+    mockHookState = {
+      showSaveModal: false,
+      showSaveToast: false,
+      savedSvgMarkup: null,
+      isSaving: false,
+      openSaveModal: mockOpenSaveModal,
+      closeSaveModal: mockCloseSaveModal,
+      closeSaveToast: mockCloseSaveToast,
+      handleSaveAndShare: mockHandleSaveAndShare,
+    };
 
     (useHistory as jest.Mock).mockReturnValue({
       replace: replaceMock,
@@ -556,7 +598,7 @@ describe('StickerBook page', () => {
     });
   });
 
-  test('passes the sticker book save feature flag to the board', async () => {
+  test('passes canSave false when save feature is disabled', async () => {
     mockUseFeatureIsOn.mockImplementation((flag: string) => {
       if (flag === ENABLE_PAINT_MODE) return true;
       if (flag === ENABLE_SAVE_AND_SHARE_STICKER_BOOK) return false;
@@ -579,7 +621,7 @@ describe('StickerBook page', () => {
 
     await waitFor(() => {
       const props = expectProps();
-      expect(props.isStickerBookSaveEnabled).toBe(false);
+      expect(props.canSave).toBe(false);
     });
   });
 
@@ -614,7 +656,7 @@ describe('StickerBook page', () => {
     });
   });
 
-  test('shares and downloads the generated sticker book snapshot after the modal animation', async () => {
+  test('onSave logs analytics and delegates to the hook openSaveModal', async () => {
     const book = makeBook({ title: 'My Book!!' });
 
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
@@ -637,8 +679,6 @@ describe('StickerBook page', () => {
       expectProps().onSave();
     });
 
-    await waitFor(() => expect(getLastModalProps()?.open).toBe(true));
-
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_BOOK_SAVE_CLICKED,
       expect.objectContaining({
@@ -649,56 +689,26 @@ describe('StickerBook page', () => {
       }),
     );
 
-    await act(async () => {
-      await getLastModalProps()?.onAnimationComplete();
+    expect(mockOpenSaveModal).toHaveBeenCalledWith(
+      expect.stringContaining('<svg'),
+    );
+
+    await waitFor(() => {
+      const modalProps = getLastModalProps();
+      expect(modalProps?.open).toBe(true);
+      expect(modalProps?.svgMarkup).toContain('<svg');
+      expect(modalProps?.svgMarkup).toContain('<circle');
     });
 
-    const toBlobOptions = (toBlob as jest.Mock).mock.calls[0][1];
-    const overlay = document.getElementById('sticker-book-save-blink-overlay');
-    const sharedFile = (Util.sendContentToAndroidOrWebShare as jest.Mock).mock
-      .calls[0][3][0] as File;
+    // onAnimationComplete calls the hook's handleSaveAndShare
+    await act(async () => {
+      getLastModalProps()?.onAnimationComplete();
+    });
 
-    expect(toBlob).toHaveBeenCalledWith(
-      document.getElementById('sticker-book-save-modal-frame'),
-      expect.objectContaining({
-        cacheBust: true,
-        backgroundColor: '#fffdee',
-        pixelRatio: 2,
-      }),
-    );
-    expect(toBlobOptions.filter(overlay)).toBe(false);
-    expect(toBlobOptions.filter(document.createElement('div'))).toBe(true);
-    expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledWith(
-      'Sticker Book',
-      sharedFile.name,
-      undefined,
-      [expect.any(File)],
-    );
-    expect(sharedFile.name).toMatch(
-      /^Sticker_Book_My_Book_\d{2}_[A-Za-z]{3}_\d{2}:\d{2}\.png$/,
-    );
-    expect(Util.saveFileToDownloads).toHaveBeenCalledWith(sharedFile);
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_IMAGE_SHARED,
-      expect.objectContaining({
-        user_id: 'student-1',
-        book_id: book.id,
-        book_title: book.title,
-        file_name: sharedFile.name,
-      }),
-    );
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_IMAGE_SAVED,
-      expect.objectContaining({
-        user_id: 'student-1',
-        book_id: book.id,
-        book_title: book.title,
-        file_name: sharedFile.name,
-      }),
-    );
+    expect(mockHandleSaveAndShare).toHaveBeenCalled();
   });
 
-  test('shows the confirmation toast after the save modal closes', async () => {
+  test('save modal onClose is wired to closeSaveModal from the hook', async () => {
     const book = makeBook();
 
     (ServiceConfig.getI as jest.Mock).mockReturnValue({
@@ -717,75 +727,12 @@ describe('StickerBook page', () => {
 
     await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
 
-    await act(async () => {
-      expectProps().onSave();
-    });
+    // Verify the modal's onClose is wired to the hook's closeSaveModal
+    const modalProps = getLastModalProps();
+    expect(modalProps?.onClose).toBe(mockCloseSaveModal);
 
-    await waitFor(() => expect(getLastModalProps()?.open).toBe(true));
-
-    await act(async () => {
-      getLastModalProps()?.onClose();
-    });
-
-    await waitFor(() => {
-      const modalProps = getLastModalProps();
-      const toastProps = getLastToastProps();
-      expect(modalProps?.open).toBe(false);
-      expect(toastProps?.isOpen).toBe(true);
-      expect(screen.getByTestId('sticker-book-toast')).toHaveTextContent(
-        'Yay! Your creation is saved, share it with your family & friends!',
-      );
-    });
-  });
-
-  test('skips sharing when image conversion returns no blob', async () => {
-    const book = makeBook({ title: 'No Blob' });
-    (toBlob as jest.Mock).mockResolvedValueOnce(null);
-
-    (ServiceConfig.getI as jest.Mock).mockReturnValue({
-      apiHandler: {
-        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
-        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
-          book,
-          progress: { stickers_collected: [] },
-        }),
-        getUserWonStickerBooks: jest.fn().mockResolvedValue([book]),
-        updateRewardAsSeen: jest.fn(),
-      },
-    });
-
-    render(<StickerBook />);
-
-    await waitFor(() => expect(mockStickerBookBoard).toHaveBeenCalled());
-
-    await act(async () => {
-      expectProps().onSave();
-    });
-
-    await waitFor(() => expect(getLastModalProps()?.open).toBe(true));
-
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_SAVE_CLICKED,
-      expect.objectContaining({
-        user_id: 'student-1',
-        book_id: book.id,
-        book_title: book.title,
-      }),
-    );
-
-    await act(async () => {
-      await getLastModalProps()?.onAnimationComplete();
-    });
-
-    expect(Util.sendContentToAndroidOrWebShare).not.toHaveBeenCalled();
-    expect(Util.saveFileToDownloads).not.toHaveBeenCalled();
-    expect(Util.logEvent).not.toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_IMAGE_SHARED,
-      expect.anything(),
-    );
-    expect(Util.logEvent).not.toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_IMAGE_SAVED,
-      expect.anything(),
-    );
+    // Verify the toast's onClose is wired to the hook's closeSaveToast
+    const toastProps = getLastToastProps();
+    expect(toastProps?.onClose).toBe(mockCloseSaveToast);
   });
 });

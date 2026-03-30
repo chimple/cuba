@@ -733,6 +733,11 @@ export interface PortPlugin {
     fileData: string;
     fileName?: string;
   }): Promise<void>;
+  saveImageToGallery(options: {
+    fileData: string;
+    fileName?: string;
+    mimeType?: string;
+  }): Promise<{ uri?: string }>;
 }
 export const DEBUG_15 = 'debug15';
 export const DEFAULT_SUBJECT_IDS = [
