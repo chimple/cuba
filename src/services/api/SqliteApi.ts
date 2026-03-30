@@ -6873,6 +6873,15 @@ order by
         );
       }
 
+      // 4. Update active FC interactions to point to the merged student.
+      const fcFormsUpdateResult = await this.updateFcUserFormsContactUserId(
+        existingStudentId,
+        newStudentId,
+      );
+      if (!fcFormsUpdateResult.success) {
+        throw new Error(fcFormsUpdateResult.message);
+      }
+
       // 5. Link parents if different
       if (newContact && newContact !== existingContact) {
         for (const parent of newParents) {
@@ -6935,6 +6944,16 @@ order by
         message: error?.message || 'Failed to merge students.',
       };
     }
+  }
+
+  public async updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return this._serverApi.updateFcUserFormsContactUserId(
+      oldStudentId,
+      newStudentId,
+    );
   }
 
   async createAutoProfile(

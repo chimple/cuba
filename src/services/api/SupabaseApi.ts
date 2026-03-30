@@ -3762,6 +3762,15 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
+    // 4. Update active FC interactions to point to the merged student.
+    const fcFormsUpdateResult = await this.updateFcUserFormsContactUserId(
+      existingStudentId,
+      newStudentId,
+    );
+    if (!fcFormsUpdateResult.success) {
+      throw new Error(fcFormsUpdateResult.message);
+    }
+
     // 5. Merge parents
     const allParents = [...existingParents, ...newParents];
     const uniqueParents: any[] = [];
@@ -3918,6 +3927,31 @@ export class SupabaseApi implements ServiceApi {
       success: true,
       message: 'Students merged successfully',
     };
+  }
+  async updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      return { success: false, message: 'Supabase not initialized.' };
+    }
+    const now = new Date().toISOString();
+    const { error } = await this.supabase
+      .from(TABLES.FcUserForms)
+      .update({
+        contact_user_id: newStudentId,
+        updated_at: now,
+      })
+      .eq('contact_user_id', oldStudentId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      return {
+        success: false,
+        message: `Failed to update fc_user_forms contact_user_id: ${error.message}`,
+      };
+    }
+    return { success: true, message: 'fc_user_forms updated successfully.' };
   }
   async mergeUserPathway(
     existingStudentId: string,

@@ -1604,6 +1604,15 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return await this.s.updateFcUserFormsContactUserId(
+      oldStudentId,
+      newStudentId,
+    );
+  }
   public async mergeUserPathway(
     existingStudentId: string,
     newStudentId: string,
