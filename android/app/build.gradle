@@ -4,7 +4,18 @@ plugins{
     id 'com.android.application'
     id 'com.google.firebase.crashlytics'
 }
+
+def properties = new Properties()
+properties.load(new FileInputStream(rootProject.file("local.properties")))
+
+def supabaseUrl = properties.getProperty("SUPABASE_URL", "")
+def supabaseKey = properties.getProperty("SUPABASE_KEY", "")
 android {
+
+    buildFeatures {
+        buildConfig true
+    }
+
     namespace "org.chimple.bahama"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -19,6 +30,9 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+
+        buildConfigField "String", "SUPABASE_URL", "\"${supabaseUrl}\""
+        buildConfigField "String", "SUPABASE_KEY", "\"${supabaseKey}\""
         buildTypes {
             debug {
                 ndk {
@@ -74,6 +88,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:23.3.1'
 
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 }
 
 
