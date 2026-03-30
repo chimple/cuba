@@ -1905,13 +1905,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<UserSchoolClassResult> {
     return await this.s.getOrcreateschooluser(params);
   }
-  public async updateToCurrentTime(params: {
-    schoolId?: string;
-    classId?: string;
-    userId?: string;
-  }): Promise<void> {
-    return await this.s.updateToCurrentTime(params);
-  }
+
   public async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,

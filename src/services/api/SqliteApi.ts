@@ -338,6 +338,18 @@ export class SqliteApi implements ServiceApi {
     try {
       const config = ServiceConfig.getInstance(APIMode.SQLITE);
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+      const refreshTables: TABLES[] = [
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.SchoolCourse,
+        TABLES.Class,
+        TABLES.ClassInvite_code,
+        TABLES.Result,
+        TABLES.User,
+        TABLES.ClassUser,
+        TABLES.SchoolUser,
+        TABLES.ClassCourse,
+      ];
 
       if (isUserLoggedIn) {
         logger.info('syncing');
@@ -347,6 +359,7 @@ export class SqliteApi implements ServiceApi {
           await this.syncDbNow();
         } else {
           this.syncDbNow();
+          this.syncDbNow(refreshTables, refreshTables);
         }
       }
     } catch (error) {
@@ -704,7 +717,7 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
-        await this.syncDbNow(Object.values(TABLES), [
+        const refreshTables: TABLES[] = [
           TABLES.Assignment,
           TABLES.Assignment_user,
           TABLES.SchoolCourse,
@@ -715,7 +728,8 @@ export class SqliteApi implements ServiceApi {
           TABLES.ClassUser,
           TABLES.SchoolUser,
           TABLES.ClassCourse,
-        ]);
+        ];
+        await this.syncDbNow(refreshTables, refreshTables);
       }
     }
   }
@@ -832,6 +846,7 @@ export class SqliteApi implements ServiceApi {
       const diffMinutes = diffMs / (1000 * 60);
       if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
         await this.pullChanges(tableNames, isFirstSync);
+        await this.pullChanges(refreshTables);
         const res = await this.pushChanges(Object.values(TABLES));
         const tables = "'" + tableNames.join("', '") + "'";
         // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -854,6 +869,7 @@ export class SqliteApi implements ServiceApi {
 
         setTimeout(() => {
           this.syncDbNow();
+          this.syncDbNow(refreshTables, refreshTables);
         }, 0);
       }
     }
@@ -4466,6 +4482,18 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean> {
     try {
+      const refreshTables: TABLES[] = [
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.SchoolCourse,
+        TABLES.Class,
+        TABLES.ClassInvite_code,
+        TABLES.Result,
+        TABLES.User,
+        TABLES.ClassUser,
+        TABLES.SchoolUser,
+        TABLES.ClassCourse,
+      ];
       await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
@@ -7620,13 +7648,7 @@ order by
   ): Promise<UserSchoolClassResult> {
     return this._serverApi.getOrcreateschooluser(params);
   }
-  public async updateToCurrentTime(params: {
-    schoolId?: string;
-    classId?: string;
-    userId?: string;
-  }): Promise<void> {
-    await this._serverApi.updateToCurrentTime(params);
-  }
+
   public async createAtSchoolUser(
     id: string,
     schoolName: string,

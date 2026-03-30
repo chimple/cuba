@@ -759,7 +759,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         setIsSubmitting(true); // start loading
         setErrorMessage(undefined);
 
-        const addTeacherResult = await api.getOrcreateschooluser({
+        await api.getOrcreateschooluser({
           name,
           phoneNumber: finalPhone || undefined,
           email: finalEmail.trim() === '' ? undefined : finalEmail,
@@ -767,19 +767,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           classId: classIds,
           schoolId: schoolId,
         });
-
-        const addedTeacherUserId = String(
-          addTeacherResult?.user?.id ?? '',
-        ).trim();
-        await Promise.all(
-          classIds.map(async (classId) =>
-            api.updateToCurrentTime({
-              schoolId,
-              classId,
-              userId: addedTeacherUserId || undefined,
-            }),
-          ),
-        );
 
         // Show success message for 2 seconds
         setErrorMessage({
@@ -1009,26 +996,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       }
 
       const res = await api.deleteUserFromClass(teacherId, classId);
-      if (res === false) {
-        throw new Error('Failed to delete teacher from class');
+      if (res) {
+        const message = t(
+          "{{teacherName}}'s profile has been deleted and is no longer available.",
+          { teacherName: teacherName ?? '' },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: 'Profile Deleted Successfully',
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
       }
-      await api.updateToCurrentTime({
-        schoolId,
-        classId,
-        userId: teacherId,
-      });
-
-      const message = t(
-        "{{teacherName}}'s profile has been deleted and is no longer available.",
-        { teacherName: teacherName ?? '' },
-      );
-      setPopup({
-        open: true,
-        image: DeleteIcon,
-        heading: 'Profile Deleted Successfully',
-        text: message, // dynamic
-        autoCloseSeconds: 5,
-      });
       setIsDeleteModalOpen(false);
       setDeleteTargetTeacher(null);
       fetchTeachers(page, searchTerm);
