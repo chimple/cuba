@@ -903,6 +903,12 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
+  updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    throw new Error('Method not implemented.');
+  }
   mergeUserPathway(
     existingStudentId: string,
     newStudentId: string,
