@@ -6,11 +6,15 @@ import React, {
   useEffect,
 } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
-import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
+import { LANGUAGE } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
-
-const GROWTHBOOK_FEATURE_VALUES_KEY = '__featureValues';
+import { useAppSelector } from '../redux/hooks';
+import { store } from '../redux/store';
+import {
+  mergeGrowthbookAttributes,
+  setGrowthbookFeatureValue,
+} from '../redux/slices/growthbook/growthbookSlice';
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -20,31 +24,14 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  const existingData = localStorage.getItem(GrowthBookAttributes);
-  const parsedData = existingData ? JSON.parse(existingData) : {};
-  const updatedData = {
-    ...parsedData,
-    ...data,
-  };
-  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
+  store.dispatch(mergeGrowthbookAttributes(data));
 };
 
 export const setCachedGrowthBookFeatureValue = (
   featureKey: string,
   value: any,
 ) => {
-  const existingData = localStorage.getItem(GrowthBookAttributes);
-  const parsedData = existingData ? JSON.parse(existingData) : {};
-  const existingFeatureValues =
-    parsedData?.[GROWTHBOOK_FEATURE_VALUES_KEY] ?? {};
-  const updatedData = {
-    ...parsedData,
-    [GROWTHBOOK_FEATURE_VALUES_KEY]: {
-      ...existingFeatureValues,
-      [featureKey]: value,
-    },
-  };
-  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
+  store.dispatch(setGrowthbookFeatureValue({ key: featureKey, value }));
 };
 
 export const getCachedGrowthBookFeatureValue = <T,>(
@@ -52,10 +39,7 @@ export const getCachedGrowthBookFeatureValue = <T,>(
   fallback: T,
 ): T => {
   try {
-    const raw = localStorage.getItem(GrowthBookAttributes);
-    if (!raw) return fallback;
-    const parsedData = JSON.parse(raw);
-    const featureValues = parsedData?.[GROWTHBOOK_FEATURE_VALUES_KEY] ?? {};
+    const featureValues = store.getState().growthbook?.featureValues ?? {};
     return featureKey in featureValues
       ? (featureValues[featureKey] as T)
       : fallback;
@@ -67,17 +51,16 @@ export const getCachedGrowthBookFeatureValue = <T,>(
 export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
   const [gbUpdated, setGbUpdated] = useState(true);
+  const attributes = useAppSelector((state) => state.growthbook.attributes);
 
   useEffect(() => {
     if (!gbUpdated) return;
-    const storedAttributes = localStorage.getItem(GrowthBookAttributes);
-    if (!storedAttributes) {
+    if (!attributes || Object.keys(attributes).length === 0) {
       setGbUpdated(false);
       return;
     }
-    const attributes = JSON.parse(storedAttributes);
     setGrowthbookAttributes(attributes);
-  }, [gbUpdated]);
+  }, [gbUpdated, attributes]);
 
   const buildAttributesOnMainThread = (attributes: any) => {
     const {

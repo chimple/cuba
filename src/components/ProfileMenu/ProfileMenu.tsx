@@ -23,7 +23,6 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   updateLocalAttributes,
   useGbContext,
-  getCachedGrowthBookFeatureValue,
   setCachedGrowthBookFeatureValue,
 } from '../../growthbook/Growthbook';
 import { schoolUtil } from '../../utility/schoolUtil';
@@ -35,17 +34,6 @@ import logger from '../../utility/logger';
 
 type ProfileMenuProps = {
   onClose: () => void;
-};
-
-const getCachedFeatureValue = <T,>(featureKey: string, fallback: T): T =>
-  typeof getCachedGrowthBookFeatureValue === 'function'
-    ? getCachedGrowthBookFeatureValue<T>(featureKey, fallback)
-    : fallback;
-
-const persistCachedFeatureValue = (featureKey: string, value: any) => {
-  if (typeof setCachedGrowthBookFeatureValue === 'function') {
-    setCachedGrowthBookFeatureValue(featureKey, value);
-  }
 };
 
 const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
@@ -62,18 +50,18 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const liveIsStickerBookNotificationDotEnabled = useFeatureIsOn(
     STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   );
+  const growthbookFeatureValues = useAppSelector(
+    (state: RootState) => state.growthbook.featureValues,
+  );
   const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const isStickerBookEnabled = isOffline
-    ? getCachedFeatureValue<boolean>(
-        ENABLE_STICKER_BOOK,
-        liveIsStickerBookEnabled,
-      )
+    ? ((growthbookFeatureValues?.[ENABLE_STICKER_BOOK] as boolean) ??
+      liveIsStickerBookEnabled)
     : liveIsStickerBookEnabled;
   const isStickerBookNotificationDotEnabled = isOffline
-    ? getCachedFeatureValue<boolean>(
-        STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
-        liveIsStickerBookNotificationDotEnabled,
-      )
+    ? ((growthbookFeatureValues?.[
+        STICKER_BOOK_NOTIFICATION_DOT_ENABLED
+      ] as boolean) ?? liveIsStickerBookNotificationDotEnabled)
     : liveIsStickerBookNotificationDotEnabled;
 
   const { user: reduxUser } = useAppSelector(
@@ -85,8 +73,11 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     hasUnseenStickers && isStickerBookNotificationDotEnabled;
 
   useEffect(() => {
-    persistCachedFeatureValue(ENABLE_STICKER_BOOK, liveIsStickerBookEnabled);
-    persistCachedFeatureValue(
+    setCachedGrowthBookFeatureValue(
+      ENABLE_STICKER_BOOK,
+      liveIsStickerBookEnabled,
+    );
+    setCachedGrowthBookFeatureValue(
       STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
       liveIsStickerBookNotificationDotEnabled,
     );

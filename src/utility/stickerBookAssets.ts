@@ -24,7 +24,7 @@ export function resolveStickerBookSvgUrl(url: string): string {
   return `/${url}`;
 }
 
-export function getStickerBookSvgCachePath(url: string): string {
+function getStickerBookSvgCachePath(url: string): string {
   const normalizedUrl = resolveStickerBookSvgUrl(url);
   const safeName = encodeURIComponent(normalizedUrl).replace(/%/g, '_');
   return `${STICKER_BOOK_CACHE_DIR}/${safeName}.svg`;
@@ -43,24 +43,43 @@ async function ensureStickerBookCacheDirectory(): Promise<void> {
   }
 }
 
-export async function readCachedStickerBookSvg(
+function isLocalStickerBookUri(url: string): boolean {
+  return LOCAL_URI_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
+async function readStickerBookAsset(
   url: string,
+  mode: 'uri' | 'text',
 ): Promise<string | null> {
   if (!Capacitor.isNativePlatform()) return null;
 
   try {
-    const file = await Filesystem.readFile({
-      path: getStickerBookSvgCachePath(url),
+    const path = getStickerBookSvgCachePath(url);
+
+    if (mode === 'text') {
+      const file = await Filesystem.readFile({
+        path,
+        directory: Directory.External,
+        encoding: Encoding.UTF8,
+      });
+      return typeof file.data === 'string' ? file.data : null;
+    }
+
+    await Filesystem.stat({
+      path,
       directory: Directory.External,
-      encoding: Encoding.UTF8,
     });
-    return typeof file.data === 'string' ? file.data : null;
+    const uri = await Filesystem.getUri({
+      path,
+      directory: Directory.External,
+    });
+    return uri?.uri ? toDisplayableLocalStickerBookUri(uri.uri) : null;
   } catch {
     return null;
   }
 }
 
-export async function cacheStickerBookSvg(
+async function cacheStickerBookSvg(
   url: string,
   svgText: string,
 ): Promise<void> {
@@ -83,31 +102,6 @@ export async function cacheStickerBookSvg(
   }
 }
 
-function isLocalStickerBookUri(url: string): boolean {
-  return LOCAL_URI_PREFIXES.some((prefix) => url.startsWith(prefix));
-}
-
-async function getCachedStickerBookSvgUri(url: string): Promise<string | null> {
-  if (!Capacitor.isNativePlatform()) return null;
-
-  try {
-    await Filesystem.stat({
-      path: getStickerBookSvgCachePath(url),
-      directory: Directory.External,
-    });
-    const uri = await Filesystem.getUri({
-      path: getStickerBookSvgCachePath(url),
-      directory: Directory.External,
-    });
-    const displayUri = uri?.uri
-      ? toDisplayableLocalStickerBookUri(uri.uri)
-      : null;
-    return displayUri;
-  } catch {
-    return null;
-  }
-}
-
 export async function ensureLocalStickerBookSvgUri(
   url: string,
 ): Promise<string> {
@@ -115,7 +109,7 @@ export async function ensureLocalStickerBookSvgUri(
   if (!Capacitor.isNativePlatform()) return resolvedUrl;
   if (isLocalStickerBookUri(resolvedUrl)) return resolvedUrl;
 
-  const cachedUri = await getCachedStickerBookSvgUri(url);
+  const cachedUri = await readStickerBookAsset(url, 'uri');
   if (cachedUri) return cachedUri;
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -134,7 +128,7 @@ export async function ensureLocalStickerBookSvgUri(
   const svgText = await response.text();
   await cacheStickerBookSvg(url, svgText);
 
-  const localUri = await getCachedStickerBookSvgUri(url);
+  const localUri = await readStickerBookAsset(url, 'uri');
   return localUri ?? resolvedUrl;
 }
 
@@ -145,7 +139,7 @@ export async function fetchStickerBookSvgText(url: string): Promise<string> {
   if (Capacitor.isNativePlatform() && !isLocalStickerBookUri(resolvedUrl)) {
     fetchUrl = await ensureLocalStickerBookSvgUri(url);
   } else {
-    const cachedSvg = await readCachedStickerBookSvg(url);
+    const cachedSvg = await readStickerBookAsset(url, 'text');
     if (cachedSvg) return cachedSvg;
   }
 

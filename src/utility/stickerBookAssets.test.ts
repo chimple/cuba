@@ -1,13 +1,13 @@
 import {
-  cacheStickerBookSvg,
   ensureLocalStickerBookSvgUri,
   fetchStickerBookSvgText,
-  getStickerBookSvgCachePath,
-  readCachedStickerBookSvg,
   resolveStickerBookSvgUrl,
 } from './stickerBookAssets';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+
+const getExpectedCachePath = (url: string) =>
+  `stickerBookAssetCache/${encodeURIComponent(resolveStickerBookSvgUrl(url)).replace(/%/g, '_')}.svg`;
 
 describe('stickerBookAssets', () => {
   beforeEach(() => {
@@ -33,22 +33,6 @@ describe('stickerBookAssets', () => {
     );
   });
 
-  test('reads cached svg first on native', async () => {
-    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
-    (Filesystem.readFile as jest.Mock).mockResolvedValue({
-      data: '<svg>cached</svg>',
-    });
-
-    await expect(readCachedStickerBookSvg('/books/a.svg')).resolves.toBe(
-      '<svg>cached</svg>',
-    );
-    expect(Filesystem.readFile).toHaveBeenCalledWith({
-      path: getStickerBookSvgCachePath('/books/a.svg'),
-      directory: Directory.External,
-      encoding: Encoding.UTF8,
-    });
-  });
-
   test('returns local uri when native cache exists', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
     (Filesystem.stat as jest.Mock).mockResolvedValue({});
@@ -60,7 +44,7 @@ describe('stickerBookAssets', () => {
       'file:///cached-book.svg',
     );
     expect(Filesystem.getUri).toHaveBeenCalledWith({
-      path: getStickerBookSvgCachePath('books/a.svg'),
+      path: getExpectedCachePath('books/a.svg'),
       directory: Directory.External,
     });
   });
@@ -86,7 +70,7 @@ describe('stickerBookAssets', () => {
 
     expect(global.fetch).toHaveBeenCalledWith('/books/a.svg');
     expect(Filesystem.writeFile).toHaveBeenCalledWith({
-      path: getStickerBookSvgCachePath('books/a.svg'),
+      path: getExpectedCachePath('books/a.svg'),
       data: '<svg>remote</svg>',
       directory: Directory.External,
       encoding: Encoding.UTF8,
@@ -126,13 +110,23 @@ describe('stickerBookAssets', () => {
 
   test('caches svg text with utf8 encoding on native', async () => {
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+    (Filesystem.stat as jest.Mock)
+      .mockRejectedValueOnce(new Error('missing'))
+      .mockResolvedValue({});
     (Filesystem.mkdir as jest.Mock).mockResolvedValue({});
     (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
+    (Filesystem.getUri as jest.Mock).mockResolvedValue({
+      uri: 'file:///downloaded-book.svg',
+    });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: jest.fn().mockResolvedValue('<svg>b</svg>'),
+    }) as jest.Mock;
 
-    await cacheStickerBookSvg('/books/b.svg', '<svg>b</svg>');
+    await ensureLocalStickerBookSvgUri('/books/b.svg');
 
     expect(Filesystem.writeFile).toHaveBeenCalledWith({
-      path: getStickerBookSvgCachePath('/books/b.svg'),
+      path: getExpectedCachePath('/books/b.svg'),
       data: '<svg>b</svg>',
       directory: Directory.External,
       encoding: Encoding.UTF8,

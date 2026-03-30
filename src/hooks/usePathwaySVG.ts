@@ -28,10 +28,8 @@ import { StickerBookModalData } from '../components/learningPathway/StickerBookP
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 import logger from '../utility/logger';
 import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
-import {
-  getCachedGrowthBookFeatureValue,
-  setCachedGrowthBookFeatureValue,
-} from '../growthbook/Growthbook';
+import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { useAppSelector } from '../redux/hooks';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -66,17 +64,6 @@ const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
-
-const getCachedFeatureValue = <T>(featureKey: string, fallback: T): T =>
-  typeof getCachedGrowthBookFeatureValue === 'function'
-    ? getCachedGrowthBookFeatureValue<T>(featureKey, fallback)
-    : fallback;
-
-const persistCachedFeatureValue = (featureKey: string, value: any) => {
-  if (typeof setCachedGrowthBookFeatureValue === 'function') {
-    setCachedGrowthBookFeatureValue(featureKey, value);
-  }
-};
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -196,36 +183,33 @@ export function usePathwaySVG({
     PATHWAY_END_REWARD_BOX_VARIANT,
     'sticker',
   );
+  const cachedFeatureValues = useAppSelector(
+    (state) => state.growthbook.featureValues,
+  );
   const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
   const isStickerBookPreviewOn = isOffline
-    ? getCachedFeatureValue<boolean>(
-        STICKER_BOOK_PREVIEW_ENABLED,
-        liveIsStickerBookPreviewOn,
-      )
+    ? ((cachedFeatureValues?.[STICKER_BOOK_PREVIEW_ENABLED] as boolean) ??
+      liveIsStickerBookPreviewOn)
     : liveIsStickerBookPreviewOn;
   const isStickerBookCompletionPopupOn = isOffline
-    ? getCachedFeatureValue<boolean>(
-        STICKER_BOOK_COMPLETION_POPUP,
-        liveIsStickerBookCompletionPopupOn,
-      )
+    ? ((cachedFeatureValues?.[STICKER_BOOK_COMPLETION_POPUP] as boolean) ??
+      liveIsStickerBookCompletionPopupOn)
     : liveIsStickerBookCompletionPopupOn;
   const rewardBoxVariant = isOffline
-    ? getCachedFeatureValue<string>(
-        PATHWAY_END_REWARD_BOX_VARIANT,
-        liveRewardBoxVariant,
-      )
+    ? ((cachedFeatureValues?.[PATHWAY_END_REWARD_BOX_VARIANT] as string) ??
+      liveRewardBoxVariant)
     : liveRewardBoxVariant;
 
   useEffect(() => {
-    persistCachedFeatureValue(
+    setCachedGrowthBookFeatureValue(
       STICKER_BOOK_PREVIEW_ENABLED,
       liveIsStickerBookPreviewOn,
     );
-    persistCachedFeatureValue(
+    setCachedGrowthBookFeatureValue(
       STICKER_BOOK_COMPLETION_POPUP,
       liveIsStickerBookCompletionPopupOn,
     );
-    persistCachedFeatureValue(
+    setCachedGrowthBookFeatureValue(
       PATHWAY_END_REWARD_BOX_VARIANT,
       liveRewardBoxVariant,
     );
