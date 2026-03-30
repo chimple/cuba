@@ -338,7 +338,7 @@ export class SqliteApi implements ServiceApi {
     try {
       const config = ServiceConfig.getInstance(APIMode.SQLITE);
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
-      const refreshTables: TABLES[] = [
+      const defaultRefreshTables: TABLES[] = [
         TABLES.Assignment,
         TABLES.Assignment_user,
         TABLES.SchoolCourse,
@@ -353,14 +353,7 @@ export class SqliteApi implements ServiceApi {
 
       if (isUserLoggedIn) {
         logger.info('syncing');
-        const user = await config.authHandler.getCurrentUser();
-
-        if (!user) {
-          await this.syncDbNow();
-        } else {
-          this.syncDbNow();
-          this.syncDbNow(refreshTables, refreshTables);
-        }
+        await this.syncDbNow(Object.values(TABLES), defaultRefreshTables);
       }
     } catch (error) {
       logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
@@ -846,7 +839,6 @@ export class SqliteApi implements ServiceApi {
       const diffMinutes = diffMs / (1000 * 60);
       if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
         await this.pullChanges(tableNames, isFirstSync);
-        await this.pullChanges(refreshTables);
         const res = await this.pushChanges(Object.values(TABLES));
         const tables = "'" + tableNames.join("', '") + "'";
         // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -868,8 +860,7 @@ export class SqliteApi implements ServiceApi {
         this._syncRequestedAgain = false;
 
         setTimeout(() => {
-          this.syncDbNow();
-          this.syncDbNow(refreshTables, refreshTables);
+          this.syncDbNow(tableNames, refreshTables);
         }, 0);
       }
     }
@@ -4482,7 +4473,7 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean> {
     try {
-      const refreshTables: TABLES[] = [
+      const defaultRefreshTables: TABLES[] = [
         TABLES.Assignment,
         TABLES.Assignment_user,
         TABLES.SchoolCourse,
@@ -4494,7 +4485,9 @@ export class SqliteApi implements ServiceApi {
         TABLES.SchoolUser,
         TABLES.ClassCourse,
       ];
-      await this.syncDbNow(tableNames, refreshTables, isFirstSync);
+      const effectiveRefreshTables =
+        refreshTables.length > 0 ? refreshTables : defaultRefreshTables;
+      await this.syncDbNow(tableNames, effectiveRefreshTables, isFirstSync);
       return true;
     } catch (error) {
       logger.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
