@@ -1,6 +1,7 @@
 const normalizePathname = (pathname: string) => {
   const trimmed = pathname.replace(/\/+$/, '');
-  return trimmed || '/';
+  const normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return normalized === '/' || normalized === '/.' ? '/' : normalized;
 };
 
 const splitPathAndSearch = (route: string) => {
