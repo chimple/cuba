@@ -69,3 +69,24 @@
   outline: 2px solid #36898c;
   outline-offset: 2px;
 }
+
+@media (max-height: 500px) {
+  .color-palette {
+    height: auto;
+    min-height: 0;
+    padding: 6px;
+    gap: 4px;
+    border-radius: 8px;
+  }
+
+  .color-palette-swatch {
+    width: clamp(30px, 12vh, 40px);
+    height: clamp(30px, 12vh, 40px);
+    border-bottom-width: 3px;
+  }
+
+  /* Adjust selection ring for smaller swatches */
+  .color-palette-swatch.selected {
+    outline-offset: 1px;
+  }
+}

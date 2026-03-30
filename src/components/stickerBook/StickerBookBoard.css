@@ -65,60 +65,36 @@
   }
 }
 
-.sticker-book-board-bg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.sticker-book-board-bg svg {
+/* Board SVG should scale uniformly with the board container. */
+.sticker-book-board-canvas {
   width: 100%;
   height: 100%;
   display: block;
 }
 
+/* Background SVG layers should not intercept pointer events. */
+.sticker-book-board-bg {
+  pointer-events: none;
+}
+
 .sticker-book-board-title {
-  position: absolute;
-  top: 10.77%;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   color: #182a4f;
   font-size: clamp(14px, 2.5vw, 22px);
-  font-weight: 600;
-  width: 80%;
+  font-weight: 500;
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 7px;
   pointer-events: none;
   z-index: 2;
 }
 
-.sticker-book-board-content {
-  position: absolute;
-  top: 20.28%;
-  left: 13.34%;
-  width: 73.61%;
-  height: 73.82%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  background: transparent;
-}
-
 .sticker-book-svg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.sticker-book-board-content > svg {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
+  display: block;
 }
 
 .sticker-book-board-content-disabled {
