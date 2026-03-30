@@ -219,7 +219,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(1200);
+      jest.advanceTimersByTime(3800);
     });
 
     await waitFor(() => expect(result.current.showIntroConfetti).toBe(false));
@@ -292,12 +292,12 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.showDropConfetti).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(350);
+      jest.advanceTimersByTime(1900);
     });
     expect(result.current.isFlyingOut).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(900);
+      jest.advanceTimersByTime(550);
     });
 
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');

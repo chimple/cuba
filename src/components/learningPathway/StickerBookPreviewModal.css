@@ -138,11 +138,11 @@
   z-index: 3;
   overflow: hidden;
   opacity: 0.96;
-  animation: StickerBookPreviewModal-confetti-fade 1900ms ease-out forwards;
+  animation: StickerBookPreviewModal-confetti-fade 5200ms ease-out forwards;
 }
 
 .StickerBookPreviewModal-confetti--drop {
-  animation-duration: 1450ms;
+  animation-duration: 1900ms;
 }
 
 .StickerBookPreviewModal-confetti-piece,
@@ -161,7 +161,7 @@
   transform: rotate(var(--piece-rotate));
   box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.08);
   animation:
-    StickerBookPreviewModal-confetti-fall 1600ms ease-out forwards,
+    StickerBookPreviewModal-confetti-fall 4200ms ease-out forwards,
     StickerBookPreviewModal-confetti-spin 980ms ease-in-out infinite;
   animation-delay: var(--piece-delay), var(--piece-delay);
 }
@@ -205,7 +205,7 @@
   0% {
     opacity: 0.96;
   }
-  70% {
+  85% {
     opacity: 0.9;
   }
   100% {
@@ -218,12 +218,12 @@
     transform: translate3d(0, -0.8rem, 0) rotate(var(--piece-rotate)) scale(0.9);
     opacity: 0;
   }
-  18% {
+  10% {
     opacity: 1;
   }
   100% {
-    transform: translate3d(0.42rem, 4.5rem, 0)
-      rotate(calc(var(--piece-rotate) + 18deg)) scale(1);
+    transform: translate3d(0.6rem, 8.5rem, 0)
+      rotate(calc(var(--piece-rotate) + 36deg)) scale(1);
     opacity: 0;
   }
 }
@@ -265,23 +265,111 @@
   z-index: 10;
 }
 
+.StickerBookPreviewModal-confetti-drop-seed {
+  transform-origin: center;
+  animation: StickerBookPreviewModal-confetti-drop-seed 1800ms ease-out forwards;
+}
+
+.StickerBookPreviewModal-confetti-drop-motion {
+  transform-origin: center;
+  animation: StickerBookPreviewModal-confetti-drop-motion 1800ms
+    cubic-bezier(0.18, 0.84, 0.22, 1) forwards;
+}
+
 .StickerBookPreviewModal-confetti-drop-explode {
   transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-blast 1200ms
+  animation: StickerBookPreviewModal-confetti-drop-blast 1800ms
     cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-@keyframes StickerBookPreviewModal-confetti-drop-blast {
+.StickerBookPreviewModal-confetti-drop-dot {
+  transform-origin: center;
+  animation: StickerBookPreviewModal-confetti-drop-dot-move 1800ms ease-out
+    forwards;
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-seed {
   0% {
-    transform: scale(0.2);
+    transform: translateY(118px) scale(0.08);
+    opacity: 0;
+  }
+  10% {
     opacity: 1;
   }
-  60% {
-    transform: scale(1.05);
+  48% {
+    transform: translateY(-96px) scale(0.08);
+    opacity: 1;
+  }
+  58% {
+    transform: translateY(-132px) scale(0.11);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-motion {
+  0% {
+    transform: translateY(118px);
+    opacity: 0;
+  }
+  48% {
+    transform: translateY(-96px);
+    opacity: 0;
+  }
+  58% {
+    transform: translateY(-132px);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-120px);
     opacity: 1;
   }
   100% {
-    transform: scale(1.15);
+    transform: translateY(104px);
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-blast {
+  0%,
+  48% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  58% {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.78);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.68);
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-dot-move {
+  0% {
+    transform: translateY(0) scale(0.1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  48% {
+    transform: translateY(-96px) scale(0.1);
+    opacity: 1;
+  }
+  58% {
+    transform: translateY(-132px) scale(0.12);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-132px) scale(0.12);
     opacity: 0;
   }
 }

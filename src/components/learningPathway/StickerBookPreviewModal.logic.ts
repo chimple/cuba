@@ -198,7 +198,7 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowIntroConfetti(false);
-    }, 1200);
+    }, 3800);
   }, [isDragVariant, isLoading, logDragEvent]);
 
   const getSlotRectInFrame = () => {
@@ -269,14 +269,14 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowDropConfetti(false);
-    }, 800);
+    }, 1800);
     addTimer(() => {
       setIsFlyingOut(true);
       logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 350);
+    }, 1900);
     addTimer(() => {
       onClose('acknowledge_button');
-    }, 900);
+    }, 2450);
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {
