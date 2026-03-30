@@ -53,7 +53,7 @@ export const useStickerBookPreviewModalLogic = ({
   scale = 1,
 }: StickerBookPreviewModalLogicParams) => {
   const history = useHistory();
-  const stableDataRef = useRef<StickerBookModalData>({
+  const [dragSessionData, setDragSessionData] = useState<StickerBookModalData>({
     ...data,
     collectedStickerIds: Array.isArray(data.collectedStickerIds)
       ? [...data.collectedStickerIds]
@@ -82,7 +82,15 @@ export const useStickerBookPreviewModalLogic = ({
   const timersRef = useRef<number[]>([]);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isDragVariant = variant === 'drag_collect';
-  const renderData = isDragVariant ? stableDataRef.current : data;
+  const dragSessionKey = [
+    data.source,
+    data.stickerBookId,
+    data.stickerBookSvgUrl,
+    data.nextStickerId ?? '',
+    data.nextStickerImage ?? '',
+    data.nextStickerName ?? '',
+  ].join('::');
+  const renderData = isDragVariant ? dragSessionData : data;
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const shareTargetRef = useRef<HTMLDivElement | null>(null);
@@ -119,6 +127,16 @@ export const useStickerBookPreviewModalLogic = ({
     }),
     [data, isCompletionMode],
   );
+
+  useEffect(() => {
+    if (!isDragVariant) return;
+    setDragSessionData({
+      ...data,
+      collectedStickerIds: Array.isArray(data.collectedStickerIds)
+        ? [...data.collectedStickerIds]
+        : [],
+    });
+  }, [dragSessionKey, isDragVariant]);
 
   useEffect(() => {
     let mounted = true;
@@ -167,7 +185,13 @@ export const useStickerBookPreviewModalLogic = ({
     return () => {
       mounted = false;
     };
-  }, [renderData.stickerBookSvgUrl]);
+  }, [
+    renderData.stickerBookId,
+    renderData.stickerBookSvgUrl,
+    renderData.nextStickerId,
+    renderData.nextStickerImage,
+    renderData.nextStickerName,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -183,8 +207,16 @@ export const useStickerBookPreviewModalLogic = ({
 
     dragInitializedRef.current = true;
     const size = Math.max(72, Math.min(140, frame.clientWidth * 0.28));
-    const initialX = frame.clientWidth / 2 - size / 2;
-    const initialY = Math.max(120, frame.clientHeight * 0.5);
+    const maxX = Math.max(0, frame.clientWidth - size);
+    const maxY = Math.max(0, frame.clientHeight - size);
+    const initialX = Math.min(
+      Math.max(frame.clientWidth * 0.5 - size / 2, 0),
+      maxX,
+    );
+    const initialY = Math.min(
+      Math.max(frame.clientHeight - size - frame.clientHeight * 0.08, 0),
+      maxY,
+    );
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });

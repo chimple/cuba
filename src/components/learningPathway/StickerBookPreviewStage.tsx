@@ -79,20 +79,31 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
   onDragPointerUp,
   onDragPointerCancel,
 }) => {
+  const pointerHintSize = Math.max(36, Math.min(52, dragStickerSize * 0.58));
   let hintStartX = 0;
   let hintStartY = 0;
   let hintDeltaX = 0;
   let hintDeltaY = 0;
 
   if (isDragVariant && showPointerHint && dragStickerPos) {
-    hintStartX = dragStickerPos.x + dragStickerSize * 0.58;
-    hintStartY = dragStickerPos.y + dragStickerSize * 0.6;
     const slotRect = getSlotRectInFrame();
     if (slotRect) {
-      const slotCenterX = slotRect.x + slotRect.width / 2;
-      const slotCenterY = slotRect.y + slotRect.height / 2;
-      hintDeltaX = slotCenterX - hintStartX;
-      hintDeltaY = slotCenterY - hintStartY;
+      // Anchor the hint to the actual slot center so every sticker points to
+      // its own placeholder instead of relying on a generic top-left bias.
+      const slotAnchorX = slotRect.x + slotRect.width * 0.5;
+      const slotAnchorY = slotRect.y + slotRect.height * 0.54;
+      const stickerGuideX = dragStickerPos.x + dragStickerSize * 0.5;
+      const stickerGuideY = dragStickerPos.y + dragStickerSize * 0.38;
+      const pointerTipOffsetX = pointerHintSize * 0.46;
+      const pointerTipOffsetY = pointerHintSize * 0.76;
+
+      hintStartX = slotAnchorX - pointerTipOffsetX;
+      hintStartY = slotAnchorY - pointerTipOffsetY;
+      hintDeltaX = stickerGuideX - slotAnchorX;
+      hintDeltaY = stickerGuideY - slotAnchorY;
+    } else {
+      hintStartX = dragStickerPos.x + dragStickerSize * 0.08;
+      hintStartY = dragStickerPos.y - dragStickerSize * 0.72;
     }
   }
 
@@ -156,7 +167,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 width: `${dragStickerSize}px`,
                 height: `${dragStickerSize}px`,
                 transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)${isDragging ? ' scale(1.06)' : ''}`,
-                '--sticker-drop-distance': `${dragStickerPos.y + dragStickerSize + 24}px`,
+                '--sticker-drop-distance': `${Math.max(48, dragStickerSize * 0.72)}px`,
                 '--target-x': `${hintDeltaX}px`,
                 '--target-y': `${hintDeltaY}px`,
               } as React.CSSProperties
@@ -187,6 +198,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 {
                   left: `${hintStartX}px`,
                   top: `${hintStartY}px`,
+                  '--pointer-size': `${pointerHintSize}px`,
                   '--target-x': `${hintDeltaX}px`,
                   '--target-y': `${hintDeltaY}px`,
                 } as React.CSSProperties

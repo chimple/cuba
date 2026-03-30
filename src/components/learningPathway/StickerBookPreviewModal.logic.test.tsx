@@ -198,6 +198,7 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     await waitFor(() => expect(result.current.dragStickerPos).not.toBeNull());
 
+    expect(result.current.dragStickerPos).toEqual({ x: 64, y: 112 });
     expect(result.current.showPointerHint).toBe(true);
     expect(result.current.showIntroConfetti).toBe(true);
 
