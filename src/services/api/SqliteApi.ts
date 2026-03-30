@@ -353,7 +353,13 @@ export class SqliteApi implements ServiceApi {
 
       if (isUserLoggedIn) {
         logger.info('syncing');
-        await this.syncDbNow(Object.values(TABLES), defaultRefreshTables);
+        const user = await config.authHandler.getCurrentUser();
+
+        if (!user) {
+          await this.syncDbNow();
+        } else {
+          await this.syncDbNow(Object.values(TABLES), defaultRefreshTables);
+        }
       }
     } catch (error) {
       logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
