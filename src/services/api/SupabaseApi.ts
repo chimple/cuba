@@ -9370,6 +9370,7 @@ export class SupabaseApi implements ServiceApi {
           ? this.supabase
               .from(TABLES.User)
               .select('id, name, email, phone, gender')
+              .eq('is_deleted', false)
               .in('id', userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
