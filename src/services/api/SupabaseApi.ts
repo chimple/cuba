@@ -10626,6 +10626,84 @@ export class SupabaseApi implements ServiceApi {
     return { user, schoolUser, classUsers, isNewUser };
   }
 
+  // Updates timestamps in order using the provided class_id: class_user -> class_course -> class -> school -> school_course.
+  async updateToCurrentTime(params: {
+    schoolId?: string;
+    classId?: string;
+    userId?: string;
+  }): Promise<void> {
+    const supabase = this.supabase;
+    if (!supabase) return;
+
+    const timestamp = new Date().toISOString();
+    const classId = String(params.classId ?? '').trim();
+    if (!classId) return;
+
+    // 1) Update all class_user rows for this class.
+    const { error: classUserError } = await supabase
+      .from(TABLES.ClassUser)
+      .update({ updated_at: timestamp })
+      .eq('class_id', classId);
+    if (classUserError) throw classUserError;
+
+    // 1.1) From class_user, resolve linked users and update user.updated_at.
+    const { data: classUsers, error: classUsersError } = await supabase
+      .from(TABLES.ClassUser)
+      .select('user_id')
+      .eq('class_id', classId);
+    if (classUsersError) throw classUsersError;
+
+    const userIds = Array.from(
+      new Set(
+        (classUsers ?? [])
+          .map((row: { user_id: string | null }) =>
+            String(row.user_id ?? '').trim(),
+          )
+          .filter((id) => id.length > 0),
+      ),
+    );
+    if (userIds.length > 0) {
+      const { error: userError } = await supabase
+        .from(TABLES.User)
+        .update({ updated_at: timestamp })
+        .in('id', userIds);
+      if (userError) throw userError;
+    }
+
+    // 2) Update all class_course rows for this class.
+    const { error: classCourseError } = await supabase
+      .from(TABLES.ClassCourse)
+      .update({ updated_at: timestamp })
+      .eq('class_id', classId);
+    if (classCourseError) throw classCourseError;
+
+    // 3) Update this class row and fetch its school_id for next steps.
+    const { data: updatedClass, error: classError } = await supabase
+      .from(TABLES.Class)
+      .update({ updated_at: timestamp })
+      .eq('id', classId)
+      .select('school_id')
+      .maybeSingle();
+    if (classError) throw classError;
+
+    const schoolId = String(updatedClass?.school_id ?? '').trim();
+    if (!schoolId) return;
+
+    // 4) Update the school row for this class.
+    const { error: schoolError } = await supabase
+      .from(TABLES.School)
+      .update({ updated_at: timestamp })
+      .eq('id', schoolId);
+    if (schoolError) throw schoolError;
+
+    // 5) Update all school_course rows for that school.
+    const { error: schoolCourseError } = await supabase
+      .from(TABLES.SchoolCourse)
+      .update({ updated_at: timestamp })
+      .eq('school_id', schoolId);
+    if (schoolCourseError) throw schoolCourseError;
+  }
+
   async createAtSchoolUser(
     schoolId: string,
     schoolName: string,

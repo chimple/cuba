@@ -7620,6 +7620,13 @@ order by
   ): Promise<UserSchoolClassResult> {
     return this._serverApi.getOrcreateschooluser(params);
   }
+  public async updateToCurrentTime(params: {
+    schoolId?: string;
+    classId?: string;
+    userId?: string;
+  }): Promise<void> {
+    await this._serverApi.updateToCurrentTime(params);
+  }
   public async createAtSchoolUser(
     id: string,
     schoolName: string,

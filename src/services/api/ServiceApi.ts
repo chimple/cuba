@@ -2546,6 +2546,15 @@ export interface ServiceApi {
   ): Promise<UserSchoolClassResult>;
 
   /**
+   * Update related row timestamps for a class change flow.
+   */
+  updateToCurrentTime(params: {
+    schoolId?: string;
+    classId?: string;
+    userId?: string;
+  }): Promise<void>;
+
+  /**
    * Update school model to at_school or at_home.
    * Update location link and key contacts if provided.
    * @param schoolId School ID
