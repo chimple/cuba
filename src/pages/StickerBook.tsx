@@ -18,19 +18,16 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
 import { t } from 'i18next';
+import {
+  fetchStickerBookSvgText,
+  resolveStickerBookSvgUrl,
+} from '../utility/stickerBookAssets';
 import { useStickerBookSave } from '../hooks/useStickerBookSave';
 
 type CurrentProgress = {
   bookId: string;
   stickers: string[];
 };
-
-function resolveSvgUrl(url: string): string {
-  if (!url) return '/assets/icons/StickerBookBoard.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return url;
-  return `/${url}`;
-}
 
 const StickerBook: React.FC = () => {
   const history = useHistory();
@@ -109,10 +106,8 @@ const StickerBook: React.FC = () => {
   };
 
   const fetchSvgForBook = async (book: StickerBookType) => {
-    const svgUrl = resolveSvgUrl(book.svg_url ?? '');
     try {
-      const response = await fetch(svgUrl);
-      const svgText = await response.text();
+      const svgText = await fetchStickerBookSvgText(book.svg_url ?? '');
       setSvgCache((prev) => ({ ...prev, [book.id]: svgText }));
     } catch (e) {
       logger.error('Failed to load sticker book svg:', e);
@@ -172,6 +167,7 @@ const StickerBook: React.FC = () => {
   }, [selectedBook, isLocked, isBookCompleted, collectedFromProgress]);
 
   const svgRaw = selectedBook ? (svgCache[selectedBook.id] ?? null) : null;
+
   const saveAnalyticsPayload = useMemo(
     () => ({
       user_id: Util.getCurrentStudent()?.id ?? null,
@@ -225,7 +221,7 @@ const StickerBook: React.FC = () => {
 
   const onPaint = () => {
     if (!selectedBook) return;
-    const svgUrl = resolveSvgUrl(selectedBook.svg_url ?? '');
+    const svgUrl = resolveStickerBookSvgUrl(selectedBook.svg_url ?? '');
     history.push(PAGES.COLORING_BOARD, {
       svgRaw: svgRaw ?? undefined,
       svgUrl,
@@ -278,7 +274,7 @@ const StickerBook: React.FC = () => {
               <StickerBookBoard
                 title={(selectedBook.title ?? '').toUpperCase()}
                 svgRaw={svgRaw}
-                svgUrl={resolveSvgUrl(selectedBook.svg_url ?? '')}
+                svgUrl={resolveStickerBookSvgUrl(selectedBook.svg_url ?? '')}
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}
                 isLocked={isLocked}

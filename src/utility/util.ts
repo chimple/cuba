@@ -3091,14 +3091,6 @@ export class Util {
     payload: StickerBookModalData | null;
   }> {
     try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return {
-          completed: false,
-          stickerBookId: null,
-          awardedStickerId: null,
-          payload: null,
-        };
-      }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
