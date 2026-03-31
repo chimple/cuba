@@ -690,8 +690,14 @@ export class SqliteApi implements ServiceApi {
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
+      const school_user_data = data.get(TABLES.SchoolUser);
+      const hasSelectionUpdates =
+        (new_school?.length ?? 0) > 0 ||
+        (school_user_data?.length ?? 0) > 0 ||
+        (data.get(TABLES.Class)?.length ?? 0) > 0 ||
+        (data.get(TABLES.ClassUser)?.length ?? 0) > 0;
+
       if (new_school && new_school?.length > 0) {
-        const school_user_data = data.get(TABLES.SchoolUser);
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
@@ -733,6 +739,10 @@ export class SqliteApi implements ServiceApi {
           TABLES.ClassCourse,
         ]);
       }
+
+      if (hasSelectionUpdates) {
+        await this.reconcileCurrentClassSelection();
+      }
     }
   }
 
@@ -740,6 +750,35 @@ export class SqliteApi implements ServiceApi {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
     return result?.values?.map((row: any) => row.name);
+  }
+
+  private async reconcileCurrentClassSelection() {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const currentSchool = Util.getCurrentSchool();
+    const storedClass = Util.getCurrentClass();
+
+    if (!currentUser?.id || !currentSchool?.id) {
+      return;
+    }
+
+    const classes = await this.getClassesForSchool(
+      currentSchool.id,
+      currentUser.id,
+    );
+
+    if (!classes.length) {
+      await Util.setCurrentClass(null);
+      return;
+    }
+
+    const resolvedClass = storedClass
+      ? (classes.find((classItem) => classItem.id === storedClass.id) ??
+        classes[0])
+      : classes[0];
+
+    if (storedClass?.id !== resolvedClass.id) {
+      await Util.setCurrentClass(resolvedClass);
+    }
   }
 
   private async pushChanges(tableNames: TABLES[]) {
