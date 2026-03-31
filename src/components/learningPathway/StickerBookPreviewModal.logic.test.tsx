@@ -49,7 +49,7 @@ const buildData = (
   source: 'learning_pathway',
   stickerBookId: 'book-1',
   stickerBookTitle: 'Book 1',
-  stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
+  stickerBookSvgUrl: '/sticker-book.svg',
   collectedStickerIds: ['slot-collected'],
   nextStickerId: 'slot-next',
   nextStickerName: 'Rocket',
@@ -143,7 +143,7 @@ describe('useStickerBookPreviewModalLogic', () => {
   test('falls back to secondary SVG fetch when primary fails', async () => {
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes('example.com/sticker-book.svg')) {
+      if (url.includes('/sticker-book.svg')) {
         return Promise.reject(new Error('network failed'));
       }
       return Promise.resolve({
@@ -356,7 +356,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
       stickerBookId: 'book-1',
-      stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
+      stickerBookSvgUrl: '/sticker-book.svg',
       collectedStickerIds: ['slot-collected'],
     });
   });
