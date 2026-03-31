@@ -54,7 +54,7 @@ export const useStickerBookPreviewModalLogic = ({
   scale = 1,
 }: StickerBookPreviewModalLogicParams) => {
   const history = useHistory();
-  const stableDataRef = useRef<StickerBookModalData>({
+  const [dragSessionData, setDragSessionData] = useState<StickerBookModalData>({
     ...data,
     collectedStickerIds: Array.isArray(data.collectedStickerIds)
       ? [...data.collectedStickerIds]
@@ -83,7 +83,15 @@ export const useStickerBookPreviewModalLogic = ({
   const timersRef = useRef<number[]>([]);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isDragVariant = variant === 'drag_collect';
-  const renderData = isDragVariant ? stableDataRef.current : data;
+  const dragSessionKey = [
+    data.source,
+    data.stickerBookId,
+    data.stickerBookSvgUrl,
+    data.nextStickerId ?? '',
+    data.nextStickerImage ?? '',
+    data.nextStickerName ?? '',
+  ].join('::');
+  const renderData = isDragVariant ? dragSessionData : data;
 
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const shareTargetRef = useRef<HTMLDivElement | null>(null);
@@ -120,6 +128,16 @@ export const useStickerBookPreviewModalLogic = ({
     }),
     [data, isCompletionMode],
   );
+
+  useEffect(() => {
+    if (!isDragVariant) return;
+    setDragSessionData({
+      ...data,
+      collectedStickerIds: Array.isArray(data.collectedStickerIds)
+        ? [...data.collectedStickerIds]
+        : [],
+    });
+  }, [dragSessionKey, isDragVariant]);
 
   useEffect(() => {
     let mounted = true;
@@ -164,7 +182,13 @@ export const useStickerBookPreviewModalLogic = ({
     return () => {
       mounted = false;
     };
-  }, [renderData.stickerBookSvgUrl]);
+  }, [
+    renderData.stickerBookId,
+    renderData.stickerBookSvgUrl,
+    renderData.nextStickerId,
+    renderData.nextStickerImage,
+    renderData.nextStickerName,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -180,8 +204,16 @@ export const useStickerBookPreviewModalLogic = ({
 
     dragInitializedRef.current = true;
     const size = Math.max(72, Math.min(140, frame.clientWidth * 0.28));
-    const initialX = frame.clientWidth / 2 - size / 2;
-    const initialY = Math.max(120, frame.clientHeight * 0.5);
+    const maxX = Math.max(0, frame.clientWidth - size);
+    const maxY = Math.max(0, frame.clientHeight - size);
+    const initialX = Math.min(
+      Math.max(frame.clientWidth * 0.5 - size / 2, 0),
+      maxX,
+    );
+    const initialY = Math.min(
+      Math.max(frame.clientHeight - size - frame.clientHeight * 0.08, 0),
+      maxY,
+    );
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
@@ -195,7 +227,7 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowIntroConfetti(false);
-    }, 1200);
+    }, 3800);
   }, [isDragVariant, isLoading, logDragEvent]);
 
   const getSlotRectInFrame = () => {
@@ -206,13 +238,73 @@ export const useStickerBookPreviewModalLogic = ({
       `[data-slot-id="${renderData.nextStickerId}"]`,
     ) as SVGGElement | null;
     if (!slot) return null;
+
+    const candidateElements = [
+      slot,
+      ...Array.from(slot.querySelectorAll('*')),
+    ].filter(
+      (element): element is SVGGraphicsElement =>
+        element instanceof SVGGraphicsElement &&
+        typeof element.getBBox === 'function',
+    );
+    const measuredElement =
+      candidateElements.find((element) => {
+        try {
+          const box = element.getBBox();
+          return box.width > 0 || box.height > 0;
+        } catch (error) {
+          return false;
+        }
+      }) ?? (slot as unknown as SVGGraphicsElement);
+
+    if (
+      !(measuredElement instanceof SVGGraphicsElement) ||
+      typeof measuredElement.getScreenCTM !== 'function'
+    ) {
+      return null;
+    }
+
+    let box: DOMRect | SVGRect;
+    try {
+      box = measuredElement.getBBox();
+    } catch (error) {
+      const fallbackRect = slot.getBoundingClientRect();
+      const frameRect = frame.getBoundingClientRect();
+      return {
+        x: (fallbackRect.left - frameRect.left) / scale,
+        y: (fallbackRect.top - frameRect.top) / scale,
+        width: fallbackRect.width / scale,
+        height: fallbackRect.height / scale,
+      };
+    }
+
+    const ctm = measuredElement.getScreenCTM();
+    if (!ctm) return null;
+
+    const point = svg.createSVGPoint();
+    const corners = [
+      { x: box.x, y: box.y },
+      { x: box.x + box.width, y: box.y },
+      { x: box.x, y: box.y + box.height },
+      { x: box.x + box.width, y: box.y + box.height },
+    ].map(({ x, y }) => {
+      point.x = x;
+      point.y = y;
+      const transformed = point.matrixTransform(ctm);
+      return { x: transformed.x, y: transformed.y };
+    });
+
     const frameRect = frame.getBoundingClientRect();
-    const slotRect = slot.getBoundingClientRect();
+    const left = Math.min(...corners.map((corner) => corner.x));
+    const right = Math.max(...corners.map((corner) => corner.x));
+    const top = Math.min(...corners.map((corner) => corner.y));
+    const bottom = Math.max(...corners.map((corner) => corner.y));
+
     return {
-      x: (slotRect.left - frameRect.left) / scale,
-      y: (slotRect.top - frameRect.top) / scale,
-      width: slotRect.width / scale,
-      height: slotRect.height / scale,
+      x: (left - frameRect.left) / scale,
+      y: (top - frameRect.top) / scale,
+      width: (right - left) / scale,
+      height: (bottom - top) / scale,
     };
   };
 
@@ -266,14 +358,14 @@ export const useStickerBookPreviewModalLogic = ({
 
     addTimer(() => {
       setShowDropConfetti(false);
-    }, 800);
+    }, 1800);
     addTimer(() => {
       setIsFlyingOut(true);
       logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 350);
+    }, 1900);
     addTimer(() => {
       onClose('acknowledge_button');
-    }, 900);
+    }, 2450);
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {
