@@ -690,6 +690,8 @@ export class SqliteApi implements ServiceApi {
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
+      const new_class = data.get(TABLES.Class);
+      const hasNewClass = Array.isArray(new_class) && new_class.length > 0;
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
         (new_school?.length ?? 0) > 0 ||
@@ -697,9 +699,6 @@ export class SqliteApi implements ServiceApi {
         (data.get(TABLES.Class)?.length ?? 0) > 0 ||
         (data.get(TABLES.ClassUser)?.length ?? 0) > 0;
 
-      if (new_school && new_school?.length > 0) {
-      const new_class = data.get(TABLES.Class);
-      const hasNewClass = Array.isArray(new_class) && new_class.length > 0;
       if (new_school && new_school?.length > 0) {
         const school_user_data = data.get(TABLES.SchoolUser);
         const localSchoolRaw = localStorage.getItem(SCHOOL);
@@ -877,7 +876,7 @@ export class SqliteApi implements ServiceApi {
     this._syncInProgress = true;
     try {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
-      logger.info(
+      console.log(
         'logs to check synced tables',
         JSON.stringify(refresh_tables),
       );
