@@ -748,10 +748,6 @@ export class SqliteApi implements ServiceApi {
       if (hasSelectionUpdates) {
         await this.reconcileCurrentClassSelection();
       }
-
-      if (hasSelectionUpdates) {
-        await this.reconcileCurrentClassSelection();
-      }
     }
   }
 
