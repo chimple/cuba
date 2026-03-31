@@ -435,7 +435,7 @@
   transform-origin: 46% 28%;
   /* Full autoplay hand-guide loop. Increase duration for a slower gesture. */
   /* Linear timing keeps the motion speed more even across the full loop. */
-  animation: StickerBookPreviewModal-pointer-guide-full 4200ms linear infinite;
+  animation: StickerBookPreviewModal-pointer-guide-full 4000ms linear infinite;
 }
 
 @keyframes StickerBookPreviewModal-pointer-guide-full {
@@ -448,70 +448,70 @@
     transform: translate3d(0, 0, 0) rotate(82deg) scale(0.92);
     opacity: 1;
   }
-  /* Early descent: keep the travel mostly vertical so the forward motion feels slower. */
-  28% {
+  /* Early descent: medium constant motion away from the placeholder. */
+  24% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.03),
+        calc(var(--target-x, 0px) * 0.12),
         calc(var(--target-y, 0px) * 0.18),
         0
       )
-      rotate(76deg) scale(0.93);
+      rotate(70deg) scale(0.94);
     opacity: 1;
   }
-  /* Mid curve: start turning toward the drag sticker in smaller steps. */
-  48% {
+  /* Mid curve: continue with similar travel distance and speed. */
+  40% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.1),
-        calc(var(--target-y, 0px) * 0.38),
+        calc(var(--target-x, 0px) * 0.34),
+        calc(var(--target-y, 0px) * 0.4),
         0
       )
-      rotate(56deg) scale(0.95);
+      rotate(48deg) scale(0.96);
     opacity: 1;
   }
-  /* Approach: continue the curve at the same smooth speed. */
-  64% {
+  /* Approach: keep pacing even while curving toward the sticker. */
+  56% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.24),
-        calc(var(--target-y, 0px) * 0.62),
+        calc(var(--target-x, 0px) * 0.62),
+        calc(var(--target-y, 0px) * 0.66),
         0
       )
-      rotate(26deg) scale(0.98);
+      rotate(20deg) scale(0.99);
     opacity: 1;
   }
-  /* Contact approach: reach the drag sticker without a sudden speed-up. */
-  78% {
+  /* Contact approach: arrive at the drag sticker at the same medium pace. */
+  72% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.58),
-        calc(var(--target-y, 0px) * 0.84),
+        calc(var(--target-x, 0px) * 0.86),
+        calc(var(--target-y, 0px) * 0.86),
         0
       )
       rotate(2deg) scale(1);
     opacity: 1;
   }
   /* Contact pose on the sticker. */
-  88% {
+  82% {
     transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
       rotate(-16deg) scale(1);
     opacity: 1;
   }
-  /* Upward finish: hand turns upward toward the placeholder side. */
-  93% {
+  /* Small finish beat before returning. */
+  88% {
     transform: translate3d(
         calc(var(--target-x, 0px) + 0.08rem),
         calc(var(--target-y, 0px) - 0.12rem),
         0
       )
-      rotate(-30deg) scale(0.95);
+      rotate(-22deg) scale(0.97);
     opacity: 1;
   }
-  /* Return: keep the same visible speed and do not fade out. */
+  /* Return: same medium speed back toward the starting placeholder area. */
   96% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.22),
-        calc(var(--target-y, 0px) * 0.12),
+        calc(var(--target-x, 0px) * 0.42),
+        calc(var(--target-y, 0px) * 0.36),
         0
       )
-      rotate(30deg) scale(0.94);
+      rotate(34deg) scale(0.95);
     opacity: 1;
   }
   100% {
