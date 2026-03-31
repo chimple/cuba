@@ -14,7 +14,6 @@ import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   EVENTS,
   STICKER_BOOK_COMPLETION_READY_EVENT,
-  TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
 } from '../../common/constants';
 
 jest.mock('../../hooks/usePathwayData');
@@ -413,21 +412,6 @@ describe('PathwayStructure', () => {
     expect(
       screen.getByTestId('sticker-book-preview-next-id'),
     ).toHaveTextContent('slot-2');
-  });
-
-  test('opens sticker drag popup when temp debug event is dispatched', () => {
-    render(<PathwayStructure />);
-
-    act(() => {
-      window.dispatchEvent(new CustomEvent(TEMP_OPEN_STICKER_DRAG_POPUP_EVENT));
-    });
-
-    expect(
-      screen.getByTestId('sticker-book-preview-modal'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId('sticker-book-preview-next-id'),
-    ).toHaveTextContent('butterfly');
   });
 
   test('closes sticker preview modal and logs close event', () => {

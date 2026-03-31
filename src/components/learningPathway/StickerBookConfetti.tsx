@@ -202,16 +202,18 @@ const StickerBookConfetti: React.FC<StickerBookConfettiProps> = ({
   containerPos,
 }) => {
   const containerStyle: React.CSSProperties | undefined = containerPos
-    ? {
+    ? ({
         inset: 'auto',
-        left: containerPos.x - containerPos.size * 1.5,
-        top: containerPos.y - containerPos.size * 1.5,
+        left: containerPos.x - containerPos.size * 2,
+        top: containerPos.y - containerPos.size * 2,
         width: containerPos.size * 4,
         height: containerPos.size * 4,
+        '--drop-rise': `${containerPos.size}px`,
+        '--drop-burst-settle': `${Math.max(10, containerPos.size * 0.18)}px`,
         overflow: 'visible',
         pointerEvents: 'none',
         zIndex: 10,
-      }
+      } as React.CSSProperties)
     : undefined;
   return (
     <div
@@ -239,113 +241,68 @@ const StickerBookConfetti: React.FC<StickerBookConfettiProps> = ({
         <svg
           viewBox="0 0 400 400"
           className="StickerBookPreviewModal-confetti-drop-svg"
+          style={{ overflow: 'visible' }}
         >
           <g className="StickerBookPreviewModal-confetti-drop-seed">
             <circle
               cx="200"
               cy="200"
-              r="8"
+              r="12"
               fill="#F4B846"
               className="StickerBookPreviewModal-confetti-drop-dot"
             />
           </g>
           <g className="StickerBookPreviewModal-confetti-drop-motion">
-            <g className="StickerBookPreviewModal-confetti-drop-explode">
-              {[1, -1].map((scaleX, i) => (
-                <g
-                  key={i}
-                  transform={`translate(200, 200) scale(${scaleX}, 1)`}
-                >
-                  <path
-                    d="M 30 -160 Q 40 -140 30 -120 M 40 -140 Q 55 -155 60 -170"
-                    stroke="#EE5A30"
-                    strokeWidth="4.5"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 80 -120 C 110 -90 60 -50 90 -20"
-                    stroke="#F4B846"
-                    strokeWidth="5.5"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 30 70 C 60 100 20 140 50 170"
-                    stroke="#F4B846"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 40 100 Q 20 130 30 160"
-                    stroke="#36848A"
-                    strokeWidth="3.5"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 50 200 Q 40 240 60 280"
-                    stroke="#EE5A30"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="15" cy="-140" r="5" fill="#7B384A" />
-                  <circle cx="100" cy="50" r="6" fill="#7B384A" />
-                  <circle cx="25" cy="-10" r="7" fill="#F4B846" />
-                  <circle cx="80" cy="-60" r="6" fill="#F4B846" />
-                  <g transform="translate(20, -70) rotate(-15)">
-                    <rect x="-4" y="-8" width="8" height="16" fill="#36848A" />
-                  </g>
-                  <g transform="translate(30, -50) rotate(15)">
-                    <rect x="-4" y="-6" width="8" height="12" fill="#EE5A30" />
-                  </g>
-                  <g transform="translate(80, -20) rotate(30)">
-                    <rect x="-4" y="-8" width="8" height="16" fill="#36848A" />
-                  </g>
-                  <g transform="translate(40, -100) rotate(45)">
-                    <rect x="-4" y="-8" width="8" height="16" fill="#F4B846" />
-                  </g>
-                  <g transform="translate(90, -100) rotate(-20)">
-                    <rect
-                      x="-5"
-                      y="-10"
-                      width="10"
-                      height="20"
-                      fill="#EE5A30"
-                    />
-                  </g>
-                  <g transform="translate(130, -90) rotate(5)">
-                    <rect x="-4" y="-8" width="8" height="16" fill="#EE5A30" />
-                  </g>
-                  <g transform="translate(40, 30) rotate(-45)">
-                    <rect x="-4" y="-8" width="8" height="16" fill="#F4B846" />
-                  </g>
-                  <g transform="translate(70, 70) rotate(45)">
-                    <rect x="-6" y="-6" width="12" height="12" fill="#F4B846" />
-                  </g>
-                </g>
-              ))}
-              <circle cx="200" cy="220" r="6" fill="#36848A" />
-              <g transform="translate(200, 200)">
-                <rect
-                  x="-20"
-                  y="-150"
-                  width="10"
-                  height="6"
-                  fill="#EE5A30"
-                  transform="rotate(-15)"
-                />
-                <rect
-                  x="10"
-                  y="-150"
-                  width="10"
-                  height="6"
-                  fill="#EE5A30"
-                  transform="rotate(15)"
-                />
-                <polygon points="-8,-100 8,-100 0,-90" fill="#36848A" />
+            <g
+              className="StickerBookPreviewModal-confetti-drop-explode"
+              transform="translate(200, 200)"
+            >
+              <path
+                d="M 0 -34 L 0 -66"
+                stroke="#F4B846"
+                strokeWidth="10"
+                strokeLinecap="round"
+              />
+              <path
+                d="M -24 -20 L -42 -36"
+                stroke="#EE5A30"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 24 -20 L 42 -36"
+                stroke="#EE5A30"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M -30 10 L -50 18"
+                stroke="#36848A"
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 30 10 L 50 18"
+                stroke="#36848A"
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+              <circle cx="0" cy="-16" r="12" fill="#F4B846" />
+              <circle cx="-30" cy="-8" r="8" fill="#EE5A30" />
+              <circle cx="32" cy="-10" r="8" fill="#EE5A30" />
+              <circle cx="-22" cy="20" r="7" fill="#36848A" />
+              <circle cx="24" cy="18" r="7" fill="#7B384A" />
+              <g transform="translate(-10, -38) rotate(-24)">
+                <rect x="-4" y="-10" width="8" height="20" fill="#F4B846" />
+              </g>
+              <g transform="translate(14, -34) rotate(18)">
+                <rect x="-4" y="-9" width="8" height="18" fill="#EE5A30" />
+              </g>
+              <g transform="translate(-38, 6) rotate(-42)">
+                <rect x="-4" y="-8" width="8" height="16" fill="#36848A" />
+              </g>
+              <g transform="translate(38, 4) rotate(38)">
+                <rect x="-4" y="-8" width="8" height="16" fill="#F4B846" />
               </g>
             </g>
           </g>

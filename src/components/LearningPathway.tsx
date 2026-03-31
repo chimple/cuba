@@ -13,7 +13,6 @@ import {
   TableTypes,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
-  TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
 } from '../common/constants';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import {
@@ -140,20 +139,7 @@ const LearningPathway: React.FC = () => {
   return (
     <div className="learning-pathway-container">
       <div className="pathway_section">
-        <div className="learning-pathway-controls">
-          <DropdownMenu />
-          <button
-            type="button"
-            className="learning-pathway-debug-trigger"
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent(TEMP_OPEN_STICKER_DRAG_POPUP_EVENT),
-              );
-            }}
-          >
-            Open Sticker Drag Popup
-          </button>
-        </div>
+        <DropdownMenu />
         <PathwayStructure />
       </div>
 

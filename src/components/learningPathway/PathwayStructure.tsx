@@ -22,19 +22,7 @@ import {
   EVENTS,
   REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
-  TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
 } from '../../common/constants';
-
-const TEMP_STICKER_DRAG_POPUP_FALLBACK: StickerBookModalData = {
-  source: 'learning_pathway',
-  stickerBookId: '8bc5d41f-0d6b-4f45-ae61-c8092e27c32c',
-  stickerBookTitle: 'Animals Book',
-  stickerBookSvgUrl:
-    'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg',
-  collectedStickerIds: ['snail'],
-  nextStickerId: 'butterfly',
-  nextStickerName: 'Butterfly',
-};
 
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
@@ -213,43 +201,6 @@ const PathwayStructure: React.FC = () => {
     }
   }, []);
 
-  const getDebugStickerPreviewPayload = React.useCallback(() => {
-    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-    if (!raw) {
-      return TEMP_STICKER_DRAG_POPUP_FALLBACK;
-    }
-
-    try {
-      const parsed = JSON.parse(raw);
-      const awardedStickerId =
-        typeof parsed?.awardedStickerId === 'string'
-          ? parsed.awardedStickerId
-          : TEMP_STICKER_DRAG_POPUP_FALLBACK.nextStickerId;
-      const preAwardCollectedStickerIds = Array.isArray(
-        parsed?.preAwardCollectedStickerIds,
-      )
-        ? parsed.preAwardCollectedStickerIds
-        : TEMP_STICKER_DRAG_POPUP_FALLBACK.collectedStickerIds;
-
-      return {
-        ...TEMP_STICKER_DRAG_POPUP_FALLBACK,
-        stickerBookId:
-          parsed?.stickerBookId ??
-          TEMP_STICKER_DRAG_POPUP_FALLBACK.stickerBookId,
-        stickerBookTitle:
-          parsed?.stickerBookTitle ??
-          TEMP_STICKER_DRAG_POPUP_FALLBACK.stickerBookTitle,
-        stickerBookSvgUrl:
-          parsed?.stickerBookSvgUrl ??
-          TEMP_STICKER_DRAG_POPUP_FALLBACK.stickerBookSvgUrl,
-        collectedStickerIds: preAwardCollectedStickerIds,
-        nextStickerId: awardedStickerId,
-      } as StickerBookModalData;
-    } catch {
-      return TEMP_STICKER_DRAG_POPUP_FALLBACK;
-    }
-  }, []);
-
   // Mounts SVG with everything needed
   usePathwaySVG({
     containerRef,
@@ -400,27 +351,6 @@ const PathwayStructure: React.FC = () => {
       );
     };
   }, [openStickerCompletion]);
-
-  React.useEffect(() => {
-    const handleTempOpenStickerDragPopup = () => {
-      handleStickerPreviewReady(
-        getDebugStickerPreviewPayload(),
-        'pathway_completion_auto',
-      );
-    };
-
-    window.addEventListener(
-      TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
-      handleTempOpenStickerDragPopup,
-    );
-
-    return () => {
-      window.removeEventListener(
-        TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
-        handleTempOpenStickerDragPopup,
-      );
-    };
-  }, [getDebugStickerPreviewPayload, handleStickerPreviewReady]);
 
   return (
     <>

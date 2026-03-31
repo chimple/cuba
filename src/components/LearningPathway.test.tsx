@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import LearningPathway from './LearningPathway';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
@@ -15,7 +14,6 @@ import {
   LEARNING_PATHWAY_MODE,
   LATEST_STARS,
   STARS_COUNT,
-  TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
 } from '../common/constants';
 import logger from '../utility/logger';
 
@@ -110,21 +108,6 @@ describe('LearningPathway', () => {
       expect(screen.getByTestId('pathway-structure')).toBeInTheDocument();
       expect(screen.getByTestId('chapter-lesson-box')).toBeInTheDocument();
     });
-  });
-
-  test('dispatches temp sticker drag popup event from debug button', async () => {
-    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
-    render(<LearningPathway />);
-
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Open Sticker Drag Popup' }),
-    );
-
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: TEMP_OPEN_STICKER_DRAG_POPUP_EVENT,
-      }),
-    );
   });
 
   test('uses getCoursesForPathway when student is not linked', async () => {
