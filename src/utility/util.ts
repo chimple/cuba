@@ -2881,7 +2881,6 @@ export class Util {
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false,
       );
 
       const updatedStudent =
@@ -2983,7 +2982,6 @@ export class Util {
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
           10,
-          false,
         );
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
@@ -3065,11 +3063,7 @@ export class Util {
 
       /* 7️⃣ Persist + log */
       await Promise.all([
-        api.updateLearningPath(
-          currentStudent,
-          JSON.stringify(learningPath),
-          false,
-        ),
+        api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
         ...events.map((e) => Util.logEvent(e, eventPayload)),
       ]);
 
