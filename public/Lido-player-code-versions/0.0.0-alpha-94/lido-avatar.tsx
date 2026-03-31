@@ -1,11 +1,7 @@
 import { Component, Host, h, Prop, Element } from '@stencil/core';
 import { Rive, RuntimeLoader } from '@rive-app/canvas';
 import { RiveService } from '../../utils/rive-service';
-import {
-  convertUrlToRelative,
-  initEventsForElement,
-  setVisibilityWithDelay,
-} from '../../utils/utils';
+import { convertUrlToRelative, initEventsForElement, setVisibilityWithDelay} from '../../utils/utils';
 
 /**
  * @component LidoAvatar
@@ -25,8 +21,7 @@ import {
   assetsDirs: ['.'],
 })
 export class LidoAvatar {
-  private static readonly RIVE_WASM_URL =
-    'https://unpkg.com/@rive-app/canvas@2.32.0/rive.wasm';
+  private static readonly RIVE_WASM_URL = 'https://unpkg.com/@rive-app/canvas@2.32.0/rive.wasm';
 
   /**
    * The unique identifier for the column component.
@@ -123,6 +118,7 @@ export class LidoAvatar {
    */
   @Prop() onCorrect: string = '';
 
+
   /**
    * Event handler for when the column is entered, which can be used to initiate specific behaviors on entry.
    */
@@ -134,8 +130,8 @@ export class LidoAvatar {
   @Element() el: HTMLElement;
 
   /**
-   * Delay in milliseconds to make the cell visible after mount.
-   */
+    * Delay in milliseconds to make the cell visible after mount.
+    */
   @Prop() delayVisible: string = '';
 
   /**
@@ -161,7 +157,7 @@ export class LidoAvatar {
    * It selects the canvas element, loads the Rive file, and starts the animation.
    * The animation surface is resized to fit the canvas, and the instance is stored in the service.
    */
-  initializeRive = (rivSrc) => {
+  initializeRive = rivSrc => {
     const riveService = RiveService.getInstance();
     const canvas = this.el.querySelector('canvas');
     this.riveInstance = new Rive({
