@@ -23,6 +23,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import {
   updateLocalAttributes,
   useGbContext,
+  setCachedGrowthBookFeatureValue,
 } from '../../growthbook/Growthbook';
 import { schoolUtil } from '../../utility/schoolUtil';
 import i18n from '../../i18n';
@@ -45,10 +46,23 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [hasUnseenStickers, setHasUnseenStickers] = useState<boolean>(false);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
-  const isStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
-  const isStickerBookNotificationDotEnabled = useFeatureIsOn(
+  const liveIsStickerBookEnabled = useFeatureIsOn(ENABLE_STICKER_BOOK);
+  const liveIsStickerBookNotificationDotEnabled = useFeatureIsOn(
     STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   );
+  const growthbookFeatureValues = useAppSelector(
+    (state: RootState) => state.growthbook.featureValues,
+  );
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  const isStickerBookEnabled = isOffline
+    ? ((growthbookFeatureValues?.[ENABLE_STICKER_BOOK] as boolean) ??
+      liveIsStickerBookEnabled)
+    : liveIsStickerBookEnabled;
+  const isStickerBookNotificationDotEnabled = isOffline
+    ? ((growthbookFeatureValues?.[
+        STICKER_BOOK_NOTIFICATION_DOT_ENABLED
+      ] as boolean) ?? liveIsStickerBookNotificationDotEnabled)
+    : liveIsStickerBookNotificationDotEnabled;
 
   const { user: reduxUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -57,6 +71,17 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const currentMode = localStorage.getItem(CURRENT_MODE);
   const shouldShowStickerBookNotification =
     hasUnseenStickers && isStickerBookNotificationDotEnabled;
+
+  useEffect(() => {
+    setCachedGrowthBookFeatureValue(
+      ENABLE_STICKER_BOOK,
+      liveIsStickerBookEnabled,
+    );
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
+      liveIsStickerBookNotificationDotEnabled,
+    );
+  }, [liveIsStickerBookEnabled, liveIsStickerBookNotificationDotEnabled]);
 
   useEffect(() => {
     loadProfileData();

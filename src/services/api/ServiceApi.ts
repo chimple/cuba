@@ -1829,11 +1829,7 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(
-    studentId: string,
-    starsCount: number,
-    is_immediate_sync?: boolean,
-  ): Promise<void>;
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -1863,7 +1859,6 @@ export interface ServiceApi {
   updateLearningPath(
     student: TableTypes<'user'>,
     learning_path: string,
-    is_immediate_sync?: boolean,
   ): Promise<TableTypes<'user'>>;
 
   /**
@@ -2160,6 +2155,17 @@ export interface ServiceApi {
     newStudentId: string,
     requestId?: string | undefined,
     respondedBy?: string | undefined,
+  ): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Update fc_user_forms contact_user_id when a student is merged.
+   * @param {string} oldStudentId - The student ID being merged and deleted.
+   * @param {string} newStudentId - The student ID to retain.
+   * @returns Promise resolving to success status and message.
+   */
+  updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
   ): Promise<{ success: boolean; message: string }>;
 
   /**

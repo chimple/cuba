@@ -1,4 +1,5 @@
 export const Capacitor = {
+  convertFileSrc: jest.fn((uri: string) => uri),
   isNativePlatform: jest.fn(() => false),
   getPlatform: jest.fn(() => 'web'),
 };
