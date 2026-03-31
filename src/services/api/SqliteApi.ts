@@ -846,6 +846,14 @@ export class SqliteApi implements ServiceApi {
         this.executeQuery(
           `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
         );
+        if (
+          tableNames.includes(TABLES.User) ||
+          refreshTables.includes(TABLES.User)
+        ) {
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES ('${TABLES.User}', '2024-01-01 00:00:00')`,
+          );
+        }
         return res;
       }
     } finally {
