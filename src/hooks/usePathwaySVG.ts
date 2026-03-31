@@ -27,6 +27,9 @@ import { LessonNode } from './useLearningPath';
 import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 import logger from '../utility/logger';
+import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
+import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { useAppSelector } from '../redux/hooks';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -108,8 +111,7 @@ const getStickerImageFallbackFromBookSvg = async (
   let stickerSvg: string | null = null;
   try {
     // Extract the requested sticker from the full book SVG and reuse it as an image.
-    const res = await fetch(stickerBookSvgUrl);
-    const text = await res.text();
+    const text = await fetchStickerBookSvgText(stickerBookSvgUrl);
     const wrapper = document.createElementNS(SVG_NS, 'g');
     wrapper.innerHTML = text;
     const svgNode = wrapper.querySelector('svg') as SVGSVGElement | null;
@@ -170,15 +172,52 @@ export function usePathwaySVG({
   onStickerCompletionReady,
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
-  const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
-  const isStickerBookCompletionPopupOn = useFeatureIsOn(
+  const liveIsStickerBookPreviewOn = useFeatureIsOn(
+    STICKER_BOOK_PREVIEW_ENABLED,
+  );
+  const liveIsStickerBookCompletionPopupOn = useFeatureIsOn(
     STICKER_BOOK_COMPLETION_POPUP,
   );
   // Default to sticker rewards when the experiment value is missing.
-  const rewardBoxVariant = useFeatureValue(
+  const liveRewardBoxVariant = useFeatureValue(
     PATHWAY_END_REWARD_BOX_VARIANT,
     'sticker',
   );
+  const cachedFeatureValues = useAppSelector(
+    (state) => state.growthbook.featureValues,
+  );
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  const isStickerBookPreviewOn = isOffline
+    ? ((cachedFeatureValues?.[STICKER_BOOK_PREVIEW_ENABLED] as boolean) ??
+      liveIsStickerBookPreviewOn)
+    : liveIsStickerBookPreviewOn;
+  const isStickerBookCompletionPopupOn = isOffline
+    ? ((cachedFeatureValues?.[STICKER_BOOK_COMPLETION_POPUP] as boolean) ??
+      liveIsStickerBookCompletionPopupOn)
+    : liveIsStickerBookCompletionPopupOn;
+  const rewardBoxVariant = isOffline
+    ? ((cachedFeatureValues?.[PATHWAY_END_REWARD_BOX_VARIANT] as string) ??
+      liveRewardBoxVariant)
+    : liveRewardBoxVariant;
+
+  useEffect(() => {
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_PREVIEW_ENABLED,
+      liveIsStickerBookPreviewOn,
+    );
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_COMPLETION_POPUP,
+      liveIsStickerBookCompletionPopupOn,
+    );
+    setCachedGrowthBookFeatureValue(
+      PATHWAY_END_REWARD_BOX_VARIANT,
+      liveRewardBoxVariant,
+    );
+  }, [
+    liveIsStickerBookPreviewOn,
+    liveIsStickerBookCompletionPopupOn,
+    liveRewardBoxVariant,
+  ]);
 
   const loadSVG = useCallback(async () => {
     if (!containerRef.current) return;
@@ -595,7 +634,6 @@ export function usePathwaySVG({
         const isRewardFeatureOn =
           localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
 
-        const isOffline = !navigator.onLine;
         const normalizedVariant = String(rewardBoxVariant ?? '')
           .trim()
           .toLowerCase();
@@ -611,10 +649,7 @@ export function usePathwaySVG({
         const hasRenderableSticker = Boolean(nextStickerImageSrc);
         // Show the sticker reward only when a real sticker can be rendered.
         const rewardMode: 'sticker' | 'mystery_box' =
-          isOffline ||
-          !hasNextSticker ||
-          !hasRenderableSticker ||
-          gbWantsMystery
+          !hasNextSticker || !hasRenderableSticker || gbWantsMystery
             ? 'mystery_box'
             : 'sticker';
 

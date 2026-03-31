@@ -1829,11 +1829,7 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(
-    studentId: string,
-    starsCount: number,
-    is_immediate_sync?: boolean,
-  ): Promise<void>;
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -1863,7 +1859,6 @@ export interface ServiceApi {
   updateLearningPath(
     student: TableTypes<'user'>,
     learning_path: string,
-    is_immediate_sync?: boolean,
   ): Promise<TableTypes<'user'>>;
 
   /**
