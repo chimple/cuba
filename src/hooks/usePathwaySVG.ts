@@ -356,7 +356,6 @@ export function usePathwaySVG({
       // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
       if (isStickerBookPreviewOn && overrideParsed) {
         if (stickerPreviewPayload && !didScheduleStickerCompletionPopup) {
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
           setTimeout(
             () =>
               onStickerPreviewReady(
@@ -366,8 +365,6 @@ export function usePathwaySVG({
             0,
           );
         }
-      } else if (isStickerBookPreviewOn) {
-        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
       }
 
       const lessons = await Promise.all(
