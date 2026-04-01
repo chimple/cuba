@@ -846,21 +846,21 @@ export class SqliteApi implements ServiceApi {
       const now = new Date();
       const diffMs = now.getTime() - lastUserUpdated.getTime();
       const diffMinutes = diffMs / (1000 * 60);
-      // if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
-      await this.pullChanges(tableNames, isFirstSync);
-      await this.prefetchStickerBookAssetsAfterSync();
-      const res = await this.pushChanges(Object.values(TABLES));
-      const tables = "'" + tableNames.join("', '") + "'";
-      // logger.info("logs to check synced tables1", JSON.stringify(tables));
-      const currentTimestamp = new Date();
-      const reducedTimestamp = new Date(currentTimestamp); // clone it
-      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-      const formattedTimestamp = reducedTimestamp.toISOString();
-      this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
-      );
-      return res;
-      // }
+      if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
+        await this.pullChanges(tableNames, isFirstSync);
+        await this.prefetchStickerBookAssetsAfterSync();
+        const res = await this.pushChanges(Object.values(TABLES));
+        const tables = "'" + tableNames.join("', '") + "'";
+        // logger.info("logs to check synced tables1", JSON.stringify(tables));
+        const currentTimestamp = new Date();
+        const reducedTimestamp = new Date(currentTimestamp); // clone it
+        reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+        const formattedTimestamp = reducedTimestamp.toISOString();
+        this.executeQuery(
+          `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
+        );
+        return res;
+      }
     } finally {
       this._syncInProgress = false;
       if (this._syncRequestedAgain) {
