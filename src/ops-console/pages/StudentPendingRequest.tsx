@@ -153,7 +153,6 @@ const StudentPendingRequestDetails = () => {
     const currentSelectedStudent = selectedStudent;
     const newStudentUserId =
       requestData?.requested_by || requestData?.requestedBy?.id;
-    const isMergeFlow = Boolean(currentSelectedStudent && newStudentUserId);
     // RespondedBy: whoever is logged in
     const auth = ServiceConfig.getI().authHandler;
     const user = await auth.getCurrentUser();
@@ -169,28 +168,14 @@ const StudentPendingRequestDetails = () => {
 
     setLoading(true);
     try {
-      if (isMergeFlow) {
-        if (!currentSelectedStudent || !newStudentUserId) {
-          logger.error(
-            t('Missing student identifiers required for merge approval.'),
-          );
-          return;
-        }
+      if (currentSelectedStudent && newStudentUserId) {
         // MERGE & APPROVE logic
-        const mergeResult = await api.mergeStudentRequest(
+        await api.mergeStudentRequest(
           currentSelectedStudent,
           newStudentUserId,
           currentRequest_Id,
           respondedBy,
         );
-
-        if (!mergeResult?.success) {
-          const mergeErrorMessage =
-            mergeResult?.message ||
-            t('Unable to merge this student request during approval.');
-          logger.error(mergeErrorMessage);
-          return;
-        }
       } else {
         const requestRole = requestData?.request_type; // e.g., 'student'
         await api.approveOpsRequest(currentRequestId, respondedBy, requestRole);
