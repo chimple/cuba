@@ -51,6 +51,25 @@ const defaultOptions = {
 
 const PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==';
 
+const flushAsyncWork = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
+const waitForShareTimer = async () => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await act(async () => {
+      await flushAsyncWork();
+    });
+
+    if (jest.getTimerCount() > 0) {
+      return;
+    }
+  }
+
+  throw new Error('Share delay timer was not scheduled.');
+};
+
 /* ===================================================== */
 /* ======================= TESTS ======================= */
 /* ===================================================== */
@@ -75,7 +94,6 @@ describe('useStickerBookSave', () => {
 
     (Util.saveImage as jest.Mock).mockResolvedValue(undefined);
   });
-
   /* ---------- INITIAL STATE ---------- */
 
   test('initial state has modal and toast closed', () => {
@@ -114,7 +132,7 @@ describe('useStickerBookSave', () => {
 
   /* ---------- closeSaveModal ---------- */
 
-  test('closeSaveModal closes modal and shows toast', () => {
+  test('closeSaveModal closes modal', () => {
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
     act(() => {
@@ -126,19 +144,22 @@ describe('useStickerBookSave', () => {
     });
 
     expect(result.current.showSaveModal).toBe(false);
-    expect(result.current.showSaveToast).toBe(true);
+    expect(result.current.showSaveToast).toBe(false);
   });
 
   /* ---------- closeSaveToast ---------- */
 
-  test('closeSaveToast hides toast', () => {
+  test('closeSaveToast hides toast', async () => {
+    jest.useFakeTimers();
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
+    const frame = document.createElement('div');
+    frame.id = 'sticker-book-save-modal-frame';
+    document.body.appendChild(frame);
 
+    let savePromise!: Promise<void>;
     act(() => {
       result.current.openSaveModal('<svg />');
-    });
-    act(() => {
-      result.current.closeSaveModal();
+      savePromise = result.current.handleSaveAndShare();
     });
 
     expect(result.current.showSaveToast).toBe(true);
@@ -148,6 +169,17 @@ describe('useStickerBookSave', () => {
     });
 
     expect(result.current.showSaveToast).toBe(false);
+
+    await waitForShareTimer();
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await flushAsyncWork();
+      await savePromise;
+    });
+
+    document.body.removeChild(frame);
+    jest.useRealTimers();
   });
 
   /* ---------- handleSaveAndShare ---------- */
@@ -155,15 +187,18 @@ describe('useStickerBookSave', () => {
   test('handleSaveAndShare returns early when target element missing', async () => {
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
-    await act(async () => {
-      await result.current.handleSaveAndShare();
+    let savePromise!: Promise<void>;
+    act(() => {
+      savePromise = result.current.handleSaveAndShare();
     });
+    await savePromise;
 
     expect(toPng).not.toHaveBeenCalled();
     expect(result.current.isSaving).toBe(false);
   });
 
   test('handleSaveAndShare captures, shares, and saves on web', async () => {
+    jest.useFakeTimers();
     // Create the element the hook looks for
     const frame = document.createElement('div');
     frame.id = 'sticker-book-save-modal-frame';
@@ -171,12 +206,30 @@ describe('useStickerBookSave', () => {
 
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
+    let savePromise!: Promise<void>;
+    act(() => {
+      result.current.openSaveModal('<svg />');
+      savePromise = result.current.handleSaveAndShare();
+    });
+
+    expect(result.current.showSaveToast).toBe(true);
+
     await act(async () => {
-      await result.current.handleSaveAndShare();
+      await flushAsyncWork();
+    });
+
+    expect(navigator.share).not.toHaveBeenCalled();
+
+    await waitForShareTimer();
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await flushAsyncWork();
+      await savePromise;
     });
 
     expect(toPng).toHaveBeenCalledWith(
-      frame,
+      expect.any(HTMLElement),
       expect.objectContaining({
         cacheBust: true,
         backgroundColor: '#ffffff',
@@ -201,6 +254,7 @@ describe('useStickerBookSave', () => {
     expect(result.current.isSaving).toBe(false);
 
     document.body.removeChild(frame);
+    jest.useRealTimers();
   });
 
   test('handleSaveAndShare returns early when toPng returns falsy', async () => {
@@ -213,6 +267,7 @@ describe('useStickerBookSave', () => {
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
     await act(async () => {
+      result.current.openSaveModal('<svg />');
       await result.current.handleSaveAndShare();
     });
 
@@ -223,6 +278,7 @@ describe('useStickerBookSave', () => {
   });
 
   test('handleSaveAndShare does not run if already saving', async () => {
+    jest.useFakeTimers();
     const frame = document.createElement('div');
     frame.id = 'sticker-book-save-modal-frame';
     document.body.appendChild(frame);
@@ -238,11 +294,10 @@ describe('useStickerBookSave', () => {
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
     // Start first call (will stay pending)
-    let firstDone = false;
+    let firstSavePromise!: Promise<void>;
     act(() => {
-      result.current.handleSaveAndShare().then(() => {
-        firstDone = true;
-      });
+      result.current.openSaveModal('<svg />');
+      firstSavePromise = result.current.handleSaveAndShare();
     });
 
     // Attempt second call while first is pending
@@ -255,14 +310,19 @@ describe('useStickerBookSave', () => {
 
     // Resolve to clean up
     resolveToPng(PNG_DATA_URL);
+    await waitForShareTimer();
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 10));
+      jest.advanceTimersByTime(2000);
+      await flushAsyncWork();
+      await firstSavePromise;
     });
 
     document.body.removeChild(frame);
+    jest.useRealTimers();
   });
 
   test('filter excludes the blink overlay', async () => {
+    jest.useFakeTimers();
     const frame = document.createElement('div');
     frame.id = 'sticker-book-save-modal-frame';
     const overlay = document.createElement('div');
@@ -272,8 +332,22 @@ describe('useStickerBookSave', () => {
 
     const { result } = renderHook(() => useStickerBookSave(defaultOptions));
 
+    let savePromise!: Promise<void>;
+    act(() => {
+      result.current.openSaveModal('<svg />');
+      savePromise = result.current.handleSaveAndShare();
+    });
+
     await act(async () => {
-      await result.current.handleSaveAndShare();
+      await flushAsyncWork();
+    });
+
+    await waitForShareTimer();
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await flushAsyncWork();
+      await savePromise;
     });
 
     const filterFn = (toPng as jest.Mock).mock.calls[0][1].filter;
@@ -282,5 +356,6 @@ describe('useStickerBookSave', () => {
     expect(filterFn(document.createElement('div'))).toBe(true);
 
     document.body.removeChild(frame);
+    jest.useRealTimers();
   });
 });

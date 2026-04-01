@@ -6,6 +6,11 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  opacity: 1;
+}
+
+.stickerBook-save-modal-overlay-closing {
+  animation: stickerBook-save-overlay-fade-out 300ms ease forwards;
 }
 
 .stickerBook-save-modal-content {
@@ -14,6 +19,12 @@
   align-items: center;
   justify-content: center;
   animation: stickerBook-save-pop-in 0.3s ease-out;
+  transform-origin: center center;
+}
+
+.stickerBook-save-modal-content-closing {
+  animation: stickerBook-save-settle-out 300ms cubic-bezier(0.22, 1, 0.36, 1)
+    forwards;
 }
 
 .stickerBook-save-modal-frame {
@@ -151,5 +162,25 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes stickerBook-save-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes stickerBook-save-settle-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
   }
 }
