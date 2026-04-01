@@ -12684,14 +12684,21 @@ export class SupabaseApi implements ServiceApi {
         is_deleted: false,
       });
 
+      await this.supabase.from(TABLES.UserSticker).insert({
+        id: uuidv4(),
+        user_id: userId,
+        sticker_id: stickerId,
+        created_at: new Date().toISOString(),
+        is_deleted: false,
+        is_seen: false,
+      });
+
       return;
     }
 
     let updated = progress.stickers_collected ?? [];
-
-    if (!updated.includes(stickerId)) {
-      updated.push(stickerId);
-    }
+    updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
+    const isNewSticker = updated.length !== progress.stickers_collected.length;
 
     let status = progress.status;
 
@@ -12708,6 +12715,17 @@ export class SupabaseApi implements ServiceApi {
       })
       .eq('id', progress.id)
       .or('is_deleted.is.false,is_deleted.is.null');
+
+    if (isNewSticker) {
+      await this.supabase.from(TABLES.UserSticker).insert({
+        id: uuidv4(),
+        user_id: userId,
+        sticker_id: stickerId,
+        created_at: new Date().toISOString(),
+        is_deleted: false,
+        is_seen: false,
+      });
+    }
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,
