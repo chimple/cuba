@@ -106,7 +106,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 13;
+  private DB_VERSION = 14;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -8597,6 +8597,7 @@ order by
         const stickersCollected = [stickerId];
         const status = total === 1 ? 'completed' : 'in_progress';
         const createdAt = new Date().toISOString();
+        const userStickerId = uuidv4();
 
         await this.executeQuery(
           `INSERT INTO ${TABLES.UserStickerBook}
@@ -8625,10 +8626,27 @@ order by
             is_deleted: false,
           },
         );
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, user.id, stickerId, createdAt],
+        );
+
+        await this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: user.id,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
         return;
       }
 
       const currentCollected = progress.stickers_collected ?? [];
+      const isNewSticker = !currentCollected.includes(stickerId);
       const updated = currentCollected.includes(stickerId)
         ? currentCollected
         : [...currentCollected, stickerId];
@@ -8660,6 +8678,27 @@ order by
           status,
         },
       );
+
+      if (isNewSticker) {
+        const userStickerId = uuidv4();
+        const createdAt = new Date().toISOString();
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, user.id, stickerId, createdAt],
+        );
+
+        await this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: user.id,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
+      }
     } catch (error) {
       logger.error('Error updating sticker progress in sqlite:', error);
     }
