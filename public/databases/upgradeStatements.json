@@ -221,5 +221,11 @@
       "ALTER TABLE sticker_book ADD COLUMN stickers_metadata TEXT;",
       "ALTER TABLE lesson ADD COLUMN lido_lesson_id TEXT;"
     ]
+  },
+  "14": {
+    "toVersion": 14,
+    "statements": [
+      "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;"
+    ]
   }
 }
