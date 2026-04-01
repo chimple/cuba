@@ -3469,45 +3469,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
-
-    let excludeStudentIds: string[] = [];
-    let requestQuery = this.supabase
-      .from(TABLES.OpsRequests)
-      .select('requested_by')
-      .eq('school_id', schoolId)
-      .eq('request_type', RequestTypes.STUDENT)
-      .in('request_status', pendingStatuses)
-      .eq('is_deleted', false)
-      .not('requested_by', 'is', null);
-
-    if (classId) {
-      requestQuery = requestQuery.eq('class_id', classId);
-    }
-
-    const { data: studentRequestRows, error: studentRequestError } =
-      await requestQuery;
-
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
 
     let query = this.supabase
       .from('class_user')
@@ -3557,10 +3518,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .eq('class.school_id', schoolId);
 
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
-
     if (classId) {
       query = query.eq('class_id', classId);
     }
@@ -3608,39 +3565,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
-
-    const { data: studentRequestRows, error: studentRequestError } =
-      await this.supabase
-        .from(TABLES.OpsRequests)
-        .select('requested_by')
-        .eq('class_id', classId)
-        .eq('request_type', RequestTypes.STUDENT)
-        .in('request_status', pendingStatuses)
-        .eq('is_deleted', false)
-        .not('requested_by', 'is', null);
-
-    let excludeStudentIds: string[] = [];
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs by class:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
 
     let query = this.supabase
       .from('class_user')
@@ -3664,10 +3588,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', 'student')
       .eq('is_deleted', false)
       .eq('class_id', classId); // Filter by classId
-
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
 
     const { data, error, count } = await query
       .order('user(name)', { ascending: true })
@@ -3772,6 +3692,9 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Supabase not initialized.');
     }
 
+    const AUTO_REJECT_REASON_TYPE = 'Verification Failed';
+    const AUTO_REJECT_REASON_DESCRIPTION =
+      'Auto-rejected because a duplicate student request was merged and approved.';
     const now = new Date().toISOString();
 
     // 1. Get destination student (record to keep)
@@ -3989,19 +3912,90 @@ export class SupabaseApi implements ServiceApi {
 
     // 9. Update request
     if (requestId && respondedBy) {
-      const { error: requestUpdateError } = await this.supabase
-        .from('ops_requests')
-        .update({
-          request_status: 'approved',
-          updated_at: now,
-          responded_by: respondedBy,
-        })
-        .eq('request_id', requestId);
+      const { data: updatedRequest, error: requestUpdateError } =
+        await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.APPROVED,
+            updated_at: now,
+            responded_by: respondedBy,
+          })
+          .eq('request_id', requestId)
+          .eq('is_deleted', false)
+          .select(
+            'id, request_id, requested_by, school_id, class_id, request_type',
+          )
+          .maybeSingle();
 
       if (requestUpdateError) {
         throw new Error(
           `Failed to update merge request: ${requestUpdateError.message}`,
         );
+      }
+      if (!updatedRequest) {
+        throw new Error('Merge request not found while updating approval.');
+      }
+
+      if (
+        updatedRequest?.request_type === RequestTypes.STUDENT &&
+        updatedRequest?.requested_by
+      ) {
+        const duplicateRequestedByIds = Array.from(
+          new Set(
+            [updatedRequest.requested_by, existingStudentId, newStudentId]
+              .map((value) => value?.trim())
+              .filter(
+                (value): value is string =>
+                  typeof value === 'string' && value.length > 0,
+              ),
+          ),
+        );
+
+        if (duplicateRequestedByIds.length === 0) {
+          throw new Error(
+            'Missing duplicate request user ids while rejecting sibling requests.',
+          );
+        }
+
+        let siblingRequestsUpdate = this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.REJECTED,
+            rejected_reason_type: AUTO_REJECT_REASON_TYPE,
+            rejected_reason_description: AUTO_REJECT_REASON_DESCRIPTION,
+            responded_by: respondedBy,
+            updated_at: now,
+          })
+          .eq('is_deleted', false)
+          .eq('request_status', STATUS.REQUESTED)
+          .eq('request_type', RequestTypes.STUDENT)
+          .in('requested_by', duplicateRequestedByIds)
+          .neq('id', updatedRequest.id);
+
+        if (updatedRequest.school_id) {
+          siblingRequestsUpdate = siblingRequestsUpdate.eq(
+            'school_id',
+            updatedRequest.school_id,
+          );
+        } else {
+          siblingRequestsUpdate = siblingRequestsUpdate.is('school_id', null);
+        }
+
+        if (updatedRequest.class_id) {
+          siblingRequestsUpdate = siblingRequestsUpdate.eq(
+            'class_id',
+            updatedRequest.class_id,
+          );
+        } else {
+          siblingRequestsUpdate = siblingRequestsUpdate.is('class_id', null);
+        }
+
+        const { error: siblingRequestsError } = await siblingRequestsUpdate;
+        if (siblingRequestsError) {
+          throw new Error(
+            `Failed to reject duplicate pending requests after merge: ${siblingRequestsError.message}`,
+          );
+        }
       }
     }
 
