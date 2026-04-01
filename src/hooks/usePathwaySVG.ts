@@ -1399,7 +1399,27 @@ export function usePathwaySVG({
     const currentCourse = (window as any).__currentCourseForPathway__;
     const currentChapter = (window as any).__currentChapterForPathway__;
 
-    if (lesson.plugin_type === COCOS) {
+    const lidoLessonId =
+      lesson.lido_lesson_id ||
+      (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT
+        ? lesson.cocos_lesson_id
+        : null);
+
+    if (lidoLessonId) {
+      const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+      history.replace(PAGES.LIDO_PLAYER + p, {
+        lessonId: lidoLessonId,
+        courseDocId: course.course_id,
+        course: JSON.stringify(currentCourse),
+        lesson: JSON.stringify(lesson),
+        chapter: JSON.stringify(currentChapter),
+        from: history.location.pathname + `?${CONTINUE}=true`,
+        learning_path: true,
+        skillId: skillId,
+        is_assessment: is_assessment,
+        assessmentId: assessmentId,
+      });
+    } else if (lesson.plugin_type === COCOS) {
       const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.replace(PAGES.GAME + params, {
         url: 'chimple-lib/index.html' + params,
@@ -1425,23 +1445,6 @@ export function usePathwaySVG({
           is_assessment: is_assessment,
         },
       );
-    } else if (
-      lesson.plugin_type === LIDO ||
-      lesson.plugin_type === LIDO_ASSESSMENT
-    ) {
-      const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      history.replace(PAGES.LIDO_PLAYER + p, {
-        lessonId: lesson.cocos_lesson_id,
-        courseDocId: course.course_id,
-        course: JSON.stringify(currentCourse),
-        lesson: JSON.stringify(lesson),
-        chapter: JSON.stringify(currentChapter),
-        from: history.location.pathname + `?${CONTINUE}=true`,
-        learning_path: true,
-        skillId: skillId,
-        is_assessment: is_assessment,
-        assessmentId: assessmentId,
-      });
     }
   }
 }
