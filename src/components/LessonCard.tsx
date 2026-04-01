@@ -174,7 +174,22 @@ const LessonCard: React.FC<{
               await getCurrentCourse();
             }
 
-            if (lesson.plugin_type === COCOS) {
+            const lidoLessonId =
+              lesson.lido_lesson_id ||
+              (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+
+            if (lidoLessonId) {
+              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+              history.push(PAGES.LIDO_PLAYER + parmas, {
+                lessonId: lidoLessonId,
+                courseDocId: course?.id ?? currentCourse?.id,
+                course: JSON.stringify(course ?? currentCourse),
+                lesson: JSON.stringify(lesson),
+                assignment: assignment,
+                chapter: JSON.stringify(chapter),
+                from: history.location.pathname + `?${CONTINUE}=true`,
+              });
+            } else if (lesson.plugin_type === COCOS) {
               const courseId = getCourseIdFromCocosLesson(
                 lesson.cocos_lesson_id,
                 lesson.cocos_subject_code,
@@ -232,17 +247,6 @@ const LessonCard: React.FC<{
                   },
                 );
               }
-            } else if (lesson.plugin_type === LIDO) {
-              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-              history.push(PAGES.LIDO_PLAYER + parmas, {
-                lessonId: lesson.cocos_lesson_id,
-                courseDocId: course?.id ?? currentCourse?.id,
-                course: JSON.stringify(course ?? currentCourse),
-                lesson: JSON.stringify(lesson),
-                assignment: assignment,
-                chapter: JSON.stringify(chapter),
-                from: history.location.pathname + `?${CONTINUE}=true`,
-              });
             }
           }
         }}
