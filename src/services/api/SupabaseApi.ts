@@ -3469,45 +3469,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
-
-    let excludeStudentIds: string[] = [];
-    let requestQuery = this.supabase
-      .from(TABLES.OpsRequests)
-      .select('requested_by')
-      .eq('school_id', schoolId)
-      .eq('request_type', RequestTypes.STUDENT)
-      .in('request_status', pendingStatuses)
-      .eq('is_deleted', false)
-      .not('requested_by', 'is', null);
-
-    if (classId) {
-      requestQuery = requestQuery.eq('class_id', classId);
-    }
-
-    const { data: studentRequestRows, error: studentRequestError } =
-      await requestQuery;
-
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
 
     let query = this.supabase
       .from('class_user')
@@ -3557,10 +3518,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .eq('class.school_id', schoolId);
 
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
-
     if (classId) {
       query = query.eq('class_id', classId);
     }
@@ -3608,41 +3565,8 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
 
-    const { data: studentRequestRows, error: studentRequestError } =
-      await this.supabase
-        .from(TABLES.OpsRequests)
-        .select('requested_by')
-        .eq('class_id', classId)
-        .eq('request_type', RequestTypes.STUDENT)
-        .in('request_status', pendingStatuses)
-        .eq('is_deleted', false)
-        .not('requested_by', 'is', null);
-
-    let excludeStudentIds: string[] = [];
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs by class:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
-
-    let query = this.supabase
+    const { data, error, count } = await this.supabase
       .from('class_user')
       .select(
         `
@@ -3663,13 +3587,7 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq('role', 'student')
       .eq('is_deleted', false)
-      .eq('class_id', classId); // Filter by classId
-
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
-
-    const { data, error, count } = await query
+      .eq('class_id', classId) // Filter by classId
       .order('user(name)', { ascending: true })
       .range(offset, offset + limit - 1);
 
