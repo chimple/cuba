@@ -39,6 +39,10 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
       );
 
+  if (lessons.length === 0) {
+    return null;
+  }
+
   const visibleLessonIds = visibleLessons
     .map((lesson) => lesson.id)
     .filter((lessonId): lessonId is string => Boolean(lessonId));
