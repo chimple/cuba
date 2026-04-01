@@ -222,11 +222,5 @@
       "ALTER TABLE lesson ADD COLUMN lido_lesson_id TEXT;",
       "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;"
     ]
-  },
-  "14": {
-    "toVersion": 14,
-    "statements": [
-      "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;"
-    ]
   }
 }
