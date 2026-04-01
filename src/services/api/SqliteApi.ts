@@ -340,6 +340,18 @@ export class SqliteApi implements ServiceApi {
     try {
       const config = ServiceConfig.getInstance(APIMode.SQLITE);
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+      const defaultRefreshTables: TABLES[] = [
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.SchoolCourse,
+        TABLES.Class,
+        TABLES.ClassInvite_code,
+        TABLES.Result,
+        TABLES.User,
+        TABLES.ClassUser,
+        TABLES.SchoolUser,
+        TABLES.ClassCourse,
+      ];
 
       if (isUserLoggedIn) {
         logger.info('syncing');
@@ -348,7 +360,7 @@ export class SqliteApi implements ServiceApi {
         if (!user) {
           await this.syncDbNow();
         } else {
-          this.syncDbNow();
+          await this.syncDbNow(Object.values(TABLES), defaultRefreshTables);
         }
       }
     } catch (error) {
@@ -720,7 +732,7 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
-        await this.syncDbNow(Object.values(TABLES), [
+        const refreshTables: TABLES[] = [
           TABLES.Assignment,
           TABLES.Assignment_user,
           TABLES.SchoolCourse,
@@ -731,7 +743,8 @@ export class SqliteApi implements ServiceApi {
           TABLES.ClassUser,
           TABLES.SchoolUser,
           TABLES.ClassCourse,
-        ]);
+        ];
+        await this.syncDbNow(refreshTables, refreshTables);
       }
     }
   }
@@ -870,7 +883,7 @@ export class SqliteApi implements ServiceApi {
         this._syncRequestedAgain = false;
 
         setTimeout(() => {
-          this.syncDbNow();
+          this.syncDbNow(tableNames, refreshTables);
         }, 0);
       }
     }
@@ -4483,7 +4496,21 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean> {
     try {
-      await this.syncDbNow(tableNames, refreshTables, isFirstSync);
+      const defaultRefreshTables: TABLES[] = [
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.SchoolCourse,
+        TABLES.Class,
+        TABLES.ClassInvite_code,
+        TABLES.Result,
+        TABLES.User,
+        TABLES.ClassUser,
+        TABLES.SchoolUser,
+        TABLES.ClassCourse,
+      ];
+      const effectiveRefreshTables =
+        refreshTables.length > 0 ? refreshTables : defaultRefreshTables;
+      await this.syncDbNow(tableNames, effectiveRefreshTables, isFirstSync);
       return true;
     } catch (error) {
       logger.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
