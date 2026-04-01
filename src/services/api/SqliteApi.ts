@@ -8634,7 +8634,7 @@ order by
           [userStickerId, effectiveUserId, stickerId, createdAt],
         );
 
-        await this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
           id: userStickerId,
           user_id: effectiveUserId,
           sticker_id: stickerId,
