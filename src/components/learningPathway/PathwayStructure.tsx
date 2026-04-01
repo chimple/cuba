@@ -145,7 +145,7 @@ const PathwayStructure: React.FC = () => {
       setStickerPreviewData(data);
       setStickerPreviewTrigger(trigger);
       setIsStickerPreviewOpen(true);
-      const isDragPopup = trigger === 'pathway_completion_auto';
+      const isDragPopup = trigger !== 'sticker_click';
       Util.logEvent(
         isDragPopup
           ? EVENTS.STICKER_DRAG_POPUP_SHOWN
@@ -243,7 +243,7 @@ const PathwayStructure: React.FC = () => {
       );
       setIsStickerPreviewOpen(false);
       setStickerPreviewLaunchMotion(null);
-      if (isDragPopup) {
+      if (stickerPreviewTrigger === 'pathway_completion_auto') {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
         const deferredCompletionPayload = getDeferredStickerCompletionPayload();
@@ -363,7 +363,6 @@ const PathwayStructure: React.FC = () => {
           animate={shouldAnimate}
         />
       )}
-
       {/* SVG Root Container */}
       <div className="PathwayStructure-div" ref={containerRef} />
 
@@ -405,7 +404,7 @@ const PathwayStructure: React.FC = () => {
         <StickerBookPreviewModal
           data={stickerPreviewData}
           variant={
-            stickerPreviewTrigger === 'pathway_completion_auto'
+            stickerPreviewTrigger !== 'sticker_click'
               ? 'drag_collect'
               : 'preview'
           }
