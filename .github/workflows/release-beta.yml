@@ -54,6 +54,8 @@ jobs:
           REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME_PROD}}
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
           REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
+          REACT_APP_LOG_LEVEL: ${{vars.REACT_APP_LOG_LEVEL_PROD}}
+          REACT_APP_ENVIRONMENT: ${{vars.REACT_APP_ENV_PROD}}
 
         run: npm run build
 

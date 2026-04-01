@@ -1,27 +1,25 @@
-import { FC, useEffect, useState } from "react";
-import Course from "../models/course";
-import { useHistory } from "react-router-dom";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { useEffect, useState } from 'react';
+import Course from '../models/course';
+import { useHistory } from 'react-router-dom';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
-  ACTION,
   // DISPLAY_SUBJECTS_STORE,
   EVENTS,
   HOMEHEADERLIST,
-  MODES,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import { IonPage } from "@ionic/react";
-import Loading from "../components/Loading";
-import BackButton from "../components/common/BackButton";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import AddCourse from "../components/displaySubjects/AddCourse";
-import NextButton from "../components/common/NextButton";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import { t } from "i18next";
-import SkeltonLoading from "../components/SkeltonLoading";
-import "./AddCourses.css";
+} from '../common/constants';
+import { IonPage } from '@ionic/react';
+import Loading from '../components/Loading';
+import BackButton from '../components/common/BackButton';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import AddCourse from '../components/displaySubjects/AddCourse';
+import NextButton from '../components/common/NextButton';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import { t } from 'i18next';
+import SkeltonLoading from '../components/SkeltonLoading';
+import './AddCourses.css';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -33,10 +31,10 @@ const AddCourses: React.FC = () => {
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<TableTypes<"course">[]>();
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
   const [reloadSubjects, setReloadSubjects] = useState<boolean>(false);
   const [selectedCourses, setSelectedCourses] =
-    useState<TableTypes<"course">[]>();
+    useState<TableTypes<'course'>[]>();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -52,14 +50,7 @@ const AddCourses: React.FC = () => {
     await getCourses();
   };
 
-  // function addDataToLocalStorage() {
-  //   localStorage.setItem(
-  //     DISPLAY_SUBJECTS_STORE,
-  //     JSON.stringify(localStorageData)
-  //   );
-  // }
-
-  const getCourses = async (): Promise<TableTypes<"course">[]> => {
+  const getCourses = async (): Promise<TableTypes<'course'>[]> => {
     setIsLoading(true);
     let isGrade1: string | boolean = false;
     let isGrade2: string | boolean = false;
@@ -70,7 +61,7 @@ const AddCourses: React.FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
-    // const currClass = localStorage.getItem(CURRENT_CLASS);
+
     const currClass = schoolUtil.getCurrentClass();
     const currMode = await schoolUtil.getCurrMode();
 
@@ -78,7 +69,7 @@ const AddCourses: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    // addDataToLocalStorage();
+
     setIsLoading(false);
     return courses;
   };
@@ -88,22 +79,11 @@ const AddCourses: React.FC = () => {
     if (selectedCourses && currentStudent) {
       await api.addCourseForParentsStudent(selectedCourses, currentStudent);
     }
-    const eventParams = {
-      // user_id: currentStudent?.id,
-      // user_type: currentStudent?.role,
-      // user_name: currentStudent?.name,
-      // user_gender: currentStudent?.gender!,
-      // user_age: currentStudent?.age!,
-      // phone_number: currentStudent?.username,
-      // parent_id: currentStudent?.uid,
-      // parent_username: currentStudent?.username,
-      // action_type: ACTION.UPDATE,
-    };
+    const eventParams = {};
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     switch (stage) {
       case STAGES.SUBJECTS:
-        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:
@@ -115,7 +95,6 @@ const AddCourses: React.FC = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:
@@ -123,7 +102,7 @@ const AddCourses: React.FC = () => {
     }
   };
 
-  function handleCallback(data: TableTypes<"course">[]) {
+  function handleCallback(data: TableTypes<'course'>[]) {
     setSelectedCourses(data);
   }
 
@@ -141,13 +120,13 @@ const AddCourses: React.FC = () => {
               if (!online) {
                 presentToast({
                   message: t(`Device is offline.`),
-                  color: "danger",
+                  color: 'danger',
                   duration: 3000,
-                  position: "bottom",
+                  position: 'bottom',
                   buttons: [
                     {
-                      text: "Dismiss",
-                      role: "cancel",
+                      text: 'Dismiss',
+                      role: 'cancel',
                     },
                   ],
                 });
@@ -157,7 +136,6 @@ const AddCourses: React.FC = () => {
             }}
           />
         </div>
-        {/* {stage !== STAGES.CHAPTERS && <div className="button-right" />} */}
       </div>
       <div id="add-courses-subjects-page">
         <SkeltonLoading
@@ -179,7 +157,7 @@ const AddCourses: React.FC = () => {
             className="add-courses-center no-subjects-text"
             id="add-courses-center no-subjects-text-id"
           >
-            {!isLoading && t("No more subjects available to add")}
+            {!isLoading && t('No more subjects available to add')}
           </div>
         )}
       </div>

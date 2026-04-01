@@ -9,7 +9,7 @@
   min-width: 196px;
   min-height: 48px;
   max-width: 340px;
-  /* font-size: var(--text-size) !important; */
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,7 +29,7 @@
 .dialog-content-text {
   text-align: center;
   color: black;
-  font-weight: "normal";
+  font-weight: 'normal';
   margin: 6% 0% 0% 0%;
 }
 
@@ -40,7 +40,7 @@
   margin: 5%;
 }
 
-.ScoreCard-Content{
+.ScoreCard-Content {
   margin-top: -5px;
 }
 
@@ -50,7 +50,6 @@
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
-  /* margin-top: 3px; */
   gap: 3px;
 }
 
@@ -129,5 +128,7 @@
 }
 .dialog-box-button-style-score-card:active {
   border-bottom: 2px solid #8a2901 !important;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }

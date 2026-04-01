@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -7,13 +7,13 @@ import {
   DialogContent,
   DialogActions,
   Button,
-} from "@mui/material";
-import { t } from "i18next";
-import "./MediaDisplay.css";
+} from '@mui/material';
+import { t } from 'i18next';
+import './MediaDisplay.css';
 
 export interface MediaItem {
   url: string;
-  type: "image" | "video";
+  type: 'image' | 'video';
 }
 
 interface Props {
@@ -73,7 +73,7 @@ const MediaSection: React.FC<Props> = ({ id, label, media }) => {
                   className="media-thumb"
                   onClick={() => handleClick(item)}
                 >
-                  {item.type === "image" ? (
+                  {item.type === 'image' ? (
                     <img
                       id={`${id}-img-${index}`}
                       data-testid={`${id}-img-${index}`}
@@ -118,7 +118,7 @@ const MediaSection: React.FC<Props> = ({ id, label, media }) => {
           data-testid={`${id}-dialog-content`}
           className="media-dialog-content"
         >
-          {selectedMedia?.type === "image" ? (
+          {selectedMedia?.type === 'image' ? (
             <img
               id={`${id}-dialog-image`}
               data-testid={`${id}-dialog-image`}
@@ -146,7 +146,7 @@ const MediaSection: React.FC<Props> = ({ id, label, media }) => {
             data-testid={`${id}-dialog-close`}
             onClick={handleClose}
           >
-            {t("Close")}
+            {t('Close')}
           </Button>
         </DialogActions>
       </Dialog>

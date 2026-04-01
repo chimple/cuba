@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
 import {
   HOMEHEADERLIST,
   AVATARS,
@@ -6,19 +6,17 @@ import {
   HeaderIconConfig,
   PAGES,
   MODES,
-  CURRENT_MODE,
   TableTypes,
-} from "../common/constants";
-import "./HomeHeader.css";
-import HeaderIcon from "./HeaderIcon";
-import React, { useEffect, useRef, useState } from "react";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Util } from "../utility/util";
-import User from "../models/user";
-import { useHistory } from "react-router";
-import { schoolUtil } from "../utility/schoolUtil";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
-import ProfileMenu from "./ProfileMenu/ProfileMenu";
+} from '../common/constants';
+import './HomeHeader.css';
+import HeaderIcon from './HeaderIcon';
+import React, { useEffect, useRef, useState } from 'react';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
+import { useHistory } from 'react-router';
+import { schoolUtil } from '../utility/schoolUtil';
+import ProfileMenu from './ProfileMenu/ProfileMenu';
+import logger from '../utility/logger';
 
 // Define the Props for StarsCounter
 interface StarsCounterProps {
@@ -56,8 +54,8 @@ const HomeHeader: React.FC<{
   var headerIconList: HeaderIconConfig[] = [];
 
   const history = useHistory();
-  const [student, setStudent] = useState<TableTypes<"user">>();
-  const studentRef = useRef<TableTypes<"user"> | null>(null); 
+  const [student, setStudent] = useState<TableTypes<'user'>>();
+  const studentRef = useRef<TableTypes<'user'> | null>(null);
 
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
@@ -122,19 +120,18 @@ const HomeHeader: React.FC<{
       setCurrentHeaderIconList(headerIconList);
       setStudent(student);
     } catch (error) {
-      console.error("Error in init:", error);
+      logger.error('Error in init:', error);
     }
   };
 
   useEffect(() => {
     init();
-    window.addEventListener("JoinClassListner", handleJoinClassListner);
+    window.addEventListener('JoinClassListner', handleJoinClassListner);
   }, []);
   const handleJoinClassListner = () => {
     setIsLinked(true);
-    window.removeEventListener("JoinClassListner", handleJoinClassListner);
+    window.removeEventListener('JoinClassListner', handleJoinClassListner);
   };
-  // const student =await Util.getCurrentStudent();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -152,9 +149,9 @@ const HomeHeader: React.FC<{
       refreshStarsFromLocal();
     };
 
-    window.addEventListener("starsUpdated", handler);
+    window.addEventListener('starsUpdated', handler);
     return () => {
-      window.removeEventListener("starsUpdated", handler);
+      window.removeEventListener('starsUpdated', handler);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -163,8 +160,8 @@ const HomeHeader: React.FC<{
       <div className="home-header-outer-icon">
         <HeaderIcon
           headerConfig={{
-            displayName: t("Home"),
-            iconSrc: "assets/icons/HomeIconInactive.svg",
+            displayName: t('Home'),
+            iconSrc: 'assets/icons/HomeIconInactive.svg',
             headerList: HOMEHEADERLIST.HOME,
           }}
           currentHeader={currentHeader}
@@ -205,7 +202,7 @@ const HomeHeader: React.FC<{
         <StarsCounter starsCount={starsCount} />
         <HeaderIcon
           headerConfig={{
-            displayName: student?.name || t("Name"),
+            displayName: student?.name || t('Name'),
             iconSrc:
               (studentMode === MODES.SCHOOL && student?.image) ||
               `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,

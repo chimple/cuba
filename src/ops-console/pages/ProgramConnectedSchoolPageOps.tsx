@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
-import DataTableBody, { Column } from "../components/DataTableBody";
-import DataTablePagination from "../components/DataTablePagination";
+import React, { useEffect, useMemo, useState } from 'react';
+import DataTableBody, { Column } from '../components/DataTableBody';
+import DataTablePagination from '../components/DataTablePagination';
 import {
   Box,
   Typography,
@@ -8,17 +8,18 @@ import {
   useMediaQuery,
   useTheme,
   IconButton,
-} from "@mui/material";
-import "./ProgramConnectedSchoolPageOps.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-import Breadcrumb from "../components/Breadcrumb";
-import SearchAndFilter from "../components/SearchAndFilter";
-import FilterSlider from "../components/FilterSlider";
-import SelectedFilters from "../components/SelectedFilters";
+} from '@mui/material';
+import './ProgramConnectedSchoolPageOps.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import { useHistory } from 'react-router';
+import { PAGES } from '../../common/constants';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import Breadcrumb from '../components/Breadcrumb';
+import SearchAndFilter from '../components/SearchAndFilter';
+import FilterSlider from '../components/FilterSlider';
+import SelectedFilters from '../components/SelectedFilters';
+import logger from '../../utility/logger';
 
 interface ProgramConnectedSchoolPageProps {
   id: string;
@@ -31,20 +32,22 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
   const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
+    {},
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [schools, setSchools] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-  const [programName, setProgramName] = useState("");
+  const [programName, setProgramName] = useState('');
   const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState("");
-  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState('');
+  const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
   const [total, setTotal] = useState(0);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,20 +108,20 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
     try {
       const cleanedFilters = Object.fromEntries(
         Object.entries(filters).filter(
-          ([, v]) => Array.isArray(v) && v.length > 0
-        )
+          ([, v]) => Array.isArray(v) && v.length > 0,
+        ),
       );
 
       const programData = await api.getProgramData(id);
       const name =
-        programData?.programDetails?.find((d) => d.label === "Program Name")
-          ?.value ?? "";
+        programData?.programDetails?.find((d) => d.label === 'Program Name')
+          ?.value ?? '';
       setProgramName(name);
 
       let backendOrderBy = orderBy;
-      if (backendOrderBy === "name") backendOrderBy = "school_name";
-      if (backendOrderBy === "students") backendOrderBy = "num_students";
-      if (backendOrderBy === "teachers") backendOrderBy = "num_teachers";
+      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
+      if (backendOrderBy === 'students') backendOrderBy = 'num_students';
+      if (backendOrderBy === 'teachers') backendOrderBy = 'num_teachers';
 
       const response = await api.getFilteredSchoolsForSchoolListing({
         programId: id,
@@ -139,9 +142,9 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
         programManagers:
-          school.program_managers?.join(", ") || t("not assigned yet"),
+          school.program_managers?.join(', ') || t('not assigned yet'),
         fieldCoordinators:
-          school.field_coordinators?.join(", ") || t("not assigned yet"),
+          school.field_coordinators?.join(', ') || t('not assigned yet'),
         name: {
           value: school.school_name,
           render: (
@@ -150,9 +153,9 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
               <Typography
                 variant="subtitle2"
                 color="text.secondary"
-                fontSize={"12px"}
+                fontSize={'12px'}
               >
-                {school.district || ""}
+                {school.district || ''}
               </Typography>
             </Box>
           ),
@@ -161,7 +164,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
 
       setSchools(formatted);
     } catch (error) {
-      console.error("Error loading schools:", error);
+      logger.error('Error loading schools:', error);
     } finally {
       setLoadingData(false);
     }
@@ -174,7 +177,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         const response = await api.getSchoolFilterOptionsForProgram(id);
         setFilterOptions(response || {});
       } catch (error) {
-        console.error("Error loading filter options:", error);
+        logger.error('Error loading filter options:', error);
         setFilterOptions({});
       } finally {
         setLoadingFilters(false);
@@ -192,43 +195,43 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
 
   const columns: Column<Record<string, any>>[] = [
     {
-      key: "name",
-      label: t("Schools"),
+      key: 'name',
+      label: t('Schools'),
       sortable: true,
-      orderBy: "name",
+      orderBy: 'name',
     },
     {
-      key: "students",
-      label: t("No. of Students"),
+      key: 'students',
+      label: t('No. of Students'),
       sortable: true,
-      orderBy: "students",
+      orderBy: 'students',
     },
     {
-      key: "teachers",
-      label: t("No. of Teachers"),
+      key: 'teachers',
+      label: t('No. of Teachers'),
       sortable: true,
-      orderBy: "teachers",
+      orderBy: 'teachers',
     },
     {
-      key: "programManagers",
-      label: t("Program Manager"),
+      key: 'programManagers',
+      label: t('Program Manager'),
       sortable: false,
     },
     {
-      key: "fieldCoordinators",
-      label: t("Field Coordinator"),
+      key: 'fieldCoordinators',
+      label: t('Field Coordinator'),
       sortable: false,
     },
   ];
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ["name", "students", "teachers"];
+    const sortableKeys = ['name', 'students', 'teachers'];
     if (!sortableKeys.includes(colKey)) return;
     if (orderBy === colKey) {
-      setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+      setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setOrderBy(colKey);
-      setOrderDir("asc");
+      setOrderDir('asc');
     }
     setPage(1);
   };
@@ -239,61 +242,61 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
     // Configuration array for all possible filters
     const filterConfigurations = [
       {
-        key: "programManager",
-        label: t("Select Program Manager"),
-        placeholder: t("Program Manager"),
+        key: 'programManager',
+        label: t('Select Program Manager'),
+        placeholder: t('Program Manager'),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple managers exist
       },
       {
-        key: "fieldCoordinator",
-        label: t("Select Field Coordinator"),
-        placeholder: t("Field Coordinator"),
+        key: 'fieldCoordinator',
+        label: t('Select Field Coordinator'),
+        placeholder: t('Field Coordinator'),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple coordinators exist
       },
       {
-        key: "model",
-        label: t("School Model"),
-        placeholder: t("School Model"),
+        key: 'model',
+        label: t('School Model'),
+        placeholder: t('School Model'),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
       },
       {
-        key: "state",
-        label: t("Select State"),
-        placeholder: t("State"),
+        key: 'state',
+        label: t('Select State'),
+        placeholder: t('State'),
         shouldShow: (options: string[]) => options.length > 0, // Geography filters - show if data exists
       },
       {
-        key: "district",
-        label: t("Select District"),
-        placeholder: t("District"),
+        key: 'district',
+        label: t('Select District'),
+        placeholder: t('District'),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
-        key: "block",
-        label: t("Select Block"),
-        placeholder: t("Block"),
+        key: 'block',
+        label: t('Select Block'),
+        placeholder: t('Block'),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
-        key: "village",
-        label: t("Select Village"),
-        placeholder: t("Village"),
+        key: 'village',
+        label: t('Select Village'),
+        placeholder: t('Village'),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
-        key: "cluster",
-        label: t("Select Cluster"),
-        placeholder: t("Cluster"),
+        key: 'cluster',
+        label: t('Select Cluster'),
+        placeholder: t('Cluster'),
         shouldShow: (options: string[]) => options.length > 0,
       },
     ];
 
     return filterConfigurations
-      .filter(config => {
+      .filter((config) => {
         const options = filterOptions[config.key] || [];
         return config.shouldShow(options);
       })
-      .map(config => ({
+      .map((config) => ({
         key: config.key,
         label: config.label,
         placeholder: config.placeholder,
@@ -332,14 +335,14 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
               <Breadcrumb
                 crumbs={[
                   {
-                    label: t("Programs"),
+                    label: t('Programs'),
                     onClick: () =>
                       history.push(
-                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}`
+                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}`,
                       ),
                   },
                   { label: programName, onClick: () => history.goBack() },
-                  { label: t("Schools") },
+                  { label: t('Schools') },
                 ]}
               />
             </div>
@@ -386,7 +389,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
             alignItems="center"
             height="100%"
           >
-            <Typography align="center">{t("No schools found.")}</Typography>
+            <Typography align="center">{t('No schools found.')}</Typography>
           </Box>
         ) : (
           <DataTableBody

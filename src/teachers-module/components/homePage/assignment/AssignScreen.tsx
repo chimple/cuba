@@ -1,0 +1,222 @@
+import { FC } from 'react';
+import { t } from 'i18next';
+import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
+import './AssignScreen.css';
+import { useHistory } from 'react-router-dom';
+import {
+  CapacitorBarcodeScanner,
+  CapacitorBarcodeScannerTypeHint,
+} from '@capacitor/barcode-scanner';
+import { PAGES } from '../../../../common/constants';
+import { ServiceConfig } from '../../../../services/ServiceConfig';
+import { Toast } from '@capacitor/toast';
+import logger from '../../../../utility/logger';
+
+interface AssignScreenProps {
+  onLibraryClick: () => void;
+  onScanQrClick: () => void;
+  onRecommendedClick: () => void;
+}
+
+const AssignScreen: FC<AssignScreenProps> = ({
+  onLibraryClick,
+  onScanQrClick,
+  onRecommendedClick,
+}) => {
+  const api = ServiceConfig.getI().apiHandler;
+  const history = useHistory();
+
+  const handleScanQr = async () => {
+    try {
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHint.ALL,
+      });
+      // 🟢 User cancelled
+      if (!result?.ScanResult) {
+        return;
+      }
+      let scannedText = result.ScanResult;
+      if (scannedText.startsWith('http://')) {
+        scannedText = scannedText.replace(/^http:\/\//, 'https://');
+      }
+      const response = await api.getChapterIdbyQrLink(scannedText);
+      if (!response?.chapter_id) {
+        await Toast.show({
+          text: t('Chapter Not Found'),
+          duration: 'long',
+        });
+        return;
+      }
+      const lessons = await api.getLessonsForChapter(response.chapter_id);
+      if (!lessons || lessons.length === 0) {
+        await Toast.show({
+          text: t('No lessons found for this chapter'),
+          duration: 'long',
+        });
+        return;
+      }
+      // ✅ Success → Navigate
+      history.replace(PAGES.QR_ASSIGNMENTS, {
+        chapterId: response.chapter_id,
+        courseId: response.course_id,
+        fromPage: PAGES.HOME_PAGE,
+      });
+    } catch (error) {
+      logger.error('Scan failed:', error);
+
+      await Toast.show({
+        text: t('Something Went wrong'),
+        duration: 'long',
+      });
+    }
+  };
+  return (
+    <section className="assign-screen">
+      <div id="assign-screen-content" className="assign-screen-content">
+        <h2 id="assign-screen-heading" className="assign-screen-heading">
+          {t('Choose from the three options for assignments')}
+        </h2>
+
+        <div id="assign-screen-card-list" className="assign-screen-card-list">
+          <button
+            type="button"
+            id="assign-screen-card assign-screen-card-library"
+            className="assign-screen-card assign-screen-card-library"
+            onClick={onLibraryClick}
+          >
+            <img
+              src="assets/books.png"
+              alt={t('Library') || 'Library'}
+              id="assign-screen-card-image assign-screen-icon-library-bg"
+              className="assign-screen-card-image assign-screen-icon-library-bg"
+            />
+            <div id="assign-screen-card-text" className="assign-screen-text">
+              <p
+                id="assign-screen-card-caption"
+                className="assign-screen-card-caption"
+              >
+                {t(
+                  'Choose from 300+ assignments across multiple subjects to assign homework',
+                )}
+              </p>
+              <div
+                id="assign-screen-card-bottom"
+                className="assign-screen-card-bottom"
+              >
+                <h3
+                  id="assign-screen-card-title"
+                  className="assign-screen-card-title"
+                >
+                  {t('Library')}
+                </h3>
+                <span
+                  id="assign-screen-arrow-wrap"
+                  className="assign-screen-arrow-wrap"
+                >
+                  <AssignScreenArrowIcon
+                    id="assign-screen-arrow"
+                    className="assign-screen-arrow"
+                    aria-hidden="true"
+                    focusable="false"
+                  />
+                </span>
+              </div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            id="assign-screen-card assign-screen-card-scan"
+            className="assign-screen-card assign-screen-card-scan"
+            onClick={handleScanQr}
+          >
+            <img
+              src="assets/qr.png"
+              alt={t('Scan QR') || 'Scan QR'}
+              id="assign-screen-card-image assign-screen-icon-scan-bg"
+              className="assign-screen-card-image assign-screen-icon-scan-bg"
+            />
+            <div id="assign-screen-card-text" className="assign-screen-text">
+              <p
+                id="assign-screen-card-caption"
+                className="assign-screen-card-caption"
+              >
+                {t(
+                  'Scan chapters from your textbook to instantly assign homework',
+                )}
+              </p>
+              <div
+                id="assign-screen-card-bottom"
+                className="assign-screen-card-bottom"
+              >
+                <h3
+                  id="assign-screen-card-title"
+                  className="assign-screen-card-title"
+                >
+                  {t('Scan QR')}
+                </h3>
+                <span
+                  id="assign-screen-arrow-wrap"
+                  className="assign-screen-arrow-wrap"
+                >
+                  <AssignScreenArrowIcon
+                    id="assign-screen-arrow"
+                    className="assign-screen-arrow"
+                    aria-hidden="true"
+                    focusable="false"
+                  />
+                </span>
+              </div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            id="assign-screen-card assign-screen-card-recommend"
+            className="assign-screen-card assign-screen-card-recommend"
+            onClick={onRecommendedClick}
+          >
+            <img
+              src="assets/thumb.png"
+              alt={t('Recommended') || 'Recommended'}
+              id="assign-screen-card-image assign-screen-icon-recommend-bg"
+              className="assign-screen-card-image assign-screen-icon-recommend-bg"
+            />
+            <div id="assign-screen-card-text" className="assign-screen-text">
+              <p
+                id="assign-screen-card-caption"
+                className="assign-screen-card-caption"
+              >
+                {t('Pre-selected assignments aligned for academic growth')}
+              </p>
+              <div
+                id="assign-screen-card-bottom"
+                className="assign-screen-card-bottom"
+              >
+                <h3
+                  id="assign-screen-card-title"
+                  className="assign-screen-card-title"
+                >
+                  {t('Recommended')}
+                </h3>
+                <span
+                  id="assign-screen-arrow-wrap"
+                  className="assign-screen-arrow-wrap"
+                >
+                  <AssignScreenArrowIcon
+                    id="assign-screen-arrow"
+                    className="assign-screen-arrow"
+                    aria-hidden="true"
+                    focusable="false"
+                  />
+                </span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default AssignScreen;

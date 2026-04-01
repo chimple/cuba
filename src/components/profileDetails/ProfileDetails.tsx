@@ -1,17 +1,16 @@
-import { MouseEvent, useEffect, useState, useRef } from "react";
-import { t } from "i18next";
-import "./ProfileDetails.css";
-import InputWithIcons from "../common/InputWithIcons";
-import SelectWithIcons from "../common/SelectWithIcons";
-import { Util } from "../../utility/util";
-import { useFeatureValue } from "@growthbook/growthbook-react";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { useEffect, useState, useRef } from 'react';
+import { t } from 'i18next';
+import './ProfileDetails.css';
+import InputWithIcons from '../common/InputWithIcons';
+import SelectWithIcons from '../common/SelectWithIcons';
+import { Util } from '../../utility/util';
+import { useFeatureValue } from '@growthbook/growthbook-react';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import {
-  ACTION,
   ACTION_TYPES,
   AGE_OPTIONS,
   AVATARS,
-  CURRENT_STUDENT,
+  CONTINUE,
   DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   EVENTS,
@@ -21,16 +20,18 @@ import {
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
-} from "../../common/constants";
-import { useHistory, useLocation } from "react-router";
-import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { FaArrowLeftLong } from "react-icons/fa6";
-import { initializeFireBase } from "../../services/Firebase";
-import Loading from "../Loading";
-import { logProfileClick } from "../../analytics/profileClickUtil";
-import i18n from "../../i18n";
-import { language } from "ionicons/icons";
+} from '../../common/constants';
+import { useHistory, useLocation } from 'react-router';
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { initializeFireBase } from '../../services/Firebase';
+import Loading from '../Loading';
+import { logProfileClick } from '../../analytics/profileClickUtil';
+import {
+  registerBackButtonHandler,
+  reinitializeHardwareBackButton,
+} from '../../common/backButtonRegistry';
+import logger from '../../utility/logger';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -49,28 +50,44 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-  const profileRef = useRef<HTMLDivElement>(null);
-  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
-  const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
-  const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
+  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
+  const [className, setClassName] = useState<string>('');
+  const [schoolName, setSchoolName] = useState<string>('');
+
+  const isCreatingProfileRef = useRef(false);
+  const parentHasStudentRef = useRef(false);
+  const backRegistrationRef = useRef<(() => void) | null>(null);
+  const isNavigatingBackRef = useRef(false);
+
+  // Sync State to Refs
+  useEffect(() => {
+    isCreatingProfileRef.current = isCreatingProfile;
+  }, [isCreatingProfile]);
+  useEffect(() => {
+    parentHasStudentRef.current = parentHasStudent;
+  }, [parentHasStudent]);
+
+  const currentStudent = Util.getCurrentStudent();
+  const isEdit =
+    location.pathname.startsWith(PAGES.EDIT_STUDENT) && !!currentStudent;
+
   const variation = useFeatureValue<string>(
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
   );
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
 
-  const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : "");
+  const [fullName, setFullName] = useState(isEdit ? currentStudent?.name : '');
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit
-      ? currentStudent?.avatar ?? AVATARS[randomIndex]
-      : AVATARS[randomIndex]
+      ? (currentStudent?.avatar ?? AVATARS[randomIndex])
+      : AVATARS[randomIndex],
   );
-
-  // New State for Class and School
-  const [className, setClassName] = useState<string>("");
-  const [schoolName, setSchoolName] = useState<string>("");
 
   const [age, setAge] = useState<number | undefined>(
     isEdit
@@ -79,79 +96,51 @@ const ProfileDetails = () => {
           ? 4
           : currentStudent.age
         : undefined
-      : undefined
+      : undefined,
   );
   const [gender, setGender] = useState<GENDER | undefined>(
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as GENDER)
-      : undefined
+      : undefined,
   );
   const [languageId, setLanguageId] = useState(
-    isEdit ? currentStudent?.language_id ?? "" : ""
+    isEdit ? (currentStudent?.language_id ?? '') : '',
   );
-  const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
+  const [languages, setLanguages] = useState<TableTypes<'language'>[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const labelRef = useRef<HTMLDivElement>(null);
-  const [labelWidth, setLabelWidth] = useState(0);
-  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
 
   const initialValues = useRef({
-    fullName: isEdit ? currentStudent?.name ?? "" : "",
-    age: isEdit ? currentStudent?.age ?? undefined : undefined,
+    fullName: isEdit ? (currentStudent?.name ?? '') : '',
+    age: isEdit ? (currentStudent?.age ?? undefined) : undefined,
     gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
-    languageId: isEdit ? currentStudent?.language_id ?? "" : "",
+    languageId: isEdit ? (currentStudent?.language_id ?? '') : '',
   });
 
   useEffect(() => {
     if (isEdit && currentStudent) {
       initialValues.current = {
-        fullName: currentStudent?.name ?? "",
+        fullName: currentStudent?.name ?? '',
         age: currentStudent?.age ?? undefined,
         gender: currentStudent?.gender as GENDER,
-        languageId: currentStudent?.language_id ?? "",
+        languageId: currentStudent?.language_id ?? '',
       };
     }
   }, [isEdit, currentStudent]);
 
   useEffect(() => {
     const initial = initialValues.current;
-
     if (!initial) {
       setHasChanges(false);
       return;
     }
-
     const changed =
       fullName !== initial.fullName ||
       age !== initial.age ||
       gender !== initial.gender ||
       languageId !== initial.languageId;
-
     setHasChanges(changed);
   }, [fullName, age, gender, languageId]);
-
-  useEffect(() => {
-    if (labelRef.current) {
-      setLabelWidth(labelRef.current.offsetWidth);
-    }
-  }, [labelRef.current?.offsetWidth]);
-
-  useEffect(() => {
-    if (isEdit && currentStudent?.language_id && languages.length > 0) {
-      const studentLang = languages.find(
-        (lang) => lang.id === currentStudent.language_id
-      );
-      if (
-        studentLang &&
-        studentLang.code &&
-        i18n.language !== studentLang.code
-      ) {
-        i18n.changeLanguage(studentLang.code);
-        localStorage.setItem(LANGUAGE, studentLang.code);
-      }
-    }
-  }, [isEdit, currentStudent, languages]);
-
   useEffect(() => {
     initializeFireBase();
     lockOrientation();
@@ -163,12 +152,14 @@ const ProfileDetails = () => {
     };
     loadLanguages();
 
-    const isParentHasStudent = async () => {
-      const student = await api.getParentStudentProfiles();
-      setParentHasStudent(student.length > 0);
+    const checkParentStudents = async () => {
+      const students = await api.getParentStudentProfiles();
+      setParentHasStudent(students.length > 0);
     };
-    isParentHasStudent();
+    checkParentStudents();
+
     loadProfileData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfileData = async () => {
@@ -179,16 +170,101 @@ const ProfileDetails = () => {
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
+      ScreenOrientation.lock({ orientation: 'landscape' });
     }
   };
+
+  const withContinueIfNeeded = (base: string) => {
+    const url = new URLSearchParams(window.location.search);
+    if (!url.has(CONTINUE)) return base;
+    return base.includes('?')
+      ? `${base}&${CONTINUE}=true`
+      : `${base}?${CONTINUE}=true`;
+  };
+
+  const executeBackLogic = () => {
+    // Check Locks (Refs)
+    if (isCreatingProfileRef.current || isNavigatingBackRef.current) {
+      return;
+    }
+    isNavigatingBackRef.current = true;
+
+    try {
+      // Determine Mode based on Live Pathname (Not State)
+      const currentPath = window.location.pathname;
+      const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
+
+      // EDIT MODE Logic
+      if (isEditMode) {
+        const state = history.location.state as any;
+        if (state?.from) {
+          history.replace(withContinueIfNeeded(state.from));
+        } else if (history.length > 1) {
+          history.goBack();
+        } else {
+          history.replace(withContinueIfNeeded(PAGES.DISPLAY_STUDENT));
+        }
+        return;
+      }
+
+      // CREATE MODE Logic
+      const state = history.location.state as any;
+      const createFallbackPath = parentHasStudentRef.current
+        ? PAGES.DISPLAY_STUDENT
+        : PAGES.SELECT_MODE;
+      const targetPath = withContinueIfNeeded(
+        state?.from ?? createFallbackPath,
+      );
+
+      if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
+        // Reinitialize hardware back handling only for create -> display students path.
+        reinitializeHardwareBackButton();
+        const separator = targetPath.includes('?') ? '&' : '?';
+        history.replace(`${targetPath}${separator}forceReload=1`);
+      } else {
+        history.replace(targetPath);
+      }
+      return;
+    } catch (e) {
+      logger.error('Back Logic Error', e);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    } finally {
+      setTimeout(() => {
+        isNavigatingBackRef.current = false;
+      }, 500);
+    }
+  };
+
+  useEffect(() => {
+    if (backRegistrationRef.current) {
+      backRegistrationRef.current();
+      backRegistrationRef.current = null;
+    }
+
+    backRegistrationRef.current = registerBackButtonHandler(
+      () => {
+        executeBackLogic();
+        return true;
+      },
+      { path: location.pathname },
+    );
+
+    return () => {
+      if (backRegistrationRef.current) {
+        backRegistrationRef.current();
+        backRegistrationRef.current = null;
+      }
+      setIsCreatingProfile(false);
+      isNavigatingBackRef.current = false;
+    };
+  }, [location.pathname]);
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
       ? fullName && age && languageId && gender
       : mode === FORM_MODES.NAME_REQUIRED
-      ? fullName
-      : true;
+        ? fullName
+        : true;
 
   const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
 
@@ -199,29 +275,35 @@ const ProfileDetails = () => {
 
   const handleSave = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       let _studentName = fullName?.trim();
       const state = history.location.state as any;
       const tmpPath = state?.from ?? PAGES.HOME;
       const user = await auth.getCurrentUser();
+
       let student;
+
       if (isEdit && !!currentStudent && !!currentStudent.id) {
         student = await api.updateStudent(
           currentStudent,
-          _studentName ?? "",
+          _studentName ?? '',
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           currentStudent.avatar!,
           undefined,
           undefined,
           undefined,
-          languageId || currentStudent.language_id!
+          languageId || currentStudent.language_id!,
         );
+
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
         studentsMap[student.id] = student;
         sessionStorage.setItem(EDIT_STUDENTS_MAP, JSON.stringify(studentsMap));
+
         Util.logEvent(EVENTS.PROFILE_UPDATED, {
           user_id: user?.id,
           name: fullName,
@@ -235,15 +317,16 @@ const ProfileDetails = () => {
         });
       } else {
         student = await api.createProfile(
-          _studentName ?? "",
+          _studentName ?? '',
           age,
           gender,
           avatar,
           undefined,
           undefined,
           undefined,
-          languageId || DEFAULT_LANGUAGE_ID_EN
+          languageId || DEFAULT_LANGUAGE_ID_EN,
         );
+
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
           name: fullName,
@@ -255,51 +338,57 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
+
         const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
         const langIndex = languages.findIndex(
-          (lang) => lang.id === resolvedLanguageId
+          (lang) => lang.id === resolvedLanguageId,
         );
+
         await Util.setCurrentStudent(
           student,
           langIndex && languages && languages[langIndex]?.code
-            ? languages[langIndex]?.code ?? undefined
+            ? (languages[langIndex]?.code ?? undefined)
             : undefined,
-          tmpPath === PAGES.HOME ? true : false
+          tmpPath === PAGES.HOME ? true : false,
         );
       }
+
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.replace(PAGES.HOME);
-      setIsCreatingProfile(false);
+      if (tmpPath) history.replace(tmpPath);
+      else history.replace(PAGES.HOME);
     } catch (err) {
-      console.error("Error saving profile:", err);
-      setIsCreatingProfile(false);
-    } finally {
+      logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);
     }
   };
 
   const handleSkip = async () => {
     if (isCreatingProfile) return;
+
     try {
       setIsCreatingProfile(true);
+
       if (parentHasStudent) {
         history.replace(PAGES.HOME);
         return;
       }
+
       const languageCode = localStorage.getItem(LANGUAGE);
       const allLanguages = await api.getAllLanguages();
       const selectedLanguage = allLanguages.find(
-        (lang) => lang.code === languageCode
+        (lang) => lang.code === languageCode,
       );
-      // Create auto profile with default/null values
+
       const student = await api.createAutoProfile(selectedLanguage?.id);
-      // Set as current student
+
       await Util.setCurrentStudent(
         student,
         selectedLanguage?.code ?? undefined,
-        true
+        true,
       );
+
       const user = await auth.getCurrentUser();
+
       Util.logEvent(EVENTS.PROFILE_CREATED, {
         user_id: user?.id,
         name: fullName,
@@ -307,11 +396,10 @@ const ProfileDetails = () => {
         page_path: window.location.pathname,
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
-      // Redirect to home page
+
       history.replace(PAGES.HOME);
     } catch (err) {
-      console.error("Error skipping profile:", err);
-    } finally {
+      logger.error('Error skipping profile:', err);
       setIsCreatingProfile(false);
     }
   };
@@ -322,7 +410,7 @@ const ProfileDetails = () => {
       className="profiledetails-container"
       onClick={(e) => {
         logProfileClick(e).catch((err) =>
-          console.error("Error in logProfileClick", err)
+          logger.error('Error in logProfileClick', err),
         );
       }}
     >
@@ -330,8 +418,13 @@ const ProfileDetails = () => {
         <button
           className="profiledetails-back-button"
           onClick={() => {
-            const targetPage = PAGES.HOME;
-            Util.setPathToBackButton(targetPage, history);
+            const state = history.location.state as any;
+            const tmpPath = state?.from ?? PAGES.HOME;
+            if (tmpPath === PAGES.HOME) {
+              if (currentStudent)
+                Util.setCurrentStudent(currentStudent, undefined, false, true);
+            }
+            Util.setPathToBackButton(tmpPath, history);
           }}
           aria-label="Back"
           id="click_on_profile_details_back_button"
@@ -342,7 +435,7 @@ const ProfileDetails = () => {
       <div className="profiledetails-avatar-form">
         <div className="profiledetails-avatar-section">
           <img
-            src={"assets/avatars/" + (avatar ?? AVATARS[0]) + ".png"}
+            src={'assets/avatars/' + (avatar ?? AVATARS[0]) + '.png'}
             className="profiledetails-avatar-image"
           />
         </div>
@@ -356,7 +449,7 @@ const ProfileDetails = () => {
                   <img
                     src="/assets/icons/classIcon.svg"
                     alt="class"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                   <span>{className}</span>
                 </div>
@@ -368,7 +461,7 @@ const ProfileDetails = () => {
                     src="/assets/icons/scholarIcon.svg"
                     alt="school"
                     className="profiledetails-info-icon"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
                   />
                   <span>{schoolName}</span>
                 </div>
@@ -385,9 +478,9 @@ const ProfileDetails = () => {
           <div className="profiledetails-full-name">
             <InputWithIcons
               id="click_on_profile_details_full_name"
-              label={t("Full Name")}
-              placeholder={t("Name Surname")}
-              value={fullName ?? ""}
+              label={t('Full Name')}
+              placeholder={t('Name Surname')}
+              value={fullName ?? ''}
               setValue={setFullName}
               icon="/assets/icons/BusinessCard.svg"
               // required={
@@ -401,24 +494,24 @@ const ProfileDetails = () => {
             <div className="profiledetails-flex-item">
               <SelectWithIcons
                 id="click_on_profile_details_age"
-                label={t("Age")}
-                value={age?.toString() ?? ""}
+                label={t('Age')}
+                value={age?.toString() ?? ''}
                 setValue={(age) => setAge(parseInt(age))}
                 icon="/assets/icons/age.svg"
                 optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
                   {
                     value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-                    label: `≤${t("4 years")}`,
+                    label: `≤${t('4 years')}`,
                   },
-                  { value: AGE_OPTIONS.FIVE, label: t("5 years") },
-                  { value: AGE_OPTIONS.SIX, label: t("6 years") },
-                  { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
-                  { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
-                  { value: AGE_OPTIONS.NINE, label: t("9 years") },
+                  { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+                  { value: AGE_OPTIONS.SIX, label: t('6 years') },
+                  { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+                  { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+                  { value: AGE_OPTIONS.NINE, label: t('9 years') },
                   {
                     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: `≥${t("10 years")}`,
+                    label: `≥${t('10 years')}`,
                   },
                 ]}
                 // required={mode === FORM_MODES.ALL_REQUIRED}
@@ -428,13 +521,13 @@ const ProfileDetails = () => {
             <div className="profiledetails-flex-item">
               <SelectWithIcons
                 id="click_on_profile_details_language"
-                label={t("Language")}
+                label={t('Language')}
                 value={languageId}
                 setValue={setLanguageId}
                 icon="/assets/icons/language.svg"
                 optionId={
                   `click_on_profile_details_language_option_` +
-                  (languageId || "")
+                  (languageId || '')
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
@@ -448,7 +541,7 @@ const ProfileDetails = () => {
           <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
             <legend className="profiledetails-gender-label">
               <div className="profiledetails-gender-label-text" ref={labelRef}>
-                {t("Gender")}
+                {t('Gender')}
                 {/* {mode === FORM_MODES.ALL_REQUIRED && (
                   <span className="profiledetails-required">*</span>
                 )} */}
@@ -456,12 +549,12 @@ const ProfileDetails = () => {
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
-                { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
+                { label: t('GIRL'), value: GENDER.GIRL, name: 'GIRL' },
+                { label: t('BOY'), value: GENDER.BOY, name: 'BOY' },
                 {
-                  label: t("UNSPECIFIED"),
+                  label: t('UNSPECIFIED'),
                   value: GENDER.OTHER,
-                  name: "UNSPECIFIED",
+                  name: 'UNSPECIFIED',
                 },
               ].map(({ label, value, name }) => {
                 const isSelected = gender === value;
@@ -475,7 +568,7 @@ const ProfileDetails = () => {
                     id={`click_on_profile_details_gender_${label.toLowerCase()}`}
                     type="button"
                     className={`profiledetails-gender-btn ${
-                      isSelected ? "selected" : ""
+                      isSelected ? 'selected' : ''
                     }`}
                     onClick={() => setGender(value)}
                   >
@@ -497,7 +590,7 @@ const ProfileDetails = () => {
                 className="profiledetails-skip-button"
                 onClick={handleSkip}
               >
-                {t("SKIP FOR NOW")}
+                {t('SKIP FOR NOW')}
               </button>
             )}
             <button
@@ -506,7 +599,7 @@ const ProfileDetails = () => {
               disabled={!isSaveEnabled || isCreatingProfile}
               onClick={handleSave}
             >
-              {t("SAVE")}
+              {t('SAVE')}
             </button>
           </div>
         </div>

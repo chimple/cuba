@@ -1,6 +1,6 @@
-import { t } from "i18next";
-import React from "react";
-import "./ScoreCardTitle.css";
+import { t } from 'i18next';
+import React from 'react';
+import './ScoreCardTitle.css';
 
 type ScoreCardTitleProps = {
   score: number;
@@ -15,30 +15,30 @@ type TitleVariant = {
 const getTitleVariant = (score: number): TitleVariant => {
   if (score > 75) {
     return {
-      asset: "assets/3starconfetti.svg",
-      message: t("Congratulations!!"),
+      asset: 'assets/3starconfetti.svg',
+      message: t('Congratulations!!'),
       mirrorRightIcon: true,
     };
   }
 
   if (score > 50) {
     return {
-      asset: "assets/discoball.svg",
-      message: t("Well done!"),
+      asset: 'assets/discoball.svg',
+      message: t('Well done!'),
       mirrorRightIcon: true,
     };
   }
 
   if (score > 25) {
     return {
-      asset: "assets/sparkle.svg",
-      message: t("Good job!"),
+      asset: 'assets/sparkle.svg',
+      message: t('Good job!'),
     };
   }
 
   return {
-    asset: "assets/heartballoon.svg",
-    message: t("Keep learning!"),
+    asset: 'assets/heartballoon.svg',
+    message: t('Keep learning!'),
   };
 };
 
@@ -48,15 +48,19 @@ const ScoreCardTitle: React.FC<ScoreCardTitleProps> = ({ score }) => {
   return (
     <div
       className={`title-scoreCard ${
-        score <= 25 ? "title-scoreCard-text-down" : ""
+        score <= 25 ? 'title-scoreCard-text-down' : ''
       }`}
     >
-      <img alt="" className={`${score >75 ? "title-scoreCard-icon-3star":"title-scoreCard-icon"}`} src={asset} />
+      <img
+        alt=""
+        className={`${score > 75 ? 'title-scoreCard-icon-3star' : 'title-scoreCard-icon'}`}
+        src={asset}
+      />
       <span>{message}</span>
       <img
         alt=""
-        className={`${score >75 ? "title-scoreCard-icon-3star":"title-scoreCard-icon"} ${
-          mirrorRightIcon ? " title-scoreCard-icon--mirror" : ""
+        className={`${score > 75 ? 'title-scoreCard-icon-3star' : 'title-scoreCard-icon'} ${
+          mirrorRightIcon ? ' title-scoreCard-icon--mirror' : ''
         }`}
         src={asset}
       />

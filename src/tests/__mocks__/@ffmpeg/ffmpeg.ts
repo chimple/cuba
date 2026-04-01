@@ -37,6 +37,6 @@ export class FFmpeg {
 
   // Convenience for emitting progress specifically
   __emitProgress(progress: number) {
-    this.__emit("progress", { progress } as ProgressPayload);
+    this.__emit('progress', { progress } as ProgressPayload);
   }
 }

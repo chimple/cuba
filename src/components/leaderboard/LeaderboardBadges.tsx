@@ -1,20 +1,35 @@
-import { FC, useEffect, useState } from "react";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Badge from "../../models/Badge";
-import { LeaderboardRewardsType, TableTypes } from "../../common/constants";
-import CachedImage from "../common/CachedImage";
-import "./LeaderboardBadges.css";
-import { t } from "i18next";
-import { FaHeart } from "react-icons/fa";
-import { RxCross2 } from "react-icons/rx";
-import { TiTick } from "react-icons/ti";
+import { FC, useEffect, useState } from 'react';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { LeaderboardRewardsType, TableTypes } from '../../common/constants';
+import CachedImage from '../common/CachedImage';
+import './LeaderboardBadges.css';
+import { t } from 'i18next';
+import { FaHeart } from 'react-icons/fa';
+import { RxCross2 } from 'react-icons/rx';
+import { TiTick } from 'react-icons/ti';
+import logger from '../../utility/logger';
 interface BadgeInfo {
-  badge: TableTypes<"badge"> | undefined;
+  badge: TableTypes<'badge'> | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
   isUpcomingBadge?: boolean;
 }
+type RewardEntry = {
+  id: string;
+  type: string;
+};
+
+type WeeklyRewards = Record<string, RewardEntry[]>;
+
+const toWeeklyRewards = (
+  weekly: TableTypes<'reward'>['weekly'],
+): WeeklyRewards => {
+  if (weekly && typeof weekly === 'object' && !Array.isArray(weekly)) {
+    return weekly as WeeklyRewards;
+  }
+  return {};
+};
 
 const LeaderboardBadges: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
@@ -22,7 +37,7 @@ const LeaderboardBadges: FC = () => {
   const [badges, setBadges] = useState<BadgeInfo[]>();
   const [lostBadges, setLostBadges] = useState<BadgeInfo[]>();
   const [allBadges, setAllBadges] =
-    useState<(TableTypes<"badge"> | undefined)[]>();
+    useState<(TableTypes<'badge'> | undefined)[]>();
   useEffect(() => {
     init();
   }, []);
@@ -47,7 +62,7 @@ const LeaderboardBadges: FC = () => {
     });
     unlockedBadges.forEach((badge) => {
       const isInNextUnlock = badgeInfoArray?.some(
-        (nextBadge) => nextBadge?.badge?.id === badge?.id
+        (nextBadge) => nextBadge?.badge?.id === badge?.id,
       );
       if (!isInNextUnlock) {
         badgeInfoArray.push({
@@ -79,66 +94,65 @@ const LeaderboardBadges: FC = () => {
     badgeInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
     // Filter lost badges
     const lostBadgeArray = badgeInfoArray.filter(
-      (badge) => !badge.isUnlocked && !badge.isNextUnlock && !badge.isUpcomingBadge
+      (badge) =>
+        !badge.isUnlocked && !badge.isNextUnlock && !badge.isUpcomingBadge,
     );
     // Filter current, upcoming, and won badges
     const filteredBadges = badgeInfoArray.filter(
       (badge) =>
-        badge.isUnlocked || badge.isNextUnlock || badge.isUpcomingBadge
+        badge.isUnlocked || badge.isNextUnlock || badge.isUpcomingBadge,
     );
     setBadges(filteredBadges);
     setLostBadges(lostBadgeArray);
   }
 
   const getUpcomingBadges = async (): Promise<
-    (TableTypes<"badge"> | undefined)[]
+    (TableTypes<'badge'> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const badgeIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
     if (weeklyData[nextWeek.toString()]) {
-      weeklyData[nextWeek.toString()].forEach((value) => {
+      weeklyData[nextWeek.toString()].forEach((value: RewardEntry) => {
         if (value.type === LeaderboardRewardsType.BADGE) {
           badgeIds.push(value.id);
         }
       });
     } else {
-      console.error(`No data found for week ${nextWeek}`);
+      logger.error(`No data found for week ${nextWeek}`);
       return [];
     }
     const badgeDocs = await api.getBadgesByIds(badgeIds);
     return badgeDocs;
   };
 
-  const getBadges = async (): Promise<(TableTypes<"badge"> | undefined)[]> => {
+  const getBadges = async (): Promise<(TableTypes<'badge'> | undefined)[]> => {
     const matchingDocIds: string[] = [];
     const date = new Date();
     const currentWeek = Util.getCurrentWeekNumber();
-    const rewardsDoc: any = await api.getRewardsById(
-      date.getFullYear(),
-      "weekly"
-    );
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
 
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error("No rewards document or weekly data found");
+      logger.error('No rewards document or weekly data found');
       return [];
     }
 
-    for (const key in rewardsDoc.weekly) {
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
+    for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
-        rewardsDoc.weekly[key].forEach((item) => {
+        weeklyData[key].forEach((item: RewardEntry) => {
           if (item.type === LeaderboardRewardsType.BADGE) {
             matchingDocIds.push(item.id);
           }
         });
       }
     }
-    const badgeDocs: (TableTypes<"badge"> | undefined)[] = [];
+    const badgeDocs: (TableTypes<'badge'> | undefined)[] = [];
     let index = 0;
     while (index < matchingDocIds.length) {
       const limit = matchingDocIds.slice(index, index + 20);
@@ -149,7 +163,7 @@ const LeaderboardBadges: FC = () => {
     return badgeDocs;
   };
 
-  const getUnlockedBadges = async (): Promise<TableTypes<"badge">[]> => {
+  const getUnlockedBadges = async (): Promise<TableTypes<'badge'>[]> => {
     if (!currentStudent) return [];
 
     try {
@@ -172,28 +186,28 @@ const LeaderboardBadges: FC = () => {
 
       return badges.reverse();
     } catch (error) {
-      console.error("Error fetching unlocked badges:", error);
+      logger.error('Error fetching unlocked badges:', error);
       return [];
     }
   };
 
   const getPrevBadges = async (): Promise<
-    (TableTypes<"badge"> | undefined)[]
+    (TableTypes<'badge'> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error("No rewards document or weekly data found");
+      logger.error('No rewards document or weekly data found');
       return [];
     }
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
 
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
-        weeklyData[key].forEach((item) => {
+        weeklyData[key].forEach((item: RewardEntry) => {
           if (item.type === LeaderboardRewardsType.BADGE) {
             badgeIds.push(item.id);
           }
@@ -205,26 +219,26 @@ const LeaderboardBadges: FC = () => {
   };
 
   const getNextUnlockBadges = async (): Promise<
-    (TableTypes<"badge"> | undefined)[]
+    (TableTypes<'badge'> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), 'weekly');
     if (!rewardsDoc || !rewardsDoc.weekly) {
-      console.error("No rewards document or weekly data found");
+      logger.error('No rewards document or weekly data found');
       return [];
     }
 
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
-    const weeklyData = rewardsDoc.weekly;
+    const weeklyData = toWeeklyRewards(rewardsDoc.weekly);
     if (weeklyData[currentWeek.toString()]) {
-      weeklyData[currentWeek.toString()].forEach((value) => {
+      weeklyData[currentWeek.toString()].forEach((value: RewardEntry) => {
         if (value.type === LeaderboardRewardsType.BADGE) {
           badgeIds.push(value.id);
         }
       });
     } else {
-      console.error(`No data found for week ${currentWeek}`);
+      logger.error(`No data found for week ${currentWeek}`);
       return [];
     }
     const badgeDocs = await api.getBadgesByIds(badgeIds);
@@ -240,14 +254,15 @@ const LeaderboardBadges: FC = () => {
             badges.map((value, index) => (
               <div
                 key={index}
-                className={`leaderboard-badge-item ${value.isUnlocked
-                  ? ""
-                  : value.isNextUnlock
-                    ? "next-reward"
-                    : value.isUpcomingBadge
-                      ? "upcoming-reward"
-                      : "lost-reward"
-                  }`}
+                className={`leaderboard-badge-item ${
+                  value.isUnlocked
+                    ? ''
+                    : value.isNextUnlock
+                      ? 'next-reward'
+                      : value.isUpcomingBadge
+                        ? 'upcoming-reward'
+                        : 'lost-reward'
+                }`}
               >
                 {value.isNextUnlock && !value.isUnlocked && (
                   <div className="green-circle">
@@ -273,16 +288,16 @@ const LeaderboardBadges: FC = () => {
                 <CachedImage src={value.badge?.image ?? undefined} />
                 <p>{value.badge?.name}</p>
                 {value.isUpcomingBadge &&
-                  !value.isNextUnlock &&
-                  !value.isUnlocked ? (
-                  <p>{t("Upcoming")}</p>
+                !value.isNextUnlock &&
+                !value.isUnlocked ? (
+                  <p>{t('Upcoming')}</p>
                 ) : null}
                 {!value.isUnlocked &&
                   !value.isNextUnlock &&
-                  !value.isUpcomingBadge && <p>{t("Lost Reward")}</p>}
+                  !value.isUpcomingBadge && <p>{t('Lost Reward')}</p>}
                 {value.isUnlocked && (
                   <p>
-                    <b>{t("Won Reward")}</b>
+                    <b>{t('Won Reward')}</b>
                   </p>
                 )}
                 {value.isNextUnlock && !value.isUnlocked ? (
@@ -298,34 +313,32 @@ const LeaderboardBadges: FC = () => {
       {/* Section for Lost Badges */}
       <div className="leaderboard-badge-section">
         <div className="leaderboard-badge-container">
-        {lostBadges && lostBadges.filter(value => !value.isUnlocked && !value.isNextUnlock && !value.isUpcomingBadge).map((value, index) => (
-          <div key={index} className="leaderboard-badge-item lost-reward">
-            <div className="lost-reward-overlay">
-              <div className="red-circle">
-                <RxCross2 color="white" />
-              </div>
-              <CachedImage src={value.badge?.image ?? undefined} />
-            </div>
-            <div>
-              <div className="leaderboard-badge-item lost-reward">
-                <p>{value.badge?.name}</p>
-                <p>{t("Lost Reward")}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+          {lostBadges &&
+            lostBadges
+              .filter(
+                (value) =>
+                  !value.isUnlocked &&
+                  !value.isNextUnlock &&
+                  !value.isUpcomingBadge,
+              )
+              .map((value, index) => (
+                <div key={index} className="leaderboard-badge-item lost-reward">
+                  <div className="lost-reward-overlay">
+                    <div className="red-circle">
+                      <RxCross2 color="white" />
+                    </div>
+                    <CachedImage src={value.badge?.image ?? undefined} />
+                  </div>
+                  <div>
+                    <div className="leaderboard-badge-item lost-reward">
+                      <p>{value.badge?.name}</p>
+                      <p>{t('Lost Reward')}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
-
-      {/* Disabled Badges */}
-      {/* {allBadges &&
-        allBadges.length > 0 &&
-        allBadges.map((value, index) => (
-          <div key={index} className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image} />
-            {!!value?.name && <p>{value?.name}</p>}
-          </div>
-        ))} */}
     </div>
   ) : (
     <div></div>

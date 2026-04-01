@@ -1,7 +1,7 @@
-import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import { useState, useEffect } from "react";
-import { Util } from "../../utility/util";
-import { LANGUAGE } from "../../common/constants";
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { useState, useEffect } from 'react';
+import { LANGUAGE } from '../../common/constants';
+import logger from '../../utility/logger';
 
 export function useAudioPlayer(audioSrc: string) {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
@@ -9,9 +9,9 @@ export function useAudioPlayer(audioSrc: string) {
 
   useEffect(() => {
     if (audio) {
-      audio.addEventListener("ended", () => setIsAudioPlaying(false));
+      audio.addEventListener('ended', () => setIsAudioPlaying(false));
       return () => {
-        audio.removeEventListener("ended", () => setIsAudioPlaying(false));
+        audio.removeEventListener('ended', () => setIsAudioPlaying(false));
       };
     }
   }, [audio]);
@@ -52,10 +52,10 @@ export function useTtsAudioPlayer(audioText: string) {
       TextToSpeech.stop();
     };
   }, []);
-  const speak = async (audioMessage?: string, audioLang: string = "en-IN") => {
+  const speak = async (audioMessage?: string, audioLang: string = 'en-IN') => {
     audioText = audioMessage || audioText;
-    const language = localStorage.getItem(LANGUAGE) || "en";
-    audioLang = language + "-IN";
+    const language = localStorage.getItem(LANGUAGE) || 'en';
+    audioLang = language + '-IN';
     try {
       setIsTtsPlaying(true);
       if (isTtsPlaying) {
@@ -70,13 +70,13 @@ export function useTtsAudioPlayer(audioText: string) {
           rate: 0.9,
           pitch: 1.0,
           volume: 1.0,
-          category: "ambient",
+          category: 'ambient',
         }).then(() => {
           setIsTtsPlaying(false);
         });
       }
     } catch (error) {
-      console.error("TTS speech failed ", isTtsPlaying, error);
+      logger.error('TTS speech failed ', isTtsPlaying, error);
     }
   };
 

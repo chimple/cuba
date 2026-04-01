@@ -1,54 +1,44 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  IonMenu,
-  IonHeader,
-  IonMenuButton,
-  IonToolbar,
-  IonToggle,
-  IonLabel,
-  IonItem,
-} from "@ionic/react";
-import { APIMode, ServiceConfig } from "../../../services/ServiceConfig";
-import { Util } from "../../../utility/util";
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { IonMenu, IonItem } from '@ionic/react';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { Util } from '../../../utility/util';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  CURRENT_USER,
-  IS_OPS_USER,
   MODES,
+  OPS_ROLES,
   PAGES,
-  SCHOOL,
-  USER_ROLE,
-} from "../../../common/constants";
-import ProfileSection from "./ProfileDetail";
-import SchoolSection from "./SchoolSection";
-import ClassSection from "./ClassSection";
-import "./SideMenu.css";
-import { RoleType } from "../../../interface/modelInterfaces";
-import { useHistory } from "react-router";
-import { PiUserSwitchFill } from "react-icons/pi";
-import { schoolUtil } from "../../../utility/schoolUtil";
-import CommonToggle from "../../../common/CommonToggle";
-import { Capacitor } from "@capacitor/core";
-import DialogBoxButtons from "../../../components/parent/DialogBoxButtons​";
-import { ImSwitch } from "react-icons/im";
-import { t } from "i18next";
+} from '../../../common/constants';
+import ProfileSection from './ProfileDetail';
+import SchoolSection from './SchoolSection';
+import ClassSection from './ClassSection';
+import './SideMenu.css';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useHistory } from 'react-router';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import CommonToggle from '../../../common/CommonToggle';
+import { Capacitor } from '@capacitor/core';
+import DialogBoxButtons from '../../../components/parent/DialogBoxButtons​';
+import { t } from 'i18next';
 import {
   updateLocalAttributes,
   useGbContext,
-} from "../../../growthbook/Growthbook";
-import { ClearCacheData } from "../../../components/parent/DataClear";
+} from '../../../growthbook/Growthbook';
+import { ClearCacheData } from '../../../components/parent/DataClear';
+import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import logger from '../../../utility/logger';
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
   handleManageClassClick: () => void;
 }> = ({ handleManageSchoolClick, handleManageClassClick }) => {
   const menuRef = useRef<HTMLIonMenuElement>(null);
-  const [fullName, setFullName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [currentUserId, setCurrentUserId] = useState<string>("");
-  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
-    useState<boolean>(false);
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [schoolData, setSchoolData] = useState<
     { id: string | number; name: string }[]
   >([]);
@@ -63,14 +53,31 @@ const SideMenu: React.FC<{
   const [currentSchoolDetail, setsetcurrentSchoolDetail] = useState<{
     id: string | number;
     name: string;
-  }>({ id: "", name: "" });
+  }>({ id: '', name: '' });
   const [currentClassDetail, setcurrentClassDetail] = useState<{
     id: string | number;
     name: string;
-  }>({ id: "", name: "" });
-  const [currentClassId, setCurrentClassId] = useState<string>("");
+  }>({ id: '', name: '' });
+  const [currentClassId, setCurrentClassId] = useState<string>('');
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { roles, isOpsUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const isAuthorizedForOpsMode = useMemo(() => {
+    const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
+    return isOpsUser || hasOpsRole;
+  }, [isOpsUser, roles]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const unregister = registerBackButtonHandler(() => {
+      menuRef.current?.close();
+      return true;
+    });
+    return () => unregister();
+  }, [isMenuOpen]);
 
   useEffect(() => {
     fetchData();
@@ -87,19 +94,15 @@ const SideMenu: React.FC<{
       const currentUser =
         await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!currentUser) {
-        console.error("No user is logged in.");
+        logger.error('No user is logged in.');
         return;
       }
-      const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
-      if (isOpsUser) {
-        setIsAuthorizedForOpsMode(true);
-      }
-      setFullName(currentUser.name || "");
-      setEmail(currentUser.email || currentUser.phone || "");
+      setFullName(currentUser.name || '');
+      setEmail(currentUser.email || currentUser.phone || '');
       setCurrentUserId(currentUser.id);
       let teacher_class_ids: string[] = [];
       const schoolList: any = [];
-      const roleMap = {};
+      const roleMap: Record<string, RoleType> = {};
 
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {
@@ -110,7 +113,7 @@ const SideMenu: React.FC<{
         // Fetch classes for the current school
         const classes = await api.getClassesForSchool(
           tempSchool.id,
-          currentUser.id
+          currentUser.id,
         );
         teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
@@ -126,11 +129,6 @@ const SideMenu: React.FC<{
           return;
         }
 
-        // setClassData(classMap);
-        // const tempClass = Util.getCurrentClass();
-        // if (!tempClass) {
-        //   return;
-        // }
         setCurrentClassId(updatedClass.id);
         setcurrentClassDetail({
           id: updatedClass.id,
@@ -170,13 +168,13 @@ const SideMenu: React.FC<{
         setSchoolRoles(roles);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      logger.error('Error fetching data:', error);
     }
   };
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     setTimeout(() => {
-      Util.killCocosGame()
+      Util.killCocosGame();
     }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
@@ -196,12 +194,12 @@ const SideMenu: React.FC<{
   }: { id?: string | number; name?: string; role?: RoleType } = {}) => {
     try {
       if (!id) {
-        console.warn("Invalid ID or no ID provided for school selection");
+        logger.warn('Invalid ID or no ID provided for school selection');
         return;
       }
       const school = await api.getSchoolById(String(id));
       if (!school?.id) {
-        console.warn("School not found");
+        logger.warn('School not found');
         return;
       }
       const schoolRole =
@@ -217,10 +215,10 @@ const SideMenu: React.FC<{
       });
       const classes = await api.getClassesForSchool(school.id, currentUserId);
       if (!classes || classes.length === 0) {
-        console.warn("No classes found for the selected school");
+        logger.warn('No classes found for the selected school');
         Util.setCurrentClass(null);
-        setCurrentClassId("");
-        setcurrentClassDetail({ id: "", name: "" });
+        setCurrentClassId('');
+        setcurrentClassDetail({ id: '', name: '' });
         setClassCode(undefined);
         setClassData([]);
         Util.dispatchClassOrSchoolChangeEvent();
@@ -243,7 +241,7 @@ const SideMenu: React.FC<{
       setClassCode(classCode);
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
-      console.error("Error handling school selection:", error);
+      logger.error('Error handling school selection:', error);
     }
   };
 
@@ -253,26 +251,26 @@ const SideMenu: React.FC<{
   }: { id?: string | number; name?: string } = {}) => {
     try {
       if (!id || id === currentClassId) {
-        console.warn("Invalid ID or duplicate selection");
+        logger.warn('Invalid ID or duplicate selection');
         return;
       }
 
       const classIdStr = String(id).trim();
       if (!classIdStr) {
-        console.warn("Class ID is empty after conversion");
+        logger.warn('Class ID is empty after conversion');
         return;
       }
 
       const currentClass = await api.getClassById(classIdStr);
       if (!currentClass || !currentClass.id) {
-        console.warn("Class not found or invalid response");
+        logger.warn('Class not found or invalid response');
         return;
       }
 
       Util.setCurrentClass(currentClass);
 
       if (!currentClass.id) {
-        console.warn("Missing class ID after setting current class");
+        logger.warn('Missing class ID after setting current class');
         return;
       }
 
@@ -287,12 +285,12 @@ const SideMenu: React.FC<{
         setClassCode(classCode);
       } else {
         setClassCode(undefined);
-        console.warn("Class code is null or undefined");
+        logger.warn('Class code is null or undefined');
       }
 
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
-      console.error("Error handling class selection:", error);
+      logger.error('Error handling class selection:', error);
     }
   };
 
@@ -302,7 +300,6 @@ const SideMenu: React.FC<{
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
     history.replace(PAGES.LOGIN);
@@ -313,11 +310,13 @@ const SideMenu: React.FC<{
     <>
       <IonMenu
         ref={menuRef}
-        aria-label={String(t("Menu"))}
+        aria-label={String(t('Menu'))}
         contentId="main-content"
         id="main-container"
+        onIonDidOpen={() => setIsMenuOpen(true)}
+        onIonDidClose={() => setIsMenuOpen(false)}
       >
-        <div aria-label={String(t("Menu"))} className="side-menu-container">
+        <div aria-label={String(t('Menu'))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
           <div className="side-menu-body">
             <SchoolSection
@@ -359,7 +358,7 @@ const SideMenu: React.FC<{
                 />
                 <CommonToggle
                   onChange={() => Util.switchToOpsUser(history)}
-                  label={t("switch to ops mode") as string}
+                  label={t('switch to ops mode') as string}
                 />
               </IonItem>
             </div>
@@ -368,17 +367,17 @@ const SideMenu: React.FC<{
             className="teacher-logout-btn"
             onClick={() => setShowDialogBox(true)}
           >
-            {t("Logout")}
+            {t('Logout')}
           </div>
 
           {/* Logout Confirmation Dialog */}
           <DialogBoxButtons
             width="100%"
             height="20%"
-            message={t("Are you sure you want to logout?")}
+            message={t('Are you sure you want to logout?')}
             showDialogBox={showDialogBox}
-            yesText={t("Cancel")}
-            noText={t("Logout")}
+            yesText={t('Cancel')}
+            noText={t('Logout')}
             handleClose={() => setShowDialogBox(false)}
             onYesButtonClicked={() => setShowDialogBox(false)}
             onNoButtonClicked={onSignOut}
@@ -388,7 +387,7 @@ const SideMenu: React.FC<{
 
       <img
         src="assets/icons/hamburgerMenu.svg"
-        alt={String(t("Menu"))}
+        alt={String(t('Menu'))}
         id="menu-button"
         className="sidemenu-hamburger"
         onClick={() => menuRef.current?.open()}

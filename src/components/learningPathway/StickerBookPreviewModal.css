@@ -1,0 +1,626 @@
+.StickerBookPreviewModal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.StickerBookPreviewModal-modal {
+  position: relative;
+  width: 46rem;
+  /* max-height: calc(100vh - 2.5rem); */
+  background: #fffdee;
+  border-radius: 1.125rem;
+  border: none !important;
+  outline: none !important;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  --close-size: 3.6rem;
+  --close-outset: calc(var(--close-size) * 0.82);
+  --close-top: calc(var(--close-size) * 0.1);
+  --close-pad: calc(var(--close-size) * 0.18);
+  margin-right: calc(var(--close-size) * 1.5);
+}
+
+.StickerBookPreviewModal-modal--drag {
+  animation: StickerBookPreviewModal-expand-in 520ms
+    cubic-bezier(0.18, 0.88, 0.22, 1);
+}
+
+.StickerBookPreviewModal-modal--flyout {
+  animation: StickerBookPreviewModal-flyout 520ms ease-in forwards;
+}
+
+@keyframes StickerBookPreviewModal-expand-in {
+  0% {
+    opacity: 0;
+    transform: translate(
+        var(--launch-offset-x, 0px),
+        var(--launch-offset-y, 0px)
+      )
+      scale(var(--launch-start-scale, 0.16));
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes StickerBookPreviewModal-flyout {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    /* Push farther into the top-right profile area while shrinking away. */
+    transform: translate(48vw, -36vh) scale(0.2);
+  }
+}
+
+.StickerBookPreviewModal-modal::after {
+  content: '';
+  position: absolute;
+  left: calc(100% - 20px);
+  top: 0;
+  width: calc(var(--close-size) * 1.5 + 20px);
+  height: calc(var(--close-size) * 1.35);
+  border-radius: 1.125rem 999px 999px 0;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.StickerBookPreviewModal-close {
+  position: absolute;
+  width: var(--close-size);
+  height: var(--close-size);
+  top: calc(var(--close-size) * 0.175);
+  left: calc(100% + var(--close-size) * 0.29);
+  border: 0.12rem solid #f34d08;
+  border-radius: 50%;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.StickerBookPreviewModal-close::before,
+.StickerBookPreviewModal-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52%;
+  height: 0.18rem;
+  background: #f34d08;
+  border-radius: 999px;
+}
+
+.StickerBookPreviewModal-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.StickerBookPreviewModal-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.StickerBookPreviewModal-close img {
+  display: none;
+}
+
+.StickerBookPreviewModal-book-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 620 / 346;
+  border-radius: 1.125rem 1.125rem 0 0;
+  background: transparent;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.StickerBookPreviewModal-book {
+  width: 100%;
+  height: 100%;
+}
+
+.StickerBookPreviewModal-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+  opacity: 0.96;
+  animation: StickerBookPreviewModal-confetti-fade 5200ms ease-out forwards;
+}
+
+.StickerBookPreviewModal-confetti--drop {
+  animation-duration: 1450ms;
+}
+
+.StickerBookPreviewModal-confetti-piece,
+.StickerBookPreviewModal-confetti-cloud {
+  position: absolute;
+  display: block;
+}
+
+.StickerBookPreviewModal-confetti-piece {
+  left: var(--piece-left);
+  top: var(--piece-top);
+  width: 0.42rem;
+  height: 0.98rem;
+  border-radius: 0.08rem;
+  background: var(--piece-color);
+  transform: rotate(var(--piece-rotate));
+  box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.08);
+  animation:
+    StickerBookPreviewModal-confetti-fall 4200ms ease-out forwards,
+    StickerBookPreviewModal-confetti-spin 980ms ease-in-out infinite;
+  animation-delay: var(--piece-delay), var(--piece-delay);
+}
+
+.StickerBookPreviewModal-confetti-cloud {
+  left: var(--cloud-left);
+  top: var(--cloud-top);
+  width: var(--cloud-size);
+  height: calc(var(--cloud-size) * 0.7);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  filter: blur(0.1rem);
+  opacity: 0.84;
+  transform: rotate(var(--cloud-rotate));
+  animation: StickerBookPreviewModal-cloud-drift 1500ms ease-out forwards;
+}
+
+.StickerBookPreviewModal-confetti-cloud::before,
+.StickerBookPreviewModal-confetti-cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+}
+
+.StickerBookPreviewModal-confetti-cloud::before {
+  width: 54%;
+  height: 88%;
+  left: 8%;
+  top: -22%;
+}
+
+.StickerBookPreviewModal-confetti-cloud::after {
+  width: 46%;
+  height: 76%;
+  right: 6%;
+  top: -8%;
+}
+
+@keyframes StickerBookPreviewModal-confetti-fade {
+  0% {
+    opacity: 0.96;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-fall {
+  0% {
+    transform: translate3d(0, -0.8rem, 0) rotate(var(--piece-rotate)) scale(0.9);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0.6rem, 8.5rem, 0)
+      rotate(calc(var(--piece-rotate) + 36deg)) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-spin {
+  0% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: 0.18rem;
+  }
+  100% {
+    margin-top: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-cloud-drift {
+  0% {
+    transform: translate3d(0, 0.3rem, 0) rotate(var(--cloud-rotate)) scale(0.88);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.88;
+  }
+  100% {
+    transform: translate3d(0, 1.8rem, 0) rotate(var(--cloud-rotate)) scale(1.08);
+    opacity: 0;
+  }
+}
+
+.StickerBookPreviewModal-confetti-drop-container {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.StickerBookPreviewModal-confetti-drop-svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12rem;
+  height: 12rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.StickerBookPreviewModal-confetti-drop-seed {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 0.32rem;
+  height: 0.32rem;
+  margin-left: -0.16rem;
+  margin-top: -0.16rem;
+  border-radius: 50%;
+  background: #f4b846;
+  box-shadow:
+    0 0 0 0.06rem rgba(255, 255, 255, 0.24),
+    0 0.06rem 0.16rem rgba(0, 0, 0, 0.08);
+  animation: StickerBookPreviewModal-confetti-drop-seed-rise 620ms
+    cubic-bezier(0.24, 0.82, 0.26, 1) forwards;
+}
+
+.StickerBookPreviewModal-confetti-drop-explode {
+  transform-origin: center;
+  animation: StickerBookPreviewModal-confetti-drop-blast 920ms
+    cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+  animation-delay: 560ms;
+  opacity: 0;
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-seed-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  86% {
+    transform: translate3d(0, -7rem, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -7rem, 0) scale(0.08);
+    opacity: 0;
+  }
+}
+
+@keyframes StickerBookPreviewModal-confetti-drop-blast {
+  0% {
+    transform: scale(0.16);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+    transform: scale(0.28);
+  }
+  58% {
+    transform: scale(0.88);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+}
+
+.StickerBookPreviewModal-draggable-sticker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  filter: drop-shadow(0 0.35rem 0.42rem rgba(0, 0, 0, 0.16));
+}
+
+.StickerBookPreviewModal-draggable-sticker--active {
+  cursor: grabbing;
+  transform-origin: center;
+  z-index: 10;
+}
+
+.StickerBookPreviewModal-draggable-sticker--active img {
+  animation: none !important;
+  opacity: 1;
+  transform: none;
+}
+
+.StickerBookPreviewModal-draggable-sticker--hinting img {
+  animation: none !important;
+}
+
+.StickerBookPreviewModal-draggable-sticker img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  animation: StickerBookPreviewModal-sticker-drop 1100ms
+    cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+@keyframes StickerBookPreviewModal-sticker-drop {
+  0% {
+    transform: translateY(var(--sticker-drop-distance, 72px)) scale(0.82);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.StickerBookPreviewModal-pointer-hint {
+  position: absolute;
+  width: var(--pointer-size, 2.6rem);
+  height: var(--pointer-size, 2.6rem);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 1;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  transform-origin: 46% 28%;
+  /* Full autoplay hand-guide loop. Increase duration for a slower gesture. */
+  /* Linear timing keeps the motion speed more even across the full loop. */
+  animation: StickerBookPreviewModal-pointer-guide-full 4200ms linear infinite;
+}
+
+@keyframes StickerBookPreviewModal-pointer-guide-full {
+  /* Initial pose: hand sits near the placeholder and points more directly down. */
+  0% {
+    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    opacity: 1;
+  }
+  10% {
+    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    opacity: 1;
+  }
+  /* Early descent: slightly slower than before for a cleaner guide. */
+  22% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.16),
+        calc(var(--target-y, 0px) * 0.16),
+        0
+      )
+      rotate(68deg) scale(0.94);
+    opacity: 1;
+  }
+  /* Mid curve: keep the same pace toward the sticker. */
+  34% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.38),
+        calc(var(--target-y, 0px) * 0.38),
+        0
+      )
+      rotate(46deg) scale(0.96);
+    opacity: 1;
+  }
+  /* Approach: keep pacing even while curving toward the sticker. */
+  46% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.62),
+        calc(var(--target-y, 0px) * 0.62),
+        0
+      )
+      rotate(22deg) scale(0.99);
+    opacity: 1;
+  }
+  /* Contact approach: arrive at the drag sticker at the same pace. */
+  58% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.84),
+        calc(var(--target-y, 0px) * 0.84),
+        0
+      )
+      rotate(4deg) scale(1);
+    opacity: 1;
+  }
+  /* Contact pose on the sticker. */
+  66% {
+    transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
+      rotate(-16deg) scale(1);
+    opacity: 1;
+  }
+  /* Small finish beat before returning. */
+  72% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) + 0.08rem),
+        calc(var(--target-y, 0px) - 0.12rem),
+        0
+      )
+      rotate(-22deg) scale(0.97);
+    opacity: 1;
+  }
+  /* Return: mirror the outbound pacing instead of compressing it at the end. */
+  84% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.62),
+        calc(var(--target-y, 0px) * 0.62),
+        0
+      )
+      rotate(20deg) scale(0.98);
+    opacity: 1;
+  }
+  92% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.32),
+        calc(var(--target-y, 0px) * 0.32),
+        0
+      )
+      rotate(48deg) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(82deg) scale(0.92);
+    opacity: 1;
+  }
+}
+
+.StickerBookPreviewModal-loading {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #5f6980;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.StickerBookPreviewModal-bottom-strip {
+  min-height: 5.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 0 0 1.125rem 1.125rem;
+  background: #fffdee;
+  flex-shrink: 0;
+}
+
+.StickerBookPreviewModal-bottom-strip--completion {
+  gap: 2.6rem;
+}
+
+.StickerBookPreviewModal-helper-text {
+  margin: 0;
+  color: #182a4f;
+  font-size: 1.675rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.StickerBookPreviewModal-next-image-frame,
+.StickerBookPreviewModal-next-placeholder {
+  width: 6.3rem;
+  height: 4.4rem;
+  flex-shrink: 0;
+  border-radius: 0.8rem;
+  border: 0.2rem solid #f55376;
+  background: #fffdee;
+  padding: 0.42rem 0.48rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.StickerBookPreviewModal-next-image {
+  width: 110%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.StickerBookPreviewModal-next-placeholder {
+  background: #d1d2d4;
+  border-color: #ef5f88;
+}
+
+.StickerBookPreviewModal-next-name {
+  margin: 0;
+  color: #182a4f;
+  font-size: 1.675rem;
+  line-height: 1.15;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.StickerBookPreviewModal-drag-instruction {
+  margin: 0;
+  color: #182a4f;
+  font-size: 1.2rem;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.StickerBookPreviewModal-celebration-icon {
+  margin: 0 6px;
+}
+
+.StickerBookPreviewModal-action {
+  min-width: 7.4rem;
+  min-height: 3.35rem;
+  border: none;
+  border-radius: 0.72rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.StickerBookPreviewModal-action img,
+.StickerBookPreviewModal-action svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.StickerBookPreviewModal-action--save {
+  color: #2d1644;
+  background: #c094ef;
+  box-shadow: 0 0.36rem 0 #300d37;
+}
+
+.StickerBookPreviewModal-action--paint {
+  color: #ffffff;
+  background: #f34d08;
+  box-shadow: 0 0.36rem 0 #8d2900;
+}
+
+.StickerBookPreviewModal-action:active:not(:disabled) {
+  transform: translateY(0.24rem);
+  box-shadow: 0 0.12rem 0 rgba(0, 0, 0, 0.18);
+}
+
+.StickerBookPreviewModal-action:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  .StickerBookPreviewModal-helper-text,
+  .StickerBookPreviewModal-next-name {
+    font-size: var(--text-sizeXL);
+  }
+}

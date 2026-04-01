@@ -1,5 +1,5 @@
-import { Timestamp } from "firebase/firestore";
-import BaseObject from "./baseObject";
+import { Timestamp } from 'firebase/firestore';
+import BaseObject from './baseObject';
 
 export default class Badge extends BaseObject {
   private _name: string;

@@ -1,6 +1,5 @@
 .table-container {
   overflow-x: auto;
-  /* width: 100%; */
   display: flex;
 }
 
@@ -28,13 +27,11 @@
   vertical-align: middle;
 }
 
-
 table {
   border: 1px solid grey;
   border-spacing: 0;
   width: 100%;
   margin: 10px;
-
 }
 
 thead {
@@ -42,8 +39,6 @@ thead {
   top: 0;
   background-color: #fff;
   z-index: 3;
-
-  /* border: 1px solid grey; */
 }
 
 tbody {
@@ -63,7 +58,6 @@ td:first-child {
 }
 
 th {
-  /* border-bottom: 1px solid grey; */
   border: 1px solid grey;
   height: 20vh;
   transform: rotate(180deg);

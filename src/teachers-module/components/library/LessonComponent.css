@@ -1,4 +1,4 @@
-.lesson-component-container {
+.lessoncomponent-lesson-component-container {
   text-align: center;
   font-family: Arial, sans-serif;
   display: flex;
@@ -7,56 +7,88 @@
   flex-wrap: wrap;
 }
 
-.assignment-logo {
+.lessoncomponent-assignment-logo {
   width: 10px;
   height: 10px;
   background-size: contain;
   margin-left: 4px;
-  background-image: url("../../assets/icons/assignment_icon.png");
+  background-image: url('../../assets/icons/assignment_icon.png');
 }
-.quiz-logo {
+.lessoncomponent-quiz-logo {
   width: 10px;
   height: 10px;
   background-size: contain;
   margin-left: 4px;
-  background-image: url("../../assets/icons/livequiz_icon.png");
+  background-image: url('../../assets/icons/livequiz_icon.png');
 }
-.lesson-type-logo {
+.lessoncomponent-lesson-type-logo {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: row;
 }
-.lesson-details {
+.lessoncomponent-lesson-details {
   font-size: var(--text-sizeM);
   color: black;
   text-wrap: nowrap;
 }
-.lesson-type {
+.lessoncomponent-lesson-type {
   font-size: var(--text-sizeL);
   color: black;
 }
-.image-container {
+.lessoncomponent-image-container {
   cursor: pointer;
   height: 10vh;
   width: 14vh;
   margin: auto;
   border-radius: 8px;
-  /* background-color: bisque; */
+  position: relative;
+  overflow: visible;
 }
 @media (orientation: landscape) {
-  .image-container {
+  .lessoncomponent-image-container {
     height: 10vw;
     width: 14vw;
   }
 }
-.image-container img {
-  height: 75px;
-  width: 100px; /* Adjust the size as needed */
-  /* height: auto; */
+.lessoncomponent-lesson-image,
+.lessoncomponent-lesson-image > div {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
-.text-container {
+.lessoncomponent-lesson-image img {
+  height: 75px;
+  width: 100px; /* Adjust the size as needed */
+}
+
+.lessoncomponent-lesson-assigned-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 2;
+  transform: translate(50%, -50%);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.lessoncomponent-lesson-assigned-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lessoncomponent-text-container {
   display: flex;
   justify-content: center;
   align-items: center;
