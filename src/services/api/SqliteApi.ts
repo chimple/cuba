@@ -8557,17 +8557,12 @@ order by
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
-    userId?: string,
+    userId: string,
   ): Promise<void> {
     if (!this._db) return;
 
-    const resolvedUserId = userId?.trim();
-    let effectiveUserId = resolvedUserId;
-    if (!effectiveUserId) {
-      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-      if (!user?.id) return;
-      effectiveUserId = user.id;
-    }
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!user?.id) return;
 
     try {
       const bookRes = await this._db.query(
@@ -8583,7 +8578,7 @@ order by
         `SELECT * FROM ${TABLES.UserStickerBook}
          WHERE user_id = ? AND sticker_book_id = ? AND is_deleted = 0
          LIMIT 1`,
-        [effectiveUserId, stickerBookId],
+        [user.id, stickerBookId],
       );
       const book = this.mapStickerBookRow(bookRow);
       const total = book.total_stickers || book.stickers_metadata?.length || 0;
@@ -8604,7 +8599,7 @@ order by
            VALUES (?, ?, ?, ?, ?, ?, 0)`,
           [
             id,
-            effectiveUserId,
+            user.id,
             stickerBookId,
             JSON.stringify(stickersCollected),
             status,
@@ -8617,7 +8612,7 @@ order by
           MUTATE_TYPES.INSERT,
           {
             id,
-            user_id: effectiveUserId,
+            user_id: user.id,
             sticker_book_id: stickerBookId,
             stickers_collected: stickersCollected,
             status,

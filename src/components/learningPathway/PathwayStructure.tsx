@@ -243,7 +243,7 @@ const PathwayStructure: React.FC = () => {
       );
       setIsStickerPreviewOpen(false);
       setStickerPreviewLaunchMotion(null);
-      if (stickerPreviewTrigger === 'pathway_completion_auto') {
+      if (isDragPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
         const deferredCompletionPayload = getDeferredStickerCompletionPayload();
@@ -363,6 +363,7 @@ const PathwayStructure: React.FC = () => {
           animate={shouldAnimate}
         />
       )}
+
       {/* SVG Root Container */}
       <div className="PathwayStructure-div" ref={containerRef} />
 

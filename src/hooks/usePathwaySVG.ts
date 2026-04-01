@@ -2,6 +2,7 @@ import { RefObject, useCallback, useEffect } from 'react';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
+import { t } from 'i18next';
 
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
@@ -16,7 +17,6 @@ import {
   LIDO_ASSESSMENT,
   EVENTS,
   STICKER_BOOK_PREVIEW_ENABLED,
-  STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
   STICKER_BOOK_COMPLETION_POPUP,
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
@@ -30,7 +30,6 @@ import logger from '../utility/logger';
 import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
 import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { useAppSelector } from '../redux/hooks';
-import { t } from 'i18next';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -139,7 +138,6 @@ const createSVGImage = (
 ) => {
   const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
   img.setAttribute('href', href);
-  img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
   if (width != null) img.setAttribute('width', String(width));
   if (height != null) img.setAttribute('height', String(height));
@@ -177,16 +175,13 @@ export function usePathwaySVG({
   const liveIsStickerBookPreviewOn = useFeatureIsOn(
     STICKER_BOOK_PREVIEW_ENABLED,
   );
-  const liveIsStickerBookCelebrationPopupOn = useFeatureIsOn(
-    STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
-  );
   const liveIsStickerBookCompletionPopupOn = useFeatureIsOn(
     STICKER_BOOK_COMPLETION_POPUP,
   );
-  // Default to mystery box rewards when the experiment value is missing.
+  // Default to sticker rewards when the experiment value is missing.
   const liveRewardBoxVariant = useFeatureValue(
     PATHWAY_END_REWARD_BOX_VARIANT,
-    'mystery_box',
+    'sticker',
   );
   const cachedFeatureValues = useAppSelector(
     (state) => state.growthbook.featureValues,
@@ -196,11 +191,6 @@ export function usePathwaySVG({
     ? ((cachedFeatureValues?.[STICKER_BOOK_PREVIEW_ENABLED] as boolean) ??
       liveIsStickerBookPreviewOn)
     : liveIsStickerBookPreviewOn;
-  const isStickerBookCelebrationPopupOn = isOffline
-    ? ((cachedFeatureValues?.[
-        STICKER_BOOK_CELEBRATION_POPUP_ENABLED
-      ] as boolean) ?? liveIsStickerBookCelebrationPopupOn)
-    : liveIsStickerBookCelebrationPopupOn;
   const isStickerBookCompletionPopupOn = isOffline
     ? ((cachedFeatureValues?.[STICKER_BOOK_COMPLETION_POPUP] as boolean) ??
       liveIsStickerBookCompletionPopupOn)
@@ -216,10 +206,6 @@ export function usePathwaySVG({
       liveIsStickerBookPreviewOn,
     );
     setCachedGrowthBookFeatureValue(
-      STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
-      liveIsStickerBookCelebrationPopupOn,
-    );
-    setCachedGrowthBookFeatureValue(
       STICKER_BOOK_COMPLETION_POPUP,
       liveIsStickerBookCompletionPopupOn,
     );
@@ -229,7 +215,6 @@ export function usePathwaySVG({
     );
   }, [
     liveIsStickerBookPreviewOn,
-    liveIsStickerBookCelebrationPopupOn,
     liveIsStickerBookCompletionPopupOn,
     liveRewardBoxVariant,
   ]);
@@ -308,15 +293,6 @@ export function usePathwaySVG({
         }
       }
 
-      const shouldOpenCelebrationPopup =
-        isStickerBookPreviewOn &&
-        isStickerBookCelebrationPopupOn &&
-        Boolean(overrideParsed);
-
-      if (overrideParsed && !shouldOpenCelebrationPopup) {
-        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-      }
-
       const rawCompletionPopup = sessionStorage.getItem(
         AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
       );
@@ -361,7 +337,7 @@ export function usePathwaySVG({
             parsed?.studentId && parsed.studentId === currentStudent.id;
           if (
             shouldOpenForStudent &&
-            !shouldOpenCelebrationPopup &&
+            !overrideParsed &&
             isStickerBookCompletionPopupOn &&
             stickerCompletionPayload
           ) {
@@ -378,8 +354,9 @@ export function usePathwaySVG({
       }
 
       // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
-      if (shouldOpenCelebrationPopup) {
+      if (isStickerBookPreviewOn && overrideParsed) {
         if (stickerPreviewPayload && !didScheduleStickerCompletionPopup) {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
           setTimeout(
             () =>
               onStickerPreviewReady(
@@ -389,6 +366,8 @@ export function usePathwaySVG({
             0,
           );
         }
+      } else if (isStickerBookPreviewOn) {
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
       }
 
       const lessons = await Promise.all(
@@ -757,10 +736,12 @@ export function usePathwaySVG({
           bg.setAttribute('stroke', '#F55376');
           bg.setAttribute('stroke-width', '3');
 
-          const horizontalPadding = Math.round(width * 0.12);
+          const horizontalPadding = Math.round(width * 0.15);
           const verticalPadding = Math.round(height * 0.12);
-          const contentWidth = width - horizontalPadding * 2;
-          const contentHeight = height - verticalPadding * 2;
+          const contentSize = Math.min(
+            width - horizontalPadding * 2,
+            height - verticalPadding * 2,
+          );
 
           rewardGroup.appendChild(bg);
           // Reuse the same resolved sticker image that powers the preview modal.
@@ -768,10 +749,10 @@ export function usePathwaySVG({
             rewardGroup.appendChild(
               createSVGImage(
                 nextStickerImageSrc,
-                contentWidth,
-                contentHeight,
-                horizontalPadding,
-                verticalPadding,
+                contentSize,
+                contentSize,
+                (width - contentSize) / 2,
+                (height - contentSize) / 2,
                 'PathwayStructure-end-reward-sticker-image',
               ),
             );
@@ -1125,7 +1106,6 @@ export function usePathwaySVG({
           : payload.collectedStickerIds.length,
     };
   }
-
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
@@ -1444,4 +1424,6 @@ export function usePathwaySVG({
       });
     }
   }
+
+  return null;
 }

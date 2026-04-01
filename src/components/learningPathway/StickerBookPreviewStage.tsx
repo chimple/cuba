@@ -188,16 +188,14 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
       data-testid="StickerBookPreviewModal-book-frame"
       ref={setFrameElement}
     >
-      {isDragVariant && showIntroConfetti && (
-        <StickerBookConfetti isDropConfetti={false} />
-      )}
-
-      {isDragVariant && showDropConfetti && (
+      {isDragVariant && (showIntroConfetti || showDropConfetti) && (
         <StickerBookConfetti
-          isDropConfetti={true}
+          isDropConfetti={showDropConfetti}
           containerPos={
-            dragStickerPos
+            showDropConfetti && dragStickerPos
               ? {
+                  // Pass the actual launch point so the confetti container can
+                  // center itself exactly on the sticker's bottom-center.
                   x: dragStickerPos.x + dragStickerSize * 0.5,
                   y: dragStickerPos.y + dragStickerSize,
                   size: dragStickerSize,
