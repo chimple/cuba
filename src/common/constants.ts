@@ -1024,16 +1024,19 @@ export const CURRENT_SELECTED_CHAPTER = 'currentSelectedChapter';
 export const CURRENT_STAGE = 'currentStage';
 export const CURRENT_SELECTED_GRADE = 'currentSelectedGrade';
 export interface HomeWeeklySummary {
-  assignments: {
-    asgnmetCmptd: number;
-    totalAssignments: number;
-  };
-  students: {
-    stdCompletd: number;
+  activeStudents: {
+    count: number;
     totalStudents: number;
+    trend: 'up' | 'down' | 'same';
   };
-  timeSpent: number;
-  averageScore: number;
+  averageTimeSpent: {
+    minutes: number;
+    trend: 'up' | 'down' | 'same';
+  };
+  averageScore: {
+    percentage: number;
+    trend: 'up' | 'down' | 'same';
+  };
 }
 export const LidoActivityEndKey = 'lidoActivityEnd';
 export const LidoLessonEndKey = 'lidoLessonEnd';

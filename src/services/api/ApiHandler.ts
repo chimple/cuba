@@ -1200,6 +1200,13 @@ export class ApiHandler implements ServiceApi {
       classId,
     );
   }
+  getStudentPlayStatus(
+    studentId: string,
+    courseIds: string[],
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    return this.s.getStudentPlayStatus(studentId, courseIds, classId);
+  }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {

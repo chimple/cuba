@@ -9,11 +9,3 @@
   padding-bottom: 10px;
   overflow: auto;
 }
-.dashboard-container-subject-dropdown {
-  align-self: flex-end;
-  justify-content: space-between;
-  height: 6vh;
-  width: fit-content;
-  padding-right: 6vw;
-  min-height: 40px;
-}

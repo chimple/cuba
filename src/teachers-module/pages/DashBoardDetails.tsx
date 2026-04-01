@@ -11,7 +11,7 @@ import logger from '../../utility/logger';
 interface DashBoardDetailsProps {}
 type DashBoardDetailsState = {
   bandcolor?: string;
-  studentProgress?: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>[];
+  studentProgress?: Map<string, any>[];
   studentLength?: string;
 };
 const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
@@ -21,11 +21,16 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
   const history = useHistory();
   const state = (history.location.state ?? {}) as DashBoardDetailsState;
   const bandcolor: string = state.bandcolor ?? '';
-  const studentsProgress: Map<
-    string,
-    TableTypes<'user'> | TableTypes<'result'>[]
-  >[] = state.studentProgress ?? [];
+  const studentsProgress: Map<string, any>[] = state.studentProgress ?? [];
   const studentLength: string = state.studentLength ?? '';
+  const bandTitle =
+    bandcolor === BANDWISECOLOR.RED
+      ? t('Not active for last 7 or more days')
+      : bandcolor === BANDWISECOLOR.YELLOW
+        ? t('Medium Engagement <45 minutes')
+        : bandcolor === BANDWISECOLOR.GREEN
+          ? t('High Engagement 45+ minutes')
+          : t('App not downloaded');
 
   const currentSchool = Util.getCurrentSchool();
 
@@ -59,14 +64,8 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
           className="dashboard-group-wise-header"
           style={{ backgroundColor: bandcolor }}
         >
-          {bandcolor === BANDWISECOLOR.RED
-            ? t('Need Help')
-            : bandcolor === BANDWISECOLOR.YELLOW
-              ? t('Still Learning')
-              : bandcolor === BANDWISECOLOR.GREEN
-                ? t('Doing Good')
-                : t('Not Tracked')}
-          <span style={{ marginLeft: '10px' }}>
+          <span>{bandTitle}</span>
+          <span>
             {studentsProgress?.length} / {studentLength}
           </span>
         </div>

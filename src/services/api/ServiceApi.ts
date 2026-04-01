@@ -1506,6 +1506,16 @@ export interface ServiceApi {
   ): Promise<TableTypes<'result'>[] | undefined>;
 
   /**
+   * Lightweight check for student play history in a class/subject scope.
+   * Returns whether the student has ever played and the latest play timestamp.
+   */
+  getStudentPlayStatus(
+    studentId: string,
+    courseIds: string[],
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
+
+  /**
    * Get the Lessons with LessonIds
    * @param lessonIds
    */

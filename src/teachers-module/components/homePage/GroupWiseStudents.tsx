@@ -6,7 +6,7 @@ import { t } from 'i18next';
 
 interface GroupWiseStudentsProps {
   color: string;
-  studentsProgress: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>[];
+  studentsProgress?: Map<string, any>[];
   studentLength: string;
   onClickCallBack: Function;
 }
@@ -17,6 +17,15 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   studentLength,
   onClickCallBack,
 }) => {
+  const groupTitle =
+    color === BANDWISECOLOR.RED
+      ? t('Not active for last 7 or more days')
+      : color === BANDWISECOLOR.YELLOW
+        ? t('Medium Engagement <45 minutes')
+        : color === BANDWISECOLOR.GREEN
+          ? t('High Engagement 45+ minutes')
+          : t('App not downloaded');
+
   return (
     <div
       className="group-wise-container"
@@ -26,21 +35,15 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
       }}
     >
       <div className="group-wise-header" style={{ backgroundColor: color }}>
-        {color === BANDWISECOLOR.RED
-          ? t('Need Help')
-          : color === BANDWISECOLOR.YELLOW
-            ? t('Still Learning')
-            : color === BANDWISECOLOR.GREEN
-              ? t('Doing Good')
-              : t('Not Tracked')}
-        <span style={{ marginLeft: '10px' }}>
-          {studentsProgress.length}/{studentLength}
+        <span>{groupTitle}</span>
+        <span className="group-wise-count">
+          {studentsProgress?.length ?? 0}/{studentLength}
         </span>
       </div>
 
       <div className="group-wise-content">
         <div className="avatars-wrapper">
-          {studentsProgress.map((stdpr) => {
+          {(studentsProgress ?? []).map((stdpr) => {
             const student = stdpr.get('student') as TableTypes<'user'>;
             return (
               <div className="student-avatar-container" key={student.id}>
