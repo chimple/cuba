@@ -98,7 +98,9 @@ export const useStickerBookPreviewModalLogic = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const isCompletionMode = mode === 'completion';
-  const dragStickerRevealDelayMs = 420;
+  const popupEnterDurationMs = 900;
+  const popupFlyoutDurationMs = 900;
+  const dragStickerRevealDelayMs = popupEnterDurationMs;
   const dragStickerDropDurationMs = 1100;
   const introConfettiRevealDelayMs =
     dragStickerRevealDelayMs + dragStickerDropDurationMs;
@@ -480,7 +482,7 @@ export const useStickerBookPreviewModalLogic = ({
     }, 2700);
     addTimer(() => {
       onClose('acknowledge_button');
-    }, 3250);
+    }, 2700 + popupFlyoutDurationMs);
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {

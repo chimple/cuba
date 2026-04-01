@@ -122,6 +122,7 @@ describe('StickerBookPreviewStage', () => {
       width: '50px',
       height: '50px',
       transform: 'translate(10px, 20px) scale(1.06)',
+      '--sticker-drop-distance': '20px',
     });
 
     await screen.findByTestId('StickerBookPreviewModal-pointer-hint');

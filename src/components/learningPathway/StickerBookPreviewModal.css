@@ -29,12 +29,12 @@
 }
 
 .StickerBookPreviewModal-modal--drag {
-  animation: StickerBookPreviewModal-expand-in 520ms
+  animation: StickerBookPreviewModal-expand-in 900ms
     cubic-bezier(0.18, 0.88, 0.22, 1);
 }
 
 .StickerBookPreviewModal-modal--flyout {
-  animation: StickerBookPreviewModal-flyout 520ms ease-in forwards;
+  animation: StickerBookPreviewModal-flyout 900ms ease-in forwards;
 }
 
 @keyframes StickerBookPreviewModal-expand-in {

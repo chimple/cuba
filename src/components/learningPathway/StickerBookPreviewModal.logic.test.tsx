@@ -209,7 +209,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(420);
+      jest.advanceTimersByTime(900);
     });
 
     expect(result.current.showDragSticker).toBe(true);
@@ -318,7 +318,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.isFlyingOut).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(550);
+      jest.advanceTimersByTime(900);
     });
 
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');

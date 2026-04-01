@@ -328,7 +328,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 width: `${dragStickerSize}px`,
                 height: `${dragStickerSize}px`,
                 transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)${isDragging ? ' scale(1.06)' : ''}`,
-                '--sticker-drop-distance': `${Math.max(48, dragStickerSize * 0.72)}px`,
+                '--sticker-drop-distance': `${Math.max(0, dragStickerPos.y)}px`,
                 '--target-x': `${hintDeltaX}px`,
                 '--target-y': `${hintDeltaY}px`,
               } as React.CSSProperties
