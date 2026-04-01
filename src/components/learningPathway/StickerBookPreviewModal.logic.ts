@@ -8,6 +8,7 @@ import {
   parseSvg,
   type ParsedSvg,
 } from '../common/SvgHelpers';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import { EVENTS, PAGES } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
@@ -97,6 +98,11 @@ export const useStickerBookPreviewModalLogic = ({
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const isCompletionMode = mode === 'completion';
+  const dragStickerRevealDelayMs = 420;
+  const dragStickerDropDurationMs = 1100;
+  const introConfettiRevealDelayMs =
+    dragStickerRevealDelayMs + dragStickerDropDurationMs;
+  const dragPointerRevealDelayMs = dragStickerRevealDelayMs + 950;
 
   const addTimer = (callback: () => void, delayMs: number) => {
     const timeoutId = window.setTimeout(callback, delayMs);
@@ -234,18 +240,35 @@ export const useStickerBookPreviewModalLogic = ({
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
-    setShowDragSticker(true);
-    setShowPointerHint(true);
-    setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
-    logDragEvent(EVENTS.STICKER_DRAG_STICKER_SHOWN);
-    logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
-    logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'intro' });
+
+    addTimer(() => {
+      setShowDragSticker(true);
+      logDragEvent(EVENTS.STICKER_DRAG_STICKER_SHOWN);
+    }, dragStickerRevealDelayMs);
+
+    addTimer(() => {
+      setShowIntroConfetti(true);
+      logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'intro' });
+    }, introConfettiRevealDelayMs);
+
+    addTimer(() => {
+      setShowPointerHint(true);
+      logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
+    }, dragPointerRevealDelayMs);
 
     addTimer(() => {
       setShowIntroConfetti(false);
-    }, 3800);
-  }, [isDragVariant, isLoading, logDragEvent]);
+    }, introConfettiRevealDelayMs + 3800);
+  }, [
+    dragStickerDropDurationMs,
+    dragPointerRevealDelayMs,
+    dragStickerRevealDelayMs,
+    introConfettiRevealDelayMs,
+    isDragVariant,
+    isLoading,
+    logDragEvent,
+  ]);
 
   const getSlotRectInFrame = useCallback(() => {
     const frame = frameRef.current;
@@ -331,6 +354,52 @@ export const useStickerBookPreviewModalLogic = ({
     };
   }, [renderData.nextStickerId, scale]);
 
+  useEffect(() => {
+    if (
+      !isDragVariant ||
+      isLoading ||
+      isDragging ||
+      isDropSuccessful ||
+      !dragStickerPos
+    ) {
+      return;
+    }
+
+    const slotRect = getSlotRectInFrame();
+    if (!slotRect) return;
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const nextSize = Math.max(
+      72,
+      Math.min(
+        frame.clientWidth * 0.52,
+        frame.clientHeight * 0.52,
+        Math.max(slotRect.width, slotRect.height) * 1.14,
+      ),
+    );
+    if (Math.abs(nextSize - dragStickerSize) < 1) return;
+
+    const centerX = dragStickerPos.x + dragStickerSize / 2;
+    const centerY = dragStickerPos.y + dragStickerSize / 2;
+    const maxX = Math.max(0, frame.clientWidth - nextSize);
+    const maxY = Math.max(0, frame.clientHeight - nextSize);
+
+    setDragStickerSize(nextSize);
+    setDragStickerPos({
+      x: Math.min(Math.max(0, centerX - nextSize / 2), maxX),
+      y: Math.min(Math.max(0, centerY - nextSize / 2), maxY),
+    });
+  }, [
+    dragStickerPos,
+    dragStickerSize,
+    getSlotRectInFrame,
+    isDragVariant,
+    isDragging,
+    isDropSuccessful,
+    isLoading,
+  ]);
+
   const computeDragPosition = (clientX: number, clientY: number) => {
     const frame = frameRef.current;
     if (!frame) return null;
@@ -362,6 +431,28 @@ export const useStickerBookPreviewModalLogic = ({
     return distance <= threshold;
   };
 
+  const persistStickerWinForDrop = useCallback(async () => {
+    const studentId = Util.getCurrentStudent()?.id;
+    const stickerBookId = renderData.stickerBookId;
+    const stickerId = renderData.nextStickerId;
+    const api = ServiceConfig.getI().apiHandler as {
+      updateStickerWon?: (
+        stickerBookId: string,
+        stickerId: string,
+        userId: string,
+      ) => Promise<void>;
+    };
+
+    if (!studentId || !stickerBookId || !stickerId) return;
+    if (typeof api.updateStickerWon !== 'function') return;
+
+    try {
+      await api.updateStickerWon(stickerBookId, stickerId, studentId);
+    } catch (error) {
+      logger.error('Failed to persist dragged sticker as won:', error);
+    }
+  }, [renderData.nextStickerId, renderData.stickerBookId]);
+
   const handleSuccessfulDrop = (position: { x: number; y: number }) => {
     const slotRect = getSlotRectInFrame();
     const nextPos = slotRect
@@ -378,17 +469,18 @@ export const useStickerBookPreviewModalLogic = ({
 
     logDragEvent(EVENTS.STICKER_DRAG_DROPPED_SUCCESS);
     logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'drop' });
+    void persistStickerWinForDrop();
 
     addTimer(() => {
       setShowDropConfetti(false);
-    }, 1800);
+    }, 2600);
     addTimer(() => {
       setIsFlyingOut(true);
       logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 1900);
+    }, 2700);
     addTimer(() => {
       onClose('acknowledge_button');
-    }, 2450);
+    }, 3250);
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {

@@ -52,7 +52,7 @@ interface UsePathwaySVGParams {
   isRewardPathLoaded: boolean;
   onStickerPreviewReady: (
     data: StickerBookModalData,
-    trigger: 'sticker_click' | 'pathway_completion_auto',
+    trigger: 'sticker_click' | 'pathway_completion_auto' | 'test_button',
   ) => void;
   onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
@@ -1126,6 +1126,18 @@ export function usePathwaySVG({
     };
   }
 
+  async function triggerTestStickerDragPopup() {
+    const payload = await getStickerPreviewPayload();
+    if (!payload) {
+      setModalText(t('No sticker is available to preview right now'));
+      setModalOpen(true);
+      return false;
+    }
+
+    onStickerPreviewReady(payload, 'test_button');
+    return true;
+  }
+
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
@@ -1447,4 +1459,8 @@ export function usePathwaySVG({
       );
     }
   }
+
+  return {
+    triggerTestStickerDragPopup,
+  };
 }

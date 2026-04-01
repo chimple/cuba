@@ -199,28 +199,48 @@ describe('useStickerBookPreviewModalLogic', () => {
     await waitFor(() => expect(result.current.dragStickerPos).not.toBeNull());
 
     expect(result.current.dragStickerPos).toEqual({ x: 64, y: 112 });
-    expect(result.current.showPointerHint).toBe(true);
-    expect(result.current.showIntroConfetti).toBe(true);
+    expect(result.current.showDragSticker).toBe(false);
+    expect(result.current.showPointerHint).toBe(false);
+    expect(result.current.showIntroConfetti).toBe(false);
 
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_POPUP_EXPANDED,
       expect.any(Object),
     );
+
+    act(() => {
+      jest.advanceTimersByTime(420);
+    });
+
+    expect(result.current.showDragSticker).toBe(true);
+    expect(result.current.showPointerHint).toBe(false);
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_STICKER_SHOWN,
       expect.any(Object),
     );
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_DRAG_POINTER_SHOWN,
-      expect.any(Object),
-    );
+
+    act(() => {
+      jest.advanceTimersByTime(1100);
+    });
+
+    expect(result.current.showIntroConfetti).toBe(true);
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_CONFETTI_SHOWN,
       expect.objectContaining({ stage: 'intro' }),
     );
 
     act(() => {
-      jest.advanceTimersByTime(3800);
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(result.current.showPointerHint).toBe(true);
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_DRAG_POINTER_SHOWN,
+      expect.any(Object),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(3550);
     });
 
     await waitFor(() => expect(result.current.showIntroConfetti).toBe(false));
@@ -293,7 +313,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.showDropConfetti).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(1900);
+      jest.advanceTimersByTime(2700);
     });
     expect(result.current.isFlyingOut).toBe(true);
 
