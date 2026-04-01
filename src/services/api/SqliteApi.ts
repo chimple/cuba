@@ -8597,6 +8597,7 @@ order by
         const stickersCollected = [stickerId];
         const status = total === 1 ? 'completed' : 'in_progress';
         const createdAt = new Date().toISOString();
+        const userStickerId = uuidv4();
 
         await this.executeQuery(
           `INSERT INTO ${TABLES.UserStickerBook}
@@ -8625,6 +8626,22 @@ order by
             is_deleted: false,
           },
         );
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, effectiveUserId, stickerId, createdAt],
+        );
+
+        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: effectiveUserId,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
         return;
       }
 
@@ -8632,6 +8649,7 @@ order by
       const updated = currentCollected.includes(stickerId)
         ? currentCollected
         : [...currentCollected, stickerId];
+      const isNewSticker = updated.length !== currentCollected.length;
       const status =
         total > 0 && updated.length >= total ? 'completed' : progress.status;
 
@@ -8660,6 +8678,27 @@ order by
           status,
         },
       );
+
+      if (isNewSticker) {
+        const userStickerId = uuidv4();
+        const createdAt = new Date().toISOString();
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, effectiveUserId, stickerId, createdAt],
+        );
+
+        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: effectiveUserId,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
+      }
     } catch (error) {
       logger.error('Error updating sticker progress in sqlite:', error);
     }
