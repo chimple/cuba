@@ -572,7 +572,7 @@ export const useLearningPath = (opts?: {
 
   async function saveLearningPath(student: any, path: LearningPath) {
     const pathStr = JSON.stringify(path);
-    await api.updateLearningPath(student, pathStr);
+    await api.updateLearningPath(student, pathStr, false);
     await Util.setCurrentStudent({ ...student, learning_path: pathStr });
   }
 
