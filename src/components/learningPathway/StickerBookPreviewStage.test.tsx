@@ -277,10 +277,10 @@ describe('StickerBookPreviewStage', () => {
     );
 
     expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
-      left: '-65px',
-      top: '-30px',
-      width: '200px',
-      height: '200px',
+      left: '-25px',
+      top: '-12.5px',
+      width: '120px',
+      height: '105px',
     });
   });
 

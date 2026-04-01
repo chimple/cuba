@@ -1444,6 +1444,4 @@ export function usePathwaySVG({
       });
     }
   }
-
-  return {};
 }

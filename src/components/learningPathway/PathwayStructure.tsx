@@ -145,7 +145,7 @@ const PathwayStructure: React.FC = () => {
       setStickerPreviewData(data);
       setStickerPreviewTrigger(trigger);
       setIsStickerPreviewOpen(true);
-      const isDragPopup = trigger !== 'sticker_click';
+      const isDragPopup = trigger === 'pathway_completion_auto';
       Util.logEvent(
         isDragPopup
           ? EVENTS.STICKER_DRAG_POPUP_SHOWN
@@ -404,7 +404,7 @@ const PathwayStructure: React.FC = () => {
         <StickerBookPreviewModal
           data={stickerPreviewData}
           variant={
-            stickerPreviewTrigger !== 'sticker_click'
+            stickerPreviewTrigger === 'pathway_completion_auto'
               ? 'drag_collect'
               : 'preview'
           }
