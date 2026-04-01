@@ -54,7 +54,7 @@ describe('StickerBookSaveModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  test('triggers the flash animation, then allows the modal to close', () => {
+  test('triggers the flash animation, then auto closes', () => {
     const onClose = jest.fn();
     const onAnimationComplete = jest.fn();
 
@@ -90,6 +90,22 @@ describe('StickerBookSaveModal', () => {
     fireEvent.click(
       document.getElementById('sticker-book-save-modal-overlay') as HTMLElement,
     );
+
+    expect(
+      document
+        .getElementById('sticker-book-save-modal-overlay')
+        ?.className.includes('stickerBook-save-modal-overlay-closing'),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById('sticker-book-save-modal-content')
+        ?.className.includes('stickerBook-save-modal-content-closing'),
+    ).toBe(true);
+    expect(onClose).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
