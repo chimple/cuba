@@ -33,12 +33,21 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setIsExpanded(isOpened);
   }, [isOpened]);
 
-  const chapterLessonIds = lessons
+  const visibleLessons = showAssignedBadge
+    ? lessons
+    : lessons.filter(
+        (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
+      );
+
+  const visibleLessonIds = visibleLessons
     .map((lesson) => lesson.id)
     .filter((lessonId): lessonId is string => Boolean(lessonId));
+  const selectedVisibleLessonCount = visibleLessonIds.filter((lessonId) =>
+    selectedLessons.includes(lessonId),
+  ).length;
   const isAllSelected =
-    chapterLessonIds.length > 0 &&
-    chapterLessonIds.every((lessonId) => selectedLessons.includes(lessonId));
+    visibleLessonIds.length > 0 &&
+    visibleLessonIds.every((lessonId) => selectedLessons.includes(lessonId));
 
   const handleLessonToggle = (lesson: string) => {
     setSelectedLessons((prevSelectedLessons) => {
@@ -55,26 +64,28 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   const handleSelectAll = () => {
     setSelectedLessons((prevSelectedLessons) => {
       const prevSet = new Set(prevSelectedLessons);
-      const shouldSelectAll = chapterLessonIds.some(
+      const shouldSelectAll = visibleLessonIds.some(
         (lessonId) => !prevSet.has(lessonId),
       );
 
       if (shouldSelectAll) {
-        chapterLessonIds.forEach((lessonId) => {
+        visibleLessonIds.forEach((lessonId) => {
           if (!prevSet.has(lessonId)) {
             chapterSelectedLessons(chapter.id, lessonId, true);
           }
         });
-        return chapterLessonIds;
+        return [...prevSelectedLessons, ...visibleLessonIds].filter(
+          (lessonId, index, self) => self.indexOf(lessonId) === index,
+        );
       }
 
-      chapterLessonIds.forEach((lessonId) => {
+      visibleLessonIds.forEach((lessonId) => {
         if (prevSet.has(lessonId)) {
           chapterSelectedLessons(chapter.id, lessonId, false);
         }
       });
       return prevSelectedLessons.filter(
-        (lessonId) => !chapterLessonIds.includes(lessonId),
+        (lessonId) => !visibleLessonIds.includes(lessonId),
       );
     });
   };
@@ -121,7 +132,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
               id="chaptercontainer-selected-count"
               className="chaptercontainer-selected-count"
             >
-              {selectedLessons.length} / {lessons.length}
+              {selectedVisibleLessonCount} / {visibleLessons.length}
             </div>
           </div>
           <div
@@ -183,7 +194,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           id="chaptercontainer-grid-container"
           className="chaptercontainer-grid-container"
         >
-          {lessons.map((lesson) => (
+          {visibleLessons.map((lesson) => (
             <div
               key={lesson.id}
               id="chaptercontainer-grid-item"

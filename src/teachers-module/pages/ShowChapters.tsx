@@ -104,6 +104,12 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     }
   }, [chapters, activeChapterId]);
 
+  useEffect(() => {
+    if (!isShowAssigned) {
+      loadAssignedLessonsForCourse();
+    }
+  }, [isShowAssigned, currentClass, chapters, course?.id]);
+
   const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
       await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
@@ -320,7 +326,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const handleShowAssignedClick = async () => {
     const nextShowAssigned = !isShowAssigned;
     setIsShowAssigned(nextShowAssigned);
-    if (nextShowAssigned) {
+    if (!nextShowAssigned) {
       await loadAssignedLessonsForCourse();
     }
   };
