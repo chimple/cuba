@@ -8631,12 +8631,12 @@ order by
           `INSERT INTO ${TABLES.UserSticker}
             (id, user_id, sticker_id, created_at, is_deleted, is_seen)
            VALUES (?, ?, ?, ?, 0, 0)`,
-          [userStickerId, user.id, stickerId, createdAt],
+          [userStickerId, effectiveUserId, stickerId, createdAt],
         );
 
         await this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
           id: userStickerId,
-          user_id: user.id,
+          user_id: effectiveUserId,
           sticker_id: stickerId,
           created_at: createdAt,
           is_deleted: false,
@@ -8687,12 +8687,12 @@ order by
           `INSERT INTO ${TABLES.UserSticker}
             (id, user_id, sticker_id, created_at, is_deleted, is_seen)
            VALUES (?, ?, ?, ?, 0, 0)`,
-          [userStickerId, user.id, stickerId, createdAt],
+          [userStickerId, effectiveUserId, stickerId, createdAt],
         );
 
         await this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
           id: userStickerId,
-          user_id: user.id,
+          user_id: effectiveUserId,
           sticker_id: stickerId,
           created_at: createdAt,
           is_deleted: false,
