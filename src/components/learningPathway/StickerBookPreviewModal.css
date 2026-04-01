@@ -59,8 +59,7 @@
   }
   100% {
     opacity: 0;
-    /* Push farther into the top-right profile area while shrinking away. */
-    transform: translate(48vw, -36vh) scale(0.2);
+    transform: translate(40vw, -28vh) scale(0.25);
   }
 }
 
@@ -139,7 +138,7 @@
   z-index: 3;
   overflow: hidden;
   opacity: 0.96;
-  animation: StickerBookPreviewModal-confetti-fade 5200ms ease-out forwards;
+  animation: StickerBookPreviewModal-confetti-fade 1900ms ease-out forwards;
 }
 
 .StickerBookPreviewModal-confetti--drop {
@@ -162,7 +161,7 @@
   transform: rotate(var(--piece-rotate));
   box-shadow: 0 0.08rem 0.2rem rgba(0, 0, 0, 0.08);
   animation:
-    StickerBookPreviewModal-confetti-fall 4200ms ease-out forwards,
+    StickerBookPreviewModal-confetti-fall 1600ms ease-out forwards,
     StickerBookPreviewModal-confetti-spin 980ms ease-in-out infinite;
   animation-delay: var(--piece-delay), var(--piece-delay);
 }
@@ -206,7 +205,7 @@
   0% {
     opacity: 0.96;
   }
-  85% {
+  70% {
     opacity: 0.9;
   }
   100% {
@@ -219,12 +218,12 @@
     transform: translate3d(0, -0.8rem, 0) rotate(var(--piece-rotate)) scale(0.9);
     opacity: 0;
   }
-  10% {
+  18% {
     opacity: 1;
   }
   100% {
-    transform: translate3d(0.6rem, 8.5rem, 0)
-      rotate(calc(var(--piece-rotate) + 36deg)) scale(1);
+    transform: translate3d(0.42rem, 4.5rem, 0)
+      rotate(calc(var(--piece-rotate) + 18deg)) scale(1);
     opacity: 0;
   }
 }
@@ -259,127 +258,30 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 12.5rem;
-  height: 12.5rem;
+  width: 18rem;
+  height: 18rem;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
-  overflow: visible;
-  filter: drop-shadow(0 0.18rem 0.28rem rgba(0, 0, 0, 0.08));
-}
-
-.StickerBookPreviewModal-confetti-drop-seed {
-  transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-seed 1450ms
-    cubic-bezier(0.24, 0.78, 0.24, 1) forwards;
-}
-
-.StickerBookPreviewModal-confetti-drop-motion {
-  transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-motion 1450ms
-    cubic-bezier(0.22, 0.82, 0.24, 1) forwards;
 }
 
 .StickerBookPreviewModal-confetti-drop-explode {
   transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-blast 1450ms
+  animation: StickerBookPreviewModal-confetti-drop-blast 1200ms
     cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-.StickerBookPreviewModal-confetti-drop-dot {
-  transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-dot-move 1450ms ease-out
-    forwards;
-}
-
-@keyframes StickerBookPreviewModal-confetti-drop-seed {
-  0% {
-    transform: translateY(0) scale(0.12);
-    opacity: 0;
-  }
-  8% {
-    opacity: 1;
-  }
-  52% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(0.24);
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(0.3);
-    opacity: 0;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes StickerBookPreviewModal-confetti-drop-motion {
-  0% {
-    transform: translateY(0) scale(0.72);
-    opacity: 0.08;
-  }
-  46% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -0.92)) scale(0.84);
-    opacity: 0.18;
-  }
-  56% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(1);
-    opacity: 1;
-  }
-  74% {
-    transform: translateY(
-        calc(var(--drop-rise, 72px) * -1 + var(--drop-burst-settle, 14px))
-      )
-      scale(0.98);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(
-        calc(var(--drop-rise, 72px) * -1 + var(--drop-burst-settle, 14px) * 1.4)
-      )
-      scale(0.9);
-    opacity: 0;
-  }
-}
-
 @keyframes StickerBookPreviewModal-confetti-drop-blast {
-  0%,
-  48% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  58% {
-    transform: scale(0.14);
-    opacity: 1;
-  }
-  72% {
-    transform: scale(0.98);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.78);
-    opacity: 0;
-  }
-}
-
-@keyframes StickerBookPreviewModal-confetti-drop-dot-move {
   0% {
-    transform: translateY(0) scale(0.12);
-    opacity: 0;
-  }
-  8% {
-    opacity: 1;
-  }
-  52% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(0.2);
+    transform: scale(0.2);
     opacity: 1;
   }
   60% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(0.24);
+    transform: scale(1.05);
     opacity: 1;
   }
   100% {
-    transform: translateY(calc(var(--drop-rise, 72px) * -1)) scale(0.16);
+    transform: scale(1.15);
     opacity: 0;
   }
 }
@@ -408,7 +310,36 @@
 }
 
 .StickerBookPreviewModal-draggable-sticker--hinting img {
-  animation: none !important;
+  animation: StickerBookPreviewModal-sticker-hint 3000ms ease-in-out infinite !important;
+}
+
+@keyframes StickerBookPreviewModal-sticker-hint {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  10% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  40% {
+    transform: translate(
+        calc(var(--target-x, 0px) * 0.15),
+        calc(var(--target-y, -250px) * 0.15)
+      )
+      scale(1.05) rotate(2deg);
+  }
+  60% {
+    transform: translate(
+        calc(var(--target-x, 0px) * 0.15),
+        calc(var(--target-y, -250px) * 0.15)
+      )
+      scale(1.05) rotate(2deg);
+  }
+  90% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
 }
 
 .StickerBookPreviewModal-draggable-sticker img {
@@ -422,7 +353,8 @@
 
 @keyframes StickerBookPreviewModal-sticker-drop {
   0% {
-    transform: translateY(var(--sticker-drop-distance, 72px)) scale(0.82);
+    transform: translateY(calc(-1 * var(--sticker-drop-distance, 300px)))
+      scale(0.5);
     opacity: 0;
   }
   100% {
@@ -433,107 +365,43 @@
 
 .StickerBookPreviewModal-pointer-hint {
   position: absolute;
-  width: var(--pointer-size, 2.6rem);
-  height: var(--pointer-size, 2.6rem);
+  width: 2.6rem;
+  height: 2.6rem;
   pointer-events: none;
   z-index: 5;
   opacity: 1;
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
-  transform-origin: 46% 28%;
-  /* Full autoplay hand-guide loop. Increase duration for a slower gesture. */
-  /* Linear timing keeps the motion speed more even across the full loop. */
-  animation: StickerBookPreviewModal-pointer-guide-full 4200ms linear infinite;
+  animation: StickerBookPreviewModal-pointer-guide-full 3000ms ease-in-out
+    infinite;
 }
 
 @keyframes StickerBookPreviewModal-pointer-guide-full {
-  /* Initial pose: hand sits near the placeholder and points more directly down. */
   0% {
-    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
   10% {
-    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
-  /* Early descent: slightly slower than before for a cleaner guide. */
-  22% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.16),
-        calc(var(--target-y, 0px) * 0.16),
-        0
-      )
-      rotate(68deg) scale(0.94);
-    opacity: 1;
-  }
-  /* Mid curve: keep the same pace toward the sticker. */
-  34% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.38),
-        calc(var(--target-y, 0px) * 0.38),
-        0
-      )
-      rotate(46deg) scale(0.96);
-    opacity: 1;
-  }
-  /* Approach: keep pacing even while curving toward the sticker. */
-  46% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.62),
-        calc(var(--target-y, 0px) * 0.62),
-        0
-      )
-      rotate(22deg) scale(0.99);
-    opacity: 1;
-  }
-  /* Contact approach: arrive at the drag sticker at the same pace. */
-  58% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.84),
-        calc(var(--target-y, 0px) * 0.84),
-        0
-      )
-      rotate(4deg) scale(1);
-    opacity: 1;
-  }
-  /* Contact pose on the sticker. */
-  66% {
+  40% {
     transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
-      rotate(-16deg) scale(1);
+      scale(1.04);
     opacity: 1;
   }
-  /* Small finish beat before returning. */
-  72% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) + 0.08rem),
-        calc(var(--target-y, 0px) - 0.12rem),
-        0
-      )
-      rotate(-22deg) scale(0.97);
+  60% {
+    transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
+      scale(1.04);
     opacity: 1;
   }
-  /* Return: mirror the outbound pacing instead of compressing it at the end. */
-  84% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.62),
-        calc(var(--target-y, 0px) * 0.62),
-        0
-      )
-      rotate(20deg) scale(0.98);
-    opacity: 1;
-  }
-  92% {
-    transform: translate3d(
-        calc(var(--target-x, 0px) * 0.32),
-        calc(var(--target-y, 0px) * 0.32),
-        0
-      )
-      rotate(48deg) scale(0.95);
+  90% {
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translate3d(0, 0, 0) rotate(82deg) scale(0.92);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
   }
 }

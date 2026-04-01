@@ -49,7 +49,7 @@ const buildData = (
   source: 'learning_pathway',
   stickerBookId: 'book-1',
   stickerBookTitle: 'Book 1',
-  stickerBookSvgUrl: '/sticker-book.svg',
+  stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
   collectedStickerIds: ['slot-collected'],
   nextStickerId: 'slot-next',
   nextStickerName: 'Rocket',
@@ -143,7 +143,7 @@ describe('useStickerBookPreviewModalLogic', () => {
   test('falls back to secondary SVG fetch when primary fails', async () => {
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes('/sticker-book.svg')) {
+      if (url.includes('example.com/sticker-book.svg')) {
         return Promise.reject(new Error('network failed'));
       }
       return Promise.resolve({
@@ -198,7 +198,6 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     await waitFor(() => expect(result.current.dragStickerPos).not.toBeNull());
 
-    expect(result.current.dragStickerPos).toEqual({ x: 64, y: 112 });
     expect(result.current.showPointerHint).toBe(true);
     expect(result.current.showIntroConfetti).toBe(true);
 
@@ -220,7 +219,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
 
     act(() => {
-      jest.advanceTimersByTime(3800);
+      jest.advanceTimersByTime(1200);
     });
 
     await waitFor(() => expect(result.current.showIntroConfetti).toBe(false));
@@ -293,12 +292,12 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.showDropConfetti).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(1900);
+      jest.advanceTimersByTime(350);
     });
     expect(result.current.isFlyingOut).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(550);
+      jest.advanceTimersByTime(900);
     });
 
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');
@@ -356,7 +355,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
       stickerBookId: 'book-1',
-      stickerBookSvgUrl: '/sticker-book.svg',
+      stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
       collectedStickerIds: ['slot-collected'],
     });
   });

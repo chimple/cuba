@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { t } from 'i18next';
 import { ParsedSvg } from '../common/SvgHelpers';
 import StickerBookConfetti from './StickerBookConfetti';
@@ -28,19 +28,6 @@ const InlineSvg = React.forwardRef<
 });
 
 InlineSvg.displayName = 'InlineSvg';
-
-function areRectsClose(
-  a: { x: number; y: number; width: number; height: number } | null,
-  b: { x: number; y: number; width: number; height: number } | null,
-) {
-  if (!a || !b) return false;
-  return (
-    Math.abs(a.x - b.x) < 0.5 &&
-    Math.abs(a.y - b.y) < 0.5 &&
-    Math.abs(a.width - b.width) < 0.5 &&
-    Math.abs(a.height - b.height) < 0.5
-  );
-}
 
 interface StickerBookPreviewStageProps {
   isDragVariant: boolean;
@@ -92,93 +79,20 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
   onDragPointerUp,
   onDragPointerCancel,
 }) => {
-  const pointerHintSize = Math.max(36, Math.min(52, dragStickerSize * 0.58));
-  const [stableSlotRect, setStableSlotRect] = useState<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  } | null>(null);
-  const pointerMeasureRunRef = useRef(0);
   let hintStartX = 0;
   let hintStartY = 0;
   let hintDeltaX = 0;
   let hintDeltaY = 0;
 
-  useEffect(() => {
-    if (!isDragVariant || !showPointerHint || !dragStickerPos) {
-      setStableSlotRect(null);
-      return;
-    }
-
-    let cancelled = false;
-    let rafId = 0;
-    let frameCount = 0;
-    let stableCount = 0;
-    let previousRect: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    } | null = null;
-    const runId = pointerMeasureRunRef.current + 1;
-    pointerMeasureRunRef.current = runId;
-    setStableSlotRect(null);
-
-    const measure = () => {
-      if (cancelled || pointerMeasureRunRef.current !== runId) return;
-      const nextRect = getSlotRectInFrame();
-      frameCount += 1;
-
-      if (nextRect && areRectsClose(previousRect, nextRect)) {
-        stableCount += 1;
-      } else {
-        stableCount = 0;
-      }
-
-      previousRect = nextRect;
-
-      if (nextRect && stableCount >= 1) {
-        setStableSlotRect(nextRect);
-        return;
-      }
-
-      if (frameCount >= 12) {
-        setStableSlotRect(nextRect);
-        return;
-      }
-
-      rafId = window.requestAnimationFrame(measure);
-    };
-
-    rafId = window.requestAnimationFrame(measure);
-
-    return () => {
-      cancelled = true;
-      if (rafId) window.cancelAnimationFrame(rafId);
-    };
-  }, [dragStickerPos, getSlotRectInFrame, isDragVariant, showPointerHint]);
-
-  const hasPointerGuidePath = Boolean(stableSlotRect && dragStickerPos);
-
   if (isDragVariant && showPointerHint && dragStickerPos) {
-    if (stableSlotRect) {
-      // Anchor the hint to the actual slot center so every sticker points to
-      // its own placeholder instead of relying on a generic top-left bias.
-      const slotAnchorX = stableSlotRect.x + stableSlotRect.width * 0.5;
-      const slotAnchorY = stableSlotRect.y + stableSlotRect.height * 0.54;
-      const stickerGuideX = dragStickerPos.x + dragStickerSize * 0.5;
-      const stickerGuideY = dragStickerPos.y + dragStickerSize * 0.38;
-      const pointerTipOffsetX = pointerHintSize * 0.46;
-      const pointerTipOffsetY = pointerHintSize * 0.76;
-
-      hintStartX = slotAnchorX - pointerTipOffsetX;
-      hintStartY = slotAnchorY - pointerTipOffsetY;
-      hintDeltaX = stickerGuideX - slotAnchorX;
-      hintDeltaY = stickerGuideY - slotAnchorY;
-    } else {
-      hintStartX = dragStickerPos.x + dragStickerSize * 0.08;
-      hintStartY = dragStickerPos.y - dragStickerSize * 0.72;
+    hintStartX = dragStickerPos.x + dragStickerSize * 0.58;
+    hintStartY = dragStickerPos.y + dragStickerSize * 0.6;
+    const slotRect = getSlotRectInFrame();
+    if (slotRect) {
+      const slotCenterX = slotRect.x + slotRect.width / 2;
+      const slotCenterY = slotRect.y + slotRect.height / 2;
+      hintDeltaX = slotCenterX - hintStartX;
+      hintDeltaY = slotCenterY - hintStartY;
     }
   }
 
@@ -194,10 +108,8 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
           containerPos={
             showDropConfetti && dragStickerPos
               ? {
-                  // Pass the actual launch point so the confetti container can
-                  // center itself exactly on the sticker's bottom-center.
-                  x: dragStickerPos.x + dragStickerSize * 0.5,
-                  y: dragStickerPos.y + dragStickerSize,
+                  x: dragStickerPos.x,
+                  y: dragStickerPos.y,
                   size: dragStickerSize,
                 }
               : undefined
@@ -244,7 +156,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 width: `${dragStickerSize}px`,
                 height: `${dragStickerSize}px`,
                 transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)${isDragging ? ' scale(1.06)' : ''}`,
-                '--sticker-drop-distance': `${Math.max(48, dragStickerSize * 0.72)}px`,
+                '--sticker-drop-distance': `${dragStickerPos.y + dragStickerSize + 24}px`,
                 '--target-x': `${hintDeltaX}px`,
                 '--target-y': `${hintDeltaY}px`,
               } as React.CSSProperties
@@ -265,11 +177,9 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
       {isDragVariant &&
         showPointerHint &&
         dragStickerPos &&
-        hasPointerGuidePath &&
         (() => {
           return (
             <img
-              key={`${Math.round(hintStartX)}-${Math.round(hintStartY)}-${Math.round(hintDeltaX)}-${Math.round(hintDeltaY)}`}
               src="/pathwayAssets/touchpointer.svg"
               alt="drag-pointer"
               className="StickerBookPreviewModal-pointer-hint"
@@ -277,7 +187,6 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 {
                   left: `${hintStartX}px`,
                   top: `${hintStartY}px`,
-                  '--pointer-size': `${pointerHintSize}px`,
                   '--target-x': `${hintDeltaX}px`,
                   '--target-y': `${hintDeltaY}px`,
                 } as React.CSSProperties

@@ -643,54 +643,6 @@ describe('StickerBookPreviewModal', () => {
     });
   });
 
-  test('updates drag_collect target slot when nextStickerId changes between opens', async () => {
-    jest.spyOn(Util, 'logEvent').mockResolvedValue(undefined as never);
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      text: async () => svgWithSlots,
-    } as Response);
-
-    const { rerender, container } = render(
-      <StickerBookPreviewModal
-        data={buildData({
-          collectedStickerIds: ['slot-collected'],
-          nextStickerId: 'slot-next',
-        })}
-        variant="drag_collect"
-        onClose={jest.fn()}
-      />,
-    );
-
-    await waitFor(() =>
-      expect(
-        container.querySelector('[data-slot-id="slot-next"] circle'),
-      ).toBeInTheDocument(),
-    );
-
-    rerender(
-      <StickerBookPreviewModal
-        data={buildData({
-          collectedStickerIds: ['slot-collected', 'slot-next'],
-          nextStickerId: 'slot-locked',
-        })}
-        variant="drag_collect"
-        onClose={jest.fn()}
-      />,
-    );
-
-    await waitFor(() => {
-      const previousNext = container.querySelector(
-        '[data-slot-id="slot-next"] circle',
-      ) as SVGCircleElement;
-      const newNext = container.querySelector(
-        '[data-slot-id="slot-locked"] rect',
-      ) as SVGRectElement;
-
-      expect(previousNext.getAttribute('fill')).toBe('#333333');
-      expect(newNext.getAttribute('fill')).toBe('#D1D2D4');
-    });
-  });
-
   test('treats all uncollected slots as locked when nextStickerId is not present in SVG', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
