@@ -8646,10 +8646,10 @@ order by
       }
 
       const currentCollected = progress.stickers_collected ?? [];
-      const isNewSticker = !currentCollected.includes(stickerId);
       const updated = currentCollected.includes(stickerId)
         ? currentCollected
         : [...currentCollected, stickerId];
+      const isNewSticker = updated.length !== currentCollected.length;
       const status =
         total > 0 && updated.length >= total ? 'completed' : progress.status;
 

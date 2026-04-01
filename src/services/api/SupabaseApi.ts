@@ -12697,11 +12697,8 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let updated = progress.stickers_collected ?? [];
-    const isNewSticker = !updated.includes(stickerId);
-
-    if (isNewSticker) {
-      updated.push(stickerId);
-    }
+    updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
+    const isNewSticker = updated.length !== progress.stickers_collected.length;
 
     let status = progress.status;
 
