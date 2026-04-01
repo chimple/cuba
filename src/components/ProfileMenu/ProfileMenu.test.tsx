@@ -48,8 +48,6 @@ jest.mock('react-router', () => ({
 // Mock useGbContext
 jest.mock('../../growthbook/Growthbook', () => ({
   useGbContext: () => ({ setGbUpdated: jest.fn() }),
-  updateLocalAttributes: jest.fn(),
-  setCachedGrowthBookFeatureValue: jest.fn(),
 }));
 
 const mockApi = {
@@ -69,12 +67,9 @@ describe('ProfileMenu Notification Logic', () => {
       apiHandler: mockApi,
     } as any);
 
-    (useAppSelector as jest.Mock).mockImplementation((selector: any) =>
-      selector({
-        auth: { user: { id: 'user-1', language_id: 'lang-1' } },
-        growthbook: { featureValues: {} },
-      }),
-    );
+    (useAppSelector as jest.Mock).mockReturnValue({
+      user: { id: 'user-1', language_id: 'lang-1' },
+    });
     (Util.getCurrentStudent as jest.Mock).mockReturnValue(mockStudent);
     (Util.fetchCurrentClassAndSchool as jest.Mock).mockResolvedValue({
       className: 'Class 1',

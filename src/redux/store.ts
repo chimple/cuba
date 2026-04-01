@@ -2,19 +2,16 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer, PersistConfig } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authreducer, { authTransform } from './slices/auth/authSlice';
-import growthbookReducer from './slices/growthbook/growthbookSlice';
-import { GrowthBookAttributes } from '../common/constants';
 
 const rootReducer = combineReducers({
   auth: authreducer,
-  growthbook: growthbookReducer,
 });
 
 const persistConfig: PersistConfig<RootState> = {
   key: 'root',
   storage,
   version: 1,
-  whitelist: ['auth', 'growthbook'],
+  whitelist: ['auth'],
   transforms: [authTransform],
 };
 
@@ -27,25 +24,6 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: false,
     }),
-});
-
-let lastSerializedGrowthbookState = '';
-store.subscribe(() => {
-  try {
-    const growthbookState = store.getState().growthbook;
-    if (!growthbookState) return;
-
-    const serialized = JSON.stringify({
-      ...growthbookState.attributes,
-      __featureValues: growthbookState.featureValues,
-    });
-
-    if (serialized === lastSerializedGrowthbookState) return;
-    lastSerializedGrowthbookState = serialized;
-    localStorage.setItem(GrowthBookAttributes, serialized);
-  } catch {
-    // Ignore persistence failures; Redux remains the runtime source of truth.
-  }
 });
 
 export const persistor = persistStore(store);

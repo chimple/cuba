@@ -88,7 +88,6 @@ import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import {
   PaginatedResponse,
   SchoolNote,
-  StickerMeta,
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
@@ -100,13 +99,12 @@ import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorker
 import { store } from '../../redux/store';
 import { Json } from '../database';
 import logger from '../../utility/logger';
-import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 13;
+  private DB_VERSION = 12;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -381,18 +379,6 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
-  private normalizeSqliteValue(value: unknown): unknown {
-    if (Array.isArray(value)) return JSON.stringify(value);
-    if (
-      value &&
-      typeof value === 'object' &&
-      Object.getPrototypeOf(value) === Object.prototype
-    ) {
-      return JSON.stringify(value);
-    }
-    return value;
-  }
-
   private async showToastWithRetry(
     message: string,
     actionLabel = 'Retry',
@@ -642,9 +628,7 @@ export class SqliteApi implements ServiceApi {
             existingColumns.includes(f),
           );
           if (fieldNames.length === 0) continue;
-          const fieldValues = fieldNames.map((f) =>
-            this.normalizeSqliteValue(row[f]),
-          );
+          const fieldValues = fieldNames.map((f) => row[f]);
           const placeholders = fieldNames.map(() => '?').join(', ');
           const updateSetClause = fieldNames
             .filter((f) => f !== 'id')
@@ -861,7 +845,6 @@ export class SqliteApi implements ServiceApi {
       const diffMinutes = diffMs / (1000 * 60);
       if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
         await this.pullChanges(tableNames, isFirstSync);
-        await this.prefetchStickerBookAssetsAfterSync();
         const res = await this.pushChanges(Object.values(TABLES));
         const tables = "'" + tableNames.join("', '") + "'";
         // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -8445,175 +8428,29 @@ order by
   }
 
   // ================================
-  // STICKER BOOK (SQLite-first reads, local writes)
+  // STICKER BOOK (Server Delegation)
   // ================================
 
   async getAllStickerBooks(): Promise<StickerBook[]> {
-    if (!this._db) return [];
-
-    try {
-      const res = await this._db.query(
-        `SELECT * FROM ${TABLES.StickerBook} WHERE is_deleted = 0 ORDER BY sort_index ASC`,
-      );
-      const books = (res?.values ?? []).map((row: any) =>
-        this.mapStickerBookRow(row),
-      );
-      return await Promise.all(
-        books.map((book) => this.resolveStickerBookAssets(book)),
-      );
-    } catch (error) {
-      logger.error('Error fetching sticker books from sqlite:', error);
-      return [];
-    }
+    return await this._serverApi.getAllStickerBooks();
   }
 
   async getCurrentStickerBookWithProgress(userId: string): Promise<{
     book: StickerBook;
     progress: UserStickerProgress | null;
   } | null> {
-    if (!this._db) return null;
-
-    try {
-      const progressRes = await this._db.query(
-        `SELECT * FROM ${TABLES.UserStickerBook}
-         WHERE user_id = ? AND status = ? AND is_deleted = 0
-         LIMIT 1`,
-        [userId, 'in_progress'],
-      );
-
-      const activeProgress = progressRes?.values?.[0];
-      if (activeProgress) {
-        const progress = this.mapUserStickerBookRow(activeProgress);
-        const bookRes = await this._db.query(
-          `SELECT * FROM ${TABLES.StickerBook}
-           WHERE id = ? AND is_deleted = 0
-           LIMIT 1`,
-          [progress.sticker_book_id],
-        );
-        const activeBook = bookRes?.values?.[0];
-        if (activeBook) {
-          return {
-            book: await this.resolveStickerBookAssets(
-              this.mapStickerBookRow(activeBook),
-            ),
-            progress,
-          };
-        }
-      }
-
-      const completedRes = await this._db.query(
-        `SELECT sticker_book_id FROM ${TABLES.UserStickerBook}
-         WHERE user_id = ? AND status = ? AND is_deleted = 0`,
-        [userId, 'completed'],
-      );
-      const completedBookIds = Array.from(
-        new Set(
-          (completedRes?.values ?? [])
-            .map((row: any) => row.sticker_book_id)
-            .filter(Boolean),
-        ),
-      );
-
-      let query = `SELECT * FROM ${TABLES.StickerBook} WHERE is_deleted = 0`;
-      const params: string[] = [];
-      if (completedBookIds.length > 0) {
-        query += ` AND id NOT IN (${completedBookIds.map(() => '?').join(', ')})`;
-        params.push(...completedBookIds);
-      }
-      query += ` ORDER BY sort_index ASC LIMIT 1`;
-
-      const nextBookRes = await this._db.query(query, params);
-      const nextBookRow = nextBookRes?.values?.[0];
-      if (!nextBookRow) return null;
-
-      return {
-        book: await this.resolveStickerBookAssets(
-          this.mapStickerBookRow(nextBookRow),
-        ),
-        progress: null,
-      };
-    } catch (error) {
-      logger.error('Error fetching active sticker book from sqlite:', error);
-      return null;
-    }
+    return await this._serverApi.getCurrentStickerBookWithProgress(userId);
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
-    if (!this._db) return [];
-
-    try {
-      const res = await this._db.query(
-        `SELECT sb.*
-         FROM ${TABLES.StickerBook} sb
-         INNER JOIN ${TABLES.UserStickerBook} usb
-           ON sb.id = usb.sticker_book_id
-         WHERE usb.user_id = ?
-           AND usb.status = ?
-           AND usb.is_deleted = 0
-           AND sb.is_deleted = 0
-         ORDER BY sb.sort_index ASC`,
-        [userId, 'completed'],
-      );
-      const books = (res?.values ?? []).map((row: any) =>
-        this.mapStickerBookRow(row),
-      );
-      return await Promise.all(
-        books.map((book) => this.resolveStickerBookAssets(book)),
-      );
-    } catch (error) {
-      logger.error(
-        'Error fetching completed sticker books from sqlite:',
-        error,
-      );
-      return [];
-    }
+    return await this._serverApi.getUserWonStickerBooks(userId);
   }
 
   async getNextWinnableSticker(
     stickerBookId: string,
     userId?: string,
   ): Promise<string | null> {
-    if (!this._db) return null;
-
-    const resolvedUserId = userId?.trim();
-    let effectiveUserId = resolvedUserId;
-    if (!effectiveUserId) {
-      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-      if (!user?.id) return null;
-      effectiveUserId = user.id;
-    }
-
-    try {
-      const bookRes = await this._db.query(
-        `SELECT * FROM ${TABLES.StickerBook}
-         WHERE id = ? AND is_deleted = 0
-         LIMIT 1`,
-        [stickerBookId],
-      );
-      const bookRow = bookRes?.values?.[0];
-      if (!bookRow) return null;
-
-      const progressRes = await this._db.query(
-        `SELECT * FROM ${TABLES.UserStickerBook}
-         WHERE user_id = ? AND sticker_book_id = ? AND is_deleted = 0
-         LIMIT 1`,
-        [effectiveUserId, stickerBookId],
-      );
-      const book = this.mapStickerBookRow(bookRow);
-      const progressRow = progressRes?.values?.[0];
-      const progress = progressRow
-        ? this.mapUserStickerBookRow(progressRow)
-        : null;
-      const collected = progress?.stickers_collected ?? [];
-      const sorted = [...(book.stickers_metadata ?? [])].sort(
-        (a: StickerMeta, b: StickerMeta) => a.sequence - b.sequence,
-      );
-      const next = sorted.find((sticker) => !collected.includes(sticker.id));
-      return next?.id ?? null;
-    } catch (error) {
-      logger.error('Error fetching next sticker from sqlite:', error);
-      return null;
-    }
+    return await this._serverApi.getNextWinnableSticker(stickerBookId, userId);
   }
 
   async updateStickerWon(
@@ -8621,206 +8458,11 @@ order by
     stickerId: string,
     userId: string,
   ): Promise<void> {
-    if (!this._db) return;
-
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!user?.id) return;
-
-    try {
-      const bookRes = await this._db.query(
-        `SELECT * FROM ${TABLES.StickerBook}
-         WHERE id = ? AND is_deleted = 0
-         LIMIT 1`,
-        [stickerBookId],
-      );
-      const bookRow = bookRes?.values?.[0];
-      if (!bookRow) return;
-
-      const progressRes = await this._db.query(
-        `SELECT * FROM ${TABLES.UserStickerBook}
-         WHERE user_id = ? AND sticker_book_id = ? AND is_deleted = 0
-         LIMIT 1`,
-        [user.id, stickerBookId],
-      );
-      const book = this.mapStickerBookRow(bookRow);
-      const total = book.total_stickers || book.stickers_metadata?.length || 0;
-      const progressRow = progressRes?.values?.[0];
-      const progress = progressRow
-        ? this.mapUserStickerBookRow(progressRow)
-        : null;
-
-      if (!progress) {
-        const id = uuidv4();
-        const stickersCollected = [stickerId];
-        const status = total === 1 ? 'completed' : 'in_progress';
-        const createdAt = new Date().toISOString();
-
-        await this.executeQuery(
-          `INSERT INTO ${TABLES.UserStickerBook}
-            (id, user_id, sticker_book_id, stickers_collected, status, created_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, 0)`,
-          [
-            id,
-            user.id,
-            stickerBookId,
-            JSON.stringify(stickersCollected),
-            status,
-            createdAt,
-          ],
-        );
-
-        await this.updatePushChanges(
-          TABLES.UserStickerBook,
-          MUTATE_TYPES.INSERT,
-          {
-            id,
-            user_id: user.id,
-            sticker_book_id: stickerBookId,
-            stickers_collected: stickersCollected,
-            status,
-            created_at: createdAt,
-            is_deleted: false,
-          },
-        );
-        return;
-      }
-
-      const currentCollected = progress.stickers_collected ?? [];
-      const updated = currentCollected.includes(stickerId)
-        ? currentCollected
-        : [...currentCollected, stickerId];
-      const status =
-        total > 0 && updated.length >= total ? 'completed' : progress.status;
-
-      if (
-        updated.length === currentCollected.length &&
-        status === progress.status
-      ) {
-        return;
-      }
-
-      await this.executeQuery(
-        `UPDATE ${TABLES.UserStickerBook}
-         SET stickers_collected = ?, status = ?
-         WHERE id = ? AND is_deleted = 0`,
-        [JSON.stringify(updated), status, progress.id],
-      );
-
-      await this.updatePushChanges(
-        TABLES.UserStickerBook,
-        MUTATE_TYPES.UPDATE,
-        {
-          id: progress.id,
-          user_id: progress.user_id,
-          sticker_book_id: progress.sticker_book_id,
-          stickers_collected: updated,
-          status,
-        },
-      );
-    } catch (error) {
-      logger.error('Error updating sticker progress in sqlite:', error);
-    }
-  }
-
-  private parseSqliteJsonArray<T>(value: unknown): T[] {
-    if (Array.isArray(value)) return value as T[];
-    if (typeof value !== 'string') return [];
-
-    const trimmed = value.trim();
-    if (!trimmed) return [];
-
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return parsed as T[];
-      if (typeof parsed === 'string' && parsed.trim() !== trimmed) {
-        return this.parseSqliteJsonArray<T>(parsed);
-      }
-    } catch {
-      // Fall back below for legacy/comma-separated rows.
-    }
-
-    const commaSeparated = trimmed
-      .split(',')
-      .map((item) => item.trim().replace(/^"(.*)"$/, '$1'))
-      .filter(Boolean);
-    return commaSeparated as T[];
-  }
-
-  private mapStickerBookRow(row: any): StickerBook {
-    return {
-      ...row,
-      sort_index: Number(row?.sort_index ?? 0),
-      total_stickers: Number(row?.total_stickers ?? 0),
-      stickers_metadata: this.parseSqliteJsonArray<StickerMeta>(
-        row?.stickers_metadata,
-      ),
-    };
-  }
-
-  private async resolveStickerBookAssets(
-    book: StickerBook,
-  ): Promise<StickerBook> {
-    if (!book?.svg_url) return book;
-
-    try {
-      const localSvgUri = await ensureLocalStickerBookSvgUri(book.svg_url);
-      return { ...book, svg_url: localSvgUri };
-    } catch (error) {
-      logger.warn(
-        '[StickerBook] Failed to resolve local sticker book svg uri',
-        {
-          bookId: book.id,
-          error,
-        },
-      );
-      return book;
-    }
-  }
-
-  private async prefetchStickerBookAssetsAfterSync(): Promise<void> {
-    if (!this._db || !Capacitor.isNativePlatform()) return;
-
-    try {
-      const booksToPrefetch: StickerBook[] = [];
-      const currentStudentId = this.currentStudent?.id;
-
-      if (currentStudentId) {
-        const current =
-          await this.getCurrentStickerBookWithProgress(currentStudentId);
-        if (current?.book) {
-          booksToPrefetch.push(current.book);
-        }
-      }
-
-      const allBooks = await this.getAllStickerBooks();
-      for (const book of allBooks) {
-        if (!booksToPrefetch.some((existing) => existing.id === book.id)) {
-          booksToPrefetch.push(book);
-        }
-      }
-
-      for (const book of booksToPrefetch) {
-        if (!book?.svg_url) continue;
-        await ensureLocalStickerBookSvgUri(book.svg_url);
-      }
-    } catch (error) {
-      logger.warn(
-        '[StickerBook] Failed to prefetch sticker book assets after sync',
-        error,
-      );
-    }
-  }
-
-  private mapUserStickerBookRow(row: any): UserStickerProgress {
-    return {
-      id: row.id,
-      user_id: row.user_id,
-      sticker_book_id: row.sticker_book_id,
-      stickers_collected: this.parseSqliteJsonArray<string>(
-        row?.stickers_collected,
-      ),
-      status: row.status,
-    };
+    return await this._serverApi.updateStickerWon(
+      stickerBookId,
+      stickerId,
+      userId,
+    );
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

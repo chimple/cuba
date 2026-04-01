@@ -6,15 +6,9 @@ import React, {
   useEffect,
 } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
-import { LANGUAGE } from '../common/constants';
+import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
-import { useAppSelector } from '../redux/hooks';
-import { store } from '../redux/store';
-import {
-  mergeGrowthbookAttributes,
-  setGrowthbookFeatureValue,
-} from '../redux/slices/growthbook/growthbookSlice';
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -24,43 +18,29 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  store.dispatch(mergeGrowthbookAttributes(data));
-};
-
-export const setCachedGrowthBookFeatureValue = (
-  featureKey: string,
-  value: any,
-) => {
-  store.dispatch(setGrowthbookFeatureValue({ key: featureKey, value }));
-};
-
-export const getCachedGrowthBookFeatureValue = <T,>(
-  featureKey: string,
-  fallback: T,
-): T => {
-  try {
-    const featureValues = store.getState().growthbook?.featureValues ?? {};
-    return featureKey in featureValues
-      ? (featureValues[featureKey] as T)
-      : fallback;
-  } catch {
-    return fallback;
-  }
+  const existingData = localStorage.getItem(GrowthBookAttributes);
+  const parsedData = existingData ? JSON.parse(existingData) : {};
+  const updatedData = {
+    ...parsedData,
+    ...data,
+  };
+  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
 };
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
   const [gbUpdated, setGbUpdated] = useState(true);
-  const attributes = useAppSelector((state) => state.growthbook.attributes);
 
   useEffect(() => {
     if (!gbUpdated) return;
-    if (!attributes || Object.keys(attributes).length === 0) {
+    const storedAttributes = localStorage.getItem(GrowthBookAttributes);
+    if (!storedAttributes) {
       setGbUpdated(false);
       return;
     }
+    const attributes = JSON.parse(storedAttributes);
     setGrowthbookAttributes(attributes);
-  }, [gbUpdated, attributes]);
+  }, [gbUpdated]);
 
   const buildAttributesOnMainThread = (attributes: any) => {
     const {

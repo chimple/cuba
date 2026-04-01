@@ -34,21 +34,6 @@ const safeTableName = (tableName: string): string => {
   }
   return tableName;
 };
-
-const normalizeSqliteValue = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    return JSON.stringify(value);
-  }
-  if (
-    value &&
-    typeof value === 'object' &&
-    Object.getPrototypeOf(value) === Object.prototype
-  ) {
-    return JSON.stringify(value);
-  }
-  return value;
-};
-
 const buildStatementsForRows = (
   tableName: string,
   rows: Record<string, unknown>[],
@@ -64,7 +49,7 @@ const buildStatementsForRows = (
       continue;
     }
     const placeholders = fieldNames.map(() => '?').join(', ');
-    const values = fieldNames.map((name) => normalizeSqliteValue(row[name]));
+    const values = fieldNames.map((name) => row[name]);
     const updateColumns = fieldNames.filter((name) => name !== 'id');
     const updateSetClause = updateColumns
       .map((name) => `${name} = excluded.${name}`)

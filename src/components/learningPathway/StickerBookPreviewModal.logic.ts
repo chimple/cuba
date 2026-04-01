@@ -11,7 +11,6 @@ import {
 import { EVENTS, PAGES } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
-import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -138,9 +137,13 @@ export const useStickerBookPreviewModalLogic = ({
       setIsLoading(true);
       try {
         // Load the actual sticker-book layout so SVGScene can apply slot states on top.
-        const text = await fetchStickerBookSvgText(
-          renderData.stickerBookSvgUrl,
-        );
+        const response = await fetch(renderData.stickerBookSvgUrl);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch sticker book SVG: ${response.status}`,
+          );
+        }
+        const text = await response.text();
         if (mounted) {
           setSvgMarkup(text);
         }
