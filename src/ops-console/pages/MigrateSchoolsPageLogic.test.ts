@@ -373,7 +373,10 @@ describe('useMigrateSchoolsPageLogic', () => {
           },
           program: { name: 'Program A', model: 'at_home' },
           program_users: [],
-          migration_metrics: { academic_year: '2026-27' },
+          migration_metrics: {
+            academic_year: '2026-27',
+            class_1_student_count: 18,
+          },
         },
       ],
     });
@@ -382,6 +385,7 @@ describe('useMigrateSchoolsPageLogic', () => {
     await waitForInitialLoad();
     await waitFor(() => expect(result.current.rows).toHaveLength(1));
     expect(result.current.rows[0].academicYear).toBe('2026-27');
+    expect(result.current.rows[0].class1).toBe(18);
   });
 
   // TC 5.1-5.6-16.3-16.4: Map API rows with data fallbacks and merged program filter options.
@@ -1041,6 +1045,7 @@ describe('useMigrateSchoolsPageLogic', () => {
       'programModel',
       'academicYear',
       'ukg',
+      'class1',
       'class2',
       'class3',
       'class4',
