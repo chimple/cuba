@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import 'react-circular-progressbar/dist/styles.css';
 import './DashBoardStudentProgress.css'; // Import the CSS file
-import { LIDO_ASSESSMENT, TableTypes } from '../../../common/constants';
+import {
+  LIDO_ASSESSMENT,
+  StudentProgressData,
+  TableTypes,
+} from '../../../common/constants';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import logger from '../../../utility/logger';
 
 interface DashBoardStudentProgresProps {
-  studentProgress: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>;
+  studentProgress: StudentProgressData;
 }
 type AggregatedResult = {
   lessonId: string;
