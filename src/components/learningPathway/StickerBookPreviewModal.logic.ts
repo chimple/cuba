@@ -77,6 +77,8 @@ export const useStickerBookPreviewModalLogic = ({
   const hasLoggedDragStartRef = useRef(false);
   const appliedDragSessionKeyRef = useRef<string | null>(null);
   const timersRef = useRef<number[]>([]);
+  const dragMoveRafRef = useRef<number | null>(null);
+  const pendingDragPosRef = useRef<{ x: number; y: number } | null>(null);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isDragVariant = variant === 'drag_collect';
   const dragSessionKey = [
@@ -203,6 +205,11 @@ export const useStickerBookPreviewModalLogic = ({
   useEffect(() => {
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    pendingDragPosRef.current = null;
     setDragStickerPos(null);
     setShowDragSticker(false);
     setIsDropSuccessful(false);
@@ -250,6 +257,11 @@ export const useStickerBookPreviewModalLogic = ({
     return () => {
       timersRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
       timersRef.current = [];
+      if (dragMoveRafRef.current !== null) {
+        window.cancelAnimationFrame(dragMoveRafRef.current);
+        dragMoveRafRef.current = null;
+      }
+      pendingDragPosRef.current = null;
     };
   }, []);
 
@@ -447,6 +459,34 @@ export const useStickerBookPreviewModalLogic = ({
     };
   };
 
+  const scheduleDragPositionUpdate = useCallback(
+    (position: { x: number; y: number }) => {
+      pendingDragPosRef.current = position;
+      if (dragMoveRafRef.current !== null) return;
+
+      dragMoveRafRef.current = window.requestAnimationFrame(() => {
+        dragMoveRafRef.current = null;
+        if (!pendingDragPosRef.current) return;
+        setDragStickerPos(pendingDragPosRef.current);
+        pendingDragPosRef.current = null;
+      });
+    },
+    [],
+  );
+
+  const flushPendingDragPosition = useCallback(() => {
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    if (!pendingDragPosRef.current) return null;
+
+    const finalPosition = pendingDragPosRef.current;
+    pendingDragPosRef.current = null;
+    setDragStickerPos(finalPosition);
+    return finalPosition;
+  }, []);
+
   const isValidDrop = (position: { x: number; y: number }) => {
     const slotRect = getSlotRectInFrame();
     if (!slotRect) return false;
@@ -538,7 +578,7 @@ export const useStickerBookPreviewModalLogic = ({
     if (!isDragging || dragPointerIdRef.current !== event.pointerId) return;
     const nextPos = computeDragPosition(event.clientX, event.clientY);
     if (!nextPos) return;
-    setDragStickerPos(nextPos);
+    scheduleDragPositionUpdate(nextPos);
   };
 
   const handleDragPointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -549,7 +589,7 @@ export const useStickerBookPreviewModalLogic = ({
     }
 
     const nextPos = computeDragPosition(event.clientX, event.clientY);
-    const finalPos = nextPos ?? dragStickerPos;
+    const finalPos = nextPos ?? flushPendingDragPosition() ?? dragStickerPos;
     if (!finalPos) return;
 
     setDragStickerPos(finalPos);
@@ -570,6 +610,7 @@ export const useStickerBookPreviewModalLogic = ({
       target.releasePointerCapture(event.pointerId);
     }
     setIsDragging(false);
+    flushPendingDragPosition();
     dragPointerIdRef.current = null;
   };
 

@@ -29,6 +29,46 @@ const InlineSvg = React.forwardRef<
 
 InlineSvg.displayName = 'InlineSvg';
 
+const StaticBookScene = React.memo(
+  ({
+    isLoading,
+    sceneSvg,
+    bookSvgRef,
+  }: {
+    isLoading: boolean;
+    sceneSvg: ParsedSvg | null;
+    bookSvgRef: React.RefObject<SVGSVGElement | null>;
+  }) => {
+    if (isLoading) {
+      return (
+        <div
+          className="StickerBookPreviewModal-loading"
+          data-testid="StickerBookPreviewModal-loading"
+        >
+          {t('Loading...')}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="StickerBookPreviewModal-book"
+        data-testid="StickerBookPreviewModal-book"
+      >
+        {sceneSvg && (
+          <InlineSvg
+            svg={sceneSvg}
+            ref={bookSvgRef}
+            className="StickerBookPreviewModal-book-svg"
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+StaticBookScene.displayName = 'StaticBookScene';
+
 function areRectsClose(
   a: { x: number; y: number; width: number; height: number } | null,
   b: { x: number; y: number; width: number; height: number } | null,
@@ -295,27 +335,11 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
         />
       )}
 
-      {isLoading ? (
-        <div
-          className="StickerBookPreviewModal-loading"
-          data-testid="StickerBookPreviewModal-loading"
-        >
-          {t('Loading...')}
-        </div>
-      ) : (
-        <div
-          className="StickerBookPreviewModal-book"
-          data-testid="StickerBookPreviewModal-book"
-        >
-          {sceneSvg && (
-            <InlineSvg
-              svg={sceneSvg}
-              ref={bookSvgRef}
-              className="StickerBookPreviewModal-book-svg"
-            />
-          )}
-        </div>
-      )}
+      <StaticBookScene
+        isLoading={isLoading}
+        sceneSvg={sceneSvg}
+        bookSvgRef={bookSvgRef}
+      />
 
       {isDragVariant &&
         showDragSticker &&
