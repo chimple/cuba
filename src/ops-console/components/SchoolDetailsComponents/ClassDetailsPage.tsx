@@ -13,6 +13,7 @@ import AddNoteModal from '../SchoolDetailsComponents/AddNoteModal'; // <<-- impo
 import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import WhatsAppInfoCard from './WhatsAppInfoCard';
 import logger from '../../../utility/logger';
+import { parseGradeSection, toCommaString } from './ClassDetailsPageUtils';
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -26,35 +27,6 @@ type Props = {
   totalStudentsOverride?: number;
   onBack?: () => void;
 };
-
-function toCommaString(x: unknown): string {
-  if (!x) return '';
-  if (Array.isArray(x)) return x.filter(Boolean).join(', ') || '';
-  if (typeof x === 'string') return x.trim() || '';
-  return String(x);
-}
-
-function parseGradeSection(
-  name?: string,
-  fallbackGrade?: number | string,
-  fallbackSection?: string,
-): { grade?: number | string; section?: string } {
-  if (!name) return { grade: fallbackGrade, section: fallbackSection };
-  const s = name.trim();
-  const match = s.match(/^(\d{1,2})(.*)$/);
-  if (match) {
-    const gradeNum = parseInt(match[1], 10);
-    let sectionRaw = match[2];
-    if (gradeNum >= 0 && gradeNum <= 10) {
-      let sectionClean = sectionRaw.trim().replace(/^[-]\s*/, '');
-      return {
-        grade: gradeNum,
-        section: sectionClean || fallbackSection,
-      };
-    }
-  }
-  return { grade: fallbackGrade, section: fallbackSection };
-}
 
 const ClassDetailsPage: React.FC<Props> = ({
   data,
@@ -228,6 +200,7 @@ const ClassDetailsPage: React.FC<Props> = ({
           isMobile={isMobile}
           isTotal={false}
           isFilter={false}
+          optionalClassId={classId}
           customTitle={
             classNameSt ? `Students in ${classNameSt}` : 'Students in Class'
           }
