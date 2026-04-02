@@ -29,12 +29,12 @@
 }
 
 .StickerBookPreviewModal-modal--drag {
-  animation: StickerBookPreviewModal-expand-in 520ms
+  animation: StickerBookPreviewModal-expand-in 900ms
     cubic-bezier(0.18, 0.88, 0.22, 1);
 }
 
 .StickerBookPreviewModal-modal--flyout {
-  animation: StickerBookPreviewModal-flyout 520ms ease-in forwards;
+  animation: StickerBookPreviewModal-flyout 900ms ease-in forwards;
 }
 
 @keyframes StickerBookPreviewModal-expand-in {
@@ -143,7 +143,7 @@
 }
 
 .StickerBookPreviewModal-confetti--drop {
-  animation-duration: 1450ms;
+  animation-duration: 2200ms;
 }
 
 .StickerBookPreviewModal-confetti-piece,
@@ -267,8 +267,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 12rem;
-  height: 12rem;
+  width: 15rem;
+  height: 15rem;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
@@ -287,15 +287,15 @@
   box-shadow:
     0 0 0 0.06rem rgba(255, 255, 255, 0.24),
     0 0.06rem 0.16rem rgba(0, 0, 0, 0.08);
-  animation: StickerBookPreviewModal-confetti-drop-seed-rise 620ms
+  animation: StickerBookPreviewModal-confetti-drop-seed-rise 860ms
     cubic-bezier(0.24, 0.82, 0.26, 1) forwards;
 }
 
 .StickerBookPreviewModal-confetti-drop-explode {
   transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-blast 920ms
+  animation: StickerBookPreviewModal-confetti-drop-blast 1600ms
     cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-  animation-delay: 560ms;
+  animation-delay: 700ms;
   opacity: 0;
 }
 
@@ -360,7 +360,7 @@
 }
 
 .StickerBookPreviewModal-draggable-sticker--hinting img {
-  animation: none !important;
+  animation: StickerBookPreviewModal-sticker-guide-bob 3600ms linear infinite !important;
 }
 
 .StickerBookPreviewModal-draggable-sticker img {
@@ -374,8 +374,64 @@
 
 @keyframes StickerBookPreviewModal-sticker-drop {
   0% {
-    transform: translateY(var(--sticker-drop-distance, 72px)) scale(0.82);
+    transform: translateY(calc(var(--sticker-drop-distance, 72px) * -1))
+      scale(0.82);
     opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes StickerBookPreviewModal-sticker-guide-bob {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  10% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.08))
+      scale(1);
+    opacity: 1;
+  }
+  22% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.24))
+      scale(1);
+    opacity: 1;
+  }
+  34% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.46))
+      scale(1);
+    opacity: 1;
+  }
+  46% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.7))
+      scale(1);
+    opacity: 1;
+  }
+  58% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.9))
+      scale(1);
+    opacity: 1;
+  }
+  66% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -1)) scale(1);
+    opacity: 1;
+  }
+  72% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.86))
+      scale(1);
+    opacity: 1;
+  }
+  84% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.52))
+      scale(1);
+    opacity: 1;
+  }
+  92% {
+    transform: translateY(calc(var(--sticker-guide-lift, 0.8cm) * -0.2))
+      scale(1);
+    opacity: 1;
   }
   100% {
     transform: translateY(0) scale(1);
@@ -393,20 +449,29 @@
   will-change: transform, opacity;
   backface-visibility: hidden;
   transform: translate3d(0, 0, 0);
-  transform-origin: 46% 28%;
+  /* transform-origin: 46% 28%; */
+  transform-origin: 60% 20%;
   /* Full autoplay hand-guide loop. Increase duration for a slower gesture. */
   /* Linear timing keeps the motion speed more even across the full loop. */
-  animation: StickerBookPreviewModal-pointer-guide-full 4200ms linear infinite;
+  /* The animation is now conditionally set using modifier classes based on placement */
 }
 
-@keyframes StickerBookPreviewModal-pointer-guide-full {
+.StickerBookPreviewModal-pointer-hint--left {
+  animation: StickerBookPreviewModal-pointer-guide-left 3600ms linear infinite;
+}
+
+.StickerBookPreviewModal-pointer-hint--right {
+  animation: StickerBookPreviewModal-pointer-guide-right 3600ms linear infinite;
+}
+
+@keyframes StickerBookPreviewModal-pointer-guide-right {
   /* Initial pose: hand sits near the placeholder and points more directly down. */
   0% {
-    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(61deg) scale(0.92);
     opacity: 1;
   }
   10% {
-    transform: translate3d(0, 0, 0) rotate(100deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(61deg) scale(0.92);
     opacity: 1;
   }
   /* Early descent: slightly slower than before for a cleaner guide. */
@@ -446,13 +511,13 @@
         calc(var(--target-y, 0px) * 0.84),
         0
       )
-      rotate(4deg) scale(1);
+      rotate(-60deg) scale(1);
     opacity: 1;
   }
   /* Contact pose on the sticker. */
   66% {
     transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
-      rotate(-16deg) scale(1);
+      rotate(-80deg) scale(1);
     opacity: 1;
   }
   /* Small finish beat before returning. */
@@ -462,14 +527,14 @@
         calc(var(--target-y, 0px) - 0.12rem),
         0
       )
-      rotate(-22deg) scale(0.97);
+      rotate(-100deg) scale(0.97);
     opacity: 1;
   }
   /* Return: mirror the outbound pacing instead of compressing it at the end. */
   84% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.62),
-        calc(var(--target-y, 0px) * 0.62),
+        calc(var(--target-x, 0px) * 0.44),
+        calc(var(--target-y, 0px) * 0.44),
         0
       )
       rotate(20deg) scale(0.98);
@@ -477,8 +542,8 @@
   }
   92% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.32),
-        calc(var(--target-y, 0px) * 0.32),
+        calc(var(--target-x, 0px) * 0.14),
+        calc(var(--target-y, 0px) * 0.14),
         0
       )
       rotate(48deg) scale(0.95);
@@ -486,6 +551,97 @@
   }
   100% {
     transform: translate3d(0, 0, 0) rotate(82deg) scale(0.92);
+    opacity: 1;
+  }
+}
+
+@keyframes StickerBookPreviewModal-pointer-guide-left {
+  /* Initial pose: hand sits near the placeholder and points more directly down. */
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+    opacity: 1;
+  }
+  10% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+    opacity: 1;
+  }
+  /* Early descent: slightly slower than before for a cleaner guide. */
+  22% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.16),
+        calc(var(--target-y, 0px) * 0.16),
+        0
+      )
+      rotate(0deg) scale(0.94);
+    opacity: 1;
+  }
+  /* Mid curve: keep the same pace toward the sticker. */
+  34% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.38),
+        calc(var(--target-y, 0px) * 0.38),
+        0
+      )
+      rotate(0deg) scale(0.96);
+    opacity: 1;
+  }
+  /* Approach: keep pacing even while curving toward the sticker. */
+  46% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.62),
+        calc(var(--target-y, 0px) * 0.62),
+        0
+      )
+      rotate(0deg) scale(0.99);
+    opacity: 1;
+  }
+  /* Contact approach: arrive at the drag sticker at the same pace. */
+  58% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.84),
+        calc(var(--target-y, 0px) * 0.84),
+        0
+      )
+      rotate(-60deg) scale(1);
+    opacity: 1;
+  }
+  /* Contact pose on the sticker. */
+  66% {
+    transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
+      rotate(-80deg) scale(1);
+    opacity: 1;
+  }
+  /* Small finish beat before returning. */
+  72% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) + 0.08rem),
+        calc(var(--target-y, 0px) - 0.12rem),
+        0
+      )
+      rotate(-100deg) scale(0.97);
+    opacity: 1;
+  }
+  /* Return: mirror the outbound pacing instead of compressing it at the end. */
+  84% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.44),
+        calc(var(--target-y, 0px) * 0.44),
+        0
+      )
+      rotate(0deg) scale(0.98);
+    opacity: 1;
+  }
+  92% {
+    transform: translate3d(
+        calc(var(--target-x, 0px) * 0.14),
+        calc(var(--target-y, 0px) * 0.14),
+        0
+      )
+      rotate(0deg) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
     opacity: 1;
   }
 }

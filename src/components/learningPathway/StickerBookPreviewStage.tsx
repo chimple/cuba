@@ -163,19 +163,101 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
 
   if (isDragVariant && showPointerHint && dragStickerPos) {
     if (stableSlotRect) {
-      // Anchor the hint to the actual slot center so every sticker points to
-      // its own placeholder instead of relying on a generic top-left bias.
-      const slotAnchorX = stableSlotRect.x + stableSlotRect.width * 0.5;
-      const slotAnchorY = stableSlotRect.y + stableSlotRect.height * 0.54;
+      // Start from the actual nearest side of the placeholder and pull the
+      // hand slightly inward. This stays stable even when the draggable
+      // sticker overlaps the placeholder bounds.
+      const slotLeft = stableSlotRect.x;
+      const slotRight = stableSlotRect.x + stableSlotRect.width;
+      const slotTop = stableSlotRect.y;
+      const slotBottom = stableSlotRect.y + stableSlotRect.height;
+      const slotCenterX = stableSlotRect.x + stableSlotRect.width * 0.5;
+      const slotCenterY = stableSlotRect.y + stableSlotRect.height * 0.54;
       const stickerGuideX = dragStickerPos.x + dragStickerSize * 0.5;
       const stickerGuideY = dragStickerPos.y + dragStickerSize * 0.38;
+      const clampedGuideX = Math.min(
+        Math.max(stickerGuideX, slotLeft),
+        slotRight,
+      );
+      const clampedGuideY = Math.min(
+        Math.max(stickerGuideY, slotTop),
+        slotBottom,
+      );
+      const sideCandidates = [
+        {
+          x: slotLeft,
+          y: clampedGuideY,
+          distance: Math.abs(stickerGuideX - slotLeft),
+        },
+        {
+          x: slotRight,
+          y: clampedGuideY,
+          distance: Math.abs(stickerGuideX - slotRight),
+        },
+        {
+          x: clampedGuideX,
+          y: slotTop,
+          distance: Math.abs(stickerGuideY - slotTop),
+        },
+        {
+          x: clampedGuideX,
+          y: slotBottom,
+          distance: Math.abs(stickerGuideY - slotBottom),
+        },
+      ];
+      const horizontalOutside =
+        stickerGuideX < slotLeft ? -1 : stickerGuideX > slotRight ? 1 : 0;
+      const verticalOutside =
+        stickerGuideY < slotTop ? -1 : stickerGuideY > slotBottom ? 1 : 0;
+      let nearestSide = sideCandidates.reduce((best, candidate) =>
+        candidate.distance < best.distance ? candidate : best,
+      );
+
+      if (horizontalOutside !== 0 && verticalOutside === 0) {
+        nearestSide =
+          horizontalOutside < 0
+            ? {
+                x: slotLeft,
+                y: slotCenterY,
+                distance: Math.abs(stickerGuideX - slotLeft),
+              }
+            : {
+                x: slotRight,
+                y: slotCenterY,
+                distance: Math.abs(stickerGuideX - slotRight),
+              };
+      } else if (verticalOutside !== 0 && horizontalOutside === 0) {
+        nearestSide =
+          verticalOutside < 0
+            ? {
+                x: slotCenterX,
+                y: slotTop,
+                distance: Math.abs(stickerGuideY - slotTop),
+              }
+            : {
+                x: slotCenterX,
+                y: slotBottom,
+                distance: Math.abs(stickerGuideY - slotBottom),
+              };
+      }
+      const slotGap = nearestSide.distance;
+      const insetProgress = Math.min(
+        1,
+        slotGap /
+          Math.max(Math.min(stableSlotRect.width, stableSlotRect.height), 1),
+      );
+      const slotAnchorInset = 0.64 + insetProgress * 0.2;
+      const slotAnchorX =
+        slotCenterX + (nearestSide.x - slotCenterX) * slotAnchorInset;
+      const slotAnchorY =
+        slotCenterY + (nearestSide.y - slotCenterY) * slotAnchorInset;
+
+      hintDeltaX = stickerGuideX - slotAnchorX;
+      hintDeltaY = stickerGuideY - slotAnchorY;
       const pointerTipOffsetX = pointerHintSize * 0.46;
       const pointerTipOffsetY = pointerHintSize * 0.76;
 
       hintStartX = slotAnchorX - pointerTipOffsetX;
       hintStartY = slotAnchorY - pointerTipOffsetY;
-      hintDeltaX = stickerGuideX - slotAnchorX;
-      hintDeltaY = stickerGuideY - slotAnchorY;
     } else {
       hintStartX = dragStickerPos.x + dragStickerSize * 0.08;
       hintStartY = dragStickerPos.y - dragStickerSize * 0.72;
@@ -246,7 +328,7 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
                 width: `${dragStickerSize}px`,
                 height: `${dragStickerSize}px`,
                 transform: `translate(${dragStickerPos.x}px, ${dragStickerPos.y}px)${isDragging ? ' scale(1.06)' : ''}`,
-                '--sticker-drop-distance': `${Math.max(48, dragStickerSize * 0.72)}px`,
+                '--sticker-drop-distance': `${Math.max(0, dragStickerPos.y)}px`,
                 '--target-x': `${hintDeltaX}px`,
                 '--target-y': `${hintDeltaY}px`,
               } as React.CSSProperties
@@ -274,7 +356,11 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
               key={`${Math.round(hintStartX)}-${Math.round(hintStartY)}-${Math.round(hintDeltaX)}-${Math.round(hintDeltaY)}`}
               src="/pathwayAssets/touchpointer.svg"
               alt="drag-pointer"
-              className="StickerBookPreviewModal-pointer-hint"
+              className={`StickerBookPreviewModal-pointer-hint ${
+                hintDeltaX > 0
+                  ? 'StickerBookPreviewModal-pointer-hint--left'
+                  : 'StickerBookPreviewModal-pointer-hint--right'
+              }`}
               style={
                 {
                   left: `${hintStartX}px`,
