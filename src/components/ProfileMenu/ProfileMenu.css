@@ -195,12 +195,17 @@
 .profile-menu-label-with-dot {
   display: flex;
   align-items: center;
+  flex: 1;
 }
 
 .profile-menu-notification-dot {
+  display: inline-block;
   width: 7px;
   height: 7px;
-  margin-left: 14px;
+  margin-left: auto;
+  margin-right: 48px;
+  flex-shrink: 0;
+  align-self: center;
   border-radius: 50%;
   background: #e8935d;
   animation: profile-menu-dot-pulse 1.2s ease-in-out infinite;
