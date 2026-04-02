@@ -50,6 +50,10 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
+import {
+  getClassDisplayLabel,
+  getExactClassName,
+} from './ClassDetailsPageUtils';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -547,7 +551,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       phoneNumber: apiTeacher.user.phone || '—',
       emailDisplay: apiTeacher.user.email || '—',
       phoneEmailDisplay: `${apiTeacher.user.phone || '—'} / ${apiTeacher.user.email || '—'}`,
-      class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+      class: getClassDisplayLabel(
+        apiTeacher.grade,
+        apiTeacher.classSection,
+        getExactClassName(apiTeacher.classWithidname),
+      ),
       classId: apiTeacher.classWithidname?.id ?? '',
       interactData: '',
       interactPayload: apiTeacher,
@@ -582,7 +590,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               phoneNumber: apiTeacher.user?.phone || '—',
               emailDisplay: apiTeacher.user?.email || '—',
               phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || '—'} / ${apiTeacher.user?.email?.trim() || '—'}`,
-              class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+              class: getClassDisplayLabel(
+                apiTeacher.grade,
+                apiTeacher.classSection,
+                getExactClassName(apiTeacher.classWithidname),
+              ),
               classId: '',
               interactData: '',
               interactPayload: apiTeacher,
@@ -607,7 +619,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             phoneNumber: apiTeacher.user?.phone || '—',
             emailDisplay: apiTeacher.user?.email || '—',
             phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || '—'} / ${apiTeacher.user?.email?.trim() || '—'}`,
-            class: `${apiTeacher.grade}${apiTeacher.classSection}`,
+            class: getClassDisplayLabel(
+              apiTeacher.grade,
+              apiTeacher.classSection,
+              getExactClassName(apiTeacher.classWithidname),
+            ),
             classId,
             interactData: '',
             interactPayload: apiTeacher,
@@ -1019,7 +1035,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     }
   };
   const deleteClassDisplay = deleteTargetTeacher
-    ? `${deleteTargetTeacher.grade ?? ''}${deleteTargetTeacher.classSection ?? ''}`.trim()
+    ? getClassDisplayLabel(
+        deleteTargetTeacher.grade,
+        deleteTargetTeacher.classSection,
+        getExactClassName(deleteTargetTeacher.classWithidname),
+      )
     : '';
   const deleteContactDisplay = deleteTargetTeacher
     ? deleteTargetTeacher.user?.phone?.trim() ||
