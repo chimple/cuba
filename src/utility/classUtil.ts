@@ -11,14 +11,29 @@ import logger from './logger';
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
+  private static readonly IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+  private getIstStartOfDayUtc(baseDate: Date) {
+    const istEpoch = baseDate.getTime() + ClassUtil.IST_OFFSET_MS;
+    const istDate = new Date(istEpoch);
+
+    const istMidnightUtcEpoch =
+      Date.UTC(
+        istDate.getUTCFullYear(),
+        istDate.getUTCMonth(),
+        istDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ) - ClassUtil.IST_OFFSET_MS;
+
+    return new Date(istMidnightUtcEpoch);
+  }
 
   private getTimestampRange(startDaysBack: number, endDaysBack: number) {
     const now = new Date();
-    const istNow = new Date(
-      now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }),
-    );
-    const istStartOfToday = new Date(istNow);
-    istStartOfToday.setHours(0, 0, 0, 0);
+    const istStartOfToday = this.getIstStartOfDayUtc(now);
 
     const start = subDays(istStartOfToday, startDaysBack);
     const end = addDays(subDays(istStartOfToday, endDaysBack), 1);
@@ -70,7 +85,6 @@ export class ClassUtil {
     const previousRange = this.getTimestampRange(13, 7);
     const students = await this.api.getStudentsForClass(classId);
     const totalStudents = students.length;
-
     const studentMetrics = await Promise.all(
       students.map(async (student) => {
         const allResults = await this.api.getStudentResultByDate(
@@ -80,35 +94,29 @@ export class ClassUtil {
           currentRange.endTimestamp,
           classId,
         );
-
         const currentResults = (allResults ?? []).filter((result) => {
           const createdAt = new Date(result.created_at);
           return (
             createdAt >= currentRange.start && createdAt < currentRange.end
           );
         });
-
         const previousResults = (allResults ?? []).filter((result) => {
           const createdAt = new Date(result.created_at);
           return (
             createdAt >= previousRange.start && createdAt < previousRange.end
           );
         });
-
-        const currentTimeSpentSeconds = currentResults.reduce(
-          (sum, result) => sum + (result.time_spent ?? 0),
-          0,
-        );
-        const previousTimeSpentSeconds = previousResults.reduce(
-          (sum, result) => sum + (result.time_spent ?? 0),
-          0,
-        );
-
         return {
           hasCurrentPlay: currentResults.length > 0,
           hasPreviousPlay: previousResults.length > 0,
-          currentTimeSpentSeconds,
-          previousTimeSpentSeconds,
+          currentTimeSpentSeconds: currentResults.reduce(
+            (sum, result) => sum + (result.time_spent ?? 0),
+            0,
+          ),
+          previousTimeSpentSeconds: previousResults.reduce(
+            (sum, result) => sum + (result.time_spent ?? 0),
+            0,
+          ),
           currentAverageScore: this.getNumericAverage(
             currentResults.map((result) => result.score),
           ),
@@ -232,13 +240,12 @@ export class ClassUtil {
       if (!hasPlayedInLast7Days) {
         const playStatus = await this.api.getStudentPlayStatus(
           student.id,
-          courseIds,
           classId,
         );
-        const inactivityDays = playStatus.lastPlayedAt
+        const lastPlayedAt = playStatus.lastPlayedAt;
+        const inactivityDays = lastPlayedAt
           ? Math.floor(
-              (new Date().getTime() -
-                new Date(playStatus.lastPlayedAt).getTime()) /
+              (new Date().getTime() - new Date(lastPlayedAt).getTime()) /
                 (1000 * 60 * 60 * 24),
             )
           : 0;

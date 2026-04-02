@@ -3,17 +3,17 @@ import './WeeklySummary.css';
 import { HomeWeeklySummary } from '../../../common/constants';
 import { t } from 'i18next';
 import { format, subDays } from 'date-fns';
-import { IonIcon } from '@ionic/react';
-import {
-  arrowDownOutline,
-  arrowUpOutline,
-  informationCircleOutline,
-  removeOutline,
-} from 'ionicons/icons';
 
 interface WeeklySummaryProps {
   weeklySummary?: HomeWeeklySummary;
 }
+
+const INFO_ICON_SRC = '/assets/icons/infoIcon.svg';
+const TREND_ICON_BY_TYPE = {
+  up: '/assets/icons/GreenUpIcon.svg',
+  down: '/assets/icons/RedDownIcon.svg',
+  same: '/assets/icons/equalIcon.svg',
+} as const;
 
 const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
   const today = new Date();
@@ -37,12 +37,6 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
     },
   ];
 
-  const getTrendIcon = (trend: 'up' | 'down' | 'same') => {
-    if (trend === 'up') return arrowUpOutline;
-    if (trend === 'down') return arrowDownOutline;
-    return removeOutline;
-  };
-
   return (
     <div className="weekly-summary-container">
       <h3 className="weekly-summary-header">
@@ -52,8 +46,9 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
 
       <div className="class-summary-title-row">
         <span className="class-summary-title">{t('Class Summary')}</span>
-        <IonIcon
-          icon={informationCircleOutline}
+        <img
+          src={INFO_ICON_SRC}
+          alt="Info"
           className="class-summary-info-icon"
         />
       </div>
@@ -64,8 +59,9 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
             <div className="summary-label">{item.label}</div>
             <div className="summary-value-row">
               <strong className="summary-value">{item.value}</strong>
-              <IonIcon
-                icon={getTrendIcon(item.trend)}
+              <img
+                src={TREND_ICON_BY_TYPE[item.trend]}
+                alt={`${item.trend} trend`}
                 className="summary-trend-icon"
               />
             </div>

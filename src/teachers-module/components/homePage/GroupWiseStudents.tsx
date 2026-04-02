@@ -1,12 +1,16 @@
 import React from 'react';
 import 'react-circular-progressbar/dist/styles.css';
 import './GroupWiseStudents.css';
-import { BANDWISECOLOR, TableTypes } from '../../../common/constants';
+import {
+  getBandTitleByColor,
+  StudentProgressData,
+  TableTypes,
+} from '../../../common/constants';
 import { t } from 'i18next';
 
 interface GroupWiseStudentsProps {
   color: string;
-  studentsProgress?: Map<string, any>[];
+  studentsProgress?: StudentProgressData[];
   studentLength: string;
   onClickCallBack: Function;
 }
@@ -17,14 +21,7 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   studentLength,
   onClickCallBack,
 }) => {
-  const groupTitle =
-    color === BANDWISECOLOR.RED
-      ? t('Not active for last 7 or more days')
-      : color === BANDWISECOLOR.YELLOW
-        ? t('Medium Engagement <45 minutes')
-        : color === BANDWISECOLOR.GREEN
-          ? t('High Engagement 45+ minutes')
-          : t('App not downloaded');
+  const groupTitle = getBandTitleByColor(color, t as (key: string) => string);
 
   return (
     <div

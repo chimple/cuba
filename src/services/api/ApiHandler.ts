@@ -1202,10 +1202,9 @@ export class ApiHandler implements ServiceApi {
   }
   getStudentPlayStatus(
     studentId: string,
-    courseIds: string[],
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
-    return this.s.getStudentPlayStatus(studentId, courseIds, classId);
+    return this.s.getStudentPlayStatus(studentId, classId);
   }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings

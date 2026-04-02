@@ -6598,7 +6598,6 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentPlayStatus(
     studentId: string,
-    courseIds: string[],
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
     if (!this.supabase) return { hasPlayed: false };
@@ -6608,7 +6607,6 @@ export class SupabaseApi implements ServiceApi {
       .select('created_at')
       .eq('student_id', studentId)
       .eq('class_id', classId)
-      .in('course_id', courseIds)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .limit(1);

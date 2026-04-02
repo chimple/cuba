@@ -1038,6 +1038,25 @@ export interface HomeWeeklySummary {
     trend: 'up' | 'down' | 'same';
   };
 }
+export type StudentProgressData = Map<
+  string,
+  TableTypes<'user'> | TableTypes<'result'>[] | number
+>;
+export const getBandTitleByColor = (
+  color: string,
+  t: (key: string) => string,
+) => {
+  if (color === BANDWISECOLOR.RED) {
+    return t('Not active for last 7 or more days');
+  }
+  if (color === BANDWISECOLOR.YELLOW) {
+    return t('Medium Engagement <45 minutes');
+  }
+  if (color === BANDWISECOLOR.GREEN) {
+    return t('High Engagement 45+ minutes');
+  }
+  return t('App not downloaded');
+};
 export const LidoActivityEndKey = 'lidoActivityEnd';
 export const LidoLessonEndKey = 'lidoLessonEnd';
 export const LidoNextContainerKey = 'lidoNextContainer';

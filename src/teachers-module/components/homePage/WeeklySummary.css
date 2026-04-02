@@ -31,8 +31,8 @@
 }
 
 .class-summary-info-icon {
-  color: #2f2933;
-  font-size: 1.55vh;
+  width: 1.65vh;
+  height: 1.65vh;
 }
 
 .weekly-summary {
@@ -51,7 +51,7 @@
 .summary-label {
   min-height: 28px;
   color: #4a4a4a;
-  font-size: 1.6vh;
+  font-size: clamp(14px, 2.5vw, 18px);
   font-weight: 700;
   line-height: 1.15;
   display: flex;
@@ -77,10 +77,10 @@
 }
 
 .summary-trend-icon {
-  color: #5a6fe2;
-  font-size: 1.45vh;
-  line-height: 1;
+  width: clamp(16px, 2.4vh, 20px);
+  height: clamp(16px, 2.4vh, 20px);
   padding: 3px;
   border-radius: 999px;
-  background: #efe7fd;
+  background: #eaddff;
+  object-fit: contain;
 }

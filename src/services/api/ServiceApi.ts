@@ -1511,7 +1511,6 @@ export interface ServiceApi {
    */
   getStudentPlayStatus(
     studentId: string,
-    courseIds: string[],
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
 

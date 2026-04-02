@@ -5064,21 +5064,18 @@ order by
   }
   async getStudentPlayStatus(
     studentId: string,
-    courseIds: string[],
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
-    const courseholders = courseIds.map(() => '?').join(', ');
     const query = `
       SELECT created_at
       FROM ${TABLES.Result}
       WHERE student_id = ?
-      AND course_id IN (${courseholders})
       AND class_id = ?
-      AND is_deleted = false
+      AND is_deleted = 0
       ORDER BY created_at DESC
       LIMIT 1;
     `;
-    const params = [studentId, ...courseIds, classId];
+    const params = [studentId, classId];
     const res = await this._db?.query(query, params);
     const firstRow = res?.values?.[0] as { created_at?: string } | undefined;
 
