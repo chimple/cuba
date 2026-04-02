@@ -377,12 +377,15 @@ export function applyLockedStickerOutline(svg: SVGSVGElement) {
       'path,circle,ellipse,rect,polygon,polyline,line',
     );
     shapes.forEach((shape) => {
+      const isHighlight = shape.getAttribute('mode') === 'color';
+
       // White stroke, no fill for stickers
       shape.setAttribute('fill', '#C0C0C0');
       (shape as SVGElement).style?.setProperty('fill', '#C0C0C0', 'important');
       shape.removeAttribute('fill-opacity');
 
-      applyShapePaint(shape, 'stroke', '#FFFFFF');
+      const strokeColor = isHighlight ? 'rgba(255, 255, 255, 0.3)' : '#FFFFFF';
+      applyShapePaint(shape, 'stroke', strokeColor);
       (shape as SVGElement).style?.setProperty(
         'stroke-opacity',
         '1',
