@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
 import { t } from 'i18next';
 import { useHistory } from 'react-router';
-import { toBlob } from 'html-to-image';
 import {
   applyStickerVisibilityStrict,
   parseSvg,
@@ -13,6 +12,8 @@ import { EVENTS, PAGES } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
+import { useStickerBookSave } from '../../hooks/useStickerBookSave';
+import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -39,13 +40,6 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
-
-function sanitizeFileName(value: string): string {
-  return (
-    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
-    'sticker-book'
-  );
-}
 
 export const useStickerBookPreviewModalLogic = ({
   data,
@@ -95,8 +89,6 @@ export const useStickerBookPreviewModalLogic = ({
   ].join('::');
   const renderData = isDragVariant ? dragSessionData : data;
 
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const isCompletionMode = mode === 'completion';
   const popupEnterDurationMs = 900;
   const popupFlyoutDurationMs = 900;
@@ -137,6 +129,45 @@ export const useStickerBookPreviewModalLogic = ({
     }),
     [data, isCompletionMode],
   );
+  const saveAnalyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_id: data.stickerBookId,
+      book_title: data.stickerBookTitle,
+      collected_count: data.collectedStickerIds.length,
+      total_elements: data.totalStickerCount ?? data.collectedStickerIds.length,
+      page_path: window.location.pathname,
+    }),
+    [data],
+  );
+  const {
+    isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
+    openSaveModal,
+    closeSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
+  } = useStickerBookSave({
+    fileBaseName: data.stickerBookTitle
+      ? `${t('Sticker Book')} ${data.stickerBookTitle}`
+      : t('Sticker Book'),
+    shareText: t('Sticker Book'),
+    backgroundColor: '#fffdee',
+    onShareSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+    onSaveSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+  });
 
   useEffect(() => {
     if (!isDragVariant) return;
@@ -602,37 +633,15 @@ export const useStickerBookPreviewModalLogic = ({
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
       analyticsPayload,
     );
-    if (!shareTargetRef.current) return;
+    Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
 
-    setIsSaving(true);
-    try {
-      const blob = await toBlob(shareTargetRef.current, {
-        cacheBust: true,
-        backgroundColor: '#bee7de',
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-      });
-      if (!blob) return;
+    const stickerBookSvg = bookSvgRef.current?.cloneNode(true);
+    const serializedSvg = stickerBookSvg
+      ? new XMLSerializer().serializeToString(stickerBookSvg)
+      : svgMarkup || null;
+    if (!serializedSvg) return;
 
-      const file = new File(
-        [blob],
-        `${sanitizeFileName(data.stickerBookTitle)}.png`,
-        { type: 'image/png' },
-      );
-
-      await Util.sendContentToAndroidOrWebShare(
-        t('STICKER BOOK'),
-        data.stickerBookTitle || t('STICKER BOOK'),
-        undefined,
-        [file],
-      );
-    } catch (error) {
-      logger.error(
-        '[StickerBook] Failed to share sticker book snapshot:',
-        error,
-      );
-    } finally {
-      setIsSaving(false);
-    }
+    openSaveModal(serializedSvg);
   };
 
   const handlePaint = () => {
@@ -640,17 +649,26 @@ export const useStickerBookPreviewModalLogic = ({
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
       analyticsPayload,
     );
+    const svgRaw = bookSvgRef.current
+      ? new XMLSerializer().serializeToString(bookSvgRef.current)
+      : svgMarkup || undefined;
+
     history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: data.stickerBookId,
-      stickerBookSvgUrl: data.stickerBookSvgUrl,
-      collectedStickerIds: data.collectedStickerIds,
+      svgRaw,
+      svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
+      artworkTitle: data.stickerBookTitle || t('Sticker Book'),
+      returnTo: window.location.pathname,
     });
   };
 
   const setFrameElement = (element: HTMLDivElement | null) => {
     frameRef.current = element;
+  };
+
+  const closeCompletionSaveModal = () => {
+    closeSaveModal();
     if (isCompletionMode) {
-      shareTargetRef.current = element;
+      onClose('acknowledge_button');
     }
   };
 
@@ -659,6 +677,9 @@ export const useStickerBookPreviewModalLogic = ({
     isCompletionMode,
     isLoading,
     isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
     isFlyingOut,
     showIntroConfetti,
     showDropConfetti,
@@ -679,6 +700,9 @@ export const useStickerBookPreviewModalLogic = ({
     handleDragPointerUp,
     handleDragPointerCancel,
     handleSave,
+    closeCompletionSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
     handlePaint,
   };
 };
