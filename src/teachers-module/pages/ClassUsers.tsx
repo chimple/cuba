@@ -1,27 +1,28 @@
-import React, { useEffect, useState } from "react";
-import Tabs from "../../common/Tabs";
-import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
-import "./ClassUsers.css";
-import {
-  CLASS_USERS,
-  PAGES,
-  TableTypes,
-  USER_ROLE,
-} from "../../common/constants";
-import { Util } from "../../utility/util";
-import { useHistory, useLocation } from "react-router-dom";
-import UserList from "../components/studentProfile/UserList";
-import { RoleType } from "../../interface/modelInterfaces";
+import React, { useEffect, useState } from 'react';
+import Tabs from '../../common/Tabs';
+import Header from '../components/homePage/Header';
+import AddButton from '../../common/AddButton';
+import './ClassUsers.css';
+import { CLASS_USERS, PAGES, TableTypes } from '../../common/constants';
+import { Util } from '../../utility/util';
+import { useHistory, useLocation } from 'react-router-dom';
+import UserList from '../components/studentProfile/UserList';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 const ClassUsers: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const [selectedTab, setSelectedTab] = useState(CLASS_USERS.STUDENTS);
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const classData = (location.state as TableTypes<"class">) || {};
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const classData = (location.state as TableTypes<'class'>) || {};
   const currentSchool = Util.getCurrentSchool();
-  const currentRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const currentRoles = roles || [];
   useEffect(() => {
     init();
   }, []);
@@ -31,7 +32,7 @@ const ClassUsers: React.FC = () => {
       setCurrentClass(classData);
     }
     const queryParams = new URLSearchParams(location.search);
-    const tab = queryParams.get("tab");
+    const tab = queryParams.get('tab');
 
     if (tab === CLASS_USERS.TEACHERS) {
       handleTabSelect(CLASS_USERS.TEACHERS);
@@ -40,8 +41,12 @@ const ClassUsers: React.FC = () => {
     }
   };
 
-  const handleTabSelect = (tab) => {
-    setSelectedTab(tab);
+  const handleTabSelect = (tab: string) => {
+    if (tab === CLASS_USERS.TEACHERS) {
+      setSelectedTab(CLASS_USERS.TEACHERS);
+      return;
+    }
+    setSelectedTab(CLASS_USERS.STUDENTS);
   };
   const addStudent = () => {
     history.replace(PAGES.ADD_STUDENT, {
@@ -101,8 +106,8 @@ const ClassUsers: React.FC = () => {
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
             !currentRoles.includes(RoleType.TEACHER) && (
-            <AddButton onClick={addTeacher} />
-          )}
+              <AddButton onClick={addTeacher} />
+            )}
         </div>
       )}
     </>

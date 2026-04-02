@@ -1,50 +1,59 @@
-import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
-import { IonPage } from "@ionic/react";
-import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
-import {
-  BrowserRouter as Router,
-  Switch,
-  useRouteMatch,
-  Route,
-  Redirect,
-} from "react-router-dom";
-import ProtectedRoute from "../../ProtectedRoute";
-import "./SidebarPage.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import ProgramsPage from "./ProgramPage";
-import SchoolList from "./SchoolList";
-import SchoolDetailsPage from "./SchoolDetailsPage";
-import ProgramDetailsPage from "./ProgramDetailsPage";
-import UsersPage from "./UsersPage";
-import NewProgram from "../components/NewProgram";
-import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
-import NewUserPage from "./NewUserPageOps";
-import UserDetailsPage from "./UserDetailsPage";
-import { RoleType } from "../../interface/modelInterfaces";
-import RequestList from "./RequestList";
-import StudentPendingRequest from "./StudentPendingRequest";
-import SchoolPendingRequest from "./SchoolPendingRequest";
-import SchoolApprovedRequest from "./SchoolApprovedRequest";
-import SchoolRejectedRequest from "./SchoolRejectedRequest";
-import SchoolFormPage from "./SchoolFormPage";
-import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
-import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
-import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
-import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
-import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
-import AddSchoolPage from "./AddSchoolPage";
-import ActivitiesPage from "./ActivitiesPage";
-import SchoolActivities from "./SchoolActivities";
+import { IonPage } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import { Redirect, Switch, useParams, useRouteMatch } from 'react-router-dom';
+import { PAGES, TableTypes } from '../../common/constants';
+import ProtectedRoute from '../../ProtectedRoute';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
+import NewProgram from '../components/NewProgram';
+import Sidebar from '../components/Sidebar';
+import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
+import ActivitiesPage from './ActivitiesPage';
+import AddSchoolPage from './AddSchoolPage';
+import MigrateSchoolsPage from './MigrateSchoolsPage';
+import NewUserPage from './NewUserPageOps';
+import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
+import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
+import OpsModulePage from './OpsModulePage';
+import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
+import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
+import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import ProgramDetailsPage from './ProgramDetailsPage';
+import ProgramsPage from './ProgramPage';
+import RequestList from './RequestList';
+import SchoolActivities from './SchoolActivities';
+import SchoolApprovedRequest from './SchoolApprovedRequest';
+import SchoolDetailsPage from './SchoolDetailsPage';
+import SchoolFormPage from './SchoolFormPage';
+import SchoolList from './SchoolList';
+import SchoolPendingRequest from './SchoolPendingRequest';
+import SchoolRejectedRequest from './SchoolRejectedRequest';
+import './SidebarPage.css';
+import StudentPendingRequest from './StudentPendingRequest';
+import UserDetailsPage from './UserDetailsPage';
+import UsersPage from './UsersPage';
+
+const SchoolDetailsRoute: React.FC = () => {
+  const { school_id } = useParams<{ school_id: string }>();
+  return <SchoolDetailsPage id={school_id} />;
+};
+
+const ProgramDetailsRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramDetailsPage id={program_id} />;
+};
+
+const ProgramConnectedSchoolRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramConnectedSchoolPage id={program_id} />;
+};
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
 
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
-  const userRole = localStorage.getItem(USER_ROLE) || "[]";
 
   useEffect(() => {
     fetchData();
@@ -54,13 +63,13 @@ const SidebarPage: React.FC = () => {
     try {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error("No user is logged in.");
+        logger.error('No user is logged in.');
         return;
       }
 
       setCurrentUser(user);
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      logger.error('Error fetching user data:', error);
     }
   };
 
@@ -68,9 +77,9 @@ const SidebarPage: React.FC = () => {
     <IonPage>
       <div className="sidebarpage-rightSide">
         <Sidebar
-          name={currentUser?.name || ""}
-          email={currentUser?.email || ""}
-          photo={currentUser?.image || ""}
+          name={currentUser?.name || ''}
+          email={currentUser?.email || ''}
+          photo={currentUser?.image || ''}
         />
         <div className="sidebarpage-render">
           <Switch>
@@ -91,6 +100,18 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
+              exact={true}
+            >
+              <OpsModulePage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
+              exact={true}
+            >
+              <ParentWhatsappInvitationPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
@@ -150,21 +171,13 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <SchoolDetailsPage id={routeProps.match.params.school_id} />
-                );
-              }}
+              <SchoolDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
-                );
-              }}
+              <ProgramDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
               <NewProgram />
@@ -176,13 +189,7 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramConnectedSchoolPage
-                    id={routeProps.match.params.program_id}
-                  />
-                );
-              }}
+              <ProgramConnectedSchoolRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
@@ -201,6 +208,12 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <AddSchoolPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
+              exact={true}
+            >
+              <MigrateSchoolsPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}

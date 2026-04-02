@@ -1,13 +1,21 @@
-import { useEffect, useState } from "react";
-import { Redirect, Route } from "react-router-dom";
-import { ServiceConfig } from "./services/ServiceConfig";
-import { PAGES } from "./common/constants";
-import Loading from "./components/Loading";
-import { use } from "i18next";
+import { useEffect, useState } from 'react';
+import { Redirect, Route } from 'react-router-dom';
+import { ServiceConfig } from './services/ServiceConfig';
+import { PAGES } from './common/constants';
+import Loading from './components/Loading';
+import { RouteProps } from 'react-router-dom';
+import { ReactNode } from 'react';
 
-export default function ProtectedRoute({ children, ...rest }) {
-  const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
-  const [isTcAccept, setTcAccept] = useState<any>();
+type ProtectedRouteProps = RouteProps & {
+  children: ReactNode;
+};
+
+export default function ProtectedRoute({
+  children,
+  ...rest
+}: ProtectedRouteProps) {
+  const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
+  const [isTcAccept, setTcAccept] = useState<boolean | number>(false);
   useEffect(() => {
     checkAuth();
   }, []);

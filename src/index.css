@@ -1,28 +1,30 @@
 /* Baloo 2 – Latin + Devanagari */
 @font-face {
   font-family: 'BalooRegular';
-  src: url('/public/assets/fonts/Baloo/Baloo2-VariableFont.ttf') format('truetype-variations');
+  src: url('/public/assets/fonts/Baloo/Baloo2-VariableFont.ttf')
+    format('truetype-variations');
   font-weight: 400 800;
   font-style: normal;
   unicode-range:
-    U+0000-024F,      /* Latin */
-    U+0900-097F;      /* Devanagari */
+    U+0000-024F,
+    /* Latin */ U+0900-097F; /* Devanagari */
 }
 
 /* Baloo Tamma 2 – Kannada */
 @font-face {
   font-family: 'BalooRegular';
-  src: url('/public/assets/fonts/Baloo/BalooTamma2-VariableFont.ttf') format('truetype-variations');
+  src: url('/public/assets/fonts/Baloo/BalooTamma2-VariableFont.ttf')
+    format('truetype-variations');
   font-weight: 400 800;
   font-style: normal;
   unicode-range: U+0C80-0CFF; /* Kannada block */
 }
 
 * {
-  font-family: "BalooRegular";
+  font-family: 'BalooRegular';
   src:
-    local("BalooRegular"),
-    url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
+    local('BalooRegular'),
+    url('/public/assets/fonts/Baloo/Baloo2-Regular.ttf') format('truetype');
   /* font-weight: bolder; */
   user-select: none;
 }
@@ -40,7 +42,6 @@
 }
 
 .loading {
-  /* border-radius: 30px; */
   width: 100px;
   height: 100px;
 }
@@ -53,22 +54,27 @@
   color: var(--text-color);
 }
 
-
-/* Ops console: enable selection */
-body.ops-console,
 body.ops-console * {
-  user-select: text !important;
-  -webkit-user-select: text !important;
-  -webkit-touch-callout: default !important;
+  user-select: text;
 }
 
-/* Still block CTAs */
-body.ops-console button,
-body.ops-console a,
-body.ops-console [role="button"],
+body.ops-console
+  :is(button, a, th, img, [role='button'], .btn, .cta, .icon-button),
+body.ops-console
+  :is(button, a, th, img, [role='button'], .btn, .cta, .icon-button)
+  * {
+  user-select: none;
+}
+
+body.ops-console .MuiButtonBase-root,
+body.ops-console .MuiButtonBase-root *,
+body.ops-console .MuiIconButton-root,
+body.ops-console .MuiIconButton-root *,
+body.ops-console .MuiInputAdornment-root,
+body.ops-console .MuiInputAdornment-root *,
 body.ops-console input,
-body.ops-console textarea {
+body.ops-console svg,
+body.ops-console svg * {
   user-select: none !important;
   -webkit-user-select: none !important;
-  -webkit-touch-callout: none !important;
 }

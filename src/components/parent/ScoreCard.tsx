@@ -1,10 +1,11 @@
-import React, { MouseEventHandler } from "react";
-import "./ScoreCard.css";
-import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
-import { Dialog, DialogContentText } from "@mui/material";
-import ScoreCardStarIcons from "./ScoreCardStarIcons";
-import ScoreCardTitle from "./ScoreCardTitle";
-import i18n from "../../i18n";
+import React, { MouseEventHandler } from 'react';
+import './ScoreCard.css';
+import { OverlayEventDetail } from '@ionic/react/dist/types/components/react-component-lib/interfaces';
+import { Dialog, DialogContentText } from '@mui/material';
+import ScoreCardStarIcons from './ScoreCardStarIcons';
+import ScoreCardTitle from './ScoreCardTitle';
+import i18n from '../../i18n';
+import { t } from 'i18next';
 
 const ScoreCard: React.FC<{
   showDialogBox: boolean;
@@ -27,18 +28,18 @@ const ScoreCard: React.FC<{
     <div>
       <Dialog
         open={showDialogBox}
-       onClose={(event, reason) => {
-       if (reason === "backdropClick") return; 
-       if (reason === "escapeKeyDown") return;
-    handleClose(event as any);
-  }}
+        onClose={(event, reason) => {
+          if (reason === 'backdropClick') return;
+          if (reason === 'escapeKeyDown') return;
+          handleClose(event as any);
+        }}
         slotProps={{
           paper: {
             sx: {
-              backgroundColor: "#FFFDEE",
-              width: "346px !important",
-              height: "314px !important",
-              borderRadius: "22px !important",
+              backgroundColor: '#FFFDEE',
+              width: '346px !important',
+              height: '314px !important',
+              borderRadius: '22px !important',
             },
           },
         }}
@@ -51,19 +52,19 @@ const ScoreCard: React.FC<{
                 <ScoreCardStarIcons score={score} />
               </div>
             </div>
-
             <ScoreCardTitle score={score} />
-
             <div className="score-card-content">
-              <div className="score-card-content-message">{message}</div>
-              <div className="score-card-content-lesson-name">{lessonName}</div>
+              <div className="score-card-content-message">{t(message)}</div>
+              <div className="score-card-content-lesson-name">
+                {t(lessonName)}
+              </div>
             </div>
           </DialogContentText>
         </div>
         <div className="ScoreCard-Continue-Button-div">
           <button
-            id={"noButton"}
-            className={`dialog-box-button-style-score-card ${i18n.language === "kn" ? "scorecard-button-kn" : ""}`}
+            id={'noButton'}
+            className={`dialog-box-button-style-score-card ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
             onClick={onContinueButtonClicked}
           >
             <span>{noText}</span>

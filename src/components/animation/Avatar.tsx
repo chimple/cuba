@@ -4,11 +4,12 @@ import {
   SHOW_DAILY_PROGRESS_FLAG,
   TableTypes,
   unlockedRewardsInfo,
-} from "../../common/constants";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { LeaderboardInfo } from "../../services/api/ServiceApi";
+} from '../../common/constants';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import { LeaderboardInfo } from '../../services/api/ServiceApi';
+import logger from '../../utility/logger';
 
 export enum AvatarModes {
   Welcome,
@@ -46,13 +47,13 @@ export class AvatarObj {
   public static _i: AvatarObj | undefined;
   unlockedRewards: unlockedRewardsInfo[];
 
-  currentCourse: TableTypes<"course">;
-  currentChapter: TableTypes<"chapter">;
-  currentLesson: TableTypes<"lesson"> | undefined;
+  currentCourse: TableTypes<'course'>;
+  currentChapter: TableTypes<'chapter'>;
+  currentLesson: TableTypes<'lesson'> | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 60;
-  weeklyTimeSpent: {} = { min: 0, sec: 0 };
+  weeklyTimeSpent: { min: number; sec: number } = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
@@ -175,12 +176,12 @@ export class AvatarObj {
 
   suggestionConstant = () => {
     const currentStudent = Util.getCurrentStudent();
-    return currentStudent?.id + "-" + CURRENT_AVATAR_SUGGESTION_NO;
+    return currentStudent?.id + '-' + CURRENT_AVATAR_SUGGESTION_NO;
   };
 
   public getCurrentSuggestionNo() {
     let tempCurrentSugNo = Number(
-      localStorage.getItem(this.suggestionConstant())
+      localStorage.getItem(this.suggestionConstant()),
     );
     this._currentSuggestionNumber = tempCurrentSugNo;
 
@@ -192,23 +193,23 @@ export class AvatarObj {
       const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
       if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
         this.mode = AvatarModes.collectReward;
-        this.avatarAnimation = "Success";
+        this.avatarAnimation = 'Success';
         return;
-      } else if (showDailyProgress === "true") {
-        if (this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60) {
+      } else if (showDailyProgress === 'true') {
+        if (this.weeklyTimeSpent['min'] * 60 < this.weeklyProgressGoal * 60) {
           await this.loadAvatarWeeklyProgressData();
           return;
         }
 
-        if (this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60) {
-          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+        if (this.weeklyTimeSpent['min'] * 60 >= this.weeklyProgressGoal * 60) {
+          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'false');
           const isCurrentWeeklyStickerUnlocked =
             await Util.unlockWeeklySticker();
 
           if (isCurrentWeeklyStickerUnlocked) {
             if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
               this.mode = AvatarModes.collectReward;
-              this.avatarAnimation = "Success";
+              this.avatarAnimation = 'Success';
               return;
             }
           }
@@ -218,28 +219,14 @@ export class AvatarObj {
         if (!this._currentSuggestionNumber) {
           this._currentSuggestionNumber = 0;
         }
-        const path = "assets/animation/avatarSugguestions.json";
-        // localStorage.getItem("avatarSuggestionJsonLocation") ||
-        // "assets/animation/avatarSugguestions.json";
+        const path = 'assets/animation/avatarSugguestions.json';
 
-        // let response = await fetch(path);
         let response;
-        // try {
-        //   response = await Filesystem.readFile({
-        //     path: path,
-        //   });
-        //   let suggesstionJson = await response.data;
-
-       
-
-        //   this._allSuggestions = JSON.parse(suggesstionJson).data;
-        // } catch (error) {
 
         response = await fetch(path);
         let suggesstionJson = await response.json();
 
         this._allSuggestions = suggesstionJson.data;
-        // }
       }
 
       const currentAvatarSuggestionNoFromLocal = this.getCurrentSuggestionNo();
@@ -260,7 +247,7 @@ export class AvatarObj {
       this._option3 = currentSuggestionInJson[11];
       this._option4 = currentSuggestionInJson[12];
     } catch (error) {
-      console.error("Failed to load Avatar Data", error);
+      logger.error('Failed to load Avatar Data', error);
     }
   }
 
@@ -269,13 +256,13 @@ export class AvatarObj {
       this._currentSuggestionNumber = 0;
       localStorage.setItem(
         this.suggestionConstant(),
-        this._currentSuggestionNumber.toString()
+        this._currentSuggestionNumber.toString(),
       );
     } else {
       this.currentSuggestionNumber++;
       localStorage.setItem(
         this.suggestionConstant(),
-        this._currentSuggestionNumber.toString()
+        this._currentSuggestionNumber.toString(),
       );
     }
     let currentSuggestionInJson =
@@ -304,7 +291,7 @@ export class AvatarObj {
 
       const api = ServiceConfig.getI().apiHandler;
       const studentProfile = await api.getStudentClassesAndSchools(
-        currentStudent.id
+        currentStudent.id,
       );
 
       let weeKlyProgressData: LeaderboardInfo | undefined;
@@ -312,12 +299,12 @@ export class AvatarObj {
       if (studentProfile?.classes != undefined) {
         weeKlyProgressData = await api.getLeaderboardResults(
           studentProfile?.classes[0].id,
-          LeaderboardDropdownList.WEEKLY
+          LeaderboardDropdownList.WEEKLY,
         );
       } else {
         weeKlyProgressData =
           await api.getLeaderboardStudentResultFromB2CCollection(
-            currentStudent.id
+            currentStudent.id,
           );
       }
 
@@ -342,28 +329,28 @@ export class AvatarObj {
           let computeMinutes = Math.floor(finalProgressTimespent / 60);
           let computeSec = finalProgressTimespent % 60;
           if (
-            this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
+            this.weeklyTimeSpent['min'] * 60 + this.weeklyTimeSpent['sec'] <=
             computeMinutes * 60 + computeSec
           ) {
-            this.weeklyTimeSpent["min"] = computeMinutes;
-            this.weeklyTimeSpent["sec"] = computeSec;
+            this.weeklyTimeSpent['min'] = computeMinutes;
+            this.weeklyTimeSpent['sec'] = computeSec;
             this.weeklyPlayedLesson = element.lessonsPlayed;
           }
 
           if (element.timeSpent >= this.weeklyProgressGoal * 60) {
-            localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+            localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'false');
             return;
           }
           this.message = t(this.gamifyTimespentMessage).replace(
-            "x1",
-            computeMinutes.toString() + " min and " + computeSec + " sec"
+            'x1',
+            computeMinutes.toString() + ' min and ' + computeSec + ' sec',
           );
           // this._mode = AvatarModes.ShowWeeklyProgress;
         }
       }
       this._mode = AvatarModes.ShowWeeklyProgress;
     } catch (error) {
-      console.error("loadAvatarWeeklyProgressData error ", error);
+      logger.error('loadAvatarWeeklyProgressData error ', error);
     }
   }
 }

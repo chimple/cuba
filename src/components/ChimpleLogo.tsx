@@ -1,4 +1,4 @@
-import "./ChimpleLogo.css";
+import './ChimpleLogo.css';
 const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
   header,
   msg,
@@ -11,7 +11,7 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
         src="assets/icons/ChimpleBrandLogo.svg"
       />
       <div id="logo-heading">{header}</div>
-      {typeof msg === "string" ? (
+      {typeof msg === 'string' ? (
         <div id="logo-msg">{msg}</div>
       ) : (
         msg.map((value) => (
@@ -20,7 +20,6 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
           </div>
         ))
       )}
-      {/* <div id="logo-msg">{msg}</div> */}
     </div>
   );
 };

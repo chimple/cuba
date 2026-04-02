@@ -97,11 +97,10 @@
 
 .formcard-form-group input:disabled,
 .formcard-form-group select:disabled {
-  background-color: #f3f4f6;   /* disabled bg */
+  background-color: #f3f4f6; /* disabled bg */
   cursor: not-allowed;
   border-color: #e5e7eb;
 }
-
 
 .formcard-form-group input::placeholder,
 .formcard-form-group select::placeholder {
@@ -226,7 +225,6 @@
   cursor: not-allowed;
   opacity: 0.9;
 }
-
 
 .formcard-modal-footer {
   display: flex;

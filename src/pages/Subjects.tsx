@@ -1,22 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { useHistory, useLocation } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
   CURRENT_SELECTED_COURSE,
-  DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   HOMEHEADERLIST,
   MODES,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import "./Subjects.css";
-import SelectCourse from "../components/displaySubjects/SelectCourse";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import SkeltonLoading from "../components/SkeltonLoading";
+} from '../common/constants';
+import './Subjects.css';
+import SelectCourse from '../components/displaySubjects/SelectCourse';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import SkeltonLoading from '../components/SkeltonLoading';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -24,29 +23,24 @@ let localStorageData: any = {};
 const Subjects: React.FC<{}> = ({}) => {
   enum STAGES {
     SUBJECTS,
-    // CHAPTERS,
-    // LESSONS,
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<TableTypes<"course">[]>();
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>();
   const [mode, setMode] = useState<MODES>();
   const [studentLinked, setStudentLinked] = useState<boolean>(false);
-  // const [gradesMap, setGradesMap] = useState<{
-  //   grades: Grade[];
-  //   courses: TableTypes<"course">[];
-  // }>();
+
   const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: TableTypes<"grade">[];
-    courses: TableTypes<"course">[];
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
   }>();
-  const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<'grade'>>();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>();
   const [userMode, setUserMode] = useState<boolean>(false);
   const history = useHistory();
@@ -84,101 +78,28 @@ const Subjects: React.FC<{}> = ({}) => {
 
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
-      //   localStorageData.stage = STAGES.LESSONS;
-      // addDataToLocalStorage();
-      //   setStage(STAGES.LESSONS);
 
       setIsLoading(false);
-    } else if (!!urlParams.get("isReload")) {
+    } else if (!!urlParams.get('isReload')) {
       await getCourses();
-      // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      // if (!!strLocalStoreData) {
-      //   localStorageData = JSON.parse(strLocalStoreData);
-
-      //   if (!!localStorageData.courses) {
-      //     // let tmpCourses: TableTypes<"course">[] = Util.convertCourses(
-      //     //   localStorageData.courses
-      //     // );
-      //     let tmpCourses: TableTypes<"course">[] = localStorageData.courses;
-      //     localData.courses = tmpCourses;
-      //     setCourses(tmpCourses);
-      //     if (
-      //       !!localStorageData.stage &&
-      //       localStorageData.stage !== STAGES.SUBJECTS &&
-      //       !!localStorageData.currentCourseId
-      //     ) {
-      //       setStage(localStorageData.stage);
-      //       let cc: TableTypes<"course"> = localData.courses.find(
-      //         (cour) => localStorageData.currentCourseId === cour.id
-      //       );
-      //       localData.currentCourse = cc;
-      //       setCurrentCourse(cc);
-
-      //       if (!!localStorageData.localGradeMap) {
-      //         localData.localGradeMap = localStorageData.localGradeMap;
-      //         setLocalGradeMap(localStorageData.localGradeMap);
-      //       }
-
-      //       if (!!localStorageData.currentGrade) {
-      //         localData.currentGrade = localStorageData.currentGrade;
-      //         setCurrentGrade(localStorageData.currentGrade);
-      //       }
-
-      //       if (!!localStorageData.currentChapterId) {
-      //         let cChap: TableTypes<"chapter"> =
-      //           localData.currentCourse.chapters.find(
-      //             (chap) => localStorageData.currentChapterId === chap.id
-      //           );
-      //         localData.currentChapter = cChap;
-      //         setCurrentChapter(cChap);
-      //       }
-
-      //       if (!!localStorageData.lessonResultMap) {
-      //         let tmpStdMap: { [lessonDocId: string]: TableTypes<"result"> } =
-      //           localStorageData.lessonResultMap;
-      //         // for (const value of Object.values(tmpStdMap)) {
-      //         //   if (!!value.course) value.course = Util.getRef(value.course);
-      //         // }
-      //         localData.lessonResultMap = tmpStdMap;
-      //         setLessonResultMap(tmpStdMap);
-      //       }
-
-      //       // if (localStorageData.stage === STAGES.LESSONS) {
-      //       //   getLessonsForChapter(localData.currentChapter);
-      //       // } else {
-      //       //   setIsLoading(false);
-      //       // }
-      //     } else {
-      //       setIsLoading(false);
-      //     }
-      //   } else {
-      //     await getCourses();
-
-      //   }
-      // } else {
-      //   await getCourses();
-
-      // }
     } else {
       let result = await getCourses();
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       let _localMap: {
-        grades: TableTypes<"grade">[];
-        courses: TableTypes<"course">[];
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
       } = JSON.parse(map);
-      // let convertedCourses = Util.convertCourses(_localMap.courses);
-      // _localMap.courses = convertedCourses;
+
       setLocalGradeMap(_localMap);
     }
   };
 
-  const getCourses = async (): Promise<TableTypes<"course">[]> => {
+  const getCourses = async (): Promise<TableTypes<'course'>[]> => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
-      // history.replace(PAGES.DISPLAY_STUDENT);
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
@@ -207,20 +128,20 @@ const Subjects: React.FC<{}> = ({}) => {
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
-    // localStorageData.courses = courses;
+
     setCourses(courses);
-    // addDataToLocalStorage();
+
     setIsLoading(false);
     return courses;
   };
 
-  const onCourseChanges = async (course: TableTypes<"course">) => {
+  const onCourseChanges = async (course: TableTypes<'course'>) => {
     const gradesMap: {
-      grades: TableTypes<"grade">[];
-      courses: TableTypes<"course">[];
+      grades: TableTypes<'grade'>[];
+      courses: TableTypes<'course'>[];
     } = await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
-      (grade) => grade.id === course.grade_id
+      (grade) => grade.id === course.grade_id,
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
@@ -233,28 +154,18 @@ const Subjects: React.FC<{}> = ({}) => {
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
-    // localStorageData.stage = STAGES.CHAPTERS;
-    // addDataToLocalStorage();
+
     const params = `courseDocId=${course.id}`;
-    // history.replace(PAGES.DISPLAY_CHAPTERS + params);
+
     if (urlParams.get(CONTINUE)) {
-      history.replace(
-        PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` + "&" + params
-      );
+      history.push(PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` + '&' + params);
     } else {
-      history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);
+      history.push(PAGES.DISPLAY_CHAPTERS + '?' + params);
     }
   };
 
-  // function addDataToLocalStorage() {
-  //   localStorage.setItem(
-  //     DISPLAY_SUBJECTS_STORE,
-  //     JSON.stringify(localStorageData)
-  //   );
-  // }
-
   return (
-    <div id="display-subjects-page" style={{ height: "100vh" }}>
+    <div id="display-subjects-page" style={{ height: '100vh' }}>
       <SkeltonLoading isLoading={isLoading} header={HOMEHEADERLIST.SUBJECTS} />
       <div className="subjects-content">
         {!isLoading &&

@@ -1,0 +1,99 @@
+.color-palette {
+  width: clamp(120px, 15vw, 151px);
+  height: clamp(230px, 35vh, 291px);
+  padding: clamp(8px, 1.5vw, 12px);
+  border-radius: 10px;
+  border-top: 2px solid #57dbe0;
+  background: #fffdee;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(6px, 1.2vw, 10px);
+  justify-items: center;
+  align-items: center;
+}
+
+@media (min-width: 801px) {
+  .color-palette {
+    gap: 4px;
+  }
+}
+
+.color-palette-swatch {
+  width: clamp(36px, 10vw, 48px);
+  height: clamp(36px, 10vw, 48px);
+  border-radius: 5px;
+  cursor: pointer;
+  border: none;
+  border-bottom: 5px solid transparent;
+  position: relative;
+  overflow: visible;
+
+  /* The "Foot" / Depth shadow below the button (can be removed if no longer needed, but let's keep simple shadow or none based on prompt. Prompt didn't mention shadow, so I remove it as they wanted flat vector highlights) */
+  transition: all 0.1s ease;
+}
+
+/* THE TOP GLOSS (Vector style) */
+.vector-top-left {
+  position: absolute;
+  top: 4%;
+  left: 4%;
+  width: 56.25%; /* 27/48 */
+  height: 33.33%; /* 16/48 */
+  filter: blur(3px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* THE BOTTOM CORNER ACCENT (Vector style) */
+.vector-bottom-right {
+  position: absolute;
+  bottom: 8%;
+  right: 4%;
+  width: 23.7%; /* 11.38/48 */
+  height: 18.8%; /* 9.03/48 */
+  transform: rotate(178.9deg);
+  filter: blur(2px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* INTERACTION: Pressed state */
+.color-palette-swatch:active {
+  transform: scale(0.95);
+  border-bottom-width: 2px;
+}
+
+/* SELECTION RING */
+.color-palette-swatch-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px 4px 4px 4px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  transition: all 0.1s ease;
+}
+
+.color-palette-swatch-wrapper.selected {
+  border-color: #36898c;
+}
+
+.color-palette-swatch.selected {
+  border-bottom-width: 2px;
+}
+
+@media (max-height: 500px) {
+  .color-palette {
+    height: auto;
+    min-height: 0;
+    padding: 6px;
+    gap: 4px 1px;
+    border-radius: 8px;
+  }
+
+  .color-palette-swatch {
+    width: clamp(30px, 12vh, 48px);
+    height: clamp(30px, 12vh, 48px);
+    border-bottom-width: 3px;
+  }
+}

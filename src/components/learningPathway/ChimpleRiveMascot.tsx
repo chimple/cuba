@@ -1,8 +1,18 @@
-import { useEffect, useState } from "react";
-import { useRive, Layout, Fit, Alignment, useStateMachineInput } from "@rive-app/react-canvas";
-import { CHIMPLE_RIVE_STATE_MACHINE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../../common/constants";
-import { Capacitor } from "@capacitor/core";
-import { Filesystem, Directory } from "@capacitor/filesystem";
+import { useEffect, useState } from 'react';
+import {
+  useRive,
+  Layout,
+  Fit,
+  Alignment,
+  useStateMachineInput,
+} from '@rive-app/react-canvas';
+import {
+  CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  SHOULD_SHOW_REMOTE_ASSETS,
+} from '../../common/constants';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import logger from '../../utility/logger';
 
 interface ChimpleRiveMascotProps {
   stateMachine?: string;
@@ -11,21 +21,36 @@ interface ChimpleRiveMascotProps {
   inputName?: string;
 }
 
-export default function ChimpleRiveMascot({ stateMachine, animationName, stateValue, inputName }: ChimpleRiveMascotProps) {
+interface RiveMascotCanvasProps extends ChimpleRiveMascotProps {
+  src: string;
+}
 
-  const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS)==="true")? true : false;
-
-  const chimple_rive_state_machine_max = localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX);
-  const [riveSrc, setRiveSrc] = useState<string>("/pathwayAssets/chimpleRive.riv");
+function RiveMascotCanvas({
+  src,
+  stateMachine,
+  animationName,
+  stateValue,
+  inputName,
+}: RiveMascotCanvasProps) {
+  const chimple_rive_state_machine_max = localStorage.getItem(
+    CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  );
+  const should_show_remote_asset =
+    Capacitor.isNativePlatform() &&
+    localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
+      ? true
+      : false;
 
   const CHIMPLE_RIVE_STATE_MIN = 1;
   const CHIMPLE_RIVE_STATE_MAX = should_show_remote_asset
-    ? (chimple_rive_state_machine_max ? parseInt(chimple_rive_state_machine_max, 10) : 8)
+    ? chimple_rive_state_machine_max
+      ? parseInt(chimple_rive_state_machine_max, 10)
+      : 8
     : 8;
 
   const { rive, RiveComponent } = useRive({
-    src: should_show_remote_asset? riveSrc : "/pathwayAssets/chimpleRive.riv",
-    artboard: "Artboard",
+    src,
+    artboard: 'Artboard',
     stateMachines: animationName ? undefined : stateMachine,
     animations: animationName ? [animationName] : undefined,
     autoplay: true,
@@ -34,49 +59,111 @@ export default function ChimpleRiveMascot({ stateMachine, animationName, stateVa
       alignment: Alignment.Center,
     }),
   });
-  const stateInputName = inputName? inputName : "Number 2";
-  const numberInput = useStateMachineInput(rive, stateMachine, stateInputName, stateValue ? stateValue : CHIMPLE_RIVE_STATE_MIN);
+  const stateInputName = inputName ? inputName : 'Number 2';
+  const numberInput = useStateMachineInput(
+    rive,
+    stateMachine,
+    stateInputName,
+    stateValue ? stateValue : CHIMPLE_RIVE_STATE_MIN,
+  );
   // Get today's date and map to state 1-MAX
   const today = new Date();
   const day = today.getDate();
   const mappedState = ((day - 1) % CHIMPLE_RIVE_STATE_MAX) + 1;
-  const [value, setValue] = useState<number>(stateValue ? stateValue : mappedState);
+  const [value] = useState<number>(stateValue ? stateValue : mappedState);
 
   useEffect(() => {
-    if (!should_show_remote_asset) return;
+    if (animationName) return; // Don't set state machine input if using animation
+    try {
+      if (
+        numberInput &&
+        'value' in numberInput &&
+        typeof numberInput.value === 'number' &&
+        !isNaN(numberInput.value) &&
+        typeof value === 'number' &&
+        !isNaN(value)
+      ) {
+        numberInput.value = value;
+      }
+    } catch (error) {
+      logger.error('Failed to set numberInput value:', error);
+    }
+  }, [value, numberInput, animationName]);
+
+  return <RiveComponent style={{ width: '100%', height: '100%' }} />;
+}
+
+export default function ChimpleRiveMascot({
+  stateMachine,
+  animationName,
+  stateValue,
+  inputName,
+}: ChimpleRiveMascotProps) {
+  const should_show_remote_asset =
+    Capacitor.isNativePlatform() &&
+    localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
+      ? true
+      : false;
+  const defaultSrc = '/pathwayAssets/chimpleRive.riv';
+  const [riveSrc, setRiveSrc] = useState<string | null>(
+    should_show_remote_asset ? null : defaultSrc,
+  );
+
+  useEffect(() => {
+    if (!should_show_remote_asset) {
+      setRiveSrc(defaultSrc);
+      return;
+    }
+
+    let isMounted = true;
 
     const getRemoteMascotUrl = async () => {
       try {
         // Read the file content and convert to base64 data URL
         const fileContent = await Filesystem.readFile({
           directory: Directory.External,
-          path: "remoteAsset/chimpleRive.riv"
+          path: 'remoteAsset/chimpleRive.riv',
         });
-        
+
         if (fileContent.data) {
           // Convert to data URL that useRive can load
           const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
-          setRiveSrc(dataUrl);
+          if (isMounted) {
+            setRiveSrc(dataUrl);
+          }
+          return;
         }
         // If no data or error, keep default local path
+        if (isMounted) {
+          setRiveSrc(defaultSrc);
+        }
       } catch (error) {
-        console.log("Error reading remote mascot file, keeping local path:", error);
+        logger.error(
+          'Error reading remote mascot file, keeping local path:',
+          error,
+        );
+        if (isMounted) {
+          setRiveSrc(defaultSrc);
+        }
       }
     };
 
     getRemoteMascotUrl();
-  }, [should_show_remote_asset]);
 
-  useEffect(() => {
-    if (animationName) return; // Don't set state machine input if using animation
-    try {
-      if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
-        numberInput.value = value;
-      }
-    } catch (error) {
-      console.error("Failed to set numberInput value:", error);
-    }
-  }, [value, numberInput, animationName]);
+    return () => {
+      isMounted = false;
+    };
+  }, [defaultSrc, should_show_remote_asset]);
 
-  return <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />;
+  if (!riveSrc) return null;
+
+  return (
+    <RiveMascotCanvas
+      src={riveSrc}
+      stateMachine={stateMachine}
+      inputName={inputName}
+      stateValue={stateValue}
+      animationName={animationName}
+    />
+  );
 }

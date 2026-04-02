@@ -9,8 +9,8 @@
 }
 .school-user-avatar-img {
   border-radius: 50%;
-  height: clamp(50px,8vh,60px);
-  width: clamp(50px,8vh,60px);
+  height: clamp(50px, 8vh, 60px);
+  width: clamp(50px, 8vh, 60px);
 }
 .school-user-item {
   margin-right: 10px;

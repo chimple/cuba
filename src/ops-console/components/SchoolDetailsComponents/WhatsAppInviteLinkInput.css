@@ -26,7 +26,9 @@
   border-radius: 6px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 .wa-info-invite-link-save-btn {
   background-color: #007bff;
@@ -48,4 +50,9 @@
 }
 .wa-info-invite-link-cancel-btn:hover {
   background-color: #e6f0ff;
+}
+.wa-info-invite-link-cancel-btn:disabled {
+  background-color: #ccc;
+  border: none;
+  cursor: not-allowed;
 }

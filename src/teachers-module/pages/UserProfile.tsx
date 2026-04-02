@@ -1,35 +1,36 @@
-import React, { useEffect, useState } from "react";
-import "./UserProfile.css";
-import Header from "../components/homePage/Header";
-import { PAGES, TableTypes } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import EditIcon from "@mui/icons-material/Edit";
-import UserProfileSection from "../components/UserProfileSection";
-import { Util } from "../../utility/util";
-import ProfileDetails from "../components/library/ProfileDetails";
-import { useHistory } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import './UserProfile.css';
+import Header from '../components/homePage/Header';
+import { PAGES, TableTypes } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import EditIcon from '@mui/icons-material/Edit';
+import UserProfileSection from '../components/UserProfileSection';
+import { Util } from '../../utility/util';
+import ProfileDetails from '../components/library/ProfileDetails';
+import { useHistory } from 'react-router-dom';
+import logger from '../../utility/logger';
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
   const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [loginUser, setLoginUser] = useState<TableTypes<"user">>();
-  const [fullName, setFullName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [phoneNum, setPhoneNum] = useState<string>("");
-  const [language, setLanguage] = useState<string>("");
-  const [languageid, setLanguageId] = useState<string>("");
+  const [loginUser, setLoginUser] = useState<TableTypes<'user'>>();
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [phoneNum, setPhoneNum] = useState<string>('');
+  const [language, setLanguage] = useState<string>('');
+  const [languageid, setLanguageId] = useState<string>('');
   const [languages, setLanguages] = useState<
     Array<{ label: string; value: string; id: string }>
   >([]);
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchLanguages = async () => {
     try {
-      const fetchedLanguages: TableTypes<"language">[] =
+      const fetchedLanguages: TableTypes<'language'>[] =
         await api.getAllLanguages();
 
       const sanitizedLanguages = fetchedLanguages
@@ -45,20 +46,20 @@ const UserProfile: React.FC = () => {
       const user = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (user) {
         setLoginUser(user);
-        setFullName(user.name || "");
-        setEmail(user.email || "");
-        setPhoneNum(user.phone || "");
-        setLanguageId(user.language_id || "");
-        setProfilePic(user.image || "");
+        setFullName(user.name || '');
+        setEmail(user.email || '');
+        setPhoneNum(user.phone || '');
+        setLanguageId(user.language_id || '');
+        setProfilePic(user.image || '');
         const userLanguage = sanitizedLanguages.find(
-          (lang) => lang.id === user.language_id
+          (lang) => lang.id === user.language_id,
         );
         if (userLanguage) {
           setLanguage(userLanguage.value);
         }
       }
     } catch (error) {
-      console.error("Error fetching languages:", error);
+      logger.error('Error fetching languages:', error);
     }
   };
 
@@ -71,7 +72,7 @@ const UserProfile: React.FC = () => {
         setCurrentClass(tempClass);
       }
     } catch (error) {
-      console.error("Failed to load class details", error);
+      logger.error('Failed to load class details', error);
     }
   };
 
@@ -81,7 +82,7 @@ const UserProfile: React.FC = () => {
   }, []);
 
   if (!currentClass?.id) {
-    console.error("No current class selected.");
+    logger.error('No current class selected.');
     return null;
   }
 
@@ -92,7 +93,7 @@ const UserProfile: React.FC = () => {
   const handleUpdate = async () => {
     try {
       if (!loginUser) {
-        throw new Error("User is not logged in or user data is not available.");
+        throw new Error('User is not logged in or user data is not available.');
       }
       const profilePicValue = profilePic || undefined;
       await api.updateUserProfile(
@@ -101,17 +102,17 @@ const UserProfile: React.FC = () => {
         email,
         phoneNum,
         languageid,
-        profilePicValue
+        profilePicValue,
       );
     } catch (error) {
-      console.error("Error adding student:", error);
+      logger.error('Error adding student:', error);
     }
     setIsEditMode(false);
   };
 
-  const handleLanguageChange = async(languageCode: string) => {
+  const handleLanguageChange = async (languageCode: string) => {
     const selectedLanguage = languages.find(
-      (lang) => lang.value === languageCode
+      (lang) => lang.value === languageCode,
     );
     if (selectedLanguage) {
       await Util.updateUserLanguage(languageCode);
@@ -121,7 +122,7 @@ const UserProfile: React.FC = () => {
   };
 
   const handleProfilePicChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -133,7 +134,7 @@ const UserProfile: React.FC = () => {
     }
   };
 
-  const placeholderImgBase64 = "data:image/png;base64,....";
+  const placeholderImgBase64 = 'data:image/png;base64,....';
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
   };
@@ -159,7 +160,7 @@ const UserProfile: React.FC = () => {
         <div className="login-user-name">{fullName}</div>
         {!isEditMode && (
           <EditIcon
-            aria-label={String(t("Edit"))}
+            aria-label={String(t('Edit'))}
             className="edit-icon"
             onClick={handleEditClick}
           />
@@ -184,7 +185,7 @@ const UserProfile: React.FC = () => {
             type="button"
             onClick={handleUpdate}
           >
-            {t("Update")}
+            {t('Update')}
           </button>
         </div>
       )}

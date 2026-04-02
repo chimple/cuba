@@ -1,8 +1,7 @@
-import { IonButton, IonIcon } from "@ionic/react";
-import { t } from "i18next";
-import { chevronForward, warning } from "ionicons/icons";
-import "./CommonButton.css";
-import React from "react";
+import { IonButton } from '@ionic/react';
+import { t } from 'i18next';
+import './CommonButton.css';
+import React from 'react';
 
 interface CommonButtonProps {
   onClicked: React.MouseEventHandler<HTMLIonButtonElement>;
@@ -17,7 +16,8 @@ const CommonButton: React.FC<CommonButtonProps> = ({
 }) => {
   return (
     <div className="buttoncontainerr">
-      <IonButton className="common-button"
+      <IonButton
+        className="common-button"
         disabled={disabled}
         onClick={onClicked}
         size="default"

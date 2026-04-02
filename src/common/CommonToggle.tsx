@@ -1,7 +1,7 @@
-import React from "react";
-import { IonLabel, IonToggle } from "@ionic/react";
-import "./CommonToggle.css";
-import { t } from "i18next";
+import React from 'react';
+import { IonLabel, IonToggle } from '@ionic/react';
+import './CommonToggle.css';
+import { t } from 'i18next';
 
 interface CommonToggleProps {
   checked?: boolean;

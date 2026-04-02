@@ -1,5 +1,5 @@
-import { Timestamp } from "firebase/firestore";
-import BaseObject from "./baseObject";
+import { Timestamp } from 'firebase/firestore';
+import BaseObject from './baseObject';
 
 export default class Subject extends BaseObject {
   private _description: string;
@@ -10,7 +10,7 @@ export default class Subject extends BaseObject {
     title: string,
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string
+    docId: string,
   ) {
     super(updatedAt, createdAt, docId);
     this._description = description;

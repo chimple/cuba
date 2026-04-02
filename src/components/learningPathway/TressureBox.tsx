@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./TressureBox.css";
+import React, { useEffect, useRef, useState } from 'react';
+import './TressureBox.css';
+import logger from '../../utility/logger';
 
 interface TressureBoxProps {
   startNumber: number;
@@ -40,7 +41,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
           }, 600);
         }
       } catch (error) {
-        console.error("Error in updating number:", error);
+        logger.error('Error in updating number:', error);
       }
     };
     updateNumber();
@@ -86,7 +87,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
     return (
       <div
         key={number}
-        className={`scroll-item ${number === currentNumber ? "highlight" : ""}`}
+        className={`scroll-item ${number === currentNumber ? 'highlight' : ''}`}
       >
         {number}
       </div>
@@ -98,13 +99,13 @@ const TressureBox: React.FC<TressureBoxProps> = ({
       <div className="treasure-box-wrapper">
         {isConfettiVisible ? (
           <img
-            src={"pathwayAssets/Treasure box animation.gif"}
+            src={'pathwayAssets/Treasure box animation.gif'}
             alt="Confetti Treasure Box"
             className="treasure-box-gif"
           />
         ) : (
           <img
-            src={"pathwayAssets/Treasure Box.svg"}
+            src={'pathwayAssets/Treasure Box.svg'}
             alt="Treasure Box"
             className="treasure-box-svg"
           />

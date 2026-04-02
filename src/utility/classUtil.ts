@@ -1,214 +1,325 @@
-import { start } from "repl";
 import {
   BANDS,
   LIDO_ASSESSMENT,
   TABLESORTBY,
   TableTypes,
-} from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
-import { Util } from "./util";
+} from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { addDays, addMonths, subDays } from 'date-fns';
+import { Util } from './util';
+import logger from './logger';
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
+  private static readonly IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-  async getWeeklySummary(classId: string, courseId: string[]) {
-    var currentDate = new Date();
-    var totalScore = 0;
-    var timeSpent = 0;
-    const adjustedcurrentDate = addDays(currentDate, 1);
-    const adjustedoneWeekBack = subDays(currentDate, 7);
-    var currentDateTimeStamp = adjustedcurrentDate
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+  private getIstStartOfDayUtc(baseDate: Date) {
+    const istEpoch = baseDate.getTime() + ClassUtil.IST_OFFSET_MS;
+    const istDate = new Date(istEpoch);
 
-    const oneWeekBackTimeStamp = adjustedoneWeekBack
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+    const istMidnightUtcEpoch =
+      Date.UTC(
+        istDate.getUTCFullYear(),
+        istDate.getUTCMonth(),
+        istDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ) - ClassUtil.IST_OFFSET_MS;
 
-    const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
-      classId,
-      courseId,
-      currentDateTimeStamp,
-      oneWeekBackTimeStamp,
-      true,
-      false,
-      true,
-    );
-    const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
-    const assignmentResult =
-      await this.api.getResultByAssignmentIdsForCurrentClassMembers(
-        assignmentIds,
-        classId,
-      );
+    return new Date(istMidnightUtcEpoch);
+  }
 
-    assignmentResult?.forEach((res) => {
-      totalScore = totalScore + (res.score ?? 0);
-      timeSpent = timeSpent + (res.time_spent ?? 0) / 60;
-    });
+  private getTimestampRange(startDaysBack: number, endDaysBack: number) {
+    const now = new Date();
+    const istStartOfToday = this.getIstStartOfDayUtc(now);
 
-    const _students = await this.api.getStudentsForClass(classId);
-    const totalStudents = _students.length;
-    const totalAssignments = assignmentIds.length;
-    const studentsWithCompletedAssignments = assignmentResult?.reduce(
-      (acc, result) => {
-        const { student_id, assignment_id } = result;
-        if (!acc[student_id]) {
-          acc[student_id] = new Set();
-        }
-        acc[student_id].add(assignment_id ?? "");
-        return acc;
-      },
-      {} as { [key: string]: Set<string> },
-    );
-
-    const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
-      ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
-          return studentsWithCompletedAssignments[studentId].size > 0;
-        }).length
-      : 0;
-
-    const assignmentsWithCompletedStudents = assignmentResult?.reduce(
-      (acc, result) => {
-        const { student_id, assignment_id } = result;
-        if (assignment_id) {
-          if (!acc[assignment_id]) {
-            acc[assignment_id] = new Set();
-          }
-          acc[assignment_id].add(student_id);
-        }
-        return acc;
-      },
-      {} as { [key: string]: Set<string> },
-    );
-
-    const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
-      ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
-          return (
-            assignmentsWithCompletedStudents[assignmentId].size ===
-            totalStudents
-          );
-        }).length
-      : 0;
-    const timeSpentByAllStudents =
-      totalStudents > 0
-        ? parseFloat((timeSpent / totalStudents).toFixed(2))
-        : 0;
-    const resultCount = assignmentResult?.length ?? 0;
-    const avgScore =
-      resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
+    const start = subDays(istStartOfToday, startDaysBack);
+    const end = addDays(subDays(istStartOfToday, endDaysBack), 1);
 
     return {
-      assignments: {
-        asgnmetCmptd: totalStudents > 0 ? assignmentsCompletedByAllStudents : 0,
-        totalAssignments: totalAssignments,
-      },
+      start,
+      end,
+      startTimestamp: start.toISOString().replace('T', ' ').replace('Z', '+00'),
+      endTimestamp: end.toISOString().replace('T', ' ').replace('Z', '+00'),
+    };
+  }
 
-      students: {
-        stdCompletd: totalStudents > 0 ? studentsWhoCompletedAllAssignments : 0,
-        totalStudents: totalStudents,
+  private getNumericAverage(values: Array<number | null | undefined>) {
+    const validValues = values.filter(
+      (value): value is number => typeof value === 'number',
+    );
+
+    if (validValues.length === 0) return 0;
+
+    const total = validValues.reduce((sum, value) => sum + value, 0);
+    return total / validValues.length;
+  }
+
+  private getTrend(currentValue: number, previousValue: number) {
+    if (currentValue > previousValue) return 'up' as const;
+    if (currentValue < previousValue) return 'down' as const;
+    return 'same' as const;
+  }
+
+  private createStudentProgressMap(
+    student: TableTypes<'user'>,
+    results: TableTypes<'result'>[],
+    weeklyTimeSpentSeconds: number,
+    inactivityDays: number,
+  ) {
+    return new Map<
+      string,
+      TableTypes<'user'> | TableTypes<'result'>[] | number
+    >([
+      ['student', student],
+      ['results', results],
+      ['weeklyTimeSpentSeconds', weeklyTimeSpentSeconds],
+      ['inactivityDays', inactivityDays],
+    ]);
+  }
+
+  async getWeeklySummary(classId: string, courseId: string[]) {
+    const currentRange = this.getTimestampRange(6, 0);
+    const previousRange = this.getTimestampRange(13, 7);
+    const students = await this.api.getStudentsForClass(classId);
+    const totalStudents = students.length;
+    const studentMetrics = await Promise.all(
+      students.map(async (student) => {
+        const allResults = await this.api.getStudentResultByDate(
+          student.id,
+          courseId,
+          previousRange.startTimestamp,
+          currentRange.endTimestamp,
+          classId,
+        );
+        const currentResults = (allResults ?? []).filter((result) => {
+          const createdAt = new Date(result.created_at);
+          return (
+            createdAt >= currentRange.start && createdAt < currentRange.end
+          );
+        });
+        const previousResults = (allResults ?? []).filter((result) => {
+          const createdAt = new Date(result.created_at);
+          return (
+            createdAt >= previousRange.start && createdAt < previousRange.end
+          );
+        });
+        return {
+          hasCurrentPlay: currentResults.length > 0,
+          hasPreviousPlay: previousResults.length > 0,
+          currentTimeSpentSeconds: currentResults.reduce(
+            (sum, result) => sum + (result.time_spent ?? 0),
+            0,
+          ),
+          previousTimeSpentSeconds: previousResults.reduce(
+            (sum, result) => sum + (result.time_spent ?? 0),
+            0,
+          ),
+          currentAverageScore: this.getNumericAverage(
+            currentResults.map((result) => result.score),
+          ),
+          previousAverageScore: this.getNumericAverage(
+            previousResults.map((result) => result.score),
+          ),
+        };
+      }),
+    );
+
+    const activeStudentsCount = studentMetrics.filter(
+      (student) => student.hasCurrentPlay,
+    ).length;
+    const previousActiveStudentsCount = studentMetrics.filter(
+      (student) => student.hasPreviousPlay,
+    ).length;
+
+    const averageTimeSpentMinutes =
+      activeStudentsCount > 0
+        ? Math.round(
+            studentMetrics.reduce(
+              (sum, student) => sum + student.currentTimeSpentSeconds,
+              0,
+            ) /
+              activeStudentsCount /
+              60,
+          )
+        : 0;
+    const previousAverageTimeSpentMinutes =
+      previousActiveStudentsCount > 0
+        ? Math.round(
+            studentMetrics.reduce(
+              (sum, student) => sum + student.previousTimeSpentSeconds,
+              0,
+            ) /
+              previousActiveStudentsCount /
+              60,
+          )
+        : 0;
+
+    const averageScorePercentage =
+      totalStudents > 0
+        ? Math.round(
+            studentMetrics.reduce(
+              (sum, student) => sum + student.currentAverageScore,
+              0,
+            ) / totalStudents,
+          )
+        : 0;
+    const previousAverageScorePercentage =
+      totalStudents > 0
+        ? Math.round(
+            studentMetrics.reduce(
+              (sum, student) => sum + student.previousAverageScore,
+              0,
+            ) / totalStudents,
+          )
+        : 0;
+
+    return {
+      activeStudents: {
+        count: activeStudentsCount,
+        totalStudents,
+        trend: this.getTrend(activeStudentsCount, previousActiveStudentsCount),
       },
-      timeSpent: timeSpentByAllStudents,
-      averageScore: totalStudents > 0 ? avgScore : 0,
+      averageTimeSpent: {
+        minutes: averageTimeSpentMinutes,
+        trend: this.getTrend(
+          averageTimeSpentMinutes,
+          previousAverageTimeSpentMinutes,
+        ),
+      },
+      averageScore: {
+        percentage: averageScorePercentage,
+        trend: this.getTrend(
+          averageScorePercentage,
+          previousAverageScorePercentage,
+        ),
+      },
     };
   }
 
   public async divideStudents(classId: string, courseIds: string[]) {
     const greenGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      TableTypes<'user'> | TableTypes<'result'>[] | number
     >[] = [];
     const yellowGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      TableTypes<'user'> | TableTypes<'result'>[] | number
     >[] = [];
-    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
-      [];
+    const redGroup: Map<
+      string,
+      TableTypes<'user'> | TableTypes<'result'>[] | number
+    >[] = [];
     const greyGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      TableTypes<'user'> | TableTypes<'result'>[] | number
     >[] = [];
-    const currentDate = new Date();
-    const adjustedcurrentDate = addDays(currentDate, 1);
-    const adjustedoneWeekBack = subDays(currentDate, 7);
-    var currentDateTimeStamp = adjustedcurrentDate
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
-
-    const oneWeekBackTimeStamp = adjustedoneWeekBack
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
-    const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
-      classId,
-      courseIds,
-      currentDateTimeStamp,
-      oneWeekBackTimeStamp,
-      true,
-      false,
-      true,
-    );
-    const assignmentIds = (assignements?.map((asgmt) => asgmt.id) || []).slice(
-      0,
-      5,
-    );
+    const currentRange = this.getTimestampRange(6, 0);
     const _students = await this.api.getStudentsForClass(classId);
     const studentResultsPromises = _students.map(async (student) => {
-      const results = await this.api.getStudentLastTenResults(
-        student.id,
-        courseIds,
-        assignmentIds,
-        classId,
+      const currentWeekRawResults =
+        (await this.api.getStudentResultByDate(
+          student.id,
+          courseIds,
+          currentRange.startTimestamp,
+          currentRange.endTimestamp,
+          classId,
+        )) ?? [];
+      const currentWeekResults = currentWeekRawResults.filter((result) => {
+        const createdAt = new Date(result.created_at);
+        return createdAt >= currentRange.start && createdAt < currentRange.end;
+      });
+      const hasPlayedInLast7Days = currentWeekResults.length > 0;
+      const currentWeekTimeSpentSeconds = currentWeekResults.reduce(
+        (sum, result) => sum + (result.time_spent ?? 0),
+        0,
       );
-      const selfPlayedLength = results.filter(
-        (result) => result.assignment_id === null,
-      ).length;
-      if (
-        results.length === 0 ||
-        results[0].created_at <= oneWeekBackTimeStamp
-      ) {
-        greyGroup.push(
-          new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
-            ["student", student],
-            ["results", results],
-          ]),
+
+      if (!hasPlayedInLast7Days) {
+        const playStatus = await this.api.getStudentPlayStatus(
+          student.id,
+          classId,
+        );
+        const lastPlayedAt = playStatus.lastPlayedAt;
+        const inactivityDays = lastPlayedAt
+          ? Math.floor(
+              (new Date().getTime() - new Date(lastPlayedAt).getTime()) /
+                (1000 * 60 * 60 * 24),
+            )
+          : 0;
+
+        if (!playStatus.hasPlayed) {
+          greyGroup.push(this.createStudentProgressMap(student, [], 0, 0));
+          return;
+        }
+
+        redGroup.push(
+          this.createStudentProgressMap(
+            student,
+            currentWeekResults,
+            currentWeekTimeSpentSeconds,
+            inactivityDays,
+          ),
+        );
+      } else if (currentWeekTimeSpentSeconds >= 45 * 60) {
+        greenGroup.push(
+          this.createStudentProgressMap(
+            student,
+            currentWeekResults,
+            currentWeekTimeSpentSeconds,
+            0,
+          ),
+        );
+      } else if (currentWeekTimeSpentSeconds === 0) {
+        const latestResult = [...currentWeekResults].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )[0];
+        const inactivityDays = latestResult
+          ? Math.floor(
+              (new Date().getTime() -
+                new Date(latestResult.created_at).getTime()) /
+                (1000 * 60 * 60 * 24),
+            )
+          : 0;
+        redGroup.push(
+          this.createStudentProgressMap(
+            student,
+            currentWeekResults,
+            currentWeekTimeSpentSeconds,
+            inactivityDays,
+          ),
         );
       } else {
-        const totalScore = results.reduce(
-          (acc, result) => acc + (result.score ?? 0),
-          0,
+        yellowGroup.push(
+          this.createStudentProgressMap(
+            student,
+            currentWeekResults,
+            currentWeekTimeSpentSeconds,
+            0,
+          ),
         );
-        const averageScore =
-          totalScore / (selfPlayedLength + assignmentIds.length);
-
-        if (averageScore >= 70) {
-          greenGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
-              ["student", student],
-              ["results", results],
-            ]),
-          );
-        } else if (averageScore <= 49) {
-          redGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
-              ["student", student],
-              ["results", results],
-            ]),
-          );
-        } else {
-          yellowGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
-              ["student", student],
-              ["results", results],
-            ]),
-          );
-        }
       }
     });
     await Promise.all(studentResultsPromises);
+
+    redGroup.sort(
+      (a, b) =>
+        ((b.get('inactivityDays') as number) ?? 0) -
+        ((a.get('inactivityDays') as number) ?? 0),
+    );
+    yellowGroup.sort(
+      (a, b) =>
+        ((b.get('weeklyTimeSpentSeconds') as number) ?? 0) -
+        ((a.get('weeklyTimeSpentSeconds') as number) ?? 0),
+    );
+    greenGroup.sort(
+      (a, b) =>
+        ((b.get('weeklyTimeSpentSeconds') as number) ?? 0) -
+        ((a.get('weeklyTimeSpentSeconds') as number) ?? 0),
+    );
 
     const groups: Map<string, any> = new Map();
     groups.set(BANDS.GREENGROUP, greenGroup);
@@ -223,7 +334,7 @@ export class ClassUtil {
     var currentDate = new Date(startDate);
     endDate = addDays(new Date(endDate), 1);
     while (currentDate < endDate) {
-      days.push(currentDate.toLocaleDateString("en-US", { weekday: "long" }));
+      days.push(currentDate.toLocaleDateString('en-US', { weekday: 'long' }));
       currentDate = addDays(new Date(currentDate), 1);
     }
 
@@ -235,8 +346,8 @@ export class ClassUtil {
     endDate = addDays(new Date(endDate), 1);
 
     while (currentDate < endDate) {
-      const monthName = currentDate.toLocaleDateString("en-US", {
-        month: "long",
+      const monthName = currentDate.toLocaleDateString('en-US', {
+        month: 'long',
       });
       if (!months.includes(monthName)) {
         months.push(monthName); // Add month name if it's not already in the list
@@ -251,7 +362,7 @@ export class ClassUtil {
     const allResults = Object.values(results).flat();
 
     return allResults.reduce((total, result) => {
-      if (result && typeof result === "object") {
+      if (result && typeof result === 'object') {
         return total + ((result as any).score || 0); // Casting to any
       }
       return total;
@@ -285,12 +396,12 @@ export class ClassUtil {
     const daysInRange = this.getDaysInRange(startDate, endDate);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
 
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
@@ -301,7 +412,7 @@ export class ClassUtil {
       });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: TableTypes<'user'>; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -313,7 +424,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[day] = [];
       });
     });
-    const lessonCache = new Map<string, TableTypes<"lesson">>();
+    const lessonCache = new Map<string, TableTypes<'lesson'>>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -328,8 +439,8 @@ export class ClassUtil {
 
       for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
-        const dayName = resultDate.toLocaleDateString("en-US", {
-          weekday: "long",
+        const dayName = resultDate.toLocaleDateString('en-US', {
+          weekday: 'long',
         });
 
         const dayResults = resultsByStudent.get(student.id)?.results[dayName];
@@ -364,8 +475,8 @@ export class ClassUtil {
 
       daysMap.set(day, {
         headerName: day,
-        startAt: "",
-        endAt: "",
+        startAt: '',
+        endAt: '',
       });
 
       return daysMap;
@@ -389,12 +500,12 @@ export class ClassUtil {
     const adjustedEndDate = addDays(new Date(endDate), 1);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
@@ -405,7 +516,7 @@ export class ClassUtil {
 
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: TableTypes<'user'>; results: Record<string, any[]> }
     >();
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
@@ -416,7 +527,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[month] = [];
       });
     });
-    const lessonCache = new Map<string, TableTypes<"lesson">>();
+    const lessonCache = new Map<string, TableTypes<'lesson'>>();
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
@@ -430,8 +541,8 @@ export class ClassUtil {
         : res;
       for (const result of res ?? []) {
         const resultDate = new Date(result.created_at);
-        const monthName = resultDate.toLocaleDateString("en-US", {
-          month: "long",
+        const monthName = resultDate.toLocaleDateString('en-US', {
+          month: 'long',
         });
 
         const monthResults = resultsByStudent.get(student.id)?.results[
@@ -467,8 +578,8 @@ export class ClassUtil {
 
       monthsMap.set(month, {
         headerName: month,
-        startAt: "",
-        endAt: "",
+        startAt: '',
+        endAt: '',
       });
 
       return monthsMap;
@@ -478,11 +589,11 @@ export class ClassUtil {
       HeaderData: monthsMapArray,
     };
   }
-  public formatDate(timestamp) {
+  public formatDate(timestamp: string | number | Date) {
     const date = new Date(timestamp);
     const day = date.getDate();
     const month = date.getMonth() + 1;
-    return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}`;
+    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}`;
   }
   public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
@@ -497,12 +608,12 @@ export class ClassUtil {
 
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
 
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy === TABLESORTBY.NAME) {
@@ -565,11 +676,11 @@ export class ClassUtil {
       >();
 
       assignmentMap.set(assignment.id, {
-        headerName: lesson?.name ?? "",
+        headerName: lesson?.name ?? '',
         startAt: this.formatDate(assignment.starts_at),
-        endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
+        endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : '',
         belongsToClass: belongsToClass,
-        courseId: assignment.course_id ?? "",
+        courseId: assignment.course_id ?? '',
       });
 
       return assignmentMap;
@@ -577,7 +688,7 @@ export class ClassUtil {
 
     let resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: TableTypes<'user'>; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -597,14 +708,14 @@ export class ClassUtil {
       }
     }
     // lesson cache for LIDO aggregation
-    const lessonCache = new Map<string, TableTypes<"lesson">>();
+    const lessonCache = new Map<string, TableTypes<'lesson'>>();
 
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
 
       const bucket =
-        resultsByStudent.get(studentId)?.results[assignmentId ?? ""];
+        resultsByStudent.get(studentId)?.results[assignmentId ?? ''];
 
       if (!bucket) return;
 
@@ -658,16 +769,16 @@ export class ClassUtil {
     endDate: string,
     classId: string,
   ) {
-    const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
-    const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
+    const adjustedStartDate = subDays(new Date(startDate ?? ''), 1);
+    const adjustedEndDate = addDays(new Date(endDate ?? ''), 1);
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const res = await this.api.getStudentResultByDate(
       studentId,
       courseIds,
@@ -704,13 +815,13 @@ export class ClassUtil {
         }
 
         finalResults.push({
-          lessonName: lesson?.name ?? "",
+          lessonName: lesson?.name ?? '',
           score: Math.round(finalScore),
-          date: new Date(result.created_at!).toLocaleDateString("en-GB"),
+          date: new Date(result.created_at!).toLocaleDateString('en-GB'),
           isAssignment: result.assignment_id ? true : false,
         });
       } catch (error) {
-        console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
+        logger.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
     }
 
@@ -730,12 +841,12 @@ export class ClassUtil {
 
     const startTimeStamp = adjustedStartDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const endTimeStamp = adjustedEndDate
       .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+      .replace('T', ' ')
+      .replace('Z', '+00');
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
@@ -766,16 +877,16 @@ export class ClassUtil {
       >();
 
       lessonMap.set(lesson.id, {
-        headerName: lesson?.name ?? "",
-        startAt: "",
-        endAt: "",
+        headerName: lesson?.name ?? '',
+        startAt: '',
+        endAt: '',
       });
 
       return lessonMap;
     });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: TableTypes<'user'>; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -799,8 +910,8 @@ export class ClassUtil {
       const studentId = result.student_id;
       const lessonId = result.lesson_id;
 
-      if (resultsByStudent.get(studentId)?.results[lessonId ?? ""]) {
-        resultsByStudent.get(studentId)!.results[lessonId ?? ""].push(result);
+      if (resultsByStudent.get(studentId)?.results[lessonId ?? '']) {
+        resultsByStudent.get(studentId)!.results[lessonId ?? ''].push(result);
       }
     });
     return {
@@ -810,13 +921,13 @@ export class ClassUtil {
   }
 
   public async groupStudentsByCategoryInList(
-    studentsMap: Map<string, Map<string, TableTypes<"user">>>,
-  ): Promise<Map<string, TableTypes<"user">[]>> {
-    const groups: Map<string, TableTypes<"user">[]> = new Map();
+    studentsMap: Map<string, Map<string, TableTypes<'user'>>>,
+  ): Promise<Map<string, TableTypes<'user'>[]>> {
+    const groups: Map<string, TableTypes<'user'>[]> = new Map();
 
     studentsMap.forEach((studentM: Map<string, any>, index: string) => {
       studentM.forEach((element: any) => {
-        const studentData = element.get("student");
+        const studentData = element.get('student');
         if (!studentData) {
           return; // Skip this element if no student data is present
         }
@@ -836,11 +947,11 @@ export class ClassUtil {
   public sortStudentsByTotalScoreAssignment = (
     studentsMap: Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: TableTypes<'user'>; results: Record<string, any[]> }
     >,
   ): Map<
     string,
-    { student: TableTypes<"user">; results: Record<string, any[]> }
+    { student: TableTypes<'user'>; results: Record<string, any[]> }
   > => {
     // Convert Map to array of entries
     const studentsArray = Array.from(studentsMap.entries());

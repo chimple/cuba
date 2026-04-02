@@ -107,13 +107,6 @@
   color: #232323;
 }
 
-/* .ops-rejected-request-details-link {
-  color: #3799fd;
-  cursor: pointer;
-  text-decoration: underline;
-  margin-right: 0.7vw;
-} */
-
 .ops-rejected-request-details-active {
   color: #232323;
   font-weight: 600;
@@ -139,10 +132,10 @@
   font-weight: 600;
 }
 .ops-rejected-request-details-message-box {
-    background: white;
-    padding: 8px;
-    border: 2px solid #b12424;
-    border-radius: 8px;
+  background: white;
+  padding: 8px;
+  border: 2px solid #b12424;
+  border-radius: 8px;
 }
 
 @media (max-width: 1200px) {

@@ -1,4 +1,3 @@
-
 .ops-flagged-request-details-layout {
   padding: 24px 20px;
   background: #f9fafb;
@@ -8,6 +7,7 @@
   font-weight: 700;
   margin-bottom: 12px;
   font-size: 24px;
+  color: #222222;
 }
 .ops-flagged-request-details-breadcrumbs {
   margin-bottom: 20px;
@@ -31,7 +31,7 @@
   padding: 20px;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   margin-bottom: 20px;
   border: 1px solid #e5e7eb;
 }
@@ -140,8 +140,8 @@
   margin-top: 24px;
 }
 .ops-flagged-request-details-cancel-btn {
-  border: 1px solid #E93445 !important;
-  color: #E93445 !important;
+  border: 1px solid #e93445 !important;
+  color: #e93445 !important;
   background: #fff !important;
   font-weight: 600 !important;
   min-width: 140px;
@@ -157,7 +157,7 @@
   color: #dc2626 !important;
 }
 .ops-flagged-request-details-approve-btn {
-  background: #1CC487 !important;
+  background: #1cc487 !important;
   color: #fff !important;
   font-weight: 600 !important;
   min-width: 140px;
@@ -194,19 +194,31 @@
   height: auto;
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
-.ops-flagged-request-details-dropdown .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root
+  .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown
+  .MuiOutlinedInput-root
+  .MuiOutlinedInput-notchedOutline {
   border-color: #3b82f6;
   border-width: 1px;
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
-.ops-flagged-request-details-dropdown .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown
+  .MuiOutlinedInput-root:hover
+  .MuiOutlinedInput-notchedOutline {
   border-color: #2563eb;
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
-.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
   border-color: #3b82f6;
   border-width: 2px;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -223,8 +235,12 @@
   box-shadow: none;
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline,
-.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root.Mui-disabled
+  .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown
+  .MuiOutlinedInput-root.Mui-disabled
+  .MuiOutlinedInput-notchedOutline {
   border-color: #e5e7eb;
 }
 
@@ -242,14 +258,20 @@
   }
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiIconButton-root {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root
+  .MuiIconButton-root {
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root:hover .MuiIconButton-root,
-.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-focused .MuiIconButton-root {
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root:hover
+  .MuiIconButton-root,
+.ops-flagged-request-details-textfield
+  .MuiOutlinedInput-root.Mui-focused
+  .MuiIconButton-root {
   visibility: visible;
   opacity: 1;
 }

@@ -1,12 +1,12 @@
-import { FC, useState } from "react";
-import RecommendedAssignment from "./RecommendedAssignment";
-import "./RecommendedTab.css";
-import CommonButton from "../common/CommonButton";
-import { t } from "i18next";
-import { TableTypes } from "../../../common/constants";
+import { FC, useState } from 'react';
+import RecommendedAssignment from './RecommendedAssignment';
+import './RecommendedTab.css';
+import CommonButton from '../common/CommonButton';
+import { t } from 'i18next';
+import { TableTypes } from '../../../common/constants';
 
 const RecommendedTab: FC<{
-  lessons: TableTypes<"lesson">[];
+  lessons: TableTypes<'lesson'>[];
 }> = ({ lessons }) => {
   enum STAGES {
     SUBJECTS,
@@ -18,13 +18,13 @@ const RecommendedTab: FC<{
         <div>
           <RecommendedAssignment
             infoText={t(
-              "These are the recommended assignments based on the previous assignments"
+              'These are the recommended assignments based on the previous assignments',
             )}
           />
         </div>
       )}
 
-      <CommonButton title={t("Assign")} disabled={false} onClicked={() => {}} />
+      <CommonButton title={t('Assign')} disabled={false} onClicked={() => {}} />
     </div>
   );
 };

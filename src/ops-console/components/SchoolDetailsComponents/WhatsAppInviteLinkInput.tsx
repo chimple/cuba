@@ -1,13 +1,14 @@
-import React from "react";
-import { Box, Typography } from "@mui/material";
-import { t } from "i18next";
-import "./WhatsAppInviteLinkInput.css";
+import React from 'react';
+import { Box, Typography } from '@mui/material';
+import { t } from 'i18next';
+import './WhatsAppInviteLinkInput.css';
 
 type Props = {
   inviteInput: string;
   setInviteInput: (v: string) => void;
   error: string | null;
   loading: boolean;
+  groupId: string | null | undefined;
   onSubmit: () => void;
   onCancel: () => void;
 };
@@ -17,14 +18,12 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
   setInviteInput,
   error,
   loading,
+  groupId,
   onSubmit,
   onCancel,
 }) => {
   return (
-    <div
-      className="wa-info-invite-link-div"
-      id="wa-info-invite-link-id"
-    >
+    <div className="wa-info-invite-link-div" id="wa-info-invite-link-id">
       <input
         className="wa-input"
         autoFocus
@@ -45,16 +44,19 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
           onClick={onSubmit}
           disabled={loading || !inviteInput.trim()}
         >
-          {loading ? t("Checking...") : t("Submit")}
+          {loading ? t('Checking...') : t('Submit')}
         </button>
 
-        <button
-          className="wa-info-invite-link-cancel-btn"
-          onClick={onCancel}
-          disabled={loading}
-        >
-          {t("Cancel")}
-        </button>
+        {groupId && (
+          <button
+            className="wa-info-invite-link-cancel-btn"
+            id="wa-info-invite-link-cancel-btn-id"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            {t('Cancel')}
+          </button>
+        )}
       </Box>
     </div>
   );

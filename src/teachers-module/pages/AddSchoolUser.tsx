@@ -1,42 +1,39 @@
-import React, { useState } from "react";
-import { IonButton, IonPage } from "@ionic/react";
-import InputField from "../../common/InputField";
+import React, { useState } from 'react';
+import { IonButton, IonPage } from '@ionic/react';
+import InputField from '../../common/InputField';
 import {
   PAGES,
   SCHOOL_USERS,
   SchoolWithRole,
   TableTypes,
-} from "../../common/constants";
-import Header from "../components/homePage/Header";
-import { useHistory, useLocation } from "react-router-dom";
-import "./AddSchoolUser.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { RoleType } from "../../interface/modelInterfaces";
-import CommonDialogBox from "../../common/CommonDialogBox";
+} from '../../common/constants';
+import Header from '../components/homePage/Header';
+import { useHistory, useLocation } from 'react-router-dom';
+import './AddSchoolUser.css';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import { RoleType } from '../../interface/modelInterfaces';
+import CommonDialogBox from '../../common/CommonDialogBox';
+import logger from '../../utility/logger';
 
 const AddSchoolUser: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const [useEmail, setUseEmail] = useState(true);
-  const [inputValue, setInputValue] = useState("");
-  const [user, setUser] = useState<TableTypes<"user"> | undefined>();
+  const [inputValue, setInputValue] = useState('');
+  const [user, setUser] = useState<TableTypes<'user'> | undefined>();
   const [showAlert, setShowAlert] = useState(false);
   const [showUserNotFoundAlert, setShowUserNotFoundAlert] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { school, role } = (location.state as SchoolWithRole) || {};
   const api = ServiceConfig.getI()?.apiHandler;
-  let currentRole;
-  if (location) {
-    const path = location.pathname;
-
-    currentRole =
-      path === PAGES.ADD_PRINCIPAL
-        ? RoleType.PRINCIPAL
-        : path === PAGES.ADD_COORDINATOR
-          ? RoleType.COORDINATOR
-          : RoleType.SPONSOR;
-  }
+  const path = location.pathname;
+  const currentRole: RoleType =
+    path === PAGES.ADD_PRINCIPAL
+      ? RoleType.PRINCIPAL
+      : path === PAGES.ADD_COORDINATOR
+        ? RoleType.COORDINATOR
+        : RoleType.SPONSOR;
 
   const tempTabName =
     currentRole === RoleType.PRINCIPAL
@@ -51,7 +48,7 @@ const AddSchoolUser: React.FC = () => {
 
   const toggleInputMethod = () => {
     setUseEmail((prevUseEmail) => !prevUseEmail);
-    setInputValue("");
+    setInputValue('');
     setUser(undefined);
   };
 
@@ -78,7 +75,7 @@ const AddSchoolUser: React.FC = () => {
       if (school && fetchedUser && fetchedUser.id) {
         const userInSchool = await api?.checkUserExistInSchool(
           school?.id,
-          fetchedUser.id
+          fetchedUser.id,
         );
         if (userInSchool) {
           setShowAlert(true);
@@ -91,7 +88,7 @@ const AddSchoolUser: React.FC = () => {
         setUser(undefined);
       }
     } catch (error) {
-      console.error("Failed to fetch user", error);
+      logger.error('Failed to fetch user', error);
       setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
@@ -100,7 +97,7 @@ const AddSchoolUser: React.FC = () => {
 
   const handleAddSchoolUser = async () => {
     if (!school || !user) {
-      console.error("Cannot add user: school or user is missing.");
+      logger.error('Cannot add user: school or user is missing.');
       return;
     }
 
@@ -115,7 +112,7 @@ const AddSchoolUser: React.FC = () => {
         role: role,
       });
     } catch (error) {
-      console.error("Failed to add user to school", error);
+      logger.error('Failed to add user to school', error);
     } finally {
       setIsLoading(false);
     }
@@ -132,10 +129,10 @@ const AddSchoolUser: React.FC = () => {
       <div className="ion-padding">
         <div className="add-school-user-div">
           {currentRole === RoleType.PRINCIPAL
-            ? t("Add Principal")
+            ? t('Add Principal')
             : currentRole === RoleType.COORDINATOR
-              ? t("Add Coordinator")
-              : t("Add Sponsor")}
+              ? t('Add Coordinator')
+              : t('Add Sponsor')}
         </div>
 
         <InputField
@@ -153,11 +150,11 @@ const AddSchoolUser: React.FC = () => {
 
             <div className="user-info-container">
               <img
-                src={user.image ? user.image : "assets/icons/userIcon.png"}
+                src={user.image ? user.image : 'assets/icons/userIcon.png'}
                 className="user-image"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
-                    "assets/icons/userIcon.png";
+                    'assets/icons/userIcon.png';
                 }}
               />
               <p id="add-school-user-name">{user.name}</p>
@@ -167,7 +164,7 @@ const AddSchoolUser: React.FC = () => {
                 disabled={isLoading}
                 className="add-user-btn"
               >
-                {isLoading ? t("Adding") + "..." : t("Add")}
+                {isLoading ? t('Adding') + '...' : t('Add')}
               </IonButton>
             </div>
           </div>

@@ -1,10 +1,9 @@
-import React from "react";
-import { IonItem, IonIcon, IonLabel, IonButton } from "@ionic/react";
-import { peopleOutline, chevronForwardOutline } from "ionicons/icons";
-import { t } from "i18next";
-import CustomDropdown from "../CustomDropdown";
-import ClassCodeGenerateButton from "../ClassCodeGenerateButton";
-import "./ClassSection.css";
+import React from 'react';
+import { IonLabel, IonButton } from '@ionic/react';
+import { t } from 'i18next';
+import CustomDropdown from '../CustomDropdown';
+import ClassCodeGenerateButton from '../ClassCodeGenerateButton';
+import './ClassSection.css';
 
 interface ClassSectionProps {
   classData: { id: string | number; name: string }[];
@@ -29,7 +28,7 @@ const ClassSection: React.FC<ClassSectionProps> = ({
     <>
       <div className="classsection-class">
         <img src="assets/icons/classIcon.svg" alt="SCHOOL" className="icon" />
-        <span className="class-iconlabel">{t("Class")}</span>
+        <span className="class-iconlabel">{t('Class')}</span>
       </div>
       <div className="school-dropdown">
         <CustomDropdown
@@ -56,8 +55,15 @@ const ClassSection: React.FC<ClassSectionProps> = ({
       </div>
       <div className="manage-classes">
         <div className="manage-class-button">
-          <IonButton fill="clear" color="" onClick={handleManageClassClick} style={{ textTransform: "none" }}>
-            <IonLabel style={{color: "#707070", fontSize: "18px"}}>{t("Manage Classes")}</IonLabel>
+          <IonButton
+            fill="clear"
+            color=""
+            onClick={handleManageClassClick}
+            style={{ textTransform: 'none' }}
+          >
+            <IonLabel style={{ color: '#707070', fontSize: '18px' }}>
+              {t('Manage Classes')}
+            </IonLabel>
           </IonButton>
         </div>
       </div>

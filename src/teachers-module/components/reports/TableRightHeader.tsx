@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import "./TableRightHeader.css";
-import { t } from "i18next";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import {  ALL_SUBJECT, COURSES } from "../../../common/constants";
-
+import React, { useEffect, useState } from 'react';
+import './TableRightHeader.css';
+import { t } from 'i18next';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { ALL_SUBJECT, COURSES } from '../../../common/constants';
 
 interface TableRightHeaderProps {
   headerDetails: Map<
@@ -18,12 +17,12 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
   courseCode,
 }) => {
   const [courseNamesMap, setCourseNamesMap] = useState<Record<string, string>>(
-    {}
+    {},
   );
   useEffect(() => {
     const fetchCourseNames = async () => {
       const api = ServiceConfig.getI().apiHandler;
-  
+
       const courseIds: string[] = [];
       for (const assignmentMap of headerDetails) {
         const entries = Array.from(assignmentMap.entries());
@@ -34,20 +33,20 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
           }
         }
       }
-  
+
       if (courseIds.length > 0) {
         const courses = await api.getCourses(courseIds);
         const newMap: Record<string, string> = {};
         for (const course of courses) {
-          newMap[course.id] = course.code ?? "";
+          newMap[course.id] = course.code ?? '';
         }
         setCourseNamesMap(newMap);
       }
     };
-  
+
     fetchCourseNames();
   }, [headerDetails]);
-  
+
   return (
     <>
       {headerDetails.map((assignmentMap) => {
@@ -58,15 +57,15 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
           entries[0];
 
         // Decide whether to translate
-        let displayName = headerName ?? "";
+        let displayName = headerName ?? '';
 
         if (courseCode === ALL_SUBJECT.id && courseId) {
           const courseNameForCheck = courseNamesMap[courseId];
           if (courseNameForCheck && courseNameForCheck !== COURSES.ENGLISH) {
-            displayName = t(headerName ?? "");
+            displayName = t(headerName ?? '');
           }
         } else if (courseCode !== COURSES.ENGLISH) {
-          displayName = t(headerName ?? "");
+          displayName = t(headerName ?? '');
         }
         return (
           <th className="tableRightHeader" key={assignmentId}>

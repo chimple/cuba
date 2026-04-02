@@ -1,7 +1,17 @@
-import _ from "lodash";
-import "./RadialSeparators.css";
+import './RadialSeparators.css';
+import type { CSSProperties } from 'react';
 
-function Separator(props) {
+interface SeparatorProps {
+  turns: number;
+  style?: CSSProperties;
+}
+
+interface RadialSeparatorsProps {
+  count: number;
+  style?: CSSProperties;
+}
+
+function Separator(props: SeparatorProps) {
   return (
     <div
       className="radial-separator"
@@ -14,13 +24,15 @@ function Separator(props) {
   );
 }
 
-function RadialSeparators(props) {
+function RadialSeparators(props: RadialSeparatorsProps) {
   const turns = 1 / props.count;
   return (
     <>
-      {_.range(props.count).map((index) => (
-        <Separator key={index} turns={index * turns} style={props.style} />
-      ))}
+      {Array.from({ length: props.count }, (_, index: number) => index).map(
+        (index: number) => (
+          <Separator key={index} turns={index * turns} style={props.style} />
+        ),
+      )}
     </>
   );
 }

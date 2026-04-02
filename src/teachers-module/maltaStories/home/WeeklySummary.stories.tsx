@@ -1,28 +1,31 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import { number, object } from "prop-types";
-import WeeklySummary from "../../components/homePage/WeeklySummary";
+import type { Meta, StoryObj } from '@storybook/react';
+import { object } from 'prop-types';
+import WeeklySummary from '../../components/homePage/WeeklySummary';
 
 const meta = {
-  title: "teachers-module/home/WeeklySummary",
+  title: 'teachers-module/home/WeeklySummary',
   component: WeeklySummary,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     weeklySummary: object,
   },
 
   args: {
     weeklySummary: {
-      assignments: {
-        asgnmetCmptd: 2,
-        totalAssignments: 10,
-      },
-      students: {
-        stdCompletd: 3,
+      activeStudents: {
+        count: 11,
         totalStudents: 43,
+        trend: 'up',
       },
-      timeSpent: 20,
-      averageScore: 60,
+      averageTimeSpent: {
+        minutes: 20,
+        trend: 'down',
+      },
+      averageScore: {
+        percentage: 60,
+        trend: 'up',
+      },
     },
   },
 } satisfies Meta<typeof WeeklySummary>;
@@ -31,32 +34,38 @@ type Story = StoryObj<typeof meta>;
 export const AllAssigmentsCompleted: Story = {
   args: {
     weeklySummary: {
-      assignments: {
-        asgnmetCmptd: 10,
-        totalAssignments: 10,
-      },
-      students: {
-        stdCompletd: 43,
+      activeStudents: {
+        count: 43,
         totalStudents: 43,
+        trend: 'same',
       },
-      timeSpent: 60,
-      averageScore: 90,
+      averageTimeSpent: {
+        minutes: 60,
+        trend: 'up',
+      },
+      averageScore: {
+        percentage: 90,
+        trend: 'up',
+      },
     },
   },
 };
 export const FewAssignmentsDome: Story = {
-    args: {
-      weeklySummary: {
-        assignments: {
-          asgnmetCmptd: 8,
-          totalAssignments: 10,
-        },
-        students: {
-          stdCompletd: 21,
-          totalStudents: 43,
-        },
-        timeSpent: 10,
-        averageScore: 80,
+  args: {
+    weeklySummary: {
+      activeStudents: {
+        count: 21,
+        totalStudents: 43,
+        trend: 'down',
+      },
+      averageTimeSpent: {
+        minutes: 10,
+        trend: 'down',
+      },
+      averageScore: {
+        percentage: 80,
+        trend: 'same',
       },
     },
-  };
+  },
+};
