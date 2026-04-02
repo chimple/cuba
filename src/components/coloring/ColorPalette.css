@@ -26,7 +26,7 @@
   border: none;
   border-bottom: 5px solid transparent;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 
   /* The "Foot" / Depth shadow below the button (can be removed if no longer needed, but let's keep simple shadow or none based on prompt. Prompt didn't mention shadow, so I remove it as they wanted flat vector highlights) */
   transition: all 0.1s ease;
@@ -64,10 +64,22 @@
 }
 
 /* SELECTION RING */
+.color-palette-swatch-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2px 4px 4px 4px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  transition: all 0.1s ease;
+}
+
+.color-palette-swatch-wrapper.selected {
+  border-color: #36898c;
+}
+
 .color-palette-swatch.selected {
   border-bottom-width: 2px;
-  outline: 2px solid #36898c;
-  outline-offset: 2px;
 }
 
 @media (max-height: 500px) {
@@ -75,18 +87,13 @@
     height: auto;
     min-height: 0;
     padding: 6px;
-    gap: 4px;
+    gap: 4px 1px;
     border-radius: 8px;
   }
 
   .color-palette-swatch {
-    width: clamp(30px, 12vh, 40px);
-    height: clamp(30px, 12vh, 40px);
+    width: clamp(30px, 12vh, 48px);
+    height: clamp(30px, 12vh, 48px);
     border-bottom-width: 3px;
-  }
-
-  /* Adjust selection ring for smaller swatches */
-  .color-palette-swatch.selected {
-    outline-offset: 1px;
   }
 }
