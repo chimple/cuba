@@ -221,7 +221,8 @@
   border-radius: 8px;
   position: relative;
   overflow: visible;
-  background-color: #f1f1f1 !important;
+  background-color: transparent !important;
+  border: 2px solid #ff5500;
 }
 
 .chaptercontainer-collapsable-container

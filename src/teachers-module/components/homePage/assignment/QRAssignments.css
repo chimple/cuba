@@ -173,13 +173,13 @@
   position: relative;
   width: clamp(4rem, 10vw, 5.5rem);
   height: clamp(4rem, 10vw, 5.5rem);
-
-  background-color: #f1f1f1;
+  border: 2px solid #ff5500;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px; /* space inside */
+  padding: 6px;
+  /* space inside */
 }
 
 /* Assigned badge */
