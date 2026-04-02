@@ -1,12 +1,16 @@
 import React from 'react';
 import 'react-circular-progressbar/dist/styles.css';
 import './GroupWiseStudents.css';
-import { BANDWISECOLOR, TableTypes } from '../../../common/constants';
+import {
+  getBandTitleByColor,
+  StudentProgressData,
+  TableTypes,
+} from '../../../common/constants';
 import { t } from 'i18next';
 
 interface GroupWiseStudentsProps {
   color: string;
-  studentsProgress: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>[];
+  studentsProgress?: StudentProgressData[];
   studentLength: string;
   onClickCallBack: Function;
 }
@@ -17,6 +21,8 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   studentLength,
   onClickCallBack,
 }) => {
+  const groupTitle = getBandTitleByColor(color, t as (key: string) => string);
+
   return (
     <div
       className="group-wise-container"
@@ -26,21 +32,15 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
       }}
     >
       <div className="group-wise-header" style={{ backgroundColor: color }}>
-        {color === BANDWISECOLOR.RED
-          ? t('Need Help')
-          : color === BANDWISECOLOR.YELLOW
-            ? t('Still Learning')
-            : color === BANDWISECOLOR.GREEN
-              ? t('Doing Good')
-              : t('Not Tracked')}
-        <span style={{ marginLeft: '10px' }}>
-          {studentsProgress.length}/{studentLength}
+        <span>{groupTitle}</span>
+        <span className="group-wise-count">
+          {studentsProgress?.length ?? 0}/{studentLength}
         </span>
       </div>
 
       <div className="group-wise-content">
         <div className="avatars-wrapper">
-          {studentsProgress.map((stdpr) => {
+          {(studentsProgress ?? []).map((stdpr) => {
             const student = stdpr.get('student') as TableTypes<'user'>;
             return (
               <div className="student-avatar-container" key={student.id}>

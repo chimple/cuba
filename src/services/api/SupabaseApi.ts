@@ -6679,6 +6679,30 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? undefined;
   }
+  async getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    if (!this.supabase) return { hasPlayed: false };
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select('created_at')
+      .eq('student_id', studentId)
+      .eq('class_id', classId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      logger.error('Error fetching student play status:', error);
+      return { hasPlayed: false };
+    }
+
+    if (!data || data.length === 0) return { hasPlayed: false };
+
+    return { hasPlayed: true, lastPlayedAt: data[0].created_at };
+  }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
