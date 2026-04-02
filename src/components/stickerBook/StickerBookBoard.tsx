@@ -286,7 +286,7 @@ const StickerBookBoard: React.FC<Props> = ({
                     y="57.8"
                     width="500"
                     height="282.2"
-                    fill="#C0C0C0"
+                    fill="rgba(255, 255, 255, 0.9)"
                   />
                 </g>
               )}
