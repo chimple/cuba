@@ -69,7 +69,7 @@ jobs:
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@v13.0.3
         with:
-          args: deploy --only hosting:chimple-prod
+          args: deploy --only hosting:cuba-stage
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
