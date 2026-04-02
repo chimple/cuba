@@ -31,7 +31,7 @@ const PathwayStructure: React.FC = () => {
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
     React.useState<boolean>(false);
   const [stickerPreviewTrigger, setStickerPreviewTrigger] = React.useState<
-    'sticker_click' | 'pathway_completion_auto' | 'test_button'
+    'sticker_click' | 'pathway_completion_auto'
   >('sticker_click');
   const [stickerPreviewLaunchMotion, setStickerPreviewLaunchMotion] =
     React.useState<{
@@ -42,8 +42,6 @@ const PathwayStructure: React.FC = () => {
   const [stickerCompletionData, setStickerCompletionData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
-    React.useState<boolean>(false);
-  const [isTestStickerDragOpening, setIsTestStickerDragOpening] =
     React.useState<boolean>(false);
   const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
   const shouldRefreshPathAfterCompletionRef = React.useRef<boolean>(false);
@@ -124,7 +122,7 @@ const PathwayStructure: React.FC = () => {
   const handleStickerPreviewReady = React.useCallback(
     (
       data: StickerBookModalData,
-      trigger: 'sticker_click' | 'pathway_completion_auto' | 'test_button',
+      trigger: 'sticker_click' | 'pathway_completion_auto',
     ) => {
       const rewardBoxRect = containerRef.current
         ?.querySelector('.PathwayStructure-end-reward-box--sticker')
@@ -147,8 +145,7 @@ const PathwayStructure: React.FC = () => {
       setStickerPreviewData(data);
       setStickerPreviewTrigger(trigger);
       setIsStickerPreviewOpen(true);
-      const isDragPopup =
-        trigger === 'pathway_completion_auto' || trigger === 'test_button';
+      const isDragPopup = trigger === 'pathway_completion_auto';
       Util.logEvent(
         isDragPopup
           ? EVENTS.STICKER_DRAG_POPUP_SHOWN
@@ -205,7 +202,7 @@ const PathwayStructure: React.FC = () => {
   }, []);
 
   // Mounts SVG with everything needed
-  const { triggerTestStickerDragPopup } = usePathwaySVG({
+  usePathwaySVG({
     containerRef,
     setModalOpen,
     setModalText,
@@ -227,21 +224,10 @@ const PathwayStructure: React.FC = () => {
     onStickerCompletionReady: handleStickerCompletionReadyInternal,
   });
 
-  const handleTestStickerDragPopup = React.useCallback(async () => {
-    setIsTestStickerDragOpening(true);
-    try {
-      await triggerTestStickerDragPopup();
-    } finally {
-      setIsTestStickerDragOpening(false);
-    }
-  }, [triggerTestStickerDragPopup]);
-
   const closeStickerPreview = React.useCallback(
     (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
       if (!stickerPreviewData) return;
-      const isDragPopup =
-        stickerPreviewTrigger === 'pathway_completion_auto' ||
-        stickerPreviewTrigger === 'test_button';
+      const isDragPopup = stickerPreviewTrigger === 'pathway_completion_auto';
       Util.logEvent(
         isDragPopup
           ? EVENTS.STICKER_DRAG_POPUP_CLOSED
@@ -377,18 +363,6 @@ const PathwayStructure: React.FC = () => {
           animate={shouldAnimate}
         />
       )}
-      <button
-        type="button"
-        className="PathwayStructure-test-drag-button"
-        onClick={() => {
-          void handleTestStickerDragPopup();
-        }}
-        disabled={isTestStickerDragOpening}
-      >
-        {isTestStickerDragOpening
-          ? 'Opening sticker drag...'
-          : 'Test Sticker Drag Popup'}
-      </button>
       {/* SVG Root Container */}
       <div className="PathwayStructure-div" ref={containerRef} />
 
@@ -430,8 +404,7 @@ const PathwayStructure: React.FC = () => {
         <StickerBookPreviewModal
           data={stickerPreviewData}
           variant={
-            stickerPreviewTrigger === 'pathway_completion_auto' ||
-            stickerPreviewTrigger === 'test_button'
+            stickerPreviewTrigger === 'pathway_completion_auto'
               ? 'drag_collect'
               : 'preview'
           }

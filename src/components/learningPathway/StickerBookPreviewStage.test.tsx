@@ -287,12 +287,12 @@ describe('StickerBookPreviewStage', () => {
     );
   });
 
-  test('shows confetti only for drag variant', () => {
+  test('shows intro and drop confetti only for drag variant', () => {
     const { rerender } = render(
       <StickerBookPreviewStage
         isDragVariant={true}
         isLoading={false}
-        showIntroConfetti={false}
+        showIntroConfetti={true}
         showDropConfetti={true}
         showPointerHint={false}
         isDragging={false}
@@ -310,8 +310,8 @@ describe('StickerBookPreviewStage', () => {
     );
 
     expect(
-      screen.getByTestId('StickerBookPreviewModal-confetti'),
-    ).toBeInTheDocument();
+      screen.getAllByTestId('StickerBookPreviewModal-confetti'),
+    ).toHaveLength(2);
 
     rerender(
       <StickerBookPreviewStage
@@ -339,7 +339,7 @@ describe('StickerBookPreviewStage', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('anchors drop confetti to the bottom center of the dragged sticker', () => {
+  test('renders drop confetti after a successful drag', () => {
     render(
       <StickerBookPreviewStage
         isDragVariant={true}
@@ -361,11 +361,14 @@ describe('StickerBookPreviewStage', () => {
       />,
     );
 
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-confetti'),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
-      left: '-40px',
-      top: '-25px',
-      width: '150px',
-      height: '140px',
+      left: '-47.5px',
+      top: '-27.5px',
+      width: '165px',
+      height: '145px',
     });
   });
 

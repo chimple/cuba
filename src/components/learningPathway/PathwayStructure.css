@@ -9,25 +9,6 @@
   align-items: center;
 }
 
-.PathwayStructure-test-drag-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 20;
-  border: 0;
-  border-radius: 999px;
-  padding: 0.7rem 1rem;
-  background: #f26122;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
-  box-shadow: 0 0.35rem 1rem rgba(0, 0, 0, 0.18);
-}
-
-.PathwayStructure-test-drag-button:disabled {
-  opacity: 0.72;
-}
-
 .PathwayStructure-animated-pointer {
   animation: diagonal-move 1.4s infinite ease-in-out;
 }
