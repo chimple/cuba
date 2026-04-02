@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import './DashBoardDetails.css';
 import { useHistory } from 'react-router';
 import Header from '../components/homePage/Header';
-import { BANDWISECOLOR, PAGES, TableTypes } from '../../common/constants';
+import {
+  getBandTitleByColor,
+  PAGES,
+  StudentProgressData,
+  TableTypes,
+} from '../../common/constants';
 import { t } from 'i18next';
 import DashBoardStudentProgres from '../components/homePage/DashBoardStudentProgres';
 import { Util } from '../../utility/util';
@@ -11,7 +16,7 @@ import logger from '../../utility/logger';
 interface DashBoardDetailsProps {}
 type DashBoardDetailsState = {
   bandcolor?: string;
-  studentProgress?: Map<string, TableTypes<'user'> | TableTypes<'result'>[]>[];
+  studentProgress?: StudentProgressData[];
   studentLength?: string;
 };
 const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
@@ -21,11 +26,12 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
   const history = useHistory();
   const state = (history.location.state ?? {}) as DashBoardDetailsState;
   const bandcolor: string = state.bandcolor ?? '';
-  const studentsProgress: Map<
-    string,
-    TableTypes<'user'> | TableTypes<'result'>[]
-  >[] = state.studentProgress ?? [];
+  const studentsProgress: StudentProgressData[] = state.studentProgress ?? [];
   const studentLength: string = state.studentLength ?? '';
+  const bandTitle = getBandTitleByColor(
+    bandcolor,
+    t as (key: string) => string,
+  );
 
   const currentSchool = Util.getCurrentSchool();
 
@@ -59,14 +65,8 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
           className="dashboard-group-wise-header"
           style={{ backgroundColor: bandcolor }}
         >
-          {bandcolor === BANDWISECOLOR.RED
-            ? t('Need Help')
-            : bandcolor === BANDWISECOLOR.YELLOW
-              ? t('Still Learning')
-              : bandcolor === BANDWISECOLOR.GREEN
-                ? t('Doing Good')
-                : t('Not Tracked')}
-          <span style={{ marginLeft: '10px' }}>
+          <span>{bandTitle}</span>
+          <span>
             {studentsProgress?.length} / {studentLength}
           </span>
         </div>
