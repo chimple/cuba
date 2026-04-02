@@ -5062,6 +5062,29 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    const query = `
+      SELECT created_at
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+      AND class_id = ?
+      AND is_deleted = 0
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
+    const params = [studentId, classId];
+    const res = await this._db?.query(query, params);
+    const firstRow = res?.values?.[0] as { created_at?: string } | undefined;
+
+    if (!firstRow?.created_at) {
+      return { hasPlayed: false };
+    }
+
+    return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
+  }
 
   async getLastAssignmentsForRecommendations(
     classId: string,
