@@ -212,7 +212,13 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
         candidate.distance < best.distance ? candidate : best,
       );
 
-      if (horizontalOutside !== 0 && verticalOutside === 0) {
+      if (horizontalOutside === 0 && verticalOutside === 0) {
+        nearestSide = {
+          x: slotCenterX,
+          y: slotBottom,
+          distance: Math.abs(stickerGuideY - slotBottom),
+        };
+      } else if (horizontalOutside !== 0 && verticalOutside === 0) {
         nearestSide =
           horizontalOutside < 0
             ? {
