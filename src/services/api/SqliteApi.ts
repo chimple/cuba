@@ -5062,6 +5062,29 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    const query = `
+      SELECT created_at
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+      AND class_id = ?
+      AND is_deleted = 0
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
+    const params = [studentId, classId];
+    const res = await this._db?.query(query, params);
+    const firstRow = res?.values?.[0] as { created_at?: string } | undefined;
+
+    if (!firstRow?.created_at) {
+      return { hasPlayed: false };
+    }
+
+    return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
+  }
 
   async getLastAssignmentsForRecommendations(
     classId: string,
@@ -8557,12 +8580,17 @@ order by
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
-    userId: string,
+    userId?: string,
   ): Promise<void> {
     if (!this._db) return;
 
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!user?.id) return;
+    const resolvedUserId = userId?.trim();
+    let effectiveUserId = resolvedUserId;
+    if (!effectiveUserId) {
+      const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!user?.id) return;
+      effectiveUserId = user.id;
+    }
 
     try {
       const bookRes = await this._db.query(
@@ -8578,7 +8606,7 @@ order by
         `SELECT * FROM ${TABLES.UserStickerBook}
          WHERE user_id = ? AND sticker_book_id = ? AND is_deleted = 0
          LIMIT 1`,
-        [user.id, stickerBookId],
+        [effectiveUserId, stickerBookId],
       );
       const book = this.mapStickerBookRow(bookRow);
       const total = book.total_stickers || book.stickers_metadata?.length || 0;
@@ -8592,6 +8620,7 @@ order by
         const stickersCollected = [stickerId];
         const status = total === 1 ? 'completed' : 'in_progress';
         const createdAt = new Date().toISOString();
+        const userStickerId = uuidv4();
 
         await this.executeQuery(
           `INSERT INTO ${TABLES.UserStickerBook}
@@ -8599,7 +8628,7 @@ order by
            VALUES (?, ?, ?, ?, ?, ?, 0)`,
           [
             id,
-            user.id,
+            effectiveUserId,
             stickerBookId,
             JSON.stringify(stickersCollected),
             status,
@@ -8612,7 +8641,7 @@ order by
           MUTATE_TYPES.INSERT,
           {
             id,
-            user_id: user.id,
+            user_id: effectiveUserId,
             sticker_book_id: stickerBookId,
             stickers_collected: stickersCollected,
             status,
@@ -8620,6 +8649,22 @@ order by
             is_deleted: false,
           },
         );
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, effectiveUserId, stickerId, createdAt],
+        );
+
+        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: effectiveUserId,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
         return;
       }
 
@@ -8627,6 +8672,7 @@ order by
       const updated = currentCollected.includes(stickerId)
         ? currentCollected
         : [...currentCollected, stickerId];
+      const isNewSticker = updated.length !== currentCollected.length;
       const status =
         total > 0 && updated.length >= total ? 'completed' : progress.status;
 
@@ -8655,6 +8701,27 @@ order by
           status,
         },
       );
+
+      if (isNewSticker) {
+        const userStickerId = uuidv4();
+        const createdAt = new Date().toISOString();
+
+        await this.executeQuery(
+          `INSERT INTO ${TABLES.UserSticker}
+            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
+           VALUES (?, ?, ?, ?, 0, 0)`,
+          [userStickerId, effectiveUserId, stickerId, createdAt],
+        );
+
+        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
+          id: userStickerId,
+          user_id: effectiveUserId,
+          sticker_id: stickerId,
+          created_at: createdAt,
+          is_deleted: false,
+          is_seen: false,
+        });
+      }
     } catch (error) {
       logger.error('Error updating sticker progress in sqlite:', error);
     }

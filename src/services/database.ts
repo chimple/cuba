@@ -2116,6 +2116,7 @@ export type Database = {
           image: string | null;
           is_deleted: boolean | null;
           language_id: string | null;
+          lido_lesson_id: string | null;
           metadata: string | null;
           name: string | null;
           outcome: string | null;
@@ -2137,6 +2138,7 @@ export type Database = {
           image?: string | null;
           is_deleted?: boolean | null;
           language_id?: string | null;
+          lido_lesson_id?: string | null;
           metadata?: string | null;
           name?: string | null;
           outcome?: string | null;
@@ -2158,6 +2160,7 @@ export type Database = {
           image?: string | null;
           is_deleted?: boolean | null;
           language_id?: string | null;
+          lido_lesson_id?: string | null;
           metadata?: string | null;
           name?: string | null;
           outcome?: string | null;
@@ -5908,6 +5911,7 @@ export type Database = {
           image: string | null;
           is_deleted: boolean | null;
           language_id: string | null;
+          lido_lesson_id: string | null;
           metadata: string | null;
           name: string | null;
           outcome: string | null;
