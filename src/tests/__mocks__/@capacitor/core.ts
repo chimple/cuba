@@ -4,4 +4,8 @@ export const Capacitor = {
   getPlatform: jest.fn(() => 'web'),
 };
 
+export const CapacitorHttp = {
+  get: jest.fn(),
+};
+
 export const registerPlugin = jest.fn(() => ({}));

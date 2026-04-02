@@ -131,6 +131,17 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  // Runtime-downloaded popup audio is stored in device app storage.
+  private static readonly COMMON_AUDIO_CACHE_DIR = 'commonAudioCache';
+  // Reuses resolved local file URIs after the first lookup.
+  private static cachedAudioUrlMap = new Map<string, string>();
+  // Deduplicates concurrent requests for the same remote audio URL.
+  private static cachedAudioPromiseMap = new Map<
+    string,
+    Promise<string | null>
+  >();
+  // Keeps the current HTML audio instance so replay/close can stop it cleanly.
+  private static activeCommonAudioPlayer: HTMLAudioElement | null = null;
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
@@ -3618,6 +3629,250 @@ export class Util {
       );
     } catch (err) {
       logger.error('[LidoCommonAudio] ensure failed:', err);
+    }
+  }
+
+  private static getAudioCacheFileName(audioUrl: string): string {
+    const fallbackExtension = 'mp3';
+
+    try {
+      const parsedUrl = new URL(audioUrl);
+      const extension =
+        parsedUrl.pathname.split('.').pop()?.toLowerCase() ?? fallbackExtension;
+      const sanitizedExtension = extension.replace(/[^a-z0-9]/g, '');
+
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${
+        sanitizedExtension || fallbackExtension
+      }`;
+    } catch {
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${fallbackExtension}`;
+    }
+  }
+
+  private static getCommonAudioCachePath(audioUrl: string): string {
+    return `${Util.COMMON_AUDIO_CACHE_DIR}/${Util.getAudioCacheFileName(audioUrl)}`;
+  }
+
+  private static isRemoteAudioUrl(audioUrl: string): boolean {
+    return /^https?:\/\//i.test(audioUrl);
+  }
+
+  private static resolveTtsLanguage(languageCode?: string | null): string {
+    const normalizedLanguage =
+      (
+        languageCode ||
+        localStorage.getItem(LANGUAGE) ||
+        navigator.language ||
+        'en'
+      )
+        .trim()
+        .toLowerCase() || 'en';
+
+    if (normalizedLanguage.includes('-')) {
+      return normalizedLanguage;
+    }
+
+    const ttsLocaleMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      kn: 'kn-IN',
+      mr: 'mr-IN',
+      pt: 'pt-PT',
+    };
+
+    return ttsLocaleMap[normalizedLanguage] || `${normalizedLanguage}-IN`;
+  }
+
+  // Stops whichever popup audio source is currently active before replay or close.
+  public static async stopAudioUrlOrTtsPlayback(): Promise<void> {
+    // Popup audio and popup TTS share a single playback lane.
+    try {
+      await TextToSpeech.stop();
+    } catch (error) {
+      logger.warn('[CommonAudio] Failed to stop TTS playback', error);
+    }
+
+    try {
+      if (Util.activeCommonAudioPlayer) {
+        Util.activeCommonAudioPlayer.pause();
+        Util.activeCommonAudioPlayer.currentTime = 0;
+        Util.activeCommonAudioPlayer = null;
+      }
+    } catch (error) {
+      logger.error('[CommonAudio] Failed to stop HTML audio playback', error);
+    }
+  }
+
+  // Resolves a remote audio URL to a reusable local device file on native platforms.
+  public static async getCachedAudioUrl(
+    audioUrl?: string | null,
+  ): Promise<string | null> {
+    const normalizedAudioUrl = audioUrl?.trim();
+    if (!normalizedAudioUrl) {
+      return null;
+    }
+
+    if (
+      !Capacitor.isNativePlatform() ||
+      !Util.isRemoteAudioUrl(normalizedAudioUrl)
+    ) {
+      return normalizedAudioUrl;
+    }
+
+    const cachedSrc = Util.cachedAudioUrlMap.get(normalizedAudioUrl);
+    if (cachedSrc) {
+      return cachedSrc;
+    }
+
+    const inFlightRequest = Util.cachedAudioPromiseMap.get(normalizedAudioUrl);
+    if (inFlightRequest) {
+      return inFlightRequest;
+    }
+
+    const downloadPromise = (async () => {
+      const path = Util.getCommonAudioCachePath(normalizedAudioUrl);
+
+      try {
+        // Reuse the local copy if this URL was already downloaded earlier.
+        await Filesystem.stat({
+          path,
+          directory: Directory.Data,
+        });
+      } catch {
+        try {
+          await Filesystem.mkdir({
+            path: Util.COMMON_AUDIO_CACHE_DIR,
+            directory: Directory.Data,
+            recursive: true,
+          });
+        } catch (error) {
+          logger.error('[CommonAudio] Cache directory creation skipped', error);
+        }
+
+        try {
+          // First use downloads the remote asset into app-local storage.
+          const response = await CapacitorHttp.get({
+            url: normalizedAudioUrl,
+            responseType: 'blob',
+            readTimeout: 15000,
+            connectTimeout: 15000,
+          });
+
+          if (!response?.data || response.status !== 200) {
+            logger.warn(
+              '[CommonAudio] Audio download failed with empty response',
+              normalizedAudioUrl,
+            );
+            return null;
+          }
+
+          const base64Audio =
+            typeof response.data === 'string'
+              ? response.data
+              : await Util.blobToString(response.data as Blob);
+
+          await Filesystem.writeFile({
+            path,
+            data: base64Audio,
+            directory: Directory.Data,
+            recursive: true,
+          });
+        } catch (error) {
+          logger.error('[CommonAudio] Failed to download audio', error);
+          return null;
+        }
+      }
+
+      try {
+        // Native file URIs must be converted before browser audio can play them.
+        const localAudioUri = await Filesystem.getUri({
+          path,
+          directory: Directory.Data,
+        });
+        const resolvedSrc = Capacitor.convertFileSrc(localAudioUri.uri);
+        Util.cachedAudioUrlMap.set(normalizedAudioUrl, resolvedSrc);
+        return resolvedSrc;
+      } catch (error) {
+        logger.error('[CommonAudio] Failed to resolve local audio uri', error);
+        return null;
+      }
+    })();
+
+    Util.cachedAudioPromiseMap.set(normalizedAudioUrl, downloadPromise);
+
+    try {
+      return await downloadPromise;
+    } finally {
+      Util.cachedAudioPromiseMap.delete(normalizedAudioUrl);
+    }
+  }
+
+  // Plays downloaded URL audio when available, otherwise falls back to TTS text.
+  public static async playAudioOrTts({
+    audioUrl,
+    text,
+    languageCode,
+    rate = 0.9,
+    pitch = 1,
+    volume = 1,
+  }: {
+    audioUrl?: string | null;
+    text?: string | null;
+    languageCode?: string | null;
+    rate?: number;
+    pitch?: number;
+    volume?: number;
+  }): Promise<boolean> {
+    // Replay always restarts from the beginning instead of overlapping audio.
+    await Util.stopAudioUrlOrTtsPlayback();
+
+    const resolvedAudioUrl = await Util.getCachedAudioUrl(audioUrl);
+
+    if (resolvedAudioUrl) {
+      try {
+        const audio = new Audio(resolvedAudioUrl);
+        audio.preload = 'auto';
+        audio.onended = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+        };
+        audio.onerror = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+        };
+
+        Util.activeCommonAudioPlayer = audio;
+        await audio.play();
+        return true;
+      } catch (error) {
+        logger.warn(
+          '[CommonAudio] Audio playback failed, falling back to TTS',
+          error,
+        );
+      }
+    }
+
+    const normalizedText = text?.trim();
+    if (!normalizedText) {
+      return false;
+    }
+
+    try {
+      // Text is only spoken when no playable audio URL is available.
+      await TextToSpeech.speak({
+        text: normalizedText,
+        lang: Util.resolveTtsLanguage(languageCode),
+        rate,
+        pitch,
+        volume,
+        category: 'ambient',
+      });
+      return true;
+    } catch (error) {
+      logger.error('[CommonAudio] TTS playback failed', error);
+      return false;
     }
   }
 
