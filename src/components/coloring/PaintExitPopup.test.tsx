@@ -36,6 +36,32 @@ describe('PaintExitPopup', () => {
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
 
+  test('renders post-save variant with yes/no and mapped actions', () => {
+    const onStay = jest.fn();
+    const onExit = jest.fn();
+
+    render(
+      <PaintExitPopup
+        isOpen={true}
+        onStay={onStay}
+        onExit={onExit}
+        onClose={jest.fn()}
+        variant="post-save-exit"
+      />,
+    );
+
+    expect(screen.getByText('Your creation is shared!')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Please confirm if you want to exit\.?$/),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'No' }));
+
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onStay).toHaveBeenCalledTimes(1);
+  });
+
   test('calls onClose when close button is clicked', () => {
     const onClose = jest.fn();
     render(

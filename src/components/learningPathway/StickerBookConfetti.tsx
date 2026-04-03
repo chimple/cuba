@@ -205,10 +205,10 @@ const StickerBookConfetti: React.FC<StickerBookConfettiProps> = ({
     isDropConfetti && containerPos
       ? ({
           inset: 'auto',
-          left: containerPos.x - containerPos.size * 2.4,
-          top: containerPos.y - containerPos.size * 2.05,
-          width: containerPos.size * 4.8,
-          height: containerPos.size * 3.35,
+          left: containerPos.x - containerPos.size * 1.2,
+          top: containerPos.y - containerPos.size * 1.65,
+          width: containerPos.size * 2.4,
+          height: containerPos.size * 2.1,
           overflow: 'visible',
           pointerEvents: 'none',
           zIndex: 10,
