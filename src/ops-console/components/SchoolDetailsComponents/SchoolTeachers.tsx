@@ -16,7 +16,11 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
-import { Add as AddIcon, MoreHoriz } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  MoreHoriz,
+  BorderColor as BorderColorIcon,
+} from '@mui/icons-material';
 import { t } from 'i18next';
 import SearchAndFilter from '../SearchAndFilter';
 import FilterSlider from '../FilterSlider';
@@ -54,6 +58,12 @@ import {
   getClassDisplayLabel,
   getExactClassName,
 } from './ClassDetailsPageUtils';
+import {
+  getTeacherClassAssignmentDiff,
+  normalizeClassIds,
+  parseClassIdsFromCsv,
+  toClassIdsCsv,
+} from './TeacherClassAssignmentUtils';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -74,6 +84,12 @@ interface DisplayTeacher {
   interactPayload: TeacherInfo;
   whatsappGroupStatus?: WhatsappGroupStatusKey;
   teacher_actions?: string;
+}
+
+// Tracks the selected teacher and their current class links while editing assignments.
+interface EditTeacherAssignmentState {
+  teacher: TeacherInfo;
+  assignedClassIds: string[];
 }
 
 interface SchoolTeachersProps {
@@ -190,6 +206,18 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [deleteTargetTeacher, setDeleteTargetTeacher] =
     useState<TeacherInfo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Controls the edit-assignment popup visibility for teacher class updates.
+  const [isEditTeacherModalOpen, setIsEditTeacherModalOpen] = useState(false);
+  // Stores edit context so save can compare initial vs final class selections.
+  const [editTeacherState, setEditTeacherState] =
+    useState<EditTeacherAssignmentState | null>(null);
+  // Shows inline success/error feedback specific to the edit-assignment form.
+  const [editTeacherMessage, setEditTeacherMessage] = useState<
+    MessageConfig | undefined
+  >();
+  // Prevents duplicate save clicks while assignment changes are being persisted.
+  const [isUpdatingClassAssignment, setIsUpdatingClassAssignment] =
+    useState(false);
   const getTeacherInfo = useCallback(
     (userId: string, classId: string): TeacherInfo | null => {
       if (!Array.isArray(teachers)) return null;
@@ -849,6 +877,181 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     [classOptions],
   );
 
+  const editTeacherFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: 'name',
+        label: 'Teacher Name',
+        kind: 'text',
+        required: true,
+        column: 2,
+        disabled: true,
+      },
+      {
+        name: 'class',
+        label: 'Class Section',
+        kind: 'select',
+        // Keeps the class selector half-width as requested for the edit popup.
+        column: 0,
+        options: classOptions,
+        multi: true,
+      },
+      {
+        name: 'phoneNumber',
+        label: 'Phone Number',
+        kind: 'text',
+        column: 2,
+        disabled: true,
+      },
+      {
+        name: 'email',
+        label: 'Email Address',
+        kind: 'text',
+        column: 2,
+        disabled: true,
+      },
+    ],
+    [classOptions],
+  );
+
+  // Pre-fills edit form values from the selected teacher and normalized class set.
+  const editTeacherInitialValues = useMemo(() => {
+    if (!editTeacherState) {
+      return undefined;
+    }
+
+    return {
+      name: editTeacherState.teacher.user?.name ?? '',
+      class: toClassIdsCsv(editTeacherState.assignedClassIds),
+      phoneNumber: editTeacherState.teacher.user?.phone ?? '',
+      email: editTeacherState.teacher.user?.email ?? '',
+    };
+  }, [editTeacherState]);
+
+  // Clears edit modal state to avoid stale selections/messages on next open.
+  const handleCloseEditTeacherModal = useCallback(() => {
+    setIsEditTeacherModalOpen(false);
+    setEditTeacherState(null);
+    setEditTeacherMessage(undefined);
+    setIsUpdatingClassAssignment(false);
+  }, []);
+
+  // Resolves all classes linked to the teacher, with local fallback if fetch fails.
+  const getTeacherAssignedClassIds = useCallback(
+    async (teacher: TeacherInfo): Promise<string[]> => {
+      const teacherId = teacher.user?.id?.trim() ?? '';
+      if (!teacherId) return [];
+
+      const fallbackClassIds = normalizeClassIds(
+        teachers
+          .filter((teacherItem) => teacherItem.user?.id === teacherId)
+          .map((teacherItem) => teacherItem.classWithidname?.id ?? ''),
+      );
+
+      try {
+        const assignedClasses = await api.getClassesForSchool(
+          schoolId,
+          teacherId,
+        );
+        const assignedClassIds = normalizeClassIds(
+          assignedClasses.map((assignedClass) => assignedClass.id),
+        );
+
+        return assignedClassIds.length > 0
+          ? assignedClassIds
+          : fallbackClassIds;
+      } catch (error) {
+        logger.error('Failed to fetch teacher assigned classes:', error);
+        return fallbackClassIds;
+      }
+    },
+    [api, schoolId, teachers],
+  );
+
+  // Opens edit modal with fresh assignment state for the selected teacher row.
+  const handleOpenEditTeacherModal = useCallback(
+    async (row: DisplayTeacher) => {
+      const teacher =
+        row.interactPayload ?? getTeacherInfo(row.id, row.classId);
+      if (!teacher?.user?.id) return;
+
+      const assignedClassIds = await getTeacherAssignedClassIds(teacher);
+      setEditTeacherState({
+        teacher,
+        assignedClassIds,
+      });
+      setEditTeacherMessage(undefined);
+      setIsEditTeacherModalOpen(true);
+    },
+    [getTeacherAssignedClassIds, getTeacherInfo],
+  );
+
+  // Persists only assignment diffs so non-class profile fields remain unchanged.
+  const handleEditTeacherSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      if (!editTeacherState) return;
+
+      const teacherId = editTeacherState.teacher.user?.id?.trim() ?? '';
+      if (!teacherId) {
+        setEditTeacherMessage({
+          text: t(
+            'Failed to update teacher class assignments. Please try again.',
+          ),
+          type: 'error',
+        });
+        return;
+      }
+
+      const selectedClassIds = parseClassIdsFromCsv(values.class ?? '');
+      const { classIdsToAdd, classIdsToRemove, hasChanges } =
+        getTeacherClassAssignmentDiff(
+          editTeacherState.assignedClassIds,
+          selectedClassIds,
+        );
+
+      if (!hasChanges) return;
+
+      try {
+        setIsUpdatingClassAssignment(true);
+        setEditTeacherMessage(undefined);
+
+        for (const classId of classIdsToAdd) {
+          await api.addTeacherToClass(
+            schoolId,
+            classId,
+            editTeacherState.teacher.user,
+          );
+        }
+
+        for (const classId of classIdsToRemove) {
+          await api.deleteUserFromClass(teacherId, classId);
+        }
+
+        handleCloseEditTeacherModal();
+        fetchTeachers(page, searchTerm);
+      } catch (error) {
+        logger.error('Failed to update teacher class assignments:', error);
+        setEditTeacherMessage({
+          text: t(
+            'Failed to update teacher class assignments. Please try again.',
+          ),
+          type: 'error',
+        });
+      } finally {
+        setIsUpdatingClassAssignment(false);
+      }
+    },
+    [
+      api,
+      editTeacherState,
+      fetchTeachers,
+      handleCloseEditTeacherModal,
+      page,
+      schoolId,
+      searchTerm,
+    ],
+  );
+
   const columns: Column<DisplayTeacher>[] = [
     {
       key: 'name',
@@ -948,6 +1151,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           <ActionMenu
             items={[
               {
+                // Opens assignment-only edit mode from the row action menu.
+                name: t('Edit Details'),
+                icon: (
+                  <BorderColorIcon
+                    fontSize="small"
+                    className="schoolTeachers-actionEditIcon"
+                  />
+                ),
+                onClick: () => {
+                  void handleOpenEditTeacherModal(row);
+                },
+              },
+              {
                 name: t('Delete'),
                 icon: (
                   <DeleteOutlineIcon
@@ -972,6 +1188,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
                   open(e);
                 }}
                 className="schoolTeachers-actionTrigger"
+                id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
               >
                 <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
               </IconButton>
@@ -1258,6 +1475,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={handleCloseAddTeacherModal}
         onSubmit={handleTeacherSubmit}
         message={errorMessage}
+      />
+      <FormCard
+        open={isEditTeacherModalOpen}
+        // Reuses FormCard in edit mode for class assignment updates only.
+        title={t('Edit Teacher Details')}
+        submitLabel={
+          isUpdatingClassAssignment ? t('Saving...') : t('Save Changes')
+        }
+        fields={editTeacherFields}
+        initialValues={editTeacherInitialValues}
+        onClose={handleCloseEditTeacherModal}
+        onSubmit={handleEditTeacherSubmit}
+        message={editTeacherMessage}
       />
     </div>
   );
