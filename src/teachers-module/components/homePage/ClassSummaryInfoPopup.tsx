@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
+import { IonBackdrop } from '@ionic/react';
 import { t } from 'i18next';
 import './ClassSummaryInfoPopup.css';
 
@@ -84,114 +84,93 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
   onClose,
   dateRangeLabel,
 }) => {
-  const popupRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (!popupRef.current) return;
-      if (!popupRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleOutsideClick);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
-  return createPortal(
-    <div className="class-summary-popup-overlay">
-      <div
-        ref={popupRef}
-        className="class-summary-popup"
-        role="dialog"
-        aria-modal="true"
-        aria-label={String(t('Class summary information'))}
-      >
-        <div className="class-summary-popup-header">
-          <div className="class-summary-popup-header-top">
-            <h3 className="class-summary-popup-title">
-              {t('Weekly Summary')} {dateRangeLabel}
-            </h3>
-            <button
-              type="button"
-              className="class-summary-popup-close-btn"
-              onClick={onClose}
-              aria-label={String(t('Close class summary information'))}
-            >
-              <img
-                src={CLOSE_ICON_SRC}
-                alt=""
-                className="class-summary-popup-close-icon"
-              />
-            </button>
-          </div>
-          <div className="class-summary-popup-subtitle">
-            {t('Class Summary')}
-          </div>
-        </div>
-
-        <div className="class-summary-popup-body">
-          {SUMMARY_ROWS.map((row) => (
-            <section key={row.title} className="class-summary-popup-section">
-              <p className="class-summary-popup-main-text">
-                <strong>{t(row.title)}</strong> - {t(row.description)}
-              </p>
-            </section>
-          ))}
-
-          {TREND_ROWS.map((item, index) => (
-            <div key={`trend-${index}`} className="class-summary-popup-item">
-              <img
-                src={TREND_ICON_BY_TYPE[item.icon]}
-                alt=""
-                className={`class-summary-popup-item-icon ${
-                  item.icon === 'down'
-                    ? 'class-summary-popup-item-icon--down'
-                    : ''
-                }`}
-              />
-              <span className="class-summary-popup-item-text">
-                {t(item.text)}
-              </span>
-            </div>
-          ))}
-
-          {ENGAGEMENT_ROWS.map((row) => (
-            <section key={row.label} className="class-summary-popup-section">
-              <span
-                className={`class-summary-popup-pill ${row.labelClassName}`}
+  return (
+    <>
+      <IonBackdrop
+        visible={isOpen}
+        tappable={true}
+        onIonBackdropTap={onClose}
+        className="class-summary-popup-ion-backdrop"
+      />
+      <div className="class-summary-popup-overlay">
+        <div
+          className="class-summary-popup"
+          role="dialog"
+          aria-modal="true"
+          aria-label={String(t('Class summary information'))}
+        >
+          <div className="class-summary-popup-header">
+            <div className="class-summary-popup-header-top">
+              <h3 className="class-summary-popup-title">
+                {t('Weekly Summary')} {dateRangeLabel}
+              </h3>
+              <button
+                type="button"
+                className="class-summary-popup-close-btn"
+                onClick={onClose}
+                aria-label={String(t('Close class summary information'))}
               >
-                {t(row.label)}
-              </span>
-              {row.lines.map((line, index) => (
-                <p
-                  key={`${row.label}-${index}`}
-                  className="class-summary-popup-main-text class-summary-popup-main-text--spaced"
-                >
-                  {t(line)}
+                <img
+                  src={CLOSE_ICON_SRC}
+                  alt=""
+                  className="class-summary-popup-close-icon"
+                />
+              </button>
+            </div>
+            <div className="class-summary-popup-subtitle">
+              {t('Class Summary')}
+            </div>
+          </div>
+
+          <div className="class-summary-popup-body">
+            {SUMMARY_ROWS.map((row) => (
+              <section key={row.title} className="class-summary-popup-section">
+                <p className="class-summary-popup-main-text">
+                  <strong>{t(row.title)}</strong> - {t(row.description)}
                 </p>
-              ))}
-            </section>
-          ))}
+              </section>
+            ))}
+
+            {TREND_ROWS.map((item, index) => (
+              <div key={`trend-${index}`} className="class-summary-popup-item">
+                <img
+                  src={TREND_ICON_BY_TYPE[item.icon]}
+                  alt=""
+                  className={`class-summary-popup-item-icon ${
+                    item.icon === 'down'
+                      ? 'class-summary-popup-item-icon--down'
+                      : ''
+                  }`}
+                />
+                <span className="class-summary-popup-item-text">
+                  {t(item.text)}
+                </span>
+              </div>
+            ))}
+
+            {ENGAGEMENT_ROWS.map((row) => (
+              <section key={row.label} className="class-summary-popup-section">
+                <span
+                  className={`class-summary-popup-pill ${row.labelClassName}`}
+                >
+                  {t(row.label)}
+                </span>
+                {row.lines.map((line, index) => (
+                  <p
+                    key={`${row.label}-${index}`}
+                    className="class-summary-popup-main-text class-summary-popup-main-text--spaced"
+                  >
+                    {t(line)}
+                  </p>
+                ))}
+              </section>
+            ))}
+          </div>
         </div>
       </div>
-    </div>,
-    document.body,
+    </>
   );
 };
 
