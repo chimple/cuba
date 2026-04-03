@@ -203,9 +203,8 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
 
   if (isDragVariant && showPointerHint && dragStickerPos) {
     if (stableSlotRect) {
-      // Start from the actual nearest side of the placeholder and pull the
-      // hand slightly inward. This stays stable even when the draggable
-      // sticker overlaps the placeholder bounds.
+      // Target the nearest sensible point inside the placeholder while keeping
+      // the guide stable even if the draggable sticker overlaps its bounds.
       const slotLeft = stableSlotRect.x;
       const slotRight = stableSlotRect.x + stableSlotRect.width;
       const slotTop = stableSlotRect.y;
@@ -297,13 +296,15 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
       const slotAnchorY =
         slotCenterY + (nearestSide.y - slotCenterY) * slotAnchorInset;
 
-      hintDeltaX = stickerGuideX - slotAnchorX;
-      hintDeltaY = stickerGuideY - slotAnchorY;
       const pointerTipOffsetX = pointerHintSize * 0.46;
       const pointerTipOffsetY = pointerHintSize * 0.76;
 
-      hintStartX = slotAnchorX - pointerTipOffsetX;
-      hintStartY = slotAnchorY - pointerTipOffsetY;
+      // Start the autoplay loop on the draggable sticker and animate toward
+      // the placeholder target.
+      hintStartX = stickerGuideX - pointerTipOffsetX;
+      hintStartY = stickerGuideY - pointerTipOffsetY;
+      hintDeltaX = slotAnchorX - stickerGuideX;
+      hintDeltaY = slotAnchorY - stickerGuideY;
     } else {
       hintStartX = dragStickerPos.x + dragStickerSize * 0.08;
       hintStartY = dragStickerPos.y - dragStickerSize * 0.72;
@@ -388,8 +389,8 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
               alt="drag-pointer"
               className={`StickerBookPreviewModal-pointer-hint ${
                 hintDeltaX > 0
-                  ? 'StickerBookPreviewModal-pointer-hint--left'
-                  : 'StickerBookPreviewModal-pointer-hint--right'
+                  ? 'StickerBookPreviewModal-pointer-hint--right'
+                  : 'StickerBookPreviewModal-pointer-hint--left'
               }`}
               style={
                 {

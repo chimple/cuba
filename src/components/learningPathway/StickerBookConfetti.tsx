@@ -205,10 +205,10 @@ const StickerBookConfetti: React.FC<StickerBookConfettiProps> = ({
     isDropConfetti && containerPos
       ? ({
           inset: 'auto',
-          left: containerPos.x - containerPos.size * 1.65,
-          top: containerPos.y - containerPos.size * 1.95,
-          width: containerPos.size * 3.3,
-          height: containerPos.size * 2.9,
+          left: containerPos.x - containerPos.size * 2.4,
+          top: containerPos.y - containerPos.size * 2.05,
+          width: containerPos.size * 4.8,
+          height: containerPos.size * 3.35,
           overflow: 'visible',
           pointerEvents: 'none',
           zIndex: 10,
@@ -235,21 +235,20 @@ const StickerBookConfetti: React.FC<StickerBookConfettiProps> = ({
       style={containerStyle}
       data-testid="StickerBookPreviewModal-confetti"
     >
-      {!isDropConfetti &&
-        CONFETTI_CLOUDS.map((cloud, index) => (
-          <span
-            key={`cloud-${index}`}
-            className="StickerBookPreviewModal-confetti-cloud"
-            style={
-              {
-                '--cloud-left': cloud.left,
-                '--cloud-top': cloud.top,
-                '--cloud-size': cloud.size,
-                '--cloud-rotate': cloud.rotate,
-              } as React.CSSProperties
-            }
-          />
-        ))}
+      {CONFETTI_CLOUDS.map((cloud, index) => (
+        <span
+          key={`cloud-${index}`}
+          className="StickerBookPreviewModal-confetti-cloud"
+          style={
+            {
+              '--cloud-left': cloud.left,
+              '--cloud-top': cloud.top,
+              '--cloud-size': cloud.size,
+              '--cloud-rotate': cloud.rotate,
+            } as React.CSSProperties
+          }
+        />
+      ))}
       {isDropConfetti ? (
         <div className="StickerBookPreviewModal-confetti-drop-container">
           <span className="StickerBookPreviewModal-confetti-drop-seed" />

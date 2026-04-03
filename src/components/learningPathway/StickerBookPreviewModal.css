@@ -156,7 +156,7 @@
 }
 
 .StickerBookPreviewModal-confetti--drop {
-  animation-duration: 2200ms;
+  animation-duration: 3000ms;
 }
 
 .StickerBookPreviewModal-confetti-piece,
@@ -300,15 +300,15 @@
   box-shadow:
     0 0 0 0.06rem rgba(255, 255, 255, 0.24),
     0 0.06rem 0.16rem rgba(0, 0, 0, 0.08);
-  animation: StickerBookPreviewModal-confetti-drop-seed-rise 860ms
+  animation: StickerBookPreviewModal-confetti-drop-seed-rise 1050ms
     cubic-bezier(0.24, 0.82, 0.26, 1) forwards;
 }
 
 .StickerBookPreviewModal-confetti-drop-explode {
   transform-origin: center;
-  animation: StickerBookPreviewModal-confetti-drop-blast 1600ms
+  animation: StickerBookPreviewModal-confetti-drop-blast 2100ms
     cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-  animation-delay: 700ms;
+  animation-delay: 850ms;
   opacity: 0;
 }
 
@@ -483,76 +483,76 @@
 }
 
 @keyframes StickerBookPreviewModal-pointer-guide-right {
-  /* Initial pose: hand sits near the placeholder and points more directly down. */
+  /* Initial pose: hand starts on the draggable sticker. */
   0% {
-    transform: translate3d(0, 0, 0) rotate(61deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
   10% {
-    transform: translate3d(0, 0, 0) rotate(61deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
-  /* Early descent: slightly slower than before for a cleaner guide. */
+  /* Lift off the sticker using the same contact posture progression as before. */
   22% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.16),
         calc(var(--target-y, 0px) * 0.16),
         0
       )
-      rotate(68deg) scale(0.94);
+      rotate(-60deg) scale(1);
     opacity: 1;
   }
-  /* Mid curve: keep the same pace toward the sticker. */
+  /* Mid curve: mirror the previous guide path while heading to the slot. */
   34% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.38),
         calc(var(--target-y, 0px) * 0.38),
         0
       )
-      rotate(46deg) scale(0.96);
+      rotate(22deg) scale(0.99);
     opacity: 1;
   }
-  /* Approach: keep pacing even while curving toward the sticker. */
+  /* Approach the placeholder with the same smooth easing profile. */
   46% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.62),
         calc(var(--target-y, 0px) * 0.62),
         0
       )
-      rotate(22deg) scale(0.99);
+      rotate(46deg) scale(0.96);
     opacity: 1;
   }
-  /* Contact approach: arrive at the drag sticker at the same pace. */
+  /* Final approach into the slot. */
   58% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.84),
         calc(var(--target-y, 0px) * 0.84),
         0
       )
-      rotate(-60deg) scale(1);
+      rotate(68deg) scale(0.94);
     opacity: 1;
   }
-  /* Contact pose on the sticker. */
+  /* Landing pose at the placeholder. */
   66% {
     transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
-      rotate(-80deg) scale(1);
+      rotate(61deg) scale(0.92);
     opacity: 1;
   }
-  /* Small finish beat before returning. */
+  /* Tiny settle beat before heading back to the sticker. */
   72% {
     transform: translate3d(
         calc(var(--target-x, 0px) + 0.08rem),
         calc(var(--target-y, 0px) - 0.12rem),
         0
       )
-      rotate(-100deg) scale(0.97);
+      rotate(82deg) scale(0.92);
     opacity: 1;
   }
-  /* Return: mirror the outbound pacing instead of compressing it at the end. */
+  /* Return: use the same pacing profile back toward the sticker. */
   84% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.44),
-        calc(var(--target-y, 0px) * 0.44),
+        calc(var(--target-x, 0px) * 0.56),
+        calc(var(--target-y, 0px) * 0.56),
         0
       )
       rotate(20deg) scale(0.98);
@@ -560,90 +560,90 @@
   }
   92% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.14),
-        calc(var(--target-y, 0px) * 0.14),
+        calc(var(--target-x, 0px) * 0.16),
+        calc(var(--target-y, 0px) * 0.16),
         0
       )
-      rotate(48deg) scale(0.95);
+      rotate(-60deg) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translate3d(0, 0, 0) rotate(82deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes StickerBookPreviewModal-pointer-guide-left {
-  /* Initial pose: hand sits near the placeholder and points more directly down. */
+  /* Initial pose: hand starts on the draggable sticker. */
   0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
   10% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
-  /* Early descent: slightly slower than before for a cleaner guide. */
+  /* Lift off the sticker using the same contact posture progression as before. */
   22% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.16),
         calc(var(--target-y, 0px) * 0.16),
         0
       )
-      rotate(0deg) scale(0.94);
+      rotate(-60deg) scale(1);
     opacity: 1;
   }
-  /* Mid curve: keep the same pace toward the sticker. */
+  /* Mid curve: mirror the previous guide path while heading to the slot. */
   34% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.38),
         calc(var(--target-y, 0px) * 0.38),
         0
       )
-      rotate(0deg) scale(0.96);
+      rotate(0deg) scale(0.99);
     opacity: 1;
   }
-  /* Approach: keep pacing even while curving toward the sticker. */
+  /* Approach the placeholder with the same smooth easing profile. */
   46% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.62),
         calc(var(--target-y, 0px) * 0.62),
         0
       )
-      rotate(0deg) scale(0.99);
+      rotate(0deg) scale(0.96);
     opacity: 1;
   }
-  /* Contact approach: arrive at the drag sticker at the same pace. */
+  /* Final approach into the slot. */
   58% {
     transform: translate3d(
         calc(var(--target-x, 0px) * 0.84),
         calc(var(--target-y, 0px) * 0.84),
         0
       )
-      rotate(-60deg) scale(1);
+      rotate(0deg) scale(0.94);
     opacity: 1;
   }
-  /* Contact pose on the sticker. */
+  /* Landing pose at the placeholder. */
   66% {
     transform: translate3d(var(--target-x, 0px), var(--target-y, 0px), 0)
-      rotate(-80deg) scale(1);
+      rotate(0deg) scale(0.92);
     opacity: 1;
   }
-  /* Small finish beat before returning. */
+  /* Tiny settle beat before heading back to the sticker. */
   72% {
     transform: translate3d(
         calc(var(--target-x, 0px) + 0.08rem),
         calc(var(--target-y, 0px) - 0.12rem),
         0
       )
-      rotate(-100deg) scale(0.97);
+      rotate(0deg) scale(0.92);
     opacity: 1;
   }
-  /* Return: mirror the outbound pacing instead of compressing it at the end. */
+  /* Return: use the same pacing profile back toward the sticker. */
   84% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.44),
-        calc(var(--target-y, 0px) * 0.44),
+        calc(var(--target-x, 0px) * 0.56),
+        calc(var(--target-y, 0px) * 0.56),
         0
       )
       rotate(0deg) scale(0.98);
@@ -651,15 +651,15 @@
   }
   92% {
     transform: translate3d(
-        calc(var(--target-x, 0px) * 0.14),
-        calc(var(--target-y, 0px) * 0.14),
+        calc(var(--target-x, 0px) * 0.16),
+        calc(var(--target-y, 0px) * 0.16),
         0
       )
-      rotate(0deg) scale(0.95);
+      rotate(-60deg) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.92);
+    transform: translate3d(0, 0, 0) rotate(-80deg) scale(1);
     opacity: 1;
   }
 }
