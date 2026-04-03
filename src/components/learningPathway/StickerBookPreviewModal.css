@@ -215,6 +215,20 @@
   top: -8%;
 }
 
+.StickerBookPreviewModal-confetti--drop
+  .StickerBookPreviewModal-confetti-cloud {
+  background: rgba(255, 255, 255, 0.72);
+  filter: blur(0.14rem);
+  opacity: 0.62;
+}
+
+.StickerBookPreviewModal-confetti--drop
+  .StickerBookPreviewModal-confetti-cloud::before,
+.StickerBookPreviewModal-confetti--drop
+  .StickerBookPreviewModal-confetti-cloud::after {
+  background: rgba(255, 255, 255, 0.72);
+}
+
 @keyframes StickerBookPreviewModal-confetti-fade {
   0% {
     opacity: 0.96;
