@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { t } from 'i18next';
 import './ClassSummaryInfoPopup.css';
 
 interface ClassSummaryInfoPopupProps {
@@ -119,18 +120,18 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
         className="class-summary-popup"
         role="dialog"
         aria-modal="true"
-        aria-label="Class summary information"
+        aria-label={String(t('Class summary information'))}
       >
         <div className="class-summary-popup-header">
           <div className="class-summary-popup-header-top">
             <h3 className="class-summary-popup-title">
-              Weekly Summary {dateRangeLabel}
+              {t('Weekly Summary')} {dateRangeLabel}
             </h3>
             <button
               type="button"
               className="class-summary-popup-close-btn"
               onClick={onClose}
-              aria-label="Close class summary information"
+              aria-label={String(t('Close class summary information'))}
             >
               <img
                 src={CLOSE_ICON_SRC}
@@ -139,14 +140,16 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
               />
             </button>
           </div>
-          <div className="class-summary-popup-subtitle">Class Summary</div>
+          <div className="class-summary-popup-subtitle">
+            {t('Class Summary')}
+          </div>
         </div>
 
         <div className="class-summary-popup-body">
           {SUMMARY_ROWS.map((row) => (
             <section key={row.title} className="class-summary-popup-section">
               <p className="class-summary-popup-main-text">
-                <strong>{row.title}</strong> - {row.description}
+                <strong>{t(row.title)}</strong> - {t(row.description)}
               </p>
             </section>
           ))}
@@ -162,7 +165,9 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
                     : ''
                 }`}
               />
-              <span className="class-summary-popup-item-text">{item.text}</span>
+              <span className="class-summary-popup-item-text">
+                {t(item.text)}
+              </span>
             </div>
           ))}
 
@@ -171,14 +176,14 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
               <span
                 className={`class-summary-popup-pill ${row.labelClassName}`}
               >
-                {row.label}
+                {t(row.label)}
               </span>
               {row.lines.map((line, index) => (
                 <p
                   key={`${row.label}-${index}`}
                   className="class-summary-popup-main-text class-summary-popup-main-text--spaced"
                 >
-                  {line}
+                  {t(line)}
                 </p>
               ))}
             </section>
