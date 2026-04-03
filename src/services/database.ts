@@ -4993,6 +4993,27 @@ export type Database = {
         };
         Returns: string[];
       };
+      get_ops_requests: {
+        Args: {
+          p_limit?: number;
+          p_order_by?: string;
+          p_order_dir?: string;
+          p_page?: number;
+          p_request_status: Database['public']['Enums']['ops_request_status'];
+          p_request_types?:
+            | Database['public']['Enums']['ops_request_type'][]
+            | null;
+          p_school_ids?: string[] | null;
+          p_search_term?: string | null;
+        };
+        Returns: {
+          data: Json[];
+          limit: number;
+          page: number;
+          total: number;
+          totalPages: number;
+        };
+      };
       get_latest_results_by_student: {
         Args: { student_uuid: string };
         Returns: {
