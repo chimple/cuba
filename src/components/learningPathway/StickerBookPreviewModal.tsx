@@ -4,6 +4,8 @@ import { t } from 'i18next';
 import './StickerBookPreviewModal.css';
 import StickerBookPreviewStage from './StickerBookPreviewStage';
 import StickerBookPreviewFooter from './StickerBookPreviewFooter';
+import StickerBookSaveModal from '../stickerBook/StickerBookSaveModal';
+import StickerBookToast from '../stickerBook/StickerBookToast';
 import {
   useStickerBookPreviewModalLogic,
   type StickerBookModalData,
@@ -58,6 +60,9 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     isCompletionMode,
     isLoading,
     isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
     isFlyingOut,
     showIntroConfetti,
     showDropConfetti,
@@ -78,6 +83,9 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     handleDragPointerUp,
     handleDragPointerCancel,
     handleSave,
+    closeCompletionSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
     handlePaint,
   } = useStickerBookPreviewModalLogic({
     data,
@@ -176,6 +184,21 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           </div>
         </div>
       </div>
+      <StickerBookSaveModal
+        open={showSaveModal}
+        svgMarkup={savedSvgMarkup}
+        onClose={closeCompletionSaveModal}
+        onAnimationComplete={handleSaveAndShare}
+      />
+      <StickerBookToast
+        isOpen={showSaveToast}
+        text={t(
+          'Yay! Your creation is saved, share it with your family & friends!',
+        )}
+        image="/assets/icons/Confirmation.svg"
+        duration={4000}
+        onClose={closeSaveToast}
+      />
     </div>
   );
 };

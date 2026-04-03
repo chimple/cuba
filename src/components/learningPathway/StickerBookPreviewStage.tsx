@@ -29,6 +29,46 @@ const InlineSvg = React.forwardRef<
 
 InlineSvg.displayName = 'InlineSvg';
 
+const StaticBookScene = React.memo(
+  ({
+    isLoading,
+    sceneSvg,
+    bookSvgRef,
+  }: {
+    isLoading: boolean;
+    sceneSvg: ParsedSvg | null;
+    bookSvgRef: React.RefObject<SVGSVGElement | null>;
+  }) => {
+    if (isLoading) {
+      return (
+        <div
+          className="StickerBookPreviewModal-loading"
+          data-testid="StickerBookPreviewModal-loading"
+        >
+          {t('Loading...')}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="StickerBookPreviewModal-book"
+        data-testid="StickerBookPreviewModal-book"
+      >
+        {sceneSvg && (
+          <InlineSvg
+            svg={sceneSvg}
+            ref={bookSvgRef}
+            className="StickerBookPreviewModal-book-svg"
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+StaticBookScene.displayName = 'StaticBookScene';
+
 function areRectsClose(
   a: { x: number; y: number; width: number; height: number } | null,
   b: { x: number; y: number; width: number; height: number } | null,
@@ -163,9 +203,8 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
 
   if (isDragVariant && showPointerHint && dragStickerPos) {
     if (stableSlotRect) {
-      // Start from the actual nearest side of the placeholder and pull the
-      // hand slightly inward. This stays stable even when the draggable
-      // sticker overlaps the placeholder bounds.
+      // Target the nearest sensible point inside the placeholder while keeping
+      // the guide stable even if the draggable sticker overlaps its bounds.
       const slotLeft = stableSlotRect.x;
       const slotRight = stableSlotRect.x + stableSlotRect.width;
       const slotTop = stableSlotRect.y;
@@ -212,7 +251,13 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
         candidate.distance < best.distance ? candidate : best,
       );
 
-      if (horizontalOutside !== 0 && verticalOutside === 0) {
+      if (horizontalOutside === 0 && verticalOutside === 0) {
+        nearestSide = {
+          x: slotCenterX,
+          y: slotBottom,
+          distance: Math.abs(stickerGuideY - slotBottom),
+        };
+      } else if (horizontalOutside !== 0 && verticalOutside === 0) {
         nearestSide =
           horizontalOutside < 0
             ? {
@@ -251,13 +296,15 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
       const slotAnchorY =
         slotCenterY + (nearestSide.y - slotCenterY) * slotAnchorInset;
 
-      hintDeltaX = stickerGuideX - slotAnchorX;
-      hintDeltaY = stickerGuideY - slotAnchorY;
       const pointerTipOffsetX = pointerHintSize * 0.46;
       const pointerTipOffsetY = pointerHintSize * 0.76;
 
-      hintStartX = slotAnchorX - pointerTipOffsetX;
-      hintStartY = slotAnchorY - pointerTipOffsetY;
+      // Start the autoplay loop on the draggable sticker and animate toward
+      // the placeholder target.
+      hintStartX = stickerGuideX - pointerTipOffsetX;
+      hintStartY = stickerGuideY - pointerTipOffsetY;
+      hintDeltaX = slotAnchorX - stickerGuideX;
+      hintDeltaY = slotAnchorY - stickerGuideY;
     } else {
       hintStartX = dragStickerPos.x + dragStickerSize * 0.08;
       hintStartY = dragStickerPos.y - dragStickerSize * 0.72;
@@ -289,27 +336,11 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
         />
       )}
 
-      {isLoading ? (
-        <div
-          className="StickerBookPreviewModal-loading"
-          data-testid="StickerBookPreviewModal-loading"
-        >
-          {t('Loading...')}
-        </div>
-      ) : (
-        <div
-          className="StickerBookPreviewModal-book"
-          data-testid="StickerBookPreviewModal-book"
-        >
-          {sceneSvg && (
-            <InlineSvg
-              svg={sceneSvg}
-              ref={bookSvgRef}
-              className="StickerBookPreviewModal-book-svg"
-            />
-          )}
-        </div>
-      )}
+      <StaticBookScene
+        isLoading={isLoading}
+        sceneSvg={sceneSvg}
+        bookSvgRef={bookSvgRef}
+      />
 
       {isDragVariant &&
         showDragSticker &&
@@ -358,8 +389,8 @@ const StickerBookPreviewStage: React.FC<StickerBookPreviewStageProps> = ({
               alt="drag-pointer"
               className={`StickerBookPreviewModal-pointer-hint ${
                 hintDeltaX > 0
-                  ? 'StickerBookPreviewModal-pointer-hint--left'
-                  : 'StickerBookPreviewModal-pointer-hint--right'
+                  ? 'StickerBookPreviewModal-pointer-hint--right'
+                  : 'StickerBookPreviewModal-pointer-hint--left'
               }`}
               style={
                 {

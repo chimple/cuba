@@ -195,10 +195,10 @@ describe('StickerBookPreviewStage', () => {
       expect(
         screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
       ).toHaveStyle({
-        left: '66.64px',
-        top: '24.240000000000002px',
-        '--target-x': '-48.2px',
-        '--target-y': '-12.600000000000001px',
+        left: '18.439999999999998px',
+        top: '11.64px',
+        '--target-x': '48.2px',
+        '--target-y': '12.600000000000001px',
       }),
     );
   });
@@ -237,10 +237,10 @@ describe('StickerBookPreviewStage', () => {
       expect(
         screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
       ).toHaveStyle({
-        left: '40.239999999999995px',
-        top: '14.240000000000002px',
-        '--target-x': '58.2px',
-        '--target-y': '17.4px',
+        left: '98.44px',
+        top: '31.64px',
+        '--target-x': '-58.2px',
+        '--target-y': '-17.4px',
       }),
     );
   });
@@ -279,10 +279,10 @@ describe('StickerBookPreviewStage', () => {
       expect(
         screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
       ).toHaveStyle({
-        left: '123.44px',
-        top: '17.1976px',
-        '--target-x': '5px',
-        '--target-y': '-5.557600000000001px',
+        left: '128.44px',
+        top: '11.64px',
+        '--target-x': '-5px',
+        '--target-y': '5.557600000000001px',
       }),
     );
   });
@@ -365,10 +365,10 @@ describe('StickerBookPreviewStage', () => {
       screen.getByTestId('StickerBookPreviewModal-confetti'),
     ).toBeInTheDocument();
     expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
-      left: '-47.5px',
-      top: '-27.5px',
-      width: '165px',
-      height: '145px',
+      left: '-85px',
+      top: '-32.499999999999986px',
+      width: '240px',
+      height: '167.5px',
     });
   });
 

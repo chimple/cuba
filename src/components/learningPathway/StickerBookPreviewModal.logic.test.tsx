@@ -1,5 +1,4 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { toBlob } from 'html-to-image';
 import {
   useStickerBookPreviewModalLogic,
   type StickerBookModalData,
@@ -21,16 +20,31 @@ jest.mock('i18next', () => ({
   t: (value: string) => value,
 }));
 
-jest.mock('html-to-image', () => ({
-  toBlob: jest.fn(),
-}));
-
 jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
-    sendContentToAndroidOrWebShare: jest.fn(),
   },
+}));
+
+const mockOpenSaveModal = jest.fn();
+const mockCloseSaveModal = jest.fn();
+const mockCloseSaveToast = jest.fn();
+const mockHandleSaveAndShare = jest.fn();
+
+let mockSaveHookState = {
+  isSaving: false,
+  showSaveModal: false,
+  showSaveToast: false,
+  savedSvgMarkup: null as string | null,
+  openSaveModal: mockOpenSaveModal,
+  closeSaveModal: mockCloseSaveModal,
+  closeSaveToast: mockCloseSaveToast,
+  handleSaveAndShare: mockHandleSaveAndShare,
+};
+
+jest.mock('../../hooks/useStickerBookSave', () => ({
+  useStickerBookSave: () => mockSaveHookState,
 }));
 
 jest.mock('../../utility/logger', () => ({
@@ -111,9 +125,16 @@ describe('useStickerBookPreviewModalLogic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
-    (toBlob as jest.Mock).mockResolvedValue(
-      new Blob(['png'], { type: 'image/png' }),
-    );
+    mockSaveHookState = {
+      isSaving: false,
+      showSaveModal: false,
+      showSaveToast: false,
+      savedSvgMarkup: null,
+      openSaveModal: mockOpenSaveModal,
+      closeSaveModal: mockCloseSaveModal,
+      closeSaveToast: mockCloseSaveToast,
+      handleSaveAndShare: mockHandleSaveAndShare,
+    };
   });
 
   afterEach(() => {
@@ -354,15 +375,9 @@ describe('useStickerBookPreviewModalLogic', () => {
       await result.current.handleSave();
     });
 
-    expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledWith(
-      'STICKER BOOK',
-      'My Book!!',
-      undefined,
-      [expect.any(File)],
+    expect(mockOpenSaveModal).toHaveBeenCalledWith(
+      expect.stringContaining('<svg'),
     );
-    const fileArg = (Util.sendContentToAndroidOrWebShare as jest.Mock).mock
-      .calls[0][3][0] as File;
-    expect(fileArg.name).toBe('My_Book.png');
 
     act(() => {
       result.current.handlePaint();
@@ -375,9 +390,10 @@ describe('useStickerBookPreviewModalLogic', () => {
       }),
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
-      stickerBookId: 'book-1',
-      stickerBookSvgUrl: '/sticker-book.svg',
-      collectedStickerIds: ['slot-collected'],
+      svgRaw: expect.stringContaining('<svg'),
+      svgUrl: '/sticker-book.svg',
+      artworkTitle: 'My Book!!',
+      returnTo: '/',
     });
   });
 

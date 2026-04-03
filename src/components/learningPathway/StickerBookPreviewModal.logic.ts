@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
 import { t } from 'i18next';
 import { useHistory } from 'react-router';
-import { toBlob } from 'html-to-image';
 import {
   applyStickerVisibilityStrict,
   parseSvg,
@@ -13,6 +12,8 @@ import { EVENTS, PAGES } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
+import { useStickerBookSave } from '../../hooks/useStickerBookSave';
+import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -39,13 +40,6 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
-
-function sanitizeFileName(value: string): string {
-  return (
-    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
-    'sticker-book'
-  );
-}
 
 export const useStickerBookPreviewModalLogic = ({
   data,
@@ -83,6 +77,8 @@ export const useStickerBookPreviewModalLogic = ({
   const hasLoggedDragStartRef = useRef(false);
   const appliedDragSessionKeyRef = useRef<string | null>(null);
   const timersRef = useRef<number[]>([]);
+  const dragMoveRafRef = useRef<number | null>(null);
+  const pendingDragPosRef = useRef<{ x: number; y: number } | null>(null);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isDragVariant = variant === 'drag_collect';
   const dragSessionKey = [
@@ -95,8 +91,6 @@ export const useStickerBookPreviewModalLogic = ({
   ].join('::');
   const renderData = isDragVariant ? dragSessionData : data;
 
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const isCompletionMode = mode === 'completion';
   const popupEnterDurationMs = 900;
   const popupFlyoutDurationMs = 900;
@@ -137,6 +131,45 @@ export const useStickerBookPreviewModalLogic = ({
     }),
     [data, isCompletionMode],
   );
+  const saveAnalyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_id: data.stickerBookId,
+      book_title: data.stickerBookTitle,
+      collected_count: data.collectedStickerIds.length,
+      total_elements: data.totalStickerCount ?? data.collectedStickerIds.length,
+      page_path: window.location.pathname,
+    }),
+    [data],
+  );
+  const {
+    isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
+    openSaveModal,
+    closeSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
+  } = useStickerBookSave({
+    fileBaseName: data.stickerBookTitle
+      ? `${t('Sticker Book')} ${data.stickerBookTitle}`
+      : t('Sticker Book'),
+    shareText: t('Sticker Book'),
+    backgroundColor: '#fffdee',
+    onShareSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+    onSaveSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+  });
 
   useEffect(() => {
     if (!isDragVariant) return;
@@ -172,6 +205,11 @@ export const useStickerBookPreviewModalLogic = ({
   useEffect(() => {
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    pendingDragPosRef.current = null;
     setDragStickerPos(null);
     setShowDragSticker(false);
     setIsDropSuccessful(false);
@@ -219,6 +257,11 @@ export const useStickerBookPreviewModalLogic = ({
     return () => {
       timersRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
       timersRef.current = [];
+      if (dragMoveRafRef.current !== null) {
+        window.cancelAnimationFrame(dragMoveRafRef.current);
+        dragMoveRafRef.current = null;
+      }
+      pendingDragPosRef.current = null;
     };
   }, []);
 
@@ -416,6 +459,34 @@ export const useStickerBookPreviewModalLogic = ({
     };
   };
 
+  const scheduleDragPositionUpdate = useCallback(
+    (position: { x: number; y: number }) => {
+      pendingDragPosRef.current = position;
+      if (dragMoveRafRef.current !== null) return;
+
+      dragMoveRafRef.current = window.requestAnimationFrame(() => {
+        dragMoveRafRef.current = null;
+        if (!pendingDragPosRef.current) return;
+        setDragStickerPos(pendingDragPosRef.current);
+        pendingDragPosRef.current = null;
+      });
+    },
+    [],
+  );
+
+  const flushPendingDragPosition = useCallback(() => {
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    if (!pendingDragPosRef.current) return null;
+
+    const finalPosition = pendingDragPosRef.current;
+    pendingDragPosRef.current = null;
+    setDragStickerPos(finalPosition);
+    return finalPosition;
+  }, []);
+
   const isValidDrop = (position: { x: number; y: number }) => {
     const slotRect = getSlotRectInFrame();
     if (!slotRect) return false;
@@ -507,7 +578,7 @@ export const useStickerBookPreviewModalLogic = ({
     if (!isDragging || dragPointerIdRef.current !== event.pointerId) return;
     const nextPos = computeDragPosition(event.clientX, event.clientY);
     if (!nextPos) return;
-    setDragStickerPos(nextPos);
+    scheduleDragPositionUpdate(nextPos);
   };
 
   const handleDragPointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -518,7 +589,7 @@ export const useStickerBookPreviewModalLogic = ({
     }
 
     const nextPos = computeDragPosition(event.clientX, event.clientY);
-    const finalPos = nextPos ?? dragStickerPos;
+    const finalPos = nextPos ?? flushPendingDragPosition() ?? dragStickerPos;
     if (!finalPos) return;
 
     setDragStickerPos(finalPos);
@@ -539,6 +610,7 @@ export const useStickerBookPreviewModalLogic = ({
       target.releasePointerCapture(event.pointerId);
     }
     setIsDragging(false);
+    flushPendingDragPosition();
     dragPointerIdRef.current = null;
   };
 
@@ -602,37 +674,15 @@ export const useStickerBookPreviewModalLogic = ({
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
       analyticsPayload,
     );
-    if (!shareTargetRef.current) return;
+    Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
 
-    setIsSaving(true);
-    try {
-      const blob = await toBlob(shareTargetRef.current, {
-        cacheBust: true,
-        backgroundColor: '#bee7de',
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-      });
-      if (!blob) return;
+    const stickerBookSvg = bookSvgRef.current?.cloneNode(true);
+    const serializedSvg = stickerBookSvg
+      ? new XMLSerializer().serializeToString(stickerBookSvg)
+      : svgMarkup || null;
+    if (!serializedSvg) return;
 
-      const file = new File(
-        [blob],
-        `${sanitizeFileName(data.stickerBookTitle)}.png`,
-        { type: 'image/png' },
-      );
-
-      await Util.sendContentToAndroidOrWebShare(
-        t('STICKER BOOK'),
-        data.stickerBookTitle || t('STICKER BOOK'),
-        undefined,
-        [file],
-      );
-    } catch (error) {
-      logger.error(
-        '[StickerBook] Failed to share sticker book snapshot:',
-        error,
-      );
-    } finally {
-      setIsSaving(false);
-    }
+    openSaveModal(serializedSvg);
   };
 
   const handlePaint = () => {
@@ -640,17 +690,26 @@ export const useStickerBookPreviewModalLogic = ({
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
       analyticsPayload,
     );
+    const svgRaw = bookSvgRef.current
+      ? new XMLSerializer().serializeToString(bookSvgRef.current)
+      : svgMarkup || undefined;
+
     history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: data.stickerBookId,
-      stickerBookSvgUrl: data.stickerBookSvgUrl,
-      collectedStickerIds: data.collectedStickerIds,
+      svgRaw,
+      svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
+      artworkTitle: data.stickerBookTitle || t('Sticker Book'),
+      returnTo: window.location.pathname,
     });
   };
 
   const setFrameElement = (element: HTMLDivElement | null) => {
     frameRef.current = element;
+  };
+
+  const closeCompletionSaveModal = () => {
+    closeSaveModal();
     if (isCompletionMode) {
-      shareTargetRef.current = element;
+      onClose('acknowledge_button');
     }
   };
 
@@ -659,6 +718,9 @@ export const useStickerBookPreviewModalLogic = ({
     isCompletionMode,
     isLoading,
     isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
     isFlyingOut,
     showIntroConfetti,
     showDropConfetti,
@@ -679,6 +741,9 @@ export const useStickerBookPreviewModalLogic = ({
     handleDragPointerUp,
     handleDragPointerCancel,
     handleSave,
+    closeCompletionSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
     handlePaint,
   };
 };

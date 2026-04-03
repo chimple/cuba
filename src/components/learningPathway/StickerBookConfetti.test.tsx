@@ -31,7 +31,7 @@ describe('StickerBookConfetti', () => {
       '.StickerBookPreviewModal-confetti-cloud',
     );
     expect(confetti).toHaveClass('StickerBookPreviewModal-confetti--drop');
-    expect(clouds).toHaveLength(0);
+    expect(clouds).toHaveLength(5);
   });
 
   test('does not add drop modifier class when isDropConfetti is false', () => {
