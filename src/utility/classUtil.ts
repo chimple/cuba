@@ -5,44 +5,40 @@ import {
   TableTypes,
 } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
-import { addDays, addMonths, subDays } from 'date-fns';
+import { addDays, addMonths, subDays, subSeconds } from 'date-fns';
 import { Util } from './util';
 import logger from './logger';
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
-  private static readonly IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 
-  private getIstStartOfDayUtc(baseDate: Date) {
-    const istEpoch = baseDate.getTime() + ClassUtil.IST_OFFSET_MS;
-    const istDate = new Date(istEpoch);
-
-    const istMidnightUtcEpoch =
+  private getUtcStartOfDay(baseDate: Date) {
+    return new Date(
       Date.UTC(
-        istDate.getUTCFullYear(),
-        istDate.getUTCMonth(),
-        istDate.getUTCDate(),
+        baseDate.getUTCFullYear(),
+        baseDate.getUTCMonth(),
+        baseDate.getUTCDate(),
         0,
         0,
         0,
         0,
-      ) - ClassUtil.IST_OFFSET_MS;
-
-    return new Date(istMidnightUtcEpoch);
+      ),
+    );
   }
 
   private getTimestampRange(startDaysBack: number, endDaysBack: number) {
     const now = new Date();
-    const istStartOfToday = this.getIstStartOfDayUtc(now);
+    const utcStartOfToday = this.getUtcStartOfDay(now);
 
-    const start = subDays(istStartOfToday, startDaysBack);
-    const end = addDays(subDays(istStartOfToday, endDaysBack), 1);
+    const start = subDays(utcStartOfToday, startDaysBack);
+    const end = addDays(subDays(utcStartOfToday, endDaysBack), 1);
+    const endOfDay = subSeconds(end, 1);
 
     return {
       start,
       end,
-      startTimestamp: start.toISOString().replace('T', ' ').replace('Z', '+00'),
-      endTimestamp: end.toISOString().replace('T', ' ').replace('Z', '+00'),
+      startTimestamp: start.toISOString(),
+      endTimestamp: endOfDay.toISOString(),
     };
   }
 
@@ -100,6 +96,7 @@ export class ClassUtil {
             createdAt >= currentRange.start && createdAt < currentRange.end
           );
         });
+
         const previousResults = (allResults ?? []).filter((result) => {
           const createdAt = new Date(result.created_at);
           return (
@@ -109,6 +106,8 @@ export class ClassUtil {
         return {
           hasCurrentPlay: currentResults.length > 0,
           hasPreviousPlay: previousResults.length > 0,
+          currentResultsCount: currentResults.length,
+          previousResultsCount: previousResults.length,
           currentTimeSpentSeconds: currentResults.reduce(
             (sum, result) => sum + (result.time_spent ?? 0),
             0,
@@ -157,22 +156,35 @@ export class ClassUtil {
           )
         : 0;
 
+    const currentResultsCount = studentMetrics.reduce(
+      (sum, student) => sum + student.currentResultsCount,
+      0,
+    );
+
+    const previousResultsCount = studentMetrics.reduce(
+      (sum, student) => sum + student.previousResultsCount,
+      0,
+    );
+
     const averageScorePercentage =
-      totalStudents > 0
+      currentResultsCount > 0
         ? Math.round(
             studentMetrics.reduce(
-              (sum, student) => sum + student.currentAverageScore,
+              (sum, student) =>
+                sum + student.currentAverageScore * student.currentResultsCount,
               0,
-            ) / totalStudents,
+            ) / currentResultsCount,
           )
         : 0;
     const previousAverageScorePercentage =
-      totalStudents > 0
+      previousResultsCount > 0
         ? Math.round(
             studentMetrics.reduce(
-              (sum, student) => sum + student.previousAverageScore,
+              (sum, student) =>
+                sum +
+                student.previousAverageScore * student.previousResultsCount,
               0,
-            ) / totalStudents,
+            ) / previousResultsCount,
           )
         : 0;
 
