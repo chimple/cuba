@@ -203,9 +203,7 @@
   },
   "11": {
     "toVersion": 11,
-    "statements": [
-      "ALTER TABLE class ADD COLUMN whatsapp_invite_link TEXT;"
-    ]
+    "statements": ["ALTER TABLE class ADD COLUMN whatsapp_invite_link TEXT;"]
   },
   "12": {
     "toVersion": 12,
@@ -220,7 +218,9 @@
     "toVersion": 13,
     "statements": [
       "ALTER TABLE sticker_book ADD COLUMN svg_url TEXT;",
-      "ALTER TABLE sticker_book ADD COLUMN stickers_metadata TEXT;"
+      "ALTER TABLE sticker_book ADD COLUMN stickers_metadata TEXT;",
+      "ALTER TABLE lesson ADD COLUMN lido_lesson_id TEXT;",
+      "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;"
     ]
   }
 }

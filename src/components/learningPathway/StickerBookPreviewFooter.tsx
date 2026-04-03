@@ -92,12 +92,17 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
 
           {!isDragVariant && (
             <>
-              <img
-                src={nextStickerImage || 'assets/icons/DefaultIcon.png'}
-                alt={nextStickerName || 'Sticker'}
-                className="StickerBookPreviewModal-next-image"
-                data-testid="StickerBookPreviewModal-next-image"
-              />
+              <div
+                className="StickerBookPreviewModal-next-image-frame"
+                data-testid="StickerBookPreviewModal-next-image-frame"
+              >
+                <img
+                  src={nextStickerImage || 'assets/icons/DefaultIcon.png'}
+                  alt={nextStickerName || 'Sticker'}
+                  className="StickerBookPreviewModal-next-image"
+                  data-testid="StickerBookPreviewModal-next-image"
+                />
+              </div>
               <p
                 className="StickerBookPreviewModal-next-name"
                 data-testid="StickerBookPreviewModal-next-name"

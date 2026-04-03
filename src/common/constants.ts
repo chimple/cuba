@@ -1079,6 +1079,8 @@ export const ALL_SUBJECT = {
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
+export const STICKER_BOOK_CELEBRATION_POPUP_ENABLED =
+  'sticker-book-celebration-popup-enabled';
 export const STICKER_BOOK_COMPLETION_POPUP = 'sticker_book_completion_popup';
 export const PATHWAY_END_REWARD_BOX_VARIANT = 'pathway-end-reward-box-variant';
 export const LEARNING_PATH_ASSETS = 'learning_path_assets';

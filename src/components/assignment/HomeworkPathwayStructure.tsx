@@ -685,7 +685,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.setAttribute('style', 'cursor: pointer;');
 
             activeGroup.addEventListener('click', () => {
-              if (lesson.plugin_type === COCOS) {
+              const lidoLessonId =
+                lesson.lido_lesson_id ||
+                (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+
+              if (lidoLessonId) {
+                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+                history.push(PAGES.LIDO_PLAYER + params, {
+                  lessonId: lidoLessonId,
+                  courseDocId: fetchedCourse?.id,
+                  course: JSON.stringify(fetchedCourse),
+                  lesson: JSON.stringify(lesson),
+                  chapter: JSON.stringify(fetchedChapter),
+                  from: history.location.pathname + `?${CONTINUE}=true`,
+                  isHomework: true,
+                  homeworkIndex: lessonIdx,
+                });
+              } else if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                 history.push(PAGES.GAME + params, {
                   url: 'chimple-lib/index.html' + params,
@@ -709,18 +725,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     homeworkIndex: lessonIdx,
                   },
                 );
-              } else if (lesson.plugin_type === LIDO) {
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.push(PAGES.LIDO_PLAYER + params, {
-                  lessonId: lesson.cocos_lesson_id,
-                  courseDocId: fetchedCourse?.id,
-                  course: JSON.stringify(fetchedCourse),
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
-                  isHomework: true,
-                  homeworkIndex: lessonIdx,
-                });
               }
             });
             fragment.appendChild(activeGroup);
@@ -1114,7 +1118,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (!lesson) return;
 
-      if (lesson.plugin_type === COCOS) {
+      const lidoLessonId =
+        lesson.lido_lesson_id ||
+        (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+
+      if (lidoLessonId) {
+        const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+        history.push(PAGES.LIDO_PLAYER + parmas, {
+          lessonId: lidoLessonId,
+          courseDocId: course.course_id,
+          course: JSON.stringify(currentCourse),
+          lesson: JSON.stringify(lesson),
+          chapter: JSON.stringify(currentChapter),
+          from: history.location.pathname + `?${CONTINUE}=true`,
+          isHomework: true,
+          reward: true,
+        });
+      } else if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
         history.push(PAGES.GAME + params, {
           url: 'chimple-lib/index.html' + params,
@@ -1138,18 +1158,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             reward: true,
           },
         );
-      } else if (lesson.plugin_type === LIDO) {
-        const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.push(PAGES.LIDO_PLAYER + parmas, {
-          lessonId: lesson.cocos_lesson_id,
-          courseDocId: course.course_id,
-          course: JSON.stringify(currentCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(currentChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          isHomework: true,
-          reward: true,
-        });
       }
     } catch (error) {
       logger.error('Error in playLesson:', error);
