@@ -52,7 +52,7 @@ describe('PaintExitPopup', () => {
 
     expect(screen.getByText('Your creation is shared!')).toBeInTheDocument();
     expect(
-      screen.getByText('Please confirm if you want to exit.'),
+      screen.getByText(/Please confirm if you want to exit\.?$/),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Yes' }));
