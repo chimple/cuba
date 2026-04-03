@@ -16,6 +16,7 @@ import { ClassUtil } from '../../../../utility/classUtil';
 import Loading from '../../../../components/Loading';
 import { useHistory } from 'react-router';
 import { Util } from '../../../../utility/util';
+import { subDays } from 'date-fns';
 type SubjectOption = TableTypes<'course'> | typeof ALL_SUBJECT;
 
 const DashBoard: React.FC = ({}) => {
@@ -80,6 +81,19 @@ const DashBoard: React.FC = ({}) => {
     });
   };
 
+  const handleStudentReportNavigation = (student: TableTypes<'user'>) => {
+    const startDate = subDays(new Date(), 6);
+    const endDate = new Date();
+
+    history.replace(PAGES.STUDENT_REPORT, {
+      student,
+      startDate,
+      endDate,
+      classDoc: current_class,
+      fromDashboardBand: true,
+    });
+  };
+
   return !isLoading ? (
     <IonContent>
       <IonRefresher slot="fixed" onIonRefresh={onRefresh}>
@@ -91,6 +105,7 @@ const DashBoard: React.FC = ({}) => {
           color={BANDWISECOLOR.GREEN}
           studentsProgress={studentProgress?.get(BANDS.GREENGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {
             history.replace(PAGES.DASHBOARD_DETAILS, {
               studentProgress: studentProgress?.get(BANDS.GREENGROUP),
@@ -103,6 +118,7 @@ const DashBoard: React.FC = ({}) => {
           color={BANDWISECOLOR.YELLOW}
           studentsProgress={studentProgress?.get(BANDS.YELLOWGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {
             history.replace(PAGES.DASHBOARD_DETAILS, {
               studentProgress: studentProgress?.get(BANDS.YELLOWGROUP),
@@ -115,6 +131,7 @@ const DashBoard: React.FC = ({}) => {
           color={BANDWISECOLOR.RED}
           studentsProgress={studentProgress?.get(BANDS.REDGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {
             history.replace(PAGES.DASHBOARD_DETAILS, {
               studentProgress: studentProgress?.get(BANDS.REDGROUP),
@@ -127,6 +144,7 @@ const DashBoard: React.FC = ({}) => {
           color={BANDWISECOLOR.GREY}
           studentsProgress={studentProgress?.get(BANDS.GREYGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {}}
         />
       </main>
