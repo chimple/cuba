@@ -889,8 +889,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       },
       {
         name: 'class',
-        label: 'Class Section',
+        label: 'Class',
         kind: 'select',
+        required: true,
         // Keeps the class selector half-width as requested for the edit popup.
         column: 0,
         options: classOptions,
