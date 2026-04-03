@@ -125,6 +125,10 @@ describe('useStickerBookPreviewModalLogic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
     mockSaveHookState = {
       isSaving: false,
       showSaveModal: false,
@@ -277,7 +281,9 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
-        data: buildData(),
+        data: buildData({
+          totalStickerCount: 3,
+        }),
         variant: 'drag_collect',
         onClose,
         mode: 'preview',
@@ -397,7 +403,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     });
   });
 
-  test('closes on backdrop click only when target matches currentTarget', () => {
+  test('closes on backdrop click only when target matches currentTarget', async () => {
     const onClose = jest.fn();
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
@@ -407,6 +413,8 @@ describe('useStickerBookPreviewModalLogic', () => {
         mode: 'preview',
       }),
     );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     const target = document.createElement('div');
     const inner = document.createElement('span');
