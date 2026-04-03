@@ -1,0 +1,121 @@
+.StickerBookCompletionModal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.58);
+  padding: 5px clamp(10px, 12vw, 130px) 5px clamp(10px, 8vw, 85px);
+  box-sizing: border-box;
+}
+
+.StickerBookCompletionModal-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  /* Exactly calculate max width so total height hits exactly 100vh minus exactly 10px padding */
+  max-width: calc((100vh - 10px - clamp(64px, 10vh, 90px)) * 1.773);
+}
+
+.StickerBookCompletionModal-container {
+  position: relative;
+  width: 100%;
+  height: auto;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  margin-right: calc(1.8rem * 1.5);
+  --close-size: 3rem;
+}
+
+.StickerBookCompletionModal-container::after {
+  content: '';
+  position: absolute;
+  left: calc(100% - 20px);
+  top: 0;
+  width: calc(var(--close-size) * 1.5 + 20px);
+  height: calc(var(--close-size) * 1.35);
+  border-radius: 1.125rem 999px 999px 0;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.StickerBookCompletionModal-close {
+  position: absolute;
+  width: var(--close-size);
+  height: var(--close-size);
+  top: calc(var(--close-size) * 0.175);
+  left: calc(100% + var(--close-size) * 0.29);
+  background: #fffdee;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.StickerBookCompletionModal-close-line {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52%;
+  height: 0.18rem;
+  background: #f34d08;
+  border-radius: 999px;
+}
+.StickerBookCompletionModal-close-line:first-child {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.StickerBookCompletionModal-close-line:last-child {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.StickerBookCompletionModal-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.StickerBookCompletionModal-svg-area {
+  flex: 1;
+  width: 100%;
+  aspect-ratio: 500 / 282;
+  overflow: hidden;
+  border-radius: 4.83px 4.83px 0 0;
+  background: #eaffed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.StickerBookCompletionModal-svg-area svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.StickerBookCompletionModal-footer {
+  width: 100%;
+  height: clamp(64px, 10vh, 90px);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(40px, 6vw, 100px);
+  background: #fffdee;
+  /* As requested: Note user typo in prompt (0 30px 30px 0) converted logically for bottom strip mapping */
+  border-radius: 0 0 30px 30px;
+  padding-top: 7px;
+  padding-bottom: 11px;
+
+  box-sizing: border-box;
+}

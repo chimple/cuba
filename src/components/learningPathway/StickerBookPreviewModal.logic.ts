@@ -92,6 +92,35 @@ export const useStickerBookPreviewModalLogic = ({
   const renderData = isDragVariant ? dragSessionData : data;
 
   const isCompletionMode = mode === 'completion';
+  // Some completion-trigger payloads do not include totalStickerCount.
+  // Count slot groups directly from the loaded SVG so last-sticker detection
+  // still works reliably in drag_collect flows.
+  const svgSlotCount = useMemo(() => {
+    if (!svgMarkup) return undefined;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgMarkup, 'image/svg+xml');
+      return doc.querySelectorAll('[data-slot-id]').length || undefined;
+    } catch (error) {
+      logger.warn('Failed to count sticker slots from SVG.', error);
+      return undefined;
+    }
+  }, [svgMarkup]);
+  // Prefer API-provided total when available, otherwise fall back to SVG slots.
+  // This prevents incorrect flyout behavior when the user just placed
+  // the final sticker but totalStickerCount is missing in payload.
+  const resolvedTotalStickerCount = useMemo(() => {
+    if (
+      typeof renderData.totalStickerCount === 'number' &&
+      renderData.totalStickerCount > 0
+    ) {
+      return renderData.totalStickerCount;
+    }
+    if (svgSlotCount && svgSlotCount > 0) {
+      return svgSlotCount;
+    }
+    return undefined;
+  }, [renderData.totalStickerCount, svgSlotCount]);
   const popupEnterDurationMs = 900;
   const popupFlyoutDurationMs = 900;
   const dragStickerRevealDelayMs = popupEnterDurationMs;
@@ -534,6 +563,12 @@ export const useStickerBookPreviewModalLogic = ({
           y: slotRect.y + slotRect.height / 2 - dragStickerSize / 2,
         }
       : position;
+    // Treat this drop as completion if collected+1 reaches the resolved total,
+    // where resolved total may come from payload or SVG slot fallback.
+    const willCompleteBook =
+      typeof resolvedTotalStickerCount === 'number' &&
+      resolvedTotalStickerCount > 0 &&
+      renderData.collectedStickerIds.length + 1 >= resolvedTotalStickerCount;
 
     setDragStickerPos(nextPos);
     setIsDropSuccessful(true);
@@ -547,13 +582,21 @@ export const useStickerBookPreviewModalLogic = ({
     addTimer(() => {
       setShowDropConfetti(false);
     }, 2600);
-    addTimer(() => {
-      setIsFlyingOut(true);
-      logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 2700);
-    addTimer(() => {
-      onClose('acknowledge_button');
-    }, 2700 + popupFlyoutDurationMs);
+    if (!willCompleteBook) {
+      addTimer(() => {
+        setIsFlyingOut(true);
+        logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
+      }, 2700);
+      addTimer(() => {
+        onClose('acknowledge_button');
+      }, 2700 + popupFlyoutDurationMs);
+    } else {
+      // Skip flyout animation when completion popup is next.
+      // Keep confetti visible, then close to trigger completion.
+      addTimer(() => {
+        onClose('acknowledge_button');
+      }, 3200);
+    }
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -669,6 +712,28 @@ export const useStickerBookPreviewModalLogic = ({
     }
   }, [parsedSvg, sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
 
+  const sceneSvgMarkup = useMemo<string | null>(() => {
+    if (!svgMarkup) return null;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgMarkup, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return null;
+
+      applyStickerVisibilityStrict(
+        svg,
+        sceneCollectedStickers,
+        sceneNextStickerId,
+        true,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch (error) {
+      logger.error('Failed to serialize completion SVG:', error);
+      return svgMarkup;
+    }
+  }, [sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
+
   const handleSave = async () => {
     Util.logEvent(
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
@@ -732,6 +797,7 @@ export const useStickerBookPreviewModalLogic = ({
     dragStickerSize,
     renderData,
     sceneSvg,
+    sceneSvgMarkup,
     bookSvgRef,
     setFrameElement,
     getSlotRectInFrame,

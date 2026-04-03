@@ -6,6 +6,7 @@ import StickerBookPreviewStage from './StickerBookPreviewStage';
 import StickerBookPreviewFooter from './StickerBookPreviewFooter';
 import StickerBookSaveModal from '../stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../stickerBook/StickerBookToast';
+import StickerBookCompletionModal from './StickerBookCompletionModal';
 import {
   useStickerBookPreviewModalLogic,
   type StickerBookModalData,
@@ -74,6 +75,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     dragStickerSize,
     renderData,
     sceneSvg,
+    sceneSvgMarkup,
     bookSvgRef,
     setFrameElement,
     getSlotRectInFrame,
@@ -94,6 +96,39 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     mode,
     scale,
   });
+
+  if (isCompletionMode) {
+    return (
+      <>
+        {!showSaveModal && (
+          <StickerBookCompletionModal
+            svgMarkup={sceneSvgMarkup}
+            isSaving={isSaving}
+            bookSvgRef={bookSvgRef}
+            onClose={() => onClose('close_button')}
+            onBackdropClose={() => onClose('backdrop')}
+            onSave={handleSave}
+            onPaint={handlePaint}
+          />
+        )}
+        <StickerBookSaveModal
+          open={showSaveModal}
+          svgMarkup={savedSvgMarkup}
+          onClose={closeCompletionSaveModal}
+          onAnimationComplete={handleSaveAndShare}
+        />
+        <StickerBookToast
+          isOpen={showSaveToast}
+          text={t(
+            'Yay! Your creation is saved, share it with your family & friends!',
+          )}
+          image="/assets/icons/Confirmation.svg"
+          duration={4000}
+          onClose={closeSaveToast}
+        />
+      </>
+    );
+  }
 
   return (
     <div

@@ -373,7 +373,7 @@ const StickerBookBoard: React.FC<Props> = ({
           onSave={handleSave}
           onPaint={handlePaint}
           saveDisabled={!onSave}
-          paintDisabled={!svgRaw || !onPaint}
+          paintDisabled={false}
           canSave={canSave}
         />
       </div>

@@ -812,7 +812,7 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
-    render(
+    const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
@@ -820,12 +820,20 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
     expect(
-      screen.getByTestId('StickerBookPreviewModal-save'),
+      screen.getByRole('button', {
+        name: /save/i,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId('StickerBookPreviewModal-paint'),
+      screen.getByRole('button', {
+        name: /paint/i,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByTestId('StickerBookPreviewModal-helper-text'),
@@ -838,7 +846,7 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
-    render(
+    const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
@@ -846,7 +854,11 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
     expect(screen.getByTestId('StickerBookPreviewModal-close')).toHaveAttribute(
       'aria-label',
       'Close',
@@ -859,7 +871,7 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
-    render(
+    const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
@@ -867,8 +879,12 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
-    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-save'));
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockOpenSaveModal).toHaveBeenCalledTimes(1));
     expect(Util.logEvent).toHaveBeenCalledWith(
@@ -880,7 +896,7 @@ describe('StickerBookPreviewModal', () => {
       }),
     );
 
-    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-paint'));
+    fireEvent.click(screen.getByRole('button', { name: /paint/i }));
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
       expect.objectContaining({
@@ -893,5 +909,34 @@ describe('StickerBookPreviewModal', () => {
       artworkTitle: 'Completed Book',
       returnTo: '/',
     });
+  });
+
+  test('completion mode still renders the save modal and toast containers', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    mockSaveHookState = {
+      ...mockSaveHookState,
+      showSaveModal: true,
+      showSaveToast: true,
+      savedSvgMarkup: '<svg><rect width="10" height="10" /></svg>',
+    };
+
+    render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByTestId('sticker-book-save-modal'),
+    ).toBeInTheDocument();
+    expect(await screen.findByTestId('sticker-book-toast')).toBeInTheDocument();
+    expect(
+      document.querySelector('.StickerBookCompletionModal-overlay'),
+    ).not.toBeInTheDocument();
   });
 });
