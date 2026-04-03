@@ -112,6 +112,10 @@ const FormCard: React.FC<EntityModalProps> = ({
           const selectedIds = currentVal
             ? currentVal.split(',').filter(Boolean)
             : [];
+          // Preserves stable option ordering so edit dirty-checking compares consistent values.
+          const optionOrder = new Map<string, number>(
+            (field.options ?? []).map((option, index) => [option.value, index]),
+          );
           const displayText = selectedIds
             .map((id) => {
               const opt = field.options?.find((o) => o.value === id);
@@ -179,7 +183,18 @@ const FormCard: React.FC<EntityModalProps> = ({
                           const newSelected = isSelected
                             ? selectedIds.filter((id) => id !== opt.value)
                             : [...selectedIds, opt.value];
-                          handleChange(field.name, newSelected.join(','));
+                          // Normalizes multi-select output to prevent false-positive form changes.
+                          const normalizedSelected = [...newSelected].sort(
+                            (leftClassId, rightClassId) =>
+                              (optionOrder.get(leftClassId) ??
+                                Number.MAX_SAFE_INTEGER) -
+                              (optionOrder.get(rightClassId) ??
+                                Number.MAX_SAFE_INTEGER),
+                          );
+                          handleChange(
+                            field.name,
+                            normalizedSelected.join(','),
+                          );
                         }}
                       >
                         <div className="formcard-multiselect-checkbox">

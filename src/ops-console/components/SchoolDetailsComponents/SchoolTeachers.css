@@ -242,6 +242,16 @@
   font-weight: 800;
 }
 
+/* Keeps edit action icon color consistent with menu text color. */
+.schoolTeachers-actionEditIcon.MuiSvgIcon-root {
+  color: #111827;
+}
+
+/* Keeps delete action icon black per requested row-menu styling. */
+.schoolTeachers-actionDeleteIcon.MuiSvgIcon-root {
+  color: #111827;
+}
+
 .schoolTeachers-deleteDialogPaper {
   border-radius: 12px !important;
   padding: 8px;
