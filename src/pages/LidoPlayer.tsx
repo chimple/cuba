@@ -38,6 +38,7 @@ import {
   getLidoBundleBaseUrlForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
+import { logoEuro } from 'ionicons/icons';
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -662,7 +663,7 @@ const LidoPlayer: FC = () => {
       chapter_id: data.chapterId,
       chapter_name: chapterDetail?.name ?? '',
       lesson_id: data.lessonId,
-      lesson_name: lessonDetail.name,
+      lesson_name: lessonDetail?.name ?? '',
       lesson_type: data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
@@ -743,7 +744,39 @@ const LidoPlayer: FC = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
-    const dow = await Util.downloadZipBundle(lessonIds);
+
+    logger.warn(`[LidoPlayer] Initializing player for lessonId: ${lessonId}`);
+    const stateLesson = state?.lesson ? JSON.parse(state.lesson) : undefined;
+    const dbLessonId = stateLesson?.id;
+    logger.warn(
+      `[LidoPlayer] Starting init for lessonId: ${lessonId}, dbLessonId: ${dbLessonId}`,
+    );
+
+    const lessonRow = await api.getLesson(dbLessonId);
+    const dbVersion = Number(lessonRow?.version ?? 1);
+    const localVersion = await Util.getLocalLessonVersion(lessonId);
+
+    logger.warn(`[Version] DB: ${dbVersion}, Local: ${localVersion}`);
+
+    let lessonVersionMap: Record<string, number> = {};
+
+    if (localVersion < dbVersion) {
+      logger.warn(
+        `[Version] Local outdated → local: ${localVersion}, db: ${dbVersion}`,
+      );
+
+      lessonVersionMap = {
+        [lessonId]: dbVersion,
+      };
+    }
+
+    // 👉 Call download as usual
+    const dow = await Util.downloadZipBundle(
+      lessonIds,
+      undefined,
+      undefined,
+      lessonVersionMap,
+    );
     if (!dow) {
       presentToast();
       push();

@@ -220,7 +220,8 @@
       "ALTER TABLE sticker_book ADD COLUMN svg_url TEXT;",
       "ALTER TABLE sticker_book ADD COLUMN stickers_metadata TEXT;",
       "ALTER TABLE lesson ADD COLUMN lido_lesson_id TEXT;",
-      "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;"
+      "ALTER TABLE user_sticker ADD COLUMN is_seen BOOLEAN DEFAULT 0;",
+      "ALTER TABLE lesson ADD COLUMN version INTEGER DEFAULT 1;"
     ]
   }
 }

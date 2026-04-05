@@ -16,11 +16,13 @@ import {
 
 const DownloadLesson: React.FC<{
   lessonId?: string;
+  lessonRow?: TableTypes<'lesson'>;
   chapter?: TableTypes<'chapter'>;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
 }> = ({
   lessonId,
+  lessonRow,
   chapter,
   downloadButtonLoading = false,
   onDownloadOrDelete,
@@ -107,6 +109,35 @@ const DownloadLesson: React.FC<{
     if (loading) return;
     setLoading(true);
 
+    const buildVersionAwarePayload = async (
+      lessons: TableTypes<'lesson'>[],
+      storedLessonID: string[],
+    ) => {
+      const downloadIds: string[] = [];
+      const lessonVersionMap: Record<string, number> = {};
+
+      for (const lesson of lessons) {
+        const bundleId = lesson.cocos_lesson_id;
+        if (!bundleId) continue;
+
+        const dbVersion = Number(lesson.version ?? 1);
+        const localVersion = await Util.getLocalLessonVersion(bundleId);
+
+        const isOutdated = localVersion < dbVersion;
+        const isMissing = !storedLessonID.includes(bundleId);
+
+        if (isMissing || isOutdated) {
+          downloadIds.push(bundleId);
+        }
+
+        if (isOutdated) {
+          lessonVersionMap[bundleId] = dbVersion;
+        }
+      }
+
+      return { downloadIds, lessonVersionMap };
+    };
+
     if (!online) {
       presentToast({
         message: t(
@@ -128,29 +159,54 @@ const DownloadLesson: React.FC<{
     }
 
     const storeLessonID: string[] = [];
+    const lessonVersionMap: Record<string, number> = {};
 
     if (chapter) {
       const lessons: TableTypes<'lesson'>[] = await api.getLessonsForChapter(
         chapter.id,
       );
+
+      const payload = await buildVersionAwarePayload(lessons, storedLessonID);
+
       Util.storeLessonIdToLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
-      for (const e of lessons) {
-        if (e.cocos_lesson_id)
-          if (!storedLessonID.includes(e.cocos_lesson_id)) {
-            storeLessonID.push(e.cocos_lesson_id);
-          }
+
+      storeLessonID.push(...payload.downloadIds);
+
+      if (storeLessonID.length > 0) {
+        await Util.downloadZipBundle(
+          storeLessonID,
+          chapter.id,
+          undefined,
+          payload.lessonVersionMap,
+        );
       }
-      await Util.downloadZipBundle(storeLessonID, chapter.id);
     } else {
-      if (lessonId) {
-        if (!storedLessonID.includes(lessonId)) {
-          await Util.downloadZipBundle([lessonId]);
+      if (lessonId && lessonRow) {
+        const dbVersion = Number(lessonRow.version ?? 1);
+        const localVersion = await Util.getLocalLessonVersion(lessonId);
+
+        const isOutdated = localVersion < dbVersion;
+        const shouldDownload = !storedLessonID.includes(lessonId) || isOutdated;
+
+        if (isOutdated) {
+          lessonVersionMap[lessonId] = dbVersion;
+        }
+
+        if (shouldDownload) {
+          await Util.downloadZipBundle(
+            [lessonId],
+            undefined,
+            undefined,
+            lessonVersionMap,
+          );
+          storeLessonID.push(lessonId);
         }
       }
     }
+
     setShowIcon(false);
     setLoading(false);
-    setStoredLessonID([...storedLessonID, ...storeLessonID]);
+    setStoredLessonID((prev) => [...new Set([...prev, ...storeLessonID])]);
     if (onDownloadOrDelete) onDownloadOrDelete();
   };
 

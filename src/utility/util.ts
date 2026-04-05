@@ -388,6 +388,7 @@ export class Util {
     lessonIds: string[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+    lessonVersionMap: Record<string, number> = {},
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -409,37 +410,41 @@ export class Util {
               });
               const androidPath = await this.getAndroidBundlePath();
               try {
-                const file = await Filesystem.readFile({
-                  path: lessonId + '/config.json',
-                  directory: Directory.External,
-                });
-                const decoded =
-                  typeof file.data === 'string'
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID,
-                );
-                return true;
+                if (!lessonVersionMap[lessonId]) {
+                  const file = await Filesystem.readFile({
+                    path: lessonId + '/config.json',
+                    directory: Directory.External,
+                  });
+                  const decoded =
+                    typeof file.data === 'string'
+                      ? atob(file.data)
+                      : await this.blobToString(file.data as Blob);
+                  this.setGameUrl(androidPath);
+                  this.storeLessonIdToLocalStorage(
+                    lessonId,
+                    DOWNLOADED_LESSON_ID,
+                  );
+                  return true;
+                }
               } catch {
                 logger.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
                 );
               }
-              const localBundlePath =
-                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
-              try {
-                const response = await fetch(localBundlePath);
-                if (response.ok) {
-                  this.setGameUrl(LOCAL_BUNDLES_PATH);
-                  return true;
+              if (!lessonVersionMap[lessonId]) {
+                const localBundlePath =
+                  LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+                try {
+                  const response = await fetch(localBundlePath);
+                  if (response.ok) {
+                    this.setGameUrl(LOCAL_BUNDLES_PATH);
+                    return true;
+                  }
+                } catch {
+                  logger.error(
+                    `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
+                  );
                 }
-              } catch {
-                logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
-                );
               }
               const bundleZipUrls: string[] =
                 await RemoteConfig.getJSON(bundleZipUrlsKey);
@@ -539,9 +544,19 @@ export class Util {
                 );
               }
 
+              try {
+                await Filesystem.rmdir({
+                  path: `${lessonId}_temp`,
+                  directory: Directory.External,
+                  recursive: true,
+                });
+              } catch {}
+              const extractTo = lessonVersionMap?.[lessonId]
+                ? `${lessonId}_temp`
+                : lessonId;
               await unzip({
                 fs,
-                extractTo: lessonId,
+                extractTo,
                 filepaths: ['.'],
                 filter: (filepath) => !filepath.startsWith('dist/'),
                 onProgress: (event) =>
@@ -554,6 +569,50 @@ export class Util {
                 data: buffer,
               });
 
+              // ✅ STEP 2: Write .version file
+              try {
+                const version = lessonVersionMap?.[lessonId] || 1;
+                const targetFolder = lessonVersionMap?.[lessonId]
+                  ? `${lessonId}_temp`
+                  : lessonId;
+                await Filesystem.writeFile({
+                  path: `${targetFolder}/.version`,
+                  data: version.toString(),
+                  directory: Directory.External,
+                  encoding: Encoding.UTF8,
+                });
+
+                logger.info(
+                  `[Version] Written .version for ${lessonId}: ${version}`,
+                );
+              } catch (err) {
+                logger.error(
+                  `[Version] Failed writing .version for ${lessonId}`,
+                  err,
+                );
+              }
+
+              if (lessonVersionMap?.[lessonId]) {
+                try {
+                  // delete old folder
+                  await Filesystem.rmdir({
+                    path: lessonId,
+                    directory: Directory.External,
+                    recursive: true,
+                  });
+
+                  // rename temp → actual
+                  await Filesystem.rename({
+                    from: `${lessonId}_temp`,
+                    to: lessonId,
+                    directory: Directory.External,
+                  });
+
+                  logger.warn(`[Version] Swapped temp → final for ${lessonId}`);
+                } catch (err) {
+                  logger.error(`[Version] Swap failed`, err);
+                }
+              }
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
@@ -4023,6 +4082,40 @@ export class Util {
       }
     } catch (error) {
       logger.error('Session migration failed', error);
+    }
+  }
+
+  public static async getLocalLessonVersion(lessonId: string): Promise<number> {
+    try {
+      const file = await Filesystem.readFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+      });
+
+      let versionStr: string;
+
+      if (typeof file.data === 'string') {
+        // 🔥 Try decode base64 safely
+        try {
+          versionStr = atob(file.data);
+        } catch {
+          versionStr = file.data; // fallback if already plain text
+        }
+      } else {
+        versionStr = await this.blobToString(file.data as Blob);
+      }
+
+      const cleaned = versionStr.trim(); // 🔥 IMPORTANT
+      const version = parseInt(cleaned, 10);
+
+      logger.warn(`[Version] Raw: "${versionStr}" Parsed: ${version}`);
+
+      return isNaN(version) ? 1 : version;
+    } catch (err) {
+      logger.warn(
+        `[Version] No .version file for ${lessonId}, defaulting to 1`,
+      );
+      return 1;
     }
   }
 }

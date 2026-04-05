@@ -33,4 +33,5 @@ export interface Lesson {
   orig_course_id?: string | null;
   orig_lesson_id?: string | null;
   metadata?: string | any;
+  version?: number | null;
 }

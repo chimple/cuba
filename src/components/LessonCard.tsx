@@ -364,6 +364,7 @@ const LessonCard: React.FC<{
               <DownloadLesson
                 aria-label="Download-button"
                 lessonId={lesson.cocos_lesson_id}
+                lessonRow={lesson}
                 downloadButtonLoading={downloadButtonLoading}
                 onDownloadOrDelete={onDownloadOrDelete}
               />

@@ -2126,6 +2126,7 @@ export type Database = {
           target_age_from: number | null;
           target_age_to: number | null;
           updated_at: string | null;
+          version: number | null;
         };
         Insert: {
           cocos_chapter_code?: string | null;
@@ -2148,6 +2149,7 @@ export type Database = {
           target_age_from?: number | null;
           target_age_to?: number | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Update: {
           cocos_chapter_code?: string | null;
@@ -2170,6 +2172,7 @@ export type Database = {
           target_age_from?: number | null;
           target_age_to?: number | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Relationships: [
           {
@@ -5921,6 +5924,7 @@ export type Database = {
           target_age_from: number | null;
           target_age_to: number | null;
           updated_at: string | null;
+          version: number | null;
         }[];
         SetofOptions: {
           from: '*';
