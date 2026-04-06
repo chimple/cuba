@@ -89,6 +89,7 @@ const buildLesson = (
   target_age_to: null,
   updated_at: null,
   lido_lesson_id: null,
+  version: null,
 });
 
 const mockAuth = {

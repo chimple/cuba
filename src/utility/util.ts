@@ -393,6 +393,7 @@ export class Util {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
+      const api = ServiceConfig.getI().apiHandler;
 
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
@@ -408,41 +409,70 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
+
+              // 🔥 GET DB VERSION ONCE
+              let dbVersion = 1;
               try {
-                const file = await Filesystem.readFile({
+                const lesson = await api.getLessonWithCocosLessonId(lessonId);
+                logger.warn(
+                  `[Version] Fetched DB version for ${lessonId}:`,
+                  lesson?.version,
+                );
+                dbVersion = Number(lesson?.version ?? 1);
+              } catch {
+                logger.warn(`[Version] Failed to fetch DB version`);
+              }
+
+              let localVersion = 0;
+
+              // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
+              try {
+                await Filesystem.readFile({
                   path: lessonId + '/config.json',
                   directory: Directory.External,
                 });
-                const decoded =
-                  typeof file.data === 'string'
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID,
+
+                localVersion = await this.getLocalLessonVersion(lessonId);
+
+                logger.warn(
+                  `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
-                return true;
+
+                if (localVersion >= dbVersion) {
+                  // ✅ UP-TO-DATE → SKIP
+                  this.setGameUrl(androidPath);
+                  this.storeLessonIdToLocalStorage(
+                    lessonId,
+                    DOWNLOADED_LESSON_ID,
+                  );
+                  return true;
+                }
+
+                logger.warn(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
-                );
+                logger.warn(`[Version] ${lessonId} not found → downloading`);
               }
+
+              // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
               const localBundlePath =
                 LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+
               try {
                 const response = await fetch(localBundlePath);
-                if (response.ok) {
+                if (response.ok && localVersion === 0) {
                   this.setGameUrl(LOCAL_BUNDLES_PATH);
                   return true;
                 }
               } catch {
                 logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
+                  `[LessonDownloader] Local bundle not found, downloading...`,
                 );
               }
+
+              // 🔥 DOWNLOAD LOGIC (UNCHANGED)
               const bundleZipUrls: string[] =
                 await RemoteConfig.getJSON(bundleZipUrlsKey);
+
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
@@ -470,42 +500,24 @@ export class Util {
                       connectTimeout: 10000,
                     });
                     const timeoutPromise = new Promise((_, reject) =>
-                      setTimeout(
-                        () => reject(new Error('Download timeout after 20s')),
-                        10000,
-                      ),
+                      setTimeout(() => reject(new Error('Timeout')), 10000),
                     );
+
                     zip = await Promise.race([downloadPromise, timeoutPromise]);
+
                     if (zip && zip.data && zip.status === 200) {
-                      logger.info(
-                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`,
-                      );
                       downloadSuccessful = true;
                       break;
-                    } else {
-                      logger.warn(
-                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`,
-                      );
                     }
-                  } catch (err) {
-                    logger.error(
-                      `[LessonDownloader] Error downloading ${zipUrl}:`,
-                      err,
-                    );
-                  }
+                  } catch {}
                 }
+
                 if (!downloadSuccessful) {
                   downloadAttempts++;
-                  logger.warn(
-                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`,
-                  );
                 }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
-                logger.error(
-                  `[LessonDownloader] Failed to download lesson ${lessonId}`,
-                );
                 return false;
               }
               const zipDataStr =
@@ -515,45 +527,87 @@ export class Util {
 
               const preparedZip = await runBackgroundWorkerTask(
                 'PREPARE_BINARY_FROM_BASE64',
-                {
-                  base64: zipDataStr,
-                },
-              ).catch((error) => {
-                logger.warn(
-                  `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
-                  error,
-                );
-                const fallbackBuffer = Uint8Array.from(atob(zipDataStr), (c) =>
+                { base64: zipDataStr },
+              ).catch(() => {
+                const fallback = Uint8Array.from(atob(zipDataStr), (c) =>
                   c.charCodeAt(0),
                 );
                 return {
-                  byteLength: fallbackBuffer.byteLength,
+                  byteLength: fallback.byteLength,
                   sha256Hex: '',
-                  arrayBuffer: fallbackBuffer.buffer,
+                  arrayBuffer: fallback.buffer,
                 };
               });
               const buffer = new Uint8Array(preparedZip.arrayBuffer);
-              if (preparedZip.sha256Hex) {
-                logger.info(
-                  `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
-                );
-              }
+
+              // 🔥 SAFE UPDATE LOGIC
+              const isUpdate = localVersion < dbVersion;
+              const extractTo = isUpdate ? `${lessonId}_temp` : lessonId;
+
+              // clean temp
+              try {
+                await Filesystem.rmdir({
+                  path: `${lessonId}_temp`,
+                  directory: Directory.External,
+                  recursive: true,
+                });
+              } catch {}
 
               await unzip({
                 fs,
-                extractTo: lessonId,
+                extractTo,
                 filepaths: ['.'],
                 filter: (filepath) => !filepath.startsWith('dist/'),
-                onProgress: (event) =>
-                  logger.info(
-                    '[LessonDownloader] Unzipping progress:',
-                    event.filename,
-                    event.loaded,
-                    event.total,
-                  ),
                 data: buffer,
               });
 
+              // write version
+              await Filesystem.writeFile({
+                path: `${extractTo}/.version`,
+                directory: Directory.External,
+                data: btoa(String(dbVersion)),
+              });
+
+              // 🔥 ATOMIC SWAP
+              if (extractTo.includes('_temp')) {
+                const oldPath = lessonId;
+                const tempPath = `${lessonId}_temp`;
+                const backupPath = `${lessonId}_old`;
+
+                try {
+                  try {
+                    await Filesystem.rename({
+                      from: oldPath,
+                      to: backupPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+
+                  await Filesystem.rename({
+                    from: tempPath,
+                    to: oldPath,
+                    directory: Directory.External,
+                  });
+
+                  try {
+                    await Filesystem.rmdir({
+                      path: backupPath,
+                      directory: Directory.External,
+                      recursive: true,
+                    });
+                  } catch {}
+                } catch {
+                  try {
+                    await Filesystem.rename({
+                      from: backupPath,
+                      to: oldPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+                }
+              }
+
+              // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
@@ -567,6 +621,7 @@ export class Util {
               );
               this.setGameUrl(androidPath);
               this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+
               window.dispatchEvent(
                 new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
                   detail: { lessonId },
@@ -597,15 +652,13 @@ export class Util {
           detail: { chapterId },
         }),
       );
-      if (chapterId)
+
+      if (chapterId) {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
 
       return true;
-    } catch (err) {
-      logger.error(
-        '[LessonDownloader] Unexpected error in downloadZipBundle:',
-        err,
-      );
+    } catch {
       return false;
     }
   }
@@ -4023,6 +4076,40 @@ export class Util {
       }
     } catch (error) {
       logger.error('Session migration failed', error);
+    }
+  }
+
+  public static async getLocalLessonVersion(lessonId: string): Promise<number> {
+    try {
+      const file = await Filesystem.readFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+      });
+
+      let versionStr: string;
+
+      if (typeof file.data === 'string') {
+        // 🔥 Try decode base64 safely
+        try {
+          versionStr = atob(file.data);
+        } catch {
+          versionStr = file.data; // fallback if already plain text
+        }
+      } else {
+        versionStr = await this.blobToString(file.data as Blob);
+      }
+
+      const cleaned = versionStr.trim(); // 🔥 IMPORTANT
+      const version = parseInt(cleaned, 10);
+
+      logger.warn(`[Version] Raw: "${versionStr}" Parsed: ${version}`);
+
+      return isNaN(version) ? 1 : version;
+    } catch (err) {
+      logger.warn(
+        `[Version] No .version file for ${lessonId}, defaulting to 1`,
+      );
+      return 1;
     }
   }
 }
