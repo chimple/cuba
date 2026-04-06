@@ -4109,7 +4109,7 @@ export class SqliteApi implements ServiceApi {
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        logger.error('No sticker found for the given user id.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 

@@ -7,6 +7,7 @@ import {
   ParsedSvg,
   parseSvg,
   ensureNavImage,
+  applyStickerVisibilityStrict,
   sanitizeSvg,
 } from '../common/SvgHelpers';
 import NewBackButton from '../common/NewBackButton';
@@ -154,14 +155,6 @@ const StickerBookBoard: React.FC<Props> = ({
     if (onSave) onSave();
   };
 
-  const effectiveSvgRaw = isLocked
-    ? (svgRaw ?? null)
-    : (svgRaw ?? fallbackSvgRaw);
-  const parsedSvg = useMemo(() => {
-    if (!effectiveSvgRaw) return null;
-    return parseSvg(effectiveSvgRaw);
-  }, [effectiveSvgRaw]);
-
   const parsedBoardSvg = useMemo(() => {
     if (!boardSvgRaw) return null;
     return parseSvg(boardSvgRaw);
@@ -215,6 +208,37 @@ const StickerBookBoard: React.FC<Props> = ({
     }
     setShowLockedSvg(true);
   }, [isLocked, svgRaw]);
+
+  const preparedSvgRaw = useMemo(() => {
+    if (!svgRaw || isLocked) return svgRaw;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgRaw, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return svgRaw;
+
+      applyStickerVisibilityStrict(
+        svg,
+        collectedStickers,
+        nextStickerId,
+        true,
+        false,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch {
+      return svgRaw;
+    }
+  }, [collectedStickers, isLocked, nextStickerId, svgRaw]);
+
+  const unlockedSvgRaw = preparedSvgRaw ?? fallbackSvgRaw;
+
+  const parsedSvg = useMemo(() => {
+    const effectiveSvgRaw = isLocked ? (svgRaw ?? null) : unlockedSvgRaw;
+    if (!effectiveSvgRaw) return null;
+    return parseSvg(effectiveSvgRaw);
+  }, [isLocked, svgRaw, unlockedSvgRaw]);
 
   // Inject navigation arrows into the board SVG.
   useEffect(() => {

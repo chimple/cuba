@@ -5521,7 +5521,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!data || data.length === 0) {
-        logger.error('No sticker found for the given user ID.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 
