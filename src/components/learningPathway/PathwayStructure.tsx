@@ -24,13 +24,9 @@ import {
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
-const STICKER_COLLECT_MASCOT_AUDIO_PATHS = {
-  en: '/assets/audios/en_congrats_on_sticker_collection.mp3',
-  hi: '/assets/audios/hi_congrats_on_sticker_collection.mp3',
-  kn: '/assets/audios/kn_congrats_on_sticker_collection.mp3',
-  mr: '/assets/audios/mr_congrats_on_sticker_collection.mp3',
-  pt: '/assets/audios/pt_congrats_on_sticker_collection.mp3',
-} as const;
+const STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH = '/assets/audios';
+const STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX =
+  'congrats_on_sticker_collection.mp3';
 const STICKER_REWARD_BOX_SELECTOR = '.PathwayStructure-end-reward-box--sticker';
 const STICKER_REWARD_BOX_OPEN_CLASS =
   'PathwayStructure-end-reward-box--sticker-open';
@@ -38,6 +34,13 @@ const STICKER_REWARD_BOX_CLOSE_CLASS =
   'PathwayStructure-end-reward-box--sticker-close-anim';
 const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
+
+const getStickerCollectMascotAudioPath = (languageCode?: string) => {
+  const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
+  const resolvedLanguageCode = normalizedLanguageCode || 'en';
+  return `${STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH}/${resolvedLanguageCode}_${STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX}`;
+};
+
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
   const [stickerPreviewData, setStickerPreviewData] =
@@ -241,9 +244,7 @@ const PathwayStructure: React.FC = () => {
   const playStickerAudio = React.useCallback(() => {
     const studentLanguageCode = Util.getCurrentStudentLanguageCode();
     const localAudioPath =
-      STICKER_COLLECT_MASCOT_AUDIO_PATHS[
-        studentLanguageCode as keyof typeof STICKER_COLLECT_MASCOT_AUDIO_PATHS
-      ] ?? STICKER_COLLECT_MASCOT_AUDIO_PATHS.en;
+      getStickerCollectMascotAudioPath(studentLanguageCode);
     if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
   }, [playStickerCollectMascotAudio]);
 

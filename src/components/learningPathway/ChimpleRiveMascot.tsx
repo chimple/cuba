@@ -189,11 +189,11 @@ export default function ChimpleRiveMascot({
 
   if (isOverlayMatch && baseMascotProps?.stateMachine) {
     return (
-      <div className="chimple-mascot-overlay">
-        <div className="chimple-mascot-layer">
+      <div id="chimple-mascot-overlay" className="chimple-mascot-overlay">
+        <div id="chimple-mascot-base-layer" className="chimple-mascot-layer">
           {renderMascot(baseMascotProps)}
         </div>
-        <div className="chimple-mascot-layer">
+        <div id="chimple-mascot-active-layer" className="chimple-mascot-layer">
           {renderMascot(currentMascotProps)}
         </div>
       </div>
