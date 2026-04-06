@@ -27,7 +27,11 @@ describe('StickerBookConfetti', () => {
     const confetti = container.querySelector(
       '.StickerBookPreviewModal-confetti',
     );
+    const clouds = container.querySelectorAll(
+      '.StickerBookPreviewModal-confetti-cloud',
+    );
     expect(confetti).toHaveClass('StickerBookPreviewModal-confetti--drop');
+    expect(clouds).toHaveLength(5);
   });
 
   test('does not add drop modifier class when isDropConfetti is false', () => {

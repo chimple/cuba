@@ -1640,6 +1640,26 @@ describe('ParentWhatsappInvitationPage service exports', () => {
     });
   });
 
+  // Covers alphanumeric UDISE normalization and lookup call.
+  it('accepts alphanumeric UDISE codes during analysis', async () => {
+    const api = createApiMock();
+    api.getParentWhatsappSchoolByUdise.mockResolvedValue({
+      id: 'school-1',
+      name: 'School 1',
+    });
+    api.getParentWhatsappClassesBySchoolId.mockResolvedValue([]);
+
+    await parentWhatsappInvitationService.processParentWhatsappUdiseCodes({
+      api: api as any,
+      udiseCodes: ['ab12-cd34ef5'],
+      limit: 10,
+    });
+
+    expect(api.getParentWhatsappSchoolByUdise).toHaveBeenCalledWith(
+      'AB12CD34EF5',
+    );
+  });
+
   // Covers UDISE processing skip and success paths for analysis output.
   it('handles UDISE analysis skips and builds invite rows for missing parents', async () => {
     const api = createApiMock();

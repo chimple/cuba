@@ -94,8 +94,9 @@ jest.mock(
   './PaintExitPopup',
   () => (props: any) =>
     props.isOpen ? (
-      <div data-testid="exit-popup">
+      <div data-testid="exit-popup" data-variant={props.variant ?? 'default'}>
         <button onClick={props.onExit}>confirm-exit</button>
+        <button onClick={props.onStay}>stay</button>
         <button onClick={props.onClose}>close</button>
       </div>
     ) : null,
@@ -159,8 +160,13 @@ let mockHookState = {
   handleSaveAndShare: mockHandleSaveAndShare,
 };
 
+let lastUseStickerBookSaveOptions: any = null;
+
 jest.mock('../../hooks/useStickerBookSave', () => ({
-  useStickerBookSave: () => mockHookState,
+  useStickerBookSave: (options: any) => {
+    lastUseStickerBookSaveOptions = options;
+    return mockHookState;
+  },
 }));
 
 jest.mock('html-to-image', () => ({
@@ -246,6 +252,7 @@ describe('ColoringBoard', () => {
       closeSaveToast: mockCloseSaveToast,
       handleSaveAndShare: mockHandleSaveAndShare,
     };
+    lastUseStickerBookSaveOptions = null;
 
     mockParseSvg.mockReturnValue({
       attrs: {},
@@ -321,6 +328,28 @@ describe('ColoringBoard', () => {
     fireEvent.click(screen.getByTestId('exit-btn'));
 
     expect(screen.getByTestId('exit-popup')).toBeInTheDocument();
+    expect(screen.getByTestId('exit-popup')).toHaveAttribute(
+      'data-variant',
+      'default',
+    );
+  });
+
+  test('uses post-save exit popup variant after a successful save', async () => {
+    renderBoard({
+      svgRaw: '<svg></svg>',
+      returnTo: '/sticker-book',
+    });
+
+    await act(async () => {
+      await lastUseStickerBookSaveOptions?.onSaveSuccess?.('colored-file.png');
+    });
+
+    fireEvent.click(screen.getByTestId('exit-btn'));
+
+    expect(screen.getByTestId('exit-popup')).toHaveAttribute(
+      'data-variant',
+      'post-save-exit',
+    );
   });
 
   /* ---------------- EXIT CONFIRM WITH RETURN ---------------- */

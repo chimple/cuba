@@ -128,6 +128,7 @@ export class SqliteApi implements ServiceApi {
 
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
+  private _retryRefreshTables: TABLES[] = [];
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -861,6 +862,9 @@ export class SqliteApi implements ServiceApi {
     // 🔒 LOCK
     if (this._syncInProgress) {
       logger.info('🟡 Sync already running → scheduling another run');
+      if (refreshTables && refreshTables.length > 0) {
+        this._retryRefreshTables.push(...refreshTables);
+      }
       this._syncRequestedAgain = true;
       return true;
     }
@@ -901,8 +905,13 @@ export class SqliteApi implements ServiceApi {
         );
         this._syncRequestedAgain = false;
 
+        const retryTablesToRefresh = [
+          ...new Set([...this._retryRefreshTables]),
+        ];
+        this._retryRefreshTables = [];
+
         setTimeout(() => {
-          this.syncDbNow();
+          this.syncDbNow(Object.values(TABLES), retryTablesToRefresh);
         }, 0);
       }
     }
@@ -4109,7 +4118,7 @@ export class SqliteApi implements ServiceApi {
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
-        logger.error('No sticker found for the given user id.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 

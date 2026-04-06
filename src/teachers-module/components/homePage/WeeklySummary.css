@@ -31,8 +31,18 @@
 }
 
 .class-summary-info-icon {
-  width: 1.65vh;
-  height: 1.65vh;
+  width: 25px;
+  height: 25px;
+}
+
+.class-summary-info-icon-btn {
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: pointer;
 }
 
 .weekly-summary {
@@ -70,17 +80,28 @@
 }
 
 .summary-value {
-  color: #5369d9;
+  color: #7c5db0;
   font-size: 1.9vh;
   font-weight: 700;
   line-height: 1;
 }
 
-.summary-trend-icon {
+.summary-trend-icon-wrap {
   width: clamp(16px, 2.4vh, 20px);
   height: clamp(16px, 2.4vh, 20px);
-  padding: 3px;
   border-radius: 999px;
   background: #eaddff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.summary-trend-icon {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
   object-fit: contain;
+  display: block;
 }

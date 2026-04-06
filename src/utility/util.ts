@@ -131,6 +131,17 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  // Runtime-downloaded popup audio is stored in device app storage.
+  private static readonly COMMON_AUDIO_CACHE_DIR = 'commonAudioCache';
+  // Reuses resolved local file URIs after the first lookup.
+  private static cachedAudioUrlMap = new Map<string, string>();
+  // Deduplicates concurrent requests for the same remote audio URL.
+  private static cachedAudioPromiseMap = new Map<
+    string,
+    Promise<string | null>
+  >();
+  // Keeps the current HTML audio instance so replay/close can stop it cleanly.
+  private static activeCommonAudioPlayer: HTMLAudioElement | null = null;
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
@@ -382,6 +393,7 @@ export class Util {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
+      const api = ServiceConfig.getI().apiHandler;
 
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
@@ -397,41 +409,70 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
+
+              // 🔥 GET DB VERSION ONCE
+              let dbVersion = 1;
               try {
-                const file = await Filesystem.readFile({
+                const lesson = await api.getLessonWithCocosLessonId(lessonId);
+                logger.warn(
+                  `[Version] Fetched DB version for ${lessonId}:`,
+                  lesson?.version,
+                );
+                dbVersion = Number(lesson?.version ?? 1);
+              } catch {
+                logger.warn(`[Version] Failed to fetch DB version`);
+              }
+
+              let localVersion = 0;
+
+              // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
+              try {
+                await Filesystem.readFile({
                   path: lessonId + '/config.json',
                   directory: Directory.External,
                 });
-                const decoded =
-                  typeof file.data === 'string'
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID,
+
+                localVersion = await this.getLocalLessonVersion(lessonId);
+
+                logger.warn(
+                  `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
-                return true;
+
+                if (localVersion >= dbVersion) {
+                  // ✅ UP-TO-DATE → SKIP
+                  this.setGameUrl(androidPath);
+                  this.storeLessonIdToLocalStorage(
+                    lessonId,
+                    DOWNLOADED_LESSON_ID,
+                  );
+                  return true;
+                }
+
+                logger.warn(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
-                );
+                logger.warn(`[Version] ${lessonId} not found → downloading`);
               }
+
+              // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
               const localBundlePath =
                 LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+
               try {
                 const response = await fetch(localBundlePath);
-                if (response.ok) {
+                if (response.ok && localVersion === 0) {
                   this.setGameUrl(LOCAL_BUNDLES_PATH);
                   return true;
                 }
               } catch {
                 logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
+                  `[LessonDownloader] Local bundle not found, downloading...`,
                 );
               }
+
+              // 🔥 DOWNLOAD LOGIC (UNCHANGED)
               const bundleZipUrls: string[] =
                 await RemoteConfig.getJSON(bundleZipUrlsKey);
+
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
@@ -459,42 +500,24 @@ export class Util {
                       connectTimeout: 10000,
                     });
                     const timeoutPromise = new Promise((_, reject) =>
-                      setTimeout(
-                        () => reject(new Error('Download timeout after 20s')),
-                        10000,
-                      ),
+                      setTimeout(() => reject(new Error('Timeout')), 10000),
                     );
+
                     zip = await Promise.race([downloadPromise, timeoutPromise]);
+
                     if (zip && zip.data && zip.status === 200) {
-                      logger.info(
-                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`,
-                      );
                       downloadSuccessful = true;
                       break;
-                    } else {
-                      logger.warn(
-                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`,
-                      );
                     }
-                  } catch (err) {
-                    logger.error(
-                      `[LessonDownloader] Error downloading ${zipUrl}:`,
-                      err,
-                    );
-                  }
+                  } catch {}
                 }
+
                 if (!downloadSuccessful) {
                   downloadAttempts++;
-                  logger.warn(
-                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`,
-                  );
                 }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
-                logger.error(
-                  `[LessonDownloader] Failed to download lesson ${lessonId}`,
-                );
                 return false;
               }
               const zipDataStr =
@@ -504,45 +527,87 @@ export class Util {
 
               const preparedZip = await runBackgroundWorkerTask(
                 'PREPARE_BINARY_FROM_BASE64',
-                {
-                  base64: zipDataStr,
-                },
-              ).catch((error) => {
-                logger.warn(
-                  `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
-                  error,
-                );
-                const fallbackBuffer = Uint8Array.from(atob(zipDataStr), (c) =>
+                { base64: zipDataStr },
+              ).catch(() => {
+                const fallback = Uint8Array.from(atob(zipDataStr), (c) =>
                   c.charCodeAt(0),
                 );
                 return {
-                  byteLength: fallbackBuffer.byteLength,
+                  byteLength: fallback.byteLength,
                   sha256Hex: '',
-                  arrayBuffer: fallbackBuffer.buffer,
+                  arrayBuffer: fallback.buffer,
                 };
               });
               const buffer = new Uint8Array(preparedZip.arrayBuffer);
-              if (preparedZip.sha256Hex) {
-                logger.info(
-                  `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
-                );
-              }
+
+              // 🔥 SAFE UPDATE LOGIC
+              const isUpdate = localVersion < dbVersion;
+              const extractTo = isUpdate ? `${lessonId}_temp` : lessonId;
+
+              // clean temp
+              try {
+                await Filesystem.rmdir({
+                  path: `${lessonId}_temp`,
+                  directory: Directory.External,
+                  recursive: true,
+                });
+              } catch {}
 
               await unzip({
                 fs,
-                extractTo: lessonId,
+                extractTo,
                 filepaths: ['.'],
                 filter: (filepath) => !filepath.startsWith('dist/'),
-                onProgress: (event) =>
-                  logger.info(
-                    '[LessonDownloader] Unzipping progress:',
-                    event.filename,
-                    event.loaded,
-                    event.total,
-                  ),
                 data: buffer,
               });
 
+              // write version
+              await Filesystem.writeFile({
+                path: `${extractTo}/.version`,
+                directory: Directory.External,
+                data: btoa(String(dbVersion)),
+              });
+
+              // 🔥 ATOMIC SWAP
+              if (extractTo.includes('_temp')) {
+                const oldPath = lessonId;
+                const tempPath = `${lessonId}_temp`;
+                const backupPath = `${lessonId}_old`;
+
+                try {
+                  try {
+                    await Filesystem.rename({
+                      from: oldPath,
+                      to: backupPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+
+                  await Filesystem.rename({
+                    from: tempPath,
+                    to: oldPath,
+                    directory: Directory.External,
+                  });
+
+                  try {
+                    await Filesystem.rmdir({
+                      path: backupPath,
+                      directory: Directory.External,
+                      recursive: true,
+                    });
+                  } catch {}
+                } catch {
+                  try {
+                    await Filesystem.rename({
+                      from: backupPath,
+                      to: oldPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+                }
+              }
+
+              // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
@@ -556,6 +621,7 @@ export class Util {
               );
               this.setGameUrl(androidPath);
               this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+
               window.dispatchEvent(
                 new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
                   detail: { lessonId },
@@ -586,15 +652,13 @@ export class Util {
           detail: { chapterId },
         }),
       );
-      if (chapterId)
+
+      if (chapterId) {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
 
       return true;
-    } catch (err) {
-      logger.error(
-        '[LessonDownloader] Unexpected error in downloadZipBundle:',
-        err,
-      );
+    } catch {
       return false;
     }
   }
@@ -3621,6 +3685,250 @@ export class Util {
     }
   }
 
+  private static getAudioCacheFileName(audioUrl: string): string {
+    const fallbackExtension = 'mp3';
+
+    try {
+      const parsedUrl = new URL(audioUrl);
+      const extension =
+        parsedUrl.pathname.split('.').pop()?.toLowerCase() ?? fallbackExtension;
+      const sanitizedExtension = extension.replace(/[^a-z0-9]/g, '');
+
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${
+        sanitizedExtension || fallbackExtension
+      }`;
+    } catch {
+      return `${CryptoJS.SHA256(audioUrl).toString()}.${fallbackExtension}`;
+    }
+  }
+
+  private static getCommonAudioCachePath(audioUrl: string): string {
+    return `${Util.COMMON_AUDIO_CACHE_DIR}/${Util.getAudioCacheFileName(audioUrl)}`;
+  }
+
+  private static isRemoteAudioUrl(audioUrl: string): boolean {
+    return /^https?:\/\//i.test(audioUrl);
+  }
+
+  private static resolveTtsLanguage(languageCode?: string | null): string {
+    const normalizedLanguage =
+      (
+        languageCode ||
+        localStorage.getItem(LANGUAGE) ||
+        navigator.language ||
+        'en'
+      )
+        .trim()
+        .toLowerCase() || 'en';
+
+    if (normalizedLanguage.includes('-')) {
+      return normalizedLanguage;
+    }
+
+    const ttsLocaleMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      kn: 'kn-IN',
+      mr: 'mr-IN',
+      pt: 'pt-PT',
+    };
+
+    return ttsLocaleMap[normalizedLanguage] || `${normalizedLanguage}-IN`;
+  }
+
+  // Stops whichever popup audio source is currently active before replay or close.
+  public static async stopAudioUrlOrTtsPlayback(): Promise<void> {
+    // Popup audio and popup TTS share a single playback lane.
+    try {
+      await TextToSpeech.stop();
+    } catch (error) {
+      logger.warn('[CommonAudio] Failed to stop TTS playback', error);
+    }
+
+    try {
+      if (Util.activeCommonAudioPlayer) {
+        Util.activeCommonAudioPlayer.pause();
+        Util.activeCommonAudioPlayer.currentTime = 0;
+        Util.activeCommonAudioPlayer = null;
+      }
+    } catch (error) {
+      logger.error('[CommonAudio] Failed to stop HTML audio playback', error);
+    }
+  }
+
+  // Resolves a remote audio URL to a reusable local device file on native platforms.
+  public static async getCachedAudioUrl(
+    audioUrl?: string | null,
+  ): Promise<string | null> {
+    const normalizedAudioUrl = audioUrl?.trim();
+    if (!normalizedAudioUrl) {
+      return null;
+    }
+
+    if (
+      !Capacitor.isNativePlatform() ||
+      !Util.isRemoteAudioUrl(normalizedAudioUrl)
+    ) {
+      return normalizedAudioUrl;
+    }
+
+    const cachedSrc = Util.cachedAudioUrlMap.get(normalizedAudioUrl);
+    if (cachedSrc) {
+      return cachedSrc;
+    }
+
+    const inFlightRequest = Util.cachedAudioPromiseMap.get(normalizedAudioUrl);
+    if (inFlightRequest) {
+      return inFlightRequest;
+    }
+
+    const downloadPromise = (async () => {
+      const path = Util.getCommonAudioCachePath(normalizedAudioUrl);
+
+      try {
+        // Reuse the local copy if this URL was already downloaded earlier.
+        await Filesystem.stat({
+          path,
+          directory: Directory.Data,
+        });
+      } catch {
+        try {
+          await Filesystem.mkdir({
+            path: Util.COMMON_AUDIO_CACHE_DIR,
+            directory: Directory.Data,
+            recursive: true,
+          });
+        } catch (error) {
+          logger.error('[CommonAudio] Cache directory creation skipped', error);
+        }
+
+        try {
+          // First use downloads the remote asset into app-local storage.
+          const response = await CapacitorHttp.get({
+            url: normalizedAudioUrl,
+            responseType: 'blob',
+            readTimeout: 15000,
+            connectTimeout: 15000,
+          });
+
+          if (!response?.data || response.status !== 200) {
+            logger.warn(
+              '[CommonAudio] Audio download failed with empty response',
+              normalizedAudioUrl,
+            );
+            return null;
+          }
+
+          const base64Audio =
+            typeof response.data === 'string'
+              ? response.data
+              : await Util.blobToString(response.data as Blob);
+
+          await Filesystem.writeFile({
+            path,
+            data: base64Audio,
+            directory: Directory.Data,
+            recursive: true,
+          });
+        } catch (error) {
+          logger.error('[CommonAudio] Failed to download audio', error);
+          return null;
+        }
+      }
+
+      try {
+        // Native file URIs must be converted before browser audio can play them.
+        const localAudioUri = await Filesystem.getUri({
+          path,
+          directory: Directory.Data,
+        });
+        const resolvedSrc = Capacitor.convertFileSrc(localAudioUri.uri);
+        Util.cachedAudioUrlMap.set(normalizedAudioUrl, resolvedSrc);
+        return resolvedSrc;
+      } catch (error) {
+        logger.error('[CommonAudio] Failed to resolve local audio uri', error);
+        return null;
+      }
+    })();
+
+    Util.cachedAudioPromiseMap.set(normalizedAudioUrl, downloadPromise);
+
+    try {
+      return await downloadPromise;
+    } finally {
+      Util.cachedAudioPromiseMap.delete(normalizedAudioUrl);
+    }
+  }
+
+  // Plays downloaded URL audio when available, otherwise falls back to TTS text.
+  public static async playAudioOrTts({
+    audioUrl,
+    text,
+    languageCode,
+    rate = 0.9,
+    pitch = 1,
+    volume = 1,
+  }: {
+    audioUrl?: string | null;
+    text?: string | null;
+    languageCode?: string | null;
+    rate?: number;
+    pitch?: number;
+    volume?: number;
+  }): Promise<boolean> {
+    // Replay always restarts from the beginning instead of overlapping audio.
+    await Util.stopAudioUrlOrTtsPlayback();
+
+    const resolvedAudioUrl = await Util.getCachedAudioUrl(audioUrl);
+
+    if (resolvedAudioUrl) {
+      try {
+        const audio = new Audio(resolvedAudioUrl);
+        audio.preload = 'auto';
+        audio.onended = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+        };
+        audio.onerror = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+        };
+
+        Util.activeCommonAudioPlayer = audio;
+        await audio.play();
+        return true;
+      } catch (error) {
+        logger.warn(
+          '[CommonAudio] Audio playback failed, falling back to TTS',
+          error,
+        );
+      }
+    }
+
+    const normalizedText = text?.trim();
+    if (!normalizedText) {
+      return false;
+    }
+
+    try {
+      // Text is only spoken when no playable audio URL is available.
+      await TextToSpeech.speak({
+        text: normalizedText,
+        lang: Util.resolveTtsLanguage(languageCode),
+        rate,
+        pitch,
+        volume,
+        category: 'ambient',
+      });
+      return true;
+    } catch (error) {
+      logger.error('[CommonAudio] TTS playback failed', error);
+      return false;
+    }
+  }
+
   public static getHotUpdateState(): HotUpdateState {
     const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
     return raw
@@ -3768,6 +4076,40 @@ export class Util {
       }
     } catch (error) {
       logger.error('Session migration failed', error);
+    }
+  }
+
+  public static async getLocalLessonVersion(lessonId: string): Promise<number> {
+    try {
+      const file = await Filesystem.readFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+      });
+
+      let versionStr: string;
+
+      if (typeof file.data === 'string') {
+        // 🔥 Try decode base64 safely
+        try {
+          versionStr = atob(file.data);
+        } catch {
+          versionStr = file.data; // fallback if already plain text
+        }
+      } else {
+        versionStr = await this.blobToString(file.data as Blob);
+      }
+
+      const cleaned = versionStr.trim(); // 🔥 IMPORTANT
+      const version = parseInt(cleaned, 10);
+
+      logger.warn(`[Version] Raw: "${versionStr}" Parsed: ${version}`);
+
+      return isNaN(version) ? 1 : version;
+    } catch (err) {
+      logger.warn(
+        `[Version] No .version file for ${lessonId}, defaulting to 1`,
+      );
+      return 1;
     }
   }
 }

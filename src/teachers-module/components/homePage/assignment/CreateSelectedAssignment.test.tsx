@@ -89,6 +89,7 @@ const buildLesson = (
   target_age_to: null,
   updated_at: null,
   lido_lesson_id: null,
+  version: null,
 });
 
 const mockAuth = {
@@ -299,7 +300,7 @@ describe('CreateSelectedAssignment (QR flow)', () => {
       />,
     );
 
-    await screen.findByText('Need Help');
+    await screen.findByText('Not active for last 7 or more days');
 
     const selectAllCheckbox = screen.getAllByRole('checkbox')[0];
     expect(selectAllCheckbox).toBeChecked();
@@ -340,12 +341,14 @@ describe('CreateSelectedAssignment (QR flow)', () => {
       />,
     );
 
-    await screen.findByText('Need Help');
+    await screen.findByText('Not active for last 7 or more days');
 
     const selectAllCheckbox = screen.getAllByRole('checkbox')[0];
     expect(selectAllCheckbox).toBeChecked();
 
-    await userEvent.click(screen.getByText('Need Help'));
+    await userEvent.click(
+      screen.getByText('Not active for last 7 or more days'),
+    );
 
     const studentRow = await screen.findByText('Student 1');
     const studentListItem = studentRow.closest('li');

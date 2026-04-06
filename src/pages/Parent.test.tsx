@@ -260,10 +260,12 @@ describe('Parent page', () => {
 
     await user.click(await screen.findByRole('button', { name: 'setting' }));
     await user.click(
-      screen.getByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
     );
 
-    expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.ADD_TEACHER_NAME);
+    await waitFor(() =>
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.ADD_TEACHER_NAME),
+    );
   });
 
   it('switches to teacher mode when name is present', async () => {
@@ -278,11 +280,13 @@ describe('Parent page', () => {
 
     await user.click(await screen.findByRole('button', { name: 'setting' }));
     await user.click(
-      screen.getByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
     );
 
-    expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
-    expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    await waitFor(() => {
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    });
   });
 
   it('updates language via dropdown selection', async () => {

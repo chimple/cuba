@@ -13,6 +13,7 @@ import {
   COCOS,
   LIVE_QUIZ,
   LIDO,
+  LIDO_ASSESSMENT,
   PAGES,
   CONTINUE,
   COURSE_CHANGED,
@@ -271,11 +272,11 @@ export const usePathwayData = () => {
           (p: LessonNode) => p.isPlayed === false,
         );
         if (!course || !pathItem) return;
-        const isAssessment = pathItem?.is_assessment;
 
-        const lesson = await api.getLesson(
-          course.path.find((p: LessonNode) => p.isPlayed === false).lesson_id,
-        );
+        const isAssessment = pathItem?.is_assessment;
+        const assessmentId = pathItem?.assignment_id;
+
+        const lesson = await api.getLesson(pathItem.lesson_id);
         if (!lesson) return;
 
         // Navigate based on plugin type
@@ -291,8 +292,7 @@ export const usePathwayData = () => {
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
-            skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-              ?.skill_id,
+            skillId: pathItem?.skill_id,
             is_assessment: isAssessment,
           });
         } else if (lesson.plugin_type === LIVE_QUIZ) {
@@ -304,12 +304,14 @@ export const usePathwayData = () => {
               from: history.location.pathname + `?${CONTINUE}=true`,
               learning_path: true,
               reward: true,
-              skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-                ?.skill_id,
+              skillId: pathItem?.skill_id,
               is_assessment: isAssessment,
             },
           );
-        } else if (lesson.plugin_type === LIDO) {
+        } else if (
+          lesson.plugin_type === LIDO ||
+          lesson.plugin_type === LIDO_ASSESSMENT
+        ) {
           const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
           history.replace(PAGES.LIDO_PLAYER + params, {
             lessonId: lesson.cocos_lesson_id,
@@ -320,9 +322,9 @@ export const usePathwayData = () => {
             from: history.location.pathname + `?${CONTINUE}=true`,
             learning_path: true,
             reward: true,
-            skillId: course.path.find((p: LessonNode) => p.isPlayed === false)
-              ?.skill_id,
+            skillId: pathItem?.skill_id,
             is_assessment: isAssessment,
+            assessmentId,
           });
         }
       } catch (error) {
