@@ -16,6 +16,7 @@ jest.mock('../utility/util', () => ({
     storeLessonIdToLocalStorage: jest.fn(),
     downloadZipBundle: jest.fn(async () => true),
     deleteDownloadedLesson: jest.fn(async () => undefined),
+    getLocalLessonVersion: jest.fn(async () => 0),
   },
 }));
 
@@ -87,7 +88,12 @@ describe('DownloadChapterAndLesson', () => {
     jest.spyOn(Capacitor, 'getPlatform').mockReturnValue('android' as any);
     jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
 
-    const view = render(<DownloadLesson lessonId="lesson-42" />);
+    const view = render(
+      <DownloadLesson
+        lessonId="lesson-42"
+        lessonRow={{ id: 'lesson-42', version: '1' } as any}
+      />,
+    );
     const button = view.container.querySelector('.download-or-delete-button');
 
     expect(button).toBeInTheDocument();
@@ -95,7 +101,12 @@ describe('DownloadChapterAndLesson', () => {
     await user.click(button as HTMLElement);
 
     await waitFor(() => {
-      expect(Util.downloadZipBundle).toHaveBeenCalledWith(['lesson-42']);
+      expect(Util.downloadZipBundle).toHaveBeenCalledWith(
+        ['lesson-42'],
+        undefined,
+        undefined,
+        {},
+      );
     });
   });
 
@@ -146,8 +157,8 @@ describe('DownloadChapterAndLesson', () => {
     jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
     (Util.getStoredLessonIds as jest.Mock).mockReturnValue(['cocos-1']);
     mockApiHandler.getLessonsForChapter.mockResolvedValue([
-      { cocos_lesson_id: 'cocos-1' },
-      { cocos_lesson_id: 'cocos-2' },
+      { cocos_lesson_id: 'cocos-1', version: '1' },
+      { cocos_lesson_id: 'cocos-2', version: '1' },
       { cocos_lesson_id: undefined },
     ]);
 
@@ -175,6 +186,8 @@ describe('DownloadChapterAndLesson', () => {
       expect(Util.downloadZipBundle).toHaveBeenCalledWith(
         ['cocos-2'],
         'chapter-1',
+        undefined,
+        {},
       );
       expect(onDownloadOrDelete).toHaveBeenCalled();
     });
