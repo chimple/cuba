@@ -3046,19 +3046,19 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
-  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
     name: string;
     whatsapp_bot_number?: string | null;
   } | null> {
     if (!this.supabase) return null;
-
+    const normalizedUdiseCode = udiseCode.trim();
     const { data, error } = await this.supabase
       .from(TABLES.School)
       .select('id, name, whatsapp_bot_number')
-      .eq('udise', udiseCode)
       .eq('is_deleted', false)
+      .eq('udise', normalizedUdiseCode)
       .limit(1)
       .maybeSingle();
 
