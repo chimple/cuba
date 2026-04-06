@@ -2972,6 +2972,18 @@ export class Util {
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
+      if (!activeLesson) {
+        logger.warn(
+          '[LearningPath] No active lesson found while updating pathway',
+          {
+            studentId: currentStudent.id,
+            courseId: course.course_id,
+            courseIndex,
+            pathLength: course.path?.length ?? 0,
+          },
+        );
+        return;
+      }
       const prevData = {
         pathId: course.path_id,
         courseId: course.course_id,
@@ -2979,7 +2991,6 @@ export class Util {
         chapterId: activeLesson.chapter_id,
         prevPath_id: course.path_id,
       };
-      if (!activeLesson) return;
 
       /* 2️⃣ Mark active lesson as played */
       course.path[activeLessonIndex] = {
@@ -3032,12 +3043,6 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (completedPathwaySnapshot) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            completedPathwaySnapshot,
-          );
-        }
         const newpathId = uuidv4();
         course.path_id = newpathId;
         prevData.pathId = newpathId;
@@ -3050,8 +3055,24 @@ export class Util {
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        const shouldShowCompletedPathReward = Boolean(
+          stickerAwardResult.awardedStickerId,
+        );
+        if (shouldShowCompletedPathReward && completedPathwaySnapshot) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            completedPathwaySnapshot,
+          );
+        } else {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        }
         if (typeof navigator !== 'undefined' && navigator.onLine) {
-          if (stickerAwardResult.completed) {
+          if (
+            stickerAwardResult.completed &&
+            stickerAwardResult.awardedStickerId
+          ) {
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
@@ -3082,7 +3103,7 @@ export class Util {
                 }),
               );
             }
-          } else {
+          } else if (stickerAwardResult.awardedStickerId) {
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
@@ -3092,6 +3113,9 @@ export class Util {
                 createdAt: new Date().toISOString(),
               }),
             );
+          } else {
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
           }
         }
         if (courseIndex >= courses.courseList.length) {

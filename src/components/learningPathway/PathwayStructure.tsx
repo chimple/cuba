@@ -201,6 +201,25 @@ const PathwayStructure: React.FC = () => {
     }
   }, []);
 
+  const refreshPathAfterRewardModal = React.useCallback(() => {
+    if (!sessionStorage.getItem(REWARD_LEARNING_PATH)) return;
+
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+    }, 0);
+  }, []);
+
+  const closePathwayModal = React.useCallback(() => {
+    setModalOpen(false);
+    refreshPathAfterRewardModal();
+  }, [refreshPathAfterRewardModal, setModalOpen]);
+
+  const confirmPathwayModal = React.useCallback(() => {
+    setModalOpen(false);
+    refreshPathAfterRewardModal();
+  }, [refreshPathAfterRewardModal, setModalOpen]);
+
   // Mounts SVG with everything needed
   usePathwaySVG({
     containerRef,
@@ -358,8 +377,8 @@ const PathwayStructure: React.FC = () => {
       {modalOpen && (
         <PathwayModal
           text={modalText}
-          onClose={() => setModalOpen(false)}
-          onConfirm={() => setModalOpen(false)}
+          onClose={closePathwayModal}
+          onConfirm={confirmPathwayModal}
           animate={shouldAnimate}
         />
       )}
