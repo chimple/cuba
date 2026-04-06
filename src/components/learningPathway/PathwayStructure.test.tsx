@@ -12,7 +12,9 @@ import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  COURSE_CHANGED,
   EVENTS,
+  REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
@@ -22,6 +24,7 @@ jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+    getCurrentStudentLanguageCode: jest.fn(() => 'en'),
   },
 }));
 
@@ -124,6 +127,7 @@ describe('PathwayStructure', () => {
       getCachedLesson: jest.fn(),
       updateMascotToNormalState: jest.fn(),
       invokeMascotCelebration: jest.fn(),
+      playMascotAudioFromLocalPath: jest.fn(),
       setRewardRiveState: jest.fn(),
       setRiveContainer: jest.fn(),
       setRewardRiveContainer: jest.fn(),
@@ -172,6 +176,40 @@ describe('PathwayStructure', () => {
     expect(okButton).toBeTruthy();
     if (okButton) fireEvent.click(okButton);
     expect(setModalOpen).toHaveBeenCalledWith(false);
+  });
+
+  test('clears reward learning path and refreshes course after reward modal closes', () => {
+    jest.useFakeTimers();
+    sessionStorage.setItem(
+      REWARD_LEARNING_PATH,
+      JSON.stringify({ courses: { courseList: [], currentCourseIndex: 0 } }),
+    );
+    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+
+    (usePathwayData as jest.Mock).mockReturnValue(
+      buildHookData({
+        modalOpen: true,
+        modalText: 'Complete these 5 lessons to earn rewards',
+      }),
+    );
+
+    render(<PathwayStructure />);
+
+    fireEvent.click(screen.getByAltText('close-icon'));
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(sessionStorage.getItem(REWARD_LEARNING_PATH)).toBeNull();
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
+    expect(
+      dispatchSpy.mock.calls.some(
+        ([event]) => (event as CustomEvent).type === COURSE_CHANGED,
+      ),
+    ).toBe(true);
+
+    dispatchSpy.mockRestore();
+    jest.useRealTimers();
   });
 
   test('renders reward box when reward is available and feature is on', () => {

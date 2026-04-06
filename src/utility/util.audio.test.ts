@@ -114,6 +114,56 @@ describe('Util common audio helpers', () => {
     expect(TextToSpeech.speak).not.toHaveBeenCalled();
   });
 
+  test('calls onPlaybackStop when audio playback ends', async () => {
+    const onPlaybackStop = jest.fn();
+    const play = jest.fn().mockResolvedValue(undefined);
+    const pause = jest.fn();
+    let createdAudio: any;
+
+    global.Audio = jest.fn().mockImplementation((src: string) => {
+      createdAudio = {
+        src,
+        preload: '',
+        currentTime: 0,
+        pause,
+        play,
+        onended: null,
+        onerror: null,
+        onpause: null,
+      };
+      return createdAudio;
+    }) as unknown as typeof Audio;
+
+    await expect(
+      Util.playAudioOrTts({
+        audioUrl: 'https://cdn.example.com/audio-callback.mp3',
+        onPlaybackStop,
+      }),
+    ).resolves.toBe(true);
+
+    expect(onPlaybackStop).not.toHaveBeenCalled();
+
+    createdAudio.onended();
+
+    expect(onPlaybackStop).toHaveBeenCalledTimes(1);
+  });
+
+  test('returns the current student language code', () => {
+    localStorage.setItem('language', 'hi');
+
+    expect(Util.getCurrentStudentLanguageCode()).toBe('hi');
+  });
+
+  test('normalizes locale-specific language code to the base language code', () => {
+    localStorage.setItem('language', 'hi-IN');
+
+    expect(Util.getCurrentStudentLanguageCode()).toBe('hi');
+  });
+
+  test('falls back to english when no student language is set', () => {
+    expect(Util.getCurrentStudentLanguageCode()).toBe('en');
+  });
+
   test('falls back to TTS when audio url is missing', async () => {
     localStorage.setItem('language', 'hi');
 

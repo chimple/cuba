@@ -2972,6 +2972,18 @@ export class Util {
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
+      if (!activeLesson) {
+        logger.warn(
+          '[LearningPath] No active lesson found while updating pathway',
+          {
+            studentId: currentStudent.id,
+            courseId: course.course_id,
+            courseIndex,
+            pathLength: course.path?.length ?? 0,
+          },
+        );
+        return;
+      }
       const prevData = {
         pathId: course.path_id,
         courseId: course.course_id,
@@ -2979,7 +2991,6 @@ export class Util {
         chapterId: activeLesson.chapter_id,
         prevPath_id: course.path_id,
       };
-      if (!activeLesson) return;
 
       /* 2️⃣ Mark active lesson as played */
       course.path[activeLessonIndex] = {
@@ -3032,12 +3043,6 @@ export class Util {
             preAwardCollectedStickerIds = [];
           }
         }
-        if (completedPathwaySnapshot) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            completedPathwaySnapshot,
-          );
-        }
         const newpathId = uuidv4();
         course.path_id = newpathId;
         prevData.pathId = newpathId;
@@ -3050,8 +3055,24 @@ export class Util {
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        const shouldShowCompletedPathReward = Boolean(
+          stickerAwardResult.awardedStickerId,
+        );
+        if (shouldShowCompletedPathReward && completedPathwaySnapshot) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            completedPathwaySnapshot,
+          );
+        } else {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        }
         if (typeof navigator !== 'undefined' && navigator.onLine) {
-          if (stickerAwardResult.completed) {
+          if (
+            stickerAwardResult.completed &&
+            stickerAwardResult.awardedStickerId
+          ) {
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
@@ -3082,7 +3103,7 @@ export class Util {
                 }),
               );
             }
-          } else {
+          } else if (stickerAwardResult.awardedStickerId) {
             sessionStorage.setItem(
               AUTO_OPEN_STICKER_PREVIEW_KEY,
               JSON.stringify({
@@ -3092,6 +3113,9 @@ export class Util {
                 createdAt: new Date().toISOString(),
               }),
             );
+          } else {
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
           }
         }
         if (courseIndex >= courses.courseList.length) {
@@ -3710,6 +3734,27 @@ export class Util {
     return /^https?:\/\//i.test(audioUrl);
   }
 
+  public static getCurrentStudentLanguageCode(
+    fallbackLanguageCode: string = LANG.ENGLISH,
+  ): string {
+    const normalizedFallbackLanguage =
+      fallbackLanguageCode.trim().toLowerCase() || LANG.ENGLISH;
+    const normalizedCurrentLanguage =
+      (
+        localStorage.getItem(LANGUAGE) ||
+        normalizedFallbackLanguage ||
+        LANG.ENGLISH
+      )
+        .trim()
+        .toLowerCase() || LANG.ENGLISH;
+
+    return (
+      normalizedCurrentLanguage.split('-')[0] ||
+      normalizedFallbackLanguage.split('-')[0] ||
+      LANG.ENGLISH
+    );
+  }
+
   private static resolveTtsLanguage(languageCode?: string | null): string {
     const normalizedLanguage =
       (
@@ -3868,6 +3913,7 @@ export class Util {
     rate = 0.9,
     pitch = 1,
     volume = 1,
+    onPlaybackStop,
   }: {
     audioUrl?: string | null;
     text?: string | null;
@@ -3875,6 +3921,7 @@ export class Util {
     rate?: number;
     pitch?: number;
     volume?: number;
+    onPlaybackStop?: () => void;
   }): Promise<boolean> {
     // Replay always restarts from the beginning instead of overlapping audio.
     await Util.stopAudioUrlOrTtsPlayback();
@@ -3889,11 +3936,22 @@ export class Util {
           if (Util.activeCommonAudioPlayer === audio) {
             Util.activeCommonAudioPlayer = null;
           }
+          onPlaybackStop?.();
+        };
+        audio.onpause = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+          // Only treat pause as a stop if playback didn't naturally end.
+          if (!audio.ended) {
+            onPlaybackStop?.();
+          }
         };
         audio.onerror = () => {
           if (Util.activeCommonAudioPlayer === audio) {
             Util.activeCommonAudioPlayer = null;
           }
+          onPlaybackStop?.();
         };
 
         Util.activeCommonAudioPlayer = audio;
@@ -3904,11 +3962,16 @@ export class Util {
           '[CommonAudio] Audio playback failed, falling back to TTS',
           error,
         );
+        // Clear any stale active audio reference before falling back to TTS.
+        if (Util.activeCommonAudioPlayer) {
+          Util.activeCommonAudioPlayer = null;
+        }
       }
     }
 
     const normalizedText = text?.trim();
     if (!normalizedText) {
+      onPlaybackStop?.();
       return false;
     }
 
@@ -3922,9 +3985,11 @@ export class Util {
         volume,
         category: 'ambient',
       });
+      onPlaybackStop?.();
       return true;
     } catch (error) {
       logger.error('[CommonAudio] TTS playback failed', error);
+      onPlaybackStop?.();
       return false;
     }
   }
