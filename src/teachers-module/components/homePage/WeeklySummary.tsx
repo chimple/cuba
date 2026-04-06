@@ -68,9 +68,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
                 <img
                   src={TREND_ICON_BY_TYPE[item.trend]}
                   alt={`${item.trend} trend`}
-                  className={`summary-trend-icon ${
-                    item.trend === 'down' ? 'summary-trend-icon--down' : ''
-                  }`}
+                  className="summary-trend-icon"
                 />
               </span>
             </div>
