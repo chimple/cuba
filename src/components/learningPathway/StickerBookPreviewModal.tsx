@@ -116,6 +116,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
           svgMarkup={savedSvgMarkup}
           onClose={closeCompletionSaveModal}
           onAnimationComplete={handleSaveAndShare}
+          autoClose={false}
         />
         <StickerBookToast
           isOpen={showSaveToast}

@@ -31,6 +31,7 @@ const mockOpenSaveModal = jest.fn();
 const mockCloseSaveModal = jest.fn();
 const mockCloseSaveToast = jest.fn();
 const mockHandleSaveAndShare = jest.fn();
+let latestSaveHookOptions: Record<string, any> | null = null;
 
 let mockSaveHookState = {
   isSaving: false,
@@ -44,7 +45,10 @@ let mockSaveHookState = {
 };
 
 jest.mock('../../hooks/useStickerBookSave', () => ({
-  useStickerBookSave: () => mockSaveHookState,
+  useStickerBookSave: (options: Record<string, any>) => {
+    latestSaveHookOptions = options;
+    return mockSaveHookState;
+  },
 }));
 
 jest.mock('../../utility/logger', () => ({
@@ -124,6 +128,7 @@ const buildSlotSvg = () => {
 describe('useStickerBookPreviewModalLogic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    latestSaveHookOptions = null;
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -401,6 +406,28 @@ describe('useStickerBookPreviewModalLogic', () => {
       artworkTitle: 'My Book!!',
       returnTo: '/',
     });
+  });
+
+  test('closes completion popup after the share sheet settles', async () => {
+    const onClose = jest.fn();
+
+    renderHook(() =>
+      useStickerBookPreviewModalLogic({
+        data: buildData(),
+        variant: 'preview',
+        onClose,
+        mode: 'completion',
+      }),
+    );
+
+    expect(latestSaveHookOptions?.onShareSettled).toEqual(expect.any(Function));
+
+    await act(async () => {
+      await latestSaveHookOptions?.onShareSettled?.('Book_1.png');
+    });
+
+    expect(mockCloseSaveModal).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith('acknowledge_button');
   });
 
   test('closes on backdrop click only when target matches currentTarget', async () => {

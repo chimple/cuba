@@ -192,6 +192,11 @@ export const useStickerBookPreviewModalLogic = ({
         file_name: fileName,
       });
     },
+    onShareSettled: async () => {
+      if (!isCompletionMode) return;
+      closeSaveModal();
+      onClose('acknowledge_button');
+    },
     onSaveSuccess: async (fileName: string) => {
       Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
         ...saveAnalyticsPayload,

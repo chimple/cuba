@@ -10,6 +10,7 @@ type useStickerBookSaveOptions = {
   shareText: string;
   backgroundColor?: string;
   onShareSuccess?: (fileName: string) => void | Promise<void>;
+  onShareSettled?: (fileName: string) => void | Promise<void>;
   onSaveSuccess?: (fileName: string) => void | Promise<void>;
 };
 
@@ -56,6 +57,7 @@ export function useStickerBookSave({
   shareText,
   backgroundColor = '#fffdee',
   onShareSuccess,
+  onShareSettled,
   onSaveSuccess,
 }: useStickerBookSaveOptions) {
   const [isSaving, setIsSaving] = useState(false);
@@ -182,6 +184,8 @@ export function useStickerBookSave({
         await onShareSuccess?.(fileName);
       } catch (error) {
         logger.error('Failed to share artwork snapshot:', error);
+      } finally {
+        await onShareSettled?.(fileName);
       }
     } catch (error) {
       logger.error('Failed to prepare artwork snapshot:', error);
