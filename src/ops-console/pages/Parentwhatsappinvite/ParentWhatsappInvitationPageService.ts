@@ -151,12 +151,21 @@ const logParentWhatsappEvent = (
   details: Record<string, unknown>,
 ): void => {};
 
-// Normalizes UDISE input into expected 11-digit code format.
+// Normalizes UDISE input for lookup, allowing numeric and alphanumeric codes.
 const normalizeUdiseCode = (raw: string): string | null => {
-  const digits = raw.replace(/\D/g, '');
-  if (!digits) return null;
-  if (digits.length === 10) return `0${digits}`;
-  if (digits.length === 11) return digits;
+  const compactRaw = raw.replace(/\s+/g, '');
+  const cleanedCode = compactRaw.replace(/[^a-zA-Z0-9]/g, '');
+  if (!cleanedCode) return null;
+
+  if (!/^\d+$/.test(cleanedCode)) {
+    if (cleanedCode.length !== 11) {
+      return null;
+    }
+    return cleanedCode.toUpperCase();
+  }
+
+  if (cleanedCode.length === 10) return `0${cleanedCode}`;
+  if (cleanedCode.length === 11) return cleanedCode;
   return null;
 };
 
