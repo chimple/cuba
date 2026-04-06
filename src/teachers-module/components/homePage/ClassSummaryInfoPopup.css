@@ -105,11 +105,11 @@
   height: 16px;
   margin-top: 1px;
   flex-shrink: 0;
-}
-
-.class-summary-popup-item-icon--down {
-  transform: scale(1.6);
-  transform-origin: center;
+  border-radius: 999px;
+  background: #eaddff;
+  box-sizing: border-box;
+  object-fit: contain;
+  display: block;
 }
 
 .class-summary-popup-item-text {

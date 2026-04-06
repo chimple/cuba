@@ -138,11 +138,7 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
                 <img
                   src={TREND_ICON_BY_TYPE[item.icon]}
                   alt=""
-                  className={`class-summary-popup-item-icon ${
-                    item.icon === 'down'
-                      ? 'class-summary-popup-item-icon--down'
-                      : ''
-                  }`}
+                  className="class-summary-popup-item-icon"
                 />
                 <span className="class-summary-popup-item-text">
                   {t(item.text)}

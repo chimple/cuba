@@ -104,11 +104,4 @@
   box-sizing: border-box;
   object-fit: contain;
   display: block;
-  padding: 3px;
-}
-
-.summary-trend-icon--down {
-  transform: scale(1.6);
-  transform-origin: center;
-  padding: 0;
 }
