@@ -9407,7 +9407,6 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getOpsRequests(
-    this: any,
     requestStatus: EnumType<'ops_request_status'>,
     page: number = 1,
     limit: number = 20,
@@ -9429,219 +9428,28 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         return { data: [], total: 0, totalPages: 0, page, limit };
 
-      const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = [
-        'created_at',
-        'updated_at',
-        'school(name)',
-      ] as const;
-      if (!allowedOrderByDb.includes(orderBy as any)) orderBy = 'created_at';
-      if (!['asc', 'desc'].includes(orderDir.toLowerCase())) orderDir = 'asc';
+      const { data, error } = await this.supabase.rpc('get_ops_requests', {
+        p_request_status: requestStatus,
+        p_page: page,
+        p_limit: limit,
+        p_order_by: orderBy,
+        p_order_dir: orderDir,
+        p_request_types: filters?.request_type?.length
+          ? filters.request_type
+          : null,
+        p_school_ids: filters?.school?.length ? filters.school : null,
+        p_search_term: searchTerm ?? null,
+      });
 
-      const trimmedSearchTerm = searchTerm?.trim();
-      const doTextSearch = !!trimmedSearchTerm && trimmedSearchTerm.length >= 3;
+      if (error) throw error;
 
-      let searchSchoolIds: string[] = [];
-      let searchUserIds: string[] = [];
-
-      if (doTextSearch) {
-        const [{ data: schoolData }, { data: userData }] = await Promise.all([
-          this.supabase
-            .from(TABLES.School)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-          this.supabase
-            .from(TABLES.User)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-        ]);
-        if (schoolData?.length)
-          searchSchoolIds = schoolData.map((s: any) => String(s.id));
-        if (userData?.length)
-          searchUserIds = userData.map((u: any) => String(u.id));
-      }
-
-      const applyFilters = (q: any) => {
-        q = q.eq('is_deleted', false);
-
-        const RS = Constants.public.Enums.ops_request_status;
-        const nowIso = new Date().toISOString();
-        const isComplexStatus =
-          requestStatus === RS[0] || requestStatus === RS[2];
-
-        if (isComplexStatus) {
-          if (requestStatus === RS[2]) {
-            q = q.or(
-              [
-                `request_status.eq.${requestStatus}`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.lte.${nowIso})`,
-              ].join(','),
-            );
-          } else {
-            q = q.or(
-              [
-                `and(request_status.eq.requested,request_type.neq.student)`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.gt.${nowIso})`,
-              ].join(','),
-            );
-          }
-        } else {
-          q = q.eq('request_status', requestStatus);
-        }
-
-        if (filters?.request_type?.length)
-          q = q.in('request_type', filters.request_type);
-
-        const schoolFilterIds: string[] | undefined = filters?.school?.filter(
-          (x: unknown): x is string => typeof x === 'string',
-        );
-        if (schoolFilterIds?.length) q = q.in('school_id', schoolFilterIds);
-
-        if (doTextSearch) {
-          const orConditions: string[] = [];
-
-          const allRequestTypes: string[] = Object.values(
-            RequestTypes,
-          ) as string[];
-          const st = trimmedSearchTerm!.toLowerCase();
-
-          const matchingRequestTypes = allRequestTypes.filter((rt) =>
-            rt.toLowerCase().includes(st),
-          );
-          if (matchingRequestTypes.length)
-            orConditions.push(
-              `request_type.in.(${matchingRequestTypes.join(',')})`,
-            );
-
-          if (trimmedSearchTerm.length) {
-            orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
-          }
-
-          if (searchSchoolIds.length)
-            orConditions.push(`school_id.in.(${searchSchoolIds.join(',')})`);
-          if (searchUserIds.length) {
-            orConditions.push(
-              `requested_by.in.(${searchUserIds.join(',')})`,
-              `responded_by.in.(${searchUserIds.join(',')})`,
-            );
-          }
-
-          if (orConditions.length) q = q.or(orConditions.join(','));
-          else return { q, earlyEmpty: true };
-        }
-
-        return { q, earlyEmpty: false };
+      return {
+        data: data?.data ?? [],
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 0,
+        page: data?.page ?? page,
+        limit: data?.limit ?? limit,
       };
-
-      let countQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select('id', { count: 'exact', head: true });
-      const { q: cq, earlyEmpty } = applyFilters(countQ);
-      if (earlyEmpty) return { data: [], total: 0, totalPages: 0, page, limit };
-      const { error: countErr, count: total } = await cq;
-      if (countErr) throw countErr;
-
-      let rowsQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select(
-          'id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type, school:school_id(*)',
-        );
-      const { q: rq } = applyFilters(rowsQ);
-
-      const { data: rows, error: rowsErr } = await rq
-        .order(orderBy, { ascending: orderDir === 'asc' })
-        .range(offset, offset + limit - 1);
-      if (rowsErr) throw rowsErr;
-
-      if (!rows?.length) {
-        const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-        return { data: [], total: total ?? 0, totalPages, page, limit };
-      }
-
-      const schoolIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.school_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const userIds: string[] = Array.from(
-        new Set(
-          rows
-            .flatMap((r: any) => [r.requested_by, r.responded_by])
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const classIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.class_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-
-      const [schoolsResp, usersResp, classesResp] = await Promise.all([
-        schoolIds.length
-          ? this.supabase
-              .from(TABLES.School)
-              .select('id, name, udise, group1,group2, group3, country')
-              .in('id', schoolIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        userIds.length
-          ? this.supabase
-              .from(TABLES.User)
-              .select('id, name, email, phone, gender')
-              .eq('is_deleted', false)
-              .in('id', userIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        classIds.length
-          ? this.supabase
-              .from(TABLES.Class)
-              .select('id, name, school_id')
-              .in('id', classIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-      ]);
-      if (schoolsResp.error) throw schoolsResp.error;
-      if (usersResp.error) throw usersResp.error;
-      if (classesResp.error) throw classesResp.error;
-
-      const schoolMap = new Map(
-        (schoolsResp.data || []).map((s: any): [string, any] => [
-          s.id as string,
-          s,
-        ]),
-      );
-      const userMap = new Map(
-        (usersResp.data || []).map((u: any): [string, any] => [
-          u.id as string,
-          u,
-        ]),
-      );
-      const classMap = new Map(
-        (classesResp.data || []).map((c: any): [string, any] => [
-          c.id as string,
-          c,
-        ]),
-      );
-
-      const data = rows.map((r: any) => ({
-        ...r,
-        school: r.school_id
-          ? (schoolMap.get(r.school_id) ?? r.school ?? null)
-          : null,
-        requestedBy: r.requested_by
-          ? (userMap.get(r.requested_by) ?? null)
-          : null,
-        respondedBy: r.responded_by
-          ? (userMap.get(r.responded_by) ?? null)
-          : null,
-        classInfo: r.class_id ? (classMap.get(r.class_id) ?? null) : null,
-      }));
-
-      const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-      return { data, total: total ?? 0, totalPages, page, limit };
     } catch (err) {
       logger.error('Error in getOpsRequests:', err);
       return { data: [], total: 0, totalPages: 0, page, limit };
