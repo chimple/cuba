@@ -365,10 +365,10 @@ describe('StickerBookPreviewStage', () => {
       screen.getByTestId('StickerBookPreviewModal-confetti'),
     ).toBeInTheDocument();
     expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
-      left: '-85px',
-      top: '-32.499999999999986px',
-      width: '240px',
-      height: '167.5px',
+      left: '-25px',
+      top: '-12.5px',
+      width: '120px',
+      height: '105px',
     });
   });
 

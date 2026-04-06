@@ -13,6 +13,7 @@ interface GroupWiseStudentsProps {
   studentsProgress?: StudentProgressData[];
   studentLength: string;
   onClickCallBack: Function;
+  onStudentClick?: (student: TableTypes<'user'>) => void;
 }
 
 const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
@@ -20,6 +21,7 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   studentsProgress,
   studentLength,
   onClickCallBack,
+  onStudentClick,
 }) => {
   const groupTitle = getBandTitleByColor(color, t as (key: string) => string);
 
@@ -43,7 +45,14 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
           {(studentsProgress ?? []).map((stdpr) => {
             const student = stdpr.get('student') as TableTypes<'user'>;
             return (
-              <div className="student-avatar-container" key={student.id}>
+              <div
+                className="student-avatar-container"
+                key={student.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStudentClick?.(student);
+                }}
+              >
                 <img
                   src={student.image || `assets/avatars/${student.avatar}.png`}
                   alt="Profile"
@@ -62,12 +71,6 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
             );
           })}
         </div>
-
-        <img
-          src="assets/icons/arrowSign.png"
-          alt="expand-icon"
-          className="expand-icon"
-        />
       </div>
     </div>
   );
