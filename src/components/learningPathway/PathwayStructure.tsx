@@ -24,6 +24,20 @@ import {
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
+const STICKER_COLLECT_MASCOT_AUDIO_PATHS = {
+  en: '/assets/audios/en_congrats_on_sticker_collection.mp3',
+  hi: '/assets/audios/hi_congrats_on_sticker_collection.mp3',
+  kn: '/assets/audios/kn_congrats_on_sticker_collection.mp3',
+  mr: '/assets/audios/mr_congrats_on_sticker_collection.mp3',
+  pt: '/assets/audios/pt_congrats_on_sticker_collection.mp3',
+} as const;
+const STICKER_REWARD_BOX_SELECTOR = '.PathwayStructure-end-reward-box--sticker';
+const STICKER_REWARD_BOX_OPEN_CLASS =
+  'PathwayStructure-end-reward-box--sticker-open';
+const STICKER_REWARD_BOX_CLOSE_CLASS =
+  'PathwayStructure-end-reward-box--sticker-close-anim';
+const STICKER_REWARD_BOX_TILT_CLASS =
+  'PathwayStructure-end-reward-box--sticker-clicked';
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
   const [stickerPreviewData, setStickerPreviewData] =
@@ -43,8 +57,17 @@ const PathwayStructure: React.FC = () => {
     React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
     React.useState<boolean>(false);
+  const [isStickerCollectSpeaking, setIsStickerCollectSpeaking] =
+    React.useState<boolean>(false);
+  const [
+    shouldCelebrateAfterPathwayReload,
+    setShouldCelebrateAfterPathwayReload,
+  ] = React.useState<boolean>(false);
   const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
   const shouldRefreshPathAfterCompletionRef = React.useRef<boolean>(false);
+  const isStickerCollectSpeakingRef = React.useRef<boolean>(false);
+  const pendingCelebrationRiveContainerRef = React.useRef<Element | null>(null);
+  const latestRiveContainerRef = React.useRef<Element | null>(null);
 
   const {
     // refs
@@ -80,6 +103,7 @@ const PathwayStructure: React.FC = () => {
     getCachedLesson,
     updateMascotToNormalState,
     invokeMascotCelebration,
+    playMascotAudioFromLocalPath,
     setRewardRiveState,
     setRiveContainer,
     setRewardRiveContainer,
@@ -169,6 +193,115 @@ const PathwayStructure: React.FC = () => {
     [openStickerCompletion],
   );
 
+  const getStickerRewardBoxElement = React.useCallback(
+    () => containerRef.current?.querySelector(STICKER_REWARD_BOX_SELECTOR),
+    [containerRef],
+  );
+
+  // OPTIMIZED: merged tilt animation + tilt loop into one toggle — eliminates
+  // redundant DOM lookups
+  const setStickerCollectTiltActive = React.useCallback(
+    (active: boolean) => {
+      isStickerCollectSpeakingRef.current = active;
+      setIsStickerCollectSpeaking(active);
+      const rewardBox = getStickerRewardBoxElement();
+      if (!rewardBox) return;
+      if (active) {
+        rewardBox.classList.remove(
+          STICKER_REWARD_BOX_OPEN_CLASS,
+          STICKER_REWARD_BOX_CLOSE_CLASS,
+        );
+        rewardBox.classList.add(STICKER_REWARD_BOX_TILT_CLASS);
+      } else {
+        rewardBox.classList.remove(STICKER_REWARD_BOX_TILT_CLASS);
+      }
+    },
+    [getStickerRewardBoxElement],
+  );
+
+  // Play mascot audio from a local path and sync tilt with playback.
+  const playStickerCollectMascotAudio = React.useCallback(
+    (localAudioPath: string) => {
+      if (!localAudioPath) return;
+      setStickerCollectTiltActive(true);
+      void playMascotAudioFromLocalPath(
+        localAudioPath,
+        {
+          stateMachine: 'State Machine 4',
+          inputName: 'Number 3',
+          stateValue: 1,
+        },
+        { onPlaybackStop: () => setStickerCollectTiltActive(false) },
+      );
+    },
+    [playMascotAudioFromLocalPath, setStickerCollectTiltActive],
+  );
+
+  // Plays the sticker-collect audio using the student's language.
+  const playStickerAudio = React.useCallback(() => {
+    const studentLanguageCode = Util.getCurrentStudentLanguageCode();
+    const localAudioPath =
+      STICKER_COLLECT_MASCOT_AUDIO_PATHS[
+        studentLanguageCode as keyof typeof STICKER_COLLECT_MASCOT_AUDIO_PATHS
+      ] ?? STICKER_COLLECT_MASCOT_AUDIO_PATHS.en;
+    if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
+  }, [playStickerCollectMascotAudio]);
+
+  // Queue audio to play after the pathway reload swaps in a fresh rive container.
+  const playStickerAudioAfterReload = React.useCallback(() => {
+    pendingCelebrationRiveContainerRef.current = latestRiveContainerRef.current;
+    setShouldCelebrateAfterPathwayReload(true);
+  }, []);
+
+  // Cleanup tilt on unmount
+  React.useEffect(
+    () => () => setStickerCollectTiltActive(false),
+    [setStickerCollectTiltActive],
+  );
+
+  // Trigger audio after pathway reloads with a new riveContainer
+  React.useEffect(() => {
+    latestRiveContainerRef.current = riveContainer;
+    if (
+      !shouldCelebrateAfterPathwayReload ||
+      !riveContainer ||
+      riveContainer === pendingCelebrationRiveContainerRef.current
+    )
+      return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      pendingCelebrationRiveContainerRef.current = null;
+      setShouldCelebrateAfterPathwayReload(false);
+      playStickerAudio();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [riveContainer, playStickerAudio, shouldCelebrateAfterPathwayReload]);
+
+  // Keep tilt in sync with reward box when mascot is speaking
+  React.useEffect(() => {
+    if (!isStickerCollectSpeaking) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const syncTilt = () => {
+      const rewardBox = getStickerRewardBoxElement();
+      if (!rewardBox || !isStickerCollectSpeakingRef.current) return;
+      rewardBox.classList.remove(
+        STICKER_REWARD_BOX_OPEN_CLASS,
+        STICKER_REWARD_BOX_CLOSE_CLASS,
+      );
+      rewardBox.classList.add(STICKER_REWARD_BOX_TILT_CLASS);
+    };
+
+    syncTilt();
+
+    const observer = new MutationObserver(syncTilt);
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [containerRef, getStickerRewardBoxElement, isStickerCollectSpeaking]);
+
   const getDeferredStickerCompletionPayload = React.useCallback(() => {
     const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
     if (!raw) return null;
@@ -257,6 +390,7 @@ const PathwayStructure: React.FC = () => {
             );
           }, 0);
         } else {
+          playStickerAudioAfterReload();
           window.setTimeout(() => {
             window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
           }, 0);
@@ -265,6 +399,7 @@ const PathwayStructure: React.FC = () => {
     },
     [
       getDeferredStickerCompletionPayload,
+      playStickerAudioAfterReload,
       stickerPreviewData,
       stickerPreviewTrigger,
     ],
@@ -285,18 +420,24 @@ const PathwayStructure: React.FC = () => {
       setIsStickerCompletionOpen(false);
       if (shouldRefreshPathAfterCompletionRef.current) {
         shouldRefreshPathAfterCompletionRef.current = false;
+        playStickerAudioAfterReload();
         window.setTimeout(() => {
           window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
         }, 0);
       } else if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
+        playStickerAudioAfterReload();
         window.setTimeout(() => {
           (window as any).__triggerPathwayReload__?.();
         }, 0);
+      } else {
+        playStickerAudio();
       }
     },
-    [stickerCompletionData],
+    [playStickerAudioAfterReload, playStickerAudio, stickerCompletionData],
   );
 
+  // OPTIMIZED: two effects merged into one; { once: true } replaces manual
+  // removeEventListener — self-cleaning, no memory leak
   React.useEffect(() => {
     const rewardBox = containerRef.current?.querySelector(
       '.PathwayStructure-end-reward-box--sticker',
@@ -375,6 +516,9 @@ const PathwayStructure: React.FC = () => {
             inputName={mascotProps.inputName}
             stateValue={mascotProps.stateValue}
             animationName={mascotProps.animationName}
+            overlayRules={[
+              { stateMachine: 'State Machine 4', inputName: 'Number 3' },
+            ]}
           />,
           riveContainer,
         )}
