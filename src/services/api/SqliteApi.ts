@@ -691,8 +691,6 @@ export class SqliteApi implements ServiceApi {
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
-      const new_class = data.get(TABLES.Class);
-      const hasNewClass = Array.isArray(new_class) && new_class.length > 0;
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
         (new_school?.length ?? 0) > 0 ||
@@ -701,7 +699,6 @@ export class SqliteApi implements ServiceApi {
         (data.get(TABLES.ClassUser)?.length ?? 0) > 0;
 
       if (new_school && new_school?.length > 0) {
-        const school_user_data = data.get(TABLES.SchoolUser);
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
@@ -730,7 +727,7 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
-        const refreshTables: TABLES[] = [
+        await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
           TABLES.SchoolCourse,
@@ -741,9 +738,7 @@ export class SqliteApi implements ServiceApi {
           TABLES.ClassUser,
           TABLES.SchoolUser,
           TABLES.ClassCourse,
-        ];
-        const tableNames = hasNewClass ? refreshTables : Object.values(TABLES);
-        await this.syncDbNow(tableNames, refreshTables);
+        ]);
       }
 
       if (hasSelectionUpdates) {
