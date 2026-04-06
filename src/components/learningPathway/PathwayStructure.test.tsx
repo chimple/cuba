@@ -24,6 +24,7 @@ jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+    getCurrentStudentLanguageCode: jest.fn(() => 'en'),
   },
 }));
 
@@ -126,6 +127,7 @@ describe('PathwayStructure', () => {
       getCachedLesson: jest.fn(),
       updateMascotToNormalState: jest.fn(),
       invokeMascotCelebration: jest.fn(),
+      playMascotAudioFromLocalPath: jest.fn(),
       setRewardRiveState: jest.fn(),
       setRiveContainer: jest.fn(),
       setRewardRiveContainer: jest.fn(),
