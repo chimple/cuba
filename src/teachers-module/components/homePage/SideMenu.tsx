@@ -30,6 +30,7 @@ import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import logger from '../../../utility/logger';
+import { logAuthDebug } from '../../../utility/authDebug';
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -298,10 +299,20 @@ const SideMenu: React.FC<{
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'teacher_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
+    logAuthDebug('Navigating to login after teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

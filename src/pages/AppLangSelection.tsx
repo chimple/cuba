@@ -7,6 +7,7 @@ import Loading from '../components/Loading';
 import i18n from '../i18n';
 import NextButton from '../components/common/NextButton';
 import DropDown from '../components/DropDown';
+import { logAuthDebug } from '../utility/authDebug';
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
@@ -45,6 +46,12 @@ const AppLangSelection: React.FC = () => {
       localStorage.setItem(LANGUAGE, tempLangCode);
       await i18n.changeLanguage(tempLangCode);
     }
+    logAuthDebug('Navigating to login from language selection screen.', {
+      source: 'AppLangSelection.handleNextClick',
+      reason: 'language_selected_continue_to_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
   };
 
