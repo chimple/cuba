@@ -2404,7 +2404,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
-    Object.assign(student, updatedFields);
+    const updatedStudent = { ...student, ...updatedFields };
 
     const courses =
       gradeDocId && boardDocId
@@ -2444,7 +2444,7 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return student;
+    return updatedStudent;
   }
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
@@ -2486,7 +2486,7 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.User)
         .update(updatedFields)
         .eq('id', student.id);
-      Object.assign(student, updatedFields);
+      const updatedStudent = { ...student, ...updatedFields };
 
       // Get current class_user record (non-deleted)
       const { data: currentClassUser } = await this.supabase
@@ -2522,7 +2522,7 @@ export class SupabaseApi implements ServiceApi {
         await this.addParentToNewClass(newClassId, student.id);
       }
 
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student in school mode:', error);
       throw error;
@@ -2576,9 +2576,8 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error updating user profile:', error);
       throw error;
     }
-    Object.assign(user, updatedFields);
 
-    return user;
+    return { ...user, ...updatedFields };
   }
 
   async updateClassCourseSelection(
@@ -7819,12 +7818,12 @@ export class SupabaseApi implements ServiceApi {
       .update({ learning_path: learning_path })
       .eq('id', student.id)
       .single();
-    student.learning_path = learning_path;
+
     if (error) {
       logger.error('Error updating learning path:', error);
       throw error;
     }
-    return student;
+    return { ...student, learning_path: learning_path };
   }
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {

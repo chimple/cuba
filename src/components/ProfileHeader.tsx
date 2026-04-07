@@ -33,6 +33,18 @@ const ProfileHeader: React.FC = () => {
 
   useEffect(() => {
     init();
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+      }
+    };
+
+    window.addEventListener('currentStudentChanged', handleStudentChange);
+    return () => {
+      window.removeEventListener('currentStudentChanged', handleStudentChange);
+    };
   }, []);
 
   return (

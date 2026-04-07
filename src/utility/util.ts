@@ -1359,6 +1359,9 @@ export class Util {
     api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    window.dispatchEvent(
+      new CustomEvent('currentStudentChanged', { detail: student }),
+    );
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);

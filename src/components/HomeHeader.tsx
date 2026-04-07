@@ -127,6 +127,20 @@ const HomeHeader: React.FC<{
   useEffect(() => {
     init();
     window.addEventListener('JoinClassListner', handleJoinClassListner);
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+        studentRef.current = customEvent.detail;
+      }
+    };
+    window.addEventListener('currentStudentChanged', handleStudentChange);
+
+    return () => {
+      window.removeEventListener('JoinClassListner', handleJoinClassListner);
+      window.removeEventListener('currentStudentChanged', handleStudentChange);
+    };
   }, []);
   const handleJoinClassListner = () => {
     setIsLinked(true);

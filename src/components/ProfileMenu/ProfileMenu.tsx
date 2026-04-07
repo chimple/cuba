@@ -85,6 +85,18 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   useEffect(() => {
     loadProfileData();
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+      }
+    };
+
+    window.addEventListener('currentStudentChanged', handleStudentChange);
+    return () => {
+      window.removeEventListener('currentStudentChanged', handleStudentChange);
+    };
   }, []);
   const loadProfileData = async () => {
     try {
