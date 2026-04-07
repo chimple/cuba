@@ -91,6 +91,13 @@ export const usePathwayData = () => {
   >('id');
 
   const [mascotKey, setMascotKey] = useState(0);
+  const mascotStateRef = useRef<{
+    stateMachine: string;
+    inputName: string;
+    stateValue: number;
+    animationName?: string;
+  } | null>(null);
+  const mascotSpeakRequestIdRef = useRef(0);
 
   // Lesson cache
   const lessonCacheRef = useRef<Map<string, any>>(new Map());
@@ -146,6 +153,76 @@ export const usePathwayData = () => {
       setMascotKey((prev) => prev + 1);
     },
     [],
+  );
+
+  const playMascotAudioFromLocalPath = useCallback(
+    async (
+      localAudioPath: string,
+      stateConfig?: {
+        stateMachine?: string;
+        inputName?: string;
+        stateValue?: number;
+        animationName?: string;
+      },
+      playbackOptions?: {
+        onPlaybackStop?: () => void;
+      },
+    ): Promise<boolean> => {
+      const normalizedPath = localAudioPath?.trim();
+      if (!normalizedPath) {
+        playbackOptions?.onPlaybackStop?.();
+        return false;
+      }
+
+      const requestId = mascotSpeakRequestIdRef.current + 1;
+      mascotSpeakRequestIdRef.current = requestId;
+
+      const previousState = {
+        stateMachine: chimpleRiveStateMachineName,
+        inputName: chimpleRiveInputName,
+        stateValue: chimpleRiveStateValue,
+        animationName: chimpleRiveAnimationName,
+      };
+      mascotStateRef.current = previousState;
+
+      setChimpleRiveStateMachineName(
+        stateConfig?.stateMachine ?? previousState.stateMachine,
+      );
+      setChimpleRiveInputName(
+        stateConfig?.inputName ?? previousState.inputName,
+      );
+      setChimpleRiveStateValue(
+        stateConfig?.stateValue ?? previousState.stateValue,
+      );
+      setChimpleRiveAnimationName(stateConfig?.animationName);
+      setMascotKey((prev) => prev + 1);
+
+      return Util.playAudioOrTts({
+        audioUrl: normalizedPath,
+        onPlaybackStop: () => {
+          if (mascotSpeakRequestIdRef.current !== requestId) {
+            playbackOptions?.onPlaybackStop?.();
+            return;
+          }
+
+          const restoreState = mascotStateRef.current;
+          if (restoreState) {
+            setChimpleRiveStateMachineName(restoreState.stateMachine);
+            setChimpleRiveInputName(restoreState.inputName);
+            setChimpleRiveStateValue(restoreState.stateValue);
+            setChimpleRiveAnimationName(restoreState.animationName);
+            setMascotKey((prev) => prev + 1);
+          }
+          playbackOptions?.onPlaybackStop?.();
+        },
+      });
+    },
+    [
+      chimpleRiveAnimationName,
+      chimpleRiveInputName,
+      chimpleRiveStateMachineName,
+      chimpleRiveStateValue,
+    ],
   );
 
   // INITIALIZE PATHWAY
@@ -348,6 +425,7 @@ export const usePathwayData = () => {
     getCachedLesson,
     updateMascotToNormalState,
     invokeMascotCelebration,
+    playMascotAudioFromLocalPath,
     setRewardRiveState,
     setRiveContainer,
     setRewardRiveContainer,

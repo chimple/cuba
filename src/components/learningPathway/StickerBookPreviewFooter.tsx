@@ -48,7 +48,11 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
             onClick={onPaint}
             data-testid="StickerBookPreviewModal-paint"
           >
-            <img src="assets/icons/PaintBucket.svg" alt="" aria-hidden="true" />
+            <img
+              src="assets/icons/PaintbrushIconForButton.svg"
+              alt=""
+              aria-hidden="true"
+            />
             <span>{t('Paint')}</span>
           </button>
         </>

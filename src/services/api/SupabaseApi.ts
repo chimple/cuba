@@ -1110,15 +1110,26 @@ export class SupabaseApi implements ServiceApi {
     class_id: string,
   ): Promise<boolean | void> {
     if (!this.supabase) return false;
-    const rpcRes = await this.supabase.rpc('delete_user_from_class', {
-      p_user_id: userId,
-      p_class_id: class_id,
-    });
 
-    if (!rpcRes || rpcRes.error) {
+    try {
+      const rpcRes = await this.supabase.rpc('delete_user_from_class', {
+        p_user_id: userId,
+        p_class_id: class_id,
+      });
+
+      if (!rpcRes || rpcRes.error) {
+        if (rpcRes?.error) {
+          logger.error('Error deleting user from class:', rpcRes.error);
+        }
+        return false;
+      }
+
+      await this.updateClassAndSchoolLastModified([class_id]);
+      return true;
+    } catch (error) {
+      logger.error('SupabaseApi ~ deleteUserFromClass ~ error:', error);
       return false;
     }
-    return true;
   }
 
   async createSchool(
@@ -5521,7 +5532,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!data || data.length === 0) {
-        logger.error('No sticker found for the given user ID.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 
@@ -6757,9 +6768,55 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
+      await this.updateClassAndSchoolLastModified([classId]);
+
       // No pushChanges needed
     } catch (error) {
       logger.error('SupabaseApi ~ deleteTeacher ~ error:', error);
+    }
+  }
+
+  async updateClassAndSchoolLastModified(
+    classIds: string[],
+    schoolId?: string,
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const uniqueClassIds = Array.from(
+      new Set(classIds.map((classId) => classId.trim()).filter(Boolean)),
+    );
+    if (uniqueClassIds.length === 0) return;
+
+    await Promise.all(
+      uniqueClassIds.map(async (classId) => {
+        await this.updateClassLastModified(classId);
+      }),
+    );
+
+    if (schoolId && schoolId.trim().length > 0) {
+      await this.updateSchoolLastModified(schoolId);
+      return;
+    }
+
+    const { data: classRows, error: classFetchError } = await this.supabase
+      .from(TABLES.Class)
+      .select('school_id')
+      .in('id', uniqueClassIds)
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (classFetchError) {
+      logger.error(
+        'Error fetching class rows for school updated_at sync:',
+        classFetchError,
+      );
+      return;
+    }
+
+    const resolvedSchoolId = classRows?.[0]?.school_id;
+    if (resolvedSchoolId) {
+      await this.updateSchoolLastModified(resolvedSchoolId);
     }
   }
 
@@ -10652,6 +10709,10 @@ export class SupabaseApi implements ServiceApi {
 
         classUsers.push(insertedRows?.[0]);
       }
+    }
+
+    if (classIds.length > 0) {
+      await this.updateClassAndSchoolLastModified(classIds, effectiveSchoolId);
     }
 
     return { user, schoolUser, classUsers, isNewUser };

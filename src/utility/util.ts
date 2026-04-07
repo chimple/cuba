@@ -3734,6 +3734,27 @@ export class Util {
     return /^https?:\/\//i.test(audioUrl);
   }
 
+  public static getCurrentStudentLanguageCode(
+    fallbackLanguageCode: string = LANG.ENGLISH,
+  ): string {
+    const normalizedFallbackLanguage =
+      fallbackLanguageCode.trim().toLowerCase() || LANG.ENGLISH;
+    const normalizedCurrentLanguage =
+      (
+        localStorage.getItem(LANGUAGE) ||
+        normalizedFallbackLanguage ||
+        LANG.ENGLISH
+      )
+        .trim()
+        .toLowerCase() || LANG.ENGLISH;
+
+    return (
+      normalizedCurrentLanguage.split('-')[0] ||
+      normalizedFallbackLanguage.split('-')[0] ||
+      LANG.ENGLISH
+    );
+  }
+
   private static resolveTtsLanguage(languageCode?: string | null): string {
     const normalizedLanguage =
       (
@@ -3892,6 +3913,7 @@ export class Util {
     rate = 0.9,
     pitch = 1,
     volume = 1,
+    onPlaybackStop,
   }: {
     audioUrl?: string | null;
     text?: string | null;
@@ -3899,6 +3921,7 @@ export class Util {
     rate?: number;
     pitch?: number;
     volume?: number;
+    onPlaybackStop?: () => void;
   }): Promise<boolean> {
     // Replay always restarts from the beginning instead of overlapping audio.
     await Util.stopAudioUrlOrTtsPlayback();
@@ -3913,11 +3936,22 @@ export class Util {
           if (Util.activeCommonAudioPlayer === audio) {
             Util.activeCommonAudioPlayer = null;
           }
+          onPlaybackStop?.();
+        };
+        audio.onpause = () => {
+          if (Util.activeCommonAudioPlayer === audio) {
+            Util.activeCommonAudioPlayer = null;
+          }
+          // Only treat pause as a stop if playback didn't naturally end.
+          if (!audio.ended) {
+            onPlaybackStop?.();
+          }
         };
         audio.onerror = () => {
           if (Util.activeCommonAudioPlayer === audio) {
             Util.activeCommonAudioPlayer = null;
           }
+          onPlaybackStop?.();
         };
 
         Util.activeCommonAudioPlayer = audio;
@@ -3928,11 +3962,16 @@ export class Util {
           '[CommonAudio] Audio playback failed, falling back to TTS',
           error,
         );
+        // Clear any stale active audio reference before falling back to TTS.
+        if (Util.activeCommonAudioPlayer) {
+          Util.activeCommonAudioPlayer = null;
+        }
       }
     }
 
     const normalizedText = text?.trim();
     if (!normalizedText) {
+      onPlaybackStop?.();
       return false;
     }
 
@@ -3946,9 +3985,11 @@ export class Util {
         volume,
         category: 'ambient',
       });
+      onPlaybackStop?.();
       return true;
     } catch (error) {
       logger.error('[CommonAudio] TTS playback failed', error);
+      onPlaybackStop?.();
       return false;
     }
   }

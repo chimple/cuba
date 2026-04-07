@@ -13,17 +13,23 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import logger from '../../utility/logger';
+import './ChimpleRiveMascot.css';
 
 interface ChimpleRiveMascotProps {
   stateMachine?: string;
   animationName?: string;
   stateValue?: number;
   inputName?: string;
+  overlayRules?: Array<
+    Required<Pick<ChimpleRiveMascotProps, 'stateMachine' | 'inputName'>>
+  >;
 }
 
 interface RiveMascotCanvasProps extends ChimpleRiveMascotProps {
   src: string;
 }
+
+let lastNonSpeakingMascotProps: ChimpleRiveMascotProps | null = null;
 
 function RiveMascotCanvas({
   src,
@@ -98,7 +104,20 @@ export default function ChimpleRiveMascot({
   animationName,
   stateValue,
   inputName,
+  overlayRules,
 }: ChimpleRiveMascotProps) {
+  const activeOverlayRules = overlayRules ?? [];
+  const isOverlayMatch = activeOverlayRules.some(
+    (rule) =>
+      rule.stateMachine === stateMachine && rule.inputName === inputName,
+  );
+  const currentMascotProps = {
+    stateMachine,
+    animationName,
+    stateValue,
+    inputName,
+  };
+  if (!isOverlayMatch) lastNonSpeakingMascotProps = currentMascotProps;
   const should_show_remote_asset =
     Capacitor.isNativePlatform() &&
     localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
@@ -157,13 +176,29 @@ export default function ChimpleRiveMascot({
 
   if (!riveSrc) return null;
 
-  return (
+  const baseMascotProps = lastNonSpeakingMascotProps ?? currentMascotProps;
+  const renderMascot = (props: ChimpleRiveMascotProps) => (
     <RiveMascotCanvas
       src={riveSrc}
-      stateMachine={stateMachine}
-      inputName={inputName}
-      stateValue={stateValue}
-      animationName={animationName}
+      stateMachine={props.stateMachine}
+      inputName={props.inputName}
+      stateValue={props.stateValue}
+      animationName={props.animationName}
     />
   );
+
+  if (isOverlayMatch && baseMascotProps?.stateMachine) {
+    return (
+      <div id="chimple-mascot-overlay" className="chimple-mascot-overlay">
+        <div id="chimple-mascot-base-layer" className="chimple-mascot-layer">
+          {renderMascot(baseMascotProps)}
+        </div>
+        <div id="chimple-mascot-active-layer" className="chimple-mascot-layer">
+          {renderMascot(currentMascotProps)}
+        </div>
+      </div>
+    );
+  }
+
+  return renderMascot(currentMascotProps);
 }
