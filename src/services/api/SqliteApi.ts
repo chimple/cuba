@@ -199,8 +199,10 @@ export class SqliteApi implements ServiceApi {
                 const tableName = match[1];
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
-                logger.info(
-                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`,
+                logger.warn(
+                  'setUpDatabase: Auto-detected schema change for table: ' +
+                    tableName +
+                    '. Will force full sync.',
                 );
               }
             }
@@ -343,17 +345,19 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        logger.info('syncing');
+        logger.warn('checkAndSyncData: User logged in, triggering sync');
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
           await this.syncDbNow();
+          logger.warn('checkAndSyncData: No user, syncDbNow awaited');
         } else {
           this.syncDbNow();
+          logger.warn('checkAndSyncData: User exists, syncDbNow called');
         }
       }
     } catch (error) {
-      logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      logger.warn('checkAndSyncData: Error during sync check: ' + error);
     }
   }
 
@@ -807,6 +811,7 @@ export class SqliteApi implements ServiceApi {
           newData.id,
         );
         let isPermissionDenied = false;
+        let isDuplicateConflict = false;
         if (!mutate || mutate.error) {
           const _currentUser =
             await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -819,8 +824,7 @@ export class SqliteApi implements ServiceApi {
           const mutateMessage = String(
             mutate?.error?.message ?? mutate?.error?.details ?? '',
           ).toLowerCase();
-          const isDuplicateConflict =
-            mutateCode === '23505' || mutateStatus === 409;
+          isDuplicateConflict = mutateCode === '23505' || mutateStatus === 409;
           isPermissionDenied =
             mutateStatus === 401 ||
             mutateStatus === 403 ||
@@ -830,24 +834,26 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
 
-          if (isDuplicateConflict || !isPermissionDenied) {
-            logger.info('🟢 Duplicate key ignored (already exists on server)');
+          if (isDuplicateConflict) {
+            logger.warn('Duplicate → safe to delete');
+          } else if (isPermissionDenied) {
+            logger.warn('Permission denied → skipping');
+            continue; // ⛔ DO NOT DELETE
           } else {
-            logger.info('🔴 Real push error:', mutate?.error);
-            return false;
+            logger.error('Real error → retry later');
+            return false; // ⛔ DO NOT DELETE
           }
         }
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [data.id, data.table_name],
         );
-        if (mutate?.error && isPermissionDenied) {
-          continue;
+        if (!mutate?.error) {
+          await this.executeQuery(
+            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+            [data.table_name, new Date().toISOString()],
+          );
         }
-        await this.executeQuery(
-          `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-          [data.table_name, new Date().toISOString()],
-        );
       }
     }
     return true;
@@ -7421,7 +7427,7 @@ order by
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
-    logger.info(result);
+    logger.warn(result);
     for (const table of tableNames) {
       const tableDel = `DELETE FROM "${table}";`;
       const res = await this._db.query(tableDel);
