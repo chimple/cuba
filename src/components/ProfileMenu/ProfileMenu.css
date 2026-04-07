@@ -207,7 +207,7 @@
   flex-shrink: 0;
   align-self: center;
   border-radius: 50%;
-  background: #e8935d;
+  background: #f34d08;
   animation: profile-menu-dot-pulse 1.2s ease-in-out infinite;
 }
 
