@@ -837,8 +837,25 @@ export class SqliteApi implements ServiceApi {
           if (isDuplicateConflict) {
             logger.warn('Duplicate → safe to delete');
           } else if (isPermissionDenied) {
-            logger.warn('Permission denied → skipping');
-            continue; // ⛔ DO NOT DELETE
+            const retryCount = data.retry_count ?? 0;
+
+            if (retryCount >= 3) {
+              logger.warn('Permission denied → dropping after retries');
+
+              await this.executeQuery(
+                `DELETE FROM push_sync_info WHERE id = ?`,
+                [data.id],
+              );
+
+              continue;
+            }
+
+            await this.executeQuery(
+              `UPDATE push_sync_info SET retry_count = retry_count + 1 WHERE id = ?`,
+              [data.id],
+            );
+
+            continue;
           } else {
             logger.error('Real error → retry later');
             return false; // ⛔ DO NOT DELETE
