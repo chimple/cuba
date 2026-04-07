@@ -12,6 +12,7 @@ import {
   PAGES,
   STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { Util } from '../../utility/util';
@@ -85,6 +86,21 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   useEffect(() => {
     loadProfileData();
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+      }
+    };
+
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+    return () => {
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
   }, []);
   const loadProfileData = async () => {
     try {

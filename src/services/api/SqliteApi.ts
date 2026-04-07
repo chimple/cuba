@@ -2727,16 +2727,19 @@ export class SqliteApi implements ServiceApi {
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
-    student.name = name;
-    student.age = age;
-    student.gender = gender;
-    student.avatar = avatar;
-    student.image = image ?? null;
-    student.curriculum_id = boardDocId ?? null;
-    student.grade_id = gradeDocId ?? null;
-    student.language_id = languageDocId;
-    student.locale_id = localeId;
-    student.updated_at = now;
+    const updatedStudent: TableTypes<'user'> = {
+      ...student,
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId,
+      locale_id: localeId,
+      updated_at: now,
+    };
 
     await this.assignCoursesToStudent(
       student.id,
@@ -2758,7 +2761,7 @@ export class SqliteApi implements ServiceApi {
       locale_id: localeId,
       updated_at: now,
     });
-    return student;
+    return updatedStudent;
   }
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
     const query = `
@@ -2841,21 +2844,23 @@ export class SqliteApi implements ServiceApi {
 
       await this.executeQuery(updateUserQuery, params);
 
-      // Update local object
-      student.name = name;
-      student.age = age;
-      student.gender = gender;
-      student.avatar = avatar;
-      student.image = image ?? null;
-      student.curriculum_id = boardDocId;
-      student.grade_id = gradeDocId;
-      student.language_id = languageDocId;
-      student.student_id = student_id;
-      student.locale_id = localeId;
-      student.updated_at = now;
+      const updatedStudent: TableTypes<'user'> = {
+        ...student,
+        name,
+        age,
+        gender,
+        avatar,
+        image: image ?? null,
+        curriculum_id: boardDocId,
+        grade_id: gradeDocId,
+        language_id: languageDocId,
+        student_id,
+        locale_id: localeId,
+        updated_at: now,
+      };
 
       if (languageChanged) {
-        student.learning_path = JSON.stringify([]);
+        updatedStudent.learning_path = JSON.stringify([]);
       }
 
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
@@ -2950,7 +2955,7 @@ export class SqliteApi implements ServiceApi {
         );
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student:', error);
       throw error; // Rethrow error after logging
@@ -6062,13 +6067,14 @@ order by
     student: TableTypes<'user'>,
     learningPath: string,
   ): Promise<TableTypes<'user'>> {
+    let updatedStudent = student;
     try {
       const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
       await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
-      student.learning_path = learningPath;
+      updatedStudent = { ...student, learning_path: learningPath };
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: student.id,
         learning_path: learningPath,
@@ -6085,7 +6091,7 @@ order by
     } catch (error) {
       logger.error('Error updating learning path:', error);
     }
-    return student;
+    return updatedStudent;
   }
   async getClassByUserId(
     userId: string,

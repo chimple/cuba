@@ -7,6 +7,7 @@ import {
   PAGES,
   MODES,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import './HomeHeader.css';
 import HeaderIcon from './HeaderIcon';
@@ -127,6 +128,23 @@ const HomeHeader: React.FC<{
   useEffect(() => {
     init();
     window.addEventListener('JoinClassListner', handleJoinClassListner);
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+        studentRef.current = customEvent.detail;
+      }
+    };
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+
+    return () => {
+      window.removeEventListener('JoinClassListner', handleJoinClassListner);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
   }, []);
   const handleJoinClassListner = () => {
     setIsLinked(true);
