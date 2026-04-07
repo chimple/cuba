@@ -452,9 +452,9 @@ export const useStickerBookPreviewModalLogic = ({
     const nextSize = Math.max(
       72,
       Math.min(
-        frame.clientWidth * 0.52,
-        frame.clientHeight * 0.52,
-        Math.max(slotRect.width, slotRect.height) * 1.14,
+        frame.clientWidth * 0.72,
+        frame.clientHeight * 0.72,
+        Math.max(slotRect.width, slotRect.height) * 1.12,
       ),
     );
     if (Math.abs(nextSize - dragStickerSize) < 1) return;
@@ -477,6 +477,7 @@ export const useStickerBookPreviewModalLogic = ({
     isDragging,
     isDropSuccessful,
     isLoading,
+    showDragSticker,
   ]);
 
   const computeDragPosition = (clientX: number, clientY: number) => {
@@ -486,10 +487,10 @@ export const useStickerBookPreviewModalLogic = ({
     const x = (clientX - frameRect.left) / scale - dragOffsetRef.current.x;
     const y = (clientY - frameRect.top) / scale - dragOffsetRef.current.y;
     const maxX = Math.max(0, frame.clientWidth - dragStickerSize);
-    const maxY = Math.max(0, frame.clientHeight - dragStickerSize);
+    const maxY = Math.max(0, frame.clientHeight - dragStickerSize * 0.52);
     return {
       x: Math.min(Math.max(0, x), maxX),
-      y: Math.min(Math.max(0, y), maxY),
+      y: Math.min(Math.max(-dragStickerSize * 0.48, y), maxY),
     };
   };
 

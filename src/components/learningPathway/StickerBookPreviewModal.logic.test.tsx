@@ -249,6 +249,10 @@ describe('useStickerBookPreviewModalLogic', () => {
       expect.any(Object),
     );
 
+    // Verify that the size update effect can run now that the sticker is shown
+    // In this test, it might have already run, but we ensure it's still correct.
+    expect(result.current.dragStickerSize).toBeGreaterThanOrEqual(72);
+
     act(() => {
       jest.advanceTimersByTime(1100);
     });
@@ -574,5 +578,164 @@ describe('useStickerBookPreviewModalLogic', () => {
       EVENTS.STICKER_DRAG_DROPPED_MISS,
       expect.any(Object),
     );
+  });
+
+  test('allows successful drop on placeholders at the extreme bottom edge', async () => {
+    jest.useFakeTimers();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    const onClose = jest.fn();
+
+    const { result } = renderHook(() =>
+      useStickerBookPreviewModalLogic({
+        data: buildData({ totalStickerCount: 5 }),
+        variant: 'drag_collect',
+        onClose,
+        mode: 'preview',
+      }),
+    );
+
+    const frame = document.createElement('div');
+    // 200x200 frame
+    setRect(frame, { left: 0, top: 0, width: 200, height: 200 });
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const slot = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    slot.setAttribute('data-slot-id', 'slot-next');
+    svg.appendChild(slot);
+    // Position slot at the very bottom edge: center Y = 190 + 10 = 200
+    setRect(slot, { left: 80, top: 190, width: 20, height: 20 });
+
+    act(() => {
+      result.current.setFrameElement(frame);
+      result.current.bookSvgRef.current = svg as SVGSVGElement;
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const stickerSize = result.current.dragStickerSize; // Should be around 56 for 200 width
+
+    const dragTarget = document.createElement('div');
+    setRect(dragTarget, {
+      left: 0,
+      top: 0,
+      width: stickerSize,
+      height: stickerSize,
+    });
+    (dragTarget as any).setPointerCapture = jest.fn();
+    (dragTarget as any).releasePointerCapture = jest.fn();
+    (dragTarget as any).hasPointerCapture = jest.fn(() => true);
+
+    act(() => {
+      result.current.handleDragPointerDown({
+        currentTarget: dragTarget,
+        pointerId: 3,
+        clientX: 0,
+        clientY: 0,
+      } as any);
+    });
+
+    // Drag to the bottom-most allowed position
+    act(() => {
+      // clientY = frame.top + maxY + offset
+      // Since offset is 0 and frame.top is 0, we can just use a large clientY
+      result.current.handleDragPointerMove({
+        currentTarget: dragTarget,
+        pointerId: 3,
+        clientX: 54, // Align center: 54 + 36 = 90
+        clientY: 300, // Way beyond frame
+      } as any);
+    });
+
+    act(() => {
+      result.current.handleDragPointerUp({
+        currentTarget: dragTarget,
+        pointerId: 3,
+        clientX: 54,
+        clientY: 300,
+      } as any);
+    });
+
+    // The sticker should have reached far enough to trigger a successful drop
+    expect(result.current.isDropSuccessful).toBe(true);
+  });
+
+  test('allows successful drop on placeholders at the extreme top edge', async () => {
+    jest.useFakeTimers();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    const onClose = jest.fn();
+
+    const { result } = renderHook(() =>
+      useStickerBookPreviewModalLogic({
+        data: buildData({ totalStickerCount: 5 }),
+        variant: 'drag_collect',
+        onClose,
+        mode: 'preview',
+      }),
+    );
+
+    const frame = document.createElement('div');
+    setRect(frame, { left: 0, top: 0, width: 200, height: 200 });
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const slot = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    slot.setAttribute('data-slot-id', 'slot-next');
+    svg.appendChild(slot);
+    // Position slot at the extreme top edge: center Y = -5 + 10 = 5
+    setRect(slot, { left: 80, top: -5, width: 20, height: 20 });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setFrameElement(frame);
+      result.current.bookSvgRef.current = svg as SVGSVGElement;
+    });
+
+    const stickerSize = result.current.dragStickerSize; // 72
+
+    const dragTarget = document.createElement('div');
+    setRect(dragTarget, {
+      left: 0,
+      top: 0,
+      width: stickerSize,
+      height: stickerSize,
+    });
+    (dragTarget as any).setPointerCapture = jest.fn();
+    (dragTarget as any).releasePointerCapture = jest.fn();
+    (dragTarget as any).hasPointerCapture = jest.fn(() => true);
+
+    act(() => {
+      result.current.handleDragPointerDown({
+        currentTarget: dragTarget,
+        pointerId: 4,
+        clientX: 0,
+        clientY: 0,
+      } as any);
+    });
+
+    act(() => {
+      // Drag way above frame
+      result.current.handleDragPointerMove({
+        currentTarget: dragTarget,
+        pointerId: 4,
+        clientX: 54, // Align center: 54 + 36 = 90
+        clientY: -300,
+      } as any);
+    });
+
+    act(() => {
+      result.current.handleDragPointerUp({
+        currentTarget: dragTarget,
+        pointerId: 4,
+        clientX: 54,
+        clientY: -300,
+      } as any);
+    });
+
+    expect(result.current.isDropSuccessful).toBe(true);
   });
 });
