@@ -56,6 +56,12 @@ const PathwayStructure: React.FC = () => {
       offsetY: number;
       startScale: number;
     } | null>(null);
+  const [stickerPreviewFlyoutMotion, setStickerPreviewFlyoutMotion] =
+    React.useState<{
+      offsetX: number;
+      offsetY: number;
+      endScale: number;
+    } | null>(null);
   const [stickerCompletionData, setStickerCompletionData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
@@ -168,6 +174,28 @@ const PathwayStructure: React.FC = () => {
         });
       } else {
         setStickerPreviewLaunchMotion(null);
+      }
+
+      const profileAvatarRect = document
+        .querySelector('[data-profile-avatar-anchor="true"]')
+        ?.getBoundingClientRect();
+      if (profileAvatarRect) {
+        setStickerPreviewFlyoutMotion({
+          offsetX:
+            profileAvatarRect.right -
+            profileAvatarRect.width * 0.25 -
+            window.innerWidth / 2,
+          offsetY:
+            profileAvatarRect.top +
+            profileAvatarRect.height * 0.3 -
+            window.innerHeight / 2,
+          endScale: Math.max(
+            0.1,
+            Math.min(0.24, profileAvatarRect.width / 736),
+          ),
+        });
+      } else {
+        setStickerPreviewFlyoutMotion(null);
       }
       setStickerPreviewData(data);
       setStickerPreviewTrigger(trigger);
@@ -396,6 +424,7 @@ const PathwayStructure: React.FC = () => {
       );
       setIsStickerPreviewOpen(false);
       setStickerPreviewLaunchMotion(null);
+      setStickerPreviewFlyoutMotion(null);
       if (stickerPreviewTrigger === 'pathway_completion_auto') {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
@@ -573,6 +602,7 @@ const PathwayStructure: React.FC = () => {
               : 'preview'
           }
           launchMotion={stickerPreviewLaunchMotion}
+          flyoutMotion={stickerPreviewFlyoutMotion}
           onClose={closeStickerPreview}
         />
       )}

@@ -24,6 +24,11 @@ interface StickerBookPreviewModalProps {
     offsetY: number;
     startScale: number;
   } | null;
+  flyoutMotion?: {
+    offsetX: number;
+    offsetY: number;
+    endScale: number;
+  } | null;
 }
 
 const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
@@ -32,6 +37,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
   onClose,
   mode = 'preview',
   launchMotion = null,
+  flyoutMotion = null,
 }) => {
   const [scale, setScale] = useState(1);
 
@@ -155,11 +161,14 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
               isDragVariant ? 'StickerBookPreviewModal-modal--drag' : ''
             } ${isFlyingOut ? 'StickerBookPreviewModal-modal--flyout' : ''}`}
             style={
-              launchMotion
+              launchMotion || flyoutMotion
                 ? ({
-                    '--launch-offset-x': `${launchMotion.offsetX / scale}px`,
-                    '--launch-offset-y': `${launchMotion.offsetY / scale}px`,
-                    '--launch-start-scale': `${launchMotion.startScale / scale}`,
+                    '--launch-offset-x': `${(launchMotion?.offsetX ?? 0) / scale}px`,
+                    '--launch-offset-y': `${(launchMotion?.offsetY ?? 0) / scale}px`,
+                    '--launch-start-scale': `${(launchMotion?.startScale ?? 0.16) / scale}`,
+                    '--flyout-offset-x': `${(flyoutMotion?.offsetX ?? 0) / scale}px`,
+                    '--flyout-offset-y': `${(flyoutMotion?.offsetY ?? 0) / scale}px`,
+                    '--flyout-end-scale': `${(flyoutMotion?.endScale ?? 0.2) / scale}`,
                   } as React.CSSProperties)
                 : undefined
             }
