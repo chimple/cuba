@@ -812,6 +812,8 @@ export class SqliteApi implements ServiceApi {
         );
         let isPermissionDenied = false;
         let isDuplicateConflict = false;
+        let isNetworkError = false;
+
         if (!mutate || mutate.error) {
           const _currentUser =
             await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -824,7 +826,9 @@ export class SqliteApi implements ServiceApi {
           const mutateMessage = String(
             mutate?.error?.message ?? mutate?.error?.details ?? '',
           ).toLowerCase();
+          // ✅ classify errors
           isDuplicateConflict = mutateCode === '23505' || mutateStatus === 409;
+
           isPermissionDenied =
             mutateStatus === 401 ||
             mutateStatus === 403 ||
@@ -834,30 +838,30 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
 
-          if (isDuplicateConflict) {
-            logger.warn('Duplicate → safe to delete');
-          } else if (isPermissionDenied) {
-            const retryCount = data.retry_count ?? 0;
+          isNetworkError = !mutate || mutateStatus === 0;
 
-            if (retryCount >= 3) {
-              logger.warn('Permission denied → dropping after retries');
-
-              await this.executeQuery(
-                `DELETE FROM push_sync_info WHERE id = ?`,
-                [data.id],
-              );
-
-              continue;
-            }
-
-            await this.executeQuery(
-              `UPDATE push_sync_info SET retry_count = retry_count + 1 WHERE id = ?`,
-              [data.id],
+          if (isNetworkError) {
+            logger.error(
+              '🔴 Network error → retry later, table: ' +
+                data.table_name +
+                ', id: ' +
+                newData.id,
             );
-
-            continue;
+            return false; // ⛔ DO NOT DELETE
+          } else if (isDuplicateConflict || !isPermissionDenied) {
+            logger.info(
+              '🟢 Duplicate → safe to delete, table: ' +
+                data.table_name +
+                ', id: ' +
+                newData.id,
+            );
           } else {
-            logger.error('Real error → retry later');
+            logger.error(
+              '🔴 Unknown/server error → retry later, table: ' +
+                data.table_name +
+                ', id: ' +
+                newData.id,
+            );
             return false; // ⛔ DO NOT DELETE
           }
         }
