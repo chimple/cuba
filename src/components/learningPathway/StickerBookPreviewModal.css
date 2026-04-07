@@ -61,8 +61,11 @@
   }
   100% {
     opacity: 0;
-    /* Push farther into the top-right profile area while shrinking away. */
-    transform: translate(48vw, -36vh) scale(0.2);
+    transform: translate(
+        var(--flyout-offset-x, 48vw),
+        var(--flyout-offset-y, -36vh)
+      )
+      scale(var(--flyout-end-scale, 0.2));
   }
 }
 
