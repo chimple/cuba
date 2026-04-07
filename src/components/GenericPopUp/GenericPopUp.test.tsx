@@ -1,6 +1,14 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import GenericPopup from './GenericPopUp';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn(),
+    stopAudioUrlOrTtsPlayback: jest.fn(),
+  },
+}));
 
 describe('GenericPopup', () => {
   const baseProps = {
@@ -34,6 +42,30 @@ describe('GenericPopup', () => {
     const background = document.getElementById('generic-popup-bg-image');
     expect(thumbnail).toHaveAttribute('src', '/assets/thumb.png');
     expect(background).toHaveAttribute('src', '/assets/bg.png');
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        audioUrl: '/assets/audios/common/generic_popup_sound_effect.mp3',
+        delayMs: 300,
+        onComplete: expect.any(Function),
+        onCompleteDelayMs: 300,
+      }),
+    );
+  });
+
+  it('plays popup audio after the sound effect completes', () => {
+    render(<GenericPopup {...baseProps} />);
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    firstCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        audioUrl: undefined,
+        text: 'Main heading Sub heading Detail A Detail B',
+      }),
+    );
   });
 
   // Covers: omits optional subheading and details when absent
@@ -68,6 +100,7 @@ describe('GenericPopup', () => {
 
     expect(baseProps.onClose).toHaveBeenCalledTimes(1);
     expect(baseProps.onAction).not.toHaveBeenCalled();
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   // Covers: calls onAction when CTA is clicked
@@ -79,6 +112,20 @@ describe('GenericPopup', () => {
 
     expect(baseProps.onAction).toHaveBeenCalledTimes(1);
     expect(baseProps.onClose).not.toHaveBeenCalled();
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
+  });
+
+  it('replays audio when the speaker button is clicked', () => {
+    render(<GenericPopup {...baseProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Play audio' }));
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        audioUrl: undefined,
+        text: 'Main heading Sub heading Detail A Detail B',
+      }),
+    );
   });
 
   // Covers: handles rapid CTA clicks without dropping events

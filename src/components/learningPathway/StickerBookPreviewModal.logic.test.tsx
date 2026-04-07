@@ -6,6 +6,7 @@ import {
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
 import logger from '../../utility/logger';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 const originalFetch = global.fetch;
 const mockPush = jest.fn();
@@ -24,6 +25,13 @@ jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+  },
+}));
+
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn().mockResolvedValue(true),
+    stopAudioUrlOrTtsPlayback: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -347,6 +355,10 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     expect(result.current.isDropSuccessful).toBe(true);
     expect(result.current.showDropConfetti).toBe(true);
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalledTimes(1);
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/common/crowd_cheer.mp3',
+    });
 
     act(() => {
       jest.advanceTimersByTime(2700);

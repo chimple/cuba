@@ -11,6 +11,7 @@ import StickerBookPreviewModal, {
 } from './StickerBookPreviewModal';
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 const originalFetch = global.fetch;
 const mockPush = jest.fn();
@@ -86,6 +87,14 @@ jest.mock('../stickerBook/StickerBookToast', () => ({
     ) : null,
 }));
 
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn().mockResolvedValue(true),
+    stopAudioUrlOrTtsPlayback: jest.fn().mockResolvedValue(undefined),
+    getLocalizedAudioUrl: jest.fn(),
+  },
+}));
+
 const buildData = (
   override: Partial<StickerBookModalData> = {},
 ): StickerBookModalData => ({
@@ -143,6 +152,10 @@ const svgWithoutSlots = `
 describe('StickerBookPreviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (AudioUtil.getLocalizedAudioUrl as jest.Mock).mockImplementation(
+      async (folder: string, clipName: string) =>
+        `/assets/audios/${folder}/en_${clipName}.mp3`,
+    );
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
     mockSaveHookState = {
       isSaving: false,
@@ -175,6 +188,28 @@ describe('StickerBookPreviewModal', () => {
     expect(
       screen.queryByTestId('StickerBookPreviewModal-loading'),
     ).not.toBeInTheDocument();
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/common/generic_sound_effect.mp3',
+      delayMs: 300,
+      onComplete: expect.any(Function),
+      onCompleteDelayMs: 300,
+    });
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    await act(async () => {
+      await firstCall.onComplete();
+    });
+
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'stickerbookFirstPopup',
+      'popup_current_sticker',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookFirstPopup/en_popup_current_sticker.mp3',
+      text: 'Finish the pathway & collect this Rocket.',
+    });
   });
 
   test('applies collected/next/locked styles to sticker slots', async () => {
@@ -225,6 +260,7 @@ describe('StickerBookPreviewModal', () => {
     fireEvent.click(screen.getByTestId('StickerBookPreviewModal-close'));
 
     expect(onClose).toHaveBeenCalledWith('close_button');
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   test('closes with backdrop when overlay is clicked', async () => {
@@ -239,6 +275,31 @@ describe('StickerBookPreviewModal', () => {
     fireEvent.click(screen.getByTestId('StickerBookPreviewModal-overlay'));
 
     expect(onClose).toHaveBeenCalledWith('backdrop');
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
+  });
+
+  test('replays audio when speaker button is clicked', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    fireEvent.click(screen.getByRole('button', { name: 'Replay audio' }));
+
+    await waitFor(() =>
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenLastCalledWith(
+        'stickerbookFirstPopup',
+        'popup_current_sticker',
+      ),
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookFirstPopup/en_popup_current_sticker.mp3',
+      text: 'Finish the pathway & collect this Rocket.',
+    });
   });
 
   test('falls back to local layout when sticker book fetch fails', async () => {
@@ -863,6 +924,105 @@ describe('StickerBookPreviewModal', () => {
       'aria-label',
       'Close',
     );
+  });
+
+  test('renders audio button in completion mode', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('button', { name: 'Replay audio' }),
+    ).toBeInTheDocument();
+  });
+
+  test('replays completion audio when speaker button is clicked', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Replay audio' }));
+
+    await waitFor(() =>
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenLastCalledWith(
+        'stickerbookThirdPopup',
+        'popup_all_stickers_collected',
+      ),
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookThirdPopup/en_popup_all_stickers_collected.mp3',
+      text: 'Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.',
+    });
+  });
+
+  test('plays drag_collect popup audio after the shared sound effect', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(
+      <StickerBookPreviewModal
+        data={buildData()}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/common/generic_sound_effect.mp3',
+      delayMs: 300,
+      onComplete: expect.any(Function),
+      onCompleteDelayMs: 300,
+    });
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    await act(async () => {
+      await firstCall.onComplete();
+    });
+
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'stickerbookSecondPopup',
+      'popup_sticker_collected',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookSecondPopup/en_popup_sticker_collected.mp3',
+      text: 'Yay! You have earned a sticker!',
+    });
   });
 
   test('completion mode save and paint keep existing behavior', async () => {

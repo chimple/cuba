@@ -25,6 +25,7 @@ import { useReward } from './useReward';
 import { schoolUtil } from '../utility/schoolUtil';
 import { LessonNode } from './useLearningPath';
 import logger from '../utility/logger';
+import { AudioUtil } from '../utility/AudioUtil';
 
 export interface MascotProps {
   stateMachine: string;
@@ -197,9 +198,9 @@ export const usePathwayData = () => {
       setChimpleRiveAnimationName(stateConfig?.animationName);
       setMascotKey((prev) => prev + 1);
 
-      return Util.playAudioOrTts({
+      return AudioUtil.playAudioOrTts({
         audioUrl: normalizedPath,
-        onPlaybackStop: () => {
+        onComplete: () => {
           if (mascotSpeakRequestIdRef.current !== requestId) {
             playbackOptions?.onPlaybackStop?.();
             return;

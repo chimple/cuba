@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './StickerBookSaveModal.css';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 type Props = {
   open: boolean;
@@ -11,6 +12,8 @@ type Props = {
 
 const AUTO_CLOSE_DELAY_MS = 3000;
 const CLOSE_ANIMATION_MS = 1000;
+const STICKER_BOOK_SAVE_AUDIO =
+  '/assets/audios/stickerBookSave/camera_flash.mp3';
 
 const StickerBookSaveModal: React.FC<Props> = ({
   open,
@@ -43,6 +46,7 @@ const StickerBookSaveModal: React.FC<Props> = ({
 
   useEffect(() => {
     return () => {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
       if (closeTimeoutRef.current !== null) {
         window.clearTimeout(closeTimeoutRef.current);
       }
@@ -93,6 +97,10 @@ const StickerBookSaveModal: React.FC<Props> = ({
     // After 700ms, trigger blink
     const blinkDelay = setTimeout(() => {
       setBlink(true);
+      void AudioUtil.playAudioOrTts({
+        audioUrl: STICKER_BOOK_SAVE_AUDIO,
+        delayMs: 300,
+      });
     }, 700);
 
     // Match the 1s CSS flash animation duration

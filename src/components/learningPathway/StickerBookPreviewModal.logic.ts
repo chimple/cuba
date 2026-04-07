@@ -15,6 +15,7 @@ import {
 } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { AudioUtil } from '../../utility/AudioUtil';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
 import { useStickerBookSave } from '../../hooks/useStickerBookSave';
 import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
@@ -44,6 +45,7 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
+const STICKER_DROP_SUCCESS_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 
 export const useStickerBookPreviewModalLogic = ({
   data,
@@ -584,6 +586,10 @@ export const useStickerBookPreviewModalLogic = ({
     setIsDropSuccessful(true);
     setShowPointerHint(false);
     setShowDropConfetti(true);
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    void AudioUtil.playAudioOrTts({
+      audioUrl: STICKER_DROP_SUCCESS_AUDIO_URL,
+    });
 
     logDragEvent(EVENTS.STICKER_DRAG_DROPPED_SUCCESS);
     logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'drop' });

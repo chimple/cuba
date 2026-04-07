@@ -23,6 +23,8 @@ import {
   REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
+import { t } from 'i18next';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 const STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH = '/assets/audios';
 const STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX =
@@ -101,6 +103,8 @@ const PathwayStructure: React.FC = () => {
     handleRewardBoxOpen,
     handleRewardModalClose,
     handleRewardModalPlay,
+    inactiveText,
+    rewardText,
 
     // NEW — functions for SVG to use instead of window globals
     getCachedLesson,
@@ -241,8 +245,8 @@ const PathwayStructure: React.FC = () => {
   );
 
   // Plays the sticker-collect audio using the student's language.
-  const playStickerAudio = React.useCallback(() => {
-    const studentLanguageCode = Util.getCurrentStudentLanguageCode();
+  const playStickerAudio = React.useCallback(async () => {
+    const studentLanguageCode = await AudioUtil.getAudioLanguageCode();
     const localAudioPath =
       getStickerCollectMascotAudioPath(studentLanguageCode);
     if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
@@ -273,7 +277,7 @@ const PathwayStructure: React.FC = () => {
     const frameId = window.requestAnimationFrame(() => {
       pendingCelebrationRiveContainerRef.current = null;
       setShouldCelebrateAfterPathwayReload(false);
-      playStickerAudio();
+      void playStickerAudio();
     });
 
     return () => window.cancelAnimationFrame(frameId);
@@ -450,7 +454,7 @@ const PathwayStructure: React.FC = () => {
           (window as any).__triggerPathwayReload__?.();
         }, 0);
       } else {
-        playStickerAudio();
+        void playStickerAudio();
       }
     },
     [playStickerAudioAfterReload, playStickerAudio, stickerCompletionData],
@@ -522,6 +526,20 @@ const PathwayStructure: React.FC = () => {
           onClose={closePathwayModal}
           onConfirm={confirmPathwayModal}
           animate={shouldAnimate}
+          audioFolder={
+            modalText === inactiveText
+              ? 'lessonLocked'
+              : modalText === rewardText
+                ? 'completeLesson'
+                : undefined
+          }
+          audioClipName={
+            modalText === inactiveText
+              ? 'lesson_locked'
+              : modalText === rewardText
+                ? 'complete_lesson_to_get_reward'
+                : undefined
+          }
         />
       )}
       {/* SVG Root Container */}
@@ -558,7 +576,7 @@ const PathwayStructure: React.FC = () => {
       {/* Daily Reward modal */}
       {rewardModalOpen && isRewardFeatureOn && (
         <DailyRewardModal
-          text={'Play one lesson and collect your daily reward!'}
+          text={t('Play one lesson and collect your daily reward!')}
           onClose={handleRewardModalClose}
           onPlay={handleRewardModalPlay}
         />

@@ -618,7 +618,7 @@ export function usePathwaySVG({
           flower_Inactive.addEventListener('click', () => {
             setModalOpen(true);
             setModalText(
-              'This lesson is locked. Play the current active lesson.',
+              t('This lesson is locked. Play the current active lesson.'),
             );
           });
           flower_Inactive.setAttribute(
