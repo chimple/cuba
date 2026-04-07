@@ -1,6 +1,7 @@
 import React from 'react';
-import { IonBackdrop } from '@ionic/react';
+import { IonModal } from '@ionic/react';
 import { t } from 'i18next';
+import { Trans } from 'react-i18next';
 import './ClassSummaryInfoPopup.css';
 
 interface ClassSummaryInfoPopupProps {
@@ -36,15 +37,15 @@ const SUMMARY_ROWS = [
 const TREND_ROWS = [
   {
     icon: 'up',
-    text: 'A visual indicator (↑) showing an increase compared to the last 7 days.',
+    textKey: 'classSummaryTrendUp',
   },
   {
     icon: 'down',
-    text: 'A visual indicator (↓) showing a decrease compared to the last 7 days.',
+    textKey: 'classSummaryTrendDown',
   },
   {
     icon: 'same',
-    text: 'A visual indicator (=) showing no change compared to the last 7 days.',
+    textKey: 'classSummaryTrendSame',
   },
 ] as const;
 
@@ -87,16 +88,16 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>
-      <IonBackdrop
-        visible={isOpen}
-        tappable={true}
-        onIonBackdropTap={onClose}
-        className="class-summary-popup-ion-backdrop"
-      />
-      <div className="class-summary-popup-overlay">
+    <IonModal
+      isOpen={isOpen}
+      onDidDismiss={onClose}
+      backdropDismiss={true}
+      className="class-summary-popup-modal"
+    >
+      <div className="class-summary-popup-overlay" onClick={onClose}>
         <div
           className="class-summary-popup"
+          onClick={(event) => event.stopPropagation()}
           role="dialog"
           aria-modal="true"
           aria-label={String(t('Class summary information'))}
@@ -141,7 +142,10 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
                   className="class-summary-popup-item-icon"
                 />
                 <span className="class-summary-popup-item-text">
-                  {t(item.text)}
+                  <Trans
+                    i18nKey={item.textKey}
+                    components={[<strong key="0" />]}
+                  />
                 </span>
               </div>
             ))}
@@ -166,7 +170,7 @@ const ClassSummaryInfoPopup: React.FC<ClassSummaryInfoPopupProps> = ({
           </div>
         </div>
       </div>
-    </>
+    </IonModal>
   );
 };
 

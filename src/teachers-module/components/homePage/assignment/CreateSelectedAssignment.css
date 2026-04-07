@@ -69,6 +69,14 @@
   border-radius: 12px;
 }
 
+.category-header h4 {
+  margin: 12px 0;
+  color: #4e4d4d;
+  font-size: clamp(14px, 2.6vw, 17px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .students-list {
   margin-top: 10px;
   list-style-type: none;
