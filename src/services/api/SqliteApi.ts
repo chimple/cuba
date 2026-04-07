@@ -810,10 +810,8 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id,
         );
+        let networkError = false;
         let isPermissionDenied = false;
-        let isDuplicateConflict = false;
-        let isNetworkError = false;
-
         if (!mutate || mutate.error) {
           const _currentUser =
             await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -826,9 +824,8 @@ export class SqliteApi implements ServiceApi {
           const mutateMessage = String(
             mutate?.error?.message ?? mutate?.error?.details ?? '',
           ).toLowerCase();
-          // ✅ classify errors
-          isDuplicateConflict = mutateCode === '23505' || mutateStatus === 409;
-
+          const isDuplicateConflict =
+            mutateCode === '23505' || mutateStatus === 409;
           isPermissionDenied =
             mutateStatus === 401 ||
             mutateStatus === 403 ||
@@ -837,44 +834,40 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('row-level security') ||
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
+          networkError =
+            mutateStatus === 0 ||
+            mutateStatus >= 500 ||
+            mutateMessage.includes('network error') ||
+            mutateMessage.includes('failed to fetch');
 
-          isNetworkError = !mutate || mutateStatus === 0;
-
-          if (isNetworkError) {
-            logger.error(
-              '🔴 Network error → retry later, table: ' +
-                data.table_name +
-                ', id: ' +
-                newData.id,
+          if (networkError) {
+            logger.warn(
+              '🔁 Network error during push, will retry in next sync',
+              {
+                user_id: _currentUser?.id,
+                ...mutate?.error,
+              },
             );
-            return false; // ⛔ DO NOT DELETE
-          } else if (isDuplicateConflict || !isPermissionDenied) {
-            logger.info(
-              '🟢 Duplicate → safe to delete, table: ' +
-                data.table_name +
-                ', id: ' +
-                newData.id,
-            );
+            return false;
+          }
+          if (isDuplicateConflict || !isPermissionDenied) {
+            logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
-            logger.error(
-              '🔴 Unknown/server error → retry later, table: ' +
-                data.table_name +
-                ', id: ' +
-                newData.id,
-            );
-            return false; // ⛔ DO NOT DELETE
+            logger.info('🔴 Real push error:', mutate?.error);
+            return false;
           }
         }
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [data.id, data.table_name],
         );
-        if (!mutate?.error) {
-          await this.executeQuery(
-            `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-            [data.table_name, new Date().toISOString()],
-          );
+        if (mutate?.error && isPermissionDenied) {
+          continue;
         }
+        await this.executeQuery(
+          `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+          [data.table_name, new Date().toISOString()],
+        );
       }
     }
     return true;
