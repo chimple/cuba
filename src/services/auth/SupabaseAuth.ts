@@ -26,6 +26,7 @@ import {
   setRoles,
 } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { logAuthDebug } from '../../utility/authDebug';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -42,6 +43,12 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i._supabaseDb = SupabaseApi.getInstance().supabase;
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
+        logAuthDebug('Supabase auth state changed.', {
+          source: 'SupabaseAuth.onAuthStateChange',
+          event,
+          has_session: !!session,
+          has_refresh_token: !!session?.refresh_token,
+        });
         if (event === 'TOKEN_REFRESHED') {
           if (session?.refresh_token)
             Util.addRefreshTokenToStore(session?.refresh_token);
@@ -289,9 +296,19 @@ export class SupabaseAuth implements ServiceAuth {
       if (user) this._currentUser = user;
       return this._currentUser;
     } else {
-      // await this.doRefreshSession();
+      logger.info('Refreshing session');
+      // Recover session on cold app reopen before deciding user is logged out.
+      await this.doRefreshSession();
       const authData = await this._auth?.getSession();
-      if (!authData || !authData.data.session?.user?.id) return;
+      if (!authData || !authData.data.session?.user?.id) {
+        logAuthDebug('Unable to resolve current user from session.', {
+          source: 'SupabaseAuth.getCurrentUser',
+          reason: 'missing_session_or_user_id',
+          has_auth_data: !!authData,
+          has_session: !!authData?.data?.session,
+        });
+        return;
+      }
       const session = authData.data.session;
 
       const api = ServiceConfig.getI().apiHandler;
@@ -316,6 +333,11 @@ export class SupabaseAuth implements ServiceAuth {
           return this._currentUser;
         }
         // If still fails, sign out
+        logAuthDebug('Signing out because user record initialization failed.', {
+          source: 'SupabaseAuth.getCurrentUser',
+          reason: 'user_record_missing_after_initialize',
+          user_id: session?.user?.id,
+        });
         this._auth?.signOut();
         return;
       }
@@ -323,7 +345,10 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async doRefreshSession(): Promise<void> {
     if (!navigator.onLine) {
-      logger.info('Device is offline. Skipping session refresh.');
+      logAuthDebug('Skipping session refresh while device is offline.', {
+        source: 'SupabaseAuth.doRefreshSession',
+        reason: 'offline',
+      });
       return;
     }
     // Read refresh token from Redux (preferred) with localStorage fallback
@@ -340,10 +365,14 @@ export class SupabaseAuth implements ServiceAuth {
       const daysDiff = Math.floor(
         (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24),
       );
-      if (daysDiff < 1) {
-        logger.info(
-          `Refresh token is only ${daysDiff} day(s) old. No need to refresh.`,
-        );
+      const currentSession = await this._auth?.getSession();
+      const hasActiveSession = !!currentSession?.data?.session?.access_token;
+      if (daysDiff < 1 && hasActiveSession) {
+        logAuthDebug('Skipping session refresh because token is still fresh.', {
+          source: 'SupabaseAuth.doRefreshSession',
+          reason: 'token_recent',
+          token_age_days: daysDiff,
+        });
         return;
       }
 
@@ -358,10 +387,18 @@ export class SupabaseAuth implements ServiceAuth {
           const { access_token, refresh_token } = data.session;
           this._auth?.setSession({ access_token, refresh_token });
           Util.addRefreshTokenToStore(refresh_token);
+          logAuthDebug('Session refresh completed successfully.', {
+            source: 'SupabaseAuth.doRefreshSession',
+            reason: 'refresh_success',
+          });
         }
       }
     } catch (error) {
       logger.error('Unexpected error while refreshing session:', error);
+      logAuthDebug('Session refresh failed, attempting school relogin.', {
+        source: 'SupabaseAuth.doRefreshSession',
+        reason: 'refresh_failed_try_school_relogin',
+      });
 
       try {
         await schoolUtil.trySchoolRelogin();
@@ -389,6 +426,10 @@ export class SupabaseAuth implements ServiceAuth {
         return !!reduxUser;
       } catch (e) {
         logger.error('Error accessing Redux store for auth state:', e);
+        logAuthDebug('Logging out because auth state access failed offline.', {
+          source: 'SupabaseAuth.isUserLoggedIn',
+          reason: 'redux_auth_state_read_failed',
+        });
         await this.logOut();
         return false;
       }
@@ -705,6 +746,11 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
+    logAuthDebug('Executing auth logout.', {
+      source: 'SupabaseAuth.logOut',
+      reason: 'explicit_or_upstream_logout',
+      has_current_user: !!this._currentUser,
+    });
     await this._auth?.signOut();
     // Clear redux store items related to auth and user data
     store.dispatch(logout());
