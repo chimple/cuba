@@ -10,6 +10,7 @@ import { Util } from '../../utility/util';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import Loading from '../Loading';
+import { logAuthDebug } from '../../utility/authDebug';
 
 const DeleteParentAccount: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -21,6 +22,11 @@ const DeleteParentAccount: React.FC = () => {
     const auth = ServiceConfig.getI().authHandler;
     const api = ServiceConfig.getI().apiHandler;
     const user = await auth.getCurrentUser();
+    logAuthDebug('User initiated parent account deletion flow.', {
+      source: 'DeleteParentAccount.ondelete',
+      reason: 'delete_parent_account_confirmed',
+      user_id: user?.id,
+    });
     await api.deleteAllUserData();
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
@@ -36,6 +42,13 @@ const DeleteParentAccount: React.FC = () => {
 
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
+    logAuthDebug('Navigating to login after parent account deletion.', {
+      source: 'DeleteParentAccount.ondelete',
+      reason: 'account_deleted_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+      user_id: user?.id,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

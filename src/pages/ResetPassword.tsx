@@ -7,6 +7,7 @@ import { eye, eyeOff } from 'ionicons/icons';
 import './ResetPassword.css';
 import { t } from 'i18next';
 import logger from '../utility/logger';
+import { logAuthDebug } from '../utility/authDebug';
 
 const ResetPassword: React.FC = () => {
   const location = useLocation();
@@ -33,7 +34,15 @@ const ResetPassword: React.FC = () => {
 
     if (data) {
       setMessage('Password reset successful. Redirecting to login...');
-      setTimeout(() => history.push(PAGES.LOGIN), 2000);
+      setTimeout(() => {
+        logAuthDebug('Navigating to login after successful password reset.', {
+          source: 'ResetPassword.handlePasswordReset',
+          reason: 'password_reset_success',
+          from_page: window.location.pathname,
+          to_page: PAGES.LOGIN,
+        });
+        history.push(PAGES.LOGIN);
+      }, 2000);
     } else {
       logger.error('error in updating user....', {});
     }

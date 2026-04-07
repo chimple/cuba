@@ -20,6 +20,7 @@ import { Capacitor } from '@capacitor/core';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import logger from '../../utility/logger';
+import { logAuthDebug } from '../../utility/authDebug';
 interface LocationState {
   school?: SchoolWithRole['school'];
   role?: RoleType;
@@ -118,9 +119,19 @@ const ReqEditSchool: React.FC = () => {
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated teacher school-request logout.', {
+      source: 'ReqEditSchool.onSignOut',
+      reason: 'teacher_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_MODE);
+    logAuthDebug('Navigating to login after teacher school-request logout.', {
+      source: 'ReqEditSchool.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
