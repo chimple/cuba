@@ -6,6 +6,8 @@ import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.pn
 
 export const DEFAULT_LOCALE_ID = '6854a7ef-dcd3-4362-8488-0e8de869aacf'; //this is the default locale id for india
 export const DEFAULT_LANGUAGE_ID_EN = '7eaf3509-e44e-460f-80a1-7f6a13a8a883'; //this is the default language id for english
+export const STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON =
+  'acknowledge_button';
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = 'sl-en',
@@ -685,6 +687,7 @@ export const STARS_COUNT = 'starsCount';
 export const LATEST_STARS = (studentId: string) => `latestStar_${studentId}`;
 export const IS_OPS_USER = 'isOpsUser';
 export const EDIT_STUDENTS_MAP = 'editStudentsMap';
+export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';

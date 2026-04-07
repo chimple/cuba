@@ -8,7 +8,11 @@ import {
   type ParsedSvg,
 } from '../common/SvgHelpers';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { EVENTS, PAGES } from '../../common/constants';
+import {
+  EVENTS,
+  PAGES,
+  STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON,
+} from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
@@ -191,6 +195,11 @@ export const useStickerBookPreviewModalLogic = ({
         ...saveAnalyticsPayload,
         file_name: fileName,
       });
+    },
+    onShareSettled: async () => {
+      if (!isCompletionMode) return;
+      closeSaveModal();
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     },
     onSaveSuccess: async (fileName: string) => {
       Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
@@ -447,9 +456,9 @@ export const useStickerBookPreviewModalLogic = ({
     const nextSize = Math.max(
       72,
       Math.min(
-        frame.clientWidth * 0.52,
-        frame.clientHeight * 0.52,
-        Math.max(slotRect.width, slotRect.height) * 1.14,
+        frame.clientWidth * 0.72,
+        frame.clientHeight * 0.72,
+        Math.max(slotRect.width, slotRect.height) * 1.12,
       ),
     );
     if (Math.abs(nextSize - dragStickerSize) < 1) return;
@@ -472,6 +481,7 @@ export const useStickerBookPreviewModalLogic = ({
     isDragging,
     isDropSuccessful,
     isLoading,
+    showDragSticker,
   ]);
 
   const computeDragPosition = (clientX: number, clientY: number) => {
@@ -481,10 +491,10 @@ export const useStickerBookPreviewModalLogic = ({
     const x = (clientX - frameRect.left) / scale - dragOffsetRef.current.x;
     const y = (clientY - frameRect.top) / scale - dragOffsetRef.current.y;
     const maxX = Math.max(0, frame.clientWidth - dragStickerSize);
-    const maxY = Math.max(0, frame.clientHeight - dragStickerSize);
+    const maxY = Math.max(0, frame.clientHeight - dragStickerSize * 0.52);
     return {
       x: Math.min(Math.max(0, x), maxX),
-      y: Math.min(Math.max(0, y), maxY),
+      y: Math.min(Math.max(-dragStickerSize * 0.48, y), maxY),
     };
   };
 
@@ -588,13 +598,13 @@ export const useStickerBookPreviewModalLogic = ({
         logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
       }, 2700);
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 2700 + popupFlyoutDurationMs);
     } else {
       // Skip flyout animation when completion popup is next.
       // Keep confetti visible, then close to trigger completion.
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 3200);
     }
   };
@@ -774,7 +784,7 @@ export const useStickerBookPreviewModalLogic = ({
   const closeCompletionSaveModal = () => {
     closeSaveModal();
     if (isCompletionMode) {
-      onClose('acknowledge_button');
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     }
   };
 

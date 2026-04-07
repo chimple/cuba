@@ -32,6 +32,7 @@ import DialogBoxButtons from '../../components/parent/DialogBoxButtons​';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { logAuthDebug } from '../../utility/authDebug';
 
 interface SidebarProps {
   name: string;
@@ -160,11 +161,21 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'ops_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.clear();
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
     serviceInstance.switchMode(APIMode.SQLITE);
+    logAuthDebug('Navigating to login after ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

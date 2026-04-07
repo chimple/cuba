@@ -46,6 +46,7 @@ const defaultOptions = {
   modalAriaLabel: 'Saved',
   backgroundColor: '#ffffff',
   onShareSuccess: jest.fn(),
+  onShareSettled: jest.fn(),
   onSaveSuccess: jest.fn(),
 };
 
@@ -218,6 +219,7 @@ describe('useStickerBookSave', () => {
       await flushAsyncWork();
     });
 
+    expect(result.current.showSaveModal).toBe(false);
     expect(navigator.share).not.toHaveBeenCalled();
 
     await waitForShareTimer();
@@ -245,6 +247,10 @@ describe('useStickerBookSave', () => {
     expect(defaultOptions.onShareSuccess).toHaveBeenCalledWith(
       expect.stringContaining('Test_Book'),
     );
+    expect(defaultOptions.onShareSettled).toHaveBeenCalledWith(
+      expect.stringContaining('Test_Book'),
+    );
+    expect(result.current.showSaveModal).toBe(false);
 
     expect(Util.saveImage).toHaveBeenCalled();
     expect(defaultOptions.onSaveSuccess).toHaveBeenCalledWith(
@@ -252,6 +258,41 @@ describe('useStickerBookSave', () => {
     );
 
     expect(result.current.isSaving).toBe(false);
+
+    document.body.removeChild(frame);
+    jest.useRealTimers();
+  });
+
+  test('handleSaveAndShare calls onShareSettled when share is dismissed', async () => {
+    jest.useFakeTimers();
+    (navigator.share as jest.Mock).mockRejectedValueOnce(
+      new Error('share dismissed'),
+    );
+
+    const frame = document.createElement('div');
+    frame.id = 'sticker-book-save-modal-frame';
+    document.body.appendChild(frame);
+
+    const { result } = renderHook(() => useStickerBookSave(defaultOptions));
+
+    let savePromise!: Promise<void>;
+    act(() => {
+      result.current.openSaveModal('<svg />');
+      savePromise = result.current.handleSaveAndShare();
+    });
+
+    await waitForShareTimer();
+
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+      await flushAsyncWork();
+      await savePromise;
+    });
+
+    expect(defaultOptions.onShareSuccess).not.toHaveBeenCalled();
+    expect(defaultOptions.onShareSettled).toHaveBeenCalledWith(
+      expect.stringContaining('Test_Book'),
+    );
 
     document.body.removeChild(frame);
     jest.useRealTimers();
@@ -273,6 +314,7 @@ describe('useStickerBookSave', () => {
 
     expect(navigator.share).not.toHaveBeenCalled();
     expect(Util.saveImage).not.toHaveBeenCalled();
+    expect(result.current.showSaveModal).toBe(true);
 
     document.body.removeChild(frame);
   });

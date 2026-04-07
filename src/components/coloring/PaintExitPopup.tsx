@@ -29,7 +29,7 @@ export default function PaintExitPopup({
     : [t('Uh-oh! Do you want to leave paint mode?')];
   const popupIcon = isPostSaveExit
     ? '/assets/icons/StickerBookDoor.svg'
-    : '/assets/icons/StickerBookPaintIcon.svg';
+    : '/assets/icons/PaintBrushIcon.svg';
 
   return (
     <div
