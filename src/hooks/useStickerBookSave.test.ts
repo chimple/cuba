@@ -219,6 +219,7 @@ describe('useStickerBookSave', () => {
       await flushAsyncWork();
     });
 
+    expect(result.current.showSaveModal).toBe(false);
     expect(navigator.share).not.toHaveBeenCalled();
 
     await waitForShareTimer();
@@ -249,6 +250,7 @@ describe('useStickerBookSave', () => {
     expect(defaultOptions.onShareSettled).toHaveBeenCalledWith(
       expect.stringContaining('Test_Book'),
     );
+    expect(result.current.showSaveModal).toBe(false);
 
     expect(Util.saveImage).toHaveBeenCalled();
     expect(defaultOptions.onSaveSuccess).toHaveBeenCalledWith(
@@ -312,6 +314,7 @@ describe('useStickerBookSave', () => {
 
     expect(navigator.share).not.toHaveBeenCalled();
     expect(Util.saveImage).not.toHaveBeenCalled();
+    expect(result.current.showSaveModal).toBe(true);
 
     document.body.removeChild(frame);
   });

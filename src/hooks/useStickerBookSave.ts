@@ -142,6 +142,10 @@ export function useStickerBookSave({
       });
       if (!pngDataUrl) return;
 
+      // Close the PNG preview once we've captured the snapshot so the toast
+      // can remain visible on its own before the share sheet appears.
+      setShowSaveModal(false);
+
       fileName = `${sanitizeFileName(fileBaseName)}_${Date.now()}.png`;
       const blob = await fetch(pngDataUrl).then((response) => response.blob());
       const file = new File([blob], fileName, { type: 'image/png' });

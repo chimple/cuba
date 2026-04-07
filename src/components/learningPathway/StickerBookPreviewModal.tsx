@@ -100,7 +100,7 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
   if (isCompletionMode) {
     return (
       <>
-        {!showSaveModal && (
+        {!showSaveModal && !isSaving && (
           <StickerBookCompletionModal
             svgMarkup={sceneSvgMarkup}
             isSaving={isSaving}
