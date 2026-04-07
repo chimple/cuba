@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import './GenericPopup.css';
+import AudioButton from '../common/AudioButton';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+const GENERIC_POPUP_SOUND_EFFECT_URL =
+  '/assets/audios/common/generic_popup_sound_effect.mp3';
+
+const playPopupAudio = (audioUrl: string | undefined, fallbackText: string) => {
+  void AudioUtil.playAudioOrTts({
+    audioUrl,
+    text: fallbackText,
+  });
+};
 
 interface Props {
   thumbnailImageUrl: string;
   backgroundImageUrl?: string;
+  audioUrl?: string;
   heading: string;
   subHeading?: string;
   details?: string[];
@@ -15,6 +28,7 @@ interface Props {
 const GenericPopup: React.FC<Props> = ({
   thumbnailImageUrl,
   backgroundImageUrl,
+  audioUrl,
   heading,
   subHeading,
   details = [],
@@ -22,14 +36,56 @@ const GenericPopup: React.FC<Props> = ({
   onClose,
   onAction,
 }) => {
+  const fallbackText = useMemo(
+    () => [heading, subHeading, ...details].filter(Boolean).join(' '),
+    [heading, subHeading, details],
+  );
+
+  useEffect(() => {
+    void AudioUtil.playAudioOrTts({
+      audioUrl: GENERIC_POPUP_SOUND_EFFECT_URL,
+      delayMs: 300,
+      onCompleteDelayMs: 300,
+      onComplete: () => {
+        playPopupAudio(audioUrl, fallbackText);
+      },
+    });
+
+    return () => {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+    };
+  }, [audioUrl, fallbackText]);
+
+  const handleReplayAudio = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    playPopupAudio(audioUrl, fallbackText);
+  };
+
+  const handleClose = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onClose();
+  };
+
+  const handleAction = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onAction();
+  };
+
   return (
     <div id="generic-popup-overlay" className="generic-popup-overlay">
       <div id="generic-popup-card" className="generic-popup-card">
+        <div className="generic-popup-audio-button">
+          <AudioButton
+            backgroundColor="#ffffff"
+            onClick={handleReplayAudio}
+            size={44}
+          />
+        </div>
         {/* Close */}
         <button
           id="generic-popup-close"
           className="generic-popup-close"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <img
             id="generic-popup-close-icon"
@@ -105,7 +161,7 @@ const GenericPopup: React.FC<Props> = ({
             <button
               id="generic-popup-cta"
               className="generic-popup-cta"
-              onClick={onAction}
+              onClick={handleAction}
             >
               {buttonText}
             </button>

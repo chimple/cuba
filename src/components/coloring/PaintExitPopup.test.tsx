@@ -1,11 +1,28 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import PaintExitPopup from './PaintExitPopup';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
 }));
 
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn().mockResolvedValue(true),
+    stopAudioUrlOrTtsPlayback: jest.fn().mockResolvedValue(undefined),
+    getLocalizedAudioUrl: jest.fn(),
+  },
+}));
+
 describe('PaintExitPopup', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (AudioUtil.getLocalizedAudioUrl as jest.Mock).mockImplementation(
+      async (folder: string, clipName: string) =>
+        `/assets/audios/${folder}/en_${clipName}.mp3`,
+    );
+  });
+
   test('does not render when closed', () => {
     const { container } = render(
       <PaintExitPopup
@@ -18,7 +35,7 @@ describe('PaintExitPopup', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  test('renders when open with text and buttons', () => {
+  test('renders when open with text and buttons', async () => {
     render(
       <PaintExitPopup
         isOpen={true}
@@ -34,9 +51,22 @@ describe('PaintExitPopup', () => {
     expect(screen.getByRole('button', { name: 'Stay' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Exit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Replay audio' }),
+    ).toBeInTheDocument();
+    await screen.findByRole('button', { name: 'Replay audio' });
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'paintExit',
+      'leave_paint',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/paintExit/en_leave_paint.mp3',
+      delayMs: 300,
+      text: 'Uh-oh! Do you want to leave paint mode?',
+    });
   });
 
-  test('renders post-save variant with yes/no and mapped actions', () => {
+  test('renders post-save variant with yes/no and mapped actions', async () => {
     const onStay = jest.fn();
     const onExit = jest.fn();
 
@@ -60,6 +90,17 @@ describe('PaintExitPopup', () => {
 
     expect(onExit).toHaveBeenCalledTimes(1);
     expect(onStay).toHaveBeenCalledTimes(1);
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
+    await screen.findByRole('button', { name: 'Yes' });
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'paintExit',
+      'creation_shared_exit',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/paintExit/en_creation_shared_exit.mp3',
+      delayMs: 300,
+      text: 'Your creation is shared! Please confirm if you want to exit',
+    });
   });
 
   test('calls onClose when close button is clicked', () => {
@@ -75,6 +116,7 @@ describe('PaintExitPopup', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   test('calls onStay when stay button is clicked', () => {
@@ -90,6 +132,7 @@ describe('PaintExitPopup', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Stay' }));
     expect(onStay).toHaveBeenCalledTimes(1);
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   test('calls onExit when exit button is clicked', () => {
@@ -105,10 +148,11 @@ describe('PaintExitPopup', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Exit' }));
     expect(onExit).toHaveBeenCalledTimes(1);
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
   /* ---------- BUTTON COUNT ---------- */
 
-  test('renders exactly three buttons when open', () => {
+  test('renders exactly four buttons when open', () => {
     render(
       <PaintExitPopup
         isOpen={true}
@@ -119,7 +163,7 @@ describe('PaintExitPopup', () => {
     );
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(3);
+    expect(buttons.length).toBe(4);
   });
 
   /* ---------- MESSAGE EXISTS ---------- */
@@ -441,5 +485,25 @@ describe('PaintExitPopup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(onExit).not.toHaveBeenCalled();
+  });
+
+  test('replays audio when speaker button is clicked', async () => {
+    render(
+      <PaintExitPopup
+        isOpen={true}
+        onStay={jest.fn()}
+        onExit={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Replay audio' }));
+
+    await screen.findByRole('button', { name: 'Replay audio' });
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledTimes(2);
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl: '/assets/audios/paintExit/en_leave_paint.mp3',
+      text: 'Uh-oh! Do you want to leave paint mode?',
+    });
   });
 });

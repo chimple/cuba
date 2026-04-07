@@ -1172,6 +1172,20 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           onClose={() => setModalOpen(false)}
           onConfirm={() => setModalOpen(false)}
           animate={shouldAnimate}
+          audioFolder={
+            modalText === inactiveText
+              ? 'lessonLocked'
+              : modalText === rewardText
+                ? 'completeLesson'
+                : undefined
+          }
+          audioClipName={
+            modalText === inactiveText
+              ? 'lesson_locked'
+              : modalText === rewardText
+                ? 'complete_lesson_to_get_reward'
+                : undefined
+          }
         />
       )}
       <div className="homeworkpathway-structure-div" ref={containerRef}></div>

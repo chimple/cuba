@@ -1,6 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import StickerBookSaveModal from './StickerBookSaveModal';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn().mockResolvedValue(true),
+    stopAudioUrlOrTtsPlayback: jest.fn().mockResolvedValue(undefined),
+  },
+}));
 
 describe('StickerBookSaveModal', () => {
   beforeEach(() => {
@@ -12,6 +20,7 @@ describe('StickerBookSaveModal', () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
+    jest.clearAllMocks();
   });
 
   test('does not render when closed', () => {
@@ -68,6 +77,11 @@ describe('StickerBookSaveModal', () => {
 
     act(() => {
       jest.advanceTimersByTime(700);
+    });
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/stickerBookSave/camera_flash.mp3',
+      delayMs: 300,
     });
 
     expect(
@@ -133,5 +147,15 @@ describe('StickerBookSaveModal', () => {
     });
 
     expect(onAnimationComplete).not.toHaveBeenCalled();
+  });
+
+  test('stops active audio when the modal unmounts', () => {
+    const { unmount } = render(
+      <StickerBookSaveModal open={true} onClose={jest.fn()} />,
+    );
+
+    unmount();
+
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalledTimes(1);
   });
 });
