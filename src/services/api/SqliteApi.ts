@@ -885,7 +885,10 @@ export class SqliteApi implements ServiceApi {
         tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
 
       await this.pullChanges(tableNames, isFirstSync);
-      await this.prefetchStickerBookAssetsAfterSync();
+      await Promise.allSettled([
+        this.prefetchStickerBookAssetsAfterSync(),
+        this.prefetchLidoCommonAudioAfterSync(),
+      ]);
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -8826,6 +8829,47 @@ order by
     } catch (error) {
       logger.warn(
         '[StickerBook] Failed to prefetch sticker book assets after sync',
+        error,
+      );
+    }
+  }
+
+  private async prefetchLidoCommonAudioAfterSync(): Promise<void> {
+    if (!this._db || !Capacitor.isNativePlatform()) return;
+
+    try {
+      const students = await this.getParentStudentProfiles();
+      if (!students?.length) return;
+
+      const studentsByLanguage = new Map<string, TableTypes<'user'>>();
+      for (const student of students) {
+        if (
+          !student?.language_id ||
+          studentsByLanguage.has(student.language_id)
+        ) {
+          continue;
+        }
+        studentsByLanguage.set(student.language_id, student);
+      }
+
+      for (const student of studentsByLanguage.values()) {
+        const audioConfig = await this.getLidoCommonAudioUrl(
+          student.language_id!,
+          student.locale_id ?? null,
+        );
+
+        if (!audioConfig?.lido_common_audio_url) {
+          continue;
+        }
+
+        await Util.downloadLidoCommonAudio(
+          audioConfig.lido_common_audio_url,
+          student.language_id!,
+        );
+      }
+    } catch (error) {
+      logger.warn(
+        '[LidoCommonAudio] Failed to prefetch common audio after sync',
         error,
       );
     }

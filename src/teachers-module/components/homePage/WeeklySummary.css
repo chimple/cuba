@@ -61,7 +61,7 @@
 .summary-label {
   min-height: 28px;
   color: #4a4a4a;
-  font-size: clamp(14px, 2.5vw, 18px);
+  font-size: clamp(12px, 2.8vw, 18px);
   font-weight: 700;
   line-height: 1.15;
   display: flex;
