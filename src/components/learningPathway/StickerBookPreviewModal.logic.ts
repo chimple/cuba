@@ -8,7 +8,11 @@ import {
   type ParsedSvg,
 } from '../common/SvgHelpers';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { EVENTS, PAGES } from '../../common/constants';
+import {
+  EVENTS,
+  PAGES,
+  STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON,
+} from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
@@ -195,7 +199,7 @@ export const useStickerBookPreviewModalLogic = ({
     onShareSettled: async () => {
       if (!isCompletionMode) return;
       closeSaveModal();
-      onClose('acknowledge_button');
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     },
     onSaveSuccess: async (fileName: string) => {
       Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
@@ -594,13 +598,13 @@ export const useStickerBookPreviewModalLogic = ({
         logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
       }, 2700);
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 2700 + popupFlyoutDurationMs);
     } else {
       // Skip flyout animation when completion popup is next.
       // Keep confetti visible, then close to trigger completion.
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 3200);
     }
   };
@@ -780,7 +784,7 @@ export const useStickerBookPreviewModalLogic = ({
   const closeCompletionSaveModal = () => {
     closeSaveModal();
     if (isCompletionMode) {
-      onClose('acknowledge_button');
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     }
   };
 
