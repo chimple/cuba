@@ -6,6 +6,7 @@ type Props = {
   svgMarkup?: string | null;
   onClose: () => void;
   onAnimationComplete?: () => void;
+  autoClose?: boolean;
 };
 
 const AUTO_CLOSE_DELAY_MS = 3000;
@@ -16,6 +17,7 @@ const StickerBookSaveModal: React.FC<Props> = ({
   svgMarkup,
   onClose,
   onAnimationComplete,
+  autoClose = true,
 }) => {
   const [blink, setBlink] = useState(false);
   const [canClose, setCanClose] = useState(false);
@@ -100,9 +102,11 @@ const StickerBookSaveModal: React.FC<Props> = ({
       onAnimationCompleteRef.current?.();
     }, 1700);
 
-    autoCloseTimeoutRef.current = window.setTimeout(() => {
-      requestClose();
-    }, AUTO_CLOSE_DELAY_MS);
+    if (autoClose) {
+      autoCloseTimeoutRef.current = window.setTimeout(() => {
+        requestClose();
+      }, AUTO_CLOSE_DELAY_MS);
+    }
 
     return () => {
       clearTimeout(blinkDelay);
@@ -112,7 +116,7 @@ const StickerBookSaveModal: React.FC<Props> = ({
         autoCloseTimeoutRef.current = null;
       }
     };
-  }, [open]);
+  }, [autoClose, open]);
 
   if (!open) return null;
 
