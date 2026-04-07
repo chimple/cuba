@@ -199,8 +199,10 @@ export class SqliteApi implements ServiceApi {
                 const tableName = match[1];
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
-                logger.info(
-                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`,
+                logger.warn(
+                  'setUpDatabase: Auto-detected schema change for table: ' +
+                    tableName +
+                    '. Will force full sync.',
                 );
               }
             }
@@ -343,17 +345,19 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        logger.info('syncing');
+        logger.warn('checkAndSyncData: User logged in, triggering sync');
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
           await this.syncDbNow();
+          logger.warn('checkAndSyncData: No user, syncDbNow awaited');
         } else {
           this.syncDbNow();
+          logger.warn('checkAndSyncData: User exists, syncDbNow called');
         }
       }
     } catch (error) {
-      logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      logger.warn('checkAndSyncData: Error during sync check: ' + error);
     }
   }
 
@@ -806,6 +810,7 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id,
         );
+        let networkError = false;
         let isPermissionDenied = false;
         if (!mutate || mutate.error) {
           const _currentUser =
@@ -829,7 +834,22 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('row-level security') ||
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
+          networkError =
+            mutateStatus === 0 ||
+            mutateStatus >= 500 ||
+            mutateMessage.includes('network error') ||
+            mutateMessage.includes('failed to fetch');
 
+          if (networkError) {
+            logger.warn(
+              '🔁 Network error during push, will retry in next sync',
+              {
+                user_id: _currentUser?.id,
+                ...mutate?.error,
+              },
+            );
+            return false;
+          }
           if (isDuplicateConflict || !isPermissionDenied) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
@@ -7430,7 +7450,7 @@ order by
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
-    logger.info(result);
+    logger.warn(result);
     for (const table of tableNames) {
       const tableDel = `DELETE FROM "${table}";`;
       const res = await this._db.query(tableDel);
