@@ -6,6 +6,7 @@ import {
   LANG,
   PAGES,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import IconButton from './IconButton';
 import './ProfileHeader.css';
@@ -41,9 +42,12 @@ const ProfileHeader: React.FC = () => {
       }
     };
 
-    window.addEventListener('currentStudentChanged', handleStudentChange);
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
     return () => {
-      window.removeEventListener('currentStudentChanged', handleStudentChange);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
     };
   }, []);
 

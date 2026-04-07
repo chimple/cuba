@@ -67,6 +67,7 @@ import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1360,7 +1361,7 @@ export class Util {
 
     localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
     window.dispatchEvent(
-      new CustomEvent('currentStudentChanged', { detail: student }),
+      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
     );
 
     if (!languageCode && !!student?.language_id) {

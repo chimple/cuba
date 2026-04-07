@@ -7,6 +7,7 @@ import {
   PAGES,
   MODES,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import './HomeHeader.css';
 import HeaderIcon from './HeaderIcon';
@@ -135,11 +136,14 @@ const HomeHeader: React.FC<{
         studentRef.current = customEvent.detail;
       }
     };
-    window.addEventListener('currentStudentChanged', handleStudentChange);
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
 
     return () => {
       window.removeEventListener('JoinClassListner', handleJoinClassListner);
-      window.removeEventListener('currentStudentChanged', handleStudentChange);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
     };
   }, []);
   const handleJoinClassListner = () => {
