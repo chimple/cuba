@@ -17,6 +17,7 @@ interface SchoolSectionProps {
     role?: RoleType;
   }) => void;
   handleManageSchoolClick: () => void;
+  resetTrigger?: number;
 }
 
 const SchoolSection: React.FC<SchoolSectionProps> = ({
@@ -24,6 +25,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   currentSchoolDetail,
   handleSchoolSelect,
   handleManageSchoolClick,
+  resetTrigger,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -52,11 +54,31 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         search: query || '',
       });
 
-      return result.map(({ school, role }: any) => ({
+      const mappedResults = result.map(({ school, role }: any) => ({
         id: school.id,
         name: school.name,
         role: role,
       }));
+
+      const normalizedQuery = query.trim().toLowerCase();
+      if (!normalizedQuery) return mappedResults;
+
+      return mappedResults.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+
+        const score = (name: string) => {
+          if (name === normalizedQuery) return 0;
+          if (name.startsWith(normalizedQuery)) return 1;
+          if (name.includes(normalizedQuery)) return 2;
+          return 3;
+        };
+
+        const scoreA = score(nameA);
+        const scoreB = score(nameB);
+        if (scoreA !== scoreB) return scoreA - scoreB;
+        return nameA.localeCompare(nameB);
+      });
     } catch (err) {
       logger.error('Error fetching schools:', err);
       return [];
@@ -79,6 +101,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
           selectedValue={currentSchoolDetail}
           onOptionSelect={handleSchoolSelect}
           onClear={handleClearSchool}
+          resetTrigger={resetTrigger}
         />
         <div className="divider-line">
           <div className="school-divider" />

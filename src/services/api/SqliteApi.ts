@@ -3346,6 +3346,12 @@ export class SqliteApi implements ServiceApi {
     }
     return finalData;
   }
+  async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    throw new Error('Method not implemented.');
+  }
 
   public get currentMode(): MODES {
     return this._currentMode;

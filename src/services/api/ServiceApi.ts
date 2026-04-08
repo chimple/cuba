@@ -832,6 +832,19 @@ export interface ServiceApi {
     userId: string,
     options?: { page?: number; page_size?: number; search?: string },
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
+  /**
+   * Gets schools for a user by a search term from backend search API.
+   * Intended for server-side search use-cases where matching schools may not
+   * be available in the currently paginated client list.
+   *
+   * @param {string} userId - User's unique ID
+   * @param {string} searchTerm - Search text to match school names
+   * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
+   */
+  getSchoolsForUserBySearchTerm?(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
 
   /**
    * Get a user's role for a given school.

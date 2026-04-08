@@ -3312,6 +3312,58 @@ export class SupabaseApi implements ServiceApi {
     return finalData;
   }
 
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const pageSize = 100;
+    let page = 1;
+    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
+
+    while (true) {
+      const pageResults = await this.getSchoolsForUser(userId, {
+        page,
+        page_size: pageSize,
+        search: query,
+      });
+
+      allResults.push(...pageResults);
+
+      if (pageResults.length < pageSize) break;
+      page += 1;
+    }
+
+    const uniqueBySchool = new Map<
+      string,
+      { school: TableTypes<'school'>; role: RoleType }
+    >();
+    for (const item of allResults) {
+      uniqueBySchool.set(item.school.id, item);
+    }
+
+    const normalizedQuery = query.toLowerCase();
+    return Array.from(uniqueBySchool.values()).sort((a, b) => {
+      const nameA = (a.school.name ?? '').toLowerCase();
+      const nameB = (b.school.name ?? '').toLowerCase();
+
+      const score = (name: string) => {
+        if (name === normalizedQuery) return 0;
+        if (name.startsWith(normalizedQuery)) return 1;
+        if (name.includes(normalizedQuery)) return 2;
+        return 3;
+      };
+
+      const scoreA = score(nameA);
+      const scoreB = score(nameB);
+
+      if (scoreA !== scoreB) return scoreA - scoreB;
+      return nameA.localeCompare(nameB);
+    });
+  }
+
   public set currentMode(value: MODES) {
     this._currentMode = value;
   }
