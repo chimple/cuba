@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   useRive,
   Layout,
@@ -20,6 +20,7 @@ interface ChimpleRiveMascotProps {
   animationName?: string;
   stateValue?: number;
   inputName?: string;
+  onClick?: () => void;
   overlayRules?: Array<
     Required<Pick<ChimpleRiveMascotProps, 'stateMachine' | 'inputName'>>
   >;
@@ -104,8 +105,10 @@ export default function ChimpleRiveMascot({
   animationName,
   stateValue,
   inputName,
+  onClick,
   overlayRules,
 }: ChimpleRiveMascotProps) {
+  const mascotRootRef = useRef<HTMLDivElement | null>(null);
   const activeOverlayRules = overlayRules ?? [];
   const isOverlayMatch = activeOverlayRules.some(
     (rule) =>
@@ -174,6 +177,68 @@ export default function ChimpleRiveMascot({
     };
   }, [defaultSrc, should_show_remote_asset]);
 
+  useEffect(() => {
+    if (!onClick) return;
+
+    const isVisibleMascotPixelTap = (event: PointerEvent): boolean => {
+      const mascotRoot = mascotRootRef.current;
+      if (!mascotRoot) return false;
+
+      const canvases = Array.from(
+        mascotRoot.querySelectorAll('canvas'),
+      ) as HTMLCanvasElement[];
+      if (!canvases.length) return false;
+
+      for (const canvas of canvases) {
+        const rect = canvas.getBoundingClientRect();
+        const insideRect =
+          event.clientX >= rect.left &&
+          event.clientX <= rect.right &&
+          event.clientY >= rect.top &&
+          event.clientY <= rect.bottom;
+        if (!insideRect) continue;
+
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx || !canvas.width || !canvas.height) continue;
+
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const pixelX = Math.floor((event.clientX - rect.left) * scaleX);
+        const pixelY = Math.floor((event.clientY - rect.top) * scaleY);
+        if (
+          pixelX < 0 ||
+          pixelY < 0 ||
+          pixelX >= canvas.width ||
+          pixelY >= canvas.height
+        ) {
+          continue;
+        }
+
+        try {
+          const alpha = ctx.getImageData(pixelX, pixelY, 1, 1).data[3];
+          if (alpha > 12) return true;
+        } catch {
+          // If pixel-read fails, do not trigger to avoid false positives.
+          continue;
+        }
+      }
+
+      return false;
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!isVisibleMascotPixelTap(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onClick();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, true);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [onClick]);
+
   if (!riveSrc) return null;
 
   const baseMascotProps = lastNonSpeakingMascotProps ?? currentMascotProps;
@@ -189,7 +254,11 @@ export default function ChimpleRiveMascot({
 
   if (isOverlayMatch && baseMascotProps?.stateMachine) {
     return (
-      <div id="chimple-mascot-overlay" className="chimple-mascot-overlay">
+      <div
+        ref={mascotRootRef}
+        id="chimple-mascot-overlay"
+        className="chimple-mascot-overlay"
+      >
         <div id="chimple-mascot-base-layer" className="chimple-mascot-layer">
           {renderMascot(baseMascotProps)}
         </div>
@@ -200,5 +269,9 @@ export default function ChimpleRiveMascot({
     );
   }
 
-  return renderMascot(currentMascotProps);
+  return (
+    <div ref={mascotRootRef} className="chimple-mascot-overlay">
+      {renderMascot(currentMascotProps)}
+    </div>
+  );
 }
