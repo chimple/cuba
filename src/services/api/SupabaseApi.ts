@@ -1857,7 +1857,6 @@ export class SupabaseApi implements ServiceApi {
       return Promise.reject(error);
     }
   }
-  // not used, getting error when cocos_lesson_id is same for multiple lessons
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
@@ -1867,19 +1866,18 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('cocos_lesson_id', lessonId)
       .eq('is_deleted', false)
-      .single();
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(1);
 
     if (error) {
       logger.error('Error fetching lesson:', error);
-      if (error.code === 'PGRST116') {
-        // No rows found
-        return null;
-      }
       throw new Error(
         `Failed to fetch lesson with cocos_lesson_id ${lessonId}: ${error.message}`,
       );
     }
-    return data;
+
+    return data?.[0] ?? null;
   }
   async getCoursesForParentsStudent(
     studentId: string,

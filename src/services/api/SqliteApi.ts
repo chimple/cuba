@@ -2076,7 +2076,18 @@ export class SqliteApi implements ServiceApi {
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}" and is_deleted = 0`,
+      `
+        select *
+        from ${TABLES.Lesson}
+        where cocos_lesson_id = ?
+          and is_deleted = 0
+        order by
+          coalesce(datetime(updated_at), datetime(created_at)) desc,
+          updated_at desc,
+          created_at desc
+        limit 1
+      `,
+      [lessonId],
     );
     if (!res || !res.values || res.values.length < 1) return null;
     return res.values[0];
