@@ -477,18 +477,18 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           'playedLessonSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox1.svg',
-          '/pathwayAssets/English/mysteryBox1.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_1.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_1.svg',
           'giftSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox2.svg',
-          '/pathwayAssets/English/mysteryBox2.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_2.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_2.svg',
           'giftSVG2',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox3.svg',
-          '/pathwayAssets/English/mysteryBox3.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_3.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_3.svg',
           'giftSVG3',
         ),
         loadHaloAnimation(
