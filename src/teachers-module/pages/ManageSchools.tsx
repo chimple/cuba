@@ -17,9 +17,6 @@ import { Util } from '../../utility/util';
 import DetailListHeader from '../components/schoolComponent/DetailListHeader';
 import Loading from '../../components/Loading';
 import logger from '../../utility/logger';
-import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
-import { AuthState } from '../../redux/slices/auth/authSlice';
 
 const PAGE_SIZE = 20;
 
@@ -36,7 +33,6 @@ const ManageSchools: React.FC = () => {
   const [allSchools, setAllSchools] = useState<SchoolWithRole[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]);
-  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,9 +41,6 @@ const ManageSchools: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI()?.apiHandler;
   const auth = ServiceConfig.getI()?.authHandler;
-  const { isOpsUser } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
 
   const init = async () => {
     try {
@@ -130,51 +123,11 @@ const ManageSchools: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    let isCancelled = false;
-
-    const runSearch = async () => {
-      const query = searchQuery.trim();
-      if (!query || !isOpsUser) {
-        const filtered = allSchools.filter((item) =>
-          item.school.name.toLowerCase().includes(searchQuery.toLowerCase()),
-        );
-        if (!isCancelled) {
-          setFilteredSchools(filtered);
-          setIsSearchLoading(false);
-        }
-        return;
-      }
-
-      if (!currentUser?.id) return;
-
-      if (!isCancelled) {
-        setIsSearchLoading(true);
-      }
-      try {
-        const searchedSchools = await api.getSchoolsForUserBySearchTerm(
-          currentUser.id,
-          query,
-        );
-        if (!isCancelled) {
-          setFilteredSchools(searchedSchools);
-        }
-      } catch (error) {
-        logger.error('Error searching schools from Supabase:', error);
-        if (!isCancelled) {
-          setFilteredSchools([]);
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsSearchLoading(false);
-        }
-      }
-    };
-
-    runSearch();
-    return () => {
-      isCancelled = true;
-    };
-  }, [allSchools, searchQuery, currentUser?.id, isOpsUser]);
+    const filtered = allSchools.filter((item) =>
+      item.school.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+    setFilteredSchools(filtered);
+  }, [allSchools, searchQuery]);
 
   return (
     <IonPage className="main-page">
@@ -186,11 +139,9 @@ const ManageSchools: React.FC = () => {
         />
       </div>
       <div className="school-div">{t('Schools')}</div>
-      {!((isLoading || isSearchLoading) && allSchools.length === 0) && (
-        <DetailListHeader />
-      )}
+      {!(isLoading && allSchools.length === 0) && <DetailListHeader />}
       <IonContent className="content-background">
-        {(isLoading || isSearchLoading) && allSchools.length === 0 ? (
+        {isLoading && allSchools.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <Loading isLoading={true} />
           </div>
@@ -203,7 +154,7 @@ const ManageSchools: React.FC = () => {
             <IonInfiniteScroll
               onIonInfinite={loadMoreSchools}
               threshold="100px"
-              disabled={!hasMore || (!!searchQuery.trim() && isOpsUser)}
+              disabled={!hasMore}
             >
               <IonInfiniteScrollContent
                 loadingSpinner="bubbles"

@@ -95,26 +95,15 @@ const UserProfile: React.FC = () => {
       if (!loginUser) {
         throw new Error('User is not logged in or user data is not available.');
       }
-      const selectedLanguageId =
-        languageid ||
-        languages.find((lang) => lang.value === language)?.id ||
-        loginUser.language_id ||
-        '';
       const profilePicValue = profilePic || undefined;
-      const updatedUser = await api.updateUserProfile(
+      await api.updateUserProfile(
         loginUser,
         fullName,
         email,
         phoneNum,
-        selectedLanguageId,
+        languageid,
         profilePicValue,
       );
-      setLoginUser(updatedUser);
-      setFullName(updatedUser.name || '');
-      setEmail(updatedUser.email || '');
-      setPhoneNum(updatedUser.phone || '');
-      setLanguageId(updatedUser.language_id || selectedLanguageId);
-      ServiceConfig.getI().authHandler.currentUser = updatedUser;
     } catch (error) {
       logger.error('Error adding student:', error);
     }
@@ -126,9 +115,9 @@ const UserProfile: React.FC = () => {
       (lang) => lang.value === languageCode,
     );
     if (selectedLanguage) {
+      await Util.updateUserLanguage(languageCode);
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
-      await Util.updateUserLanguage(languageCode);
     }
   };
 

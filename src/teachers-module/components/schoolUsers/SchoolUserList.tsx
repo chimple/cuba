@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './SchoolUserList.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { SCHOOL_USERS, TableTypes, OPS_ROLES } from '../../../common/constants';
@@ -29,54 +29,15 @@ const SchoolUserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
     null,
   );
-  const previousSchoolRef = useRef<TableTypes<'school'> | null>(null);
-  const previousClassRef = useRef<TableTypes<'class'> | null>(null);
-  const previousRoleRef = useRef<RoleType | undefined>(undefined);
-  const hasBackedUpSelectionRef = useRef(false);
   const auth = ServiceConfig.getI()?.authHandler;
 
   useEffect(() => {
     init();
-    return () => {
-      void restorePreviousSelection();
-    };
   }, []);
 
-  const restorePreviousSelection = async () => {
-    if (!hasBackedUpSelectionRef.current) return;
-
-    if (previousSchoolRef.current) {
-      await Util.setCurrentSchool(
-        previousSchoolRef.current,
-        previousRoleRef.current || role,
-      );
-    }
-
-    if (previousClassRef.current) {
-      await Util.setCurrentClass(previousClassRef.current);
-    }
-  };
-
   const init = async () => {
-    if (!hasBackedUpSelectionRef.current) {
-      previousSchoolRef.current = Util.getCurrentSchool() || null;
-      previousClassRef.current = Util.getCurrentClass() || null;
-      hasBackedUpSelectionRef.current = true;
-    }
-
     const user = await auth?.getCurrentUser();
     setCurrentUser(user!);
-
-    if (user && previousSchoolRef.current) {
-      const previousRole = await api?.getUserRoleForSchool(
-        user.id,
-        String(previousSchoolRef.current.id),
-      );
-      if (previousRole) {
-        previousRoleRef.current = previousRole;
-      }
-    }
-
     Util.setCurrentSchool(schoolDoc, role);
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);

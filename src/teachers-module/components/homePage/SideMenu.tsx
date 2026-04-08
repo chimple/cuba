@@ -63,7 +63,6 @@ const SideMenu: React.FC<{
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [schoolSearchResetToken, setSchoolSearchResetToken] = useState(0);
   const { roles, isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -326,10 +325,7 @@ const SideMenu: React.FC<{
         contentId="main-content"
         id="main-container"
         onIonDidOpen={() => setIsMenuOpen(true)}
-        onIonDidClose={() => {
-          setIsMenuOpen(false);
-          setSchoolSearchResetToken((prev) => prev + 1);
-        }}
+        onIonDidClose={() => setIsMenuOpen(false)}
       >
         <div aria-label={String(t('Menu'))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
@@ -339,7 +335,6 @@ const SideMenu: React.FC<{
               currentSchoolDetail={currentSchoolDetail}
               handleSchoolSelect={handleSchoolSelect}
               handleManageSchoolClick={handleManageSchoolClick}
-              resetTrigger={schoolSearchResetToken}
             />
             <ClassSection
               classData={classData}

@@ -15,7 +15,6 @@ interface SearchableDropdownProps {
   selectedValue: Option | null;
   onOptionSelect: (option: Option) => void;
   onClear: () => void;
-  resetTrigger?: number;
 }
 
 const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
@@ -24,7 +23,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   selectedValue,
   onOptionSelect,
   onClear,
-  resetTrigger,
 }) => {
   const [inputValue, setInputValue] = useState(selectedValue?.name || '');
   const [options, setOptions] = useState<Option[]>([]);
@@ -64,14 +62,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       setInputValue(selectedValue.name);
     }
   }, [selectedValue?.id, selectedValue?.name]);
-
-  useEffect(() => {
-    setInputValue(selectedValue?.name || '');
-    setOptions([]);
-    setPage(1);
-    setHasMore(true);
-    setIsOpen(false);
-  }, [resetTrigger, selectedValue?.name]);
 
   // 🔁 Scroll-based pagination
   const handleScroll = useCallback(() => {

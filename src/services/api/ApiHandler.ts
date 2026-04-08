@@ -334,12 +334,6 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId, options);
   }
-  public async getSchoolsForUserBySearchTerm(
-    userId: string,
-    searchTerm: string,
-  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
-    return await this.s.getSchoolsForUserBySearchTerm!(userId, searchTerm);
-  }
   public async getUserRoleForSchool(
     userId: string,
     schoolId: string,
