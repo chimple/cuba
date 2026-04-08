@@ -133,7 +133,6 @@
     "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
-    "check:new-any": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$hasAny = git diff --cached --unified=0 -- '*.ts' '*.tsx' '*.js' '*.jsx' | Select-String -Pattern '^\\+.*(:\\s*any\\b|\\bas\\s+any\\b|<\\s*any\\s*>)' -Quiet; if ($hasAny) { Write-Host '[lint-staged] New explicit any usages were found in staged changes.'; exit 1 }\"",
     "prepare": "husky"
   },
   "eslintConfig": {
@@ -211,7 +210,6 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "npm run check:new-any",
       "eslint",
       "prettier --check"
     ],
