@@ -16,26 +16,11 @@ import { ClassUtil } from '../../../../utility/classUtil';
 import Loading from '../../../../components/Loading';
 import { useHistory } from 'react-router';
 import { Util } from '../../../../utility/util';
-import { t } from 'i18next';
-import ImageDropdown from '../../imageDropdown';
-import logger from '../../../../utility/logger';
-
-type SubjectOption = {
-  icon: string;
-  id: string;
-  name: string;
-  subjectDetail: string;
-};
-const isSubjectOption = (
-  value: TableTypes<'course'> | SubjectOption | undefined,
-): value is SubjectOption => {
-  return value != null && 'icon' in value;
-};
+import { subDays } from 'date-fns';
+type SubjectOption = TableTypes<'course'> | typeof ALL_SUBJECT;
 
 const DashBoard: React.FC = ({}) => {
-  const [selectedSubject, setSelectedSubject] = useState<
-    TableTypes<'course'> | SubjectOption
-  >();
+  const [selectedSubject, setSelectedSubject] = useState<SubjectOption>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
   const [subjects, setSubjects] = useState<TableTypes<'course'>[]>([]);
@@ -44,9 +29,7 @@ const DashBoard: React.FC = ({}) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const current_class = Util.getCurrentClass();
-  const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    SubjectOption[]
-  >([]);
+
   useEffect(() => {
     if (subjects.length > 0) {
       init();
@@ -64,45 +47,7 @@ const DashBoard: React.FC = ({}) => {
     );
 
     setSubjects(_subjects);
-
-    const curriculumIds = Array.from(
-      new Set(_subjects.map((s) => s.curriculum_id)),
-    );
-    const gradeIds = Array.from(new Set(_subjects.map((s) => s.grade_id)));
-    const filteredCurriculumIds = curriculumIds.filter(
-      (id): id is string => id !== null,
-    );
-    const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
-
-    try {
-      // Fetch curriculums and grades
-      const [curriculums, grades] = await Promise.all([
-        api.getCurriculumsByIds(filteredCurriculumIds),
-        api.getGradesByIds(filteredGradeIds),
-      ]);
-
-      const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
-      const gradeMap = new Map(grades.map((g) => [g.id, g]));
-      const _mappedSubjectOptions = _subjects.map((subject) => {
-        const curriculum = curriculumMap.get(subject.curriculum_id ?? '');
-        const grade = gradeMap.get(subject.grade_id ?? '');
-        return {
-          id: subject.id,
-          subjectDetail: `${subject.name} ${curriculum?.name ?? 'Unknown'}-${
-            grade?.name ?? 'Unknown'
-          }`,
-          // icon: curriculum?.image,
-          icon: subject?.image || '/assets/icons/DefaultIcon.png',
-          name: subject.name,
-        };
-      });
-
-      setMappedSubjectOptions(_mappedSubjectOptions);
-    } catch (error) {
-      logger.error('Error fetching curriculums or grades:', error);
-      setMappedSubjectOptions([]);
-    }
-    setSelectedSubject(Util.getCurrentCourse(current_class?.id) ?? ALL_SUBJECT);
+    setSelectedSubject(ALL_SUBJECT);
   };
 
   const init = async () => {
@@ -129,24 +74,6 @@ const DashBoard: React.FC = ({}) => {
     setIsLoading(false);
   };
 
-  const handleSelectSubject = (selected: {
-    id: string | number;
-    name: string;
-    icon?: string;
-    subjectDetail?: string;
-  }): void => {
-    const selectedOption = subjectOptionsWithAll.find(
-      (option) => option.id === selected.id,
-    );
-    if (!selectedOption) return;
-
-    setSelectedSubject(selectedOption);
-    const selectedCourse = subjects.find(
-      (subject) => subject.id === selectedOption.id,
-    );
-    Util.setCurrentCourse(current_class?.id, selectedCourse ?? null);
-  };
-
   const onRefresh = (event: CustomEvent) => {
     api.syncDB().then(() => {
       init();
@@ -154,10 +81,18 @@ const DashBoard: React.FC = ({}) => {
     });
   };
 
-  const subjectOptionsWithAll = [
-    { ...ALL_SUBJECT },
-    ...(mappedSubjectOptions ?? []),
-  ];
+  const handleStudentReportNavigation = (student: TableTypes<'user'>) => {
+    const startDate = subDays(new Date(), 6);
+    const endDate = new Date();
+
+    history.replace(PAGES.STUDENT_REPORT, {
+      student,
+      startDate,
+      endDate,
+      classDoc: current_class,
+      fromDashboardBand: true,
+    });
+  };
 
   return !isLoading ? (
     <IonContent>
@@ -165,62 +100,12 @@ const DashBoard: React.FC = ({}) => {
         <IonRefresherContent />
       </IonRefresher>
       <main className="dashboard-container">
-        <div className="dashboard-container-subject-dropdown">
-          <ImageDropdown
-            options={subjectOptionsWithAll}
-            selectedValue={{
-              id: selectedSubject?.id ?? '',
-              name: selectedSubject?.name ?? '',
-              icon:
-                (isSubjectOption(selectedSubject)
-                  ? selectedSubject.icon
-                  : '') ??
-                subjectOptionsWithAll.find(
-                  (option) => option.id === selectedSubject?.id,
-                )?.icon ??
-                '',
-              subjectDetail:
-                (isSubjectOption(selectedSubject)
-                  ? selectedSubject.subjectDetail
-                  : '') ??
-                subjectOptionsWithAll.find(
-                  (option) => option.id === selectedSubject?.id,
-                )?.subjectDetail ??
-                '',
-            }}
-            onOptionSelect={handleSelectSubject}
-            placeholder={t('Select Language') as string}
-          />
-        </div>
         <WeeklySummary weeklySummary={weeklySummary} />
-        <GroupWiseStudents
-          color={BANDWISECOLOR.RED}
-          studentsProgress={studentProgress?.get(BANDS.REDGROUP)}
-          studentLength={students?.length.toString() ?? ''}
-          onClickCallBack={() => {
-            history.replace(PAGES.DASHBOARD_DETAILS, {
-              studentProgress: studentProgress?.get(BANDS.REDGROUP),
-              bandcolor: BANDWISECOLOR.RED,
-              studentLength: students?.length.toString() ?? '',
-            });
-          }}
-        />
-        <GroupWiseStudents
-          color={BANDWISECOLOR.YELLOW}
-          studentsProgress={studentProgress?.get(BANDS.YELLOWGROUP)}
-          studentLength={students?.length.toString() ?? ''}
-          onClickCallBack={() => {
-            history.replace(PAGES.DASHBOARD_DETAILS, {
-              studentProgress: studentProgress?.get(BANDS.YELLOWGROUP),
-              bandcolor: BANDWISECOLOR.YELLOW,
-              studentLength: students?.length.toString() ?? '',
-            });
-          }}
-        />
         <GroupWiseStudents
           color={BANDWISECOLOR.GREEN}
           studentsProgress={studentProgress?.get(BANDS.GREENGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {
             history.replace(PAGES.DASHBOARD_DETAILS, {
               studentProgress: studentProgress?.get(BANDS.GREENGROUP),
@@ -230,9 +115,36 @@ const DashBoard: React.FC = ({}) => {
           }}
         />
         <GroupWiseStudents
+          color={BANDWISECOLOR.YELLOW}
+          studentsProgress={studentProgress?.get(BANDS.YELLOWGROUP)}
+          studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
+          onClickCallBack={() => {
+            history.replace(PAGES.DASHBOARD_DETAILS, {
+              studentProgress: studentProgress?.get(BANDS.YELLOWGROUP),
+              bandcolor: BANDWISECOLOR.YELLOW,
+              studentLength: students?.length.toString() ?? '',
+            });
+          }}
+        />
+        <GroupWiseStudents
+          color={BANDWISECOLOR.RED}
+          studentsProgress={studentProgress?.get(BANDS.REDGROUP)}
+          studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
+          onClickCallBack={() => {
+            history.replace(PAGES.DASHBOARD_DETAILS, {
+              studentProgress: studentProgress?.get(BANDS.REDGROUP),
+              bandcolor: BANDWISECOLOR.RED,
+              studentLength: students?.length.toString() ?? '',
+            });
+          }}
+        />
+        <GroupWiseStudents
           color={BANDWISECOLOR.GREY}
           studentsProgress={studentProgress?.get(BANDS.GREYGROUP)}
           studentLength={students?.length.toString() ?? ''}
+          onStudentClick={handleStudentReportNavigation}
           onClickCallBack={() => {}}
         />
       </main>

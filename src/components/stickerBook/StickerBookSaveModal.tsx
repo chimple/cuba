@@ -8,6 +8,9 @@ type Props = {
   onAnimationComplete?: () => void;
 };
 
+const AUTO_CLOSE_DELAY_MS = 3000;
+const CLOSE_ANIMATION_MS = 1000;
+
 const StickerBookSaveModal: React.FC<Props> = ({
   open,
   svgMarkup,
@@ -16,19 +19,72 @@ const StickerBookSaveModal: React.FC<Props> = ({
 }) => {
   const [blink, setBlink] = useState(false);
   const [canClose, setCanClose] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   const onAnimationCompleteRef = useRef(onAnimationComplete);
+  const onCloseRef = useRef(onClose);
+  const isClosingRef = useRef(false);
+  const closeTimeoutRef = useRef<number | null>(null);
+  const autoCloseTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     onAnimationCompleteRef.current = onAnimationComplete;
   }, [onAnimationComplete]);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    isClosingRef.current = isClosing;
+  }, [isClosing]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+      }
+      if (autoCloseTimeoutRef.current !== null) {
+        window.clearTimeout(autoCloseTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const requestClose = () => {
+    if (isClosingRef.current) return;
+
+    isClosingRef.current = true;
+    setIsClosing(true);
+    if (autoCloseTimeoutRef.current !== null) {
+      window.clearTimeout(autoCloseTimeoutRef.current);
+      autoCloseTimeoutRef.current = null;
+    }
+    closeTimeoutRef.current = window.setTimeout(() => {
+      closeTimeoutRef.current = null;
+      onCloseRef.current();
+    }, CLOSE_ANIMATION_MS);
+  };
+
+  useEffect(() => {
     if (!open) {
       setBlink(false);
       setCanClose(false);
+      isClosingRef.current = false;
+      setIsClosing(false);
       return;
     }
+
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    if (autoCloseTimeoutRef.current !== null) {
+      window.clearTimeout(autoCloseTimeoutRef.current);
+      autoCloseTimeoutRef.current = null;
+    }
+
+    isClosingRef.current = false;
+    setIsClosing(false);
 
     // Hold the modal open until the flash finishes so we do not dismiss it
     // before the share/download snapshot has captured the final frame.
@@ -44,9 +100,17 @@ const StickerBookSaveModal: React.FC<Props> = ({
       onAnimationCompleteRef.current?.();
     }, 1700);
 
+    autoCloseTimeoutRef.current = window.setTimeout(() => {
+      requestClose();
+    }, AUTO_CLOSE_DELAY_MS);
+
     return () => {
       clearTimeout(blinkDelay);
       clearTimeout(blinkEnd);
+      if (autoCloseTimeoutRef.current !== null) {
+        window.clearTimeout(autoCloseTimeoutRef.current);
+        autoCloseTimeoutRef.current = null;
+      }
     };
   }, [open]);
 
@@ -55,14 +119,14 @@ const StickerBookSaveModal: React.FC<Props> = ({
   return (
     <div
       id="sticker-book-save-modal-overlay"
-      className="stickerBook-save-modal-overlay"
+      className={`stickerBook-save-modal-overlay ${isClosing ? 'stickerBook-save-modal-overlay-closing' : ''}`}
       onClick={() => {
-        if (canClose) onClose();
+        if (canClose && !isClosing) requestClose();
       }}
     >
       <div
         id="sticker-book-save-modal-content"
-        className="stickerBook-save-modal-content"
+        className={`stickerBook-save-modal-content ${isClosing ? 'stickerBook-save-modal-content-closing' : ''}`}
       >
         {/* Star - top left, smaller */}
         <img

@@ -2,16 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent, PointerEvent } from 'react';
 import { t } from 'i18next';
 import { useHistory } from 'react-router';
-import { toBlob } from 'html-to-image';
 import {
   applyStickerVisibilityStrict,
   parseSvg,
   type ParsedSvg,
 } from '../common/SvgHelpers';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import { EVENTS, PAGES } from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
+import { useStickerBookSave } from '../../hooks/useStickerBookSave';
+import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -38,13 +40,6 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
-
-function sanitizeFileName(value: string): string {
-  return (
-    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
-    'sticker-book'
-  );
-}
 
 export const useStickerBookPreviewModalLogic = ({
   data,
@@ -80,7 +75,10 @@ export const useStickerBookPreviewModalLogic = ({
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const dragInitializedRef = useRef(false);
   const hasLoggedDragStartRef = useRef(false);
+  const appliedDragSessionKeyRef = useRef<string | null>(null);
   const timersRef = useRef<number[]>([]);
+  const dragMoveRafRef = useRef<number | null>(null);
+  const pendingDragPosRef = useRef<{ x: number; y: number } | null>(null);
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const isDragVariant = variant === 'drag_collect';
   const dragSessionKey = [
@@ -93,9 +91,43 @@ export const useStickerBookPreviewModalLogic = ({
   ].join('::');
   const renderData = isDragVariant ? dragSessionData : data;
 
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const shareTargetRef = useRef<HTMLDivElement | null>(null);
   const isCompletionMode = mode === 'completion';
+  // Some completion-trigger payloads do not include totalStickerCount.
+  // Count slot groups directly from the loaded SVG so last-sticker detection
+  // still works reliably in drag_collect flows.
+  const svgSlotCount = useMemo(() => {
+    if (!svgMarkup) return undefined;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgMarkup, 'image/svg+xml');
+      return doc.querySelectorAll('[data-slot-id]').length || undefined;
+    } catch (error) {
+      logger.warn('Failed to count sticker slots from SVG.', error);
+      return undefined;
+    }
+  }, [svgMarkup]);
+  // Prefer API-provided total when available, otherwise fall back to SVG slots.
+  // This prevents incorrect flyout behavior when the user just placed
+  // the final sticker but totalStickerCount is missing in payload.
+  const resolvedTotalStickerCount = useMemo(() => {
+    if (
+      typeof renderData.totalStickerCount === 'number' &&
+      renderData.totalStickerCount > 0
+    ) {
+      return renderData.totalStickerCount;
+    }
+    if (svgSlotCount && svgSlotCount > 0) {
+      return svgSlotCount;
+    }
+    return undefined;
+  }, [renderData.totalStickerCount, svgSlotCount]);
+  const popupEnterDurationMs = 900;
+  const popupFlyoutDurationMs = 900;
+  const dragStickerRevealDelayMs = popupEnterDurationMs;
+  const dragStickerDropDurationMs = 1100;
+  const introConfettiRevealDelayMs =
+    dragStickerRevealDelayMs + dragStickerDropDurationMs;
+  const dragPointerRevealDelayMs = dragStickerRevealDelayMs + 950;
 
   const addTimer = (callback: () => void, delayMs: number) => {
     const timeoutId = window.setTimeout(callback, delayMs);
@@ -128,21 +160,85 @@ export const useStickerBookPreviewModalLogic = ({
     }),
     [data, isCompletionMode],
   );
+  const saveAnalyticsPayload = useMemo(
+    () => ({
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_id: data.stickerBookId,
+      book_title: data.stickerBookTitle,
+      collected_count: data.collectedStickerIds.length,
+      total_elements: data.totalStickerCount ?? data.collectedStickerIds.length,
+      page_path: window.location.pathname,
+    }),
+    [data],
+  );
+  const {
+    isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
+    openSaveModal,
+    closeSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
+  } = useStickerBookSave({
+    fileBaseName: data.stickerBookTitle
+      ? `${t('Sticker Book')} ${data.stickerBookTitle}`
+      : t('Sticker Book'),
+    shareText: t('Sticker Book'),
+    backgroundColor: '#fffdee',
+    onShareSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+    onSaveSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+  });
 
   useEffect(() => {
     if (!isDragVariant) return;
+    if (appliedDragSessionKeyRef.current === dragSessionKey) return;
+    appliedDragSessionKeyRef.current = dragSessionKey;
     setDragSessionData({
-      ...data,
+      source: data.source,
+      stickerBookId: data.stickerBookId,
+      stickerBookTitle: data.stickerBookTitle,
+      stickerBookSvgUrl: data.stickerBookSvgUrl,
       collectedStickerIds: Array.isArray(data.collectedStickerIds)
         ? [...data.collectedStickerIds]
         : [],
+      nextStickerId: data.nextStickerId,
+      nextStickerName: data.nextStickerName,
+      nextStickerImage: data.nextStickerImage,
+      totalStickerCount: data.totalStickerCount,
     });
-  }, [dragSessionKey, isDragVariant]);
+  }, [
+    data.collectedStickerIds,
+    data.nextStickerId,
+    data.nextStickerImage,
+    data.nextStickerName,
+    data.source,
+    data.stickerBookId,
+    data.stickerBookSvgUrl,
+    data.stickerBookTitle,
+    data.totalStickerCount,
+    dragSessionKey,
+    isDragVariant,
+  ]);
 
   useEffect(() => {
-    let mounted = true;
     dragInitializedRef.current = false;
     hasLoggedDragStartRef.current = false;
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    pendingDragPosRef.current = null;
     setDragStickerPos(null);
     setShowDragSticker(false);
     setIsDropSuccessful(false);
@@ -151,14 +247,16 @@ export const useStickerBookPreviewModalLogic = ({
     setShowIntroConfetti(false);
     setShowDropConfetti(false);
     setIsFlyingOut(false);
+  }, [dragSessionKey, isDragVariant]);
+
+  useEffect(() => {
+    let mounted = true;
 
     const loadSvg = async () => {
       setIsLoading(true);
       try {
         // Load the actual sticker-book layout so SVGScene can apply slot states on top.
-        const text = await fetchStickerBookSvgText(
-          renderData.stickerBookSvgUrl,
-        );
+        const text = await fetchStickerBookSvgText(data.stickerBookSvgUrl);
         if (mounted) {
           setSvgMarkup(text);
         }
@@ -177,23 +275,22 @@ export const useStickerBookPreviewModalLogic = ({
       }
     };
 
-    loadSvg();
+    void loadSvg();
 
     return () => {
       mounted = false;
     };
-  }, [
-    renderData.stickerBookId,
-    renderData.stickerBookSvgUrl,
-    renderData.nextStickerId,
-    renderData.nextStickerImage,
-    renderData.nextStickerName,
-  ]);
+  }, [data.stickerBookSvgUrl]);
 
   useEffect(() => {
     return () => {
       timersRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
       timersRef.current = [];
+      if (dragMoveRafRef.current !== null) {
+        window.cancelAnimationFrame(dragMoveRafRef.current);
+        dragMoveRafRef.current = null;
+      }
+      pendingDragPosRef.current = null;
     };
   }, []);
 
@@ -217,20 +314,37 @@ export const useStickerBookPreviewModalLogic = ({
 
     setDragStickerSize(size);
     setDragStickerPos({ x: initialX, y: initialY });
-    setShowDragSticker(true);
-    setShowPointerHint(true);
-    setShowIntroConfetti(true);
     logDragEvent(EVENTS.STICKER_DRAG_POPUP_EXPANDED);
-    logDragEvent(EVENTS.STICKER_DRAG_STICKER_SHOWN);
-    logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
-    logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'intro' });
+
+    addTimer(() => {
+      setShowDragSticker(true);
+      logDragEvent(EVENTS.STICKER_DRAG_STICKER_SHOWN);
+    }, dragStickerRevealDelayMs);
+
+    addTimer(() => {
+      setShowIntroConfetti(true);
+      logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'intro' });
+    }, introConfettiRevealDelayMs);
+
+    addTimer(() => {
+      setShowPointerHint(true);
+      logDragEvent(EVENTS.STICKER_DRAG_POINTER_SHOWN);
+    }, dragPointerRevealDelayMs);
 
     addTimer(() => {
       setShowIntroConfetti(false);
-    }, 3800);
-  }, [isDragVariant, isLoading, logDragEvent]);
+    }, introConfettiRevealDelayMs + 3800);
+  }, [
+    dragStickerDropDurationMs,
+    dragPointerRevealDelayMs,
+    dragStickerRevealDelayMs,
+    introConfettiRevealDelayMs,
+    isDragVariant,
+    isLoading,
+    logDragEvent,
+  ]);
 
-  const getSlotRectInFrame = () => {
+  const getSlotRectInFrame = useCallback(() => {
     const frame = frameRef.current;
     const svg = bookSvgRef.current;
     if (!frame || !svg) return null;
@@ -255,20 +369,10 @@ export const useStickerBookPreviewModalLogic = ({
         } catch (error) {
           return false;
         }
-      }) ?? (slot as unknown as SVGGraphicsElement);
+      }) ?? (slot as SVGGraphicsElement);
 
-    if (
-      !(measuredElement instanceof SVGGraphicsElement) ||
-      typeof measuredElement.getScreenCTM !== 'function'
-    ) {
-      return null;
-    }
-
-    let box: DOMRect | SVGRect;
-    try {
-      box = measuredElement.getBBox();
-    } catch (error) {
-      const fallbackRect = slot.getBoundingClientRect();
+    const fallbackRectForElement = (element: Element) => {
+      const fallbackRect = element.getBoundingClientRect();
       const frameRect = frame.getBoundingClientRect();
       return {
         x: (fallbackRect.left - frameRect.left) / scale,
@@ -276,10 +380,26 @@ export const useStickerBookPreviewModalLogic = ({
         width: fallbackRect.width / scale,
         height: fallbackRect.height / scale,
       };
+    };
+
+    if (
+      !(measuredElement instanceof SVGGraphicsElement) ||
+      typeof measuredElement.getScreenCTM !== 'function'
+    ) {
+      return fallbackRectForElement(slot);
+    }
+
+    let box: DOMRect | SVGRect;
+    try {
+      box = measuredElement.getBBox();
+    } catch (error) {
+      return fallbackRectForElement(slot);
     }
 
     const ctm = measuredElement.getScreenCTM();
-    if (!ctm) return null;
+    if (!ctm) {
+      return fallbackRectForElement(measuredElement);
+    }
 
     const point = svg.createSVGPoint();
     const corners = [
@@ -306,7 +426,53 @@ export const useStickerBookPreviewModalLogic = ({
       width: (right - left) / scale,
       height: (bottom - top) / scale,
     };
-  };
+  }, [renderData.nextStickerId, scale]);
+
+  useEffect(() => {
+    if (
+      !isDragVariant ||
+      isLoading ||
+      isDragging ||
+      isDropSuccessful ||
+      !dragStickerPos
+    ) {
+      return;
+    }
+
+    const slotRect = getSlotRectInFrame();
+    if (!slotRect) return;
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const nextSize = Math.max(
+      72,
+      Math.min(
+        frame.clientWidth * 0.52,
+        frame.clientHeight * 0.52,
+        Math.max(slotRect.width, slotRect.height) * 1.14,
+      ),
+    );
+    if (Math.abs(nextSize - dragStickerSize) < 1) return;
+
+    const centerX = dragStickerPos.x + dragStickerSize / 2;
+    const centerY = dragStickerPos.y + dragStickerSize / 2;
+    const maxX = Math.max(0, frame.clientWidth - nextSize);
+    const maxY = Math.max(0, frame.clientHeight - nextSize);
+
+    setDragStickerSize(nextSize);
+    setDragStickerPos({
+      x: Math.min(Math.max(0, centerX - nextSize / 2), maxX),
+      y: Math.min(Math.max(0, centerY - nextSize / 2), maxY),
+    });
+  }, [
+    dragStickerPos,
+    dragStickerSize,
+    getSlotRectInFrame,
+    isDragVariant,
+    isDragging,
+    isDropSuccessful,
+    isLoading,
+  ]);
 
   const computeDragPosition = (clientX: number, clientY: number) => {
     const frame = frameRef.current;
@@ -321,6 +487,34 @@ export const useStickerBookPreviewModalLogic = ({
       y: Math.min(Math.max(0, y), maxY),
     };
   };
+
+  const scheduleDragPositionUpdate = useCallback(
+    (position: { x: number; y: number }) => {
+      pendingDragPosRef.current = position;
+      if (dragMoveRafRef.current !== null) return;
+
+      dragMoveRafRef.current = window.requestAnimationFrame(() => {
+        dragMoveRafRef.current = null;
+        if (!pendingDragPosRef.current) return;
+        setDragStickerPos(pendingDragPosRef.current);
+        pendingDragPosRef.current = null;
+      });
+    },
+    [],
+  );
+
+  const flushPendingDragPosition = useCallback(() => {
+    if (dragMoveRafRef.current !== null) {
+      window.cancelAnimationFrame(dragMoveRafRef.current);
+      dragMoveRafRef.current = null;
+    }
+    if (!pendingDragPosRef.current) return null;
+
+    const finalPosition = pendingDragPosRef.current;
+    pendingDragPosRef.current = null;
+    setDragStickerPos(finalPosition);
+    return finalPosition;
+  }, []);
 
   const isValidDrop = (position: { x: number; y: number }) => {
     const slotRect = getSlotRectInFrame();
@@ -339,6 +533,28 @@ export const useStickerBookPreviewModalLogic = ({
     return distance <= threshold;
   };
 
+  const persistStickerWinForDrop = useCallback(async () => {
+    const studentId = Util.getCurrentStudent()?.id;
+    const stickerBookId = renderData.stickerBookId;
+    const stickerId = renderData.nextStickerId;
+    const api = ServiceConfig.getI().apiHandler as {
+      updateStickerWon?: (
+        stickerBookId: string,
+        stickerId: string,
+        userId: string,
+      ) => Promise<void>;
+    };
+
+    if (!studentId || !stickerBookId || !stickerId) return;
+    if (typeof api.updateStickerWon !== 'function') return;
+
+    try {
+      await api.updateStickerWon(stickerBookId, stickerId, studentId);
+    } catch (error) {
+      logger.error('Failed to persist dragged sticker as won:', error);
+    }
+  }, [renderData.nextStickerId, renderData.stickerBookId]);
+
   const handleSuccessfulDrop = (position: { x: number; y: number }) => {
     const slotRect = getSlotRectInFrame();
     const nextPos = slotRect
@@ -347,6 +563,12 @@ export const useStickerBookPreviewModalLogic = ({
           y: slotRect.y + slotRect.height / 2 - dragStickerSize / 2,
         }
       : position;
+    // Treat this drop as completion if collected+1 reaches the resolved total,
+    // where resolved total may come from payload or SVG slot fallback.
+    const willCompleteBook =
+      typeof resolvedTotalStickerCount === 'number' &&
+      resolvedTotalStickerCount > 0 &&
+      renderData.collectedStickerIds.length + 1 >= resolvedTotalStickerCount;
 
     setDragStickerPos(nextPos);
     setIsDropSuccessful(true);
@@ -355,17 +577,26 @@ export const useStickerBookPreviewModalLogic = ({
 
     logDragEvent(EVENTS.STICKER_DRAG_DROPPED_SUCCESS);
     logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'drop' });
+    void persistStickerWinForDrop();
 
     addTimer(() => {
       setShowDropConfetti(false);
-    }, 1800);
-    addTimer(() => {
-      setIsFlyingOut(true);
-      logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
-    }, 1900);
-    addTimer(() => {
-      onClose('acknowledge_button');
-    }, 2450);
+    }, 2600);
+    if (!willCompleteBook) {
+      addTimer(() => {
+        setIsFlyingOut(true);
+        logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
+      }, 2700);
+      addTimer(() => {
+        onClose('acknowledge_button');
+      }, 2700 + popupFlyoutDurationMs);
+    } else {
+      // Skip flyout animation when completion popup is next.
+      // Keep confetti visible, then close to trigger completion.
+      addTimer(() => {
+        onClose('acknowledge_button');
+      }, 3200);
+    }
   };
 
   const handleDragPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -390,7 +621,7 @@ export const useStickerBookPreviewModalLogic = ({
     if (!isDragging || dragPointerIdRef.current !== event.pointerId) return;
     const nextPos = computeDragPosition(event.clientX, event.clientY);
     if (!nextPos) return;
-    setDragStickerPos(nextPos);
+    scheduleDragPositionUpdate(nextPos);
   };
 
   const handleDragPointerUp = (event: PointerEvent<HTMLDivElement>) => {
@@ -401,7 +632,7 @@ export const useStickerBookPreviewModalLogic = ({
     }
 
     const nextPos = computeDragPosition(event.clientX, event.clientY);
-    const finalPos = nextPos ?? dragStickerPos;
+    const finalPos = nextPos ?? flushPendingDragPosition() ?? dragStickerPos;
     if (!finalPos) return;
 
     setDragStickerPos(finalPos);
@@ -422,6 +653,7 @@ export const useStickerBookPreviewModalLogic = ({
       target.releasePointerCapture(event.pointerId);
     }
     setIsDragging(false);
+    flushPendingDragPosition();
     dragPointerIdRef.current = null;
   };
 
@@ -435,7 +667,7 @@ export const useStickerBookPreviewModalLogic = ({
     // Keep previously collected stickers visible in both preview and drag
     // variants. The next sticker still renders as grey until collected.
     return renderData.collectedStickerIds;
-  }, [isDragVariant, renderData.collectedStickerIds]);
+  }, [renderData.collectedStickerIds]);
 
   const sceneCollectedStickers = useMemo(() => {
     if (isDragVariant && isDropSuccessful) {
@@ -480,42 +712,42 @@ export const useStickerBookPreviewModalLogic = ({
     }
   }, [parsedSvg, sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
 
+  const sceneSvgMarkup = useMemo<string | null>(() => {
+    if (!svgMarkup) return null;
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgMarkup, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return null;
+
+      applyStickerVisibilityStrict(
+        svg,
+        sceneCollectedStickers,
+        sceneNextStickerId,
+        true,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch (error) {
+      logger.error('Failed to serialize completion SVG:', error);
+      return svgMarkup;
+    }
+  }, [sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
+
   const handleSave = async () => {
     Util.logEvent(
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
       analyticsPayload,
     );
-    if (!shareTargetRef.current) return;
+    Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
 
-    setIsSaving(true);
-    try {
-      const blob = await toBlob(shareTargetRef.current, {
-        cacheBust: true,
-        backgroundColor: '#bee7de',
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-      });
-      if (!blob) return;
+    const stickerBookSvg = bookSvgRef.current?.cloneNode(true);
+    const serializedSvg = stickerBookSvg
+      ? new XMLSerializer().serializeToString(stickerBookSvg)
+      : svgMarkup || null;
+    if (!serializedSvg) return;
 
-      const file = new File(
-        [blob],
-        `${sanitizeFileName(data.stickerBookTitle)}.png`,
-        { type: 'image/png' },
-      );
-
-      await Util.sendContentToAndroidOrWebShare(
-        t('STICKER BOOK'),
-        data.stickerBookTitle || t('STICKER BOOK'),
-        undefined,
-        [file],
-      );
-    } catch (error) {
-      logger.error(
-        '[StickerBook] Failed to share sticker book snapshot:',
-        error,
-      );
-    } finally {
-      setIsSaving(false);
-    }
+    openSaveModal(serializedSvg);
   };
 
   const handlePaint = () => {
@@ -523,17 +755,26 @@ export const useStickerBookPreviewModalLogic = ({
       EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
       analyticsPayload,
     );
+    const svgRaw = bookSvgRef.current
+      ? new XMLSerializer().serializeToString(bookSvgRef.current)
+      : svgMarkup || undefined;
+
     history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: data.stickerBookId,
-      stickerBookSvgUrl: data.stickerBookSvgUrl,
-      collectedStickerIds: data.collectedStickerIds,
+      svgRaw,
+      svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
+      artworkTitle: data.stickerBookTitle || t('Sticker Book'),
+      returnTo: window.location.pathname,
     });
   };
 
   const setFrameElement = (element: HTMLDivElement | null) => {
     frameRef.current = element;
+  };
+
+  const closeCompletionSaveModal = () => {
+    closeSaveModal();
     if (isCompletionMode) {
-      shareTargetRef.current = element;
+      onClose('acknowledge_button');
     }
   };
 
@@ -542,6 +783,9 @@ export const useStickerBookPreviewModalLogic = ({
     isCompletionMode,
     isLoading,
     isSaving,
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
     isFlyingOut,
     showIntroConfetti,
     showDropConfetti,
@@ -553,6 +797,7 @@ export const useStickerBookPreviewModalLogic = ({
     dragStickerSize,
     renderData,
     sceneSvg,
+    sceneSvgMarkup,
     bookSvgRef,
     setFrameElement,
     getSlotRectInFrame,
@@ -562,6 +807,9 @@ export const useStickerBookPreviewModalLogic = ({
     handleDragPointerUp,
     handleDragPointerCancel,
     handleSave,
+    closeCompletionSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
     handlePaint,
   };
 };

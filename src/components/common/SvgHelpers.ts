@@ -62,7 +62,13 @@ export function extractStickerSvg(
     const bbox = forMeasure.getBBox();
     document.body.removeChild(measureSvg);
     if (bbox.width > 0 && bbox.height > 0) {
-      tightViewBox = `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`;
+      // Add a small safety inset around the measured sticker bounds so
+      // outlines and rounded edges are not clipped when rendered into
+      // tight reward boxes or preview cards.
+      const padding = Math.max(2, Math.max(bbox.width, bbox.height) * 0.08);
+      tightViewBox = `${bbox.x - padding} ${bbox.y - padding} ${
+        bbox.width + padding * 2
+      } ${bbox.height + padding * 2}`;
     }
   } catch {
     tightViewBox = null;
@@ -371,12 +377,15 @@ export function applyLockedStickerOutline(svg: SVGSVGElement) {
       'path,circle,ellipse,rect,polygon,polyline,line',
     );
     shapes.forEach((shape) => {
+      const isHighlight = shape.getAttribute('mode') === 'color';
+
       // White stroke, no fill for stickers
       shape.setAttribute('fill', '#C0C0C0');
       (shape as SVGElement).style?.setProperty('fill', '#C0C0C0', 'important');
       shape.removeAttribute('fill-opacity');
 
-      applyShapePaint(shape, 'stroke', '#FFFFFF');
+      const strokeColor = isHighlight ? 'rgba(255, 255, 255, 0.3)' : '#FFFFFF';
+      applyShapePaint(shape, 'stroke', strokeColor);
       (shape as SVGElement).style?.setProperty(
         'stroke-opacity',
         '1',

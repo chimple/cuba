@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
 import logger from '../utility/logger';
 import { Util } from '../utility/util';
@@ -13,10 +13,42 @@ type useStickerBookSaveOptions = {
   onSaveSuccess?: (fileName: string) => void | Promise<void>;
 };
 
+const SHARE_DELAY_MS = 2000;
+
 function sanitizeFileName(value: string): string {
   return (
     value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') || 'artwork'
   );
+}
+
+function createSnapshotTarget(source: HTMLElement) {
+  const snapshotWrapper = document.createElement('div');
+  const snapshotTarget = source.cloneNode(true) as HTMLElement;
+  const bounds = source.getBoundingClientRect();
+  const width = Math.max(Math.ceil(bounds.width), source.offsetWidth, 1);
+  const height = Math.max(Math.ceil(bounds.height), source.offsetHeight, 1);
+
+  snapshotWrapper.setAttribute('aria-hidden', 'true');
+  snapshotWrapper.style.position = 'fixed';
+  snapshotWrapper.style.left = '-10000px';
+  snapshotWrapper.style.top = '0';
+  snapshotWrapper.style.pointerEvents = 'none';
+  snapshotWrapper.style.opacity = '0';
+  snapshotWrapper.style.zIndex = '-1';
+
+  snapshotTarget.style.width = `${width}px`;
+  snapshotTarget.style.height = `${height}px`;
+  snapshotTarget.style.margin = '0';
+
+  snapshotWrapper.appendChild(snapshotTarget);
+  document.body.appendChild(snapshotWrapper);
+
+  return {
+    snapshotTarget,
+    cleanup: () => {
+      snapshotWrapper.remove();
+    },
+  };
 }
 
 export function useStickerBookSave({
@@ -30,10 +62,41 @@ export function useStickerBookSave({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showSaveToast, setShowSaveToast] = useState(false);
   const [savedSvgMarkup, setSavedSvgMarkup] = useState<string | null>(null);
+  const isSavingRef = useRef(false);
+  const shareDelayTimeoutRef = useRef<number | null>(null);
   const PortPlugin = registerPlugin<any>('Port');
+
+  useEffect(() => {
+    return () => {
+      if (shareDelayTimeoutRef.current !== null) {
+        window.clearTimeout(shareDelayTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const setSavingState = (value: boolean) => {
+    isSavingRef.current = value;
+    setIsSaving(value);
+  };
+
+  const waitForShareDelay = () =>
+    new Promise<void>((resolve) => {
+      if (shareDelayTimeoutRef.current !== null) {
+        window.clearTimeout(shareDelayTimeoutRef.current);
+      }
+
+      shareDelayTimeoutRef.current = window.setTimeout(() => {
+        shareDelayTimeoutRef.current = null;
+        resolve();
+      }, SHARE_DELAY_MS);
+    });
 
   const openSaveModal = (svgMarkup: string | null) => {
     if (!svgMarkup) return;
+    if (shareDelayTimeoutRef.current !== null) {
+      window.clearTimeout(shareDelayTimeoutRef.current);
+      shareDelayTimeoutRef.current = null;
+    }
     setSavedSvgMarkup(svgMarkup);
     setShowSaveToast(false);
     setShowSaveModal(true);
@@ -41,7 +104,6 @@ export function useStickerBookSave({
 
   const closeSaveModal = () => {
     setShowSaveModal(false);
-    setShowSaveToast(true);
   };
 
   const closeSaveToast = () => {
@@ -49,12 +111,13 @@ export function useStickerBookSave({
   };
 
   const handleSaveAndShare = async () => {
-    if (isSaving) {
+    if (isSavingRef.current) {
       return;
     }
-    setIsSaving(true);
+    setSavingState(true);
 
     let fileName = '';
+    let cleanupSnapshot = () => {};
 
     try {
       const shareTarget = document.getElementById(
@@ -62,7 +125,12 @@ export function useStickerBookSave({
       );
       if (!shareTarget) return;
 
-      const pngDataUrl = await toPng(shareTarget, {
+      const { snapshotTarget, cleanup } = createSnapshotTarget(shareTarget);
+      cleanupSnapshot = cleanup;
+
+      setShowSaveToast(true);
+
+      const pngDataUrl = await toPng(snapshotTarget, {
         cacheBust: true,
         backgroundColor,
         pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
@@ -75,6 +143,15 @@ export function useStickerBookSave({
       fileName = `${sanitizeFileName(fileBaseName)}_${Date.now()}.png`;
       const blob = await fetch(pngDataUrl).then((response) => response.blob());
       const file = new File([blob], fileName, { type: 'image/png' });
+
+      try {
+        await Util.saveImage(file);
+        await onSaveSuccess?.(fileName);
+      } catch (error) {
+        logger.error('Failed to save artwork snapshot:', error);
+      }
+
+      await waitForShareDelay();
 
       try {
         if (Capacitor.isNativePlatform()) {
@@ -105,19 +182,12 @@ export function useStickerBookSave({
         await onShareSuccess?.(fileName);
       } catch (error) {
         logger.error('Failed to share artwork snapshot:', error);
-        setIsSaving(false);
-      }
-
-      try {
-        await Util.saveImage(file);
-        await onSaveSuccess?.(fileName);
-      } catch (error) {
-        logger.error('Failed to save artwork snapshot:', error);
       }
     } catch (error) {
       logger.error('Failed to prepare artwork snapshot:', error);
     } finally {
-      setIsSaving(false);
+      cleanupSnapshot();
+      setSavingState(false);
     }
   };
 

@@ -122,6 +122,7 @@ describe('StickerBookPreviewStage', () => {
       width: '50px',
       height: '50px',
       transform: 'translate(10px, 20px) scale(1.06)',
+      '--sticker-drop-distance': '20px',
     });
 
     await screen.findByTestId('StickerBookPreviewModal-pointer-hint');
@@ -194,20 +195,104 @@ describe('StickerBookPreviewStage', () => {
       expect(
         screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
       ).toHaveStyle({
-        left: '83.44px',
-        top: '24.240000000000002px',
-        '--target-x': '-65px',
-        '--target-y': '-12.600000000000001px',
+        left: '18.439999999999998px',
+        top: '11.64px',
+        '--target-x': '48.2px',
+        '--target-y': '12.600000000000001px',
       }),
     );
   });
 
-  test('shows confetti only for drag variant', () => {
-    const { rerender } = render(
+  test('keeps the downward hand pose while guiding to a sticker on the right', async () => {
+    render(
       <StickerBookPreviewStage
         isDragVariant={true}
         isLoading={false}
         showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 90, y: 40 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => ({
+          x: 20,
+          y: 20,
+          width: 40,
+          height: 40,
+        })}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
+      ).toHaveStyle({
+        left: '98.44px',
+        top: '31.64px',
+        '--target-x': '-58.2px',
+        '--target-y': '-17.4px',
+      }),
+    );
+  });
+
+  test('anchors from the top side when the draggable sticker overlaps a wide placeholder', async () => {
+    render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 120, y: 20 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => ({
+          x: 80,
+          y: 40,
+          width: 120,
+          height: 24,
+        })}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
+      ).toHaveStyle({
+        left: '128.44px',
+        top: '11.64px',
+        '--target-x': '-5px',
+        '--target-y': '5.557600000000001px',
+      }),
+    );
+  });
+
+  test('shows intro and drop confetti only for drag variant', () => {
+    const { rerender } = render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={true}
         showDropConfetti={true}
         showPointerHint={false}
         isDragging={false}
@@ -225,8 +310,8 @@ describe('StickerBookPreviewStage', () => {
     );
 
     expect(
-      screen.getByTestId('StickerBookPreviewModal-confetti'),
-    ).toBeInTheDocument();
+      screen.getAllByTestId('StickerBookPreviewModal-confetti'),
+    ).toHaveLength(2);
 
     rerender(
       <StickerBookPreviewStage
@@ -254,7 +339,7 @@ describe('StickerBookPreviewStage', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('anchors drop confetti to the bottom center of the dragged sticker', () => {
+  test('renders drop confetti after a successful drag', () => {
     render(
       <StickerBookPreviewStage
         isDragVariant={true}
@@ -276,11 +361,14 @@ describe('StickerBookPreviewStage', () => {
       />,
     );
 
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-confetti'),
+    ).toBeInTheDocument();
     expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
-      left: '-65px',
-      top: '-30px',
-      width: '200px',
-      height: '200px',
+      left: '-25px',
+      top: '-12.5px',
+      width: '120px',
+      height: '105px',
     });
   });
 

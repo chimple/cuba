@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import './ShowChapters.css';
 import { useHistory } from 'react-router';
 import Header from '../components/homePage/Header';
@@ -18,16 +18,14 @@ import { t } from 'i18next';
 import {
   getCartChapterIdsForCourse,
   resolveInitialChapterId,
+  resolveVisibleChapterId,
 } from './ShowChaptersLogic';
 import logger from '../../utility/logger';
 
-interface ShowChaptersProps {}
-
-const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
+const ShowChapters: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
-  const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const locationState = (history.location.state ?? {}) as {
     course: TableTypes<'course'>;
@@ -59,6 +57,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     useState<boolean>(false);
 
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]); // Create an array of refs for each chapter
+  const lastScrolledChapterIdRef = useRef<string | undefined>(undefined);
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
@@ -86,30 +85,12 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     fetchClassDetails();
   }, []);
 
-  useEffect(() => {
-    init();
-  }, []);
-
-  useEffect(() => {
-    // Scroll to the resolved active chapter when chapters are set.
-    if (chapters) {
-      const chapterIndex = chapters.findIndex(
-        (chapter) => chapter.id === activeChapterId,
-      );
-      if (chapterIndex !== -1 && chapterRefs.current[chapterIndex]) {
-        chapterRefs.current[chapterIndex]?.scrollIntoView({
-          behavior: 'auto',
-        });
-      }
-    }
-  }, [chapters, activeChapterId]);
-
   const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
       await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
   };
 
-  const init = async () => {
+  const init = useCallback(async () => {
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const classId = currentClass?.id ?? current_class?.id ?? '';
@@ -174,7 +155,14 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     setChapters(chapter_res);
     setLessons(lesson_map);
     setCourseCode(course_data?.code ?? '');
-  };
+  }, [
+    api,
+    auth,
+    course.id,
+    currentClass?.id,
+    current_class?.id,
+    routeChapterId,
+  ]);
 
   const handleOnLessonClick = (
     lesson: TableTypes<'lesson'>,
@@ -273,7 +261,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     });
   };
 
-  const loadAssignedLessonsForCourse = async () => {
+  const loadAssignedLessonsForCourse = useCallback(async () => {
     if (hasLoadedAssignedLessons || isLoadingAssignedLessons) return;
     const classId = currentClass?.id ?? current_class?.id;
     if (!classId || !course?.id) return;
@@ -315,12 +303,30 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     } finally {
       setIsLoadingAssignedLessons(false);
     }
-  };
+  }, [
+    api,
+    chapters,
+    course?.id,
+    currentClass?.id,
+    current_class?.id,
+    hasLoadedAssignedLessons,
+    isLoadingAssignedLessons,
+  ]);
+
+  useEffect(() => {
+    init();
+  }, [init]);
+
+  useEffect(() => {
+    if (!isShowAssigned) {
+      loadAssignedLessonsForCourse();
+    }
+  }, [isShowAssigned, loadAssignedLessonsForCourse]);
 
   const handleShowAssignedClick = async () => {
     const nextShowAssigned = !isShowAssigned;
     setIsShowAssigned(nextShowAssigned);
-    if (nextShowAssigned) {
+    if (!nextShowAssigned) {
       await loadAssignedLessonsForCourse();
     }
   };
@@ -328,6 +334,48 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const assignedToggleLabel = isShowAssigned
     ? t('Hide Assigned')
     : t('Show Assigned');
+
+  const visibleChapters = (chapters ?? []).filter((chapter) => {
+    const chapterLessons = lessons?.get(chapter.id) ?? [];
+    if (chapterLessons.length === 0) {
+      return false;
+    }
+
+    if (isShowAssigned) {
+      return true;
+    }
+
+    return chapterLessons.some(
+      (lesson) => !lesson.id || !assignedLessonIds.has(lesson.id),
+    );
+  });
+  const chapterOrder = (chapters ?? []).map((chapter) => chapter.id);
+  const visibleChapterIds = visibleChapters.map((chapter) => chapter.id);
+  const resolvedActiveChapterId = resolveVisibleChapterId({
+    preferredChapterId: activeChapterId,
+    visibleChapterIds,
+    chapterOrder,
+  });
+
+  useEffect(() => {
+    // Scroll to the resolved active chapter when chapters are set.
+    if (
+      !resolvedActiveChapterId ||
+      lastScrolledChapterIdRef.current === resolvedActiveChapterId
+    ) {
+      return;
+    }
+
+    const chapterIndex = visibleChapters.findIndex(
+      (chapter) => chapter.id === resolvedActiveChapterId,
+    );
+    if (chapterIndex !== -1 && chapterRefs.current[chapterIndex]) {
+      chapterRefs.current[chapterIndex]?.scrollIntoView({
+        behavior: 'auto',
+      });
+      lastScrolledChapterIdRef.current = resolvedActiveChapterId;
+    }
+  }, [visibleChapters, resolvedActiveChapterId]);
 
   return (
     <div id="showchapters-container" className="showchapters-container">
@@ -391,7 +439,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
           </button>
         </div>
         <div id="showchapters-lesson-grid" className="showchapters-lesson-grid">
-          {chapters?.map((chapter, index) => (
+          {visibleChapters.map((chapter, index) => (
             <div
               key={chapter.id}
               ref={(el) => {
@@ -400,7 +448,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
             >
               <ChapterContainer
                 chapter={chapter}
-                isOpened={activeChapterId === chapter.id}
+                isOpened={resolvedActiveChapterId === chapter.id}
                 syncSelectedLessons={[
                   ...(classSelectedLesson.get(chapter.id)?.[
                     AssignmentSource.MANUAL

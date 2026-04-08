@@ -168,13 +168,14 @@ const Parent: React.FC = () => {
   function profileUI() {
     return (
       <div id="parent-page-profile">
-        {userProfile.map((element) => {
+        {userProfile.map((element, index) => {
           let studentUserType: boolean = true;
           if (element === undefined) {
             studentUserType = false;
           }
           return (
             <ProfileCard
+              key={element?.id ?? `empty-profile-${index}`}
               width={'27vw'}
               height={'50vh'}
               userType={studentUserType}

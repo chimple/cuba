@@ -42,6 +42,7 @@ const StickerBook: React.FC = () => {
   const [currentProgress, setCurrentProgress] =
     useState<CurrentProgress | null>(null);
   const [svgCache, setSvgCache] = useState<Record<string, string>>({});
+  const [, setSaveRenderTick] = useState(0);
   const [completedBookIds, setCompletedBookIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -54,11 +55,12 @@ const StickerBook: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isLoading) return;
     const book = books[selectedIndex];
     if (!book) return;
     if (svgCache[book.id]) return;
     fetchSvgForBook(book);
-  }, [books, selectedIndex, svgCache]);
+  }, [books, selectedIndex, svgCache, isLoading]);
 
   const init = async () => {
     const currentStudent = Util.getCurrentStudent();
@@ -80,23 +82,35 @@ const StickerBook: React.FC = () => {
       const sortedBooks = [...(allBooks ?? [])].sort(
         (a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0),
       );
+      const activeBook = currentBookResult?.book
+        ? (sortedBooks.find((book) => book.id === currentBookResult.book.id) ??
+          sortedBooks[0] ??
+          null)
+        : (sortedBooks[0] ?? null);
+      const activeIndex = activeBook
+        ? sortedBooks.findIndex((book) => book.id === activeBook.id)
+        : -1;
+
       setBooks(sortedBooks);
       setCompletedBookIds(
         new Set((completedBooks ?? []).map((book) => book.id)),
       );
 
-      if (currentBookResult?.book) {
+      if (currentBookResult?.book && activeBook) {
         setCurrentProgress({
           bookId: currentBookResult.book.id,
           stickers: currentBookResult.progress?.stickers_collected ?? [],
         });
 
-        const activeIndex = sortedBooks.findIndex(
-          (b) => b.id === currentBookResult.book.id,
-        );
         setSelectedIndex(activeIndex >= 0 ? activeIndex : 0);
       } else {
         setSelectedIndex(0);
+      }
+
+      // Load the initial sticker book SVG before removing the page loader so the
+      // board can render in its final state on first open.
+      if (activeBook) {
+        await fetchSvgForBook(activeBook);
       }
     } catch (e) {
       logger.error('Failed to load sticker book data:', e);
@@ -239,6 +253,9 @@ const StickerBook: React.FC = () => {
       // not just the original source SVG fetched from the server.
       const stickerBookSvg = svgEl.cloneNode(true);
       openSaveModal(new XMLSerializer().serializeToString(stickerBookSvg));
+      // Force a follow-up render so modal consumers observe the updated state
+      // immediately, even in mocked hook environments.
+      setSaveRenderTick((tick) => tick + 1);
     }
   };
 

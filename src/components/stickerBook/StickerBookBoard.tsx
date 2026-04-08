@@ -7,6 +7,7 @@ import {
   ParsedSvg,
   parseSvg,
   ensureNavImage,
+  applyStickerVisibilityStrict,
   sanitizeSvg,
 } from '../common/SvgHelpers';
 import NewBackButton from '../common/NewBackButton';
@@ -102,6 +103,7 @@ const StickerBookBoard: React.FC<Props> = ({
   const clipPathId = useId();
   const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
   const [fallbackSvgRaw, setFallbackSvgRaw] = useState<string | null>(null);
+  const [showLockedSvg, setShowLockedSvg] = useState<boolean>(true);
   const STICKER_BOOK_CLIP_PATH =
     'M 587 57 C 590.314 57 593 59.6863 593 63 V 340.2 H 91 V 63 C 91 59.6863 93.6863 57 97 57 H 587 Z';
   const TITLE_AREA_COORDS = { x: '68', y: '1', width: '547', height: '56' };
@@ -153,12 +155,6 @@ const StickerBookBoard: React.FC<Props> = ({
     if (onSave) onSave();
   };
 
-  const effectiveSvgRaw = svgRaw ?? fallbackSvgRaw;
-  const parsedSvg = useMemo(() => {
-    if (!effectiveSvgRaw) return null;
-    return parseSvg(effectiveSvgRaw);
-  }, [effectiveSvgRaw]);
-
   const parsedBoardSvg = useMemo(() => {
     if (!boardSvgRaw) return null;
     return parseSvg(boardSvgRaw);
@@ -179,10 +175,16 @@ const StickerBookBoard: React.FC<Props> = ({
     };
   }, []);
 
+  // Reset any previous fallback SVG when the source changes to avoid flashing
+  // stale artwork while the next SVG loads.
+  useEffect(() => {
+    setFallbackSvgRaw(null);
+  }, [svgUrl, svgRaw]);
+
   // Fallback: ensure we have an SVG for locked mode even if parent hasn't cached it yet.
   useEffect(() => {
     let isMounted = true;
-    if (svgRaw || !svgUrl) return;
+    if (isLocked || svgRaw || !svgUrl) return;
     fetch(svgUrl)
       .then((res) => res.text())
       .then((text) => {
@@ -192,7 +194,51 @@ const StickerBookBoard: React.FC<Props> = ({
     return () => {
       isMounted = false;
     };
-  }, [svgRaw, svgUrl]);
+  }, [isLocked, svgRaw, svgUrl]);
+
+  // In locked mode, show SVG immediately once available.
+  useEffect(() => {
+    if (!isLocked) {
+      setShowLockedSvg(true);
+      return;
+    }
+    if (!svgRaw) {
+      setShowLockedSvg(false);
+      return;
+    }
+    setShowLockedSvg(true);
+  }, [isLocked, svgRaw]);
+
+  const preparedSvgRaw = useMemo(() => {
+    if (!svgRaw || isLocked) return svgRaw;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgRaw, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return svgRaw;
+
+      applyStickerVisibilityStrict(
+        svg,
+        collectedStickers,
+        nextStickerId,
+        true,
+        false,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch {
+      return svgRaw;
+    }
+  }, [collectedStickers, isLocked, nextStickerId, svgRaw]);
+
+  const unlockedSvgRaw = preparedSvgRaw ?? fallbackSvgRaw;
+
+  const parsedSvg = useMemo(() => {
+    const effectiveSvgRaw = isLocked ? (svgRaw ?? null) : unlockedSvgRaw;
+    if (!effectiveSvgRaw) return null;
+    return parseSvg(effectiveSvgRaw);
+  }, [isLocked, svgRaw, unlockedSvgRaw]);
 
   // Inject navigation arrows into the board SVG.
   useEffect(() => {
@@ -256,6 +302,19 @@ const StickerBookBoard: React.FC<Props> = ({
                 </clipPath>
               </defs>
 
+              {/* Locked skeleton placeholder when SVG is not yet available */}
+              {isLocked && (!parsedSvg || !showLockedSvg) && (
+                <g clipPath={`url(#${clipPathId})`}>
+                  <rect
+                    x="92"
+                    y="57.8"
+                    width="500"
+                    height="282.2"
+                    fill="rgba(255, 255, 255, 0.9)"
+                  />
+                </g>
+              )}
+
               {/* Header/Title Area */}
               <foreignObject {...TITLE_AREA_COORDS}>
                 <div id="sb-board-title" className="sticker-book-board-title">
@@ -264,7 +323,7 @@ const StickerBookBoard: React.FC<Props> = ({
               </foreignObject>
 
               {/* Place the sticker SVG in the board's coordinate space. */}
-              {parsedSvg && (
+              {parsedSvg && (!isLocked || showLockedSvg) && (
                 <g clipPath={`url(#${clipPathId})`}>
                   <SVGScene
                     mode={isLocked ? 'color' : 'drag'}
@@ -272,7 +331,7 @@ const StickerBookBoard: React.FC<Props> = ({
                     collectedStickers={collectedStickers}
                     nextStickerId={nextStickerId}
                     isDragEnabled={false}
-                    stickerVisibilityMode={isLocked ? 'legacy' : 'strict'}
+                    stickerVisibilityMode="strict"
                     stickerVisibilityUseFilters={false}
                     colorModeUncolouredColor="#FFFFFF"
                     colorModeUncolouredStyle="outline"
@@ -283,8 +342,8 @@ const StickerBookBoard: React.FC<Props> = ({
                   >
                     <InlineSvg
                       key={`${title}:${collectedStickers.join(',')}:${
-                        nextStickerId ?? ''
-                      }`}
+                        nextStickerId ?? 'nextStickerId'
+                      }:${isLocked ? 'locked' : 'open'}:${svgUrl ?? ''}`}
                       svg={parsedSvg}
                       overrideAttrs={{
                         x: '92',
@@ -297,6 +356,13 @@ const StickerBookBoard: React.FC<Props> = ({
                       style={{ background: '#FFF' }}
                     />
                   </SVGScene>
+                  {isLocked && (
+                    <path
+                      d={STICKER_BOOK_CLIP_PATH}
+                      fill="rgba(255, 255, 255, 0.7)"
+                      pointerEvents="none"
+                    />
+                  )}
                 </g>
               )}
             </svg>
@@ -331,7 +397,7 @@ const StickerBookBoard: React.FC<Props> = ({
           onSave={handleSave}
           onPaint={handlePaint}
           saveDisabled={!onSave}
-          paintDisabled={!svgRaw || !onPaint}
+          paintDisabled={false}
           canSave={canSave}
         />
       </div>

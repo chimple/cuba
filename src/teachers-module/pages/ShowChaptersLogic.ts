@@ -82,6 +82,43 @@ export const isEndOfChapter = (
   return Boolean(lastLessonId && lastAssignment.lesson_id === lastLessonId);
 };
 
+export const resolveVisibleChapterId = ({
+  preferredChapterId,
+  visibleChapterIds,
+  chapterOrder,
+}: {
+  preferredChapterId?: string;
+  visibleChapterIds: string[];
+  chapterOrder: string[];
+}): string | undefined => {
+  if (!visibleChapterIds.length) return;
+
+  if (preferredChapterId && visibleChapterIds.includes(preferredChapterId)) {
+    return preferredChapterId;
+  }
+
+  if (preferredChapterId) {
+    const preferredIndex = chapterOrder.findIndex(
+      (chapterId) => chapterId === preferredChapterId,
+    );
+
+    if (preferredIndex >= 0) {
+      for (
+        let index = preferredIndex + 1;
+        index < chapterOrder.length;
+        index++
+      ) {
+        const nextChapterId = chapterOrder[index];
+        if (visibleChapterIds.includes(nextChapterId)) {
+          return nextChapterId;
+        }
+      }
+    }
+  }
+
+  return visibleChapterIds[0];
+};
+
 // Covers: valid route chapterId; last assignment within chapter; last assignment at chapter end -> next chapter (or same final chapter); cart with one/multiple chapters (last assignment still wins); cart-only fallback -> first cart chapter by order; ultimate fallback -> first chapter.
 export const resolveInitialChapterId = ({
   routeChapterId,

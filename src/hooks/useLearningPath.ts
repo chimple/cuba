@@ -36,6 +36,7 @@ export type LessonNode = {
   lesson_id: string;
   chapter_id?: string | undefined;
   skill_id?: string | undefined;
+  assignment_id?: string | undefined;
   is_assessment: boolean;
   isPlayed: boolean;
 };
@@ -129,6 +130,7 @@ export async function recommendNextLesson({
       return {
         lesson_id: assessments[0].lesson_id,
         chapter_id: undefined,
+        assignment_id: assessments[0].id,
         is_assessment: true,
         isPlayed: false,
       };
@@ -601,6 +603,7 @@ export const useLearningPath = (opts?: {
           lesson_id: l.lesson_id,
           chapter_id: l.chapter_id,
           skill_id: l.skill_id,
+          assignment_id: l.assignment_id,
           isPlayed: absIndex < activeAbsIndex,
           is_assessment: !!l.is_assessment,
         };

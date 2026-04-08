@@ -69,6 +69,7 @@ const ColoringBoard: React.FC = () => {
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
+  const [hasSavedArtwork, setHasSavedArtwork] = useState<boolean>(false);
 
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
   const toastText = t(
@@ -99,6 +100,7 @@ const ColoringBoard: React.FC = () => {
     shareText: 'Colored Sticker Book',
     backgroundColor: '#fffdee',
     onSaveSuccess: async (fileName: string) => {
+      setHasSavedArtwork(true);
       Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
         ...saveAnalyticsPayload,
         file_name: fileName,
@@ -262,6 +264,7 @@ const ColoringBoard: React.FC = () => {
 
       <PaintExitPopup
         isOpen={showExitConfirm}
+        variant={hasSavedArtwork ? 'post-save-exit' : 'default'}
         onClose={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_CLOSE_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,

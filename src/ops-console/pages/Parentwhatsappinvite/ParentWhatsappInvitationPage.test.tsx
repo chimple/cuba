@@ -48,6 +48,9 @@ jest.mock('i18next', () => ({
     ) {
       return key.replace('{{failureCount}}', String(options.failureCount));
     }
+    if (key.includes('{{limit}}') && options?.limit !== undefined) {
+      return key.replace('{{limit}}', String(options.limit));
+    }
     return key;
   },
 }));
@@ -130,6 +133,8 @@ const createLogicState = (overrides: Partial<any> = {}) => ({
   isLoadingReport: false,
   phoneInput: '',
   setPhoneInput: jest.fn(),
+  whatsappPhoneLimit: 1000,
+  handleWhatsappPhoneLimitChange: jest.fn(),
   templateName: '',
   setTemplateName: jest.fn(),
   templateLang: '',
@@ -218,6 +223,19 @@ describe('ParentWhatsappInvitationPage component', () => {
       screen.getByText('Enter phone numbers (one per line or comma-separated)'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Enter UDISE codes')).not.toBeInTheDocument();
+  });
+
+  it('renders phone number limit field in whatsapp mode and wires the change handler', () => {
+    const { state } = renderPage({
+      isWhatsappMode: true,
+      whatsappPhoneLimit: 1000,
+    });
+
+    expect(screen.getByText('Phone Number Limit')).toBeInTheDocument();
+    const limitInput = screen.getByDisplayValue('1000');
+    fireEvent.change(limitInput, { target: { value: '250' } });
+
+    expect(state.handleWhatsappPhoneLimitChange).toHaveBeenCalledWith('250');
   });
 
   // Covers MSG91 report mode rendering when report toggle is active.
@@ -1457,6 +1475,26 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     expect(result.current.manualFeedback?.text).toContain('1000');
   });
 
+  it('shows warning when input count exceeds configured phone limit', async () => {
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
+
+    act(() => {
+      result.current.setTemplateName('welcome_template');
+      result.current.setTemplateLang('en');
+      result.current.handleWhatsappPhoneLimitChange('2');
+      result.current.setPhoneInput('9876543210\n9876543211\n9876543212');
+    });
+
+    await act(async () => {
+      await result.current.handleSendWhatsapp();
+    });
+
+    expect(result.current.manualFeedback?.severity).toBe('warning');
+    expect(result.current.manualFeedback?.text).toContain('2');
+  });
+
   // Covers WhatsApp send warning when no valid phone numbers are present.
   it('shows warning when no valid Indian mobile numbers are provided', async () => {
     const { result } = renderHook(() =>
@@ -1600,6 +1638,26 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       hasWhatsappMediaUpload: true,
       hasWhatsappTemplateSend: true,
     });
+  });
+
+  // Covers alphanumeric UDISE normalization and lookup call.
+  it('accepts alphanumeric UDISE codes during analysis', async () => {
+    const api = createApiMock();
+    api.getParentWhatsappSchoolByUdise.mockResolvedValue({
+      id: 'school-1',
+      name: 'School 1',
+    });
+    api.getParentWhatsappClassesBySchoolId.mockResolvedValue([]);
+
+    await parentWhatsappInvitationService.processParentWhatsappUdiseCodes({
+      api: api as any,
+      udiseCodes: ['ab12-cd34ef5'],
+      limit: 10,
+    });
+
+    expect(api.getParentWhatsappSchoolByUdise).toHaveBeenCalledWith(
+      'AB12CD34EF5',
+    );
   });
 
   // Covers UDISE processing skip and success paths for analysis output.

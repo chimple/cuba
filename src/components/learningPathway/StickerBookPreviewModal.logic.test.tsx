@@ -1,5 +1,4 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { toBlob } from 'html-to-image';
 import {
   useStickerBookPreviewModalLogic,
   type StickerBookModalData,
@@ -21,16 +20,31 @@ jest.mock('i18next', () => ({
   t: (value: string) => value,
 }));
 
-jest.mock('html-to-image', () => ({
-  toBlob: jest.fn(),
-}));
-
 jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
-    sendContentToAndroidOrWebShare: jest.fn(),
   },
+}));
+
+const mockOpenSaveModal = jest.fn();
+const mockCloseSaveModal = jest.fn();
+const mockCloseSaveToast = jest.fn();
+const mockHandleSaveAndShare = jest.fn();
+
+let mockSaveHookState = {
+  isSaving: false,
+  showSaveModal: false,
+  showSaveToast: false,
+  savedSvgMarkup: null as string | null,
+  openSaveModal: mockOpenSaveModal,
+  closeSaveModal: mockCloseSaveModal,
+  closeSaveToast: mockCloseSaveToast,
+  handleSaveAndShare: mockHandleSaveAndShare,
+};
+
+jest.mock('../../hooks/useStickerBookSave', () => ({
+  useStickerBookSave: () => mockSaveHookState,
 }));
 
 jest.mock('../../utility/logger', () => ({
@@ -49,7 +63,7 @@ const buildData = (
   source: 'learning_pathway',
   stickerBookId: 'book-1',
   stickerBookTitle: 'Book 1',
-  stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
+  stickerBookSvgUrl: '/sticker-book.svg',
   collectedStickerIds: ['slot-collected'],
   nextStickerId: 'slot-next',
   nextStickerName: 'Rocket',
@@ -111,9 +125,20 @@ describe('useStickerBookPreviewModalLogic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
-    (toBlob as jest.Mock).mockResolvedValue(
-      new Blob(['png'], { type: 'image/png' }),
-    );
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    mockSaveHookState = {
+      isSaving: false,
+      showSaveModal: false,
+      showSaveToast: false,
+      savedSvgMarkup: null,
+      openSaveModal: mockOpenSaveModal,
+      closeSaveModal: mockCloseSaveModal,
+      closeSaveToast: mockCloseSaveToast,
+      handleSaveAndShare: mockHandleSaveAndShare,
+    };
   });
 
   afterEach(() => {
@@ -143,7 +168,7 @@ describe('useStickerBookPreviewModalLogic', () => {
   test('falls back to secondary SVG fetch when primary fails', async () => {
     global.fetch = jest.fn((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes('example.com/sticker-book.svg')) {
+      if (url.includes('/sticker-book.svg')) {
         return Promise.reject(new Error('network failed'));
       }
       return Promise.resolve({
@@ -199,28 +224,48 @@ describe('useStickerBookPreviewModalLogic', () => {
     await waitFor(() => expect(result.current.dragStickerPos).not.toBeNull());
 
     expect(result.current.dragStickerPos).toEqual({ x: 64, y: 112 });
-    expect(result.current.showPointerHint).toBe(true);
-    expect(result.current.showIntroConfetti).toBe(true);
+    expect(result.current.showDragSticker).toBe(false);
+    expect(result.current.showPointerHint).toBe(false);
+    expect(result.current.showIntroConfetti).toBe(false);
 
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_POPUP_EXPANDED,
       expect.any(Object),
     );
+
+    act(() => {
+      jest.advanceTimersByTime(900);
+    });
+
+    expect(result.current.showDragSticker).toBe(true);
+    expect(result.current.showPointerHint).toBe(false);
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_STICKER_SHOWN,
       expect.any(Object),
     );
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_DRAG_POINTER_SHOWN,
-      expect.any(Object),
-    );
+
+    act(() => {
+      jest.advanceTimersByTime(1100);
+    });
+
+    expect(result.current.showIntroConfetti).toBe(true);
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_DRAG_CONFETTI_SHOWN,
       expect.objectContaining({ stage: 'intro' }),
     );
 
     act(() => {
-      jest.advanceTimersByTime(3800);
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(result.current.showPointerHint).toBe(true);
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_DRAG_POINTER_SHOWN,
+      expect.any(Object),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(3550);
     });
 
     await waitFor(() => expect(result.current.showIntroConfetti).toBe(false));
@@ -236,7 +281,9 @@ describe('useStickerBookPreviewModalLogic', () => {
 
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
-        data: buildData(),
+        data: buildData({
+          totalStickerCount: 3,
+        }),
         variant: 'drag_collect',
         onClose,
         mode: 'preview',
@@ -293,12 +340,12 @@ describe('useStickerBookPreviewModalLogic', () => {
     expect(result.current.showDropConfetti).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(1900);
+      jest.advanceTimersByTime(2700);
     });
     expect(result.current.isFlyingOut).toBe(true);
 
     act(() => {
-      jest.advanceTimersByTime(550);
+      jest.advanceTimersByTime(900);
     });
 
     expect(onClose).toHaveBeenCalledWith('acknowledge_button');
@@ -334,15 +381,9 @@ describe('useStickerBookPreviewModalLogic', () => {
       await result.current.handleSave();
     });
 
-    expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledWith(
-      'STICKER BOOK',
-      'My Book!!',
-      undefined,
-      [expect.any(File)],
+    expect(mockOpenSaveModal).toHaveBeenCalledWith(
+      expect.stringContaining('<svg'),
     );
-    const fileArg = (Util.sendContentToAndroidOrWebShare as jest.Mock).mock
-      .calls[0][3][0] as File;
-    expect(fileArg.name).toBe('My_Book.png');
 
     act(() => {
       result.current.handlePaint();
@@ -355,13 +396,14 @@ describe('useStickerBookPreviewModalLogic', () => {
       }),
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
-      stickerBookId: 'book-1',
-      stickerBookSvgUrl: 'https://example.com/sticker-book.svg',
-      collectedStickerIds: ['slot-collected'],
+      svgRaw: expect.stringContaining('<svg'),
+      svgUrl: '/sticker-book.svg',
+      artworkTitle: 'My Book!!',
+      returnTo: '/',
     });
   });
 
-  test('closes on backdrop click only when target matches currentTarget', () => {
+  test('closes on backdrop click only when target matches currentTarget', async () => {
     const onClose = jest.fn();
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
@@ -371,6 +413,8 @@ describe('useStickerBookPreviewModalLogic', () => {
         mode: 'preview',
       }),
     );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     const target = document.createElement('div');
     const inner = document.createElement('span');

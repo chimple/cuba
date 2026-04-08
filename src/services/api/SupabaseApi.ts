@@ -1110,15 +1110,26 @@ export class SupabaseApi implements ServiceApi {
     class_id: string,
   ): Promise<boolean | void> {
     if (!this.supabase) return false;
-    const rpcRes = await this.supabase.rpc('delete_user_from_class', {
-      p_user_id: userId,
-      p_class_id: class_id,
-    });
 
-    if (!rpcRes || rpcRes.error) {
+    try {
+      const rpcRes = await this.supabase.rpc('delete_user_from_class', {
+        p_user_id: userId,
+        p_class_id: class_id,
+      });
+
+      if (!rpcRes || rpcRes.error) {
+        if (rpcRes?.error) {
+          logger.error('Error deleting user from class:', rpcRes.error);
+        }
+        return false;
+      }
+
+      await this.updateClassAndSchoolLastModified([class_id]);
+      return true;
+    } catch (error) {
+      logger.error('SupabaseApi ~ deleteUserFromClass ~ error:', error);
       return false;
     }
-    return true;
   }
 
   async createSchool(
@@ -3046,19 +3057,19 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
-  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
     name: string;
     whatsapp_bot_number?: string | null;
   } | null> {
     if (!this.supabase) return null;
-
+    const normalizedUdiseCode = udiseCode.trim();
     const { data, error } = await this.supabase
       .from(TABLES.School)
       .select('id, name, whatsapp_bot_number')
-      .eq('udise', udiseCode)
       .eq('is_deleted', false)
+      .eq('udise', normalizedUdiseCode)
       .limit(1)
       .maybeSingle();
 
@@ -3469,45 +3480,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
-
-    let excludeStudentIds: string[] = [];
-    let requestQuery = this.supabase
-      .from(TABLES.OpsRequests)
-      .select('requested_by')
-      .eq('school_id', schoolId)
-      .eq('request_type', RequestTypes.STUDENT)
-      .in('request_status', pendingStatuses)
-      .eq('is_deleted', false)
-      .not('requested_by', 'is', null);
-
-    if (classId) {
-      requestQuery = requestQuery.eq('class_id', classId);
-    }
-
-    const { data: studentRequestRows, error: studentRequestError } =
-      await requestQuery;
-
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
 
     let query = this.supabase
       .from('class_user')
@@ -3557,10 +3529,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('is_deleted', false)
       .eq('class.school_id', schoolId);
 
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
-
     if (classId) {
       query = query.eq('class_id', classId);
     }
@@ -3608,39 +3576,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const offset = (page - 1) * limit;
-    const pendingStatuses: EnumType<'ops_request_status'>[] = [
-      STATUS.REQUESTED,
-      STATUS.FLAGGED,
-    ];
-
-    const { data: studentRequestRows, error: studentRequestError } =
-      await this.supabase
-        .from(TABLES.OpsRequests)
-        .select('requested_by')
-        .eq('class_id', classId)
-        .eq('request_type', RequestTypes.STUDENT)
-        .in('request_status', pendingStatuses)
-        .eq('is_deleted', false)
-        .not('requested_by', 'is', null);
-
-    let excludeStudentIds: string[] = [];
-    if (studentRequestError) {
-      logger.error(
-        'Error fetching pending/flagged student request IDs by class:',
-        studentRequestError,
-      );
-    } else {
-      excludeStudentIds = Array.from(
-        new Set(
-          (studentRequestRows ?? [])
-            .map((requestRow) => requestRow.requested_by)
-            .filter(
-              (requestedBy): requestedBy is string =>
-                typeof requestedBy === 'string' && requestedBy.trim() !== '',
-            ),
-        ),
-      );
-    }
 
     let query = this.supabase
       .from('class_user')
@@ -3664,10 +3599,6 @@ export class SupabaseApi implements ServiceApi {
       .eq('role', 'student')
       .eq('is_deleted', false)
       .eq('class_id', classId); // Filter by classId
-
-    if (excludeStudentIds.length > 0) {
-      query = query.not('user_id', 'in', `(${excludeStudentIds.join(',')})`);
-    }
 
     const { data, error, count } = await query
       .order('user(name)', { ascending: true })
@@ -3772,6 +3703,9 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Supabase not initialized.');
     }
 
+    const AUTO_REJECT_REASON_TYPE = 'Verification Failed';
+    const AUTO_REJECT_REASON_DESCRIPTION =
+      'Auto-rejected because a duplicate student request was merged and approved.';
     const now = new Date().toISOString();
 
     // 1. Get destination student (record to keep)
@@ -3987,20 +3921,180 @@ export class SupabaseApi implements ServiceApi {
       );
     }
 
-    // 9. Update request
-    if (requestId && respondedBy) {
-      const { error: requestUpdateError } = await this.supabase
-        .from('ops_requests')
-        .update({
-          request_status: 'approved',
-          updated_at: now,
-          responded_by: respondedBy,
-        })
-        .eq('request_id', requestId);
+    // 9. Update related requests for merged profiles.
+    type MergeRequestStatusRow = {
+      id: string;
+      request_id: string | null;
+      requested_by: string | null;
+      school_id: string | null;
+      class_id: string | null;
+      request_type: EnumType<'ops_request_type'> | null;
+      created_at?: string | null;
+    };
+
+    let resolvedRespondedBy: string | null = respondedBy ?? null;
+    if (!resolvedRespondedBy) {
+      try {
+        const currentUser =
+          await ServiceConfig.getI().authHandler.getCurrentUser();
+        resolvedRespondedBy = currentUser?.id ?? null;
+      } catch (error) {
+        logger.warn(
+          'Unable to resolve current user while updating merge request statuses:',
+          error,
+        );
+      }
+    }
+
+    let approvedRequestRow: MergeRequestStatusRow | null = null;
+    if (requestId) {
+      const { data: updatedRequest, error: requestUpdateError } =
+        await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.APPROVED,
+            updated_at: now,
+            responded_by: resolvedRespondedBy,
+          })
+          .eq('request_id', requestId)
+          .eq('is_deleted', false)
+          .select(
+            'id, request_id, requested_by, school_id, class_id, request_type',
+          )
+          .maybeSingle();
 
       if (requestUpdateError) {
         throw new Error(
           `Failed to update merge request: ${requestUpdateError.message}`,
+        );
+      }
+      if (!updatedRequest) {
+        throw new Error('Merge request not found while updating approval.');
+      }
+      approvedRequestRow = updatedRequest as MergeRequestStatusRow;
+    } else {
+      const { data: pendingMergeRequests, error: pendingMergeRequestsError } =
+        await this.supabase
+          .from('ops_requests')
+          .select(
+            'id, request_id, requested_by, school_id, class_id, request_type, created_at',
+          )
+          .eq('is_deleted', false)
+          .eq('request_status', STATUS.REQUESTED)
+          .eq('request_type', RequestTypes.STUDENT)
+          .in('requested_by', [existingStudentId, newStudentId])
+          .order('created_at', { ascending: false });
+
+      if (pendingMergeRequestsError) {
+        throw new Error(
+          `Failed to fetch pending merge requests: ${pendingMergeRequestsError.message}`,
+        );
+      }
+
+      const pendingRows = (pendingMergeRequests ??
+        []) as MergeRequestStatusRow[];
+      const pendingRequestForKeptProfile =
+        pendingRows.find((row) => row.requested_by === newStudentId) ?? null;
+
+      if (pendingRequestForKeptProfile) {
+        const { error: approveKeptProfileRequestError } = await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.APPROVED,
+            responded_by: resolvedRespondedBy,
+            updated_at: now,
+          })
+          .eq('id', pendingRequestForKeptProfile.id)
+          .eq('is_deleted', false);
+
+        if (approveKeptProfileRequestError) {
+          throw new Error(
+            `Failed to approve kept profile request after merge: ${approveKeptProfileRequestError.message}`,
+          );
+        }
+
+        approvedRequestRow = pendingRequestForKeptProfile;
+      } else {
+        const { error: rejectMergedAwayRequestError } = await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.REJECTED,
+            rejected_reason_type: AUTO_REJECT_REASON_TYPE,
+            rejected_reason_description: AUTO_REJECT_REASON_DESCRIPTION,
+            responded_by: resolvedRespondedBy,
+            updated_at: now,
+          })
+          .eq('is_deleted', false)
+          .eq('request_status', STATUS.REQUESTED)
+          .eq('request_type', RequestTypes.STUDENT)
+          .eq('requested_by', existingStudentId);
+
+        if (rejectMergedAwayRequestError) {
+          throw new Error(
+            `Failed to reject merged-away profile requests: ${rejectMergedAwayRequestError.message}`,
+          );
+        }
+      }
+    }
+
+    if (
+      approvedRequestRow?.request_type === RequestTypes.STUDENT &&
+      approvedRequestRow?.requested_by
+    ) {
+      const duplicateRequestedByIds = Array.from(
+        new Set(
+          [approvedRequestRow.requested_by, existingStudentId, newStudentId]
+            .map((value) => value?.trim())
+            .filter(
+              (value): value is string =>
+                typeof value === 'string' && value.length > 0,
+            ),
+        ),
+      );
+
+      if (duplicateRequestedByIds.length === 0) {
+        throw new Error(
+          'Missing duplicate request user ids while rejecting sibling requests.',
+        );
+      }
+
+      let siblingRequestsUpdate = this.supabase
+        .from('ops_requests')
+        .update({
+          request_status: STATUS.REJECTED,
+          rejected_reason_type: AUTO_REJECT_REASON_TYPE,
+          rejected_reason_description: AUTO_REJECT_REASON_DESCRIPTION,
+          responded_by: resolvedRespondedBy,
+          updated_at: now,
+        })
+        .eq('is_deleted', false)
+        .eq('request_status', STATUS.REQUESTED)
+        .eq('request_type', RequestTypes.STUDENT)
+        .in('requested_by', duplicateRequestedByIds)
+        .neq('id', approvedRequestRow.id);
+
+      if (approvedRequestRow.school_id) {
+        siblingRequestsUpdate = siblingRequestsUpdate.eq(
+          'school_id',
+          approvedRequestRow.school_id,
+        );
+      } else {
+        siblingRequestsUpdate = siblingRequestsUpdate.is('school_id', null);
+      }
+
+      if (approvedRequestRow.class_id) {
+        siblingRequestsUpdate = siblingRequestsUpdate.eq(
+          'class_id',
+          approvedRequestRow.class_id,
+        );
+      } else {
+        siblingRequestsUpdate = siblingRequestsUpdate.is('class_id', null);
+      }
+
+      const { error: siblingRequestsError } = await siblingRequestsUpdate;
+      if (siblingRequestsError) {
+        throw new Error(
+          `Failed to reject duplicate pending requests after merge: ${siblingRequestsError.message}`,
         );
       }
     }
@@ -5438,7 +5532,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!data || data.length === 0) {
-        logger.error('No sticker found for the given user ID.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 
@@ -6596,6 +6690,30 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? undefined;
   }
+  async getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    if (!this.supabase) return { hasPlayed: false };
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select('created_at')
+      .eq('student_id', studentId)
+      .eq('class_id', classId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      logger.error('Error fetching student play status:', error);
+      return { hasPlayed: false };
+    }
+
+    if (!data || data.length === 0) return { hasPlayed: false };
+
+    return { hasPlayed: true, lastPlayedAt: data[0].created_at };
+  }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -6650,9 +6768,55 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
+      await this.updateClassAndSchoolLastModified([classId]);
+
       // No pushChanges needed
     } catch (error) {
       logger.error('SupabaseApi ~ deleteTeacher ~ error:', error);
+    }
+  }
+
+  async updateClassAndSchoolLastModified(
+    classIds: string[],
+    schoolId?: string,
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const uniqueClassIds = Array.from(
+      new Set(classIds.map((classId) => classId.trim()).filter(Boolean)),
+    );
+    if (uniqueClassIds.length === 0) return;
+
+    await Promise.all(
+      uniqueClassIds.map(async (classId) => {
+        await this.updateClassLastModified(classId);
+      }),
+    );
+
+    if (schoolId && schoolId.trim().length > 0) {
+      await this.updateSchoolLastModified(schoolId);
+      return;
+    }
+
+    const { data: classRows, error: classFetchError } = await this.supabase
+      .from(TABLES.Class)
+      .select('school_id')
+      .in('id', uniqueClassIds)
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (classFetchError) {
+      logger.error(
+        'Error fetching class rows for school updated_at sync:',
+        classFetchError,
+      );
+      return;
+    }
+
+    const resolvedSchoolId = classRows?.[0]?.school_id;
+    if (resolvedSchoolId) {
+      await this.updateSchoolLastModified(resolvedSchoolId);
     }
   }
 
@@ -9300,7 +9464,6 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getOpsRequests(
-    this: any,
     requestStatus: EnumType<'ops_request_status'>,
     page: number = 1,
     limit: number = 20,
@@ -9322,219 +9485,28 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         return { data: [], total: 0, totalPages: 0, page, limit };
 
-      const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = [
-        'created_at',
-        'updated_at',
-        'school(name)',
-      ] as const;
-      if (!allowedOrderByDb.includes(orderBy as any)) orderBy = 'created_at';
-      if (!['asc', 'desc'].includes(orderDir.toLowerCase())) orderDir = 'asc';
+      const { data, error } = await this.supabase.rpc('get_ops_requests', {
+        p_request_status: requestStatus,
+        p_page: page,
+        p_limit: limit,
+        p_order_by: orderBy,
+        p_order_dir: orderDir,
+        p_request_types: filters?.request_type?.length
+          ? filters.request_type
+          : null,
+        p_school_ids: filters?.school?.length ? filters.school : null,
+        p_search_term: searchTerm ?? null,
+      });
 
-      const trimmedSearchTerm = searchTerm?.trim();
-      const doTextSearch = !!trimmedSearchTerm && trimmedSearchTerm.length >= 3;
+      if (error) throw error;
 
-      let searchSchoolIds: string[] = [];
-      let searchUserIds: string[] = [];
-
-      if (doTextSearch) {
-        const [{ data: schoolData }, { data: userData }] = await Promise.all([
-          this.supabase
-            .from(TABLES.School)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-          this.supabase
-            .from(TABLES.User)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-        ]);
-        if (schoolData?.length)
-          searchSchoolIds = schoolData.map((s: any) => String(s.id));
-        if (userData?.length)
-          searchUserIds = userData.map((u: any) => String(u.id));
-      }
-
-      const applyFilters = (q: any) => {
-        q = q.eq('is_deleted', false);
-
-        const RS = Constants.public.Enums.ops_request_status;
-        const nowIso = new Date().toISOString();
-        const isComplexStatus =
-          requestStatus === RS[0] || requestStatus === RS[2];
-
-        if (isComplexStatus) {
-          if (requestStatus === RS[2]) {
-            q = q.or(
-              [
-                `request_status.eq.${requestStatus}`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.lte.${nowIso})`,
-              ].join(','),
-            );
-          } else {
-            q = q.or(
-              [
-                `and(request_status.eq.requested,request_type.neq.student)`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.gt.${nowIso})`,
-              ].join(','),
-            );
-          }
-        } else {
-          q = q.eq('request_status', requestStatus);
-        }
-
-        if (filters?.request_type?.length)
-          q = q.in('request_type', filters.request_type);
-
-        const schoolFilterIds: string[] | undefined = filters?.school?.filter(
-          (x: unknown): x is string => typeof x === 'string',
-        );
-        if (schoolFilterIds?.length) q = q.in('school_id', schoolFilterIds);
-
-        if (doTextSearch) {
-          const orConditions: string[] = [];
-
-          const allRequestTypes: string[] = Object.values(
-            RequestTypes,
-          ) as string[];
-          const st = trimmedSearchTerm!.toLowerCase();
-
-          const matchingRequestTypes = allRequestTypes.filter((rt) =>
-            rt.toLowerCase().includes(st),
-          );
-          if (matchingRequestTypes.length)
-            orConditions.push(
-              `request_type.in.(${matchingRequestTypes.join(',')})`,
-            );
-
-          if (trimmedSearchTerm.length) {
-            orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
-          }
-
-          if (searchSchoolIds.length)
-            orConditions.push(`school_id.in.(${searchSchoolIds.join(',')})`);
-          if (searchUserIds.length) {
-            orConditions.push(
-              `requested_by.in.(${searchUserIds.join(',')})`,
-              `responded_by.in.(${searchUserIds.join(',')})`,
-            );
-          }
-
-          if (orConditions.length) q = q.or(orConditions.join(','));
-          else return { q, earlyEmpty: true };
-        }
-
-        return { q, earlyEmpty: false };
+      return {
+        data: data?.data ?? [],
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 0,
+        page: data?.page ?? page,
+        limit: data?.limit ?? limit,
       };
-
-      let countQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select('id', { count: 'exact', head: true });
-      const { q: cq, earlyEmpty } = applyFilters(countQ);
-      if (earlyEmpty) return { data: [], total: 0, totalPages: 0, page, limit };
-      const { error: countErr, count: total } = await cq;
-      if (countErr) throw countErr;
-
-      let rowsQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select(
-          'id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type, school:school_id(*)',
-        );
-      const { q: rq } = applyFilters(rowsQ);
-
-      const { data: rows, error: rowsErr } = await rq
-        .order(orderBy, { ascending: orderDir === 'asc' })
-        .range(offset, offset + limit - 1);
-      if (rowsErr) throw rowsErr;
-
-      if (!rows?.length) {
-        const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-        return { data: [], total: total ?? 0, totalPages, page, limit };
-      }
-
-      const schoolIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.school_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const userIds: string[] = Array.from(
-        new Set(
-          rows
-            .flatMap((r: any) => [r.requested_by, r.responded_by])
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const classIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.class_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-
-      const [schoolsResp, usersResp, classesResp] = await Promise.all([
-        schoolIds.length
-          ? this.supabase
-              .from(TABLES.School)
-              .select('id, name, udise, group1,group2, group3, country')
-              .in('id', schoolIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        userIds.length
-          ? this.supabase
-              .from(TABLES.User)
-              .select('id, name, email, phone, gender')
-              .eq('is_deleted', false)
-              .in('id', userIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        classIds.length
-          ? this.supabase
-              .from(TABLES.Class)
-              .select('id, name, school_id')
-              .in('id', classIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-      ]);
-      if (schoolsResp.error) throw schoolsResp.error;
-      if (usersResp.error) throw usersResp.error;
-      if (classesResp.error) throw classesResp.error;
-
-      const schoolMap = new Map(
-        (schoolsResp.data || []).map((s: any): [string, any] => [
-          s.id as string,
-          s,
-        ]),
-      );
-      const userMap = new Map(
-        (usersResp.data || []).map((u: any): [string, any] => [
-          u.id as string,
-          u,
-        ]),
-      );
-      const classMap = new Map(
-        (classesResp.data || []).map((c: any): [string, any] => [
-          c.id as string,
-          c,
-        ]),
-      );
-
-      const data = rows.map((r: any) => ({
-        ...r,
-        school: r.school_id
-          ? (schoolMap.get(r.school_id) ?? r.school ?? null)
-          : null,
-        requestedBy: r.requested_by
-          ? (userMap.get(r.requested_by) ?? null)
-          : null,
-        respondedBy: r.responded_by
-          ? (userMap.get(r.responded_by) ?? null)
-          : null,
-        classInfo: r.class_id ? (classMap.get(r.class_id) ?? null) : null,
-      }));
-
-      const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-      return { data, total: total ?? 0, totalPages, page, limit };
     } catch (err) {
       logger.error('Error in getOpsRequests:', err);
       return { data: [], total: 0, totalPages: 0, page, limit };
@@ -10737,6 +10709,10 @@ export class SupabaseApi implements ServiceApi {
 
         classUsers.push(insertedRows?.[0]);
       }
+    }
+
+    if (classIds.length > 0) {
+      await this.updateClassAndSchoolLastModified(classIds, effectiveSchoolId);
     }
 
     return { user, schoolUser, classUsers, isNewUser };
@@ -12601,14 +12577,21 @@ export class SupabaseApi implements ServiceApi {
         is_deleted: false,
       });
 
+      await this.supabase.from(TABLES.UserSticker).insert({
+        id: uuidv4(),
+        user_id: userId,
+        sticker_id: stickerId,
+        created_at: new Date().toISOString(),
+        is_deleted: false,
+        is_seen: false,
+      });
+
       return;
     }
 
     let updated = progress.stickers_collected ?? [];
-
-    if (!updated.includes(stickerId)) {
-      updated.push(stickerId);
-    }
+    updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
+    const isNewSticker = updated.length !== progress.stickers_collected.length;
 
     let status = progress.status;
 
@@ -12625,6 +12608,17 @@ export class SupabaseApi implements ServiceApi {
       })
       .eq('id', progress.id)
       .or('is_deleted.is.false,is_deleted.is.null');
+
+    if (isNewSticker) {
+      await this.supabase.from(TABLES.UserSticker).insert({
+        id: uuidv4(),
+        user_id: userId,
+        sticker_id: stickerId,
+        created_at: new Date().toISOString(),
+        is_deleted: false,
+        is_seen: false,
+      });
+    }
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

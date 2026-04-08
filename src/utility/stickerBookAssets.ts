@@ -3,6 +3,7 @@ import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import logger from './logger';
 
 const STICKER_BOOK_CACHE_DIR = 'stickerBookAssetCache';
+const STICKER_BOOK_CACHE_PREFIX = 'sb_';
 const LOCAL_URI_PREFIXES = [
   'file://',
   'content://',
@@ -24,9 +25,21 @@ export function resolveStickerBookSvgUrl(url: string): string {
   return `/${url}`;
 }
 
+function hashStickerBookCacheKey(value: string): string {
+  // Keep cache file names short so Android filesystem limits do not break writes.
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
 function getStickerBookSvgCachePath(url: string): string {
   const normalizedUrl = resolveStickerBookSvgUrl(url);
-  const safeName = encodeURIComponent(normalizedUrl).replace(/%/g, '_');
+  const safeName = `${STICKER_BOOK_CACHE_PREFIX}${hashStickerBookCacheKey(
+    normalizedUrl,
+  )}`;
   return `${STICKER_BOOK_CACHE_DIR}/${safeName}.svg`;
 }
 
