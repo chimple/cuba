@@ -201,6 +201,13 @@ const LidoPlayer: FC = () => {
         group.wrongMoves += record.wrongMoves ?? 0;
         group.totalTimeSpent += record.timeSpent ?? 0;
       });
+      const learning_path: boolean = state?.learning_path ?? false;
+      const isReward: boolean = state?.reward ?? false;
+
+      if (isAssessmentLesson && isReward) {
+        sessionStorage.setItem(REWARD_LESSON, 'true');
+      }
+
       for (const [skillId, group] of skillAggregator.entries()) {
         const averageScore = group.totalScore / group.count;
         const activitiesScoresStr = group.resultsList.join(',');
@@ -286,9 +293,6 @@ const LidoPlayer: FC = () => {
           time_spent: totalLessonTime, // ✅ correct total
         });
       }
-
-      const learning_path: boolean = state?.learning_path ?? false;
-      const isReward: boolean = state?.reward ?? false;
 
       if (learning_path) {
         await Util.updateLearningPath(
