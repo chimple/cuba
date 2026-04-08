@@ -14,6 +14,7 @@ import StickerBookPreviewModal, {
 import { useHistory } from 'react-router';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
@@ -77,6 +78,8 @@ const PathwayStructure: React.FC = () => {
   const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
   const shouldRefreshPathAfterCompletionRef = React.useRef<boolean>(false);
   const isStickerCollectSpeakingRef = React.useRef<boolean>(false);
+  const hasCollectedStickerRef = React.useRef<boolean>(false);
+  const hasCheckedStickerReplayEligibilityRef = React.useRef<boolean>(false);
   const pendingCelebrationRiveContainerRef = React.useRef<Element | null>(null);
   const latestRiveContainerRef = React.useRef<Element | null>(null);
 
@@ -142,6 +145,10 @@ const PathwayStructure: React.FC = () => {
       }
 
       lastStickerCompletionOpenKeyRef.current = completionKey;
+      if (data.collectedStickerIds.length > 0) {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+      }
       setStickerCompletionData(data);
       setIsStickerCompletionOpen(true);
       Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED, {
@@ -161,6 +168,10 @@ const PathwayStructure: React.FC = () => {
       data: StickerBookModalData,
       trigger: 'sticker_click' | 'pathway_completion_auto',
     ) => {
+      if (data.collectedStickerIds.length > 0) {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+      }
       const rewardBoxRect = containerRef.current
         ?.querySelector('.PathwayStructure-end-reward-box--sticker')
         ?.getBoundingClientRect();
@@ -259,26 +270,61 @@ const PathwayStructure: React.FC = () => {
     (localAudioPath: string) => {
       if (!localAudioPath) return;
       setStickerCollectTiltActive(true);
-      void playMascotAudioFromLocalPath(
-        localAudioPath,
-        {
-          stateMachine: 'State Machine 4',
-          inputName: 'Number 3',
-          stateValue: 1,
-        },
-        { onPlaybackStop: () => setStickerCollectTiltActive(false) },
-      );
+      void (async () => {
+        const didStartPlayback = await playMascotAudioFromLocalPath(
+          localAudioPath,
+          {
+            stateMachine: 'State Machine 4',
+            inputName: 'Number 3',
+            stateValue: 1,
+          },
+          { onPlaybackStop: () => setStickerCollectTiltActive(false) },
+        );
+        if (!didStartPlayback) {
+          setStickerCollectTiltActive(false);
+        }
+      })();
     },
     [playMascotAudioFromLocalPath, setStickerCollectTiltActive],
   );
 
   // Plays the sticker-collect audio using the student's language.
   const playStickerAudio = React.useCallback(async () => {
+    if (!hasCollectedStickerRef.current) return;
     const studentLanguageCode = await AudioUtil.getAudioLanguageCode();
     const localAudioPath =
       getStickerCollectMascotAudioPath(studentLanguageCode);
     if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
   }, [playStickerCollectMascotAudio]);
+
+  const canReplayStickerAudio =
+    React.useCallback(async (): Promise<boolean> => {
+      if (hasCollectedStickerRef.current) return true;
+      if (hasCheckedStickerReplayEligibilityRef.current) return false;
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return false;
+      try {
+        const current =
+          await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+            student.id,
+          );
+        const hasAnySticker =
+          (current?.progress?.stickers_collected?.length ?? 0) > 0;
+        hasCollectedStickerRef.current = hasAnySticker;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+        return hasAnySticker;
+      } catch {
+        return false;
+      }
+    }, []);
+
+  const handleMascotReplayClick = React.useCallback(() => {
+    if (isStickerCollectSpeakingRef.current) return;
+    void (async () => {
+      if (!(await canReplayStickerAudio())) return;
+      playStickerAudio();
+    })();
+  }, [canReplayStickerAudio, playStickerAudio]);
 
   // Queue audio to play after the pathway reload swaps in a fresh rive container.
   const playStickerAudioAfterReload = React.useCallback(() => {
@@ -430,6 +476,8 @@ const PathwayStructure: React.FC = () => {
       setStickerPreviewLaunchMotion(null);
       setStickerPreviewFlyoutMotion(null);
       if (stickerPreviewTrigger === 'pathway_completion_auto') {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         sessionStorage.removeItem(REWARD_LEARNING_PATH);
         const deferredCompletionPayload = getDeferredStickerCompletionPayload();
@@ -583,6 +631,7 @@ const PathwayStructure: React.FC = () => {
             inputName={mascotProps.inputName}
             stateValue={mascotProps.stateValue}
             animationName={mascotProps.animationName}
+            onClick={handleMascotReplayClick}
             overlayRules={[
               { stateMachine: 'State Machine 4', inputName: 'Number 3' },
             ]}
