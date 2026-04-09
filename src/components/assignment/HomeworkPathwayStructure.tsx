@@ -19,6 +19,7 @@ import {
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   TableTypes,
+  IS_REWARD_FEATURE_ON,
 } from '../../common/constants';
 import { useReward } from '../../hooks/useReward';
 import { Util } from '../../utility/util';
@@ -98,7 +99,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   );
 
   const isRewardFeatureOn: boolean =
-    localStorage.getItem(HOMEWORK_PATHWAY) === 'true';
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
 
   const shouldAnimate = modalText === rewardText;
 
