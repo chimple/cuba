@@ -22,6 +22,7 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 500;
 
 let isManagerOrDirector = false;
 interface SchoolWithRole {
@@ -172,13 +173,20 @@ const ManageSchools: React.FC = () => {
       }
     };
 
-    void runSearch();
+    const debounceTimer = setTimeout(() => {
+      void runSearch();
+    }, SEARCH_DEBOUNCE_MS);
+
     return () => {
       cancelled = true;
+      clearTimeout(debounceTimer);
     };
   }, [searchQuery, isOpsUser, currentUser?.id, api]);
 
-  const schoolsToRender = searchedSchools ?? locallyFilteredSchools;
+  const schoolsToRender =
+    isOpsUser && !!searchQuery.trim()
+      ? (searchedSchools ?? allSchools)
+      : locallyFilteredSchools;
 
   return (
     <IonPage className="main-page">
