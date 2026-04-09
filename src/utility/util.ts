@@ -52,6 +52,7 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
+  IS_REWARD_FEATURE_ON,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
   STARS_COUNT,
@@ -2646,6 +2647,33 @@ export class Util {
       return todaysReward;
     } catch (error) {
       logger.error('Error fetching Chimple Rive config:', error);
+    }
+  }
+  public static async shouldGiveDailyReward(): Promise<boolean> {
+    try {
+      const isRewardFeatureOn =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+      if (!isRewardFeatureOn) return false;
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return false;
+
+      const dailyUserReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : {};
+      const todaysReward = await Util.fetchTodaysReward();
+      if (!todaysReward) return false;
+
+      const today = new Date().toISOString().split('T')[0];
+      const rewardDate = dailyUserReward.timestamp
+        ? new Date(dailyUserReward.timestamp).toISOString().split('T')[0]
+        : null;
+      const hasReceivedTodayReward =
+        todaysReward.id === dailyUserReward.reward_id && rewardDate === today;
+
+      return !hasReceivedTodayReward;
+    } catch (error) {
+      logger.error('Error checking daily reward eligibility:', error);
+      return false;
     }
   }
   public static async updateUserReward() {

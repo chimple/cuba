@@ -201,6 +201,16 @@ const LidoPlayer: FC = () => {
         group.wrongMoves += record.wrongMoves ?? 0;
         group.totalTimeSpent += record.timeSpent ?? 0;
       });
+      const learning_path: boolean = state?.learning_path ?? false;
+      const isReward: boolean = state?.reward ?? false;
+
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+
+      if (isAssessmentLesson && shouldGiveDailyReward) {
+        sessionStorage.setItem(REWARD_LESSON, 'true');
+      }
+
       for (const [skillId, group] of skillAggregator.entries()) {
         const averageScore = group.totalScore / group.count;
         const activitiesScoresStr = group.resultsList.join(',');
@@ -286,9 +296,6 @@ const LidoPlayer: FC = () => {
           time_spent: totalLessonTime, // ✅ correct total
         });
       }
-
-      const learning_path: boolean = state?.learning_path ?? false;
-      const isReward: boolean = state?.reward ?? false;
 
       if (learning_path) {
         await Util.updateLearningPath(
@@ -520,7 +527,9 @@ const LidoPlayer: FC = () => {
       avatarObj.weeklyPlayedLesson++;
       setGameResult(data);
       const isReward: boolean = state?.reward ?? false;
-      if (isReward === true) {
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+      if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
 
