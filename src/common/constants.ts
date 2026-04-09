@@ -1098,6 +1098,9 @@ export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
+export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
+  'pathway_reward_celebration_started';
+export const PATHWAY_REWARD_AUDIO_READY_EVENT = 'pathway_reward_audio_ready';
 export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';
