@@ -6,6 +6,7 @@ import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
+  COURSE_CHANGED,
   COCOS,
   LIVE_QUIZ,
   LIDO,
@@ -315,6 +316,12 @@ export function usePathwaySVG({
 
       if (overrideParsed && !shouldOpenCelebrationPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
 
       const rawCompletionPopup = sessionStorage.getItem(
