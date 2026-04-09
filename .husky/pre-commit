@@ -1,4 +1,2 @@
-lint-staged || {
-  echo "[Husky Hook] Linting or formatting failed! Please run 'npm run fix-staged' to automatically fix ONLY your staged files, then try committing again.";
-  exit 1;
-}
+#!/usr/bin/env sh
+lint-staged
