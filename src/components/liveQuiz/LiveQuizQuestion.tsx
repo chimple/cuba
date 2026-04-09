@@ -503,7 +503,9 @@ const LiveQuizQuestion: FC<{
         onTotalScoreChange(totalLessonScore);
       }
       const classData = schoolUtil.getCurrentClass();
-      if (isReward === true) {
+      const shouldGiveDailyReward =
+        isReward || (isLearningPathway && (await Util.shouldGiveDailyReward()));
+      if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
       await api.updateResult(

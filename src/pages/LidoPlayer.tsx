@@ -204,7 +204,10 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const isReward: boolean = state?.reward ?? false;
 
-      if (isAssessmentLesson && isReward) {
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+
+      if (isAssessmentLesson && shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
 
@@ -524,7 +527,9 @@ const LidoPlayer: FC = () => {
       avatarObj.weeklyPlayedLesson++;
       setGameResult(data);
       const isReward: boolean = state?.reward ?? false;
-      if (isReward === true) {
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+      if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
 
