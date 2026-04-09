@@ -1663,33 +1663,6 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getLessonWithLidoLessonId(
-    lessonId: string,
-  ): Promise<Lesson | null> {
-    try {
-      const lessonCollection = collection(this._db, CollectionIds.LESSON);
-      const queries = [
-        query(lessonCollection, where('lido_lesson_id', '==', lessonId)),
-        query(lessonCollection, where('lidoLessonId', '==', lessonId)),
-      ];
-
-      for (const lessonQuery of queries) {
-        const lessonQuerySnapshot = await this.getDocsFromOffline(lessonQuery);
-        if (!lessonQuerySnapshot.empty) {
-          const lessonDoc = lessonQuerySnapshot.docs[0];
-          const lesson = lessonDoc.data() as Lesson;
-          lesson.docId = lessonDoc.id;
-          return lesson;
-        }
-      }
-
-      return null;
-    } catch (error) {
-      logger.error('Error fetching lesson by lido lesson ID:', error);
-      return null;
-    }
-  }
-
   public async getAllCourses(): Promise<TableTypes<'course'>[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(

@@ -404,19 +404,7 @@ export class Util {
               // 🔥 GET DB VERSION ONCE
               let dbVersion = 1;
               try {
-                let versionSource = 'cocos_lesson_id';
-                let lesson = await api.getLessonWithLidoLessonId(lessonId);
-
-                if (!lesson) {
-                  lesson = await api.getLessonWithCocosLessonId(lessonId);
-                } else {
-                  versionSource = 'lido_lesson_id';
-                }
-
-                logger.warn(
-                  `[Version] data from db for lesson ${lessonId} using ${versionSource}`,
-                  lesson,
-                );
+                const lesson = await api.getLessonWithCocosLessonId(lessonId);
                 logger.warn(
                   `[Version] Fetched DB version for ${lessonId}:`,
                   lesson?.version,
@@ -899,9 +887,7 @@ export class Util {
     if (!lessonIdsForChapter) {
       const api = ServiceConfig.getI().apiHandler;
       const storedLessonDoc = await api.getLessonsForChapter(chapterId);
-      lessonIdsForChapter = storedLessonDoc
-        .map((lesson) => lesson.lido_lesson_id || lesson.cocos_lesson_id)
-        .filter((lessonId): lessonId is string => Boolean(lessonId));
+      lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
       chapterLessonIdMap[chapterId] = lessonIdsForChapter;
       localStorage.setItem(
         CHAPTER_ID_LESSON_ID_MAP,

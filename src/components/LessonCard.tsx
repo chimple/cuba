@@ -67,7 +67,6 @@ const LessonCard: React.FC<{
   assignment,
   lessonCourseMap,
 }) => {
-  const downloadLessonId = lesson.lido_lesson_id || lesson.cocos_lesson_id;
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<TableTypes<'subject'>>();
@@ -361,10 +360,10 @@ const LessonCard: React.FC<{
             </div>
           </div>
           <div className="lesson-download-button-container">
-            {downloadLessonId && (
+            {lesson.cocos_lesson_id && (
               <DownloadLesson
                 aria-label="Download-button"
-                lessonId={downloadLessonId}
+                lessonId={lesson.cocos_lesson_id}
                 downloadButtonLoading={downloadButtonLoading}
                 onDownloadOrDelete={onDownloadOrDelete}
               />

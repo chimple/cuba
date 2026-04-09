@@ -477,14 +477,6 @@ export interface ServiceApi {
   ): Promise<TableTypes<'lesson'> | null>;
 
   /**
-   * Gives Lesson for a given Lido Lesson Id
-   * @param lessonId - Lido Lesson Id
-   */
-  getLessonWithLidoLessonId(
-    lessonId: string,
-  ): Promise<TableTypes<'lesson'> | null>;
-
-  /**
    * Gives List of subjects for given a student for Home user
    * @param {User} student - Student User object
    * @returns {Course[]} Array of `Course` objects
