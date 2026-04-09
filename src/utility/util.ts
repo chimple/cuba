@@ -3273,9 +3273,10 @@ export class Util {
         return rewardLearningPath;
       }
 
-      const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      const sessionData = localStorage.getItem(latestLearningPathKey);
 
-      // If nothing in session storage, return DB value
+      // If nothing in local storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }

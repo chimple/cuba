@@ -1382,7 +1382,7 @@ export enum RESULT_STATUS {
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
 }
-// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
+// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
 export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
