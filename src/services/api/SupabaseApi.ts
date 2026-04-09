@@ -78,6 +78,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -3344,24 +3345,11 @@ export class SupabaseApi implements ServiceApi {
       uniqueBySchool.set(item.school.id, item);
     }
 
-    const normalizedQuery = query.toLowerCase();
-    return Array.from(uniqueBySchool.values()).sort((a, b) => {
-      const nameA = (a.school.name ?? '').toLowerCase();
-      const nameB = (b.school.name ?? '').toLowerCase();
-
-      const score = (name: string) => {
-        if (name === normalizedQuery) return 0;
-        if (name.startsWith(normalizedQuery)) return 1;
-        if (name.includes(normalizedQuery)) return 2;
-        return 3;
-      };
-
-      const scoreA = score(nameA);
-      const scoreB = score(nameB);
-
-      if (scoreA !== scoreB) return scoreA - scoreB;
-      return nameA.localeCompare(nameB);
-    });
+    return sortBySchoolSearchRelevance(
+      Array.from(uniqueBySchool.values()),
+      query,
+      (item) => item.school.name ?? '',
+    );
   }
 
   public set currentMode(value: MODES) {

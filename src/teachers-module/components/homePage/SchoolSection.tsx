@@ -7,6 +7,7 @@ import AutocompleteDropdown from '../SearchableDropdown';
 import { TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
+import { sortBySchoolSearchRelevance } from '../../../utility/schoolSearchUtil';
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -60,25 +61,11 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         role: role,
       }));
 
-      const normalizedQuery = query.trim().toLowerCase();
-      if (!normalizedQuery) return mappedResults;
-
-      return mappedResults.sort((a, b) => {
-        const nameA = a.name.toLowerCase();
-        const nameB = b.name.toLowerCase();
-
-        const score = (name: string) => {
-          if (name === normalizedQuery) return 0;
-          if (name.startsWith(normalizedQuery)) return 1;
-          if (name.includes(normalizedQuery)) return 2;
-          return 3;
-        };
-
-        const scoreA = score(nameA);
-        const scoreB = score(nameB);
-        if (scoreA !== scoreB) return scoreA - scoreB;
-        return nameA.localeCompare(nameB);
-      });
+      return sortBySchoolSearchRelevance(
+        mappedResults,
+        query,
+        (item) => item.name,
+      );
     } catch (err) {
       logger.error('Error fetching schools:', err);
       return [];

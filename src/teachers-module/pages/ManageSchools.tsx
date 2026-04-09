@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   IonPage,
   IonContent,
@@ -129,52 +129,55 @@ const ManageSchools: React.FC = () => {
     init();
   }, []);
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    const runSearch = async () => {
+  const runSearch = useCallback(
+    async (isCancelled: () => boolean) => {
       const query = searchQuery.trim();
       if (!query || !isOpsUser) {
         const filtered = allSchools.filter((item) =>
           item.school.name.toLowerCase().includes(searchQuery.toLowerCase()),
         );
-        if (!isCancelled) {
+        if (!isCancelled()) {
           setFilteredSchools(filtered);
           setIsSearchLoading(false);
         }
         return;
       }
 
-      if (!currentUser?.id) return;
+      if (!currentUser?.id || !api) return;
 
-      if (!isCancelled) {
+      if (!isCancelled()) {
         setIsSearchLoading(true);
       }
+
       try {
         const searchedSchools = await api.getSchoolsForUserBySearchTerm(
           currentUser.id,
           query,
         );
-        if (!isCancelled) {
+        if (!isCancelled()) {
           setFilteredSchools(searchedSchools);
         }
       } catch (error) {
         logger.error('Error searching schools from Supabase:', error);
-        if (!isCancelled) {
+        if (!isCancelled()) {
           setFilteredSchools([]);
         }
       } finally {
-        if (!isCancelled) {
+        if (!isCancelled()) {
           setIsSearchLoading(false);
         }
       }
-    };
+    },
+    [allSchools, searchQuery, isOpsUser, currentUser?.id, api],
+  );
 
-    runSearch();
+  useEffect(() => {
+    let cancelled = false;
+    void runSearch(() => cancelled);
     return () => {
-      isCancelled = true;
+      cancelled = true;
     };
-  }, [allSchools, searchQuery, currentUser?.id, isOpsUser]);
+  }, [runSearch]);
 
   return (
     <IonPage className="main-page">
