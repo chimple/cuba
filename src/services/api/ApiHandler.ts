@@ -650,6 +650,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLessonWithCocosLessonId(lessonId);
   }
 
+  public async getLessonWithLidoLessonId(
+    lessonId: string,
+  ): Promise<TableTypes<'lesson'> | null> {
+    return await this.s.getLessonWithLidoLessonId(lessonId);
+  }
+
   public async getCoursesForClassStudent(
     classId: string,
   ): Promise<TableTypes<'course'>[]> {

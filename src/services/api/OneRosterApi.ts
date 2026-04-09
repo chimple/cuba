@@ -65,6 +65,11 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<'lesson'> | null> {
     throw new Error('Method not implemented.');
   }
+  getLessonWithLidoLessonId(
+    lessonId: string,
+  ): Promise<TableTypes<'lesson'> | null> {
+    throw new Error('Method not implemented.');
+  }
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error('Method not implemented.');
   }

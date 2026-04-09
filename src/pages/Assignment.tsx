@@ -278,7 +278,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
     const allLessonIdPresent = lessons.every((lesson) =>
-      downloadedLessonIds.includes(lesson.cocos_lesson_id),
+      downloadedLessonIds.includes(
+        lesson.lido_lesson_id || lesson.cocos_lesson_id,
+      ),
     );
     setShowDownloadHomeworkButton(!allLessonIdPresent);
     setDownloadButtonLoading(
@@ -294,7 +296,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
-    const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
+    const allLessonIds = lessons.map(
+      (lesson) => lesson.lido_lesson_id || lesson.cocos_lesson_id,
+    );
     try {
       const storedLessonIds = Util.getStoredLessonIds();
       const filteredLessonIds: string[] = allLessonIds.filter(

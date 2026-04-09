@@ -1880,6 +1880,29 @@ export class SupabaseApi implements ServiceApi {
 
     return data?.[0] ?? null;
   }
+
+  async getLessonWithLidoLessonId(
+    lessonId: string,
+  ): Promise<TableTypes<'lesson'> | null> {
+    if (!this.supabase) return null;
+    const { data, error } = await this.supabase
+      .from('lesson')
+      .select('*')
+      .eq('lido_lesson_id', lessonId)
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(1);
+
+    if (error) {
+      logger.error('Error fetching lesson:', error);
+      throw new Error(
+        `Failed to fetch lesson with lido_lesson_id ${lessonId}: ${error.message}`,
+      );
+    }
+
+    return data?.[0] ?? null;
+  }
   async getCoursesForParentsStudent(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {

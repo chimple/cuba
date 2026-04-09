@@ -135,10 +135,10 @@ const DownloadLesson: React.FC<{
       );
       Util.storeLessonIdToLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       for (const e of lessons) {
-        if (e.cocos_lesson_id)
-          if (!storedLessonID.includes(e.cocos_lesson_id)) {
-            storeLessonID.push(e.cocos_lesson_id);
-          }
+        const bundleLessonId = e.lido_lesson_id || e.cocos_lesson_id;
+        if (bundleLessonId && !storedLessonID.includes(bundleLessonId)) {
+          storeLessonID.push(bundleLessonId);
+        }
       }
       await Util.downloadZipBundle(storeLessonID, chapter.id);
     } else {
@@ -163,8 +163,9 @@ const DownloadLesson: React.FC<{
       );
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
-        if (e.cocos_lesson_id) {
-          storeLessonID.push(e.cocos_lesson_id);
+        const bundleLessonId = e.lido_lesson_id || e.cocos_lesson_id;
+        if (bundleLessonId) {
+          storeLessonID.push(bundleLessonId);
           setShowIcon(true);
         }
         if (onDownloadOrDelete) onDownloadOrDelete();
