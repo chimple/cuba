@@ -202,10 +202,13 @@ const LidoPlayer: FC = () => {
         group.totalTimeSpent += record.timeSpent ?? 0;
       });
       const learning_path: boolean = state?.learning_path ?? false;
+      const is_homework: boolean = state?.isHomework ?? false;
       const isReward: boolean = state?.reward ?? false;
 
       const shouldGiveDailyReward =
-        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+        isReward ||
+        ((learning_path || is_homework) &&
+          (await Util.shouldGiveDailyReward()));
 
       if (isAssessmentLesson && shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
@@ -528,7 +531,9 @@ const LidoPlayer: FC = () => {
       setGameResult(data);
       const isReward: boolean = state?.reward ?? false;
       const shouldGiveDailyReward =
-        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+        isReward ||
+        ((learning_path || is_homework) &&
+          (await Util.shouldGiveDailyReward()));
       if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }

@@ -38,6 +38,7 @@ const LiveQuizQuestion: FC<{
   quizData?: any;
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
+  isHomework?: boolean;
   isReward?: boolean;
 }> = ({
   roomDoc,
@@ -53,6 +54,7 @@ const LiveQuizQuestion: FC<{
   quizData,
   onTotalScoreChange,
   isLearningPathway,
+  isHomework = false,
   isReward = false,
 }) => {
   const quizPathBase =
@@ -504,7 +506,9 @@ const LiveQuizQuestion: FC<{
       }
       const classData = schoolUtil.getCurrentClass();
       const shouldGiveDailyReward =
-        isReward || (isLearningPathway && (await Util.shouldGiveDailyReward()));
+        isReward ||
+        ((isLearningPathway || isHomework) &&
+          (await Util.shouldGiveDailyReward()));
       if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
