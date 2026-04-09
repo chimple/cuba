@@ -1081,6 +1081,7 @@ export const ALL_SUBJECT = {
 };
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
+export const HOME_HEADER_SPECIALS_ENABLED = 'home-header-specials-enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
 export const STICKER_BOOK_CELEBRATION_POPUP_ENABLED =
   'sticker-book-celebration-popup-enabled';

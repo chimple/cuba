@@ -363,8 +363,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         grade_id: student?.grade_id ?? null,
       };
 
-      // Set attributes BEFORE evaluating
-      growthbook.setAttributes(attrs);
+      // Preserve existing targeting attributes (e.g. school_ids, parent_id)
+      // while updating student-scoped fields used here.
+      growthbook.setAttributes({
+        ...growthbook.getAttributes(),
+        ...attrs,
+      });
 
       // Synchronously evaluate feature
       const val = (growthbook.getFeatureValue?.(
