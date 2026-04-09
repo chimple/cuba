@@ -6,6 +6,7 @@ import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
+  COURSE_CHANGED,
   COCOS,
   LIVE_QUIZ,
   LIDO,
@@ -21,6 +22,8 @@ import {
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
@@ -65,6 +68,8 @@ const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
+const CHIMPLE_MOVE_DURATION_MS = 2000;
+const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -315,6 +320,12 @@ export function usePathwaySVG({
 
       if (overrideParsed && !shouldOpenCelebrationPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
 
       const rawCompletionPopup = sessionStorage.getItem(
@@ -1304,6 +1315,11 @@ export function usePathwaySVG({
 
       // Step 1: set celebration state (we emulate via global mascot state)
       await invokeMascotCelebration(rewardRecord.state_number_input || 1);
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: { rewardId: newRewardId },
+        }),
+      );
 
       await delay(500);
       rewardForeignObject.style.display = 'none';
@@ -1315,7 +1331,7 @@ export function usePathwaySVG({
       await delay(500);
 
       // Step 3: animate mascot movement
-      animateChimpleMovement(
+      await animateChimpleMovement(
         chimple,
         lessons,
         startIndex,
@@ -1323,6 +1339,11 @@ export function usePathwaySVG({
         xValues,
         startPoint,
         pathEndIndex,
+      );
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: { rewardId: newRewardId },
+        }),
       );
 
       await Util.updateUserReward();
@@ -1346,22 +1367,22 @@ export function usePathwaySVG({
     xValues: number[],
     startPoint: DOMPoint,
     pathEndIndex: number,
-  ) {
-    if (!chimple) return;
+  ): Promise<void> {
+    if (!chimple) return Promise.resolve();
 
     if (currentIndex > pathEndIndex) {
       sessionStorage.removeItem(REWARD_LEARNING_PATH);
       setIsRewardPathLoaded(true);
-      return;
+      return Promise.resolve();
     }
 
     const currentLessonIndex = lessons.findIndex(
       (_: any, idx: number) => startIndex + idx === currentIndex,
     );
-    if (currentLessonIndex < 0) return;
+    if (currentLessonIndex < 0) return Promise.resolve();
 
     const previousLessonIndex = currentLessonIndex - 1;
-    if (previousLessonIndex < 0) return;
+    if (previousLessonIndex < 0) return Promise.resolve();
 
     const fromX = xValues[previousLessonIndex] ?? 0;
     const toX = xValues[currentLessonIndex] ?? 0;
@@ -1380,10 +1401,30 @@ export function usePathwaySVG({
     chimple.style.transform = `translate(${fromTranslateX}px, 0px)`;
     void chimple.getBoundingClientRect();
 
-    requestAnimationFrame(() => {
-      chimple.style.transition =
-        'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
-      chimple.style.transform = 'translate(0px, 0px)';
+    return new Promise((resolve) => {
+      let hasResolved = false;
+      const finishMovement = () => {
+        if (hasResolved) return;
+        hasResolved = true;
+        window.clearTimeout(fallbackTimer);
+        chimple.removeEventListener('transitionend', handleTransitionEnd);
+        resolve();
+      };
+      const handleTransitionEnd = (event: TransitionEvent) => {
+        if (event.target === chimple && event.propertyName === 'transform') {
+          finishMovement();
+        }
+      };
+      const fallbackTimer = window.setTimeout(
+        finishMovement,
+        CHIMPLE_MOVE_DURATION_MS + CHIMPLE_MOVE_FALLBACK_BUFFER_MS,
+      );
+
+      chimple.addEventListener('transitionend', handleTransitionEnd);
+      requestAnimationFrame(() => {
+        chimple.style.transition = `transform ${CHIMPLE_MOVE_DURATION_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+        chimple.style.transform = 'translate(0px, 0px)';
+      });
     });
   }
 

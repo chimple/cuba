@@ -1780,6 +1780,9 @@ export class SqliteApi implements ServiceApi {
         `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ? AND parent_id = ? AND is_deleted = 0`,
         [timestamp, studentId, localParentId],
       );
+
+      // Clear only this student's cached latest pathway snapshot.
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${studentId}`);
     } catch (error) {
       logger.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
@@ -6124,8 +6127,9 @@ order by
         learningPath,
         updated_at: new Date(Date.now() + 10000).toISOString(),
       };
-      sessionStorage.setItem(
-        LATEST_LEARNING_PATH,
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      localStorage.setItem(
+        latestLearningPathKey,
         JSON.stringify(latestPathToSave),
       );
     } catch (error) {

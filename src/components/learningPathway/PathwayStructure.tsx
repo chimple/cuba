@@ -21,6 +21,8 @@ import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   COURSE_CHANGED,
   EVENTS,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
@@ -37,6 +39,7 @@ const STICKER_REWARD_BOX_CLOSE_CLASS =
   'PathwayStructure-end-reward-box--sticker-close-anim';
 const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
+const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 
 const getStickerCollectMascotAudioPath = (languageCode?: string) => {
   const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
@@ -82,6 +85,13 @@ const PathwayStructure: React.FC = () => {
   const hasCheckedStickerReplayEligibilityRef = React.useRef<boolean>(false);
   const pendingCelebrationRiveContainerRef = React.useRef<Element | null>(null);
   const latestRiveContainerRef = React.useRef<Element | null>(null);
+  const rewardAudioSequenceRef = React.useRef({
+    rewardId: null as string | null,
+    crowdComplete: false,
+    rewardReady: false,
+    suppressed: false,
+    token: 0,
+  });
 
   const {
     // refs
@@ -130,6 +140,14 @@ const PathwayStructure: React.FC = () => {
     isRewardPathLoaded,
     checkAndUpdateReward,
   } = usePathwayData();
+
+  const playMascotAudioFromLocalPathRef = React.useRef(
+    playMascotAudioFromLocalPath,
+  );
+
+  React.useEffect(() => {
+    playMascotAudioFromLocalPathRef.current = playMascotAudioFromLocalPath;
+  }, [playMascotAudioFromLocalPath]);
 
   const openStickerCompletion = React.useCallback(
     (data: StickerBookModalData) => {
@@ -276,7 +294,6 @@ const PathwayStructure: React.FC = () => {
           {
             stateMachine: 'State Machine 4',
             inputName: 'Number 3',
-            stateValue: 1,
           },
           { onPlaybackStop: () => setStickerCollectTiltActive(false) },
         );
@@ -287,6 +304,53 @@ const PathwayStructure: React.FC = () => {
     },
     [playMascotAudioFromLocalPath, setStickerCollectTiltActive],
   );
+
+  const resetRewardAudioSequence = React.useCallback(() => {
+    rewardAudioSequenceRef.current = {
+      ...rewardAudioSequenceRef.current,
+      rewardId: null,
+      crowdComplete: false,
+      rewardReady: false,
+      suppressed: false,
+    };
+  }, []);
+
+  const shouldSuppressRewardAudioForStickerBook = React.useCallback(() => {
+    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+    const currentStudentId = Util.getCurrentStudent()?.id;
+    if (!raw || !currentStudentId) return false;
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Boolean(
+        parsed?.studentId === currentStudentId && parsed?.awardedStickerId,
+      );
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const playRewardCollectMascotAudio = React.useCallback(
+    (localAudioPath: string) => {
+      if (!localAudioPath) return;
+
+      void playMascotAudioFromLocalPathRef.current(localAudioPath, {
+        stateMachine: 'State Machine 4',
+        inputName: 'Number 3',
+      });
+    },
+    [],
+  );
+
+  const playRewardAudio = React.useCallback(async () => {
+    const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+      'dailyReward',
+      'reward',
+    );
+    if (localAudioPath) {
+      playRewardCollectMascotAudio(localAudioPath);
+    }
+  }, [playRewardCollectMascotAudio]);
 
   // Plays the sticker-collect audio using the student's language.
   const playStickerAudio = React.useCallback(async () => {
@@ -338,6 +402,14 @@ const PathwayStructure: React.FC = () => {
     [setStickerCollectTiltActive],
   );
 
+  React.useEffect(
+    () => () => {
+      rewardAudioSequenceRef.current.token += 1;
+      resetRewardAudioSequence();
+    },
+    [resetRewardAudioSequence],
+  );
+
   // Trigger audio after pathway reloads with a new riveContainer
   React.useEffect(() => {
     latestRiveContainerRef.current = riveContainer;
@@ -356,6 +428,110 @@ const PathwayStructure: React.FC = () => {
 
     return () => window.cancelAnimationFrame(frameId);
   }, [riveContainer, playStickerAudio, shouldCelebrateAfterPathwayReload]);
+
+  React.useEffect(() => {
+    const playRewardAudioIfReady = (token: number, rewardId: string) => {
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (
+        rewardAudioSequence.token !== token ||
+        rewardAudioSequence.rewardId !== rewardId ||
+        rewardAudioSequence.suppressed
+      ) {
+        return;
+      }
+
+      resetRewardAudioSequence();
+      void playRewardAudio();
+    };
+
+    const handleRewardCelebrationStarted = (event: Event) => {
+      const customEvent = event as CustomEvent<{ rewardId?: string }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+
+      const nextToken = rewardAudioSequenceRef.current.token + 1;
+      const shouldSuppress = shouldSuppressRewardAudioForStickerBook();
+
+      rewardAudioSequenceRef.current = {
+        rewardId,
+        crowdComplete: false,
+        rewardReady: false,
+        suppressed: shouldSuppress,
+        token: nextToken,
+      };
+
+      if (shouldSuppress) {
+        return;
+      }
+
+      void AudioUtil.playAudioOrTts({
+        audioUrl: CROWD_CHEER_AUDIO_URL,
+        onComplete: () => {
+          const rewardAudioSequence = rewardAudioSequenceRef.current;
+          if (
+            rewardAudioSequence.token !== nextToken ||
+            rewardAudioSequence.rewardId !== rewardId ||
+            rewardAudioSequence.suppressed
+          ) {
+            return;
+          }
+
+          rewardAudioSequence.crowdComplete = true;
+          if (rewardAudioSequence.rewardReady) {
+            playRewardAudioIfReady(nextToken, rewardId);
+          }
+        },
+      });
+    };
+
+    const handleRewardAudioReady = (event: Event) => {
+      const customEvent = event as CustomEvent<{ rewardId?: string }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (rewardAudioSequence.rewardId !== rewardId) return;
+
+      if (
+        rewardAudioSequence.suppressed ||
+        shouldSuppressRewardAudioForStickerBook()
+      ) {
+        resetRewardAudioSequence();
+        return;
+      }
+
+      if (rewardAudioSequence.crowdComplete) {
+        playRewardAudioIfReady(rewardAudioSequence.token, rewardId);
+        return;
+      }
+
+      rewardAudioSequence.rewardReady = true;
+    };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted as EventListener,
+    );
+    window.addEventListener(
+      PATHWAY_REWARD_AUDIO_READY_EVENT,
+      handleRewardAudioReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted as EventListener,
+      );
+      window.removeEventListener(
+        PATHWAY_REWARD_AUDIO_READY_EVENT,
+        handleRewardAudioReady as EventListener,
+      );
+    };
+  }, [
+    playRewardAudio,
+    resetRewardAudioSequence,
+    shouldSuppressRewardAudioForStickerBook,
+  ]);
 
   // Keep tilt in sync with reward box when mascot is speaking
   React.useEffect(() => {
