@@ -38,7 +38,6 @@ const LiveQuizGame: FC = () => {
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
   // Check if the game was played from `learning_pathway`
   const learning_path: boolean = state?.learning_path ?? false;
-  const is_homework: boolean = state?.isHomework ?? false;
   const isReward: boolean = state?.reward ?? false;
   const growthbook = useGrowthBook();
 
@@ -157,7 +156,6 @@ const LiveQuizGame: FC = () => {
                 }}
                 onQuizEnd={handleQuizEnd}
                 isLearningPathway={learning_path}
-                isHomework={is_homework}
                 isReward={isReward}
               />
             )}
