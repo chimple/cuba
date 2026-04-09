@@ -78,6 +78,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -3308,6 +3309,45 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return finalData;
+  }
+
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const pageSize = 100;
+    let page = 1;
+    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
+
+    while (true) {
+      const pageResults = await this.getSchoolsForUser(userId, {
+        page,
+        page_size: pageSize,
+        search: query,
+      });
+
+      allResults.push(...pageResults);
+
+      if (pageResults.length < pageSize) break;
+      page += 1;
+    }
+
+    const uniqueBySchool = new Map<
+      string,
+      { school: TableTypes<'school'>; role: RoleType }
+    >();
+    for (const item of allResults) {
+      uniqueBySchool.set(item.school.id, item);
+    }
+
+    return sortBySchoolSearchRelevance(
+      Array.from(uniqueBySchool.values()),
+      query,
+      (item) => item.school.name ?? '',
+    );
   }
 
   public set currentMode(value: MODES) {
