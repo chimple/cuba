@@ -144,15 +144,8 @@ const LiveQuizQuestion: FC<{
     }
   };
 
-  const downloadQuiz = async (lessonToDownload?: TableTypes<'lesson'>) => {
-    const lessonDoc =
-      lessonToDownload ??
-      (lessonId ? await api.getLessonWithCocosLessonId(lessonId) : null);
-    if (!lessonDoc) {
-      logger.warn('[LiveQuiz] Lesson data not found for bundle download');
-      return false;
-    }
-    const dow = await Util.downloadZipBundle([lessonDoc]);
+  const downloadQuiz = async (lessonToDownload: TableTypes<'lesson'>) => {
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
     return dow;
   };
 
@@ -375,12 +368,14 @@ const LiveQuizQuestion: FC<{
 
       configFile = await readLocalConfig(configPath);
 
-      if (!configFile && lessonId) {
+      if (!configFile && lessonId && lesson) {
         logger.warn('[LiveQuiz] Config not found locally, downloading...');
         await downloadQuiz(lesson);
 
         // Retry reading after download
         configFile = await readLocalConfig(configPath);
+      } else if (!configFile && lessonId) {
+        logger.warn('[LiveQuiz] Lesson data required for bundle download');
       }
     }
 
