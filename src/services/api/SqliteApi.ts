@@ -577,6 +577,7 @@ export class SqliteApi implements ServiceApi {
         isInitialFetch,
       );
     }
+
     const lastPulled = new Date().toISOString();
     const DEFAULT_DB_BATCH_SIZE = 100;
     const SAFE_USER_BATCH_SIZE = 250;
@@ -676,7 +677,9 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    for (const tableName of tablesWritten) {
+    // Persist last_pulled for every requested table to avoid default fallback
+    // timestamp on subsequent RPC payload construction.
+    for (const tableName of orderedTableNames) {
       await this.executeQuery(
         `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         [tableName, lastPulled],
