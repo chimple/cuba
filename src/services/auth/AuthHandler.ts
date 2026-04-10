@@ -66,6 +66,9 @@ export class AuthHandler implements ServiceAuth {
     isSpl: boolean;
     userData?: TableTypes<'user'> | null;
   }> {
+    console.log('[Gourav] Auth login entry', {
+      method: 'loginWithEmailAndPassword',
+    });
     return await this.s.loginWithEmailAndPassword(email, password);
   }
 
@@ -81,6 +84,9 @@ export class AuthHandler implements ServiceAuth {
       }
     | undefined
   > {
+    console.log('[Gourav] Auth login entry', {
+      method: 'proceedWithVerificationCode',
+    });
     return await this.s.proceedWithVerificationCode(
       verificationId,
       verificationCode,
@@ -107,6 +113,9 @@ export class AuthHandler implements ServiceAuth {
     isSpl: boolean;
     userData?: TableTypes<'user'>;
   }> {
+    console.log('[Gourav] Auth login entry', {
+      method: 'signInWithEmail',
+    });
     return await this.s.signInWithEmail(email, password);
   }
   public async sendResetPasswordEmail(email: string): Promise<boolean> {
