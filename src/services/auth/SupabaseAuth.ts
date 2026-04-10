@@ -110,22 +110,11 @@ export class SupabaseAuth implements ServiceAuth {
       }
       if (!isSpl) {
         let isFirstSync = true;
-        const loginSyncStartedAt = Date.now();
-        console.log('[Gourav] Login-time sync trigger start', {
-          flow: 'loginWithEmailAndPassword',
-          isFirstSync,
-          tableCount: Object.values(TABLES).length,
-          refreshCount: REFRESH_TABLES_ON_LOGIN.length,
-        });
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
           isFirstSync,
         );
-        console.log('[Gourav] Login-time sync trigger end', {
-          flow: 'loginWithEmailAndPassword',
-          durationMs: Date.now() - loginSyncStartedAt,
-        });
       } else {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       }
@@ -170,21 +159,10 @@ export class SupabaseAuth implements ServiceAuth {
       if (isSplValue) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
-        const loginSyncStartedAt = Date.now();
-        console.log('[Gourav] Login-time sync trigger start', {
-          flow: 'signInWithEmail',
-          isFirstSync: false,
-          tableCount: Object.values(TABLES).length,
-          refreshCount: REFRESH_TABLES_ON_LOGIN.length,
-        });
         await ServiceConfig.getI().apiHandler.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
         );
-        console.log('[Gourav] Login-time sync trigger end', {
-          flow: 'signInWithEmail',
-          durationMs: Date.now() - loginSyncStartedAt,
-        });
       }
       await api.updateFcmToken(data?.user?.id ?? '');
       Util.storeLoginDetails(email, password);
@@ -628,22 +606,11 @@ export class SupabaseAuth implements ServiceAuth {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
         let isFirstSync = true;
-        const loginSyncStartedAt = Date.now();
-        console.log('[Gourav] Login-time sync trigger start', {
-          flow: 'proceedWithVerificationCode',
-          isFirstSync,
-          tableCount: Object.values(TABLES).length,
-          refreshCount: REFRESH_TABLES_ON_LOGIN.length,
-        });
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
           isFirstSync,
         );
-        console.log('[Gourav] Login-time sync trigger end', {
-          flow: 'proceedWithVerificationCode',
-          durationMs: Date.now() - loginSyncStartedAt,
-        });
       }
       try {
         await api.updateFcmToken(user.user?.id ?? '');
@@ -732,22 +699,11 @@ export class SupabaseAuth implements ServiceAuth {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
         let isFirstSync = true;
-        const loginSyncStartedAt = Date.now();
-        console.log('[Gourav] Login-time sync trigger start', {
-          flow: 'initializeUserRecord',
-          isFirstSync,
-          tableCount: Object.values(TABLES).length,
-          refreshCount: REFRESH_TABLES_ON_LOGIN.length,
-        });
         await api.syncDB(
           Object.values(TABLES),
           REFRESH_TABLES_ON_LOGIN,
           isFirstSync,
         );
-        console.log('[Gourav] Login-time sync trigger end', {
-          flow: 'initializeUserRecord',
-          durationMs: Date.now() - loginSyncStartedAt,
-        });
       }
 
       api = ServiceConfig.getI().apiHandler;

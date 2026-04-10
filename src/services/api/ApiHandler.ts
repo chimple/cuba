@@ -981,11 +981,6 @@ export class ApiHandler implements ServiceApi {
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
   ): Promise<boolean> {
-    console.log('[Gourav] Login-time sync trigger (ApiHandler.syncDB)', {
-      tableCount: tableNames.length,
-      refreshCount: refreshTables.length,
-      isFirstSync: !!isFirstSync,
-    });
     return this.s.syncDB(tableNames, refreshTables, isFirstSync);
   }
 

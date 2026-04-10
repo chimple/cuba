@@ -144,11 +144,6 @@ export class SqliteApi implements ServiceApi {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
     const bootstrapStartedAt = Date.now();
-    console.log('[Gourav] SQLite bootstrap start', {
-      platform,
-      dbName: this.DB_NAME,
-      dbVersion: this.DB_VERSION,
-    });
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
     if (platform === 'web') {
       const jeepEl = document.createElement('jeep-sqlite');
@@ -157,7 +152,6 @@ export class SqliteApi implements ServiceApi {
       await customElements.whenDefined('jeep-sqlite');
 
       await this._sqlite.initWebStore();
-      console.log('[Gourav] SQLite web store initialized');
     }
 
     let ret: capSQLiteResult | undefined;
@@ -255,7 +249,6 @@ export class SqliteApi implements ServiceApi {
 
     if (ret && ret.result && isConn) {
       this._db = await this._sqlite.retrieveConnection(this.DB_NAME, false);
-      console.log('[Gourav] SQLite connection reused');
     } else {
       this._db = await this._sqlite.createConnection(
         this.DB_NAME,
@@ -264,33 +257,24 @@ export class SqliteApi implements ServiceApi {
         this.DB_VERSION,
         false,
       );
-      console.log('[Gourav] SQLite connection created');
     }
     try {
       await this._db?.open();
-      console.log('[Gourav] SQLite connection opened');
     } catch (err) {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
     }
     await this.setUpDatabase();
-    console.log('[Gourav] SQLite bootstrap complete', {
-      durationMs: Date.now() - bootstrapStartedAt,
-    });
     return this._db;
   }
 
   private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
-    console.log('[Gourav] SQLite setup start');
 
     let res1: DBSQLiteValues | undefined = undefined;
     try {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
-      console.log('[Gourav] SQLite table count', {
-        count: res1?.values?.[0]?.count ?? 0,
-      });
       // logger.info("📊 sqlite_master count result:", res1);
     } catch (error) {
       logger.error(
@@ -318,7 +302,6 @@ export class SqliteApi implements ServiceApi {
           );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
-          console.log('[Gourav] SQLite import.json applied');
           window.location.replace(BASE_NAME || '/');
           return;
         } catch (error) {
@@ -355,15 +338,12 @@ export class SqliteApi implements ServiceApi {
     }
 
     await this.checkAndSyncData();
-    console.log('[Gourav] SQLite setup complete');
   }
 
   private async checkAndSyncData() {
     try {
-      console.log('[Gourav] SQLite sync check start');
       const config = ServiceConfig.getInstance(APIMode.SQLITE);
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
-      console.log('[Gourav] SQLite sync check auth status', { isUserLoggedIn });
 
       if (isUserLoggedIn) {
         logger.warn('checkAndSyncData: User logged in, triggering sync');
@@ -377,7 +357,6 @@ export class SqliteApi implements ServiceApi {
           logger.warn('checkAndSyncData: User exists, syncDbNow called');
         }
       }
-      console.log('[Gourav] SQLite sync check complete');
     } catch (error) {
       logger.warn('checkAndSyncData: Error during sync check: ' + error);
     }
@@ -621,6 +600,7 @@ export class SqliteApi implements ServiceApi {
     let workerNativeTransactionOpen = false;
     try {
       if (!isWebPlatform) {
+        // Keep one native transaction for worker-streamed batches to reduce commit overhead.
         await this._db!.beginTransaction();
         workerNativeTransactionOpen = true;
       }
@@ -634,6 +614,7 @@ export class SqliteApi implements ServiceApi {
           userTableBatchSize: SAFE_USER_BATCH_SIZE,
           rowsPerChunk: STREAM_ROWS_CHUNK,
         },
+        // Streamed callbacks keep memory stable while large table sync is in progress.
         async (batch) => {
           if (!batch.length) return;
           if (isWebPlatform) {
@@ -642,6 +623,7 @@ export class SqliteApi implements ServiceApi {
             }
             await this._sqlite?.saveToStore(this.DB_NAME);
           } else {
+            // Use a single native batched call in the open transaction to reduce bridge overhead and speed sync writes.
             await this._db!.executeSet(batch, false);
           }
         },
@@ -651,11 +633,6 @@ export class SqliteApi implements ServiceApi {
         await this._db!.commitTransaction();
         workerNativeTransactionOpen = false;
       }
-
-      console.log('[Gourav] Worker sync write complete', {
-        tableCount: Object.keys(tablesForWorker).length,
-        durationMs: Date.now() - writeStartedAt,
-      });
     } catch (workerError) {
       if (workerNativeTransactionOpen) {
         try {
@@ -673,12 +650,14 @@ export class SqliteApi implements ServiceApi {
         'Falling back to main-thread sync batch generation after worker failure:',
         workerError,
       );
+      // Fallback preserves sync correctness even if the worker path fails at runtime.
       const fallbackStartedAt = Date.now();
       for (const tableName of Object.keys(tablesForWorker)) {
         const existingColumns = tableColumnsByName[tableName] ?? [];
         const tableData = tablesForWorker[tableName] ?? [];
         if (!existingColumns.length || !tableData.length) continue;
         const isUserTable = tableName === TABLES.User;
+        // Keep USER writes in smaller chunks because rows are heavier and include nested JSON fields.
         const batchSize = isUserTable
           ? SAFE_USER_BATCH_SIZE
           : DEFAULT_DB_BATCH_SIZE;
@@ -712,6 +691,7 @@ export class SqliteApi implements ServiceApi {
             `;
             batchQueries.push({ statement: stmt, values: fieldValues });
             if (batchQueries.length >= batchSize) {
+              // Flush chunk early to cap memory and reduce per-call bridge overhead.
               if (isWebPlatform) {
                 for (const q of batchQueries) {
                   await this._db!.run(q.statement, q.values);
@@ -753,12 +733,9 @@ export class SqliteApi implements ServiceApi {
           throw fallbackTableError;
         }
       }
-      console.log('[Gourav] Fallback sync write complete', {
-        tableCount: Object.keys(tablesForWorker).length,
-        durationMs: Date.now() - fallbackStartedAt,
-      });
     }
 
+    // Advance pull watermark only for tables that were actually written in this run.
     for (const tableName of tablesWritten) {
       await this.executeQuery(
         `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
@@ -962,12 +939,8 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
   ) {
     if (!this._db) return;
+    // Track total sync wall time so login delay can be correlated with sync scope.
     const syncStartedAt = Date.now();
-    console.log('[Gourav] Sync start', {
-      tableCount: tableNames.length,
-      refreshCount: refreshTables.length,
-      isFirstSync: !!isFirstSync,
-    });
     // 🔒 LOCK
     if (this._syncInProgress) {
       logger.info('🟡 Sync already running → scheduling another run');
@@ -994,6 +967,7 @@ export class SqliteApi implements ServiceApi {
         tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
 
       await this.pullChanges(tableNames, isFirstSync);
+      // Keep asset prefetch non-blocking so DB sync completion is not delayed.
       Promise.allSettled([
         this.prefetchStickerBookAssetsAfterSync(),
         this.prefetchLidoCommonAudioAfterSync(),
@@ -1008,10 +982,6 @@ export class SqliteApi implements ServiceApi {
       this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`,
       );
-      console.log('[Gourav] Sync end', {
-        tableCount: tableNames.length,
-        durationMs: Date.now() - syncStartedAt,
-      });
       return res;
     } finally {
       this._syncInProgress = false;
@@ -4618,11 +4588,6 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean> {
     try {
-      console.log('[Gourav] Login-time sync trigger (SqliteApi.syncDB)', {
-        tableCount: tableNames.length,
-        refreshCount: refreshTables.length,
-        isFirstSync: !!isFirstSync,
-      });
       await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
