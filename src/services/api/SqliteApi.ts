@@ -639,7 +639,7 @@ export class SqliteApi implements ServiceApi {
           await this._db!.rollbackTransaction();
         } catch (rollbackError) {
           logger.error(
-            '[Gourav] Worker transaction rollback failed',
+            'Worker transaction rollback failed',
             rollbackError,
           );
         }
@@ -725,7 +725,7 @@ export class SqliteApi implements ServiceApi {
               await this._db!.rollbackTransaction();
             } catch (rollbackError) {
               logger.error(
-                '[Gourav] Fallback transaction rollback failed',
+                'Fallback transaction rollback failed',
                 rollbackError,
               );
             }
