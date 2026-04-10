@@ -172,16 +172,23 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
     });
     // Merge instead of replace so attributes set by other screens are not lost.
     const existingAttributes = growthbook.getAttributes?.() ?? {};
-    const resolvedSchoolIds =
-      preparedAttributes?.school_ids ?? existingAttributes?.school_ids;
-    const normalizedSchoolIds =
-      Util.normalizeGrowthbookArrayAttribute(resolvedSchoolIds);
+    const normalizedSchoolIds = Array.from(
+      new Set([
+        ...Util.normalizeGrowthbookArrayAttribute(
+          existingAttributes?.school_ids,
+        ),
+        ...Util.normalizeGrowthbookArrayAttribute(
+          preparedAttributes?.school_ids,
+        ),
+      ]),
+    );
     const mergedAttributes = {
       ...existingAttributes,
       ...preparedAttributes,
       // Always resolve parent_id from newest known sources.
       parent_id:
         preparedAttributes?.parent_id ??
+        attributes?.parent_id ??
         attributes?.studentDetails?.parent_id ??
         existingAttributes?.parent_id ??
         null,
