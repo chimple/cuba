@@ -39,6 +39,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const [boxDetails, setBoxDetails] = useState<{
     cName: string;
     lName: string;
+    courseCode?: string;
   } | null>(null);
 
   const [from, setFrom] = useState<number>(0);
@@ -412,11 +413,17 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
         const lessonName = currentObj.lesson?.name || 'Lesson';
         let chapterName = 'Chapter';
+        let courseCode: string | undefined;
 
         try {
           if (currentObj.chapter_id) {
             const chapter = await api.getChapterById(currentObj.chapter_id);
             chapterName = chapter?.name || chapterName;
+          }
+          const resolvedSubjectId = subjectId ?? currentObj.course_id ?? null;
+          if (resolvedSubjectId) {
+            const course = await api.getCourse(resolvedSubjectId);
+            courseCode = course?.code ?? undefined;
           }
         } catch (error) {
           logger.error('Failed fetching chapter details', error);
@@ -425,6 +432,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         setBoxDetails({
           cName: chapterName,
           lName: lessonName,
+          courseCode,
         });
       }
 
@@ -660,6 +668,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         <ChapterLessonBox
           chapterName={boxDetails?.cName || 'Loading'}
           lessonName={boxDetails?.lName || '...'}
+          courseCode={boxDetails?.courseCode}
           containerStyle={{
             width: '35vw',
           }}
