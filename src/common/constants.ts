@@ -1081,6 +1081,7 @@ export const ALL_SUBJECT = {
 };
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
+export const HOME_HEADER_SPECIALS_ENABLED = 'home-header-specials-enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
 export const STICKER_BOOK_CELEBRATION_POPUP_ENABLED =
   'sticker-book-celebration-popup-enabled';
@@ -1382,7 +1383,7 @@ export enum RESULT_STATUS {
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
 }
-// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
+// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
 export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
