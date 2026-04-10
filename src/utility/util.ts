@@ -374,9 +374,14 @@ export class Util {
     logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
+  public static getLessonBundleId(
+    lesson?: Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>,
+  ): string | null {
+    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+  }
 
   public static async downloadZipBundle(
-    lessonIds: string[],
+    lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
@@ -384,15 +389,21 @@ export class Util {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
-      const api = ServiceConfig.getI().apiHandler;
 
-      for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
-        const lessonIdsChunk = lessonIds.slice(
-          i,
-          i + DOWNLOAD_LESSON_BATCH_SIZE,
-        );
+      logger.warn('Starting download for lessons:', lessons);
+      for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+        const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
-          lessonIdsChunk.map(async (lessonId) => {
+          lessonsChunk.map(async (lesson) => {
+            const lessonId = this.getLessonBundleId(lesson);
+            if (!lessonId) {
+              logger.error(
+                '[LessonDownloader] Missing bundle lesson id for lesson:',
+                lesson.id,
+              );
+              return false;
+            }
+
             try {
               let lessonDownloadSuccess = true;
               const fs = createFilesystem(Filesystem, {
@@ -400,19 +411,14 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
-
+              logger.warn('full lesson object for download:', lesson);
+              logger.warn('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
-              let dbVersion = 1;
-              try {
-                const lesson = await api.getLessonWithCocosLessonId(lessonId);
-                logger.warn(
-                  `[Version] Fetched DB version for ${lessonId}:`,
-                  lesson?.version,
-                );
-                dbVersion = Number(lesson?.version ?? 1);
-              } catch {
-                logger.warn(`[Version] Failed to fetch DB version`);
-              }
+              let dbVersion = Number(lesson.version ?? 1);
+              logger.warn(
+                `[Version] Using lesson version for ${lessonId}:`,
+                lesson.version,
+              );
 
               let localVersion = 0;
 
@@ -632,7 +638,9 @@ export class Util {
         if (!results.every((r) => r === true)) {
           logger.error(
             '[LessonDownloader] Some lessons in chunk failed to download:',
-            lessonIdsChunk,
+            lessonsChunk.map(
+              (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
+            ),
           );
           return false;
         }
