@@ -130,13 +130,33 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     if (!isEdit || !currentStudent?.id) return;
-    let isUpdated = true;
+    let isMounted = true;
 
     const syncStudentLanguageForEdit = async () => {
       try {
+        const editedStudentsMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+        const editedStudentsMap = editedStudentsMapStr
+          ? (JSON.parse(editedStudentsMapStr) as Record<
+              string,
+              TableTypes<'user'>
+            >)
+          : {};
+        const mappedStudent = editedStudentsMap[currentStudent.id];
+        const studentToApply = mappedStudent ?? currentStudent;
+        const initialLanguageIdForEdit = studentToApply.language_id ?? '';
+
+        if (!isMounted) return;
+
+        initialValues.current = {
+          ...initialValues.current,
+          languageId: initialLanguageIdForEdit,
+        };
+        setLanguageId(initialLanguageIdForEdit);
+        await Util.setCurrentStudent(studentToApply, undefined, true, true);
+
         if (typeof api.getUserByDocId !== 'function') return;
         const latestStudent = await api.getUserByDocId(currentStudent.id);
-        if (!isUpdated || !latestStudent) return;
+        if (!isMounted || !latestStudent) return;
 
         const resolvedLanguageId = latestStudent.language_id ?? '';
         initialValues.current = {
@@ -144,7 +164,6 @@ const ProfileDetails = () => {
           languageId: resolvedLanguageId,
         };
         setLanguageId(resolvedLanguageId);
-
         await Util.setCurrentStudent(latestStudent, undefined, true, true);
       } catch (error) {
         logger.error('Failed to sync student language on edit page', error);
@@ -153,9 +172,9 @@ const ProfileDetails = () => {
 
     void syncStudentLanguageForEdit();
     return () => {
-      isUpdated = false;
+      isMounted = false;
     };
-  }, [isEdit, currentStudent?.id]);
+  }, [api, isEdit, currentStudent?.id]);
 
   useEffect(() => {
     const initial = initialValues.current;
@@ -302,6 +321,19 @@ const ProfileDetails = () => {
       ? isFormComplete && hasChanges
       : hasChanges;
 
+  const resolveLanguageCodeById = async (
+    selectedLanguageId: string,
+  ): Promise<string | undefined> => {
+    const languageCodeFromList = languages.find(
+      (lang) => lang.id === selectedLanguageId,
+    )?.code;
+    if (languageCodeFromList) return languageCodeFromList;
+    if (typeof api.getLanguageWithId !== 'function') return undefined;
+
+    const language = await api.getLanguageWithId(selectedLanguageId);
+    return language?.code ?? undefined;
+  };
+
   const handleSave = async () => {
     if (isCreatingProfile) return;
     const state = history.location.state as any;
@@ -311,6 +343,9 @@ const ProfileDetails = () => {
     if (isEdit && !!currentStudent && !!currentStudent.id) {
       try {
         setIsCreatingProfile(true);
+        const selectedLanguageId = languageId || currentStudent.language_id!;
+        const selectedLanguageCode =
+          await resolveLanguageCodeById(selectedLanguageId);
         const user = await auth.getCurrentUser();
         const student = await api.updateStudent(
           currentStudent,
@@ -321,7 +356,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId || currentStudent.language_id!,
+          selectedLanguageId,
         );
 
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
@@ -341,12 +376,7 @@ const ProfileDetails = () => {
           action_type: ACTION_TYPES.PROFILE_UPDATED,
         });
 
-        await Util.setCurrentStudent(
-          student,
-          undefined,
-          tmpPath === PAGES.HOME,
-          true,
-        );
+        await Util.setCurrentStudent(student, selectedLanguageCode, true, true);
 
         history.replace(tmpPath);
         void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
