@@ -23,18 +23,38 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>('');
   const { t } = useTranslation();
+  const getRenderedChapterLessonText = (
+    rawChapterName: string | null,
+    rawLessonName: string | null,
+    resolvedCourseCode: string | null,
+  ) => {
+    const isEnglishSubject = resolvedCourseCode === COURSES.ENGLISH;
+    const translatedChapterName = rawChapterName
+      ? isEnglishSubject
+        ? rawChapterName
+        : t(rawChapterName)
+      : null;
+    const translatedLessonName = rawLessonName
+      ? isEnglishSubject
+        ? rawLessonName
+        : t(rawLessonName)
+      : null;
+
+    if (translatedChapterName) {
+      return `${translatedChapterName} : ${translatedLessonName ?? ''}`;
+    }
+
+    return isEnglishSubject ? (rawLessonName ?? '') : t(rawLessonName ?? '');
+  };
 
   useEffect(() => {
     // SCENARIO 1: Props are provided (Homework Page)
     if (chapterName && lessonName) {
-      const isEnglishSubject = courseCode === COURSES.ENGLISH;
-      const translatedChapterName = isEnglishSubject
-        ? chapterName
-        : t(chapterName);
-      const translatedLessonName = isEnglishSubject
-        ? lessonName
-        : t(lessonName);
-      const renderedText = `${translatedChapterName} : ${translatedLessonName}`;
+      const renderedText = getRenderedChapterLessonText(
+        chapterName,
+        lessonName,
+        courseCode ?? null,
+      );
 
       setCurrentChapterName(renderedText);
       return; // Stop here, don't do the API fetch
@@ -66,22 +86,11 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       const rawChapterName = chapter?.name ?? null;
       const rawLessonName = lesson?.name ?? null;
       const resolvedCourseCode = courseCode ?? course?.code ?? null;
-      const isEnglishSubject = resolvedCourseCode === COURSES.ENGLISH;
-      const translatedChapterName = rawChapterName
-        ? isEnglishSubject
-          ? rawChapterName
-          : t(rawChapterName)
-        : null;
-      const translatedLessonName = rawLessonName
-        ? isEnglishSubject
-          ? rawLessonName
-          : t(rawLessonName)
-        : null;
-      const renderedText = translatedChapterName
-        ? `${translatedChapterName} : ${translatedLessonName ?? ''}`
-        : isEnglishSubject
-          ? (rawLessonName ?? '')
-          : t(rawLessonName ?? '');
+      const renderedText = getRenderedChapterLessonText(
+        rawChapterName,
+        rawLessonName,
+        resolvedCourseCode,
+      );
 
       setCurrentChapterName(renderedText);
     };
