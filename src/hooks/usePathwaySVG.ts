@@ -313,15 +313,12 @@ export function usePathwaySVG({
         }
       } else {
         // Preview disabled: clear pending auto-open state and refresh to new path.
-        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-        if (raw) {
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-          if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
-            sessionStorage.removeItem(REWARD_LEARNING_PATH);
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
-            }, 0);
-          }
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
         }
       }
 
@@ -920,12 +917,15 @@ export function usePathwaySVG({
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If the drag-to-collect popup is about to open, defer reward animation
+        // If a popup is about to open, defer reward animation
         // so it plays after the pathway refresh (avoids animating behind the popup).
+        const willShowCelebration =
+          shouldOpenCelebrationPopup && !!stickerPreviewPayload;
         if (
           isStringReward &&
           isRewardFeatureOn &&
-          !shouldOpenCelebrationPopup
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup
         ) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
