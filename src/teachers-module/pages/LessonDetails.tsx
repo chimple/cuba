@@ -89,6 +89,15 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     }
     return subjectCode;
   };
+  const lessonDetailsReturnState: LessonDetailsState = {
+    course,
+    lesson,
+    chapterId,
+    selectedLesson: Array.from(selectedLessonMap.entries()),
+    chapterName,
+    gradeName,
+    from: state.from,
+  };
   const onPlayClick = async () => {
     // const baseUrl = "https://chimple.cc/microlink/";
     // const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -113,6 +122,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         lesson: JSON.stringify(lesson),
         selectedLesson: selectedLessonMap,
         from: history.location.pathname + `?${CONTINUE}=true`,
+        returnState: lessonDetailsReturnState,
       });
     } else if (lesson.plugin_type === COCOS) {
       const courseId = getCourseIdFromCocosLesson(
@@ -132,6 +142,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         chapterId: chapterId,
         selectedLesson: selectedLessonMap,
         from: history.location.pathname + `?${CONTINUE}=true`,
+        returnState: lessonDetailsReturnState,
       });
     } else if (
       // !!assignment?.id &&
@@ -159,6 +170,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           lesson: JSON.stringify(lesson),
           selectedLesson: selectedLessonMap,
           from: history.location.pathname + `?${CONTINUE}=true`,
+          returnState: lessonDetailsReturnState,
         },
       );
     }
@@ -422,7 +434,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
       <AssigmentCount
         assignments={assignmentCount}
         onClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+          course
+            ? history.replace(PAGES.SHOW_CHAPTERS, {
+                course,
+                chapterId,
+              })
+            : history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
         }}
       />
     </div>

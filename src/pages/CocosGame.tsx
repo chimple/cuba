@@ -134,22 +134,24 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const lessonDetailsState = state?.returnState ?? {
+      course: courseDetail,
+      lesson,
+      chapterId: chapterDetail?.id,
+      chapterName: chapterDetail?.name,
+      selectedLesson,
+      fromCocos: true,
+    };
 
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + '&isReload=true', {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       } else {
         history.replace(fromPath + '&isReload=false', {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       }
@@ -158,27 +160,18 @@ const CocosGame: React.FC = () => {
       if (!!urlParams.get('isReload')) {
         if (fromPath.includes('?'))
           history.replace(fromPath + '&isReload=true', {
-            course: courseDetail,
-            lesson: lesson,
-            chapterId: chapterDetail?.id,
-            selectedLesson: selectedLesson,
+            ...lessonDetailsState,
             fromCocos: true,
           });
         else
           history.replace(fromPath + '?isReload=true', {
-            course: courseDetail,
-            lesson: lesson,
-            chapterId: chapterDetail?.id,
-            selectedLesson: selectedLesson,
+            ...lessonDetailsState,
             fromCocos: true,
           });
         window.location.reload();
       } else {
         history.replace(fromPath, {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       }
