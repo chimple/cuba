@@ -672,6 +672,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           text={t('Keep going!\nFinish these lesson to change the subject')}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}
+          audioFolder={'subDisabled'}
+          audioClipName={'sub_disabled'}
         />
       )}
     </div>
