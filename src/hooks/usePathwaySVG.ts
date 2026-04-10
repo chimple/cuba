@@ -920,8 +920,13 @@ export function usePathwaySVG({
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If there is a reward, run full reward animation flow
-        if (isStringReward && isRewardFeatureOn) {
+        // If the drag-to-collect popup is about to open, defer reward animation
+        // so it plays after the pathway refresh (avoids animating behind the popup).
+        if (
+          isStringReward &&
+          isRewardFeatureOn &&
+          !shouldOpenCelebrationPopup
+        ) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
             lessons,
