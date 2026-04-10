@@ -267,10 +267,12 @@ const CocosGame: React.FC = () => {
 
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
-    const lessonId: string = state.lessonId;
-    const lessonIds: string[] = [];
-    lessonIds.push(lessonId);
-    const dow = await Util.downloadZipBundle(lessonIds);
+    if (!lessonDetail) {
+      presentToast();
+      push();
+      return;
+    }
+    const dow = await Util.downloadZipBundle([lessonDetail]);
     if (!dow) {
       presentToast();
       push();

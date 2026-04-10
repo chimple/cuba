@@ -82,7 +82,7 @@ describe('PaintExitPopup', () => {
 
     expect(screen.getByText('Your creation is shared!')).toBeInTheDocument();
     expect(
-      screen.getByText(/Please confirm if you want to exit\.?$/),
+      screen.getByText(/Please confirm if you want to exit.\.?$/),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Yes' }));
@@ -99,7 +99,7 @@ describe('PaintExitPopup', () => {
     expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
       audioUrl: '/assets/audios/paintExit/en_creation_shared_exit.mp3',
       delayMs: 300,
-      text: 'Your creation is shared! Please confirm if you want to exit',
+      text: 'Your creation is shared! Please confirm if you want to exit.',
     });
   });
 

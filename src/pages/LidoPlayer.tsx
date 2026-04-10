@@ -750,9 +750,17 @@ const LidoPlayer: FC = () => {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
-    const lessonIds: string[] = [lessonId];
-    const dow = await Util.downloadZipBundle(lessonIds);
+    const lessonToDownload = lessonDetail;
+    const lessonId =
+      Util.getLessonBundleId(lessonToDownload) ??
+      urlSearchParams.get('lessonid') ??
+      state.lessonId;
+    if (!lessonToDownload || !lessonId) {
+      presentToast();
+      push();
+      return;
+    }
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
     if (!dow) {
       presentToast();
       push();

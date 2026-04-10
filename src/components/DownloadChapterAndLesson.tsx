@@ -15,12 +15,12 @@ import {
 } from '../common/constants';
 
 const DownloadLesson: React.FC<{
-  lessonId?: string;
+  lesson?: TableTypes<'lesson'>;
   chapter?: TableTypes<'chapter'>;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
 }> = ({
-  lessonId,
+  lesson,
   chapter,
   downloadButtonLoading = false,
   onDownloadOrDelete,
@@ -31,6 +31,7 @@ const DownloadLesson: React.FC<{
   const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const lessonId = Util.getLessonBundleId(lesson) ?? undefined;
 
   useEffect(() => {
     init();
@@ -133,18 +134,20 @@ const DownloadLesson: React.FC<{
       const lessons: TableTypes<'lesson'>[] = await api.getLessonsForChapter(
         chapter.id,
       );
+      const lessonsToDownload: TableTypes<'lesson'>[] = [];
       Util.storeLessonIdToLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       for (const e of lessons) {
-        if (e.cocos_lesson_id)
-          if (!storedLessonID.includes(e.cocos_lesson_id)) {
-            storeLessonID.push(e.cocos_lesson_id);
-          }
+        const bundleLessonId = Util.getLessonBundleId(e);
+        if (bundleLessonId && !storedLessonID.includes(bundleLessonId)) {
+          storeLessonID.push(bundleLessonId);
+          lessonsToDownload.push(e);
+        }
       }
-      await Util.downloadZipBundle(storeLessonID, chapter.id);
+      await Util.downloadZipBundle(lessonsToDownload, chapter.id);
     } else {
-      if (lessonId) {
+      if (lesson && lessonId) {
         if (!storedLessonID.includes(lessonId)) {
-          await Util.downloadZipBundle([lessonId]);
+          await Util.downloadZipBundle([lesson]);
         }
       }
     }
@@ -162,9 +165,10 @@ const DownloadLesson: React.FC<{
         chapter.id,
       );
       const storeLessonID: string[] = [];
-      lessons.forEach(async (e) => {
-        if (e.cocos_lesson_id) {
-          storeLessonID.push(e.cocos_lesson_id);
+      lessons.forEach((e) => {
+        const bundleLessonId = Util.getLessonBundleId(e);
+        if (bundleLessonId) {
+          storeLessonID.push(bundleLessonId);
           setShowIcon(true);
         }
         if (onDownloadOrDelete) onDownloadOrDelete();
