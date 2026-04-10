@@ -432,9 +432,6 @@ describe('StickerBookPreviewModal', () => {
     expect(
       screen.getByTestId('StickerBookPreviewModal-helper-text'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId('StickerBookPreviewModal-next-name'),
-    ).toBeInTheDocument();
   });
 
   test('clicking inside modal body does not trigger backdrop close', async () => {

@@ -26,7 +26,7 @@ export default function PaintExitPopup({
       isPostSaveExit
         ? [
             t('Your creation is shared!'),
-            t('Please confirm if you want to exit'),
+            t('Please confirm if you want to exit.'),
           ]
         : [t('Uh-oh! Do you want to leave paint mode?')],
     [isPostSaveExit],
