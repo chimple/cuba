@@ -364,6 +364,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
 
       // Build attributes (defensive)
+      // Read once so we preserve previously-set targeting attributes.
+      const existingAttributes = growthbook.getAttributes?.() ?? {};
       const attrs = {
         student_id: studentId,
         age: student?.age ?? null,
@@ -373,7 +375,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       // Preserve existing targeting attributes (e.g. school_ids, parent_id)
       // while updating student-scoped fields used here.
       growthbook.setAttributes({
-        ...growthbook.getAttributes(),
+        ...existingAttributes,
         ...attrs,
       });
 
