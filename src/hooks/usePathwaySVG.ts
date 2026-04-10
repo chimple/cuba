@@ -311,6 +311,18 @@ export function usePathwaySVG({
             }
           } catch (e) {}
         }
+      } else {
+        // Preview disabled: clear pending auto-open state and refresh to new path.
+        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (raw) {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+            sessionStorage.removeItem(REWARD_LEARNING_PATH);
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+            }, 0);
+          }
+        }
       }
 
       const shouldOpenCelebrationPopup =
