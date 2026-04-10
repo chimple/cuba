@@ -294,14 +294,21 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
-    const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
-      const filteredLessonIds: string[] = allLessonIds.filter(
-        (id): id is string => id !== null && !storedLessonIds.includes(id),
+      const filteredLessons = lessons.filter((lesson) => {
+        const lessonId = Util.getLessonBundleId(lesson);
+        return !!lessonId && !storedLessonIds.includes(lessonId);
+      });
+      const uniqueFilteredLessons = Array.from(
+        new Map(
+          filteredLessons.map((lesson) => [
+            Util.getLessonBundleId(lesson) ?? lesson.id,
+            lesson,
+          ]),
+        ).values(),
       );
-      const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
-      await Util.downloadZipBundle(uniqueFilteredLessonIds);
+      await Util.downloadZipBundle(uniqueFilteredLessons);
 
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
@@ -357,6 +364,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
 
       // Build attributes (defensive)
+      // Read once so we preserve previously-set targeting attributes.
+      const existingAttributes = growthbook.getAttributes?.() ?? {};
       const attrs = {
         student_id: studentId,
         age: student?.age ?? null,
@@ -366,7 +375,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       // Preserve existing targeting attributes (e.g. school_ids, parent_id)
       // while updating student-scoped fields used here.
       growthbook.setAttributes({
-        ...growthbook.getAttributes(),
+        ...existingAttributes,
         ...attrs,
       });
 

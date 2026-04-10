@@ -770,15 +770,6 @@
   border-color: #ef5f88;
 }
 
-.StickerBookPreviewModal-next-name {
-  margin: 0;
-  color: #182a4f;
-  font-size: 1.675rem;
-  line-height: 1.15;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .StickerBookPreviewModal-drag-instruction {
   margin: 0;
   color: #182a4f;
@@ -836,8 +827,7 @@
 }
 
 @media (max-width: 768px) {
-  .StickerBookPreviewModal-helper-text,
-  .StickerBookPreviewModal-next-name {
+  .StickerBookPreviewModal-helper-text {
     font-size: var(--text-sizeXL);
   }
 }

@@ -212,7 +212,7 @@ const LessonCard: React.FC<{
             } else if (lesson.plugin_type === LIVE_QUIZ) {
               const lessonId = lesson.cocos_lesson_id;
               if (lessonId && Capacitor.isNativePlatform()) {
-                const isDownloaded = await Util.downloadZipBundle([lessonId]);
+                const isDownloaded = await Util.downloadZipBundle([lesson]);
                 if (!isDownloaded) {
                   if (!online) {
                     presentToast({
@@ -363,7 +363,7 @@ const LessonCard: React.FC<{
             {lesson.cocos_lesson_id && (
               <DownloadLesson
                 aria-label="Download-button"
-                lessonId={lesson.cocos_lesson_id}
+                lesson={lesson}
                 downloadButtonLoading={downloadButtonLoading}
                 onDownloadOrDelete={onDownloadOrDelete}
               />
