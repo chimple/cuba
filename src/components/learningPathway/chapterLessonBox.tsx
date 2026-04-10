@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './chpaterLessonBox.css';
 import { Util } from '../../utility/util';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { COURSE_CHANGED } from '../../common/constants';
+import { COURSE_CHANGED, COURSES } from '../../common/constants';
 import { useTranslation } from 'react-i18next';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
@@ -11,20 +11,32 @@ interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
   chapterName?: string;
   lessonName?: string;
+  courseCode?: string;
 }
 
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
   chapterName,
   lessonName,
+  courseCode,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>('');
   const { t } = useTranslation();
+
   useEffect(() => {
     // SCENARIO 1: Props are provided (Homework Page)
     if (chapterName && lessonName) {
-      setCurrentChapterName(`${t(chapterName)} : ${t(lessonName)}`);
+      const isEnglishSubject = courseCode === COURSES.ENGLISH;
+      const translatedChapterName = isEnglishSubject
+        ? chapterName
+        : t(chapterName);
+      const translatedLessonName = isEnglishSubject
+        ? lessonName
+        : t(lessonName);
+      const renderedText = `${translatedChapterName} : ${translatedLessonName}`;
+
+      setCurrentChapterName(renderedText);
       return; // Stop here, don't do the API fetch
     }
     const updateChapter = async () => {
@@ -51,11 +63,27 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         : null;
 
       // 3️⃣ Build chapter name safely
-      const chapterName = chapter?.name
-        ? `${t(chapter.name)} : ${t(lesson?.name ?? '')}`
-        : t(lesson?.name ?? 'default.chapter');
+      const rawChapterName = chapter?.name ?? null;
+      const rawLessonName = lesson?.name ?? null;
+      const resolvedCourseCode = courseCode ?? course?.code ?? null;
+      const isEnglishSubject = resolvedCourseCode === COURSES.ENGLISH;
+      const translatedChapterName = rawChapterName
+        ? isEnglishSubject
+          ? rawChapterName
+          : t(rawChapterName)
+        : null;
+      const translatedLessonName = rawLessonName
+        ? isEnglishSubject
+          ? rawLessonName
+          : t(rawLessonName)
+        : null;
+      const renderedText = translatedChapterName
+        ? `${translatedChapterName} : ${translatedLessonName ?? ''}`
+        : isEnglishSubject
+          ? (rawLessonName ?? '')
+          : t(rawLessonName ?? '');
 
-      setCurrentChapterName(chapterName);
+      setCurrentChapterName(renderedText);
     };
 
     // Fetch the initial chapter on component mount
@@ -75,7 +103,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     return () => {
       window.removeEventListener(COURSE_CHANGED, syncHandleCourseChange);
     };
-  }, [chapterName, lessonName]);
+  }, [chapterName, lessonName, courseCode, t]);
 
   return (
     <div

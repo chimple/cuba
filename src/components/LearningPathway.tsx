@@ -30,6 +30,7 @@ const LearningPathway: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
   const [isModeResolved, setIsModeResolved] = useState(false);
+  const [courseCode, setCourseCode] = useState<string | undefined>(undefined);
 
   let student = Util.getCurrentStudent();
 
@@ -37,6 +38,12 @@ const LearningPathway: React.FC = () => {
     student,
     gb,
   });
+
+  const updateCourseCodeFromSubject = async (subjectId?: string | null) => {
+    if (!subjectId) return;
+    const selectedCourse = await api.getCourse(subjectId);
+    setCourseCode(selectedCourse?.code ?? undefined);
+  };
   /* -----------------------------------
    * 2️⃣ Resolve mode from GrowthBook
    * ----------------------------------- */
@@ -92,6 +99,16 @@ const LearningPathway: React.FC = () => {
           courses,
           student.language_id,
         );
+        const learningPath = student.learning_path
+          ? JSON.parse(student.learning_path)
+          : null;
+        const selectedCourseIndex = learningPath?.courses?.currentCourseIndex;
+        const selectedCourseId =
+          selectedCourseIndex !== undefined
+            ? learningPath?.courses?.courseList?.[selectedCourseIndex]
+                ?.course_id
+            : null;
+        await updateCourseCodeFromSubject(selectedCourseId);
         const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
         const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
         updateStarCount(student);
@@ -147,12 +164,17 @@ const LearningPathway: React.FC = () => {
   return (
     <div className="learning-pathway-container">
       <div className="pathway_section">
-        <DropdownMenu />
+        <DropdownMenu
+          onSubjectChange={(subjectId) => {
+            updateCourseCodeFromSubject(subjectId);
+          }}
+        />
         <PathwayStructure />
       </div>
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
+          courseCode={courseCode}
           containerStyle={{
             width: '35vw',
           }}
