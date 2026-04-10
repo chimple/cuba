@@ -133,6 +133,15 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
+  public static normalizeGrowthbookArrayAttribute<T>(
+    value: T | T[] | null | undefined,
+  ): T[] {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : [];
+  }
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
