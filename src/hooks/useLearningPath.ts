@@ -348,10 +348,11 @@ export const useLearningPath = (opts?: {
     classId?: string;
   }) {
     let currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) return;
+    if (!currentStudent) {
+      return;
+    }
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
     let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
-
     // check if learning path is empty, if empty build it
     if (!learningPath) {
       learningPath = await buildPath({
@@ -366,9 +367,13 @@ export const useLearningPath = (opts?: {
           learningPath.courses.currentCourseIndex
         ];
 
-      if (!currentCourse) return;
+      if (!currentCourse) {
+        return;
+      }
       const coursePath = currentCourse.path ?? [];
-      if (!coursePath.length) return;
+      if (!coursePath.length) {
+        return;
+      }
 
       const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
@@ -392,6 +397,27 @@ export const useLearningPath = (opts?: {
 
     // check if learning path mode is different from current mode, if so rebuild it
     const pathMode = learningPath.pathMode;
+    if (!mode || !pathMode) {
+      // check if learning path has old structure, if so migrate it
+      if (learningPath?.courses?.courseList) {
+        const hasOldStructure = learningPath.courses.courseList.some(
+          (c: any) =>
+            c.currentIndex !== undefined ||
+            c.startIndex !== undefined ||
+            c.pathEndIndex !== undefined,
+        );
+        if (hasOldStructure) {
+          learningPath.courses.courseList = learningPath.courses.courseList.map(
+            (coursePath: any) => migrate(coursePath),
+          );
+          learningPath.pathMode = mode;
+          learningPath.updated_at = new Date().toISOString();
+          await saveLearningPath(currentStudent, learningPath);
+          return learningPath;
+        }
+      }
+      return learningPath;
+    }
     if (mode != pathMode) {
       learningPath = await buildPath({
         student: currentStudent,
@@ -405,9 +431,13 @@ export const useLearningPath = (opts?: {
           learningPath.courses.currentCourseIndex
         ];
 
-      if (!currentCourse) return;
+      if (!currentCourse) {
+        return;
+      }
       const coursePath = currentCourse.path ?? [];
-      if (!coursePath.length) return;
+      if (!coursePath.length) {
+        return;
+      }
 
       const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
@@ -437,7 +467,6 @@ export const useLearningPath = (opts?: {
           c.startIndex !== undefined ||
           c.pathEndIndex !== undefined,
       );
-
       if (hasOldStructure) {
         learningPath.courses.courseList = learningPath.courses.courseList.map(
           (coursePath: any) => migrate(coursePath),
@@ -520,7 +549,6 @@ export const useLearningPath = (opts?: {
     oldCourseList.forEach((c: any) => existingMap.set(c.course_id, c));
 
     const newCourseList: any[] = [];
-
     for (const course of userCourses) {
       const existing = existingMap.get(course.id);
 
