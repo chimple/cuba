@@ -905,7 +905,7 @@ export class SqliteApi implements ServiceApi {
         tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
 
       await this.pullChanges(tableNames, isFirstSync);
-      await Promise.allSettled([
+      Promise.allSettled([
         this.prefetchStickerBookAssetsAfterSync(),
         this.prefetchLidoCommonAudioAfterSync(),
       ]);
