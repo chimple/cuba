@@ -35,6 +35,7 @@ const LiveQuizQuestion: FC<{
   onRemainingTimeChange?: (remainingTime: number) => void;
   onShowAnswer?: (canShow: boolean) => void;
   lessonId?: string;
+  lesson?: TableTypes<'lesson'>;
   quizData?: any;
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
@@ -50,6 +51,7 @@ const LiveQuizQuestion: FC<{
   onShowAnswer,
   isTimeOut,
   lessonId,
+  lesson,
   quizData,
   onTotalScoreChange,
   isLearningPathway,
@@ -142,8 +144,16 @@ const LiveQuizQuestion: FC<{
     }
   };
 
-  const downloadQuiz = async (lessonId: string) => {
-    const dow = await Util.downloadZipBundle([lessonId]);
+  const downloadQuiz = async (lessonToDownload?: TableTypes<'lesson'>) => {
+    const lessonDoc =
+      lessonToDownload ??
+      (lessonId ? await api.getLessonWithCocosLessonId(lessonId) : null);
+    if (!lessonDoc) {
+      logger.warn('[LiveQuiz] Lesson data not found for bundle download');
+      return false;
+    }
+    const dow = await Util.downloadZipBundle([lessonDoc]);
+    return dow;
   };
 
   const readLocalConfig = async (
@@ -367,7 +377,7 @@ const LiveQuizQuestion: FC<{
 
       if (!configFile && lessonId) {
         logger.warn('[LiveQuiz] Config not found locally, downloading...');
-        await downloadQuiz(lessonId);
+        await downloadQuiz(lesson);
 
         // Retry reading after download
         configFile = await readLocalConfig(configPath);

@@ -142,6 +142,7 @@ const LiveQuizGame: FC = () => {
             {paramLessonId && quizData && (
               <LiveQuizQuestion
                 lessonId={paramLessonId}
+                lesson={lesson}
                 quizData={quizData}
                 isTimeOut={true}
                 onNewQuestionChange={(newQuestionIndex) => {
