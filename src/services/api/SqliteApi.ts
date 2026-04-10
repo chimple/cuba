@@ -197,12 +197,6 @@ export class SqliteApi implements ServiceApi {
               );
               if (match && match[1]) {
                 const tableName = match[1];
-                if (tableName === TABLES.Lesson) {
-                  logger.info(
-                    'setUpDatabase: Ignoring forced full sync for lesson table schema change.',
-                  );
-                  continue;
-                }
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
                 logger.warn(
@@ -500,16 +494,17 @@ export class SqliteApi implements ServiceApi {
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
       for (const tableName of this._tablesNeedingFullSync) {
-        if (tableName === TABLES.Lesson) {
-          logger.info('Skipping forced full sync for table: lesson');
-          continue;
-        }
         if (tableNames.includes(tableName as TABLES)) {
+          const fullSyncDate =
+            tableName === TABLES.Lesson
+              ? LESSON_FORCE_FULL_SYNC_DATE
+              : FORCE_FULL_SYNC_DATE;
           await this.executeQuery(
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-            [tableName, FORCE_FULL_SYNC_DATE],
+            [tableName, fullSyncDate],
           );
           logger.info(`Forcing full sync for table: ${tableName}`);
         }
