@@ -494,12 +494,17 @@ export class SqliteApi implements ServiceApi {
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
       for (const tableName of this._tablesNeedingFullSync) {
         if (tableNames.includes(tableName as TABLES)) {
+          const fullSyncDate =
+            tableName === TABLES.Lesson
+              ? LESSON_FORCE_FULL_SYNC_DATE
+              : FORCE_FULL_SYNC_DATE;
           await this.executeQuery(
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-            [tableName, FORCE_FULL_SYNC_DATE],
+            [tableName, fullSyncDate],
           );
           logger.info(`Forcing full sync for table: ${tableName}`);
         }
