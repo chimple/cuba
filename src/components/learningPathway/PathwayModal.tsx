@@ -81,7 +81,7 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
           <img src="pathwayAssets/menuCross.svg" alt="close-icon" />
         </button>
 
-        <div>
+        <div className="PathwayModal-body" id="PathwayModal-body">
           <p className="PathwayModal-text">{text}</p>
           <button
             className="learning-pathway-OK-button"
