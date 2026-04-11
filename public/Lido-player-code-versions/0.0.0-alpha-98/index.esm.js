@@ -1,0 +1,1 @@
+export{X as format}from"./p-C-h69UYH.js";import"./p-C7XdSFIP.js";

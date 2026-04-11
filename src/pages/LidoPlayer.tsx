@@ -106,13 +106,14 @@ const LidoPlayer: FC = () => {
     localStorage.removeItem(LIDO_SCORES_KEY);
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const returnState = state?.returnState ?? state;
     let targetPath = fromPath;
     if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
       const separator = fromPath.includes('?') ? '&' : '?';
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
-    history.replace(targetPath, state);
+    history.replace(targetPath, returnState);
     setIsLoading(false);
     setTimeout(() => {
       isExitingRef.current = false;
