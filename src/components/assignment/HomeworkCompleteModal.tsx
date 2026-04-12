@@ -58,7 +58,7 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
 
   const handleClose = () => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
-    onClose();
+    // onClose();
   };
 
   const handlePlayMore = () => {
