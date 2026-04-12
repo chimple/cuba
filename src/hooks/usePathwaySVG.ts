@@ -311,6 +311,15 @@ export function usePathwaySVG({
             }
           } catch (e) {}
         }
+      } else {
+        // Preview disabled: clear pending auto-open state and refresh to new path.
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
 
       const shouldOpenCelebrationPopup =
@@ -908,8 +917,16 @@ export function usePathwaySVG({
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If there is a reward, run full reward animation flow
-        if (isStringReward && isRewardFeatureOn) {
+        // If a popup is about to open, defer reward animation
+        // so it plays after the pathway refresh (avoids animating behind the popup).
+        const willShowCelebration =
+          shouldOpenCelebrationPopup && !!stickerPreviewPayload;
+        if (
+          isStringReward &&
+          isRewardFeatureOn &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup
+        ) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
             lessons,
