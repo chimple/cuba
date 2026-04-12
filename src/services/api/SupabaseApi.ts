@@ -64,6 +64,7 @@ import {
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
+  StudentLeaderboardInfo,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -93,6 +94,50 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+const GENERIC_LEADERBOARD_LIMIT = 50;
+
+type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
+
+const emptyLeaderboardInfo = (): LeaderboardInfo => ({
+  weekly: [],
+  allTime: [],
+  monthly: [],
+});
+
+const getLeaderboardDataType = (
+  leaderboardDropdownType: LeaderboardDropdownList,
+): LeaderboardDataType =>
+  leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+    ? 'weekly'
+    : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? 'monthly'
+      : 'allTime';
+
+const mapLeaderboardRow = (result: any): StudentLeaderboardInfo => ({
+  name: result.name || '',
+  score: result.total_score || 0,
+  timeSpent: result.total_time_spent || 0,
+  lessonsPlayed: result.lessons_played || 0,
+  userId: result.student_id || '',
+});
+
+const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
+  const leaderboardEntry = mapLeaderboardRow(result);
+  switch (result.type) {
+    case 'allTime':
+      leaderBoardList.allTime.push(leaderboardEntry);
+      break;
+    case 'monthly':
+      leaderBoardList.monthly.push(leaderboardEntry);
+      break;
+    case 'weekly':
+      leaderBoardList.weekly.push(leaderboardEntry);
+      break;
+    default:
+      logger.warn('Unknown leaderboard type: ', result.type);
+  }
+};
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -4936,7 +4981,27 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         throw new Error('Supabase instance is not initialized');
 
-      // Fetch leaderboard data using the Supabase RPC function
+      const leaderBoardList = emptyLeaderboardInfo();
+
+      if (!sectionId) {
+        const leaderboardType = getLeaderboardDataType(leaderboardDropdownType);
+        const { data, error } = await this.supabase
+          .from('get_leaderboard_generic_data')
+          .select(
+            'type, student_id, name, lessons_played, total_score, total_time_spent',
+          )
+          .eq('type', leaderboardType)
+          .order('total_score', { ascending: false, nullsFirst: false })
+          .limit(GENERIC_LEADERBOARD_LIMIT);
+
+        if (error) {
+          throw error;
+        }
+
+        data?.forEach((result) => pushLeaderboardRow(leaderBoardList, result));
+        return leaderBoardList;
+      }
+
       const rpcRes = await this.supabase.rpc('get_class_leaderboard', {
         current_class_id: sectionId,
       });
@@ -4948,76 +5013,48 @@ export class SupabaseApi implements ServiceApi {
 
       // Initialize the leaderboard structure
       const data: any = rpcRes.data;
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
 
       // Process the data and populate the leaderboard lists
       for (let i = 0; i < data.length; i++) {
         const result = data[i];
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       }
 
       return leaderBoardList;
     } catch (e) {
       logger.error('Error in getLeaderboardResults: ', e);
       // Return an empty leaderboard structure in case of error
-      return {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
+      return emptyLeaderboardInfo();
     }
   }
 
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<
-    LeaderboardInfo | undefined
-  > {
+  async getLeaderboardStudentResultFromB2CCollection(
+    studentId?: string,
+  ): Promise<LeaderboardInfo | undefined> {
     try {
       // Initialize leaderboard structure
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
-
-      // Define the query to fetch data from the view
-      const genericQuery = `
-      SELECT *
-      FROM get_leaderboard_generic_data
-    `;
+      let leaderBoardList = emptyLeaderboardInfo();
 
       if (!this.supabase) {
         logger.error('Supabase instance is not initialized');
         return;
       }
 
+      if (!studentId) {
+        logger.warn(
+          'getLeaderboardStudentResultFromB2CCollection called without studentId',
+        );
+        return leaderBoardList;
+      }
+
       // Execute the query
       const { data, error } = await this.supabase
         .from('get_leaderboard_generic_data')
-        .select();
+        .select(
+          'type, student_id, name, lessons_played, total_score, total_time_spent',
+        )
+        .eq('student_id', studentId)
+        .limit(3);
 
       // Handle errors in the query execution
       if (error) {
@@ -5034,28 +5071,7 @@ export class SupabaseApi implements ServiceApi {
       // Process the results
       data.forEach((result) => {
         if (!result) return;
-
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       });
 
       return leaderBoardList;

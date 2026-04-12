@@ -3745,8 +3745,10 @@ export class SqliteApi implements ServiceApi {
       return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
-      let genericQueryResult =
-        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      let genericQueryResult = await this._serverApi.getLeaderboardResults(
+        '',
+        leaderboardDropdownType,
+      );
       if (!genericQueryResult) {
         return;
       }

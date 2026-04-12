@@ -73,7 +73,7 @@ describe('HomeworkCompleteModal', () => {
     );
   });
 
-  test('stops audio before closing', () => {
+  test('does not close when clicking banner backdrop', () => {
     const onClose = jest.fn();
 
     const { container } = render(
@@ -89,7 +89,6 @@ describe('HomeworkCompleteModal', () => {
       container.querySelector('.homework-completed-banner') as HTMLElement,
     );
 
-    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
