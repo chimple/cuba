@@ -16,7 +16,10 @@ import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
 import { IonCol, IonPage, IonRow } from '@ionic/react';
 import React from 'react';
-import { LeaderboardInfo } from '../services/api/ServiceApi';
+import {
+  LeaderboardInfo,
+  StudentLeaderboardInfo,
+} from '../services/api/ServiceApi';
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import { t } from 'i18next';
 import { Util } from '../utility/util';
@@ -30,6 +33,50 @@ import { App } from '@capacitor/app';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
 import DebugMode from '../teachers-module/components/DebugMode';
+
+const emptyLeaderboardInfo = (): LeaderboardInfo => ({
+  weekly: [],
+  allTime: [],
+  monthly: [],
+});
+
+const getLeaderboardListByType = (
+  leaderboardInfo: LeaderboardInfo,
+  leaderboardDropdownType: LeaderboardDropdownList,
+): StudentLeaderboardInfo[] =>
+  leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+    ? leaderboardInfo.weekly
+    : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? leaderboardInfo.monthly
+      : leaderboardInfo.allTime;
+
+const hasLeaderboardDataForType = (
+  leaderboardInfo: LeaderboardInfo,
+  leaderboardDropdownType: LeaderboardDropdownList,
+) =>
+  getLeaderboardListByType(leaderboardInfo, leaderboardDropdownType).length > 0;
+
+const mergeLeaderboardInfo = (
+  cachedData: LeaderboardInfo,
+  fetchedData: LeaderboardInfo,
+  leaderboardDropdownType: LeaderboardDropdownList,
+): LeaderboardInfo => ({
+  weekly:
+    fetchedData.weekly.length > 0 ||
+    leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+      ? fetchedData.weekly
+      : cachedData.weekly,
+  monthly:
+    fetchedData.monthly.length > 0 ||
+    leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? fetchedData.monthly
+      : cachedData.monthly,
+  allTime:
+    fetchedData.allTime.length > 0 ||
+    leaderboardDropdownType === LeaderboardDropdownList.ALL_TIME
+      ? fetchedData.allTime
+      : cachedData.allTime,
+});
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -193,16 +240,25 @@ const Leaderboard: React.FC = () => {
     setCurrentUserDataContent(currentUserDataContent);
     setLeaderboardData(leaderboardDataArray);
     setIsLoading(false);
-    const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
-      .length <= 0 ||
-    leaderboardDataInfo.allTime.length <= 0 ||
-    leaderboardDataInfo.monthly.length <= 0
-      ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
-      : leaderboardDataInfo) || {
-      weekly: [],
-      allTime: [],
-      monthly: [],
-    };
+    const hasCachedLeaderboardData = hasLeaderboardDataForType(
+      leaderboardDataInfo,
+      leaderboardDropdownType,
+    );
+    const [leaderboardResult, b2cData] = await Promise.all([
+      hasCachedLeaderboardData
+        ? Promise.resolve(leaderboardDataInfo)
+        : api.getLeaderboardResults(classId, leaderboardDropdownType),
+      !classId
+        ? api.getLeaderboardStudentResultFromB2CCollection(currentStudent.id)
+        : Promise.resolve(undefined),
+    ]);
+    const tempLeaderboardData: LeaderboardInfo = hasCachedLeaderboardData
+      ? leaderboardDataInfo
+      : mergeLeaderboardInfo(
+          leaderboardDataInfo,
+          leaderboardResult || emptyLeaderboardInfo(),
+          leaderboardDropdownType,
+        );
 
     const leaderboardAttributes = {
       leaderboard_position_weekly:
@@ -223,12 +279,29 @@ const Leaderboard: React.FC = () => {
 
     setLeaderboardDataInfo(tempLeaderboardData);
 
-    const tempData =
-      leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
-        ? tempLeaderboardData.weekly
-        : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-          ? tempLeaderboardData.monthly
-          : tempLeaderboardData.allTime;
+    const currentStudentB2CData = b2cData
+      ? getLeaderboardListByType(b2cData, leaderboardDropdownType)[0]
+      : undefined;
+    const currentStudentLeaderboardEntry = currentStudentB2CData
+      ? {
+          ...currentStudentB2CData,
+          userId: currentStudentB2CData.userId || currentStudent.id,
+          name: currentStudentB2CData.name || currentStudent.name || '',
+        }
+      : undefined;
+
+    let tempData = [
+      ...getLeaderboardListByType(tempLeaderboardData, leaderboardDropdownType),
+    ];
+    if (!classId && currentStudentLeaderboardEntry) {
+      const currentStudentIndex = tempData.findIndex(
+        (item) => item.userId === currentStudent.id,
+      );
+      if (currentStudentIndex >= 0) {
+        tempData[currentStudentIndex] = currentStudentLeaderboardEntry;
+        tempData.sort((a, b) => b.score - a.score);
+      }
+    }
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
@@ -265,45 +338,33 @@ const Leaderboard: React.FC = () => {
         ];
       }
     }
-    if (!isCurrentStudentDataFetched && !classId) {
-      const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
-        currentStudent.id,
+    if (
+      !isCurrentStudentDataFetched &&
+      !classId &&
+      currentStudentLeaderboardEntry
+    ) {
+      var computeMinutes = Math.floor(
+        currentStudentLeaderboardEntry.timeSpent / 60,
       );
-      if (b2cData) {
-        const tempData =
-          leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
-            ? b2cData.weekly
-            : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-              ? b2cData.monthly
-              : b2cData.allTime;
-        if (tempData && tempData.length > 0) {
-          var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
-          var computeSeconds = tempData[0].timeSpent % 60;
-          const cUserRank = tempLeaderboardDataArray.length.toString() + '+';
-          tempCurrentUserDataContent = [
-            // ["Name", element.name],
-            [t('Rank'), cUserRank],
-            [t('Lessons Played'), tempData[0].lessonsPlayed],
-            [t('Score'), tempData[0].score],
-            [
-              t('Time Spent'),
-              computeMinutes +
-                t(' min') +
-                ' ' +
-                computeSeconds +
-                ' ' +
-                t('sec'),
-            ],
-          ];
-          tempLeaderboardDataArray.push([
-            cUserRank,
-            tempData[0].name,
-            tempData[0].lessonsPlayed,
-            tempData[0].score,
-            computeMinutes + t(' min') + ' ' + computeSeconds + ' ' + t('sec'),
-          ]);
-        }
-      }
+      var computeSeconds = currentStudentLeaderboardEntry.timeSpent % 60;
+      const cUserRank = tempLeaderboardDataArray.length.toString() + '+';
+      tempCurrentUserDataContent = [
+        // ["Name", element.name],
+        [t('Rank'), cUserRank],
+        [t('Lessons Played'), currentStudentLeaderboardEntry.lessonsPlayed],
+        [t('Score'), currentStudentLeaderboardEntry.score],
+        [
+          t('Time Spent'),
+          computeMinutes + t(' min') + ' ' + computeSeconds + ' ' + t('sec'),
+        ],
+      ];
+      tempLeaderboardDataArray.push([
+        cUserRank,
+        currentStudentLeaderboardEntry.name,
+        currentStudentLeaderboardEntry.lessonsPlayed,
+        currentStudentLeaderboardEntry.score,
+        computeMinutes + t(' min') + ' ' + computeSeconds + ' ' + t('sec'),
+      ]);
     }
     if (tempCurrentUserDataContent.length <= 0) {
       tempCurrentUserDataContent = currentUserDataContent;
