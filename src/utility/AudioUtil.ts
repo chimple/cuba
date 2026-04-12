@@ -34,6 +34,8 @@ export class AudioUtil {
   private static audioPlaybackLock: Promise<void> = Promise.resolve();
   // Newer playback requests invalidate older in-flight ones.
   private static audioPlaybackRequestId = 0;
+  // Called when active playback is force-stopped/interrupted by another request.
+  private static activePlaybackOnStop: (() => void) | null = null;
   private static readonly TTS_RESTART_DELAY_MS = 80;
 
   private static getAudioCacheFileName(audioUrl: string): string {
@@ -172,6 +174,9 @@ export class AudioUtil {
   }
 
   private static async stopActiveAudioPlayback(): Promise<void> {
+    const onStop = AudioUtil.activePlaybackOnStop;
+    AudioUtil.activePlaybackOnStop = null;
+
     // Popup audio and popup TTS share a single playback lane.
     try {
       await TextToSpeech.stop();
@@ -185,6 +190,15 @@ export class AudioUtil {
       }
     } catch (error) {
       logger.error('[CommonAudio] Failed to stop HTML audio playback', error);
+    }
+
+    try {
+      onStop?.();
+    } catch (error) {
+      logger.error(
+        '[CommonAudio] Failed to run playback onStop callback',
+        error,
+      );
     }
   }
 
@@ -394,6 +408,7 @@ export class AudioUtil {
     pitch = 1,
     volume = 1,
     loop = false,
+    onStop,
     onComplete,
   }: {
     audioUrl?: string | null;
@@ -405,6 +420,7 @@ export class AudioUtil {
     pitch?: number;
     volume?: number;
     loop?: boolean;
+    onStop?: () => void;
     onComplete?: () => void;
   }): Promise<boolean> {
     const requestId = ++AudioUtil.audioPlaybackRequestId;
@@ -449,6 +465,7 @@ export class AudioUtil {
 
         const handleAudioEnded = () => {
           AudioUtil.releaseTrackedAudioPlayer(audio);
+          AudioUtil.activePlaybackOnStop = null;
 
           void AudioUtil.triggerOnComplete({
             requestId,
@@ -499,6 +516,7 @@ export class AudioUtil {
         };
 
         const handleAudioError = () => {
+          AudioUtil.activePlaybackOnStop = null;
           void fallbackToTts(
             new Error(`Failed to load audio asset: ${resolvedAudioUrl}`),
           );
@@ -513,6 +531,7 @@ export class AudioUtil {
         }
 
         AudioUtil.activeCommonAudioPlayer = audio;
+        AudioUtil.activePlaybackOnStop = onStop ?? null;
         playbackTask = audio
           .play()
           .then(() => {
@@ -529,6 +548,7 @@ export class AudioUtil {
         return;
       }
 
+      AudioUtil.activePlaybackOnStop = onStop ?? null;
       playbackTask = AudioUtil.playTts({
         text,
         languageCode,

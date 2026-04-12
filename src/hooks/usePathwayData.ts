@@ -200,6 +200,22 @@ export const usePathwayData = () => {
 
       return AudioUtil.playAudioOrTts({
         audioUrl: normalizedPath,
+        onStop: () => {
+          if (mascotSpeakRequestIdRef.current !== requestId) {
+            playbackOptions?.onPlaybackStop?.();
+            return;
+          }
+
+          const restoreState = mascotStateRef.current;
+          if (restoreState) {
+            setChimpleRiveStateMachineName(restoreState.stateMachine);
+            setChimpleRiveInputName(restoreState.inputName);
+            setChimpleRiveStateValue(restoreState.stateValue);
+            setChimpleRiveAnimationName(restoreState.animationName);
+            setMascotKey((prev) => prev + 1);
+          }
+          playbackOptions?.onPlaybackStop?.();
+        },
         onComplete: () => {
           if (mascotSpeakRequestIdRef.current !== requestId) {
             playbackOptions?.onPlaybackStop?.();
