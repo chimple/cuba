@@ -349,9 +349,9 @@ export function usePathwaySVG({
         } catch (e) {}
       }
 
-      const stickerPreviewPayload = isStickerBookPreviewOn
+      const stickerPreviewPromise = isStickerBookPreviewOn
         ? overrideParsed
-          ? await getStickerPreviewPayload(
+          ? getStickerPreviewPayload(
               overrideParsed.awardedStickerId,
               Array.isArray(overrideParsed.preAwardCollectedStickerIds)
                 ? overrideParsed.preAwardCollectedStickerIds
@@ -362,16 +362,79 @@ export function usePathwaySVG({
                 stickerBookSvgUrl: overrideParsed.stickerBookSvgUrl,
               },
             )
-          : await getStickerPreviewPayload()
-        : null;
-      const stickerCompletionPayload = isStickerBookCompletionPopupOn
-        ? (getPersistedStickerCompletionPayload(completionOverrideParsed) ??
-          (await getStickerCompletionPayload()))
-        : null;
+          : getStickerPreviewPayload()
+        : Promise.resolve(null);
+
+      const stickerCompletionPromise = isStickerBookCompletionPopupOn
+        ? getPersistedStickerCompletionPayload(completionOverrideParsed)
+          ? Promise.resolve(
+              getPersistedStickerCompletionPayload(completionOverrideParsed),
+            )
+          : getStickerCompletionPayload()
+        : Promise.resolve(null);
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
+
+      const lessons = await Promise.all(
+        course.path
+          .slice(startIndex, pathEndIndex + 1)
+          .map((p: LessonNode) => getCachedLesson(p.lesson_id)),
+      );
+
+      // Preload icons/images for lessons (to reduce flicker)
+      preloadAllLessonImages(lessons);
+
+      const [
+        stickerPreviewPayload,
+        stickerCompletionPayload,
+        newRewardIdFromCheck,
+        pathwaySVG,
+        flowerActive,
+        flowerInactive,
+        playedLessonSVG,
+        mysteryBox1,
+        mysteryBox2,
+        mysteryBox3,
+        halo,
+      ] = await Promise.all([
+        stickerPreviewPromise,
+        stickerCompletionPromise,
+        checkAndUpdateReward(),
+        loadPathwayTemplate(),
+        loadGroupAsset(
+          'flowerActive',
+          'remoteAsset/FlowerActive.svg',
+          '/pathwayAssets/English/FlowerActive.svg',
+        ),
+        loadGroupAsset(
+          'flowerInactive',
+          'remoteAsset/FlowerInactive.svg',
+          '/pathwayAssets/FlowerInactive.svg',
+        ),
+        loadGroupAsset(
+          'playedLessonSVG',
+          'remoteAsset/PlayedLesson.svg',
+          '/pathwayAssets/English/PlayedLesson.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox1',
+          'remoteAsset/mysteryBox1.svg',
+          '/pathwayAssets/English/mysteryBox1.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox2',
+          'remoteAsset/mysteryBox2.svg',
+          '/pathwayAssets/English/mysteryBox2.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox3',
+          'remoteAsset/mysteryBox3.svg',
+          '/pathwayAssets/English/mysteryBox3.svg',
+        ),
+        loadHalo(),
+      ]);
 
       let didScheduleStickerCompletionPopup = false;
       if (rawCompletionPopup) {
@@ -410,59 +473,6 @@ export function usePathwaySVG({
           );
         }
       }
-
-      const lessons = await Promise.all(
-        course.path
-          .slice(startIndex, pathEndIndex + 1)
-          .map((p: LessonNode) => getCachedLesson(p.lesson_id)),
-      );
-
-      // Preload icons/images for lessons (to reduce flicker)
-      preloadAllLessonImages(lessons);
-
-      const [
-        pathwaySVG,
-        flowerActive,
-        flowerInactive,
-        playedLessonSVG,
-        mysteryBox1,
-        mysteryBox2,
-        mysteryBox3,
-        halo,
-      ] = await Promise.all([
-        loadPathwayTemplate(),
-        loadGroupAsset(
-          'flowerActive',
-          'remoteAsset/FlowerActive.svg',
-          '/pathwayAssets/English/FlowerActive.svg',
-        ),
-        loadGroupAsset(
-          'flowerInactive',
-          'remoteAsset/FlowerInactive.svg',
-          '/pathwayAssets/FlowerInactive.svg',
-        ),
-        loadGroupAsset(
-          'playedLessonSVG',
-          'remoteAsset/PlayedLesson.svg',
-          '/pathwayAssets/English/PlayedLesson.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox1',
-          'remoteAsset/mysteryBox1.svg',
-          '/pathwayAssets/English/mysteryBox1.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox2',
-          'remoteAsset/mysteryBox2.svg',
-          '/pathwayAssets/English/mysteryBox2.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox3',
-          'remoteAsset/mysteryBox3.svg',
-          '/pathwayAssets/English/mysteryBox3.svg',
-        ),
-        loadHalo(),
-      ]);
 
       // Build SVG in next frame to keep main thread responsive
       requestAnimationFrame(async () => {
@@ -910,8 +920,6 @@ export function usePathwaySVG({
           (_: any, index: number) => startIndex + index === currentIndex - 1,
         );
         const xValuesForChimple = [-60, 66, 180, 295, 412];
-
-        const newRewardIdFromCheck = await checkAndUpdateReward();
 
         const isStringReward =
           newRewardIdFromCheck !== null &&

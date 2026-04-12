@@ -118,6 +118,12 @@ export class SqliteApi implements ServiceApi {
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
 
+  private _syncInProgress: boolean = false;
+  private _syncRequestedAgain: boolean = false;
+  private _retryRefreshTables: TABLES[] = [];
+
+  private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
+
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -125,10 +131,6 @@ export class SqliteApi implements ServiceApi {
     }
     return SqliteApi.i;
   }
-
-  private _syncInProgress: boolean = false;
-  private _syncRequestedAgain: boolean = false;
-  private _retryRefreshTables: TABLES[] = [];
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -700,6 +702,10 @@ export class SqliteApi implements ServiceApi {
     }
     const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
+
+    if (tablesWritten.has(TABLES.RiveReward)) {
+      this._cachedRewards = undefined;
+    }
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
@@ -7602,6 +7608,10 @@ order by
   async getRewardById(
     rewardId: string,
   ): Promise<TableTypes<'rive_reward'> | undefined> {
+    if (this._cachedRewards) {
+      const r = this._cachedRewards.find((x) => x.id === rewardId);
+      if (r) return r;
+    }
     try {
       const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
       const res = await this.executeQuery(query, [rewardId]);
@@ -7616,6 +7626,7 @@ order by
     }
   }
   async getAllRewards(): Promise<TableTypes<'rive_reward'>[] | []> {
+    if (this._cachedRewards) return this._cachedRewards;
     try {
       const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
       const res = await this.executeQuery(query, []);
@@ -7623,7 +7634,8 @@ order by
         logger.warn(`No rewards found`);
         return [];
       }
-      return res.values as TableTypes<'rive_reward'>[];
+      this._cachedRewards = res.values as TableTypes<'rive_reward'>[];
+      return this._cachedRewards;
     } catch (error) {
       logger.error('Error fetching all rewards', error);
       return [];

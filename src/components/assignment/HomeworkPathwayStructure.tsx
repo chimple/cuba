@@ -452,6 +452,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const lessons = lessonsToRender.map((item) => item.lesson);
 
       const [
+        newRewardId,
         svgContent,
         fruitActive,
         fruitInactive,
@@ -461,6 +462,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         giftSVG3,
         haloPath,
       ] = await Promise.all([
+        checkAndUpdateReward(),
         loadPathwayContent(
           'homeworkRemoteAsset/Pathway2.svg',
           '/pathwayAssets/English/Pathway2.svg',
@@ -962,12 +964,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }
         };
 
-        let newRewardId: string | null = null;
-        try {
-          newRewardId = await checkAndUpdateReward();
-        } catch (e) {
-          logger.warn('Check Reward failed offline', e);
-        }
+        // (newRewardId is already fetched in Promise.all above)
 
         if (
           newRewardId !== null &&
