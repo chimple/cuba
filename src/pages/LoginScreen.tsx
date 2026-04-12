@@ -409,6 +409,16 @@ const LoginScreen: React.FC = () => {
     } catch (error) {
       // Handle all state updates for error case at once
       logger.info('Error in OTP verification', error);
+      try {
+        // Defensive cleanup: if backend OTP flow failed after partial auth work,
+        // clear any existing session before showing retry UI.
+        await authInstance.logOut();
+      } catch (logoutError) {
+        logger.error(
+          'Failed to clear auth session after OTP verification error',
+          logoutError,
+        );
+      }
       const updates = () => {
         setAnimatedLoading(false);
         dispatch(setAuthLoading(false));
