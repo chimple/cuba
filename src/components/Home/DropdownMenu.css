@@ -153,6 +153,11 @@
   height: 100%;
   width: 100%;
 }
+
+/* Hide mounted selected icon while expanded list is visible. */
+.dropdownmenu-menu-selected.hide-icon {
+  display: none;
+}
 /* ensure parent is not transformed (selected icon stays visible) */
 .dropdownmenu-dropdown-left {
   transform: none;

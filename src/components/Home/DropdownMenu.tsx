@@ -364,8 +364,11 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         onClick={handleToggleExpand}
       >
         <div className="dropdownmenu-dropdown-left">
-          {!expanded && selected && (
-            <div className="dropdownmenu-menu-selected">
+          {/* Keep selected icon mounted to avoid reloading it after dropdown closes. */}
+          {selected && (
+            <div
+              className={`dropdownmenu-menu-selected ${expanded ? 'hide-icon' : ''}`}
+            >
               <div className="dropdownmenu-selected-icon">
                 <SelectIconImage
                   localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
@@ -374,6 +377,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     getCachedImageUrl(selected.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
+                  showLoaderFromStart={true}
+                  minimumLoaderVisibleMs={250}
                   imageWidth="10vh"
                   imageHeight="auto"
                 />
@@ -406,6 +411,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     getCachedImageUrl(detail.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
+                  showLoaderFromStart={true}
+                  minimumLoaderVisibleMs={250}
                   imageWidth="85%"
                 />
                 <div className="dropdownmenu-truncate-style">

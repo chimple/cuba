@@ -1,8 +1,7 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import './SelectIconImage.css';
-import logger from '../../utility/logger';
 
-const SelectIconImage: FC<{
+interface SelectIconImageProps {
   localSrc?: string;
   defaultSrc: string;
   webSrc?: string;
@@ -10,7 +9,11 @@ const SelectIconImage: FC<{
   imageHeight?: string;
   webImageWidth?: string;
   webImageHeight?: string;
-}> = ({
+  showLoaderFromStart?: boolean;
+  minimumLoaderVisibleMs?: number;
+}
+
+const SelectIconImage: FC<SelectIconImageProps> = ({
   localSrc,
   defaultSrc,
   webSrc,
@@ -18,64 +21,127 @@ const SelectIconImage: FC<{
   imageHeight = '100%',
   webImageWidth = '100%',
   webImageHeight = '100%',
+  showLoaderFromStart = false,
+  minimumLoaderVisibleMs = 0,
 }) => {
   const [activeSrc, setActiveSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [showLoader, setShowLoader] = useState<boolean>(false);
+  const loaderShownAtRef = useRef<number | null>(null);
+  const hideLoaderTimeoutRef = useRef<number | null>(null);
+
+  // Render the first source immediately and fallback on error to avoid preload delay.
+  const getInitialSrc = (): string => {
+    return localSrc || webSrc || defaultSrc;
+  };
+
+  const clearHideLoaderTimeout = (): void => {
+    if (hideLoaderTimeoutRef.current !== null) {
+      window.clearTimeout(hideLoaderTimeoutRef.current);
+      hideLoaderTimeoutRef.current = null;
+    }
+  };
 
   useEffect(() => {
-    const preloadImage = (src: string): Promise<boolean> => {
-      return new Promise((resolve) => {
-        const img = new Image();
+    clearHideLoaderTimeout();
+    loaderShownAtRef.current = null;
 
-        img.onload = () => {
-          img.onload = null;
-          img.onerror = null;
-          resolve(true);
-        };
+    // For default-only icons (e.g. dropdown arrows), render immediately without loader.
+    if (!localSrc && !webSrc) {
+      setActiveSrc(defaultSrc);
+      setIsLoading(false);
+      setShowLoader(false);
+      return;
+    }
 
-        img.onerror = () => {
-          img.onload = null;
-          img.onerror = null;
-          resolve(false);
-        };
-
-        img.src = src;
-      });
-    };
-
-    const loadImages = async () => {
-      setIsLoading(true);
-
-      try {
-        // Load both sources in parallel for maximum speed
-        const [localLoaded, webLoaded] = await Promise.all([
-          localSrc ? preloadImage(localSrc) : Promise.resolve(false),
-          webSrc ? preloadImage(webSrc) : Promise.resolve(false),
-        ]);
-
-        setActiveSrc(
-          localLoaded && localSrc
-            ? localSrc
-            : webLoaded && webSrc
-              ? webSrc
-              : defaultSrc,
-        );
-      } catch (error) {
-        logger.error('Image loading failed:', error);
-        setActiveSrc(defaultSrc);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadImages();
+    setActiveSrc(getInitialSrc());
+    setIsLoading(true);
+    setShowLoader(false);
   }, [localSrc, webSrc, defaultSrc]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setShowLoader(false);
+      return;
+    }
+
+    if (showLoaderFromStart) {
+      loaderShownAtRef.current = Date.now();
+      setShowLoader(true);
+      return;
+    }
+
+    const loaderTimeout = window.setTimeout(() => {
+      loaderShownAtRef.current = Date.now();
+      setShowLoader(true);
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(loaderTimeout);
+    };
+  }, [isLoading, showLoaderFromStart]);
+
+  const finalizeLoading = (): void => {
+    clearHideLoaderTimeout();
+    setIsLoading(false);
+
+    if (!showLoader) {
+      setShowLoader(false);
+      return;
+    }
+
+    if (minimumLoaderVisibleMs <= 0 || loaderShownAtRef.current === null) {
+      setShowLoader(false);
+      return;
+    }
+
+    const elapsedMs = Date.now() - loaderShownAtRef.current;
+    const remainingMs = minimumLoaderVisibleMs - elapsedMs;
+
+    if (remainingMs <= 0) {
+      setShowLoader(false);
+      return;
+    }
+
+    hideLoaderTimeoutRef.current = window.setTimeout(() => {
+      setShowLoader(false);
+    }, remainingMs);
+  };
+
+  const handleImageLoad = (): void => {
+    finalizeLoading();
+  };
+
+  const handleImageError = (): void => {
+    if (activeSrc === localSrc && webSrc) {
+      setActiveSrc(webSrc);
+      return;
+    }
+
+    if (activeSrc !== defaultSrc) {
+      setActiveSrc(defaultSrc);
+      return;
+    }
+
+    finalizeLoading();
+  };
+
+  useEffect(() => {
+    return () => {
+      clearHideLoaderTimeout();
+    };
+  }, []);
 
   return (
     <div
       style={{ position: 'relative', width: imageWidth, height: imageHeight }}
     >
       {isLoading && <div className="placeholder" />}
+      {showLoader && (
+        <div className="select-icon-image-loading-indicator-container">
+          <div className="select-icon-image-loading-indicator" />
+        </div>
+      )}
       {activeSrc && (
         <img
           src={activeSrc}
@@ -86,7 +152,8 @@ const SelectIconImage: FC<{
             height: imageHeight,
             objectFit: 'contain',
           }}
-          onLoad={() => setIsLoading(false)}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
         />
       )}
     </div>
