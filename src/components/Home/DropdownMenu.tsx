@@ -373,8 +373,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     getCachedImageUrl(selected.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
-                  showLoaderFromStart={true}
-                  minimumLoaderVisibleMs={250}
+                  disableLoader={true}
                   imageWidth="10vh"
                   imageHeight="auto"
                 />

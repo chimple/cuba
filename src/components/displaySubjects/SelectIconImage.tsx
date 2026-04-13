@@ -11,7 +11,10 @@ interface SelectIconImageProps {
   webImageHeight?: string;
   showLoaderFromStart?: boolean;
   minimumLoaderVisibleMs?: number;
+  disableLoader?: boolean;
 }
+
+const loadedImageSrcCache = new Set<string>();
 
 const SelectIconImage: FC<SelectIconImageProps> = ({
   localSrc,
@@ -23,6 +26,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
   webImageHeight = '100%',
   showLoaderFromStart = false,
   minimumLoaderVisibleMs = 0,
+  disableLoader = false,
 }) => {
   const [activeSrc, setActiveSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -42,6 +46,28 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     }
   };
 
+  const finishLoadingImmediately = (): void => {
+    clearHideLoaderTimeout();
+    setIsLoading(false);
+    setShowLoader(false);
+  };
+
+  const isImageReady = (src: string): boolean => {
+    if (loadedImageSrcCache.has(src)) {
+      return true;
+    }
+
+    const image = new Image();
+    image.src = src;
+    const isReady = image.complete;
+
+    if (isReady) {
+      loadedImageSrcCache.add(src);
+    }
+
+    return isReady;
+  };
+
   useEffect(() => {
     clearHideLoaderTimeout();
     loaderShownAtRef.current = null;
@@ -54,12 +80,24 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
       return;
     }
 
-    setActiveSrc(getInitialSrc());
+    const initialSrc = getInitialSrc();
+    setActiveSrc(initialSrc);
+
+    if (isImageReady(initialSrc)) {
+      finishLoadingImmediately();
+      return;
+    }
+
     setIsLoading(true);
     setShowLoader(false);
   }, [localSrc, webSrc, defaultSrc]);
 
   useEffect(() => {
+    if (disableLoader) {
+      setShowLoader(false);
+      return;
+    }
+
     if (!isLoading) {
       setShowLoader(false);
       return;
@@ -79,7 +117,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     return () => {
       window.clearTimeout(loaderTimeout);
     };
-  }, [isLoading, showLoaderFromStart]);
+  }, [isLoading, showLoaderFromStart, disableLoader]);
 
   const finalizeLoading = (): void => {
     clearHideLoaderTimeout();
@@ -109,17 +147,30 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
   };
 
   const handleImageLoad = (): void => {
+    if (activeSrc) {
+      loadedImageSrcCache.add(activeSrc);
+    }
     finalizeLoading();
   };
 
   const handleImageError = (): void => {
     if (activeSrc === localSrc && webSrc) {
       setActiveSrc(webSrc);
+
+      if (isImageReady(webSrc)) {
+        finishLoadingImmediately();
+      }
+
       return;
     }
 
     if (activeSrc !== defaultSrc) {
       setActiveSrc(defaultSrc);
+
+      if (isImageReady(defaultSrc)) {
+        finishLoadingImmediately();
+      }
+
       return;
     }
 
@@ -137,7 +188,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
       style={{ position: 'relative', width: imageWidth, height: imageHeight }}
     >
       {isLoading && <div className="placeholder" />}
-      {showLoader && (
+      {showLoader && !disableLoader && (
         <div className="select-icon-image-loading-indicator-container">
           <div className="select-icon-image-loading-indicator" />
         </div>
