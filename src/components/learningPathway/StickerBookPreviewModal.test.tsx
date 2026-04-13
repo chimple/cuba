@@ -1045,7 +1045,7 @@ describe('StickerBookPreviewModal', () => {
 
     await waitFor(() => expect(mockOpenSaveModal).toHaveBeenCalledTimes(1));
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE,
       expect.objectContaining({
         sticker_book_id: 'book-complete',
         collected_count: 3,
@@ -1055,7 +1055,7 @@ describe('StickerBookPreviewModal', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /paint/i }));
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT,
       expect.objectContaining({
         sticker_book_id: 'book-complete',
       }),
