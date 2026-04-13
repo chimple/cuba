@@ -8,6 +8,9 @@ export function ensureSocialLoginInitialized(): Promise<void> {
       google: {
         webClientId: process.env.REACT_APP_CLIENT_ID,
       },
+    }).catch((error) => {
+      initPromise = null;
+      throw error;
     });
   }
   return initPromise;
