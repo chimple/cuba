@@ -106,13 +106,14 @@ const LidoPlayer: FC = () => {
     localStorage.removeItem(LIDO_SCORES_KEY);
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const returnState = state?.returnState ?? state;
     let targetPath = fromPath;
     if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
       const separator = fromPath.includes('?') ? '&' : '?';
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
-    history.replace(targetPath, state);
+    history.replace(targetPath, returnState);
     setIsLoading(false);
     setTimeout(() => {
       isExitingRef.current = false;
@@ -201,6 +202,16 @@ const LidoPlayer: FC = () => {
         group.wrongMoves += record.wrongMoves ?? 0;
         group.totalTimeSpent += record.timeSpent ?? 0;
       });
+      const learning_path: boolean = state?.learning_path ?? false;
+      const isReward: boolean = state?.reward ?? false;
+
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+
+      if (isAssessmentLesson && shouldGiveDailyReward) {
+        sessionStorage.setItem(REWARD_LESSON, 'true');
+      }
+
       for (const [skillId, group] of skillAggregator.entries()) {
         const averageScore = group.totalScore / group.count;
         const activitiesScoresStr = group.resultsList.join(',');
@@ -286,9 +297,6 @@ const LidoPlayer: FC = () => {
           time_spent: totalLessonTime, // ✅ correct total
         });
       }
-
-      const learning_path: boolean = state?.learning_path ?? false;
-      const isReward: boolean = state?.reward ?? false;
 
       if (learning_path) {
         await Util.updateLearningPath(
@@ -520,7 +528,9 @@ const LidoPlayer: FC = () => {
       avatarObj.weeklyPlayedLesson++;
       setGameResult(data);
       const isReward: boolean = state?.reward ?? false;
-      if (isReward === true) {
+      const shouldGiveDailyReward =
+        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+      if (shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
 
@@ -741,9 +751,17 @@ const LidoPlayer: FC = () => {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
-    const lessonIds: string[] = [lessonId];
-    const dow = await Util.downloadZipBundle(lessonIds);
+    const lessonToDownload = lessonDetail;
+    const lessonId =
+      Util.getLessonBundleId(lessonToDownload) ??
+      urlSearchParams.get('lessonid') ??
+      state.lessonId;
+    if (!lessonToDownload || !lessonId) {
+      presentToast();
+      push();
+      return;
+    }
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
     if (!dow) {
       presentToast();
       push();

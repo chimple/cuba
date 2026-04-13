@@ -5,6 +5,7 @@ import { PAGES } from './common/constants';
 import Loading from './components/Loading';
 import { RouteProps } from 'react-router-dom';
 import { ReactNode } from 'react';
+import { logAuthDebug } from './utility/authDebug';
 
 type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
@@ -26,7 +27,21 @@ export default function ProtectedRoute({
       const currentUser = await authHandler?.getCurrentUser();
       setIsAuth(!!isUserLoggedIn);
       setTcAccept(currentUser?.is_tc_accepted ?? false);
+      if (!isUserLoggedIn) {
+        logAuthDebug('ProtectedRoute redirecting to login.', {
+          source: 'ProtectedRoute.checkAuth',
+          reason: 'is_user_logged_in_false',
+          from_page: window.location.pathname,
+          to_page: PAGES.LOGIN,
+        });
+      }
     } catch (error) {
+      logAuthDebug('ProtectedRoute redirecting to login after auth error.', {
+        source: 'ProtectedRoute.checkAuth',
+        reason: 'auth_check_exception',
+        from_page: window.location.pathname,
+        to_page: PAGES.LOGIN,
+      });
       setIsAuth(false);
     }
   };

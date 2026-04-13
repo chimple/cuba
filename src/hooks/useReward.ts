@@ -4,7 +4,8 @@ import { IDLE_REWARD_ID, REWARD_MODAL_SHOWN_DATE } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 
 export const useReward = () => {
-  const [hasTodayReward, setHasTodayReward] = useState(true);
+  // Default to false to avoid flashing the reward box before eligibility is checked.
+  const [hasTodayReward, setHasTodayReward] = useState(false);
 
   const checkAndUpdateReward = useCallback(async (): Promise<string | null> => {
     const student = Util.getCurrentStudent();

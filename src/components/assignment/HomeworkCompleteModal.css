@@ -17,6 +17,7 @@
   background: transparent;
   pointer-events: none;
 }
+
 .homework-completed-mascot {
   position: absolute;
   bottom: 0;
@@ -31,32 +32,40 @@
   height: auto;
 
   user-select: none;
-  pointer-events: none; /* so clicks go through to card/buttons */
+  pointer-events: none;
+  /* so clicks go through to card/buttons */
   /* object-fit is not needed anymore, it was for <img> */
 }
 
 .homework-completed-banner {
-  width: 150%;
-  height: 150%;
+  width: 100%;
+  height: 100%;
 }
+
 /* === CARD === */
 .homework-completed-card {
   pointer-events: auto;
   background-color: #fffcee;
-  /* width: 100%; */
-  width: 80vw;
-
-  max-width: 43.75rem;
+  width: fit-content;
+  min-width: min(476px, 90vw);
+  max-width: 95vw;
 
   border-radius: clamp(1.25rem, 2.5vw, 2rem);
-  padding: clamp(1.2rem, 2vw, 2rem);
+  padding: clamp(1.5rem, 2.5vw, 2.2rem);
 
   box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.25);
 
-  background-size: clamp(90%, 90%, 150%) auto;
+  background-origin: content-box;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
   margin: auto;
+}
+
+.homework-completed-audio-button {
+  z-index: 2;
+  width: 44px;
+  height: 44px;
 }
 
 /* LAYOUT */
@@ -69,7 +78,7 @@
 
 /* Mascot column */
 .homework-completed-left {
-  flex: 0 0 clamp(6rem, 16vw, 9.5rem);
+  flex: 0 0 clamp(4rem, 16vw, 9.5rem);
   position: relative;
   display: flex;
   justify-content: center;
@@ -98,7 +107,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-bottom: clamp(1rem, 2vh, 2rem);
+  padding-bottom: clamp(2.5rem, 6vh, 4.5rem);
+  min-width: 0;
 }
 
 .homework-completed-text {
@@ -106,21 +116,19 @@
   font-weight: 550;
   color: #223255;
   text-align: center;
-  margin-bottom: clamp(0.9rem, 2vh, 1.5rem);
+  margin-bottom: clamp(0.9rem, 4vh, 1rem);
 
-  /* --- IMPORTANT FIXES --- */
-  white-space: nowrap; /* 🚀 force single line */
-  overflow: hidden; /* hide overflow if screen is too small */
-  text-overflow: ellipsis; /* show ... if too long */
+  white-space: normal;
+  word-break: break-word;
 
   max-width: 100%;
-  line-height: 1.3;
+  line-height: 2.3;
   margin-top: 6%;
 }
 
 /* CTA Button */
 .homework-completed-play-btn {
-  width: clamp(9rem, 27vw, 11rem);
+  width: clamp(8rem, 27vw, 11rem);
   height: clamp(3rem, 7vh, 3rem);
 
   border-radius: 10px;
@@ -131,13 +139,12 @@
   border-bottom: 0.25rem solid #8a2901;
   color: #fff;
 
-  font-size: clamp(1.3rem, 5vw, 1.1rem);
+  font-size: clamp(1.1rem, 5vw, 1.3rem);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
-  margin-right: 14%;
   transition:
     transform 0.1s ease,
     border-bottom-width 0.1s ease;
@@ -153,14 +160,20 @@
   height: 60%;
 }
 
-/* Empty right column placeholder (keeps layout symmetrical) */
+/* Right column audio */
 .homework-completed-right {
   flex: 0 0 clamp(4rem, 12vw, 7rem);
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: clamp(1rem, 2vh, 2rem);
 }
 
 /* Larger desktops */
 @media (min-width: 1200px) {
   .homework-completed-card {
-    max-width: 720px;
+    max-width: clamp(900px, 90vw, 1200px);
   }
 }

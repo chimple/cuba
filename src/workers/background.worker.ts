@@ -4,6 +4,7 @@ import {
   BackgroundWorkerTask,
   BuildXlsxFilePayload,
   ChecksumFile,
+  DownloadStickerBookSvgPayload,
   GrowthBookAttributesPayload,
   ParseXlsxSheetsPayload,
   PlanHotUpdatePayload,
@@ -512,6 +513,21 @@ const buildXlsxFile = async (
   };
 };
 
+const downloadStickerBookSvg = async (
+  payload: DownloadStickerBookSvgPayload,
+): Promise<{
+  svgText: string;
+}> => {
+  const response = await fetch(payload.url);
+  if (response.ok === false) {
+    throw new Error(`Failed to download sticker book svg: ${response.status}`);
+  }
+
+  return {
+    svgText: await response.text(),
+  };
+};
+
 const handlers: {
   [K in BackgroundWorkerTask]: (
     payload: WorkerRequest<K>['payload'],
@@ -525,6 +541,7 @@ const handlers: {
   PREPARE_BULK_UPLOAD_PAYLOAD: (payload) => buildBulkUploadPayload(payload),
   PARSE_XLSX_SHEETS: (payload) => parseXlsxSheets(payload),
   BUILD_XLSX_FILE: (payload) => buildXlsxFile(payload),
+  DOWNLOAD_STICKER_BOOK_SVG: (payload) => downloadStickerBookSvg(payload),
 };
 
 const waitForAck = (id: string): Promise<void> =>

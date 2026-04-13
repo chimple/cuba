@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import {
   HOMEHEADERLIST,
   AVATARS,
@@ -7,6 +8,8 @@ import {
   PAGES,
   MODES,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
+  HOME_HEADER_SPECIALS_ENABLED,
 } from '../common/constants';
 import './HomeHeader.css';
 import HeaderIcon from './HeaderIcon';
@@ -63,6 +66,9 @@ const HomeHeader: React.FC<{
   const [starsCount, setStarsCount] = useState<number>(0); // State for stars count
 
   const [isLinked, setIsLinked] = useState(false);
+  const isHomeHeaderSpecialsEnabled = useFeatureIsOn(
+    HOME_HEADER_SPECIALS_ENABLED,
+  );
   const api = ServiceConfig.getI().apiHandler;
   // 🔹 helper to always read the latest local-first stars
   const refreshStarsFromLocal = () => {
@@ -127,7 +133,25 @@ const HomeHeader: React.FC<{
   useEffect(() => {
     init();
     window.addEventListener('JoinClassListner', handleJoinClassListner);
-  }, []);
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+        studentRef.current = customEvent.detail;
+      }
+    };
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+
+    return () => {
+      window.removeEventListener('JoinClassListner', handleJoinClassListner);
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
+  }, [isHomeHeaderSpecialsEnabled]);
+
   const handleJoinClassListner = () => {
     setIsLinked(true);
     window.removeEventListener('JoinClassListner', handleJoinClassListner);
@@ -178,7 +202,10 @@ const HomeHeader: React.FC<{
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
           currentHeaderIconList.map((element, index) => {
-            if (!isLinked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
+            if (
+              element.headerList === HOMEHEADERLIST.LIVEQUIZ &&
+              (!isLinked || !isHomeHeaderSpecialsEnabled)
+            ) {
               return null;
             }
             return (

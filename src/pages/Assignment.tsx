@@ -28,6 +28,9 @@ import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModa
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
 
+const waitForJoinRefresh = (delayMs: number) =>
+  new Promise((resolve) => setTimeout(resolve, delayMs));
+
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   assignmentCount: any;
@@ -204,6 +207,31 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     }, 1000);
   }, [init]);
 
+  const refreshAssignmentPageAfterJoin = useCallback(async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    setLoading(true);
+
+    const retryDelays = [0, 300, 600];
+    for (const delayMs of retryDelays) {
+      if (delayMs > 0) {
+        await waitForJoinRefresh(delayMs);
+      }
+
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (linkedData?.classes?.length) {
+        await init(false, true);
+        return;
+      }
+    }
+
+    await init(false, true);
+  }, [api, history, init]);
+
   useEffect(() => {
     if (assignmentSyncDone && !loading) {
       setShowHomeworkCompleteModal(assignments.length === 0);
@@ -294,14 +322,21 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
-    const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
-      const filteredLessonIds: string[] = allLessonIds.filter(
-        (id): id is string => id !== null && !storedLessonIds.includes(id),
+      const filteredLessons = lessons.filter((lesson) => {
+        const lessonId = Util.getLessonBundleId(lesson);
+        return !!lessonId && !storedLessonIds.includes(lessonId);
+      });
+      const uniqueFilteredLessons = Array.from(
+        new Map(
+          filteredLessons.map((lesson) => [
+            Util.getLessonBundleId(lesson) ?? lesson.id,
+            lesson,
+          ]),
+        ).values(),
       );
-      const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
-      await Util.downloadZipBundle(uniqueFilteredLessonIds);
+      await Util.downloadZipBundle(uniqueFilteredLessons);
 
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
@@ -357,14 +392,20 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
 
       // Build attributes (defensive)
+      // Read once so we preserve previously-set targeting attributes.
+      const existingAttributes = growthbook.getAttributes?.() ?? {};
       const attrs = {
         student_id: studentId,
         age: student?.age ?? null,
         grade_id: student?.grade_id ?? null,
       };
 
-      // Set attributes BEFORE evaluating
-      growthbook.setAttributes(attrs);
+      // Preserve existing targeting attributes (e.g. school_ids, parent_id)
+      // while updating student-scoped fields used here.
+      growthbook.setAttributes({
+        ...existingAttributes,
+        ...attrs,
+      });
 
       // Synchronously evaluate feature
       const val = (growthbook.getFeatureValue?.(
@@ -461,7 +502,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
-                    init(false);
+                    refreshAssignmentPageAfterJoin();
                   }}
                 />
               ) : (

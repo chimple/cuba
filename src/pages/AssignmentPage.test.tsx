@@ -47,6 +47,7 @@ jest.mock('@growthbook/growthbook-react', () => ({
   useFeatureIsOn: jest.fn(),
   useGrowthBook: () => ({
     setAttributes: jest.fn(),
+    getAttributes: jest.fn(() => ({})),
     getFeatureValue: mockGetFeatureValue,
   }),
 }));

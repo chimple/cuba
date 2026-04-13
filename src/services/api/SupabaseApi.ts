@@ -64,6 +64,7 @@ import {
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
+  StudentLeaderboardInfo,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -78,6 +79,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -92,6 +94,56 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+const GENERIC_LEADERBOARD_LIMIT = 50;
+
+type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
+
+const emptyLeaderboardInfo = (): LeaderboardInfo => ({
+  weekly: [],
+  allTime: [],
+  monthly: [],
+});
+
+const getLeaderboardDataType = (
+  leaderboardDropdownType: LeaderboardDropdownList,
+): LeaderboardDataType =>
+  leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+    ? 'weekly'
+    : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? 'monthly'
+      : 'allTime';
+
+const mapLeaderboardRow = (result: any): StudentLeaderboardInfo => ({
+  name: result.name || '',
+  score: result.total_score || 0,
+  timeSpent: result.total_time_spent || 0,
+  lessonsPlayed: result.lessons_played || 0,
+  userId: result.student_id || '',
+});
+
+const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
+  const leaderboardEntry = mapLeaderboardRow(result);
+  switch (result.type) {
+    case 'allTime':
+      leaderBoardList.allTime.push(leaderboardEntry);
+      break;
+    case 'monthly':
+      leaderBoardList.monthly.push(leaderboardEntry);
+      break;
+    case 'weekly':
+      leaderBoardList.weekly.push(leaderboardEntry);
+      break;
+    default:
+      logger.warn('Unknown leaderboard type: ', result.type);
+  }
+};
+
+const getLeaderboardCounts = (leaderboardInfo: LeaderboardInfo) => ({
+  weekly: leaderboardInfo.weekly.length,
+  monthly: leaderboardInfo.monthly.length,
+  allTime: leaderboardInfo.allTime.length,
+});
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -1857,7 +1909,6 @@ export class SupabaseApi implements ServiceApi {
       return Promise.reject(error);
     }
   }
-  // not used, getting error when cocos_lesson_id is same for multiple lessons
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
@@ -1867,19 +1918,18 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('cocos_lesson_id', lessonId)
       .eq('is_deleted', false)
-      .single();
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(1);
 
     if (error) {
       logger.error('Error fetching lesson:', error);
-      if (error.code === 'PGRST116') {
-        // No rows found
-        return null;
-      }
       throw new Error(
         `Failed to fetch lesson with cocos_lesson_id ${lessonId}: ${error.message}`,
       );
     }
-    return data;
+
+    return data?.[0] ?? null;
   }
   async getCoursesForParentsStudent(
     studentId: string,
@@ -2404,7 +2454,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
-    Object.assign(student, updatedFields);
+    const updatedStudent = { ...student, ...updatedFields };
 
     const courses =
       gradeDocId && boardDocId
@@ -2444,7 +2494,7 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return student;
+    return updatedStudent;
   }
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
@@ -2486,7 +2536,7 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.User)
         .update(updatedFields)
         .eq('id', student.id);
-      Object.assign(student, updatedFields);
+      const updatedStudent = { ...student, ...updatedFields };
 
       // Get current class_user record (non-deleted)
       const { data: currentClassUser } = await this.supabase
@@ -2522,7 +2572,7 @@ export class SupabaseApi implements ServiceApi {
         await this.addParentToNewClass(newClassId, student.id);
       }
 
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student in school mode:', error);
       throw error;
@@ -2576,9 +2626,8 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error updating user profile:', error);
       throw error;
     }
-    Object.assign(user, updatedFields);
 
-    return user;
+    return { ...user, ...updatedFields };
   }
 
   async updateClassCourseSelection(
@@ -3311,6 +3360,45 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return finalData;
+  }
+
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const pageSize = 100;
+    let page = 1;
+    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
+
+    while (true) {
+      const pageResults = await this.getSchoolsForUser(userId, {
+        page,
+        page_size: pageSize,
+        search: query,
+      });
+
+      allResults.push(...pageResults);
+
+      if (pageResults.length < pageSize) break;
+      page += 1;
+    }
+
+    const uniqueBySchool = new Map<
+      string,
+      { school: TableTypes<'school'>; role: RoleType }
+    >();
+    for (const item of allResults) {
+      uniqueBySchool.set(item.school.id, item);
+    }
+
+    return sortBySchoolSearchRelevance(
+      Array.from(uniqueBySchool.values()),
+      query,
+      (item) => item.school.name ?? '',
+    );
   }
 
   public set currentMode(value: MODES) {
@@ -4899,7 +4987,48 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         throw new Error('Supabase instance is not initialized');
 
-      // Fetch leaderboard data using the Supabase RPC function
+      const leaderBoardList = emptyLeaderboardInfo();
+      logger.warn('[SupabaseApi][Leaderboard] getLeaderboardResults:start', {
+        sectionId: sectionId || '',
+        leaderboardDropdownType,
+        flow: sectionId ? 'class' : 'generic-b2c',
+      });
+
+      if (!sectionId) {
+        const leaderboardType = getLeaderboardDataType(leaderboardDropdownType);
+        logger.warn('[SupabaseApi][Leaderboard] generic query:start', {
+          leaderboardDropdownType,
+          leaderboardType,
+          limit: GENERIC_LEADERBOARD_LIMIT,
+        });
+        const { data, error } = await this.supabase
+          .from('get_leaderboard_generic_data')
+          .select(
+            'type, student_id, name, lessons_played, total_score, total_time_spent',
+          )
+          .eq('type', leaderboardType)
+          .order('total_score', { ascending: false, nullsFirst: false })
+          .limit(GENERIC_LEADERBOARD_LIMIT);
+
+        if (error) {
+          throw error;
+        }
+
+        data?.forEach((result) => pushLeaderboardRow(leaderBoardList, result));
+        logger.warn('[SupabaseApi][Leaderboard] generic query:success', {
+          leaderboardDropdownType,
+          leaderboardType,
+          rawRows: data?.length ?? 0,
+          counts: getLeaderboardCounts(leaderBoardList),
+        });
+        return leaderBoardList;
+      }
+
+      logger.warn('[SupabaseApi][Leaderboard] class rpc:start', {
+        sectionId,
+        leaderboardDropdownType,
+        rpc: 'get_class_leaderboard',
+      });
       const rpcRes = await this.supabase.rpc('get_class_leaderboard', {
         current_class_id: sectionId,
       });
@@ -4911,76 +5040,58 @@ export class SupabaseApi implements ServiceApi {
 
       // Initialize the leaderboard structure
       const data: any = rpcRes.data;
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
 
       // Process the data and populate the leaderboard lists
       for (let i = 0; i < data.length; i++) {
         const result = data[i];
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       }
 
+      logger.warn('[SupabaseApi][Leaderboard] class rpc:success', {
+        sectionId,
+        leaderboardDropdownType,
+        rawRows: data.length,
+        counts: getLeaderboardCounts(leaderBoardList),
+      });
       return leaderBoardList;
     } catch (e) {
       logger.error('Error in getLeaderboardResults: ', e);
       // Return an empty leaderboard structure in case of error
-      return {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
+      return emptyLeaderboardInfo();
     }
   }
 
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<
-    LeaderboardInfo | undefined
-  > {
+  async getLeaderboardStudentResultFromB2CCollection(
+    studentId?: string,
+  ): Promise<LeaderboardInfo | undefined> {
     try {
       // Initialize leaderboard structure
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
-
-      // Define the query to fetch data from the view
-      const genericQuery = `
-      SELECT *
-      FROM get_leaderboard_generic_data
-    `;
+      let leaderBoardList = emptyLeaderboardInfo();
 
       if (!this.supabase) {
         logger.error('Supabase instance is not initialized');
         return;
       }
 
+      if (!studentId) {
+        logger.warn(
+          'getLeaderboardStudentResultFromB2CCollection called without studentId',
+        );
+        return leaderBoardList;
+      }
+
+      logger.warn('[SupabaseApi][Leaderboard] current b2c query:start', {
+        studentId,
+        limit: 3,
+      });
       // Execute the query
       const { data, error } = await this.supabase
         .from('get_leaderboard_generic_data')
-        .select();
+        .select(
+          'type, student_id, name, lessons_played, total_score, total_time_spent',
+        )
+        .eq('student_id', studentId)
+        .limit(3);
 
       // Handle errors in the query execution
       if (error) {
@@ -4997,30 +5108,14 @@ export class SupabaseApi implements ServiceApi {
       // Process the results
       data.forEach((result) => {
         if (!result) return;
-
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       });
 
+      logger.warn('[SupabaseApi][Leaderboard] current b2c query:success', {
+        studentId,
+        rawRows: data.length,
+        counts: getLeaderboardCounts(leaderBoardList),
+      });
       return leaderBoardList;
     } catch (error) {
       logger.error(
@@ -7819,12 +7914,12 @@ export class SupabaseApi implements ServiceApi {
       .update({ learning_path: learning_path })
       .eq('id', student.id)
       .single();
-    student.learning_path = learning_path;
+
     if (error) {
       logger.error('Error updating learning path:', error);
       throw error;
     }
-    return student;
+    return { ...student, learning_path: learning_path };
   }
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {

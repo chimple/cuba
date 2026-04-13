@@ -113,6 +113,12 @@ jest.mock('./workers/backgroundWorkerClient', () => {
           return { sheetNames: [], sheets: {} };
         case 'BUILD_XLSX_FILE':
           return { fileBuffer: new ArrayBuffer(0) };
+        case 'DOWNLOAD_STICKER_BOOK_SVG': {
+          const response = await fetch(payload?.url ?? '');
+          return {
+            svgText: await response.text(),
+          };
+        }
         default:
           return {};
       }

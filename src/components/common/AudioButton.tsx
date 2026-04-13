@@ -16,8 +16,8 @@ const AudioButton: React.FC<AudioButtonProps> = ({
   disabled = false,
   className = '',
   ariaLabel = 'Play audio',
-  backgroundColor = '#fffff',
-  size = 96,
+  backgroundColor = 'transparent',
+  size = 44,
   type = 'button',
 }) => {
   const resolvedSize = typeof size === 'number' ? `${size}px` : size;
@@ -33,7 +33,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({
       style={{
         width: resolvedSize,
         height: resolvedSize,
-        backgroundColor: backgroundColor,
+        background: 'transparent',
       }}
     >
       <img
@@ -42,6 +42,11 @@ const AudioButton: React.FC<AudioButtonProps> = ({
         src="/assets/icons/SpeakerIcon.svg"
         alt=""
         aria-hidden="true"
+        style={{
+          backgroundColor: backgroundColor,
+          width: resolvedSize,
+          height: resolvedSize,
+        }}
       />
     </button>
   );

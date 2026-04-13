@@ -129,6 +129,54 @@ const ProfileDetails = () => {
   }, [isEdit, currentStudent]);
 
   useEffect(() => {
+    if (!isEdit || !currentStudent?.id) return;
+    let isMounted = true;
+
+    const syncStudentLanguageForEdit = async () => {
+      try {
+        const editedStudentsMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+        const editedStudentsMap = editedStudentsMapStr
+          ? (JSON.parse(editedStudentsMapStr) as Record<
+              string,
+              TableTypes<'user'>
+            >)
+          : {};
+        const mappedStudent = editedStudentsMap[currentStudent.id];
+        const studentToApply = mappedStudent ?? currentStudent;
+        const initialLanguageIdForEdit = studentToApply.language_id ?? '';
+
+        if (!isMounted) return;
+
+        initialValues.current = {
+          ...initialValues.current,
+          languageId: initialLanguageIdForEdit,
+        };
+        setLanguageId(initialLanguageIdForEdit);
+        await Util.setCurrentStudent(studentToApply, undefined, true, true);
+
+        if (typeof api.getUserByDocId !== 'function') return;
+        const latestStudent = await api.getUserByDocId(currentStudent.id);
+        if (!isMounted || !latestStudent) return;
+
+        const resolvedLanguageId = latestStudent.language_id ?? '';
+        initialValues.current = {
+          ...initialValues.current,
+          languageId: resolvedLanguageId,
+        };
+        setLanguageId(resolvedLanguageId);
+        await Util.setCurrentStudent(latestStudent, undefined, true, true);
+      } catch (error) {
+        logger.error('Failed to sync student language on edit page', error);
+      }
+    };
+
+    void syncStudentLanguageForEdit();
+    return () => {
+      isMounted = false;
+    };
+  }, [api, isEdit, currentStudent?.id]);
+
+  useEffect(() => {
     const initial = initialValues.current;
     if (!initial) {
       setHasChanges(false);
@@ -273,30 +321,42 @@ const ProfileDetails = () => {
       ? isFormComplete && hasChanges
       : hasChanges;
 
+  const resolveLanguageCodeById = async (
+    selectedLanguageId: string,
+  ): Promise<string | undefined> => {
+    const languageCodeFromList = languages.find(
+      (lang) => lang.id === selectedLanguageId,
+    )?.code;
+    if (languageCodeFromList) return languageCodeFromList;
+    if (typeof api.getLanguageWithId !== 'function') return undefined;
+
+    const language = await api.getLanguageWithId(selectedLanguageId);
+    return language?.code ?? undefined;
+  };
+
   const handleSave = async () => {
     if (isCreatingProfile) return;
+    const state = history.location.state as any;
+    const tmpPath = state?.from ?? PAGES.HOME;
+    const _studentName = fullName?.trim() ?? '';
 
-    try {
-      setIsCreatingProfile(true);
-
-      let _studentName = fullName?.trim();
-      const state = history.location.state as any;
-      const tmpPath = state?.from ?? PAGES.HOME;
-      const user = await auth.getCurrentUser();
-
-      let student;
-
-      if (isEdit && !!currentStudent && !!currentStudent.id) {
-        student = await api.updateStudent(
+    if (isEdit && !!currentStudent && !!currentStudent.id) {
+      try {
+        setIsCreatingProfile(true);
+        const selectedLanguageId = languageId || currentStudent.language_id!;
+        const selectedLanguageCode =
+          await resolveLanguageCodeById(selectedLanguageId);
+        const user = await auth.getCurrentUser();
+        const student = await api.updateStudent(
           currentStudent,
-          _studentName ?? '',
+          _studentName,
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           currentStudent.avatar!,
           undefined,
           undefined,
           undefined,
-          languageId || currentStudent.language_id!,
+          selectedLanguageId,
         );
 
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
@@ -315,47 +375,62 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_UPDATED,
         });
-      } else {
-        student = await api.createProfile(
-          _studentName ?? '',
-          age,
-          gender,
-          avatar,
-          undefined,
-          undefined,
-          undefined,
-          languageId || DEFAULT_LANGUAGE_ID_EN,
-        );
 
-        Util.logEvent(EVENTS.PROFILE_CREATED, {
-          user_id: user?.id,
-          name: fullName,
-          student_id: student.id,
-          age,
-          gender,
-          language_id: languageId,
-          variation,
-          page_path: window.location.pathname,
-          action_type: ACTION_TYPES.PROFILE_CREATED,
+        await Util.setCurrentStudent(student, selectedLanguageCode, true, true);
+
+        history.replace(tmpPath);
+        void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
+          logger.error('Error preloading student audio in background:', error);
         });
-
-        const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
-        const langIndex = languages.findIndex(
-          (lang) => lang.id === resolvedLanguageId,
-        );
-
-        await Util.setCurrentStudent(
-          student,
-          langIndex && languages && languages[langIndex]?.code
-            ? (languages[langIndex]?.code ?? undefined)
-            : undefined,
-          tmpPath === PAGES.HOME ? true : false,
-        );
+      } catch (err) {
+        logger.error('Error saving profile:', err);
+        setIsCreatingProfile(false);
       }
+      return;
+    }
+
+    try {
+      setIsCreatingProfile(true);
+      const user = await auth.getCurrentUser();
+
+      const student = await api.createProfile(
+        _studentName,
+        age,
+        gender,
+        avatar,
+        undefined,
+        undefined,
+        undefined,
+        languageId || DEFAULT_LANGUAGE_ID_EN,
+      );
+
+      Util.logEvent(EVENTS.PROFILE_CREATED, {
+        user_id: user?.id,
+        name: fullName,
+        student_id: student.id,
+        age,
+        gender,
+        language_id: languageId,
+        variation,
+        page_path: window.location.pathname,
+        action_type: ACTION_TYPES.PROFILE_CREATED,
+      });
+
+      const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
+      const langIndex = languages.findIndex(
+        (lang) => lang.id === resolvedLanguageId,
+      );
+
+      await Util.setCurrentStudent(
+        student,
+        langIndex && languages && languages[langIndex]?.code
+          ? (languages[langIndex]?.code ?? undefined)
+          : undefined,
+        tmpPath === PAGES.HOME ? true : false,
+      );
 
       await Util.ensureLidoCommonAudioForStudent(student);
-      if (tmpPath) history.replace(tmpPath);
-      else history.replace(PAGES.HOME);
+      history.replace(tmpPath);
     } catch (err) {
       logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);

@@ -14,6 +14,7 @@ import { reinitializeHardwareBackButton } from '../common/backButtonRegistry';
 import { store } from '../redux/store';
 import { setAuthUser, setUser } from '../redux/slices/auth/authSlice';
 import logger from './logger';
+import { logAuthDebug } from './authDebug';
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -122,6 +123,12 @@ export class schoolUtil {
       if (result && result.userData) {
         store.dispatch(setAuthUser(result?.user));
         store.dispatch(setUser(result?.userData));
+        logAuthDebug('School relogin succeeded, redirecting to select mode.', {
+          source: 'schoolUtil.trySchoolRelogin',
+          reason: 'school_relogin_success',
+          from_page: window.location.pathname,
+          to_page: PAGES.SELECT_MODE,
+        });
         window.history.replaceState(
           window.history.state,
           '',
@@ -131,6 +138,12 @@ export class schoolUtil {
         return true;
       } else {
         logger.warn('User not found. Please verify your credentials.');
+        logAuthDebug('School relogin failed, redirecting to login.', {
+          source: 'schoolUtil.trySchoolRelogin',
+          reason: 'school_relogin_failed_user_not_found',
+          from_page: window.location.pathname,
+          to_page: PAGES.LOGIN,
+        });
         window.history.replaceState(
           window.history.state,
           '',
