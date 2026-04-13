@@ -1277,6 +1277,7 @@ export function usePathwaySVG({
     const rewardRecord =
       await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
     if (!rewardRecord) return;
+    const rewardStateValue = rewardRecord.state_number_input || 1;
 
     setHasTodayReward(false);
 
@@ -1339,10 +1340,10 @@ export function usePathwaySVG({
       await delay(2000);
 
       // Step 1: set celebration state (we emulate via global mascot state)
-      await invokeMascotCelebration(rewardRecord.state_number_input || 1);
+      await invokeMascotCelebration(rewardStateValue);
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
-          detail: { rewardId: newRewardId },
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
         }),
       );
 
@@ -1367,7 +1368,7 @@ export function usePathwaySVG({
       );
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
-          detail: { rewardId: newRewardId },
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
         }),
       );
 
