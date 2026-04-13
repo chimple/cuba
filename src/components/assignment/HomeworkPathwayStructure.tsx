@@ -462,7 +462,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         giftSVG3,
         haloPath,
       ] = await Promise.all([
-        checkAndUpdateReward(),
+        checkAndUpdateReward().catch((e) => {
+          logger.warn('Check Reward failed offline', e);
+          return null;
+        }),
         loadPathwayContent(
           'homeworkRemoteAsset/Pathway2.svg',
           '/pathwayAssets/English/Pathway2.svg',
