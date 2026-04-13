@@ -29,3 +29,4 @@ yarn-error.log*
 
 *storybook.log
 .env
+package.json

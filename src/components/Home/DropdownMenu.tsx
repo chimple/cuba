@@ -153,17 +153,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
-      if (!currentStudent?.learning_path) {
+      const pathToParse = currentStudent
+        ? Util.getLatestLearningPathByUpdatedAt(currentStudent)
+        : null;
+      if (!pathToParse) {
         logger.error('No learning path found for the user');
         return;
       }
-
-      if (!currentStudent?.learning_path) {
-        logger.error('No learning path found for the user');
-        return;
-      }
-
-      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
       let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       if (!learningPath) return;
       const { courseList } = learningPath.courses;
