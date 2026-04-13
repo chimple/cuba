@@ -30,6 +30,7 @@ const LearningPathway: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
   const [isModeResolved, setIsModeResolved] = useState(false);
+  const [courseCode, setCourseCode] = useState<string | undefined>(undefined);
 
   let student = Util.getCurrentStudent();
 
@@ -37,6 +38,27 @@ const LearningPathway: React.FC = () => {
     student,
     gb,
   });
+
+  const getPreferredStudent = (
+    localStudent: TableTypes<'user'>,
+    fetchedStudent?: TableTypes<'user'>,
+  ): TableTypes<'user'> => {
+    if (!fetchedStudent) return localStudent;
+
+    const localLearningPath =
+      Util.getLatestLearningPathByUpdatedAt(localStudent);
+    if (localLearningPath && !fetchedStudent.learning_path) {
+      return { ...fetchedStudent, learning_path: localLearningPath };
+    }
+
+    return fetchedStudent;
+  };
+
+  const updateCourseCodeFromSubject = async (subjectId?: string | null) => {
+    if (!subjectId) return;
+    const selectedCourse = await api.getCourse(subjectId);
+    setCourseCode(selectedCourse?.code ?? undefined);
+  };
   /* -----------------------------------
    * 2️⃣ Resolve mode from GrowthBook
    * ----------------------------------- */
@@ -44,9 +66,17 @@ const LearningPathway: React.FC = () => {
     if (!gb?.ready || !student?.id) return;
 
     const currentClass = schoolUtil.getCurrentClass();
+    const existingAttributes = gb.getAttributes?.() ?? {};
+    const resolvedSchoolIds = existingAttributes?.school_ids;
+    const normalizedSchoolIds =
+      Util.normalizeGrowthbookArrayAttribute(resolvedSchoolIds);
+    // Keep any existing school_ids and append the current class school for targeting.
+    const mergedSchoolIds = currentClass?.school_id
+      ? Array.from(new Set([...normalizedSchoolIds, currentClass.school_id]))
+      : normalizedSchoolIds;
     gb.setAttributes({
-      ...gb.getAttributes(),
-      school_ids: [currentClass?.school_id],
+      ...existingAttributes,
+      school_ids: mergedSchoolIds,
     });
     const resolvedMode = gb.getFeatureValue(
       'learning-pathway-mode',
@@ -72,10 +102,8 @@ const LearningPathway: React.FC = () => {
         const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
 
         const latest = await api.getUserByDocId(student.id);
-        if (latest) {
-          Util.setCurrentStudent(latest);
-          student = latest;
-        }
+        student = getPreferredStudent(student, latest);
+        await Util.setCurrentStudent(student);
         const courses = currClass
           ? await api.getCoursesForClassStudent(currClass.id)
           : await api.getCoursesForPathway(student.id);
@@ -84,6 +112,16 @@ const LearningPathway: React.FC = () => {
           courses,
           student.language_id,
         );
+        const learningPath = student.learning_path
+          ? JSON.parse(student.learning_path)
+          : null;
+        const selectedCourseIndex = learningPath?.courses?.currentCourseIndex;
+        const selectedCourseId =
+          selectedCourseIndex !== undefined
+            ? learningPath?.courses?.courseList?.[selectedCourseIndex]
+                ?.course_id
+            : null;
+        await updateCourseCodeFromSubject(selectedCourseId);
         const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
         const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
         updateStarCount(student);
@@ -139,12 +177,17 @@ const LearningPathway: React.FC = () => {
   return (
     <div className="learning-pathway-container">
       <div className="pathway_section">
-        <DropdownMenu />
+        <DropdownMenu
+          onSubjectChange={(subjectId) => {
+            updateCourseCodeFromSubject(subjectId);
+          }}
+        />
         <PathwayStructure />
       </div>
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
+          courseCode={courseCode}
           containerStyle={{
             width: '35vw',
           }}

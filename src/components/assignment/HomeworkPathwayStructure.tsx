@@ -453,6 +453,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const lessons = lessonsToRender.map((item) => item.lesson);
 
       const [
+        newRewardId,
         svgContent,
         fruitActive,
         fruitInactive,
@@ -462,6 +463,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         giftSVG3,
         haloPath,
       ] = await Promise.all([
+        checkAndUpdateReward().catch((e) => {
+          logger.warn('Check Reward failed offline', e);
+          return null;
+        }),
         loadPathwayContent(
           'homeworkRemoteAsset/Pathway2.svg',
           '/pathwayAssets/English/Pathway2.svg',
@@ -478,18 +483,18 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           'playedLessonSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox1.svg',
-          '/pathwayAssets/English/mysteryBox1.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_1.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_1.svg',
           'giftSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox2.svg',
-          '/pathwayAssets/English/mysteryBox2.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_2.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_2.svg',
           'giftSVG2',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox3.svg',
-          '/pathwayAssets/English/mysteryBox3.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_3.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_3.svg',
           'giftSVG3',
         ),
         loadHaloAnimation(
@@ -963,12 +968,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }
         };
 
-        let newRewardId: string | null = null;
-        try {
-          newRewardId = await checkAndUpdateReward();
-        } catch (e) {
-          logger.warn('Check Reward failed offline', e);
-        }
+        // (newRewardId is already fetched in Promise.all above)
 
         if (
           newRewardId !== null &&
@@ -1173,6 +1173,20 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           onClose={() => setModalOpen(false)}
           onConfirm={() => setModalOpen(false)}
           animate={shouldAnimate}
+          audioFolder={
+            modalText === inactiveText
+              ? 'lessonLocked'
+              : modalText === rewardText
+                ? 'completeLesson'
+                : undefined
+          }
+          audioClipName={
+            modalText === inactiveText
+              ? 'lesson_locked'
+              : modalText === rewardText
+                ? 'complete_lesson_to_get_reward'
+                : undefined
+          }
         />
       )}
       <div className="homeworkpathway-structure-div" ref={containerRef}></div>

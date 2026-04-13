@@ -113,17 +113,18 @@ const LiveQuizGame: FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const returnState = state?.returnState ?? state;
     if (Capacitor.isNativePlatform()) {
-      history.replace(fromPath + '&isReload=false', state);
+      history.replace(fromPath + '&isReload=false', returnState);
     } else {
       if (!!urlParams.get('isReload')) {
         if (fromPath.includes('?')) {
-          history.replace(fromPath + '&isReload=true', state);
+          history.replace(fromPath + '&isReload=true', returnState);
         } else {
-          history.replace(fromPath + '?isReload=true', state);
+          history.replace(fromPath + '?isReload=true', returnState);
         }
       } else {
-        history.replace(fromPath, state);
+        history.replace(fromPath, returnState);
       }
     }
   };
@@ -143,6 +144,7 @@ const LiveQuizGame: FC = () => {
             {paramLessonId && quizData && (
               <LiveQuizQuestion
                 lessonId={paramLessonId}
+                lesson={lesson}
                 quizData={quizData}
                 isTimeOut={true}
                 onNewQuestionChange={(newQuestionIndex) => {

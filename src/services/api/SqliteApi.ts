@@ -118,6 +118,12 @@ export class SqliteApi implements ServiceApi {
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
 
+  private _syncInProgress: boolean = false;
+  private _syncRequestedAgain: boolean = false;
+  private _retryRefreshTables: TABLES[] = [];
+
+  private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
+
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -125,10 +131,6 @@ export class SqliteApi implements ServiceApi {
     }
     return SqliteApi.i;
   }
-
-  private _syncInProgress: boolean = false;
-  private _syncRequestedAgain: boolean = false;
-  private _retryRefreshTables: TABLES[] = [];
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
@@ -199,8 +201,10 @@ export class SqliteApi implements ServiceApi {
                 const tableName = match[1];
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
-                logger.info(
-                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`,
+                logger.warn(
+                  'setUpDatabase: Auto-detected schema change for table: ' +
+                    tableName +
+                    '. Will force full sync.',
                 );
               }
             }
@@ -343,17 +347,19 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        logger.info('syncing');
+        logger.warn('checkAndSyncData: User logged in, triggering sync');
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
           await this.syncDbNow();
+          logger.warn('checkAndSyncData: No user, syncDbNow awaited');
         } else {
           this.syncDbNow();
+          logger.warn('checkAndSyncData: User exists, syncDbNow called');
         }
       }
     } catch (error) {
-      logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      logger.warn('checkAndSyncData: Error during sync check: ' + error);
     }
   }
 
@@ -490,12 +496,17 @@ export class SqliteApi implements ServiceApi {
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
       for (const tableName of this._tablesNeedingFullSync) {
         if (tableNames.includes(tableName as TABLES)) {
+          const fullSyncDate =
+            tableName === TABLES.Lesson
+              ? LESSON_FORCE_FULL_SYNC_DATE
+              : FORCE_FULL_SYNC_DATE;
           await this.executeQuery(
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-            [tableName, FORCE_FULL_SYNC_DATE],
+            [tableName, fullSyncDate],
           );
           logger.info(`Forcing full sync for table: ${tableName}`);
         }
@@ -573,6 +584,7 @@ export class SqliteApi implements ServiceApi {
         isInitialFetch,
       );
     }
+
     const lastPulled = new Date().toISOString();
     const DEFAULT_DB_BATCH_SIZE = 100;
     const SAFE_USER_BATCH_SIZE = 250;
@@ -672,7 +684,9 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    for (const tableName of tablesWritten) {
+    // Persist last_pulled for every requested table to avoid default fallback
+    // timestamp on subsequent RPC payload construction.
+    for (const tableName of orderedTableNames) {
       await this.executeQuery(
         `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         [tableName, lastPulled],
@@ -688,6 +702,10 @@ export class SqliteApi implements ServiceApi {
     }
     const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
+
+    if (tablesWritten.has(TABLES.RiveReward)) {
+      this._cachedRewards = undefined;
+    }
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
@@ -806,6 +824,7 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id,
         );
+        let networkError = false;
         let isPermissionDenied = false;
         if (!mutate || mutate.error) {
           const _currentUser =
@@ -829,7 +848,22 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('row-level security') ||
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
+          networkError =
+            mutateStatus === 0 ||
+            mutateStatus >= 500 ||
+            mutateMessage.includes('network error') ||
+            mutateMessage.includes('failed to fetch');
 
+          if (networkError) {
+            logger.warn(
+              '🔁 Network error during push, will retry in next sync',
+              {
+                user_id: _currentUser?.id,
+                ...mutate?.error,
+              },
+            );
+            return false;
+          }
           if (isDuplicateConflict || !isPermissionDenied) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
@@ -885,7 +919,10 @@ export class SqliteApi implements ServiceApi {
         tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
 
       await this.pullChanges(tableNames, isFirstSync);
-      await this.prefetchStickerBookAssetsAfterSync();
+      Promise.allSettled([
+        this.prefetchStickerBookAssetsAfterSync(),
+        this.prefetchLidoCommonAudioAfterSync(),
+      ]);
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -1757,6 +1794,9 @@ export class SqliteApi implements ServiceApi {
         `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ? AND parent_id = ? AND is_deleted = 0`,
         [timestamp, studentId, localParentId],
       );
+
+      // Clear only this student's cached latest pathway snapshot.
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${studentId}`);
     } catch (error) {
       logger.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
@@ -2053,7 +2093,18 @@ export class SqliteApi implements ServiceApi {
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}" and is_deleted = 0`,
+      `
+        select *
+        from ${TABLES.Lesson}
+        where cocos_lesson_id = ?
+          and is_deleted = 0
+        order by
+          coalesce(datetime(updated_at), datetime(created_at)) desc,
+          updated_at desc,
+          created_at desc
+        limit 1
+      `,
+      [lessonId],
     );
     if (!res || !res.values || res.values.length < 1) return null;
     return res.values[0];
@@ -3323,6 +3374,12 @@ export class SqliteApi implements ServiceApi {
     }
     return finalData;
   }
+  async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    throw new Error('Method not implemented.');
+  }
 
   public get currentMode(): MODES {
     return this._currentMode;
@@ -3694,8 +3751,10 @@ export class SqliteApi implements ServiceApi {
       return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
-      let genericQueryResult =
-        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      let genericQueryResult = await this._serverApi.getLeaderboardResults(
+        '',
+        leaderboardDropdownType,
+      );
       if (!genericQueryResult) {
         return;
       }
@@ -6084,8 +6143,9 @@ order by
         learningPath,
         updated_at: new Date(Date.now() + 10000).toISOString(),
       };
-      sessionStorage.setItem(
-        LATEST_LEARNING_PATH,
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      localStorage.setItem(
+        latestLearningPathKey,
         JSON.stringify(latestPathToSave),
       );
     } catch (error) {
@@ -7427,7 +7487,7 @@ order by
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
-    logger.info(result);
+    logger.warn(result);
     for (const table of tableNames) {
       const tableDel = `DELETE FROM "${table}";`;
       const res = await this._db.query(tableDel);
@@ -7550,6 +7610,10 @@ order by
   async getRewardById(
     rewardId: string,
   ): Promise<TableTypes<'rive_reward'> | undefined> {
+    if (this._cachedRewards) {
+      const r = this._cachedRewards.find((x) => x.id === rewardId);
+      if (r) return r;
+    }
     try {
       const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
       const res = await this.executeQuery(query, [rewardId]);
@@ -7564,6 +7628,7 @@ order by
     }
   }
   async getAllRewards(): Promise<TableTypes<'rive_reward'>[] | []> {
+    if (this._cachedRewards) return this._cachedRewards;
     try {
       const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
       const res = await this.executeQuery(query, []);
@@ -7571,7 +7636,8 @@ order by
         logger.warn(`No rewards found`);
         return [];
       }
-      return res.values as TableTypes<'rive_reward'>[];
+      this._cachedRewards = res.values as TableTypes<'rive_reward'>[];
+      return this._cachedRewards;
     } catch (error) {
       logger.error('Error fetching all rewards', error);
       return [];
@@ -8826,6 +8892,47 @@ order by
     } catch (error) {
       logger.warn(
         '[StickerBook] Failed to prefetch sticker book assets after sync',
+        error,
+      );
+    }
+  }
+
+  private async prefetchLidoCommonAudioAfterSync(): Promise<void> {
+    if (!this._db || !Capacitor.isNativePlatform()) return;
+
+    try {
+      const students = await this.getParentStudentProfiles();
+      if (!students?.length) return;
+
+      const studentsByLanguage = new Map<string, TableTypes<'user'>>();
+      for (const student of students) {
+        if (
+          !student?.language_id ||
+          studentsByLanguage.has(student.language_id)
+        ) {
+          continue;
+        }
+        studentsByLanguage.set(student.language_id, student);
+      }
+
+      for (const student of studentsByLanguage.values()) {
+        const audioConfig = await this.getLidoCommonAudioUrl(
+          student.language_id!,
+          student.locale_id ?? null,
+        );
+
+        if (!audioConfig?.lido_common_audio_url) {
+          continue;
+        }
+
+        await Util.downloadLidoCommonAudio(
+          audioConfig.lido_common_audio_url,
+          student.language_id!,
+        );
+      }
+    } catch (error) {
+      logger.warn(
+        '[LidoCommonAudio] Failed to prefetch common audio after sync',
         error,
       );
     }

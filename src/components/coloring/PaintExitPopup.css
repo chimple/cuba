@@ -49,6 +49,17 @@
   justify-content: center;
 }
 
+.PaintExitPopup-audio-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .PaintExitPopup-close img {
   width: 2.75rem;
   height: 2.75rem;

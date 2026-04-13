@@ -15,6 +15,7 @@ const IconButton: React.FC<{
       <div>
         <img
           className={`${isProfile ? 'iconButton-profile-img' : 'img'}`}
+          data-profile-avatar-anchor={isProfile ? 'true' : undefined}
           alt={iconSrc}
           src={iconSrc}
         />

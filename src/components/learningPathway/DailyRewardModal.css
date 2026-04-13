@@ -68,6 +68,21 @@
   transform: rotate(-45deg);
 }
 
+.RewardModal-audio-button {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
 .RewardModal-width {
   width: 40vw;
 }

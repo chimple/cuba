@@ -25,9 +25,11 @@
   --close-outset: calc(var(--close-size) * 0.82);
   --close-top: calc(var(--close-size) * 0.1);
   --close-pad: calc(var(--close-size) * 0.18);
+  --audio-size: 3.6rem;
   margin-right: calc(var(--close-size) * 1.5);
   isolation: isolate;
   backface-visibility: hidden;
+  margin-left: calc(var(--audio-size) * 1.5);
 }
 
 .StickerBookPreviewModal-modal--drag {
@@ -61,8 +63,11 @@
   }
   100% {
     opacity: 0;
-    /* Push farther into the top-right profile area while shrinking away. */
-    transform: translate(48vw, -36vh) scale(0.2);
+    transform: translate(
+        var(--flyout-offset-x, 48vw),
+        var(--flyout-offset-y, -36vh)
+      )
+      scale(var(--flyout-end-scale, 0.2));
   }
 }
 
@@ -76,6 +81,30 @@
   border-radius: 1.125rem 999px 999px 0;
   background: #fffdee;
   z-index: -1;
+}
+
+.StickerBookPreviewModal-modal::before {
+  content: '';
+  position: absolute;
+  right: calc(100% - 20px);
+  top: 0;
+  width: calc(var(--audio-size) * 1.5 + 20px);
+  height: calc(var(--audio-size) * 1.35);
+  border-radius: 999px 1.125rem 0 999px;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.StickerBookPreviewModal-audio-button {
+  position: absolute;
+  top: calc(var(--audio-size) * 0.175);
+  right: calc(100% + var(--audio-size) * 0.29);
+  z-index: 2;
+}
+
+.StickerBookPreviewModal-audio-button-control .audio-button__icon {
+  max-width: none;
+  max-height: none;
 }
 
 .StickerBookPreviewModal-close {
@@ -741,15 +770,6 @@
   border-color: #ef5f88;
 }
 
-.StickerBookPreviewModal-next-name {
-  margin: 0;
-  color: #182a4f;
-  font-size: 1.675rem;
-  line-height: 1.15;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .StickerBookPreviewModal-drag-instruction {
   margin: 0;
   color: #182a4f;
@@ -807,8 +827,7 @@
 }
 
 @media (max-width: 768px) {
-  .StickerBookPreviewModal-helper-text,
-  .StickerBookPreviewModal-next-name {
+  .StickerBookPreviewModal-helper-text {
     font-size: var(--text-sizeXL);
   }
 }

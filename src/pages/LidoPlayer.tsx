@@ -106,13 +106,14 @@ const LidoPlayer: FC = () => {
     localStorage.removeItem(LIDO_SCORES_KEY);
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const returnState = state?.returnState ?? state;
     let targetPath = fromPath;
     if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
       const separator = fromPath.includes('?') ? '&' : '?';
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
-    history.replace(targetPath, state);
+    history.replace(targetPath, returnState);
     setIsLoading(false);
     setTimeout(() => {
       isExitingRef.current = false;
@@ -755,9 +756,17 @@ const LidoPlayer: FC = () => {
       (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const lessonId = urlSearchParams.get('lessonid') ?? state.lessonId;
-    const lessonIds: string[] = [lessonId];
-    const dow = await Util.downloadZipBundle(lessonIds);
+    const lessonToDownload = lessonDetail;
+    const lessonId =
+      Util.getLessonBundleId(lessonToDownload) ??
+      urlSearchParams.get('lessonid') ??
+      state.lessonId;
+    if (!lessonToDownload || !lessonId) {
+      presentToast();
+      push();
+      return;
+    }
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
     if (!dow) {
       presentToast();
       push();

@@ -649,8 +649,9 @@ describe('Leaderboard', () => {
     ).not.toHaveBeenCalled();
   });
 
-  // 5i) B2C fallback must not run when class id is empty but student is already present in leaderboard.
-  it('does not call B2C fallback when class id is empty and student is already present', async () => {
+  // 5i) No-class leaderboards should refresh the current student's row from B2C data,
+  // even when the generic leaderboard already contains that student.
+  it('uses B2C data when class id is empty and student is already present', async () => {
     mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
       classes: [],
       schools: [],
@@ -675,12 +676,32 @@ describe('Leaderboard', () => {
       monthly: [],
       allTime: [],
     });
+    mockApiHandler.getLeaderboardStudentResultFromB2CCollection.mockResolvedValue(
+      {
+        weekly: [
+          {
+            userId: 'student-1',
+            name: 'Current Student',
+            score: 99,
+            lessonsPlayed: 11,
+            timeSpent: 180,
+          },
+        ],
+        monthly: [],
+        allTime: [],
+      },
+    );
 
     const view = render(<Leaderboard />);
     expect(await view.findByText('Weekly Topper')).toBeInTheDocument();
-    expect(
-      mockApiHandler.getLeaderboardStudentResultFromB2CCollection,
-    ).not.toHaveBeenCalled();
+    await eventually(() => {
+      expect(
+        mockApiHandler.getLeaderboardStudentResultFromB2CCollection,
+      ).toHaveBeenCalledWith('student-1');
+      expect(view.getAllByText('99').length).toBeGreaterThanOrEqual(1);
+      expect(view.getAllByText('11').length).toBeGreaterThanOrEqual(1);
+      expect(view.getAllByText('3 min 0 sec').length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   // 5j) If B2C fallback bucket is empty, component should use placeholder/dummy row values.

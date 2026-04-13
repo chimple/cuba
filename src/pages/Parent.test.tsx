@@ -623,15 +623,19 @@ describe('Parent page', () => {
     );
   });
 
-  it("init falls back to the first language when user's language_id is not found", async () => {
+  it('uses English when parent language_id is null', async () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'parent-1',
       name: 'Parent1',
-      language_id: 'missing-lang',
+      language_id: null,
     });
     mockApiHandler.getAllLanguages.mockResolvedValue([
-      { id: 'lang-1', name: 'English', code: 'en' },
       { id: 'lang-2', name: 'Hindi', code: 'hi' },
+      {
+        id: '7eaf3509-e44e-460f-80a1-7f6a13a8a883',
+        name: 'English',
+        code: 'en',
+      },
     ]);
 
     renderWithProviders(<Parent />);

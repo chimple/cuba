@@ -1,8 +1,10 @@
 // HomeworkCompleteModal.tsx
-import React, { useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import './HomeworkCompleteModal.css';
 import { t } from 'i18next';
 import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
+import AudioButton from '../common/AudioButton';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 interface HomeworkCompleteModalProps {
   text: string;
@@ -23,8 +25,49 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
     backgroundImage: `url(${borderImageSrc})`,
   };
 
+  const playHomeworkCompleteAudio = useCallback(
+    (delayMs: number = 0) => {
+      void (async () => {
+        const audioUrl = await AudioUtil.getLocalizedAudioUrl(
+          'allHwComplete',
+          'all_hw_done',
+        );
+
+        await AudioUtil.playAudioOrTts({
+          audioUrl,
+          text,
+          ...(delayMs > 0 ? { delayMs } : {}),
+        });
+      })();
+    },
+    [text],
+  );
+
+  useEffect(() => {
+    playHomeworkCompleteAudio(300);
+
+    return () => {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+    };
+  }, [playHomeworkCompleteAudio]);
+
+  const handleReplayAudio = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    playHomeworkCompleteAudio();
+  };
+
+  const handleClose = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    // onClose();
+  };
+
+  const handlePlayMore = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onPlayMore();
+  };
+
   return (
-    <div className="homework-completed-banner" onClick={onClose}>
+    <div className="homework-completed-banner" onClick={handleClose}>
       <div
         className="homework-completed-card"
         ref={ref}
@@ -50,7 +93,7 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
             <p className="homework-completed-text">{text}</p>
             <button
               className="homework-completed-play-btn"
-              onClick={onPlayMore}
+              onClick={handlePlayMore}
             >
               <img
                 src="/assets/icons/HomeIcon.svg"
@@ -61,7 +104,15 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
             </button>
           </div>
 
-          <div className="homework-completed-right" />
+          <div className="homework-completed-right">
+            <div className="homework-completed-audio-button">
+              <AudioButton
+                backgroundColor="#fffcee"
+                onClick={handleReplayAudio}
+                size={44}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

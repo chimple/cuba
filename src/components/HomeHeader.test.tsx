@@ -13,6 +13,7 @@ import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
 import { HOMEHEADERLIST, MODES } from '../common/constants';
 import logger from '../utility/logger';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (s: string) => s }),
@@ -37,6 +38,9 @@ jest.mock('./ProfileMenu/ProfileMenu', () => (props: any) => (
 
 jest.mock('../utility/util');
 jest.mock('../utility/schoolUtil');
+jest.mock('@growthbook/growthbook-react', () => ({
+  useFeatureIsOn: jest.fn(),
+}));
 
 const mockApi = {
   isStudentLinked: jest.fn(),
@@ -68,6 +72,7 @@ describe('HomeHeader', () => {
     (Util.getLocalStarsForStudent as jest.Mock).mockReturnValue(20);
     (schoolUtil.getCurrMode as jest.Mock).mockResolvedValue(MODES.PARENT);
     mockApi.isStudentLinked.mockResolvedValue(true);
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
   });
 
   afterEach(() => {
