@@ -737,11 +737,22 @@ export class SupabaseApi implements ServiceApi {
     try {
       const data = new Map<string, any[]>();
       const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
+      const DEDUP_TABLES = new Set<TABLES>([TABLES.User, TABLES.Result]);
+      const DEDUP_CURSOR_BUMP_MS = 60 * 1000;
       const updatedAtPayload: Record<string, string> = {};
       for (const tableName of tableNames) {
         // TABLES.User -> "user", TABLES.Class -> "class", etc.
-        updatedAtPayload[tableName] =
+        const lastModified =
           tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
+        const parsedTimestamp = new Date(lastModified).getTime();
+        if (Number.isNaN(parsedTimestamp)) {
+          updatedAtPayload[tableName] = lastModified;
+          continue;
+        }
+        const offsetMs = DEDUP_TABLES.has(tableName) ? DEDUP_CURSOR_BUMP_MS : 0;
+        updatedAtPayload[tableName] = new Date(
+          parsedTimestamp + offsetMs,
+        ).toISOString();
       }
       const res = await this.supabase?.rpc('sql_sync_all', {
         p_updated_at: updatedAtPayload,
