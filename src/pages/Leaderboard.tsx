@@ -33,6 +33,7 @@ import { App } from '@capacitor/app';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
 import DebugMode from '../teachers-module/components/DebugMode';
+import logger from '../utility/logger';
 
 const emptyLeaderboardInfo = (): LeaderboardInfo => ({
   weekly: [],
@@ -55,6 +56,15 @@ const hasLeaderboardDataForType = (
   leaderboardDropdownType: LeaderboardDropdownList,
 ) =>
   getLeaderboardListByType(leaderboardInfo, leaderboardDropdownType).length > 0;
+
+const getLeaderboardCounts = (leaderboardInfo?: LeaderboardInfo) =>
+  leaderboardInfo
+    ? {
+        weekly: leaderboardInfo.weekly.length,
+        monthly: leaderboardInfo.monthly.length,
+        allTime: leaderboardInfo.allTime.length,
+      }
+    : undefined;
 
 const mergeLeaderboardInfo = (
   cachedData: LeaderboardInfo,
@@ -214,6 +224,12 @@ const Leaderboard: React.FC = () => {
   ) {
     setIsLoading(true);
     const api = ServiceConfig.getI().apiHandler;
+    logger.warn('[Leaderboard][Flow] fetchLeaderBoardData:start', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      flow: classId ? 'class' : 'generic-b2c',
+    });
     let currentUserDataContent: any[][] = [];
     let leaderboardDataArray: any[][] = [];
     currentUserDataContent = [
@@ -244,6 +260,15 @@ const Leaderboard: React.FC = () => {
       leaderboardDataInfo,
       leaderboardDropdownType,
     );
+    logger.warn('[Leaderboard][Flow] source selected', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      hasCachedLeaderboardData,
+      leaderboardSource: hasCachedLeaderboardData ? 'cache' : 'api',
+      currentStudentB2CSource: !classId ? 'api' : 'skipped-class-flow',
+      cachedCounts: getLeaderboardCounts(leaderboardDataInfo),
+    });
     const [leaderboardResult, b2cData] = await Promise.all([
       hasCachedLeaderboardData
         ? Promise.resolve(leaderboardDataInfo)
@@ -252,6 +277,13 @@ const Leaderboard: React.FC = () => {
         ? api.getLeaderboardStudentResultFromB2CCollection(currentStudent.id)
         : Promise.resolve(undefined),
     ]);
+    logger.warn('[Leaderboard][Flow] async data received', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      leaderboardResultCounts: getLeaderboardCounts(leaderboardResult),
+      b2cResultCounts: getLeaderboardCounts(b2cData),
+    });
     const tempLeaderboardData: LeaderboardInfo = hasCachedLeaderboardData
       ? leaderboardDataInfo
       : mergeLeaderboardInfo(
@@ -259,6 +291,12 @@ const Leaderboard: React.FC = () => {
           leaderboardResult || emptyLeaderboardInfo(),
           leaderboardDropdownType,
         );
+    logger.warn('[Leaderboard][Flow] leaderboard data merged', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      mergedCounts: getLeaderboardCounts(tempLeaderboardData),
+    });
 
     const leaderboardAttributes = {
       leaderboard_position_weekly:
@@ -276,6 +314,14 @@ const Leaderboard: React.FC = () => {
     };
     updateLocalAttributes(leaderboardAttributes);
     setGbUpdated(true);
+    logger.warn(
+      '[Leaderboard][Flow] growthbook leaderboard attributes updated',
+      {
+        studentId: currentStudent.id,
+        leaderboardDropdownType,
+        leaderboardAttributes,
+      },
+    );
 
     setLeaderboardDataInfo(tempLeaderboardData);
 
@@ -289,17 +335,52 @@ const Leaderboard: React.FC = () => {
           name: currentStudentB2CData.name || currentStudent.name || '',
         }
       : undefined;
+    logger.warn('[Leaderboard][Flow] current student b2c row selected', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      hasCurrentStudentB2CData: !!currentStudentLeaderboardEntry,
+      score: currentStudentLeaderboardEntry?.score,
+      lessonsPlayed: currentStudentLeaderboardEntry?.lessonsPlayed,
+      timeSpent: currentStudentLeaderboardEntry?.timeSpent,
+    });
 
     let tempData = [
       ...getLeaderboardListByType(tempLeaderboardData, leaderboardDropdownType),
     ];
+    logger.warn('[Leaderboard][Flow] selected visible bucket prepared', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      rowsBeforeCurrentStudentMerge: tempData.length,
+    });
     if (!classId && currentStudentLeaderboardEntry) {
       const currentStudentIndex = tempData.findIndex(
         (item) => item.userId === currentStudent.id,
       );
       if (currentStudentIndex >= 0) {
+        logger.warn(
+          '[Leaderboard][Flow] replacing generic row with current student b2c row',
+          {
+            studentId: currentStudent.id,
+            leaderboardDropdownType,
+            previousIndex: currentStudentIndex,
+            previousScore: tempData[currentStudentIndex].score,
+            newScore: currentStudentLeaderboardEntry.score,
+          },
+        );
         tempData[currentStudentIndex] = currentStudentLeaderboardEntry;
         tempData.sort((a, b) => b.score - a.score);
+      } else {
+        logger.warn(
+          '[Leaderboard][Flow] current student absent from generic top list',
+          {
+            studentId: currentStudent.id,
+            leaderboardDropdownType,
+            genericRows: tempData.length,
+            willAppendWithPlusRank: true,
+          },
+        );
       }
     }
 
@@ -327,6 +408,17 @@ const Leaderboard: React.FC = () => {
 
       if (currentStudent.id == element.userId) {
         isCurrentStudentDataFetched = true;
+        logger.warn(
+          '[Leaderboard][Flow] current student found in visible rows',
+          {
+            studentId: currentStudent.id,
+            leaderboardDropdownType,
+            rank: i + 1,
+            score: element.score,
+            lessonsPlayed: element.lessonsPlayed,
+            timeSpent: element.timeSpent,
+          },
+        );
         tempCurrentUserDataContent = [
           [t('Rank'), i + 1],
           [t('Lessons Played'), element.lessonsPlayed],
@@ -348,6 +440,17 @@ const Leaderboard: React.FC = () => {
       );
       var computeSeconds = currentStudentLeaderboardEntry.timeSpent % 60;
       const cUserRank = tempLeaderboardDataArray.length.toString() + '+';
+      logger.warn(
+        '[Leaderboard][Flow] appending current student with plus rank',
+        {
+          studentId: currentStudent.id,
+          leaderboardDropdownType,
+          rank: cUserRank,
+          score: currentStudentLeaderboardEntry.score,
+          lessonsPlayed: currentStudentLeaderboardEntry.lessonsPlayed,
+          timeSpent: currentStudentLeaderboardEntry.timeSpent,
+        },
+      );
       tempCurrentUserDataContent = [
         // ["Name", element.name],
         [t('Rank'), cUserRank],
@@ -367,9 +470,22 @@ const Leaderboard: React.FC = () => {
       ]);
     }
     if (tempCurrentUserDataContent.length <= 0) {
+      logger.warn('[Leaderboard][Flow] current student data unavailable', {
+        studentId: currentStudent.id,
+        classId: classId || '',
+        leaderboardDropdownType,
+        usingPlaceholder: true,
+      });
       tempCurrentUserDataContent = currentUserDataContent;
       tempLeaderboardDataArray.push(dummyData);
     }
+    logger.warn('[Leaderboard][Flow] render state ready', {
+      studentId: currentStudent.id,
+      classId: classId || '',
+      leaderboardDropdownType,
+      tableRows: tempLeaderboardDataArray.length,
+      currentUserSummaryRows: tempCurrentUserDataContent.length,
+    });
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);
     setIsLoading(false);
