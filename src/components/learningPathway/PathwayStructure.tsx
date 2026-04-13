@@ -177,7 +177,7 @@ const PathwayStructure: React.FC = () => {
       }
       setStickerCompletionData(data);
       setIsStickerCompletionOpen(true);
-      Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED, {
+      Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPEN, {
         user_id: Util.getCurrentStudent()?.id ?? 'unknown',
         source: data.source,
         sticker_book_id: data.stickerBookId,
@@ -790,7 +790,7 @@ const PathwayStructure: React.FC = () => {
   const closeStickerCompletion = React.useCallback(
     (reason: 'backdrop' | 'close_button') => {
       if (stickerCompletionData && reason === 'close_button') {
-        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED, {
+        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE, {
           user_id: Util.getCurrentStudent()?.id ?? 'unknown',
           source: stickerCompletionData.source,
           sticker_book_id: stickerCompletionData.stickerBookId,
