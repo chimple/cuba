@@ -139,6 +139,12 @@ const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
   }
 };
 
+const getLeaderboardCounts = (leaderboardInfo: LeaderboardInfo) => ({
+  weekly: leaderboardInfo.weekly.length,
+  monthly: leaderboardInfo.monthly.length,
+  allTime: leaderboardInfo.allTime.length,
+});
+
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
@@ -4982,9 +4988,19 @@ export class SupabaseApi implements ServiceApi {
         throw new Error('Supabase instance is not initialized');
 
       const leaderBoardList = emptyLeaderboardInfo();
+      logger.warn('[SupabaseApi][Leaderboard] getLeaderboardResults:start', {
+        sectionId: sectionId || '',
+        leaderboardDropdownType,
+        flow: sectionId ? 'class' : 'generic-b2c',
+      });
 
       if (!sectionId) {
         const leaderboardType = getLeaderboardDataType(leaderboardDropdownType);
+        logger.warn('[SupabaseApi][Leaderboard] generic query:start', {
+          leaderboardDropdownType,
+          leaderboardType,
+          limit: GENERIC_LEADERBOARD_LIMIT,
+        });
         const { data, error } = await this.supabase
           .from('get_leaderboard_generic_data')
           .select(
@@ -4999,9 +5015,20 @@ export class SupabaseApi implements ServiceApi {
         }
 
         data?.forEach((result) => pushLeaderboardRow(leaderBoardList, result));
+        logger.warn('[SupabaseApi][Leaderboard] generic query:success', {
+          leaderboardDropdownType,
+          leaderboardType,
+          rawRows: data?.length ?? 0,
+          counts: getLeaderboardCounts(leaderBoardList),
+        });
         return leaderBoardList;
       }
 
+      logger.warn('[SupabaseApi][Leaderboard] class rpc:start', {
+        sectionId,
+        leaderboardDropdownType,
+        rpc: 'get_class_leaderboard',
+      });
       const rpcRes = await this.supabase.rpc('get_class_leaderboard', {
         current_class_id: sectionId,
       });
@@ -5020,6 +5047,12 @@ export class SupabaseApi implements ServiceApi {
         pushLeaderboardRow(leaderBoardList, result);
       }
 
+      logger.warn('[SupabaseApi][Leaderboard] class rpc:success', {
+        sectionId,
+        leaderboardDropdownType,
+        rawRows: data.length,
+        counts: getLeaderboardCounts(leaderBoardList),
+      });
       return leaderBoardList;
     } catch (e) {
       logger.error('Error in getLeaderboardResults: ', e);
@@ -5047,6 +5080,10 @@ export class SupabaseApi implements ServiceApi {
         return leaderBoardList;
       }
 
+      logger.warn('[SupabaseApi][Leaderboard] current b2c query:start', {
+        studentId,
+        limit: 3,
+      });
       // Execute the query
       const { data, error } = await this.supabase
         .from('get_leaderboard_generic_data')
@@ -5074,6 +5111,11 @@ export class SupabaseApi implements ServiceApi {
         pushLeaderboardRow(leaderBoardList, result);
       });
 
+      logger.warn('[SupabaseApi][Leaderboard] current b2c query:success', {
+        studentId,
+        rawRows: data.length,
+        counts: getLeaderboardCounts(leaderBoardList),
+      });
       return leaderBoardList;
     } catch (error) {
       logger.error(
