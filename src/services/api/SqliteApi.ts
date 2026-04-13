@@ -3742,22 +3742,53 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList,
   ): Promise<LeaderboardInfo | undefined> {
+    logger.warn('[SqliteApi][Leaderboard] getLeaderboardResults:start', {
+      sectionId: sectionId || '',
+      leaderboardDropdownType,
+      flow: sectionId ? 'class' : 'generic-b2c',
+    });
     if (sectionId) {
       // Getting Class wise Leaderboard
+      logger.warn('[SqliteApi][Leaderboard] forwarding class leaderboard', {
+        sectionId,
+        leaderboardDropdownType,
+      });
       let classLeaderboard = await this._serverApi.getLeaderboardResults(
         sectionId,
         leaderboardDropdownType,
       );
+      logger.warn('[SqliteApi][Leaderboard] class leaderboard received', {
+        sectionId,
+        leaderboardDropdownType,
+        weekly: classLeaderboard?.weekly.length ?? 0,
+        monthly: classLeaderboard?.monthly.length ?? 0,
+        allTime: classLeaderboard?.allTime.length ?? 0,
+      });
       return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
+      logger.warn('[SqliteApi][Leaderboard] forwarding generic leaderboard', {
+        leaderboardDropdownType,
+      });
       let genericQueryResult = await this._serverApi.getLeaderboardResults(
         '',
         leaderboardDropdownType,
       );
       if (!genericQueryResult) {
+        logger.warn(
+          '[SqliteApi][Leaderboard] generic leaderboard empty result',
+          {
+            leaderboardDropdownType,
+          },
+        );
         return;
       }
+      logger.warn('[SqliteApi][Leaderboard] generic leaderboard received', {
+        leaderboardDropdownType,
+        weekly: genericQueryResult.weekly.length,
+        monthly: genericQueryResult.monthly.length,
+        allTime: genericQueryResult.allTime.length,
+      });
       return genericQueryResult;
     }
   }
