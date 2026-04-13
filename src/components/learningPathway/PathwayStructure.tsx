@@ -20,7 +20,9 @@ import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   COURSE_CHANGED,
+  CURRENT_STUDENT_CHANGED_EVENT,
   EVENTS,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
   PATHWAY_REWARD_AUDIO_READY_EVENT,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   REWARD_LEARNING_PATH,
@@ -90,8 +92,10 @@ const PathwayStructure: React.FC = () => {
     crowdComplete: false,
     rewardReady: false,
     suppressed: false,
+    stateValue: null as number | null,
     token: 0,
   });
+  const currentMascotStateValueRef = React.useRef<number>(1);
 
   const {
     // refs
@@ -148,6 +152,10 @@ const PathwayStructure: React.FC = () => {
   React.useEffect(() => {
     playMascotAudioFromLocalPathRef.current = playMascotAudioFromLocalPath;
   }, [playMascotAudioFromLocalPath]);
+
+  React.useEffect(() => {
+    currentMascotStateValueRef.current = mascotProps.stateValue;
+  }, [mascotProps.stateValue]);
 
   const openStickerCompletion = React.useCallback(
     (data: StickerBookModalData) => {
@@ -283,6 +291,24 @@ const PathwayStructure: React.FC = () => {
     [getStickerRewardBoxElement],
   );
 
+  const resetStickerCelebrationState = React.useCallback(() => {
+    pendingCelebrationRiveContainerRef.current = null;
+    latestRiveContainerRef.current = null;
+    hasCollectedStickerRef.current = false;
+    hasCheckedStickerReplayEligibilityRef.current = false;
+    isStickerCollectSpeakingRef.current = false;
+    setShouldCelebrateAfterPathwayReload(false);
+    setStickerCollectTiltActive(false);
+    setIsStickerPreviewOpen(false);
+    setStickerPreviewData(null);
+    setStickerPreviewLaunchMotion(null);
+    setStickerPreviewFlyoutMotion(null);
+    setStickerPreviewTrigger('sticker_click');
+    setIsStickerCompletionOpen(false);
+    setStickerCompletionData(null);
+    shouldRefreshPathAfterCompletionRef.current = false;
+  }, [setStickerCollectTiltActive]);
+
   // Play mascot audio from a local path and sync tilt with playback.
   const playStickerCollectMascotAudio = React.useCallback(
     (localAudioPath: string) => {
@@ -305,18 +331,8 @@ const PathwayStructure: React.FC = () => {
     [playMascotAudioFromLocalPath, setStickerCollectTiltActive],
   );
 
-  const resetRewardAudioSequence = React.useCallback(() => {
-    rewardAudioSequenceRef.current = {
-      ...rewardAudioSequenceRef.current,
-      rewardId: null,
-      crowdComplete: false,
-      rewardReady: false,
-      suppressed: false,
-    };
-  }, []);
-
-  const shouldSuppressRewardAudioForStickerBook = React.useCallback(() => {
-    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+  const hasPendingPathwayStickerReward = React.useCallback(() => {
+    const raw = sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
     const currentStudentId = Util.getCurrentStudent()?.id;
     if (!raw || !currentStudentId) return false;
 
@@ -330,27 +346,68 @@ const PathwayStructure: React.FC = () => {
     }
   }, []);
 
+  const clearPendingPathwayStickerReward = React.useCallback(() => {
+    sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+  }, []);
+
+  const resetRewardAudioSequence = React.useCallback(() => {
+    rewardAudioSequenceRef.current = {
+      ...rewardAudioSequenceRef.current,
+      rewardId: null,
+      crowdComplete: false,
+      rewardReady: false,
+      suppressed: false,
+      stateValue: null,
+    };
+  }, []);
+
+  const shouldSuppressRewardAudioForStickerBook = React.useCallback(() => {
+    const currentStudentId = Util.getCurrentStudent()?.id;
+    if (!currentStudentId) return false;
+
+    const hasMatchingAwardedSticker = (raw: string | null) => {
+      if (!raw) return false;
+
+      try {
+        const parsed = JSON.parse(raw);
+        return Boolean(
+          parsed?.studentId === currentStudentId && parsed?.awardedStickerId,
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    return hasMatchingAwardedSticker(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY),
+    );
+  }, []);
+
   const playRewardCollectMascotAudio = React.useCallback(
-    (localAudioPath: string) => {
+    (localAudioPath: string, stateValue?: number) => {
       if (!localAudioPath) return;
 
       void playMascotAudioFromLocalPathRef.current(localAudioPath, {
         stateMachine: 'State Machine 4',
         inputName: 'Number 3',
+        stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
       });
     },
     [],
   );
 
-  const playRewardAudio = React.useCallback(async () => {
-    const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-      'dailyReward',
-      'reward',
-    );
-    if (localAudioPath) {
-      playRewardCollectMascotAudio(localAudioPath);
-    }
-  }, [playRewardCollectMascotAudio]);
+  const playRewardAudio = React.useCallback(
+    async (stateValue?: number) => {
+      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+        'dailyReward',
+        'reward',
+      );
+      if (localAudioPath) {
+        playRewardCollectMascotAudio(localAudioPath, stateValue);
+      }
+    },
+    [playRewardCollectMascotAudio],
+  );
 
   // Plays the sticker-collect audio using the student's language.
   const playStickerAudio = React.useCallback(async () => {
@@ -360,6 +417,11 @@ const PathwayStructure: React.FC = () => {
       getStickerCollectMascotAudioPath(studentLanguageCode);
     if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
   }, [playStickerCollectMascotAudio]);
+
+  const playStickerAudioAndClearPending = React.useCallback(() => {
+    clearPendingPathwayStickerReward();
+    void playStickerAudio();
+  }, [clearPendingPathwayStickerReward, playStickerAudio]);
 
   const canReplayStickerAudio =
     React.useCallback(async (): Promise<boolean> => {
@@ -410,6 +472,30 @@ const PathwayStructure: React.FC = () => {
     [resetRewardAudioSequence],
   );
 
+  React.useEffect(() => {
+    const handleStudentChanged = () => {
+      resetRewardAudioSequence();
+      clearPendingPathwayStickerReward();
+      resetStickerCelebrationState();
+    };
+
+    window.addEventListener(
+      CURRENT_STUDENT_CHANGED_EVENT,
+      handleStudentChanged as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChanged as EventListener,
+      );
+    };
+  }, [
+    clearPendingPathwayStickerReward,
+    resetRewardAudioSequence,
+    resetStickerCelebrationState,
+  ]);
+
   // Trigger audio after pathway reloads with a new riveContainer
   React.useEffect(() => {
     latestRiveContainerRef.current = riveContainer;
@@ -423,11 +509,15 @@ const PathwayStructure: React.FC = () => {
     const frameId = window.requestAnimationFrame(() => {
       pendingCelebrationRiveContainerRef.current = null;
       setShouldCelebrateAfterPathwayReload(false);
-      void playStickerAudio();
+      playStickerAudioAndClearPending();
     });
 
     return () => window.cancelAnimationFrame(frameId);
-  }, [riveContainer, playStickerAudio, shouldCelebrateAfterPathwayReload]);
+  }, [
+    playStickerAudioAndClearPending,
+    riveContainer,
+    shouldCelebrateAfterPathwayReload,
+  ]);
 
   React.useEffect(() => {
     const playRewardAudioIfReady = (token: number, rewardId: string) => {
@@ -441,13 +531,20 @@ const PathwayStructure: React.FC = () => {
       }
 
       resetRewardAudioSequence();
-      void playRewardAudio();
+      void playRewardAudio(
+        rewardAudioSequence.stateValue ?? currentMascotStateValueRef.current,
+      );
     };
 
     const handleRewardCelebrationStarted = (event: Event) => {
-      const customEvent = event as CustomEvent<{ rewardId?: string }>;
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+      }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
+      const rewardStateValue =
+        customEvent.detail?.stateValue ?? currentMascotStateValueRef.current;
 
       const nextToken = rewardAudioSequenceRef.current.token + 1;
       const shouldSuppress = shouldSuppressRewardAudioForStickerBook();
@@ -457,6 +554,7 @@ const PathwayStructure: React.FC = () => {
         crowdComplete: false,
         rewardReady: false,
         suppressed: shouldSuppress,
+        stateValue: rewardStateValue,
         token: nextToken,
       };
 
@@ -485,12 +583,19 @@ const PathwayStructure: React.FC = () => {
     };
 
     const handleRewardAudioReady = (event: Event) => {
-      const customEvent = event as CustomEvent<{ rewardId?: string }>;
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+      }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
 
       const rewardAudioSequence = rewardAudioSequenceRef.current;
       if (rewardAudioSequence.rewardId !== rewardId) return;
+      rewardAudioSequence.stateValue =
+        customEvent.detail?.stateValue ??
+        rewardAudioSequence.stateValue ??
+        currentMascotStateValueRef.current;
 
       if (
         rewardAudioSequence.suppressed ||
@@ -701,16 +806,24 @@ const PathwayStructure: React.FC = () => {
         window.setTimeout(() => {
           window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
         }, 0);
-      } else if (sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)) {
+      } else if (
+        sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY) ||
+        hasPendingPathwayStickerReward()
+      ) {
         playStickerAudioAfterReload();
         window.setTimeout(() => {
           (window as any).__triggerPathwayReload__?.();
         }, 0);
       } else {
-        void playStickerAudio();
+        playStickerAudioAndClearPending();
       }
     },
-    [playStickerAudioAfterReload, playStickerAudio, stickerCompletionData],
+    [
+      hasPendingPathwayStickerReward,
+      playStickerAudioAndClearPending,
+      playStickerAudioAfterReload,
+      stickerCompletionData,
+    ],
   );
 
   // OPTIMIZED: two effects merged into one; { once: true } replaces manual
