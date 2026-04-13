@@ -61,6 +61,13 @@ interface UsePathwaySVGParams {
   onStickerCompletionReady: (data: StickerBookModalData) => void;
 }
 
+interface PendingStickerReward {
+  studentId: string;
+  awardedStickerId: string;
+  stickerBookId: string | null;
+  createdAt: string;
+}
+
 // CACHES
 const svgGroupCache: Record<string, SVGGElement | SVGSVGElement> = {};
 const svgStringCache: Record<string, string> = {};
@@ -302,7 +309,7 @@ export function usePathwaySVG({
 
       let overrideParsed: any = null;
       let completionOverrideParsed: any = null;
-      let pendingStickerRewardParsed: any = null;
+      let pendingStickerRewardParsed: PendingStickerReward | null = null;
       if (isStickerBookPreviewOn) {
         const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         if (raw) {
