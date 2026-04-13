@@ -12,6 +12,7 @@ import {
   CONTINUE,
   CocosCourseIdentifier,
   LIDO,
+  LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
   TableTypes,
@@ -27,6 +28,7 @@ type LessonDetailsState = {
   course?: TableTypes<'course'>;
   lesson?: TableTypes<'lesson'>;
   fromCocos?: boolean;
+  fromLido?: boolean;
   chapterId?: string;
   selectedLesson?: Map<string, string> | Array<[string, string]>;
   chapterName?: string;
@@ -41,6 +43,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const course: TableTypes<'course'> | undefined = state.course;
   const lesson: TableTypes<'lesson'> = state.lesson as TableTypes<'lesson'>;
   const fromCocos: boolean = Boolean(state.fromCocos);
+  const fromLido: boolean = Boolean(state.fromLido);
   const [chapterId, setChapterId] = useState(state.chapterId ?? '');
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
@@ -111,7 +114,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     // }
     const lidoLessonId =
       lesson.lido_lesson_id ||
-      (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+      (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT
+        ? lesson.cocos_lesson_id
+        : null);
 
     if (lidoLessonId) {
       const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
@@ -216,10 +221,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   }, [classSelectedLesson]);
 
   const init = async () => {
+    if (Capacitor.isNativePlatform() && (fromCocos || fromLido)) {
+      await ScreenOrientation.lock({ orientation: 'portrait' });
+    }
     if (fromCocos) {
-      if (Capacitor.isNativePlatform()) {
-        await ScreenOrientation.lock({ orientation: 'portrait' });
-      }
       setTimeout(() => {
         Util.killCocosGame();
       }, 1000);
