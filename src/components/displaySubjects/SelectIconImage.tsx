@@ -134,7 +134,8 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
 
   return (
     <div
-      style={{ position: 'relative', width: imageWidth, height: imageHeight }}
+      className="select-icon-image-root"
+      style={{ width: imageWidth, height: imageHeight }}
     >
       {isLoading && <div className="placeholder" />}
       {showLoader && (

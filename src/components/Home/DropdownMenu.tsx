@@ -380,7 +380,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                   showLoaderFromStart={true}
                   minimumLoaderVisibleMs={250}
                   imageWidth="10vh"
-                  imageHeight="auto"
+                  imageHeight="10vh"
                 />
               </div>
             </div>

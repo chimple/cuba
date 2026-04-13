@@ -167,7 +167,6 @@
 /* List base — always present but collapsed by default */
 .dropdownmenu-dropdown-items {
   transform-origin: top;
-  transform: scaleY(0);
   opacity: 0;
   max-height: 0;
   pointer-events: none; /* avoid clicks when closed */
@@ -180,9 +179,8 @@
 
 /* When open, animate to visible */
 .dropdownmenu-dropdown-items.dropdownmenu-open {
-  transform: scaleY(1);
   opacity: 1;
-  max-height: 52vh; /* same as your expanded max-height */
+  max-height: 54vh; /* same as your expanded max-height */
   pointer-events: auto;
 }
 
@@ -198,7 +196,6 @@
 /* Use descendant selector so items animate only when list is open */
 .dropdownmenu-dropdown-items.dropdownmenu-open .dropdownmenu-menu-item {
   opacity: 1;
-  transform: translateY(0);
 }
 
 /* small accessibility nicety: hide from screen readers when closed */
