@@ -94,21 +94,19 @@ const LidoPlayer: FC = () => {
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
-    currentUser: TableTypes<'user'> | undefined;
     studentId: string | undefined;
+    userId: string | undefined;
   }> => {
-    const currentUser =
-      (await ServiceConfig.getI().authHandler.getCurrentUser()) as
-        | TableTypes<'user'>
-        | undefined;
-    const currentMode = localStorage.getItem(CURRENT_MODE);
-    const student =
-      Util.getCurrentStudent() ??
-      (currentMode === MODES.TEACHER ? currentUser : undefined);
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const currentUser = await authHandler?.getCurrentUser();
+    let student = Util.getCurrentStudent();
+    if (!student) {
+      student = currentUser;
+    }
     return {
       student,
-      currentUser,
       studentId: student?.id ?? currentUser?.id,
+      userId: currentUser?.id,
     };
   };
 
@@ -151,8 +149,11 @@ const LidoPlayer: FC = () => {
   ) => {
     try {
       const storedData = localStorage.getItem(LIDO_SCORES_KEY);
-      const { student: currentStudent, studentId } =
-        await resolveStudentContext();
+      const {
+        student: currentStudent,
+        studentId,
+        userId,
+      } = await resolveStudentContext();
       if (!storedData) {
         logger.warn('⚠️ No stored data found.');
         return;
@@ -160,6 +161,7 @@ const LidoPlayer: FC = () => {
       if (!currentStudent || !studentId) {
         throw new Error('[LidoPlayer] Student context missing');
       }
+      const parentUserId = userId;
       const scoresList: Array<{
         score: number;
         result: 0 | 1;
@@ -208,7 +210,10 @@ const LidoPlayer: FC = () => {
 
         // 🔑 Skill resolved by ARRAY POSITION
         const activityMeta = activitiesMeta[idx];
-        const skillId = activityMeta?.skill_id;
+        const skillId =
+          typeof activityMeta?.skill_id === 'string'
+            ? activityMeta.skill_id.trim()
+            : '';
 
         if (!skillId) return;
 
@@ -303,12 +308,13 @@ const LidoPlayer: FC = () => {
           abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
           activitiesScoresStr,
-          studentId,
+          parentUserId,
           isAborted ? RESULT_STATUS.SYSTEM_EXIT : RESULT_STATUS.COMPLETED,
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
-        user_id: studentId,
+        user_id: parentUserId,
+        student_id: studentId,
         lesson_id: lesson.id,
         course_id: courseDetail?.id ?? courseDocId ?? '',
         is_assessment: isAssessmentLesson,
@@ -316,7 +322,8 @@ const LidoPlayer: FC = () => {
       });
       if (isAssessmentLesson) {
         Util.logEvent(EVENTS.ASSESSMENT_COMPLETED, {
-          user_id: studentId,
+          user_id: parentUserId,
+          student_id: studentId,
           lesson_id: lesson.id,
           course_id: courseDetail?.id ?? courseDocId ?? '',
           is_assessment: true,
@@ -352,7 +359,7 @@ const LidoPlayer: FC = () => {
   };
 
   const onActivityEnd = async (e: any) => {
-    const { studentId } = await resolveStudentContext();
+    const { studentId, userId } = await resolveStudentContext();
     const { score, timeSpentForActivity } = e.detail;
 
     const isFail = score < 70;
@@ -372,6 +379,7 @@ const LidoPlayer: FC = () => {
     });
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
     if (!studentId) return;
+    const parentUserId = userId;
     if (isAssessmentLesson) {
       const assessmentKey = `assessment_star_state_${studentId}_${lesson.id}`;
       if (sessionStorage.getItem(assessmentKey) !== 'true') {
@@ -407,7 +415,8 @@ const LidoPlayer: FC = () => {
       const isFullPathwayTerminated = true;
       await exitLidoGame(isAborted, isFullPathwayTerminated); // aborted + full pathway terminated
       Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
-        user_id: studentId,
+        user_id: parentUserId,
+        student_id: studentId,
         lesson_id: lesson.id,
         course_id: courseDocId,
         is_assessment: isAssessmentLesson,
@@ -421,7 +430,8 @@ const LidoPlayer: FC = () => {
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
       Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
-        user_id: studentId,
+        user_id: parentUserId,
+        student_id: studentId,
         lesson_id: lesson.id,
         course_id: courseDocId,
         is_assessment: isAssessmentLesson,
@@ -436,8 +446,8 @@ const LidoPlayer: FC = () => {
     setIsLoading(true);
     const {
       student: currentStudent,
-      currentUser,
       studentId,
+      userId,
     } = await resolveStudentContext();
     try {
       if (!currentStudent?.id || !studentId) {
@@ -445,6 +455,7 @@ const LidoPlayer: FC = () => {
           '[LidoPlayer] currentStudent missing while saving lesson result',
         );
       }
+      const parentUserId = userId;
       const courseDocId: string | undefined = state.courseDocId;
       const lessonData = e.detail;
       if (isAssessmentLesson) {
@@ -458,6 +469,10 @@ const LidoPlayer: FC = () => {
       const lesson: Lesson = JSON.parse(state.lesson);
       const assignment = state.assignment;
       const skillId: string | undefined = state.skillId;
+      const normalizedSkillId =
+        typeof skillId === 'string' && skillId.trim().length > 0
+          ? skillId.trim()
+          : undefined;
       // const currentStudent = api.currentStudent;
       const data = lessonData;
       let assignmentId = assignment ? assignment.id : null;
@@ -558,12 +573,22 @@ const LidoPlayer: FC = () => {
         sessionStorage.setItem(REWARD_LESSON, 'true');
       }
 
-      const abilityUpdates = await palUtil.updateAndGetAbilities({
-        studentId: currentStudent.id,
-        courseId: courseDetail?.id ?? courseDocId ?? '',
-        skillId: skillId ?? '',
-        outcomes: booleanOutcomes,
-      });
+      let abilityUpdates: any = {};
+      if (normalizedSkillId) {
+        try {
+          abilityUpdates = await palUtil.updateAndGetAbilities({
+            studentId: currentStudent.id,
+            courseId: courseDetail?.id ?? courseDocId ?? '',
+            skillId: normalizedSkillId,
+            outcomes: booleanOutcomes,
+          });
+        } catch (palError) {
+          logger.warn(
+            '[LidoPlayer] PAL ability update skipped due to invalid skill context',
+            palError,
+          );
+        }
+      }
 
       const result = await api.updateResult(
         currentStudent,
@@ -579,7 +604,7 @@ const LidoPlayer: FC = () => {
         schoolId,
         false, // isImediateSync
         false, // isHomework
-        skillId,
+        normalizedSkillId,
         abilityUpdates.skill_ability,
         abilityUpdates.outcome_id,
         abilityUpdates.outcome_ability,
@@ -590,7 +615,7 @@ const LidoPlayer: FC = () => {
         abilityUpdates.subject_id,
         abilityUpdates.subject_ability,
         activitiesScoresStr,
-        studentId,
+        parentUserId,
         RESULT_STATUS.COMPLETED,
       );
 
@@ -606,10 +631,7 @@ const LidoPlayer: FC = () => {
       // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
       if (shouldGiveHomeworkBonus) {
         try {
-          const student =
-            Util.getCurrentStudent() ??
-            (currentUser as TableTypes<'user'> | null | undefined) ??
-            currentStudent;
+          const student = Util.getCurrentStudent() ?? currentStudent;
           if (student?.id) {
             const bonusStars = 10;
             const newLocalStars = Util.bumpLocalStarsForStudent(
@@ -635,7 +657,8 @@ const LidoPlayer: FC = () => {
         }
       }
       Util.logEvent(EVENTS.LESSON_END, {
-        user_id: studentId,
+        user_id: parentUserId,
+        student_id: studentId,
         // assignment_id: lesson.assignment?.id,
         chapter_id: data.chapterId,
         // chapter_name: ChapterDetail ? ChapterDetail.name : "",
@@ -687,16 +710,18 @@ const LidoPlayer: FC = () => {
     }
   };
   const onGameExit = async (e: any) => {
-    const { studentId } = await resolveStudentContext();
+    const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
       return;
     }
+    const parentUserId = userId;
     const courseKey = courseDetail?.id ?? courseDocId ?? '';
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
     const data = e.detail;
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: studentId,
+      user_id: parentUserId,
+      student_id: studentId,
       // assignment_id: lessonDetail.assignment?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
@@ -814,8 +839,11 @@ const LidoPlayer: FC = () => {
         return;
       }
       try {
-        const { student, currentUser } = await resolveStudentContext();
-        const languageId = student?.language_id ?? currentUser?.language_id;
+        const { student } = await resolveStudentContext();
+        const authCurrentUser = ServiceConfig.getI().authHandler.currentUser as
+          | TableTypes<'user'>
+          | undefined;
+        const languageId = student?.language_id ?? authCurrentUser?.language_id;
         if (!languageId) {
           throw new Error('[LidoPlayer] Student language_id missing');
         }

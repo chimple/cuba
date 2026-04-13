@@ -29,6 +29,7 @@ type LessonDetailsState = {
   lesson?: TableTypes<'lesson'>;
   fromCocos?: boolean;
   fromLido?: boolean;
+  fromLiveQuiz?: boolean;
   chapterId?: string;
   selectedLesson?: Map<string, string> | Array<[string, string]>;
   chapterName?: string;
@@ -44,6 +45,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const lesson: TableTypes<'lesson'> = state.lesson as TableTypes<'lesson'>;
   const fromCocos: boolean = Boolean(state.fromCocos);
   const fromLido: boolean = Boolean(state.fromLido);
+  const fromLiveQuiz: boolean = Boolean(state.fromLiveQuiz);
   const [chapterId, setChapterId] = useState(state.chapterId ?? '');
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
@@ -221,7 +223,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   }, [classSelectedLesson]);
 
   const init = async () => {
-    if (Capacitor.isNativePlatform() && (fromCocos || fromLido)) {
+    if (
+      Capacitor.isNativePlatform() &&
+      (fromCocos || fromLido || fromLiveQuiz)
+    ) {
       await ScreenOrientation.lock({ orientation: 'portrait' });
     }
     if (fromCocos) {
