@@ -67,6 +67,7 @@ import {
   LATEST_LEARNING_PATH,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
   CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
@@ -3101,10 +3102,20 @@ export class Util {
             REWARD_LEARNING_PATH,
             completedPathwaySnapshot,
           );
+          sessionStorage.setItem(
+            PENDING_PATHWAY_STICKER_REWARD_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              createdAt: new Date().toISOString(),
+            }),
+          );
         } else {
           sessionStorage.removeItem(REWARD_LEARNING_PATH);
           sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
           sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         }
         if (typeof navigator !== 'undefined' && navigator.onLine) {
           if (
@@ -3154,6 +3165,7 @@ export class Util {
           } else {
             sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
             sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+            sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
           }
         }
         if (courseIndex >= courses.courseList.length) {

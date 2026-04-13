@@ -1097,6 +1097,8 @@ export const HOMEWORK_PATHWAY = 'homework_pathway';
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
 export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
+export const PENDING_PATHWAY_STICKER_REWARD_KEY =
+  'pending_pathway_sticker_reward';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
 export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
