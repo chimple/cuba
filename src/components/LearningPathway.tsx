@@ -39,6 +39,21 @@ const LearningPathway: React.FC = () => {
     gb,
   });
 
+  const getPreferredStudent = (
+    localStudent: TableTypes<'user'>,
+    fetchedStudent?: TableTypes<'user'>,
+  ): TableTypes<'user'> => {
+    if (!fetchedStudent) return localStudent;
+
+    const localLearningPath =
+      Util.getLatestLearningPathByUpdatedAt(localStudent);
+    if (localLearningPath && !fetchedStudent.learning_path) {
+      return { ...fetchedStudent, learning_path: localLearningPath };
+    }
+
+    return fetchedStudent;
+  };
+
   const updateCourseCodeFromSubject = async (subjectId?: string | null) => {
     if (!subjectId) return;
     const selectedCourse = await api.getCourse(subjectId);
@@ -87,10 +102,8 @@ const LearningPathway: React.FC = () => {
         const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
 
         const latest = await api.getUserByDocId(student.id);
-        if (latest) {
-          Util.setCurrentStudent(latest);
-          student = latest;
-        }
+        student = getPreferredStudent(student, latest);
+        await Util.setCurrentStudent(student);
         const courses = currClass
           ? await api.getCoursesForClassStudent(currClass.id)
           : await api.getCoursesForPathway(student.id);
