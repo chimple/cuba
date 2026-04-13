@@ -97,16 +97,6 @@ import logger from '../../utility/logger';
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 
-const leaderboardCache: {
-  [key: string]: LeaderboardInfo;
-} = {};
-
-const leaderboardCacheTime: {
-  [key: string]: number;
-} = {};
-
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
 const emptyLeaderboardInfo = (): LeaderboardInfo => ({
@@ -5011,18 +5001,6 @@ export class SupabaseApi implements ServiceApi {
           leaderboardType,
           limit: GENERIC_LEADERBOARD_LIMIT,
         });
-
-        const cacheKey = `generic_${leaderboardType}`;
-        const now = Date.now();
-
-        // ✅ STEP 1: Check cache
-        if (
-          leaderboardCache[cacheKey] &&
-          now - leaderboardCacheTime[cacheKey] < CACHE_TTL
-        ) {
-          logger.warn('🚀 Returning leaderboard from cache');
-          return leaderboardCache[cacheKey];
-        }
         const { data, error } = await this.supabase
           .from('get_leaderboard_generic_data')
           .select(
@@ -5043,10 +5021,6 @@ export class SupabaseApi implements ServiceApi {
           rawRows: data?.length ?? 0,
           counts: getLeaderboardCounts(leaderBoardList),
         });
-
-        // ✅ STEP 3: Save to cache
-        leaderboardCache[cacheKey] = leaderBoardList;
-        leaderboardCacheTime[cacheKey] = now;
         return leaderBoardList;
       }
 
