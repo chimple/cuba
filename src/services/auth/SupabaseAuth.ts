@@ -16,6 +16,7 @@ import {
 } from '@supabase/supabase-js';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
 import { SocialLogin } from '@capgo/capacitor-social-login';
+import { ensureSocialLoginInitialized } from './SocialLoginInit';
 import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Capacitor } from '@capacitor/core';
@@ -221,6 +222,7 @@ export class SupabaseAuth implements ServiceAuth {
       const api = ServiceConfig.getI().apiHandler;
       let response;
       if (Capacitor.isNativePlatform()) {
+        await ensureSocialLoginInitialized();
         response = await SocialLogin.login({
           provider: 'google',
           options: {
