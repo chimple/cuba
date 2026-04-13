@@ -7,6 +7,7 @@ import AutocompleteDropdown from '../SearchableDropdown';
 import { TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
+import { sortBySchoolSearchRelevance } from '../../../utility/schoolSearchUtil';
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -17,6 +18,7 @@ interface SchoolSectionProps {
     role?: RoleType;
   }) => void;
   handleManageSchoolClick: () => void;
+  resetTrigger?: number;
 }
 
 const SchoolSection: React.FC<SchoolSectionProps> = ({
@@ -24,6 +26,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   currentSchoolDetail,
   handleSchoolSelect,
   handleManageSchoolClick,
+  resetTrigger,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -52,11 +55,17 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         search: query || '',
       });
 
-      return result.map(({ school, role }: any) => ({
+      const mappedResults = result.map(({ school, role }: any) => ({
         id: school.id,
         name: school.name,
         role: role,
       }));
+
+      return sortBySchoolSearchRelevance(
+        mappedResults,
+        query,
+        (item) => item.name,
+      );
     } catch (err) {
       logger.error('Error fetching schools:', err);
       return [];
@@ -79,6 +88,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
           selectedValue={currentSchoolDetail}
           onOptionSelect={handleSchoolSelect}
           onClear={handleClearSchool}
+          resetTrigger={resetTrigger}
         />
         <div className="divider-line">
           <div className="school-divider" />

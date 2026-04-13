@@ -9,6 +9,7 @@ import { useHistory, useLocation } from 'react-router';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { schoolUtil } from '../../utility/schoolUtil';
 import InputWithIcons from '../common/InputWithIcons';
+import Loading from '../Loading';
 import logger from '../../utility/logger';
 const urlClassCode: any = {};
 
@@ -16,6 +17,7 @@ const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
+  const [joiningClass, setJoiningClass] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [codeResult, setCodeResult] = useState();
@@ -78,8 +80,8 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
-    if (loading) return;
-    setLoading(true);
+    if (loading || joiningClass) return;
+    setJoiningClass(true);
 
     try {
       const student = Util.getCurrentStudent();
@@ -128,7 +130,7 @@ const JoinClass: FC<{
       logger.error('Join class failed:', error);
       if (error instanceof Object) setError(error.toString());
     } finally {
-      setLoading(false);
+      setJoiningClass(false);
     }
   };
   const location = useLocation();
@@ -191,6 +193,7 @@ const JoinClass: FC<{
 
   return (
     <div className="join-class-parent-container">
+      {joiningClass && <Loading isLoading={true} msg="Joining class..." />}
       <div
         className={`assignment-join-class-container-scroll`}
         ref={containerRef}
@@ -255,7 +258,7 @@ const JoinClass: FC<{
         <button
           className="join-class-confirm-button"
           onClick={onJoin}
-          disabled={loading || !isFormValid}
+          disabled={loading || joiningClass || !isFormValid}
         >
           <span className="join-class-confirm-text">{t('Confirm')}</span>
         </button>

@@ -1,4 +1,4 @@
-import React, { MouseEventHandler } from 'react';
+import React, { MouseEventHandler, useEffect } from 'react';
 import './ScoreCard.css';
 import { OverlayEventDetail } from '@ionic/react/dist/types/components/react-component-lib/interfaces';
 import { Dialog, DialogContentText } from '@mui/material';
@@ -6,6 +6,9 @@ import ScoreCardStarIcons from './ScoreCardStarIcons';
 import ScoreCardTitle from './ScoreCardTitle';
 import i18n from '../../i18n';
 import { t } from 'i18next';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
 
 const ScoreCard: React.FC<{
   showDialogBox: boolean;
@@ -13,6 +16,7 @@ const ScoreCard: React.FC<{
   message: string;
   lessonName: string;
   noText: string;
+  audioUrl?: string;
   handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
   onContinueButtonClicked: MouseEventHandler<HTMLButtonElement>;
 }> = ({
@@ -21,9 +25,34 @@ const ScoreCard: React.FC<{
   lessonName,
   score,
   noText,
+  audioUrl = SCORECARD_AUDIO_URL,
   handleClose,
   onContinueButtonClicked,
 }) => {
+  const handleContinueClick: MouseEventHandler<HTMLButtonElement> = (event) => {
+    void (async () => {
+      await AudioUtil.stopAudioUrlOrTtsPlayback();
+      onContinueButtonClicked(event);
+    })();
+  };
+
+  useEffect(() => {
+    if (!showDialogBox) {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+      return;
+    }
+
+    void AudioUtil.playAudioOrTts({
+      audioUrl,
+      delayMs: 300,
+      loop: false,
+    });
+
+    return () => {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+    };
+  }, [audioUrl, lessonName, message, showDialogBox]);
+
   return (
     <div>
       <Dialog
@@ -47,7 +76,7 @@ const ScoreCard: React.FC<{
         <div className="ScoreCard-Content">
           <DialogContentText className="dialog-content-text">
             <div className="score-card-icons">
-              <img src="assets/loading.gif" className="image-icon" />
+              <img src="assets/loading.gif" className="image-icon" alt="" />
               <div className="star-images-component">
                 <ScoreCardStarIcons score={score} />
               </div>
@@ -65,7 +94,7 @@ const ScoreCard: React.FC<{
           <button
             id={'noButton'}
             className={`dialog-box-button-style-score-card ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
-            onClick={onContinueButtonClicked}
+            onClick={handleContinueClick}
           >
             <span>{noText}</span>
           </button>

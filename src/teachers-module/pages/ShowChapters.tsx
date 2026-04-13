@@ -173,6 +173,8 @@ const ShowChapters: React.FC = () => {
       lesson: lesson,
       chapterId: chapter.id,
       selectedLesson: selectedLesson,
+      chapterName: chapter.name,
+      gradeName: selectedCourseGrade,
       from: PAGES.SHOW_CHAPTERS,
     });
   };

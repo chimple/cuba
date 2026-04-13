@@ -4,6 +4,7 @@ import { useHistory } from 'react-router';
 import { PAGES } from '../common/constants';
 import { t } from 'i18next';
 import '../pages/TermsAndConditions.css';
+import { logAuthDebug } from '../utility/authDebug';
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
@@ -20,6 +21,12 @@ const TermsAndConditions: React.FC = () => {
           history.replace(PAGES.SELECT_MODE);
         }
       } else {
+        logAuthDebug('Navigating to login from TermsAndConditions.', {
+          source: 'TermsAndConditions.checkAuth',
+          reason: 'current_user_missing',
+          from_page: window.location.pathname,
+          to_page: PAGES.LOGIN,
+        });
         history.replace(PAGES.LOGIN);
       }
     } catch (error) {}

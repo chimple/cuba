@@ -29,7 +29,9 @@
   display: flex;
   flex-direction: column;
   margin-right: calc(1.8rem * 1.5);
+  margin-left: calc(3rem * 1.5);
   --close-size: 3rem;
+  --audio-size: 3rem;
 }
 
 .StickerBookCompletionModal-container::after {
@@ -42,6 +44,30 @@
   border-radius: 1.125rem 999px 999px 0;
   background: #fffdee;
   z-index: -1;
+}
+
+.StickerBookCompletionModal-container::before {
+  content: '';
+  position: absolute;
+  right: calc(100% - 20px);
+  top: 0;
+  width: calc(var(--audio-size) * 1.5 + 20px);
+  height: calc(var(--audio-size) * 1.35);
+  border-radius: 999px 1.125rem 0 999px;
+  background: #fffdee;
+  z-index: -1;
+}
+
+.StickerBookCompletionModal-audio-button {
+  position: absolute;
+  top: calc(var(--audio-size) * 0.175);
+  right: calc(100% + var(--audio-size) * 0.29);
+  z-index: 2;
+}
+
+.StickerBookCompletionModal-audio-button-control .audio-button__icon {
+  max-width: none;
+  max-height: none;
 }
 
 .StickerBookCompletionModal-close {

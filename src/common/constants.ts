@@ -6,6 +6,8 @@ import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.pn
 
 export const DEFAULT_LOCALE_ID = '6854a7ef-dcd3-4362-8488-0e8de869aacf'; //this is the default locale id for india
 export const DEFAULT_LANGUAGE_ID_EN = '7eaf3509-e44e-460f-80a1-7f6a13a8a883'; //this is the default language id for english
+export const STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON =
+  'acknowledge_button';
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = 'sl-en',
@@ -685,6 +687,7 @@ export const STARS_COUNT = 'starsCount';
 export const LATEST_STARS = (studentId: string) => `latestStar_${studentId}`;
 export const IS_OPS_USER = 'isOpsUser';
 export const EDIT_STUDENTS_MAP = 'editStudentsMap';
+export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
@@ -1078,6 +1081,7 @@ export const ALL_SUBJECT = {
 };
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
+export const HOME_HEADER_SPECIALS_ENABLED = 'home-header-specials-enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
 export const STICKER_BOOK_CELEBRATION_POPUP_ENABLED =
   'sticker-book-celebration-popup-enabled';
@@ -1093,8 +1097,13 @@ export const HOMEWORK_PATHWAY = 'homework_pathway';
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
 export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
+export const PENDING_PATHWAY_STICKER_REWARD_KEY =
+  'pending_pathway_sticker_reward';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
+export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
+  'pathway_reward_celebration_started';
+export const PATHWAY_REWARD_AUDIO_READY_EVENT = 'pathway_reward_audio_ready';
 export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';
@@ -1376,7 +1385,7 @@ export enum RESULT_STATUS {
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
 }
-// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
+// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
 export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =

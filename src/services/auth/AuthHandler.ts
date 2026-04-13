@@ -1,6 +1,7 @@
 import { ServiceAuth } from './ServiceAuth';
 import { TableTypes } from '../../common/constants';
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
+import { logAuthDebug } from '../../utility/authDebug';
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -87,6 +88,10 @@ export class AuthHandler implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
+    logAuthDebug('AuthHandler forwarding logout request to provider.', {
+      source: 'AuthHandler.logOut',
+      reason: 'logout_requested',
+    });
     return await this.s.logOut();
   }
 
