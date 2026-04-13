@@ -30,10 +30,8 @@ const ScoreCard: React.FC<{
   onContinueButtonClicked,
 }) => {
   const handleContinueClick: MouseEventHandler<HTMLButtonElement> = (event) => {
-    void (async () => {
-      await AudioUtil.stopAudioUrlOrTtsPlayback();
-      onContinueButtonClicked(event);
-    })();
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onContinueButtonClicked(event);
   };
 
   useEffect(() => {
