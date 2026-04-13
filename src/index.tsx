@@ -129,7 +129,6 @@ if (typeof window !== 'undefined') {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-SplashScreen.hide();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: 'landscape' });
 }
