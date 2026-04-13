@@ -28,6 +28,9 @@ import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModa
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
 
+const waitForJoinRefresh = (delayMs: number) =>
+  new Promise((resolve) => setTimeout(resolve, delayMs));
+
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   assignmentCount: any;
@@ -203,6 +206,31 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
     }, 1000);
   }, [init]);
+
+  const refreshAssignmentPageAfterJoin = useCallback(async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    setLoading(true);
+
+    const retryDelays = [0, 400, 1000];
+    for (const delayMs of retryDelays) {
+      if (delayMs > 0) {
+        await waitForJoinRefresh(delayMs);
+      }
+
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (linkedData?.classes?.length) {
+        await init(false, true);
+        return;
+      }
+    }
+
+    await init(false, true);
+  }, [api, history, init]);
 
   useEffect(() => {
     if (assignmentSyncDone && !loading) {
@@ -461,7 +489,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
-                    init(false);
+                    refreshAssignmentPageAfterJoin();
                   }}
                 />
               ) : (
