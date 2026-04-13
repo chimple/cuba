@@ -25,7 +25,7 @@ import { APIMode, ServiceConfig } from './services/ServiceConfig';
 import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import { SqliteApi } from './services/api/SqliteApi';
-import { SocialLogin } from '@capgo/capacitor-social-login';
+import { ensureSocialLoginInitialized } from './services/auth/SocialLoginInit';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Capacitor } from '@capacitor/core';
@@ -85,20 +85,22 @@ persistor.subscribe(() => {
 
 const isNativePlatform = Capacitor.isNativePlatform();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
-if (isNativePlatform) {
+async function checkNativeVersionAndReset() {
+  const { versionName } = await LiveUpdate.getVersionName();
+  const { value: storedVersion } = await Preferences.get({
+    key: VERSION_KEY,
+  });
+  if (versionName !== storedVersion) {
+    // reset the hot update bundle
+    await LiveUpdate.reset();
+    // store new version
+    await Preferences.set({ key: VERSION_KEY, value: versionName });
+  }
+}
+
+const startNativeInit = async () => {
+  if (!isNativePlatform) return;
   try {
-    async function checkNativeVersionAndReset() {
-      const { versionName } = await LiveUpdate.getVersionName();
-      const { value: storedVersion } = await Preferences.get({
-        key: VERSION_KEY,
-      });
-      if (versionName !== storedVersion) {
-        // reset the hot update bundle
-        await LiveUpdate.reset();
-        // store new version
-        await Preferences.set({ key: VERSION_KEY, value: versionName });
-      }
-    }
     await checkNativeVersionAndReset();
     await LiveUpdate.ready();
   } catch (error) {
@@ -107,7 +109,7 @@ if (isNativePlatform) {
       error,
     );
   }
-}
+};
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -127,10 +129,6 @@ if (typeof window !== 'undefined') {
   if (!(window as any).SpeechSynthesisUtterance) {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
-}
-SplashScreen.hide();
-if (Capacitor.isNativePlatform()) {
-  await ScreenOrientation.lock({ orientation: 'landscape' });
 }
 jeepSqlite(window);
 
@@ -154,12 +152,6 @@ const root = createRoot(container!, {
   // Callback called when React automatically recovers from errors.
   onRecoverableError: SentryReact.reactErrorHandler(),
 });
-await SocialLogin.initialize({
-  google: {
-    webClientId: process.env.REACT_APP_CLIENT_ID,
-  },
-});
-
 const gb = new GrowthBook({
   apiHost: 'https://cdn.growthbook.io',
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
@@ -206,12 +198,23 @@ const renderApp = () => {
     </Provider>,
   );
   SplashScreen.hide();
+  if (isNativePlatform) {
+    void ScreenOrientation.lock({ orientation: 'landscape' }).catch((error) => {
+      logger.error('ScreenOrientation lock failed', error);
+    });
+  }
   setTimeout(() => {
     if (isNativePlatform && userData) {
       checkForUpdate();
     }
   }, 60000);
 };
+
+// Kick off non-critical native/social initialization without blocking render.
+void startNativeInit();
+void ensureSocialLoginInitialized().catch((error) => {
+  logger.error('SocialLogin initialize failed', error);
+});
 
 async function checkForUpdate() {
   let majorVersion = '0';
@@ -360,9 +363,14 @@ const bootstrapAndRender = async () => {
     return;
   }
 
-  await SqliteApi.getInstance();
+  // Render immediately to avoid blocking first paint on low-end devices.
   serviceInstance.switchMode(APIMode.SQLITE);
   renderApp();
+
+  // Initialize SQLite in the background; log if it fails.
+  void SqliteApi.getInstance().catch((error) => {
+    logger.error('Sqlite init failed during bootstrap', error);
+  });
 };
 
 if (persistor.getState().bootstrapped) {
