@@ -618,13 +618,34 @@ export class SupabaseAuth implements ServiceAuth {
       if (isUserExist) await api.subscribeToClassTopic();
 
       const userData = await api.getUserByDocId(user.user?.id ?? '');
+      // OTP verification is considered successful only when we can fully resolve
+      // the app-level user record. Otherwise we treat it as a failure to avoid
+      // partial auth/sync state leaking into the session.
+      if (!userData || !userData.id) {
+        throw new Error(
+          'OTP verification flow failed to resolve app user data',
+        );
+      }
       return {
         user: user.user ?? null,
         isUserExist: !!isUserExist,
         isSpl,
         userData,
       };
-    } catch (_err) {
+    } catch (err) {
+      logger.error(
+        'OTP verification flow failed. Rolling back session to prevent partial login state.',
+        err,
+      );
+      try {
+        // Ensure any partially established auth/session state is fully cleared.
+        await this.logOut();
+      } catch (logoutErr) {
+        logger.error(
+          'Failed to rollback auth session after OTP failure',
+          logoutErr,
+        );
+      }
       return { user: null, isUserExist: false, isSpl: false, userData: null };
     }
   }
