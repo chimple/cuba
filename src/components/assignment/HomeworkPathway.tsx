@@ -678,7 +678,9 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       {/* ✅ Render the modal when its state is true */}
       {showDisabledDropdownModal && (
         <PathwayModal
-          text={t('Keep going!\nFinish these lessons to change the subject.')}
+          text={t(
+            'Keep going!\nFinish these lessons to choose another subject.',
+          )}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}
           audioFolder={'subDisabled'}
