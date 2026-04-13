@@ -53,6 +53,7 @@ import { persistor, store } from './redux/store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { BrowserRouter } from 'react-router-dom';
 import logger from './utility/logger';
+import Loading from './components/Loading';
 
 Sentry.init(
   {
@@ -194,7 +195,7 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 const renderApp = () => {
   root.render(
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={<Loading isLoading={true} />} persistor={persistor}>
         <BrowserRouter>
           <GrowthBookProvider growthbook={gb}>
             <GbProvider>
