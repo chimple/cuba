@@ -216,7 +216,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
     setLoading(true);
 
-    const retryDelays = [0, 400, 1000];
+    const retryDelays = [0, 300, 600];
     for (const delayMs of retryDelays) {
       if (delayMs > 0) {
         await waitForJoinRefresh(delayMs);
