@@ -17,6 +17,7 @@ interface SelectIconImageProps {
   showLoaderFromStart?: boolean;
   minimumLoaderVisibleMs?: number;
   disableLoader?: boolean;
+  enableOfflineDownload?: boolean;
 }
 
 const loadedImageSrcCache = new Set<string>();
@@ -32,47 +33,97 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
   showLoaderFromStart = false,
   minimumLoaderVisibleMs = 0,
   disableLoader = false,
+  enableOfflineDownload = false,
 }) => {
   const [downloadedLocalSrc, setDownloadedLocalSrc] = useState<
     string | undefined
   >(undefined);
+  const [isLocalLookupResolved, setIsLocalLookupResolved] =
+    useState<boolean>(!localSrc);
   const [activeSrc, setActiveSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const loaderShownAtRef = useRef<number | null>(null);
   const hideLoaderTimeoutRef = useRef<number | null>(null);
+  const hasRetriedBeforeDefaultRef = useRef<boolean>(false);
 
-  // Try bundled local first, then web, then downloaded device file, and only then default.
+  // First-time fetch comes from web, then downloaded device file is preferred on later loads.
   const getInitialSrc = (): string => {
-    return localSrc || webSrc || downloadedLocalSrc || defaultSrc;
+    if (webSrc && !isLocalLookupResolved) {
+      return webSrc;
+    }
+
+    return downloadedLocalSrc || webSrc || localSrc || defaultSrc;
   };
+
+  const getFallbackSources = (): string[] => {
+    const sources: string[] = [];
+
+    if (downloadedLocalSrc) {
+      sources.push(downloadedLocalSrc);
+    }
+    if (webSrc) {
+      sources.push(webSrc);
+    }
+    if (
+      isLocalLookupResolved &&
+      localSrc &&
+      localSrc !== downloadedLocalSrc
+    ) {
+      sources.push(localSrc);
+    }
+    if (defaultSrc) {
+      sources.push(defaultSrc);
+    }
+
+    return sources;
+  };
+
+  useEffect(() => {
+    hasRetriedBeforeDefaultRef.current = false;
+  }, [localSrc, webSrc, defaultSrc]);
 
   useEffect(() => {
     let isMounted = true;
 
     if (!localSrc) {
       setDownloadedLocalSrc(undefined);
+      setIsLocalLookupResolved(true);
       return () => {
         isMounted = false;
       };
     }
 
+    setIsLocalLookupResolved(false);
+
     // Resolve local icon path to on-device file URI when it already exists.
     const syncCachedUri = getCachedCourseIconUriSync(localSrc);
     if (syncCachedUri) {
       setDownloadedLocalSrc(syncCachedUri);
+      setIsLocalLookupResolved(true);
       return () => {
         isMounted = false;
       };
     }
 
     setDownloadedLocalSrc(undefined);
-    void getCachedCourseIconUri(localSrc).then((cachedUri) => {
-      if (!isMounted || !cachedUri) {
-        return;
-      }
-      setDownloadedLocalSrc(cachedUri);
-    });
+    void getCachedCourseIconUri(localSrc)
+      .then((cachedUri) => {
+        if (!isMounted) {
+          return;
+        }
+
+        if (cachedUri) {
+          setDownloadedLocalSrc(cachedUri);
+        }
+        setIsLocalLookupResolved(true);
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+        setIsLocalLookupResolved(true);
+      });
 
     return () => {
       isMounted = false;
@@ -130,7 +181,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
 
     setIsLoading(true);
     setShowLoader(false);
-  }, [localSrc, webSrc, downloadedLocalSrc, defaultSrc]);
+  }, [localSrc, webSrc, downloadedLocalSrc, defaultSrc, isLocalLookupResolved]);
 
   useEffect(() => {
     if (disableLoader) {
@@ -191,48 +242,73 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
       loadedImageSrcCache.add(activeSrc);
     }
 
-    if (webSrc && localSrc && activeSrc === webSrc) {
-      void downloadCourseIconToDevice(localSrc, webSrc);
+    if (enableOfflineDownload && webSrc && localSrc && activeSrc === webSrc) {
+      void downloadCourseIconToDevice(localSrc, webSrc).then((downloadedUri) => {
+        if (!downloadedUri) {
+          return;
+        }
+
+        setDownloadedLocalSrc(downloadedUri);
+      });
     }
 
     finalizeLoading();
   };
 
   const handleImageError = (): void => {
-    if (activeSrc === localSrc && webSrc) {
-      setActiveSrc(webSrc);
+    const fallbackSources = getFallbackSources();
+    const currentIndex = fallbackSources.indexOf(activeSrc);
+    const nextSource =
+      currentIndex >= 0
+        ? fallbackSources[currentIndex + 1]
+        : fallbackSources[0];
+    const isMovingToDefault =
+      nextSource === defaultSrc || (!nextSource && activeSrc !== defaultSrc);
 
-      if (isImageReady(webSrc)) {
-        finishLoadingImmediately();
-      }
+    // Retry one background fetch before showing default icon when all normal sources fail.
+    if (
+      isMovingToDefault &&
+      !hasRetriedBeforeDefaultRef.current &&
+      enableOfflineDownload &&
+      localSrc &&
+      webSrc
+    ) {
+      hasRetriedBeforeDefaultRef.current = true;
+      setIsLoading(true);
+
+      void downloadCourseIconToDevice(localSrc, webSrc, true)
+        .then((downloadedUri) => {
+          if (downloadedUri) {
+            setDownloadedLocalSrc(downloadedUri);
+            setActiveSrc(downloadedUri);
+
+            if (isImageReady(downloadedUri)) {
+              finishLoadingImmediately();
+            }
+            return;
+          }
+
+          setActiveSrc(defaultSrc);
+          if (isImageReady(defaultSrc)) {
+            finishLoadingImmediately();
+          }
+        })
+        .catch(() => {
+          setActiveSrc(defaultSrc);
+          if (isImageReady(defaultSrc)) {
+            finishLoadingImmediately();
+          } else {
+            finalizeLoading();
+          }
+        });
 
       return;
     }
 
-    if (activeSrc === localSrc && downloadedLocalSrc) {
-      setActiveSrc(downloadedLocalSrc);
+    if (nextSource && nextSource !== activeSrc) {
+      setActiveSrc(nextSource);
 
-      if (isImageReady(downloadedLocalSrc)) {
-        finishLoadingImmediately();
-      }
-
-      return;
-    }
-
-    if (activeSrc === webSrc && downloadedLocalSrc) {
-      setActiveSrc(downloadedLocalSrc);
-
-      if (isImageReady(downloadedLocalSrc)) {
-        finishLoadingImmediately();
-      }
-
-      return;
-    }
-
-    if (activeSrc !== defaultSrc) {
-      setActiveSrc(defaultSrc);
-
-      if (isImageReady(defaultSrc)) {
+      if (isImageReady(nextSource)) {
         finishLoadingImmediately();
       }
 
