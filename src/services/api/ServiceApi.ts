@@ -1121,6 +1121,10 @@ export interface ServiceApi {
    */
   getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]>;
 
+  getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]>;
+
   /**
    * Retrieves all bonuses associated with a specified user.
    * @param userId The unique identifier of the user whose bonuses are to be retrieved.
@@ -1138,6 +1142,13 @@ export interface ServiceApi {
    * Note: If the user has no badges, the returned Promise resolves to an empty array.
    */
   getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]>;
+
+  /**
+   * Marks all user stickers as seen.
+   * @param userId - The ID of the user whose stickers should be marked as seen.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  markStciekercolledasTrue(userId: string): Promise<void>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.

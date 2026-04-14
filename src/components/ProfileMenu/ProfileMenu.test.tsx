@@ -53,7 +53,8 @@ jest.mock('../../growthbook/Growthbook', () => ({
 }));
 
 const mockApi = {
-  getUserSticker: jest.fn(),
+  getUserStickerBook: jest.fn(),
+  markStciekercolledasTrue: jest.fn().mockResolvedValue(undefined),
   updateRewardAsSeen: jest.fn(),
   getAllLanguages: jest.fn().mockResolvedValue([]),
 };
@@ -63,6 +64,11 @@ const mockStudent = { id: 'student-123', name: 'Test Student' };
 describe('ProfileMenu Notification Logic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApi.getUserStickerBook.mockReset();
+    mockApi.getUserStickerBook.mockResolvedValue([]);
+    mockApi.markStciekercolledasTrue.mockReset();
+    mockApi.markStciekercolledasTrue.mockResolvedValue(undefined);
+    mockApi.updateRewardAsSeen.mockReset();
 
     // Use spyOn for ServiceConfig
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
@@ -90,7 +96,9 @@ describe('ProfileMenu Notification Logic', () => {
   });
 
   test('shows notification dot when there are unseen stickers', async () => {
-    mockApi.getUserSticker.mockResolvedValue([{ id: 's1', is_seen: false }]);
+    mockApi.getUserStickerBook.mockResolvedValue([
+      { id: 's1', is_seen: false },
+    ]);
 
     render(
       <MemoryRouter>
@@ -100,7 +108,7 @@ describe('ProfileMenu Notification Logic', () => {
 
     // Wait for data to load
     await waitFor(() =>
-      expect(mockApi.getUserSticker).toHaveBeenCalledWith(mockStudent.id),
+      expect(mockApi.getUserStickerBook).toHaveBeenCalledWith(mockStudent.id),
     );
 
     // Check for the dot
@@ -109,7 +117,7 @@ describe('ProfileMenu Notification Logic', () => {
   });
 
   test('hides notification dot when all stickers are seen', async () => {
-    mockApi.getUserSticker.mockResolvedValue([{ id: 's1', is_seen: true }]);
+    mockApi.getUserStickerBook.mockResolvedValue([{ id: 's1', is_seen: true }]);
 
     render(
       <MemoryRouter>
@@ -117,14 +125,16 @@ describe('ProfileMenu Notification Logic', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(mockApi.getUserSticker).toHaveBeenCalled());
+    await waitFor(() => expect(mockApi.getUserStickerBook).toHaveBeenCalled());
 
     const dot = screen.queryByTestId('sticker-book-notification-dot');
     expect(dot).not.toBeInTheDocument();
   });
 
   test('hides notification dot when feature flag is disabled', async () => {
-    mockApi.getUserSticker.mockResolvedValue([{ id: 's1', is_seen: false }]);
+    mockApi.getUserStickerBook.mockResolvedValue([
+      { id: 's1', is_seen: false },
+    ]);
     (useFeatureIsOn as jest.Mock).mockImplementation((flag) => {
       if (flag === STICKER_BOOK_NOTIFICATION_DOT_ENABLED) return false;
       return true;
@@ -136,14 +146,16 @@ describe('ProfileMenu Notification Logic', () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(mockApi.getUserSticker).toHaveBeenCalled());
+    await waitFor(() => expect(mockApi.getUserStickerBook).toHaveBeenCalled());
 
     const dot = screen.queryByTestId('sticker-book-notification-dot');
     expect(dot).not.toBeInTheDocument();
   });
 
   test('clears notification when clicking Sticker Book', async () => {
-    mockApi.getUserSticker.mockResolvedValue([{ id: 's1', is_seen: false }]);
+    mockApi.getUserStickerBook.mockResolvedValue([
+      { id: 's1', is_seen: false },
+    ]);
 
     render(
       <MemoryRouter>
@@ -161,6 +173,9 @@ describe('ProfileMenu Notification Logic', () => {
     expect(Util.logEvent).toHaveBeenCalledWith(
       EVENTS.STICKER_BOOK_MENU_TAP,
       expect.any(Object),
+    );
+    expect(mockApi.markStciekercolledasTrue).toHaveBeenCalledWith(
+      mockStudent.id,
     );
     expect(mockApi.updateRewardAsSeen).not.toHaveBeenCalled();
 

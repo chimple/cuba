@@ -127,42 +127,83 @@ export type Database = {
 
       user_sticker_book: {
         Row: {
+          created_at: string | null;
           id: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected: string[];
+          is_deleted: boolean | null;
+          is_seen: boolean | null;
           status: string;
-          created_at: string;
-          is_deleted: boolean;
+          sticker_book_id: string;
+          stickers_collected: string[] | null;
+          updated_at: string | null;
+          user_id: string;
         };
         Insert: {
+          created_at?: string | null;
           id?: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id: string;
         };
         Update: {
+          created_at?: string | null;
           id?: string;
-          user_id?: string;
-          sticker_book_id?: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id?: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
             foreignKeyName: 'user_sticker_book_sticker_book_id_fkey';
             columns: ['sticker_book_id'];
+            isOneToOne: false;
             referencedRelation: 'sticker_book';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
             referencedColumns: ['id'];
           },
         ];
       };
-
       announcement: {
         Row: {
           created_at: string;

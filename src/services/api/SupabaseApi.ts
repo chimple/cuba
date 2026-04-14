@@ -5599,6 +5599,59 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
+  async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from('user_sticker_book')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', false);
+
+      if (error) {
+        logger.error('Error fetching sticker books by user ID:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        logger.warn('No sticker book found for the given user id.');
+        return [];
+      }
+
+      return data.map((row) => {
+        const rawCollected = row.stickers_collected;
+        let stickersCollected: string[] = [];
+        if (Array.isArray(rawCollected)) {
+          stickersCollected = rawCollected.filter(
+            (value): value is string => typeof value === 'string',
+          );
+        } else if (typeof rawCollected === 'string') {
+          try {
+            const parsed = JSON.parse(rawCollected);
+            if (Array.isArray(parsed)) {
+              stickersCollected = parsed.filter(
+                (value): value is string => typeof value === 'string',
+              );
+            }
+          } catch {
+            stickersCollected = [];
+          }
+        }
+
+        return {
+          ...row,
+          stickers_collected: stickersCollected,
+        };
+      }) as TableTypes<'user_sticker_book'>[];
+    } catch (error) {
+      logger.error('Unexpected error in getUserStickerBook:', error);
+      return [];
+    }
+  }
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
     if (!this.supabase) return [];
 
@@ -5651,6 +5704,32 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
+  async markAllStickersAsSeen(userId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.UserStickerBook)
+        .update({ is_seen: true })
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .or('is_seen.eq.false,is_seen.is.null');
+
+      if (error) {
+        logger.error('Error updating stickers as seen:', error);
+        throw new Error('Error updating stickers as seen.');
+      }
+    } catch (err) {
+      logger.error('Unexpected error updating stickers as seen:', err);
+      throw new Error('Unexpected error updating stickers as seen.');
+    }
+  }
+
+  async markStciekercolledasTrue(userId: string): Promise<void> {
+    await this.markAllStickersAsSeen(userId);
+  }
+
   async updateRewardAsSeen(studentId: string): Promise<void> {
     if (!this.supabase) return;
 
@@ -12631,16 +12710,8 @@ export class SupabaseApi implements ServiceApi {
         sticker_book_id: stickerBookId,
         stickers_collected: [stickerId],
         status,
-        is_deleted: false,
-      });
-
-      await this.supabase.from(TABLES.UserSticker).insert({
-        id: uuidv4(),
-        user_id: userId,
-        sticker_id: stickerId,
-        created_at: new Date().toISOString(),
-        is_deleted: false,
         is_seen: false,
+        is_deleted: false,
       });
 
       return;
@@ -12648,7 +12719,6 @@ export class SupabaseApi implements ServiceApi {
 
     let updated = progress.stickers_collected ?? [];
     updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
-    const isNewSticker = updated.length !== progress.stickers_collected.length;
 
     let status = progress.status;
 
@@ -12661,21 +12731,11 @@ export class SupabaseApi implements ServiceApi {
       .update({
         stickers_collected: updated,
         status,
+        is_seen: false,
         is_deleted: false,
       })
       .eq('id', progress.id)
       .or('is_deleted.is.false,is_deleted.is.null');
-
-    if (isNewSticker) {
-      await this.supabase.from(TABLES.UserSticker).insert({
-        id: uuidv4(),
-        user_id: userId,
-        sticker_id: stickerId,
-        created_at: new Date().toISOString(),
-        is_deleted: false,
-        is_seen: false,
-      });
-    }
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,
