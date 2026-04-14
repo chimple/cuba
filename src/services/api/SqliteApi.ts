@@ -4363,7 +4363,7 @@ export class SqliteApi implements ServiceApi {
     userId: string,
   ): Promise<TableTypes<'user_sticker_book'>[]> {
     try {
-      const query = `select * from ${TABLES.UserStickerBook} where user_id = "${userId}"`;
+      const query = `select * from ${TABLES.UserStickerBook} where user_id = "${userId}" AND is_deleted = 0`;
       const data = await this._db?.query(query);
 
       if (!data || !data.values || data.values.length === 0) {
