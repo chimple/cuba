@@ -357,6 +357,10 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     return Promise.resolve(true);
   }
+
+  isSyncInProgress(): boolean {
+    return false;
+  }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;

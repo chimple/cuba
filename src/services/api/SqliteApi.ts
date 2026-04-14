@@ -4716,6 +4716,10 @@ export class SqliteApi implements ServiceApi {
       return false;
     }
   }
+
+  isSyncInProgress(): boolean {
+    return this._syncInProgress;
+  }
   async getUserAssignmentCart(
     userId: string,
   ): Promise<AssignmentCartData | undefined> {
