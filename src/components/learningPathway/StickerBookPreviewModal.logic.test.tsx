@@ -411,7 +411,7 @@ describe('useStickerBookPreviewModalLogic', () => {
     });
 
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT,
       expect.objectContaining({
         sticker_book_id: 'book-1',
       }),

@@ -590,7 +590,7 @@ describe('PathwayStructure', () => {
       screen.getByTestId('sticker-book-completion-title'),
     ).toHaveTextContent('Final Sticker Page');
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPEN,
       expect.objectContaining({
         user_id: 'student-1',
         sticker_book_id: 'book-6',
@@ -613,7 +613,7 @@ describe('PathwayStructure', () => {
       screen.queryByTestId('sticker-book-completion-popup'),
     ).not.toBeInTheDocument();
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE,
       expect.objectContaining({
         sticker_book_id: 'book-6',
         collected_count: 6,
