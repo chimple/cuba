@@ -242,6 +242,7 @@ const SideMenu: React.FC<{
       const classCode = await getClassCodeById(firstClass.id);
       setClassCode(classCode);
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling school selection:', error);
     }
@@ -291,6 +292,7 @@ const SideMenu: React.FC<{
       }
 
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling class selection:', error);
     }

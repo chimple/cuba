@@ -438,12 +438,14 @@ const SubjectSelection: React.FC = () => {
         Util.setCurrentClass(currentClass!);
         Util.clearNavigationState();
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+        void Util.validateCurrentSchoolContext();
       } else {
         if (navigationState?.stage === School_Creation_Stages.CLASS_COURSE) {
           Util.setCurrentSchool(currentSchool!, finalRole);
           Util.setCurrentClass(currentClass!);
           Util.clearNavigationState();
           history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+          void Util.validateCurrentSchoolContext();
         }
         setIsSelecting(false);
       }
