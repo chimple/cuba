@@ -322,7 +322,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
     courseDetails.forEach(async (detail) => {
       const sources = [
-        `courses/chapter_icons/${detail.course.code}.webp`,
+        `courses/chapter_icons/${detail.course.id}.webp`,
         detail.course.image || '',
       ].filter(Boolean);
 
@@ -367,7 +367,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
             >
               <div className="dropdownmenu-selected-icon">
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
+                  localSrc={`courses/chapter_icons/${selected.course.id}.webp`}
                   defaultSrc={'assets/icons/DefaultIcon.png'}
                   webSrc={
                     getCachedImageUrl(selected.course) ||
@@ -400,7 +400,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
               >
                 <SelectIconImage
                   key={detail.course.id}
-                  localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
+                  localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
                   defaultSrc="assets/icons/DefaultIcon.png"
                   webSrc={
                     getCachedImageUrl(detail.course) ||
