@@ -929,10 +929,10 @@ export enum EVENTS {
   STICKER_DRAG_POINTER_SHOWN = 'sticker_drag_pointer_shown',
   STICKER_DRAG_CONFETTI_SHOWN = 'sticker_drag_confetti_shown',
   STICKER_DRAG_POPUP_TO_PROFILE = 'sticker_drag_popup_to_profile',
-  STICKER_BOOK_COMPLETION_POPUP_OPENED = 'sticker_book_completion_popup_opened',
-  STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED = 'sticker_book_completion_popup_close_clicked',
-  STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED = 'sticker_book_completion_popup_save_clicked',
-  STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED = 'sticker_book_completion_popup_paint_clicked',
+  STICKER_BOOK_COMPLETION_POPUP_OPEN = 'sticker_book_completion_popup_open',
+  STICKER_BOOK_COMPLETION_POPUP_CLOSE = 'sticker_book_completion_popup_close',
+  STICKER_BOOK_COMPLETION_POPUP_SAVE = 'sticker_book_completion_popup_save',
+  STICKER_BOOK_COMPLETION_POPUP_PAINT = 'sticker_book_completion_popup_paint',
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
@@ -1097,6 +1097,8 @@ export const HOMEWORK_PATHWAY = 'homework_pathway';
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
 export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
+export const PENDING_PATHWAY_STICKER_REWARD_KEY =
+  'pending_pathway_sticker_reward';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
 export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =

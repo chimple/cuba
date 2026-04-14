@@ -6,10 +6,14 @@ import { store } from '../redux/store';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { LANGUAGE } from '../common/constants';
 import logger from './logger';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 
 jest.mock('@capacitor/core');
 jest.mock('@capacitor/filesystem');
 jest.mock('@capacitor-community/text-to-speech');
+jest.mock('../workers/backgroundWorkerClient', () => ({
+  runBackgroundWorkerTask: jest.fn(),
+}));
 jest.mock('./logger', () => ({
   __esModule: true,
   default: {
@@ -64,6 +68,9 @@ describe('AudioUtil common audio helpers', () => {
     (Capacitor.convertFileSrc as jest.Mock).mockImplementation(
       (uri: string) => `converted:${uri}`,
     );
+    (runBackgroundWorkerTask as jest.Mock).mockResolvedValue({
+      base64Data: 'd29ya2VyQXVkaW8=',
+    });
     (TextToSpeech.stop as jest.Mock).mockResolvedValue(undefined);
     (TextToSpeech.speak as jest.Mock).mockResolvedValue(undefined);
 
@@ -117,28 +124,59 @@ describe('AudioUtil common audio helpers', () => {
     (Filesystem.getUri as jest.Mock).mockResolvedValue({
       uri: 'file:///downloaded-audio.mp3',
     });
-    (CapacitorHttp.get as jest.Mock).mockResolvedValue({
-      status: 200,
-      data: 'YmFzZTY0QXVkaW8=',
-    });
-
     await expect(
       AudioUtil.getCachedAudioUrl(
         'https://cdn.example.com/audio-native-miss.mp3',
       ),
     ).resolves.toBe('converted:file:///downloaded-audio.mp3');
 
+    expect(runBackgroundWorkerTask).toHaveBeenCalledWith(
+      'DOWNLOAD_REMOTE_AUDIO',
+      {
+        url: 'https://cdn.example.com/audio-native-miss.mp3',
+      },
+    );
+    expect(Filesystem.writeFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        directory: Directory.Data,
+        data: 'd29ya2VyQXVkaW8=',
+        recursive: true,
+      }),
+    );
+    expect(CapacitorHttp.get).not.toHaveBeenCalled();
+  });
+
+  test('falls back to main-thread audio download when worker download fails', async () => {
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+    (Filesystem.stat as jest.Mock).mockRejectedValueOnce(new Error('missing'));
+    (Filesystem.mkdir as jest.Mock).mockResolvedValue({});
+    (Filesystem.writeFile as jest.Mock).mockResolvedValue({});
+    (Filesystem.getUri as jest.Mock).mockResolvedValue({
+      uri: 'file:///downloaded-audio.mp3',
+    });
+    (runBackgroundWorkerTask as jest.Mock).mockRejectedValueOnce(
+      new Error('worker failed'),
+    );
+    (CapacitorHttp.get as jest.Mock).mockResolvedValue({
+      status: 200,
+      data: 'YmFsbGJhY2tBdWRpbw==',
+    });
+
+    await expect(
+      AudioUtil.getCachedAudioUrl(
+        'https://cdn.example.com/audio-native-fallback.mp3',
+      ),
+    ).resolves.toBe('converted:file:///downloaded-audio.mp3');
+
     expect(CapacitorHttp.get).toHaveBeenCalledWith(
       expect.objectContaining({
-        url: 'https://cdn.example.com/audio-native-miss.mp3',
+        url: 'https://cdn.example.com/audio-native-fallback.mp3',
         responseType: 'blob',
       }),
     );
     expect(Filesystem.writeFile).toHaveBeenCalledWith(
       expect.objectContaining({
-        directory: Directory.Data,
-        data: 'YmFzZTY0QXVkaW8=',
-        recursive: true,
+        data: 'YmFsbGJhY2tBdWRpbw==',
       }),
     );
   });

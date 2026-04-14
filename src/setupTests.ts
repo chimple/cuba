@@ -119,6 +119,10 @@ jest.mock('./workers/backgroundWorkerClient', () => {
             svgText: await response.text(),
           };
         }
+        case 'DOWNLOAD_REMOTE_AUDIO':
+          return {
+            base64Data: 'd29ya2VyQXVkaW8=',
+          };
         default:
           return {};
       }

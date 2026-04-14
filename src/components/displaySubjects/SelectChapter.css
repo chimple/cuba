@@ -55,10 +55,23 @@
 .chapter-download {
   position: absolute;
   /* margin-bottom: 29vh; */
-  top: 58%;
+  top: 50%;
+  left: -10%;
 }
 .chapter-icon-and-chapter-download-container {
   display: flex;
   flex-direction: column;
   position: relative;
+}
+.selectchapter-title {
+  width: min(70vh, 130px);
+  min-height: calc(1.2em * 2);
+  margin-top: min(10px, 1.3vh);
+  line-height: 1.2;
+  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }

@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import ScoreCard from './ScoreCard';
 import { AudioUtil } from '../../utility/AudioUtil';
 
@@ -51,8 +51,14 @@ describe('ScoreCard', () => {
     expect(AudioUtil.playAudioOrTts).not.toHaveBeenCalled();
   });
 
-  test('stops audio before calling continue handler from CTA', async () => {
+  test('calls continue handler immediately from CTA while stopping audio in the background', () => {
     const onContinueButtonClicked = jest.fn();
+    let resolveStopAudio: (() => void) | undefined;
+    (AudioUtil.stopAudioUrlOrTtsPlayback as jest.Mock).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveStopAudio = resolve;
+      }),
+    );
     const { getByRole } = render(
       <ScoreCard
         {...baseProps}
@@ -62,14 +68,9 @@ describe('ScoreCard', () => {
 
     fireEvent.click(getByRole('button', { name: 'Continue Playing' }));
 
-    await waitFor(() => {
-      expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
-      expect(onContinueButtonClicked).toHaveBeenCalledTimes(1);
-    });
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalledTimes(1);
+    expect(onContinueButtonClicked).toHaveBeenCalledTimes(1);
 
-    expect(
-      (AudioUtil.stopAudioUrlOrTtsPlayback as jest.Mock).mock
-        .invocationCallOrder[0],
-    ).toBeLessThan(onContinueButtonClicked.mock.invocationCallOrder[0]);
+    resolveStopAudio?.();
   });
 });

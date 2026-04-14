@@ -4,6 +4,7 @@ import {
   BackgroundWorkerTask,
   BuildXlsxFilePayload,
   ChecksumFile,
+  DownloadRemoteAudioPayload,
   DownloadStickerBookSvgPayload,
   GrowthBookAttributesPayload,
   ParseXlsxSheetsPayload,
@@ -595,6 +596,32 @@ const downloadStickerBookSvg = async (
   };
 };
 
+const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+};
+
+const downloadRemoteAudio = async (
+  payload: DownloadRemoteAudioPayload,
+): Promise<{
+  base64Data: string;
+}> => {
+  const response = await fetch(payload.url);
+  if (response.ok === false) {
+    throw new Error(`Failed to download remote audio: ${response.status}`);
+  }
+
+  const audioBuffer = await response.arrayBuffer();
+  return {
+    base64Data: bytesToBase64(new Uint8Array(audioBuffer)),
+  };
+};
+
 const handlers: {
   [K in BackgroundWorkerTask]: (
     payload: WorkerRequest<K>['payload'],
@@ -609,6 +636,7 @@ const handlers: {
   PARSE_XLSX_SHEETS: (payload) => parseXlsxSheets(payload),
   BUILD_XLSX_FILE: (payload) => buildXlsxFile(payload),
   DOWNLOAD_STICKER_BOOK_SVG: (payload) => downloadStickerBookSvg(payload),
+  DOWNLOAD_REMOTE_AUDIO: (payload) => downloadRemoteAudio(payload),
 };
 
 const waitForAck = (id: string): Promise<void> =>
