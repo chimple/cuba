@@ -47,7 +47,7 @@ describe('GenericPopup', () => {
         audioUrl: '/assets/audios/common/generic_popup_sound_effect.mp3',
         delayMs: 300,
         onComplete: expect.any(Function),
-        onCompleteDelayMs: 300,
+        onCompleteDelayMs: 2000,
       }),
     );
   });

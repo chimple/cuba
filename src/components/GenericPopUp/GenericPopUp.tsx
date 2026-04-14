@@ -5,6 +5,8 @@ import { AudioUtil } from '../../utility/AudioUtil';
 
 const GENERIC_POPUP_SOUND_EFFECT_URL =
   '/assets/audios/common/generic_popup_sound_effect.mp3';
+const GENERIC_POPUP_SOUND_EFFECT_DELAY_MS = 300;
+const GENERIC_POPUP_READING_START_DELAY_MS = 2000;
 
 const playPopupAudio = (audioUrl: string | undefined, fallbackText: string) => {
   void AudioUtil.playAudioOrTts({
@@ -44,8 +46,8 @@ const GenericPopup: React.FC<Props> = ({
   useEffect(() => {
     void AudioUtil.playAudioOrTts({
       audioUrl: GENERIC_POPUP_SOUND_EFFECT_URL,
-      delayMs: 300,
-      onCompleteDelayMs: 300,
+      delayMs: GENERIC_POPUP_SOUND_EFFECT_DELAY_MS,
+      onCompleteDelayMs: GENERIC_POPUP_READING_START_DELAY_MS,
       onComplete: () => {
         playPopupAudio(audioUrl, fallbackText);
       },
