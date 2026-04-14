@@ -4969,12 +4969,26 @@ export class SupabaseApi implements ServiceApi {
         student_id: studentId,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? '';
+        const error = rpcRes?.error;
+        if (error) {
+          const normalizedMessage = [error.details, error.message, error.hint]
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .find(Boolean);
+
+          if (normalizedMessage) {
+            throw new Error(normalizedMessage);
+          }
+        }
+
+        throw new Error('Failed to join class.');
       }
       const data = rpcRes.data;
       return data;
     } catch (e) {
-      throw new Error('Invalid inviteCode');
+      if (e instanceof Error) {
+        throw e;
+      }
+      throw new Error('Failed to join class.');
     }
   }
   async getLeaderboardResults(
