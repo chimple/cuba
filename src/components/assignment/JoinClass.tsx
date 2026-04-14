@@ -33,6 +33,10 @@ const JoinClass: FC<{
 
   const api = ServiceConfig.getI().apiHandler;
   const containerRef = useRef<HTMLDivElement>(null);
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) return error.message;
+    return String(error);
+  };
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -70,10 +74,11 @@ const JoinClass: FC<{
       } catch (error) {
         if (error instanceof Object) {
           logger.error('Error fetching class data:', error);
+          const rawMessage = getErrorMessage(error);
           let eMsg: string =
-            'Error: Invalid inviteCode' === error.toString()
+            rawMessage === 'Invalid inviteCode'
               ? t('Invalid code. Please check and Try again.')
-              : error.toString();
+              : rawMessage;
           setError(eMsg);
         }
       }
@@ -84,7 +89,7 @@ const JoinClass: FC<{
   const waitForJoinSyncToSettle = async () => {
     const pollIntervalMs = 100;
     const settleDurationMs = 400;
-    const timeoutMs = 60000;
+    const timeoutMs = 180000;
     const startedAt = Date.now();
     let syncIdleSince: number | null = null;
 
@@ -160,7 +165,7 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       logger.error('Join class failed:', error);
-      if (error instanceof Object) setError(error.toString());
+      if (error instanceof Object) setError(getErrorMessage(error));
     } finally {
       setJoiningClass(false);
     }

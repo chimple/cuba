@@ -56,6 +56,7 @@ jest.mock('@capacitor/keyboard', () => ({
 
 const mockApi = {
   getDataByInviteCode: jest.fn(),
+  isSyncInProgress: jest.fn(),
   linkStudent: jest.fn(),
   updateStudent: jest.fn(),
   getClassById: jest.fn(),
@@ -80,6 +81,7 @@ const mockStudent = {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockApi.isSyncInProgress.mockReturnValue(false);
 
   jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
     apiHandler: mockApi,
@@ -272,6 +274,77 @@ describe('JoinClass – join flow', () => {
 
     await waitFor(() => {
       expect(mockApi.updateStudent).toHaveBeenCalled();
+    });
+  });
+
+  test('shows the real join conflict message instead of invalid invite code', async () => {
+    mockApi.getDataByInviteCode.mockResolvedValue({
+      class_id: 'class-1',
+      school_id: 'school-1',
+      school_name: 'ABC School',
+      class_name: '5A',
+    });
+    mockApi.linkStudent.mockRejectedValue(
+      new Error('Student is already linked to this class.'),
+    );
+
+    render(
+      <MemoryRouter>
+        <JoinClass onClassJoin={jest.fn()} />
+      </MemoryRouter>,
+    );
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Enter the code to join a class'),
+      '123456',
+    );
+
+    const confirmBtn = screen.getByRole('button', { name: /confirm/i });
+    await waitFor(() => expect(confirmBtn).not.toBeDisabled());
+    await userEvent.click(confirmBtn);
+
+    expect(
+      await screen.findByText('Student is already linked to this class.'),
+    ).toBeInTheDocument();
+  });
+
+  test('confirm stays enabled while background sync is running and waits for sync after join', async () => {
+    const onClassJoin = jest.fn();
+    let syncInProgress = true;
+
+    mockApi.isSyncInProgress.mockImplementation(() => syncInProgress);
+    mockApi.getDataByInviteCode.mockResolvedValue({
+      class_id: 'class-1',
+      school_id: 'school-1',
+      school_name: 'ABC School',
+      class_name: '5A',
+    });
+    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
+    mockApi.linkStudent.mockImplementation(async () => {
+      window.setTimeout(() => {
+        syncInProgress = false;
+      }, 50);
+    });
+
+    render(
+      <MemoryRouter>
+        <JoinClass onClassJoin={onClassJoin} />
+      </MemoryRouter>,
+    );
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Enter the code to join a class'),
+      '123456',
+    );
+
+    const confirmBtn = await screen.findByRole('button', { name: /confirm/i });
+    expect(confirmBtn).not.toBeDisabled();
+
+    await userEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(mockApi.linkStudent).toHaveBeenCalledWith(123456, 'student-1');
+      expect(onClassJoin).toHaveBeenCalled();
     });
   });
 });
