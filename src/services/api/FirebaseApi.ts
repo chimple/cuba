@@ -1092,6 +1092,10 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
+  isSyncInProgress(): boolean {
+    return false;
+  }
+
   async getStudentResult(
     studentId: string,
     fromCache?: boolean,
