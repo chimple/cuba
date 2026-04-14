@@ -47,7 +47,7 @@ describe('GenericPopup', () => {
         audioUrl: '/assets/audios/common/generic_popup_sound_effect.mp3',
         delayMs: 300,
         onComplete: expect.any(Function),
-        onCompleteDelayMs: 2000,
+        onCompleteDelayMs: 1000,
       }),
     );
   });
@@ -63,7 +63,7 @@ describe('GenericPopup', () => {
       2,
       expect.objectContaining({
         text: 'Main heading',
-        onCompleteDelayMs: 2000,
+        onCompleteDelayMs: 1000,
         onComplete: expect.any(Function),
       }),
     );
@@ -76,7 +76,7 @@ describe('GenericPopup', () => {
       3,
       expect.objectContaining({
         text: 'Sub heading',
-        onCompleteDelayMs: 2000,
+        onCompleteDelayMs: 1000,
         onComplete: expect.any(Function),
       }),
     );
@@ -89,7 +89,7 @@ describe('GenericPopup', () => {
       4,
       expect.objectContaining({
         text: 'Detail A',
-        onCompleteDelayMs: 2000,
+        onCompleteDelayMs: 1000,
         onComplete: expect.any(Function),
       }),
     );
@@ -182,7 +182,7 @@ describe('GenericPopup', () => {
     expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith(
       expect.objectContaining({
         text: 'Main heading',
-        onCompleteDelayMs: 2000,
+        onCompleteDelayMs: 1000,
         onComplete: expect.any(Function),
       }),
     );

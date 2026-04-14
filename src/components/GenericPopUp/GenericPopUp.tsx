@@ -6,8 +6,8 @@ import { AudioUtil } from '../../utility/AudioUtil';
 const GENERIC_POPUP_SOUND_EFFECT_URL =
   '/assets/audios/common/generic_popup_sound_effect.mp3';
 const GENERIC_POPUP_SOUND_EFFECT_DELAY_MS = 300;
-const GENERIC_POPUP_READING_START_DELAY_MS = 2000;
-const GENERIC_POPUP_READING_LINE_DELAY_MS = 2000;
+const GENERIC_POPUP_READING_START_DELAY_MS = 1000;
+const GENERIC_POPUP_READING_LINE_DELAY_MS = 1000;
 
 const getPopupNarrationLines = (
   heading: string,
