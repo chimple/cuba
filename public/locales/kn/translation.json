@@ -1537,5 +1537,8 @@
     "Are you sure you want to migrate the selected {{count}} schools to the next academic year?": "ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ {{count}} ಶಾಲೆಗಳನ್ನು ಮುಂದಿನ ಶೈಕ್ಷಣಿಕ ವರ್ಷಕ್ಕೆ ಸ್ಥಳಾಂತರಿಸಲು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?",
     "Yay! You have earned a sticker!": "ಹುರ್ರೆ! ನೀವು ಸ್ಟಿಕ್ಕರ್ ಪಡೆದಿದ್ದೀರಿ!",
     "Yay! Your creation is saved, share it with your family & friends!": "ಹೇ! ನಿಮ್ಮ ಸೃಷ್ಟಿಯನ್ನು ಉಳಿಸಲಾಗಿದೆ, ಅದನ್ನು ನಿಮ್ಮ ಕುಟುಂಬ ಮತ್ತು ಸ್ನೇಹಿತರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಿ!",
-    "Keep going!\nFinish these lessons to choose another subject.": "ಮುಂದುವರಿಸಿ!\nಬೇರೆ ವಿಷಯವನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಈ ಪಾಠಗಳನ್ನು ಮುಗಿಸಿ."
+    "Keep going!\nFinish these lessons to choose another subject.": "ಮುಂದುವರಿಸಿ!\nಬೇರೆ ವಿಷಯವನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಈ ಪಾಠಗಳನ್ನು ಮುಗಿಸಿ.",
+    "High Engagement 45+ minutes": "ಹೆಚ್ಚಿನ ತೊಡಗಿಸಿಕೆ 45+ ನಿಮಿಷಗಳು",
+    "Medium Engagement <45 minutes": "ಮಧ್ಯಮ ತೊಡಗಿಸಿಕೆ <45 ನಿಮಿಷಗಳು",
+    "App not downloaded": "ಆಪ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ"
 }
