@@ -22,6 +22,7 @@ import {
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   PATHWAY_REWARD_AUDIO_READY_EVENT,
 } from '../common/constants';
@@ -58,6 +59,13 @@ interface UsePathwaySVGParams {
     trigger: 'sticker_click' | 'pathway_completion_auto',
   ) => void;
   onStickerCompletionReady: (data: StickerBookModalData) => void;
+}
+
+interface PendingStickerReward {
+  studentId: string;
+  awardedStickerId: string;
+  stickerBookId: string | null;
+  createdAt: string;
 }
 
 // CACHES
@@ -301,6 +309,7 @@ export function usePathwaySVG({
 
       let overrideParsed: any = null;
       let completionOverrideParsed: any = null;
+      let pendingStickerRewardParsed: PendingStickerReward | null = null;
       if (isStickerBookPreviewOn) {
         const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         if (raw) {
@@ -314,6 +323,7 @@ export function usePathwaySVG({
       } else {
         // Preview disabled: clear pending auto-open state and refresh to new path.
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
           sessionStorage.removeItem(REWARD_LEARNING_PATH);
           setTimeout(() => {
@@ -329,6 +339,7 @@ export function usePathwaySVG({
 
       if (overrideParsed && !shouldOpenCelebrationPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
           sessionStorage.removeItem(REWARD_LEARNING_PATH);
           setTimeout(() => {
@@ -345,6 +356,18 @@ export function usePathwaySVG({
           const parsed = JSON.parse(rawCompletionPopup);
           if (parsed?.studentId && parsed.studentId === currentStudent.id) {
             completionOverrideParsed = parsed;
+          }
+        } catch (e) {}
+      }
+
+      const rawPendingStickerReward = sessionStorage.getItem(
+        PENDING_PATHWAY_STICKER_REWARD_KEY,
+      );
+      if (rawPendingStickerReward) {
+        try {
+          const parsed = JSON.parse(rawPendingStickerReward);
+          if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+            pendingStickerRewardParsed = parsed;
           }
         } catch (e) {}
       }
@@ -929,12 +952,24 @@ export function usePathwaySVG({
         // so it plays after the pathway refresh (avoids animating behind the popup).
         const willShowCelebration =
           shouldOpenCelebrationPopup && !!stickerPreviewPayload;
-        if (
+        const shouldSkipRewardAnimationForSticker =
           isStringReward &&
           isRewardFeatureOn &&
+          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+        const shouldRunRewardAnimation =
+          isStringReward &&
+          isRewardFeatureOn &&
+          !shouldSkipRewardAnimationForSticker &&
           !willShowCelebration &&
-          !didScheduleStickerCompletionPopup
-        ) {
+          !didScheduleStickerCompletionPopup;
+
+        if (shouldSkipRewardAnimationForSticker) {
+          setHasTodayReward(false);
+          await updateMascotToNormalState(newRewardIdFromCheck as string);
+          await Util.updateUserReward();
+        }
+
+        if (shouldRunRewardAnimation) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
             lessons,
@@ -951,7 +986,7 @@ export function usePathwaySVG({
         // Attach chimple (mascot)
         if (chimple) {
           let baseX: number;
-          if (idx < 0 || !isStringReward || !isRewardFeatureOn) {
+          if (idx < 0 || !shouldRunRewardAnimation) {
             // default logic – same as original: next active lesson
             baseX = xValues[idx + 1] ?? xValues[0];
             chimple.setAttribute('x', `${baseX - 87}`);
@@ -1277,6 +1312,7 @@ export function usePathwaySVG({
     const rewardRecord =
       await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
     if (!rewardRecord) return;
+    const rewardStateValue = rewardRecord.state_number_input || 1;
 
     setHasTodayReward(false);
 
@@ -1339,10 +1375,10 @@ export function usePathwaySVG({
       await delay(2000);
 
       // Step 1: set celebration state (we emulate via global mascot state)
-      await invokeMascotCelebration(rewardRecord.state_number_input || 1);
+      await invokeMascotCelebration(rewardStateValue);
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
-          detail: { rewardId: newRewardId },
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
         }),
       );
 
@@ -1367,7 +1403,7 @@ export function usePathwaySVG({
       );
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
-          detail: { rewardId: newRewardId },
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
         }),
       );
 

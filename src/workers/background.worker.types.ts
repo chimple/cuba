@@ -88,6 +88,14 @@ export type DownloadStickerBookSvgResult = {
   svgText: string;
 };
 
+export type DownloadRemoteAudioPayload = {
+  url: string;
+};
+
+export type DownloadRemoteAudioResult = {
+  base64Data: string;
+};
+
 export type StreamSyncBatchesPayload = {
   tables: Record<string, SyncRow[]>;
   tableColumns: Record<string, string[]>;
@@ -106,6 +114,7 @@ export type WorkerTaskPayloadMap = {
   PARSE_XLSX_SHEETS: ParseXlsxSheetsPayload;
   BUILD_XLSX_FILE: BuildXlsxFilePayload;
   DOWNLOAD_STICKER_BOOK_SVG: DownloadStickerBookSvgPayload;
+  DOWNLOAD_REMOTE_AUDIO: DownloadRemoteAudioPayload;
 };
 
 export type WorkerTaskResultMap = {
@@ -117,6 +126,7 @@ export type WorkerTaskResultMap = {
   PARSE_XLSX_SHEETS: ParseXlsxSheetsResult;
   BUILD_XLSX_FILE: BuildXlsxFileResult;
   DOWNLOAD_STICKER_BOOK_SVG: DownloadStickerBookSvgResult;
+  DOWNLOAD_REMOTE_AUDIO: DownloadRemoteAudioResult;
 };
 
 export type BackgroundWorkerTask = keyof WorkerTaskPayloadMap;

@@ -112,7 +112,10 @@ const LiveQuizGame: FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    const returnState = state?.returnState ?? state;
+    const returnState = {
+      ...(state?.returnState ?? state),
+      fromLiveQuiz: true,
+    };
     if (Capacitor.isNativePlatform()) {
       history.replace(fromPath + '&isReload=false', returnState);
     } else {

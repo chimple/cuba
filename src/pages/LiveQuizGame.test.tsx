@@ -363,7 +363,10 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith('/home', mockState);
+      expect(mockReplace).toHaveBeenCalledWith('/home', {
+        ...mockState,
+        fromLiveQuiz: true,
+      });
     });
   });
 
@@ -384,7 +387,10 @@ describe('LiveQuizGame page', () => {
     await waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith(
         '/home?tab=ASSIGNMENT&isReload=true',
-        mockState,
+        {
+          ...mockState,
+          fromLiveQuiz: true,
+        },
       );
     });
   });
@@ -404,10 +410,10 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(
-        '/home?isReload=true',
-        mockState,
-      );
+      expect(mockReplace).toHaveBeenCalledWith('/home?isReload=true', {
+        ...mockState,
+        fromLiveQuiz: true,
+      });
     });
   });
 
@@ -425,7 +431,10 @@ describe('LiveQuizGame page', () => {
     fireEvent.click(await screen.findByText('trigger-quiz-end'));
     fireEvent.click(await screen.findByText('continue'));
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(PAGES.HOME, mockState);
+      expect(mockReplace).toHaveBeenCalledWith(PAGES.HOME, {
+        ...mockState,
+        fromLiveQuiz: true,
+      });
     });
   });
 

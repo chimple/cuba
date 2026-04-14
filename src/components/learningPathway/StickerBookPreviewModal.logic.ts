@@ -751,10 +751,7 @@ export const useStickerBookPreviewModalLogic = ({
   }, [sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
 
   const handleSave = async () => {
-    Util.logEvent(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
-      analyticsPayload,
-    );
+    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE, analyticsPayload);
     Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
 
     const stickerBookSvg = bookSvgRef.current?.cloneNode(true);
@@ -767,10 +764,7 @@ export const useStickerBookPreviewModalLogic = ({
   };
 
   const handlePaint = () => {
-    Util.logEvent(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
-      analyticsPayload,
-    );
+    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT, analyticsPayload);
     const svgRaw = bookSvgRef.current
       ? new XMLSerializer().serializeToString(bookSvgRef.current)
       : svgMarkup || undefined;

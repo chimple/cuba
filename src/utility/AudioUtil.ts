@@ -9,6 +9,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import CryptoJS from 'crypto-js';
 import { store } from '../redux/store';
 import { ServiceConfig } from '../services/ServiceConfig';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 
 export class AudioUtil {
   private static readonly SUPPORTED_AUDIO_LANGUAGE_CODES = [
@@ -262,6 +263,43 @@ export class AudioUtil {
     }
   }
 
+  private static async downloadRemoteAudioBase64(
+    audioUrl: string,
+  ): Promise<string | null> {
+    try {
+      const result = await runBackgroundWorkerTask('DOWNLOAD_REMOTE_AUDIO', {
+        url: audioUrl,
+      });
+      if (result?.base64Data) {
+        return result.base64Data;
+      }
+    } catch (error) {
+      logger.warn(
+        '[CommonAudio] Background worker audio download failed, falling back to main thread',
+        error,
+      );
+    }
+
+    const response = await CapacitorHttp.get({
+      url: audioUrl,
+      responseType: 'blob',
+      readTimeout: 15000,
+      connectTimeout: 15000,
+    });
+
+    if (!response?.data || response.status !== 200) {
+      logger.warn(
+        '[CommonAudio] Audio download failed with empty response',
+        audioUrl,
+      );
+      return null;
+    }
+
+    return typeof response.data === 'string'
+      ? response.data
+      : await AudioUtil.blobToBase64(response.data as Blob);
+  }
+
   private static async triggerOnComplete({
     requestId,
     onComplete,
@@ -341,25 +379,11 @@ export class AudioUtil {
 
         try {
           // First use downloads the remote asset into app-local storage.
-          const response = await CapacitorHttp.get({
-            url: normalizedAudioUrl,
-            responseType: 'blob',
-            readTimeout: 15000,
-            connectTimeout: 15000,
-          });
-
-          if (!response?.data || response.status !== 200) {
-            logger.warn(
-              '[CommonAudio] Audio download failed with empty response',
-              normalizedAudioUrl,
-            );
+          const base64Audio =
+            await AudioUtil.downloadRemoteAudioBase64(normalizedAudioUrl);
+          if (!base64Audio) {
             return null;
           }
-
-          const base64Audio =
-            typeof response.data === 'string'
-              ? response.data
-              : await AudioUtil.blobToBase64(response.data as Blob);
 
           await Filesystem.writeFile({
             path,
