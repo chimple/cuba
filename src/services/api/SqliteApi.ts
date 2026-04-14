@@ -3927,10 +3927,10 @@ export class SqliteApi implements ServiceApi {
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, res.student_id, name,
+        SELECT 'allTime' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
@@ -3942,8 +3942,8 @@ export class SqliteApi implements ServiceApi {
         UNION ALL
         SELECT 'monthly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
@@ -3956,8 +3956,8 @@ export class SqliteApi implements ServiceApi {
         UNION ALL
         SELECT 'weekly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
