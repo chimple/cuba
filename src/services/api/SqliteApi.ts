@@ -3942,7 +3942,11 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'monthly' as type, res.student_id, u.name,
@@ -3951,8 +3955,12 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'weekly' as type, res.student_id, u.name,
@@ -3961,8 +3969,12 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
       `;
 
