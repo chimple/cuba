@@ -257,6 +257,9 @@ export class OneRosterApi implements ServiceApi {
   linkStudent(inviteCode: number, studentId: string): Promise<any> {
     throw new Error('Method not implemented.');
   }
+  isSyncInProgress(): boolean {
+    return false;
+  }
   getStudentResult(
     studentId: string,
     fromCache?: boolean,

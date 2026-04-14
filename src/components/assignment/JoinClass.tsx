@@ -28,6 +28,8 @@ const JoinClass: FC<{
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState('');
   const [currStudent] = useState<any>(Util.getCurrentStudent());
+  const currentStudentName = currStudent?.name?.trim?.() ?? '';
+  const hasExistingStudentName = currentStudentName.length > 0;
 
   const api = ServiceConfig.getI().apiHandler;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,35 @@ const JoinClass: FC<{
       setLoading(false);
     }
   };
+
+  const waitForJoinSyncToSettle = async () => {
+    const pollIntervalMs = 100;
+    const settleDurationMs = 400;
+    const timeoutMs = 60000;
+    const startedAt = Date.now();
+    let syncIdleSince: number | null = null;
+
+    while (Date.now() - startedAt < timeoutMs) {
+      const syncing = api.isSyncInProgress();
+
+      if (syncing) {
+        syncIdleSince = null;
+      } else if (syncIdleSince === null) {
+        syncIdleSince = Date.now();
+      } else if (Date.now() - syncIdleSince >= settleDurationMs) {
+        return;
+      }
+
+      await new Promise((resolve) =>
+        window.setTimeout(resolve, pollIntervalMs),
+      );
+    }
+
+    logger.warn(
+      'Join class timed out while waiting for sync to settle. Continuing anyway.',
+    );
+  };
+
   const onJoin = async () => {
     // setShowDialogBox(false);
     if (loading || joiningClass) return;
@@ -103,6 +134,7 @@ const JoinClass: FC<{
         );
       }
       await api.linkStudent(parseInt(inviteCode, 10), student.id);
+      await waitForJoinSyncToSettle();
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       localStorage.setItem(RESET_ON_JOIN_KEY, 'true');
       if (!!codeResult) {
@@ -188,7 +220,7 @@ const JoinClass: FC<{
   const isFormValid =
     !!codeResult &&
     !error &&
-    (fullName.length >= 3 || fullName === currStudent.name) &&
+    (fullName.trim().length >= 3 || fullName === currentStudentName) &&
     inviteCode?.length === 6;
 
   return (
@@ -206,10 +238,11 @@ const JoinClass: FC<{
             value={fullName}
             setValue={setFullName}
             icon="assets/icons/BusinessCard.svg"
-            readOnly={!!currStudent && fullName === currStudent.name}
+            readOnly={hasExistingStudentName && fullName === currentStudentName}
             statusIcon={
               fullName.length == 0 ? null : fullName &&
-                (fullName.length >= 3 || fullName === currStudent.name) ? (
+                (fullName.trim().length >= 3 ||
+                  fullName === currentStudentName) ? (
                 <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
               ) : (
                 <img src="assets/icons/Vector.svg" alt="Status icon" />

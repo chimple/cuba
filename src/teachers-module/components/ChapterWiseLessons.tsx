@@ -160,7 +160,11 @@ const ChapterWiseLessons: React.FC<Props> = ({
                         className="chapter-wise-media-frame"
                       >
                         <SelectIconImage
-                          localSrc=""
+                          localSrc={
+                            lesson.id
+                              ? `teacher/lessons/icons/${lesson.id}.webp`
+                              : undefined
+                          }
                           defaultSrc="assets/icons/DefaultIcon.png"
                           webSrc={lesson.image ?? ''}
                           imageHeight="100%"

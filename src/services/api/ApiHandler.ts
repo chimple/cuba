@@ -984,6 +984,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.syncDB(tableNames, refreshTables, isFirstSync);
   }
 
+  isSyncInProgress(): boolean {
+    return this.s.isSyncInProgress();
+  }
+
   async getRecommendedLessons(
     studentId: string,
     classId?: string,

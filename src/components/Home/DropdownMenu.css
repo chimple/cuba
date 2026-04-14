@@ -17,7 +17,7 @@
 
 .dropdownmenu-truncate-style {
   font-size: 10px;
-  margin-top: -6px;
+  margin-top: 1px;
 }
 
 .dropdownmenu-dropdown-container {
@@ -125,6 +125,10 @@
   cursor: pointer;
 }
 
+.dropdownmenu-open-item-icon-wrapper {
+  margin-bottom: 1px;
+}
+
 .menu-ItemIcon {
   width: auto;
   height: auto;
@@ -152,6 +156,11 @@
   gap: 1vh;
   height: 100%;
   width: 100%;
+}
+
+/* Hide mounted selected icon while expanded list is visible. */
+.dropdownmenu-menu-selected.hide-icon {
+  display: none;
 }
 /* ensure parent is not transformed (selected icon stays visible) */
 .dropdownmenu-dropdown-left {

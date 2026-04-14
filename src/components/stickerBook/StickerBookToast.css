@@ -6,13 +6,13 @@
   transform: translateX(-50%);
   z-index: 20;
 
-  width: max-content;
-  max-width: min(calc(100% - 32px), 840px);
+  width: fit-content;
+  max-width: min(98vw, 1200px);
 
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 18px 26px;
+  gap: 8px;
+  padding: 10px 16px;
 
   border-radius: 20px;
   background: #fffdef;
@@ -41,11 +41,11 @@
 
 .sticker-book-toast-text {
   color: #182a4f;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 @keyframes sticker-toast-enter {
@@ -70,19 +70,19 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .sticker-book-toast {
-    padding: 16px 20px;
-    border-radius: 20px;
+    padding: 12px 16px;
+    border-radius: 16px;
   }
 
   .sticker-book-toast-icon {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 
   .sticker-book-toast-text {
-    font-size: 18px;
+    font-size: 14px;
     white-space: normal;
   }
 }

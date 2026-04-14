@@ -1226,6 +1226,8 @@ export interface ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean>;
 
+  isSyncInProgress(): boolean;
+
   /**
    * Function to get Recommended Lessons.
    *

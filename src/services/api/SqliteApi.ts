@@ -97,6 +97,7 @@ import {
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
+import type { SqlStatement } from '../../workers/background.worker.types';
 import { store } from '../../redux/store';
 import { Json } from '../database';
 import logger from '../../utility/logger';
@@ -117,6 +118,7 @@ export class SqliteApi implements ServiceApi {
     | undefined;
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
+  private _tableColumnsCache = new Map<string, string[]>();
 
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
@@ -388,6 +390,72 @@ export class SqliteApi implements ServiceApi {
     return value;
   }
 
+  private isWebPlatform(): boolean {
+    return Capacitor.getPlatform() === 'web';
+  }
+
+  private getSyncWriteTuning(): {
+    defaultBatchSize: number;
+    userTableBatchSize: number;
+    rowsPerChunk: number;
+  } {
+    const nav =
+      typeof navigator !== 'undefined'
+        ? (navigator as Navigator & {
+            deviceMemory?: number;
+            hardwareConcurrency?: number;
+          })
+        : undefined;
+    const deviceMemory =
+      typeof nav?.deviceMemory === 'number' ? nav.deviceMemory : undefined;
+    const hardwareConcurrency =
+      typeof nav?.hardwareConcurrency === 'number'
+        ? nav.hardwareConcurrency
+        : undefined;
+    const hasDeviceHints =
+      typeof deviceMemory === 'number' ||
+      typeof hardwareConcurrency === 'number';
+
+    const isLowEndDevice =
+      !hasDeviceHints ||
+      (typeof deviceMemory === 'number' && deviceMemory <= 3) ||
+      (typeof hardwareConcurrency === 'number' && hardwareConcurrency <= 4);
+    const isMidRangeDevice =
+      !isLowEndDevice &&
+      ((typeof deviceMemory === 'number' && deviceMemory <= 6) ||
+        (typeof hardwareConcurrency === 'number' && hardwareConcurrency <= 6));
+
+    if (isLowEndDevice) {
+      return {
+        defaultBatchSize: 60,
+        userTableBatchSize: 120,
+        rowsPerChunk: 120,
+      };
+    }
+
+    if (isMidRangeDevice) {
+      return {
+        defaultBatchSize: 100,
+        userTableBatchSize: 200,
+        rowsPerChunk: 180,
+      };
+    }
+
+    return {
+      defaultBatchSize: 140,
+      userTableBatchSize: 280,
+      rowsPerChunk: 260,
+    };
+  }
+
+  private async executeSqlStatementBatch(
+    batch: SqlStatement[],
+    useImplicitTransaction = true,
+  ) {
+    if (!this._db || batch.length === 0) return;
+    await this._db.executeSet(batch as any, useImplicitTransaction);
+  }
+
   private async showToastWithRetry(
     message: string,
     actionLabel = 'Retry',
@@ -586,111 +654,194 @@ export class SqliteApi implements ServiceApi {
     }
 
     const lastPulled = new Date().toISOString();
-    const DEFAULT_DB_BATCH_SIZE = 100;
-    const SAFE_USER_BATCH_SIZE = 250;
-    const STREAM_ROWS_CHUNK = 200;
+    const syncWriteTuning = this.getSyncWriteTuning();
+    const DEFAULT_DB_BATCH_SIZE = syncWriteTuning.defaultBatchSize;
+    const SAFE_USER_BATCH_SIZE = syncWriteTuning.userTableBatchSize;
+    const STREAM_ROWS_CHUNK = syncWriteTuning.rowsPerChunk;
     const tablesForWorker: Record<string, any[]> = {};
     const tableColumnsByName: Record<string, string[]> = {};
     const tablesWritten = new Set<string>();
-    for (const tableName of orderedTableNames) {
+    const tableColumnEntries = await Promise.all(
+      orderedTableNames.map(
+        async (tableName) =>
+          [tableName, await this.getTableColumns(tableName)] as const,
+      ),
+    );
+    for (const [tableName, existingColumns] of tableColumnEntries) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
-      const existingColumns = await this.getTableColumns(tableName);
       if (!existingColumns || existingColumns.length === 0) continue;
       tablesForWorker[tableName] = tableData;
       tableColumnsByName[tableName] = existingColumns;
       tablesWritten.add(tableName);
     }
 
+    const pullSyncStatements: SqlStatement[] = orderedTableNames.map(
+      (tableName) => ({
+        statement:
+          'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
+        values: [tableName, lastPulled],
+      }),
+    );
+    const isWebPlatform = this.isWebPlatform();
+    let syncWriteTransactionOpen = false;
+    let webStoreDirty = false;
+
+    const beginSyncWriteTransaction = async () => {
+      if (!this._db || syncWriteTransactionOpen) return;
+      await this._db.beginTransaction();
+      syncWriteTransactionOpen = true;
+    };
+
+    const commitSyncWriteTransaction = async () => {
+      if (!this._db || !syncWriteTransactionOpen) return;
+      await this._db.commitTransaction();
+      syncWriteTransactionOpen = false;
+      if (isWebPlatform && webStoreDirty) {
+        await this._sqlite?.saveToStore(this.DB_NAME);
+        webStoreDirty = false;
+      }
+    };
+
+    const rollbackSyncWriteTransaction = async () => {
+      if (!this._db || !syncWriteTransactionOpen) return;
+      try {
+        await this._db.rollbackTransaction();
+      } finally {
+        syncWriteTransactionOpen = false;
+        webStoreDirty = false;
+      }
+    };
+
+    const writeSyncBatch = async (batch: SqlStatement[]) => {
+      if (!batch.length) return;
+      await this.executeSqlStatementBatch(batch, !syncWriteTransactionOpen);
+      if (isWebPlatform) {
+        webStoreDirty = true;
+      }
+    };
+
     try {
-      await runBackgroundWorkerStreamingSync(
-        {
-          tables: tablesForWorker,
-          tableColumns: tableColumnsByName,
-          defaultBatchSize: DEFAULT_DB_BATCH_SIZE,
-          userTableName: TABLES.User,
-          userTableBatchSize: SAFE_USER_BATCH_SIZE,
-          rowsPerChunk: STREAM_ROWS_CHUNK,
-        },
-        async (batch) => {
-          if (!batch.length) return;
-          if (Capacitor.getPlatform() === 'web') {
-            for (const q of batch) {
-              await this._db!.run(q.statement, q.values);
+      await beginSyncWriteTransaction();
+      try {
+        await runBackgroundWorkerStreamingSync(
+          {
+            tables: tablesForWorker,
+            tableColumns: tableColumnsByName,
+            defaultBatchSize: DEFAULT_DB_BATCH_SIZE,
+            userTableName: TABLES.User,
+            userTableBatchSize: SAFE_USER_BATCH_SIZE,
+            rowsPerChunk: STREAM_ROWS_CHUNK,
+          },
+          async (batch) => {
+            await writeSyncBatch(batch);
+          },
+        );
+      } catch (workerError) {
+        logger.warn(
+          'Falling back to main-thread sync batch generation after worker failure:',
+          workerError,
+        );
+        await rollbackSyncWriteTransaction();
+        await beginSyncWriteTransaction();
+
+        for (const tableName of Object.keys(tablesForWorker)) {
+          const existingColumns = tableColumnsByName[tableName] ?? [];
+          const tableData = tablesForWorker[tableName] ?? [];
+          if (!existingColumns.length || !tableData.length) continue;
+          const isUserTable = tableName === TABLES.User;
+          const batchSize = isUserTable
+            ? SAFE_USER_BATCH_SIZE
+            : DEFAULT_DB_BATCH_SIZE;
+          let batchQueries: SqlStatement[] = [];
+          let currentFieldNames: string[] | null = null;
+          let currentRows: unknown[][] = [];
+
+          const flushBatchRows = async () => {
+            if (!currentFieldNames || currentRows.length === 0) {
+              return;
             }
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } else {
-            await this._db!.executeSet(batch);
-          }
-        },
-      );
-    } catch (workerError) {
-      logger.warn(
-        'Falling back to main-thread sync batch generation after worker failure:',
-        workerError,
-      );
-      for (const tableName of Object.keys(tablesForWorker)) {
-        const existingColumns = tableColumnsByName[tableName] ?? [];
-        const tableData = tablesForWorker[tableName] ?? [];
-        if (!existingColumns.length || !tableData.length) continue;
-        const isUserTable = tableName === TABLES.User;
-        const batchSize = isUserTable
-          ? SAFE_USER_BATCH_SIZE
-          : DEFAULT_DB_BATCH_SIZE;
-        let batchQueries: { statement: string; values: any[] }[] = [];
-        for (const row of tableData) {
-          const fieldNames = Object.keys(row).filter((f) =>
-            existingColumns.includes(f),
-          );
-          if (fieldNames.length === 0) continue;
-          const fieldValues = fieldNames.map((f) =>
-            this.normalizeSqliteValue(row[f]),
-          );
-          const placeholders = fieldNames.map(() => '?').join(', ');
-          const updateSetClause = fieldNames
-            .filter((f) => f !== 'id')
-            .map((f) => `${f} = excluded.${f}`)
-            .join(', ');
-          const stmt = `
-            INSERT INTO ${tableName} (${fieldNames.join(', ')})
-            VALUES (${placeholders})
+            const placeholdersPerRow = `(${currentFieldNames
+              .map(() => '?')
+              .join(', ')})`;
+            const valuesPlaceholders = currentRows
+              .map(() => placeholdersPerRow)
+              .join(', ');
+            const updateSetClause = currentFieldNames
+              .filter((f) => f !== 'id')
+              .map((f) => `${f} = excluded.${f}`)
+              .join(', ');
+            const statement = updateSetClause
+              ? `
+            INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
+            VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
             WHERE excluded.updated_at > ${tableName}.updated_at;
+            `
+              : `
+            INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
+            VALUES ${valuesPlaceholders}
+            ON CONFLICT(id) DO NOTHING;
             `;
-          batchQueries.push({ statement: stmt, values: fieldValues });
-          if (batchQueries.length >= batchSize) {
-            if (Capacitor.getPlatform() === 'web') {
-              for (const q of batchQueries) {
-                await this._db!.run(q.statement, q.values);
-              }
-              await this._sqlite?.saveToStore(this.DB_NAME);
-            } else {
-              await this._db!.executeSet(batchQueries);
+            batchQueries.push({
+              statement,
+              values: currentRows.flat(),
+            });
+            currentFieldNames = null;
+            currentRows = [];
+
+            if (batchQueries.length >= batchSize) {
+              await writeSyncBatch(batchQueries);
+              batchQueries = [];
             }
-            batchQueries = [];
+          };
+
+          for (const row of tableData) {
+            const fieldNames = existingColumns.filter((columnName) =>
+              Object.prototype.hasOwnProperty.call(row, columnName),
+            );
+            if (fieldNames.length === 0) continue;
+            const fieldValues = fieldNames.map((f) =>
+              this.normalizeSqliteValue(row[f]),
+            );
+            const maxRowsPerStatement = Math.max(
+              Math.floor(900 / fieldNames.length),
+              1,
+            );
+            const fieldSignature = fieldNames.join('|');
+            const currentSignature = currentFieldNames?.join('|');
+
+            if (
+              currentFieldNames &&
+              (currentSignature !== fieldSignature ||
+                currentRows.length >= maxRowsPerStatement)
+            ) {
+              await flushBatchRows();
+            }
+
+            if (!currentFieldNames) {
+              currentFieldNames = fieldNames;
+            }
+
+            currentRows.push(fieldValues);
+
+            if (currentRows.length >= maxRowsPerStatement) {
+              await flushBatchRows();
+            }
           }
-        }
-        if (batchQueries.length > 0) {
-          if (Capacitor.getPlatform() === 'web') {
-            for (const q of batchQueries) {
-              await this._db!.run(q.statement, q.values);
-            }
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } else {
-            await this._db!.executeSet(batchQueries);
+          await flushBatchRows();
+          if (batchQueries.length > 0) {
+            await writeSyncBatch(batchQueries);
           }
         }
       }
-    }
 
-    // Persist last_pulled for every requested table to avoid default fallback
-    // timestamp on subsequent RPC payload construction.
-    for (const tableName of orderedTableNames) {
-      await this.executeQuery(
-        `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-        [tableName, lastPulled],
-      );
+      await writeSyncBatch(pullSyncStatements);
+      await commitSyncWriteTransaction();
+    } catch (error) {
+      await rollbackSyncWriteTransaction();
+      throw error;
     }
 
     // Update debug info (avoid expensive full JSON serialization on hot path).
@@ -766,9 +917,19 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
+    const cachedColumns = this._tableColumnsCache.get(tableName);
+    if (cachedColumns?.length) {
+      return cachedColumns;
+    }
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
-    return result?.values?.map((row: any) => row.name);
+    const columns = result?.values
+      ?.map((row: any) => row.name)
+      .filter((name): name is string => Boolean(name));
+    if (columns?.length) {
+      this._tableColumnsCache.set(tableName, columns);
+    }
+    return columns;
   }
 
   private async reconcileCurrentClassSelection() {
@@ -895,7 +1056,6 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return;
     // 🔒 LOCK
     if (this._syncInProgress) {
-      logger.info('🟡 Sync already running → scheduling another run');
       if (refreshTables && refreshTables.length > 0) {
         this._retryRefreshTables.push(...refreshTables);
       }
@@ -904,20 +1064,16 @@ export class SqliteApi implements ServiceApi {
     }
     this._syncInProgress = true;
     try {
-      const refresh_tables = "'" + refreshTables.join("', '") + "'";
-      logger.info(
-        'logs to check synced tables',
-        JSON.stringify(refresh_tables),
-      );
-      await this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
-      );
-      const tablePullSync = await this.executeQuery(
-        `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`,
-      );
-      const lastUserUpdatedStr =
-        tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
-
+      if (refreshTables.length > 0) {
+        const refresh_tables = "'" + refreshTables.join("', '") + "'";
+        logger.info(
+          'logs to check synced tables',
+          JSON.stringify(refresh_tables),
+        );
+        await this.executeQuery(
+          `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
+        );
+      }
       await this.pullChanges(tableNames, isFirstSync);
       Promise.allSettled([
         this.prefetchStickerBookAssetsAfterSync(),
@@ -3742,53 +3898,22 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList,
   ): Promise<LeaderboardInfo | undefined> {
-    logger.warn('[SqliteApi][Leaderboard] getLeaderboardResults:start', {
-      sectionId: sectionId || '',
-      leaderboardDropdownType,
-      flow: sectionId ? 'class' : 'generic-b2c',
-    });
     if (sectionId) {
       // Getting Class wise Leaderboard
-      logger.warn('[SqliteApi][Leaderboard] forwarding class leaderboard', {
-        sectionId,
-        leaderboardDropdownType,
-      });
       let classLeaderboard = await this._serverApi.getLeaderboardResults(
         sectionId,
         leaderboardDropdownType,
       );
-      logger.warn('[SqliteApi][Leaderboard] class leaderboard received', {
-        sectionId,
-        leaderboardDropdownType,
-        weekly: classLeaderboard?.weekly.length ?? 0,
-        monthly: classLeaderboard?.monthly.length ?? 0,
-        allTime: classLeaderboard?.allTime.length ?? 0,
-      });
       return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
-      logger.warn('[SqliteApi][Leaderboard] forwarding generic leaderboard', {
-        leaderboardDropdownType,
-      });
       let genericQueryResult = await this._serverApi.getLeaderboardResults(
         '',
         leaderboardDropdownType,
       );
       if (!genericQueryResult) {
-        logger.warn(
-          '[SqliteApi][Leaderboard] generic leaderboard empty result',
-          {
-            leaderboardDropdownType,
-          },
-        );
         return;
       }
-      logger.warn('[SqliteApi][Leaderboard] generic leaderboard received', {
-        leaderboardDropdownType,
-        weekly: genericQueryResult.weekly.length,
-        monthly: genericQueryResult.monthly.length,
-        allTime: genericQueryResult.allTime.length,
-      });
       return genericQueryResult;
     }
   }
@@ -3808,7 +3933,11 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'monthly' as type, res.student_id, u.name,
@@ -3817,8 +3946,12 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'weekly' as type, res.student_id, u.name,
@@ -3827,8 +3960,12 @@ export class SqliteApi implements ServiceApi {
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
       `;
 
@@ -4581,6 +4718,10 @@ export class SqliteApi implements ServiceApi {
       logger.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
       return false;
     }
+  }
+
+  isSyncInProgress(): boolean {
+    return this._syncInProgress;
   }
   async getUserAssignmentCart(
     userId: string,

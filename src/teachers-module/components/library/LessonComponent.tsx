@@ -76,9 +76,11 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           className="lessoncomponent-lesson-image"
         >
           <SelectIconImage
-            localSrc={`courses/en/icons/en00.webp`}
+            localSrc={
+              lesson.id ? `teacher/lessons/icons/${lesson.id}.webp` : undefined
+            }
             defaultSrc={'assets/icons/DefaultIcon.png'}
-            webSrc={`${lesson.image}`}
+            webSrc={lesson.image ?? ''}
             // imageWidth="100%"
             imageHeight="100%"
             webImageHeight="0px"

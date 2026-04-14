@@ -483,8 +483,13 @@ const TeacherAssignment: FC<{
                 return (
                   <div key={index} className="assignment-list-item">
                     <SelectIconImage
+                      localSrc={
+                        assignment?.id
+                          ? `teacher/lessons/icons/${assignment.id}.webp`
+                          : undefined
+                      }
                       defaultSrc={'assets/icons/DefaultIcon.png'}
-                      webSrc={assignment?.image}
+                      webSrc={assignment?.image ?? ''}
                       imageWidth="100px"
                       imageHeight="100px"
                     />
