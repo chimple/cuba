@@ -105,7 +105,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       setSchoolName(schoolName);
 
       if (currentStudent?.id) {
-        const userStickers = await api.getUserSticker(currentStudent.id);
+        const userStickers = await api.getUserStickerBook(currentStudent.id);
         const hasUnseen = userStickers.some((s) => !s.is_seen);
         setHasUnseenStickers(hasUnseen);
       }
@@ -128,6 +128,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     });
     if (hasUnseenStickers) {
       setHasUnseenStickers(false);
+      if (student?.id) {
+        void api.markStciekercolledasTrue(student.id).catch((error) => {
+          logger.error('[ProfileMenu] Failed to mark sticker books as seen', {
+            user_id: student.id,
+            error,
+          });
+        });
+      }
     }
     history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };
