@@ -7,12 +7,57 @@ const GENERIC_POPUP_SOUND_EFFECT_URL =
   '/assets/audios/common/generic_popup_sound_effect.mp3';
 const GENERIC_POPUP_SOUND_EFFECT_DELAY_MS = 300;
 const GENERIC_POPUP_READING_START_DELAY_MS = 2000;
+const GENERIC_POPUP_READING_LINE_DELAY_MS = 2000;
 
-const playPopupAudio = (audioUrl: string | undefined, fallbackText: string) => {
+const getPopupNarrationLines = (
+  heading: string,
+  subHeading: string | undefined,
+  details: string[],
+): string[] => {
+  return [heading, subHeading, ...details]
+    .map((line) => (line ?? '').trim())
+    .filter((line) => line.length > 0);
+};
+
+const playPopupAudioByLine = (lines: string[], lineIndex = 0): void => {
+  const line = lines[lineIndex];
+  if (!line) {
+    return;
+  }
+
+  const isLastLine = lineIndex === lines.length - 1;
+
   void AudioUtil.playAudioOrTts({
-    audioUrl,
-    text: fallbackText,
+    text: line,
+    ...(isLastLine
+      ? {}
+      : {
+          onCompleteDelayMs: GENERIC_POPUP_READING_LINE_DELAY_MS,
+          onComplete: () => {
+            playPopupAudioByLine(lines, lineIndex + 1);
+          },
+        }),
   });
+};
+
+const playPopupAudio = ({
+  audioUrl,
+  fallbackText,
+  narrationLines,
+}: {
+  audioUrl: string | undefined;
+  fallbackText: string;
+  narrationLines: string[];
+}): void => {
+  if (audioUrl) {
+    void AudioUtil.playAudioOrTts({
+      audioUrl,
+      text: fallbackText,
+    });
+    return;
+  }
+
+  playPopupAudioByLine(narrationLines);
 };
 
 interface Props {
@@ -38,9 +83,14 @@ const GenericPopup: React.FC<Props> = ({
   onClose,
   onAction,
 }) => {
-  const fallbackText = useMemo(
-    () => [heading, subHeading, ...details].filter(Boolean).join(' '),
+  const narrationLines = useMemo(
+    () => getPopupNarrationLines(heading, subHeading, details),
     [heading, subHeading, details],
+  );
+
+  const fallbackText = useMemo(
+    () => narrationLines.join(' '),
+    [narrationLines],
   );
 
   useEffect(() => {
@@ -49,18 +99,18 @@ const GenericPopup: React.FC<Props> = ({
       delayMs: GENERIC_POPUP_SOUND_EFFECT_DELAY_MS,
       onCompleteDelayMs: GENERIC_POPUP_READING_START_DELAY_MS,
       onComplete: () => {
-        playPopupAudio(audioUrl, fallbackText);
+        playPopupAudio({ audioUrl, fallbackText, narrationLines });
       },
     });
 
     return () => {
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
-  }, [audioUrl, fallbackText]);
+  }, [audioUrl, fallbackText, narrationLines]);
 
   const handleReplayAudio = () => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
-    playPopupAudio(audioUrl, fallbackText);
+    playPopupAudio({ audioUrl, fallbackText, narrationLines });
   };
 
   const handleClose = () => {
@@ -83,7 +133,6 @@ const GenericPopup: React.FC<Props> = ({
             size={44}
           />
         </div>
-        {/* Close */}
         <button
           id="generic-popup-close"
           className="generic-popup-close"
@@ -97,7 +146,6 @@ const GenericPopup: React.FC<Props> = ({
           />
         </button>
 
-        {/* Background image */}
         <img
           id="generic-popup-bg-image"
           className="generic-popup-bg-image"
@@ -106,9 +154,7 @@ const GenericPopup: React.FC<Props> = ({
         />
 
         <div id="generic-popup-content" className="generic-popup-content">
-          {/* Top row: thumb + text */}
           <div className="generic-popup-main">
-            {/* Left thumbnail */}
             <div
               id="generic-popup-thumb-wrapper"
               className="generic-popup-thumb-wrapper"
@@ -121,7 +167,6 @@ const GenericPopup: React.FC<Props> = ({
               />
             </div>
 
-            {/* Text content */}
             <div
               id="generic-popup-text-wrapper"
               className="generic-popup-text-wrapper"
@@ -158,7 +203,6 @@ const GenericPopup: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Bottom row: CTA (full width) */}
           <div className="generic-popup-footer">
             <button
               id="generic-popup-cta"
