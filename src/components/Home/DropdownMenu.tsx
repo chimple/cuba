@@ -416,18 +416,21 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                 key={detail.course.id}
                 onClick={() => handleSelect(detail, index)}
               >
-                <SelectIconImage
-                  key={detail.course.id}
-                  localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
-                  defaultSrc="assets/icons/DefaultIcon.png"
-                  webSrc={
-                    getCachedImageUrl(detail.course) ||
-                    'assets/icons/DefaultIcon.png'
-                  }
-                  showLoaderFromStart={true}
-                  minimumLoaderVisibleMs={250}
-                  imageWidth="85%"
-                />
+                <div className="dropdownmenu-open-item-icon-wrapper">
+                  <SelectIconImage
+                    key={detail.course.id}
+                    localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
+                    defaultSrc="assets/icons/DefaultIcon.png"
+                    webSrc={
+                      getCachedImageUrl(detail.course) ||
+                      'assets/icons/DefaultIcon.png'
+                    }
+                    showLoaderFromStart={true}
+                    minimumLoaderVisibleMs={250}
+                    imageWidth="30px"
+                    imageHeight="30px"
+                  />
+                </div>
                 <div className="dropdownmenu-truncate-style">
                   {truncateName(detail.course.name)}
                 </div>
