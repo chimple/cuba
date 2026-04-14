@@ -23,8 +23,12 @@ const UserProfile: React.FC = () => {
   const [languages, setLanguages] = useState<
     Array<{ label: string; value: string; id: string }>
   >([]);
-  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
+  const [currentClass, setCurrentClass] = useState<
+    TableTypes<'class'> | undefined
+  >(() => Util.getCurrentClass());
+  const [currentSchool, setCurrentSchool] = useState<
+    TableTypes<'school'> | undefined
+  >(() => Util.getCurrentSchool());
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const api = ServiceConfig.getI().apiHandler;
 
