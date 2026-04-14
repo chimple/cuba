@@ -1,5 +1,10 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import './SelectIconImage.css';
+import {
+  downloadCourseIconToDevice,
+  getCachedCourseIconUri,
+  getCachedCourseIconUriSync,
+} from '../../utility/courseIconDeviceCache';
 
 interface SelectIconImageProps {
   localSrc?: string;
@@ -28,6 +33,9 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
   minimumLoaderVisibleMs = 0,
   disableLoader = false,
 }) => {
+  const [resolvedLocalSrc, setResolvedLocalSrc] = useState<string | undefined>(
+    localSrc,
+  );
   const [activeSrc, setActiveSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showLoader, setShowLoader] = useState<boolean>(false);
@@ -36,8 +44,40 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
 
   // Render the first source immediately and fallback on error to avoid preload delay.
   const getInitialSrc = (): string => {
-    return localSrc || webSrc || defaultSrc;
+    return resolvedLocalSrc || webSrc || defaultSrc;
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!localSrc) {
+      setResolvedLocalSrc(undefined);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    // Resolve local icon path to on-device file URI when it already exists.
+    const syncCachedUri = getCachedCourseIconUriSync(localSrc);
+    if (syncCachedUri) {
+      setResolvedLocalSrc(syncCachedUri);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setResolvedLocalSrc(localSrc);
+    void getCachedCourseIconUri(localSrc).then((cachedUri) => {
+      if (!isMounted || !cachedUri) {
+        return;
+      }
+      setResolvedLocalSrc(cachedUri);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [localSrc]);
 
   const clearHideLoaderTimeout = (): void => {
     if (hideLoaderTimeoutRef.current !== null) {
@@ -73,7 +113,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     loaderShownAtRef.current = null;
 
     // For default-only icons (e.g. dropdown arrows), render immediately without loader.
-    if (!localSrc && !webSrc) {
+    if (!resolvedLocalSrc && !webSrc) {
       setActiveSrc(defaultSrc);
       setIsLoading(false);
       setShowLoader(false);
@@ -90,7 +130,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
 
     setIsLoading(true);
     setShowLoader(false);
-  }, [localSrc, webSrc, defaultSrc]);
+  }, [resolvedLocalSrc, webSrc, defaultSrc]);
 
   useEffect(() => {
     if (disableLoader) {
@@ -150,11 +190,16 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     if (activeSrc) {
       loadedImageSrcCache.add(activeSrc);
     }
+
+    if (webSrc && localSrc && activeSrc === webSrc) {
+      void downloadCourseIconToDevice(localSrc, webSrc);
+    }
+
     finalizeLoading();
   };
 
   const handleImageError = (): void => {
-    if (activeSrc === localSrc && webSrc) {
+    if (activeSrc === resolvedLocalSrc && webSrc) {
       setActiveSrc(webSrc);
 
       if (isImageReady(webSrc)) {

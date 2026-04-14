@@ -11,6 +11,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
+import { downloadCourseIconToDevice } from '../../utility/courseIconDeviceCache';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -102,7 +103,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         const uniqueCourseIds: string[] = Array.from(
           new Set(
             pendingAssignments
-              .map((a: any) => a.course_id as string | undefined)
+              .map((assignment) => assignment.course_id)
               .filter((id): id is string => !!id),
           ),
         );
@@ -311,8 +312,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   useEffect(() => {
-    const preloadImage = (src: string) => {
-      return new Promise((resolve) => {
+    const preloadImage = (src: string): Promise<boolean> => {
+      return new Promise<boolean>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
@@ -320,14 +321,31 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       });
     };
 
-    courseDetails.forEach(async (detail) => {
-      const sources = [
-        `courses/chapter_icons/${detail.course.id}.webp`,
-        detail.course.image || '',
-      ].filter(Boolean);
+    // Download online icons in background into the same localSrc path for offline reuse.
+    const preloadTasks: Promise<unknown>[] = [];
+    const processedSources = new Set<string>();
+    const processedDeviceDownloads = new Set<string>();
 
-      Promise.any(sources.map(preloadImage));
+    courseDetails.forEach((detail) => {
+      const localSrc = `courses/chapter_icons/${detail.course.id}.webp`;
+      if (!processedSources.has(localSrc)) {
+        processedSources.add(localSrc);
+        preloadTasks.push(preloadImage(localSrc));
+      }
+
+      const onlineSrc = detail.course.image?.trim() || '';
+      if (onlineSrc && !processedSources.has(onlineSrc)) {
+        processedSources.add(onlineSrc);
+        preloadTasks.push(preloadImage(onlineSrc));
+      }
+
+      if (onlineSrc && !processedDeviceDownloads.has(localSrc)) {
+        processedDeviceDownloads.add(localSrc);
+        preloadTasks.push(downloadCourseIconToDevice(localSrc, onlineSrc));
+      }
     });
+
+    void Promise.allSettled(preloadTasks);
   }, [courseDetails]);
 
   useEffect(() => {
@@ -338,7 +356,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     });
   }, [expanded]);
 
-  const getCachedImageUrl = (course: any) => {
+  const getCachedImageUrl = (course: TableTypes<'course'>): string => {
     const key = course.id;
 
     // Already cached → return
