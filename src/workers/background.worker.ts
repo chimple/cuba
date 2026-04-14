@@ -51,108 +51,41 @@ const normalizeSqliteValue = (value: unknown): unknown => {
   return value;
 };
 
-const MAX_SQLITE_BIND_PARAMS = 900;
-
-const getRowFieldNames = (
-  row: Record<string, unknown>,
-  existingColumns: string[],
-): string[] =>
-  existingColumns.filter((columnName) =>
-    Object.prototype.hasOwnProperty.call(row, columnName),
-  );
-
-const buildUpsertStatement = (
-  tableName: string,
-  fieldNames: string[],
-  rowValuesList: unknown[][],
-): SqlStatement => {
-  const placeholdersPerRow = `(${fieldNames.map(() => '?').join(', ')})`;
-  const valuesPlaceholders = rowValuesList
-    .map(() => placeholdersPerRow)
-    .join(', ');
-  const values = rowValuesList.flat();
-  const updateColumns = fieldNames.filter((name) => name !== 'id');
-  const updateSetClause = updateColumns
-    .map((name) => `${name} = excluded.${name}`)
-    .join(', ');
-  const onConflictClause = updateSetClause
-    ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${tableName}.updated_at`
-    : 'ON CONFLICT(id) DO NOTHING';
-
-  return {
-    statement: `
-          INSERT INTO ${tableName} (${fieldNames.join(', ')})
-          VALUES ${valuesPlaceholders}
-          ${onConflictClause};
-        `,
-    values,
-  };
-};
-
 const buildStatementsForRows = (
   tableName: string,
   rows: Record<string, unknown>[],
   existingColumns: string[],
-): { statements: SqlStatement[]; rowCount: number } => {
+): SqlStatement[] => {
   const resolvedTableName = safeTableName(tableName);
   const statementsForTable: SqlStatement[] = [];
-  let validRowCount = 0;
-  let currentFieldNames: string[] | null = null;
-  let currentRowValuesList: unknown[][] = [];
-
-  const flushCurrentGroup = () => {
-    if (!currentFieldNames || currentRowValuesList.length === 0) {
-      return;
-    }
-    statementsForTable.push(
-      buildUpsertStatement(
-        resolvedTableName,
-        currentFieldNames,
-        currentRowValuesList,
-      ),
-    );
-    currentFieldNames = null;
-    currentRowValuesList = [];
-  };
-
   for (const row of rows) {
-    const fieldNames = getRowFieldNames(row, existingColumns);
+    const fieldNames = Object.keys(row).filter((key) =>
+      existingColumns.includes(key),
+    );
     if (!fieldNames.length) {
       continue;
     }
+    const placeholders = fieldNames.map(() => '?').join(', ');
     const values = fieldNames.map((name) => normalizeSqliteValue(row[name]));
-    const maxRowsPerStatement = Math.max(
-      Math.floor(MAX_SQLITE_BIND_PARAMS / fieldNames.length),
-      1,
-    );
-    const fieldSignature = fieldNames.join('|');
-    const currentSignature = currentFieldNames?.join('|');
+    const updateColumns = fieldNames.filter((name) => name !== 'id');
+    const updateSetClause = updateColumns
+      .map((name) => `${name} = excluded.${name}`)
+      .join(', ');
 
-    if (
-      currentFieldNames &&
-      (currentSignature !== fieldSignature ||
-        currentRowValuesList.length >= maxRowsPerStatement)
-    ) {
-      flushCurrentGroup();
-    }
+    const onConflictClause = updateSetClause
+      ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${resolvedTableName}.updated_at`
+      : 'ON CONFLICT(id) DO NOTHING';
 
-    if (!currentFieldNames) {
-      currentFieldNames = fieldNames;
-    }
-
-    currentRowValuesList.push(values);
-    validRowCount += 1;
-
-    if (currentRowValuesList.length >= maxRowsPerStatement) {
-      flushCurrentGroup();
-    }
+    statementsForTable.push({
+      statement: `
+          INSERT INTO ${resolvedTableName} (${fieldNames.join(', ')})
+          VALUES (${placeholders})
+          ${onConflictClause};
+        `,
+      values,
+    });
   }
-  flushCurrentGroup();
-
-  return {
-    statements: statementsForTable,
-    rowCount: validRowCount,
-  };
+  return statementsForTable;
 };
 
 const buildSyncBatches = (
@@ -179,7 +112,7 @@ const buildSyncBatches = (
       continue;
     }
 
-    const { statements: statementsForTable, rowCount } = buildStatementsForRows(
+    const statementsForTable = buildStatementsForRows(
       resolvedTableName,
       rows,
       existingColumns,
@@ -198,7 +131,7 @@ const buildSyncBatches = (
     }
 
     tableBatches[resolvedTableName] = chunked;
-    rowCountByTable[resolvedTableName] = rowCount;
+    rowCountByTable[resolvedTableName] = statementsForTable.length;
   }
 
   const payloadSizeBytes = payload.includePayloadSizeBytes
@@ -676,7 +609,7 @@ const streamSyncBatches = async (request: WorkerStreamRequest) => {
 
     for (let i = 0; i < rows.length; i += rowsPerChunk) {
       const rowChunk = rows.slice(i, i + rowsPerChunk);
-      const { statements } = buildStatementsForRows(
+      const statements = buildStatementsForRows(
         resolvedTableName,
         rowChunk,
         existingColumns,

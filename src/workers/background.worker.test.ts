@@ -65,7 +65,7 @@ describe('background.worker', () => {
     );
   });
 
-  test('groups compatible rows into multi-row insert statements', async () => {
+  test('splits non-user table rows by default batch size', async () => {
     const onmessage = await loadWorker();
     await onmessage({
       data: {
@@ -88,11 +88,7 @@ describe('background.worker', () => {
     });
     const response = (globalThis as unknown as { postMessage: jest.Mock })
       .postMessage.mock.calls[0][0];
-    expect(response.result.tableBatches.lesson).toHaveLength(1);
-    expect(response.result.tableBatches.lesson[0]).toHaveLength(1);
-    expect(response.result.tableBatches.lesson[0][0].statement).toContain(
-      'VALUES (?, ?), (?, ?), (?, ?)',
-    );
+    expect(response.result.tableBatches.lesson).toHaveLength(2);
   });
 
   test('uses DO NOTHING clause when row has only id', async () => {
