@@ -71,7 +71,20 @@ const StickerBook: React.FC = () => {
 
     try {
       if (currentStudent?.id) {
-        await api.updateRewardAsSeen(currentStudent.id);
+        const userStickers = await api.getUserStickerBook(currentStudent.id);
+        const unseenStickers = userStickers.filter(
+          (sticker) => !sticker.is_seen,
+        );
+        if (unseenStickers.length > 0) {
+          await api.markStciekercolledasTrue(currentStudent.id);
+          logger.info('[StickerBook] Marked sticker books as seen', {
+            user_id: currentStudent.id,
+          });
+        } else {
+          logger.info('[StickerBook] No unseen sticker books to mark', {
+            user_id: currentStudent.id,
+          });
+        }
       }
       const [allBooks, currentBookResult, completedBooks] = await Promise.all([
         api.getAllStickerBooks(),

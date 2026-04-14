@@ -1845,6 +1845,9 @@ export class FirebaseApi implements ServiceApi {
       rewards: finalRewards,
     });
   }
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return this.updateRewardAsSeen(userId);
+  }
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error('Failed to remove courses from class');
   }

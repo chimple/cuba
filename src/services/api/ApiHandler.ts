@@ -172,6 +172,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateRewardAsSeen(studentId);
   }
 
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return await this.s.markStciekercolledasTrue(userId);
+  }
+
   public async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
@@ -187,6 +191,11 @@ export class ApiHandler implements ServiceApi {
     userId: string,
   ): Promise<TableTypes<'user_sticker'>[]> {
     return this.s.getUserSticker(userId);
+  }
+  public async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    return this.s.getUserStickerBook(userId);
   }
   public async getUserBonus(
     userId: string,

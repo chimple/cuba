@@ -173,6 +173,9 @@ export class OneRosterApi implements ServiceApi {
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
+  markStciekercolledasTrue(userId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
@@ -185,6 +188,11 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
   getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
+    throw new Error('Method not implemented.');
+  }
+  getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
     throw new Error('Method not implemented.');
   }
   getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]> {
