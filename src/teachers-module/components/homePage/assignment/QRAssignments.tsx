@@ -199,8 +199,13 @@ const QRAssignments: React.FC = () => {
                     className="qrAssignments-lesson-image-wrapper"
                   >
                     <SelectIconImage
+                      localSrc={
+                        lesson.id
+                          ? `teacher/lessons/icons/${lesson.id}.webp`
+                          : undefined
+                      }
                       defaultSrc="assets/icons/DefaultIcon.png"
-                      webSrc={lesson.image}
+                      webSrc={lesson.image ?? ''}
                       imageWidth="80px"
                       imageHeight="80px"
                     />
