@@ -297,6 +297,13 @@ const SideMenu: React.FC<{
   };
 
   const [showDialogBox, setShowDialogBox] = useState(false);
+  const [openLogoutDialogAfterMenuClose, setOpenLogoutDialogAfterMenuClose] =
+    useState(false);
+
+  const handleLogoutClick = () => {
+    setOpenLogoutDialogAfterMenuClose(true);
+    menuRef.current?.close();
+  };
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
@@ -329,6 +336,10 @@ const SideMenu: React.FC<{
         onIonDidClose={() => {
           setIsMenuOpen(false);
           setSchoolSearchResetToken((prev) => prev + 1);
+          if (openLogoutDialogAfterMenuClose) {
+            setOpenLogoutDialogAfterMenuClose(false);
+            setShowDialogBox(true);
+          }
         }}
       >
         <div aria-label={String(t('Menu'))} className="side-menu-container">
@@ -379,10 +390,7 @@ const SideMenu: React.FC<{
               </IonItem>
             </div>
           )}
-          <div
-            className="teacher-logout-btn"
-            onClick={() => setShowDialogBox(true)}
-          >
+          <div className="teacher-logout-btn" onClick={handleLogoutClick}>
             {t('Logout')}
           </div>
 
