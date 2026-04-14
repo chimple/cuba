@@ -117,7 +117,6 @@ export class SqliteApi implements ServiceApi {
     | undefined;
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
-  private _initPromise: Promise<void> | null = null;
 
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
@@ -137,22 +136,13 @@ export class SqliteApi implements ServiceApi {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
     }
-    await SqliteApi.i.ensureInitialized();
+    if (!SqliteApi.i._db) {
+      await SqliteApi.i.init();
+    }
     return SqliteApi.i;
   }
 
-  private async ensureInitialized(): Promise<void> {
-    if (this._db && this._sqlite) return;
-    if (!this._initPromise) {
-      this._initPromise = this.init().catch((error) => {
-        this._initPromise = null;
-        throw error;
-      });
-    }
-    await this._initPromise;
-  }
-
-  private async init(): Promise<void> {
+  private async init() {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
@@ -275,6 +265,7 @@ export class SqliteApi implements ServiceApi {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
     }
     await this.setUpDatabase();
+    return this._db;
   }
 
   private async setUpDatabase() {
@@ -312,7 +303,8 @@ export class SqliteApi implements ServiceApi {
           );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
-          // Avoid full page reload; continue setup so login isn't shown twice.
+          window.location.replace(BASE_NAME || '/');
+          return;
         } catch (error) {
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
         }
@@ -376,7 +368,6 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined,
   ) {
-    await this.ensureInitialized();
     if (!this._db || !this._sqlite) return;
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
