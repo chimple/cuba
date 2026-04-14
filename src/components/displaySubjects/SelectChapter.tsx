@@ -54,7 +54,7 @@ const SelectChapter: FC<{
                     imageHeight={'auto'}
                   />
                 </div>
-                <div>
+                <div className="selectchapter-title">
                   {course?.code === COURSES.ENGLISH
                     ? chapter?.name
                     : t(chapter?.name ?? '')}

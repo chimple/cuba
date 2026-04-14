@@ -74,16 +74,6 @@ jest.mock('../i18n', () => ({
   },
 }));
 
-jest.mock('../utility/logger', () => ({
-  __esModule: true,
-  default: {
-    warn: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
-  },
-}));
-
 jest.mock('../growthbook/Growthbook', () => ({
   useGbContext: () => ({ setGbUpdated: mockSetGbUpdated }),
   updateLocalAttributes: (attributes: unknown) =>

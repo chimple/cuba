@@ -1523,7 +1523,7 @@
     "Are you sure you want to migrate the selected {{count}} schools to the next academic year?": "क्या आप वाकई चयनित {{गिनती}} विद्यालयों को अगले शैक्षणिक वर्ष में स्थानांतरित करना चाहते हैं?",
     "Complete these 5 lessons to earn 10 stars": "10 सितारे कमाने के लिए ये 5 पाठ पूरे करें",
     "Complete the previous page to unlock this one.": "इस पेज को अनलॉक करने के लिए पिछला पेज पूरा करें।",
-    "Finish the pathway & collect this sticker.": "पाठ पूरा करें और यह स्टिकर प्राप्त करें।",
+    "Finish the pathway & collect this sticker.": "यह मार्ग पूरा करें और इस स्टिकर को प्राप्त करें।",
     "Learning Outcome": "सीखने का परिणाम",
     "Migrate Schools": "स्कूल स्थानांतरित करें",
     "Migrate": "स्थानांतरित करें",
@@ -1535,8 +1535,8 @@
     "Schools Selected": "चयनित स्कूल",
     "Selected {{count}} schools have migrated to the next academic year.": "चयनित {{गिनती}} स्कूल अगले शैक्षणिक वर्ष में स्थानांतरित हो गए हैं।",
     "Showing Results for": "के लिए परिणाम दिखाए जा रहे हैं",
-    "Sticker Book": "चिपकाने वाली चित्र-पुस्तिका",
-    "STICKER BOOK": "चिपकाने वाली चित्र-पुस्तिका",
+    "Sticker Book": "स्टिकर पुस्तिका",
+    "STICKER BOOK": "स्टिकर पुस्तिका",
     "Successfully Migrated": "सफलतापूर्वक स्थानांतरित",
     "We couldn't complete the migration. Please try again later": "हम माइग्रेशन पूरा नहीं कर सके। कृपया बाद में फिर से प्रयास करें",
     "Profile Deleted Successfully": "प्रोफ़ाइल सफलतापूर्वक हटाई गई",
@@ -1625,5 +1625,8 @@
     "WhatsApp Failures": "व्हाट्सएप विफलता",
     "WhatsApp Group Disconnected": "व्हाट्सएप ग्रुप डिस्कनेक्ट हो गया",
     "WhatsApp media upload failed before sending started.": "भेजने की प्रक्रिया शुरू होने से पहले ही व्हाट्सएप पर मीडिया अपलोड करने में विफलता मिली।",
-    "Keep going!\nFinish these lessons to choose another subject.": "आगे बढ़ते रहो!\nइन पाठों को पूरा करके कोई दूसरा विषय चुनो।।"
+    "Keep going!\nFinish these lessons to choose another subject.": "आगे बढ़ते रहो!\nइन पाठों को पूरा करके कोई दूसरा विषय चुनो।।",
+    "High Engagement 45+ minutes": "उच्च सहभागिता 45+ मिनट",
+    "Medium Engagement <45 minutes": "मध्यम सहभागिता <45 मिनट",
+    "App not downloaded": "ऐप डाउनलोड नहीं किया गया"
 }
