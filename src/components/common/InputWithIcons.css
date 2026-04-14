@@ -91,3 +91,8 @@
   font-style: normal;
   font-size: 14px;
 }
+@media (min-width: 1000px) and (max-width: 1010px) and (min-height: 595px) and (max-height: 610px) {
+  .with-icon-label-offset-small {
+    top: -27% !important;
+  }
+}
