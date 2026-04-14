@@ -28,6 +28,8 @@ const JoinClass: FC<{
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState('');
   const [currStudent] = useState<any>(Util.getCurrentStudent());
+  const currentStudentName = currStudent?.name?.trim?.() ?? '';
+  const hasExistingStudentName = currentStudentName.length > 0;
 
   const api = ServiceConfig.getI().apiHandler;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -218,7 +220,7 @@ const JoinClass: FC<{
   const isFormValid =
     !!codeResult &&
     !error &&
-    (fullName.length >= 3 || fullName === currStudent.name) &&
+    (fullName.trim().length >= 3 || fullName === currentStudentName) &&
     inviteCode?.length === 6;
 
   return (
@@ -236,10 +238,11 @@ const JoinClass: FC<{
             value={fullName}
             setValue={setFullName}
             icon="assets/icons/BusinessCard.svg"
-            readOnly={!!currStudent && fullName === currStudent.name}
+            readOnly={hasExistingStudentName && fullName === currentStudentName}
             statusIcon={
               fullName.length == 0 ? null : fullName &&
-                (fullName.length >= 3 || fullName === currStudent.name) ? (
+                (fullName.trim().length >= 3 ||
+                  fullName === currentStudentName) ? (
                 <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
               ) : (
                 <img src="assets/icons/Vector.svg" alt="Status icon" />
