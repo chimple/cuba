@@ -58,10 +58,8 @@ const mockApi = {
   getDataByInviteCode: jest.fn(),
   isSyncInProgress: jest.fn(),
   linkStudent: jest.fn(),
-  fetchAndStoreJoinClassData: jest.fn(),
   updateStudent: jest.fn(),
   getClassById: jest.fn(),
-  getSchoolById: jest.fn(),
   updateSchoolLastModified: jest.fn(),
   updateClassLastModified: jest.fn(),
   updateUserLastModified: jest.fn(),
@@ -217,10 +215,7 @@ describe('JoinClass – join flow', () => {
       class_name: '5A',
     });
 
-    mockApi.fetchAndStoreJoinClassData.mockResolvedValue({
-      school: { id: 'school-1' },
-      classData: { id: 'class-1' },
-    });
+    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
 
     render(
       <MemoryRouter>
@@ -240,10 +235,6 @@ describe('JoinClass – join flow', () => {
 
     await waitFor(() => {
       expect(mockApi.linkStudent).toHaveBeenCalledWith(123456, 'student-1');
-      expect(mockApi.fetchAndStoreJoinClassData).toHaveBeenCalledWith(
-        'class-1',
-        'school-1',
-      );
       expect(onClassJoin).toHaveBeenCalled();
     });
   });
@@ -261,10 +252,7 @@ describe('JoinClass – join flow', () => {
       class_name: '5A',
     });
 
-    mockApi.fetchAndStoreJoinClassData.mockResolvedValue({
-      school: { id: 'school-1' },
-      classData: { id: 'class-1' },
-    });
+    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
 
     render(
       <MemoryRouter>
@@ -331,10 +319,7 @@ describe('JoinClass – join flow', () => {
       school_name: 'ABC School',
       class_name: '5A',
     });
-    mockApi.fetchAndStoreJoinClassData.mockResolvedValue({
-      school: { id: 'school-1' },
-      classData: { id: 'class-1' },
-    });
+    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
     mockApi.linkStudent.mockImplementation(async () => {
       window.setTimeout(() => {
         syncInProgress = false;

@@ -145,17 +145,7 @@ const JoinClass: FC<{
           codeResult['class_id'],
           codeResult['school_id'],
         );
-        const { school: currSchool, classData: currClass } =
-          await api.fetchAndStoreJoinClassData(
-            codeResult['class_id'],
-            codeResult['school_id'],
-          );
-        if (currSchool) {
-          await schoolUtil.setCurrentSchool(currSchool);
-        } else {
-          logger.error('School data not found.');
-          throw new Error('School data could not be fetched.');
-        }
+        const currClass = await api.getClassById(codeResult['class_id']);
         if (currClass) {
           await schoolUtil.setCurrentClass(currClass);
         } else {

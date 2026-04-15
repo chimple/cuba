@@ -3104,21 +3104,6 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
-  async fetchAndStoreJoinClassData(
-    classId: string,
-    schoolId: string,
-  ): Promise<{
-    classData?: TableTypes<'class'>;
-    school?: TableTypes<'school'>;
-  }> {
-    const [school, classData] = await Promise.all([
-      this.getSchoolById(schoolId),
-      this.getClassById(classId),
-    ]);
-
-    return { school, classData };
-  }
-
   // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;

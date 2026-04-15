@@ -418,16 +418,6 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolById(id);
   }
 
-  public async fetchAndStoreJoinClassData(
-    classId: string,
-    schoolId: string,
-  ): Promise<{
-    classData?: TableTypes<'class'>;
-    school?: TableTypes<'school'>;
-  }> {
-    return await this.s.fetchAndStoreJoinClassData(classId, schoolId);
-  }
-
   public async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
     name: string;
