@@ -941,6 +941,30 @@ export class SqliteApi implements ServiceApi {
     return columns;
   }
 
+  private async cacheServerRow(
+    tableName: TABLES,
+    rowData: Record<string, unknown>,
+  ): Promise<void> {
+    const columns = await this.getTableColumns(tableName);
+    if (!columns?.length) return;
+
+    const selectedColumns = columns.filter((column) =>
+      Object.prototype.hasOwnProperty.call(rowData, column),
+    );
+    if (!selectedColumns.length) return;
+
+    const quotedColumns = selectedColumns.map((column) => `"${column}"`);
+    const placeholders = selectedColumns.map(() => '?');
+    const values = selectedColumns.map((column) =>
+      this.normalizeSqliteValue(rowData[column]),
+    );
+
+    await this.executeQuery(
+      `INSERT OR REPLACE INTO "${tableName}" (${quotedColumns.join(', ')}) VALUES (${placeholders.join(', ')})`,
+      values,
+    );
+  }
+
   private async reconcileCurrentClassSelection() {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const currentSchool = Util.getCurrentSchool();
@@ -3374,6 +3398,26 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
+  }
+
+  async fetchAndStoreJoinClassData(
+    classId: string,
+    schoolId: string,
+  ): Promise<{
+    classData?: TableTypes<'class'>;
+    school?: TableTypes<'school'>;
+  }> {
+    const school = await this._serverApi.getSchoolById(schoolId);
+    if (school) {
+      await this.cacheServerRow(TABLES.School, school);
+    }
+
+    const classData = await this._serverApi.getClassById(classId);
+    if (classData) {
+      await this.cacheServerRow(TABLES.Class, classData);
+    }
+
+    return { school, classData };
   }
 
   // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.

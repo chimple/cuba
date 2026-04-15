@@ -795,6 +795,14 @@ export interface ServiceApi {
    */
   getSchoolById(id: string): Promise<TableTypes<'school'> | undefined>;
 
+  fetchAndStoreJoinClassData(
+    classId: string,
+    schoolId: string,
+  ): Promise<{
+    classData?: TableTypes<'class'>;
+    school?: TableTypes<'school'>;
+  }>;
+
   // Parent WhatsApp Invitation: lightweight school lookup by exact UDISE.
   getParentWhatsappSchoolByUdise?: (udiseCode: string) => Promise<{
     id: string;

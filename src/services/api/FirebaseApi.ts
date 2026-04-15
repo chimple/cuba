@@ -1176,6 +1176,21 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  async fetchAndStoreJoinClassData(
+    classId: string,
+    schoolId: string,
+  ): Promise<{
+    classData?: TableTypes<'class'>;
+    school?: TableTypes<'school'>;
+  }> {
+    const [school, classData] = await Promise.all([
+      this.getSchoolById(schoolId),
+      this.getClassById(classId),
+    ]);
+
+    return { school, classData };
+  }
+
   async isStudentLinked(
     studentId: string,
     fromCache: boolean = false,

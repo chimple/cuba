@@ -257,6 +257,15 @@ export class OneRosterApi implements ServiceApi {
   linkStudent(inviteCode: number, studentId: string): Promise<any> {
     throw new Error('Method not implemented.');
   }
+  fetchAndStoreJoinClassData(
+    classId: string,
+    schoolId: string,
+  ): Promise<{
+    classData?: TableTypes<'class'>;
+    school?: TableTypes<'school'>;
+  }> {
+    throw new Error('Method not implemented.');
+  }
   isSyncInProgress(): boolean {
     return false;
   }
