@@ -39,6 +39,7 @@ jest.mock('../../utility/util', () => ({
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
     getCurrentStudentLanguageCode: jest.fn(() => 'en'),
+    getCanShowAvatar: jest.fn(() => Promise.resolve(true)),
   },
 }));
 
